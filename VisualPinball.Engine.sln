@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "VisualPinball.Engine\VisualPinball.Engine.csproj", "{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
