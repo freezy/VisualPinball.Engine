@@ -159,9 +159,13 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
 			if (obj is PrimitiveData tableData) {
-				ParseVertices(tableData, IsCompressed
-					? BiffZlib.Decompress(reader.ReadBytes(len))
-					: reader.ReadBytes(len));
+				try {
+					ParseVertices(tableData, IsCompressed
+						? BiffZlib.Decompress(reader.ReadBytes(len))
+						: reader.ReadBytes(len));
+				} catch (Exception e) {
+					throw new Exception($"Error parsing vertices for {obj.Name} ({obj.StorageName}).", e);
+				}
 
 			} else {
 				base.Parse(obj, reader, len);
