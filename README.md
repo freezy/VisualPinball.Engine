@@ -46,6 +46,7 @@ public class Init : MonoBehaviour
 
 		foreach (var primitive in table.Primitives.Values)
 		{
+			var vpMesh = primitive.GetMesh(table);
 			var gameObj = new GameObject(primitive.Name);
 			gameObj.AddComponent<MeshFilter>();
 			gameObj.AddComponent<MeshRenderer>();
@@ -57,11 +58,11 @@ public class Init : MonoBehaviour
 			gameObj.GetComponent<MeshRenderer>().material = material;
 
 			// vertices
-			var vertices = new Vector3[primitive.Data.NumVertices];
-			var normals = new Vector3[primitive.Data.NumVertices];
-			var uvs = new Vector2[primitive.Data.NumVertices];
+			var vertices = new Vector3[vpMesh.Vertices.Length];
+			var normals = new Vector3[vpMesh.Vertices.Length];
+			var uvs = new Vector2[vpMesh.Vertices.Length];
 			for (var i = 0; i < vertices.Length; i++) {
-				var vertex = primitive.Data.Mesh.Vertices[i];
+				var vertex = vpMesh.Vertices[i];
 				vertices[i] = new Vector3(vertex.X, vertex.Y, vertex.Z);
 				normals[i] = new Vector3(vertex.Nx, vertex.Ny, vertex.Nz);
 				uvs[i] = new Vector2(vertex.Tu, vertex.Tv);
@@ -71,7 +72,7 @@ public class Init : MonoBehaviour
 			mesh.uv = uvs;
 
 			// faces
-			mesh.triangles = primitive.Data.Mesh.Indices;
+			mesh.triangles = vpMesh.Indices;
 
 		}
 	}
