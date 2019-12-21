@@ -20,11 +20,11 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
-		private static void CopyStream(System.IO.Stream input, System.IO.Stream output)
+		private static void CopyStream(Stream input, Stream output)
 		{
-			var buffer = new byte[2048];
+			var buffer = new byte[2000];
 			int len;
-			while ((len = input.Read(buffer, 0, 2048)) > 0) {
+			while ((len = input.Read(buffer, 0, 2000)) > 0) {
 				output.Write(buffer, 0, len);
 			}
 			output.Flush();
