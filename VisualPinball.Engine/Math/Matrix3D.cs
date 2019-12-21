@@ -2,7 +2,7 @@ namespace VisualPinball.Engine.Math
 {
 	public class Matrix3D
 	{
-		public readonly Matrix3D RightHanded = new Matrix3D().SetEach(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1);
+		public static readonly Matrix3D RightHanded = new Matrix3D().SetEach(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1);
 
 		private readonly float[][] _matrix = {
 			new [] { 1f, 0f, 0f, 0f },

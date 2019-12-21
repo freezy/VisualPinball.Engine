@@ -10,6 +10,16 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>
 	{
-		public Primitive(BinaryReader reader, string itemName) : base (new PrimitiveData(reader, itemName)) { }
+		private readonly PrimitiveMeshGenerator MeshGenerator;
+
+		public Primitive(BinaryReader reader, string itemName) : base(new PrimitiveData(reader, itemName))
+		{
+			MeshGenerator = new PrimitiveMeshGenerator(Data);
+		}
+
+		public Mesh GetMesh(Table.Table table)
+		{
+			return MeshGenerator.GetMesh(table);
+		}
 	}
 }

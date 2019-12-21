@@ -29,5 +29,10 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return TableLoader.Load(filename);
 		}
+
+		public float GetScaleZ()
+		{
+			return Data.BgScaleZ?[Data.BgCurrentSet] ?? 1.0f;
+		}
 	}
 }

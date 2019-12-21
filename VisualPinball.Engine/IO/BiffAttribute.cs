@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.IO
 		/// For arrays, this defines that only one value should be read
 		/// and stored at the given position.
 		/// </summary>
-		public uint Index;
+		public int Index;
 
 		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.

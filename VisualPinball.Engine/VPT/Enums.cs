@@ -2,9 +2,9 @@ namespace VisualPinball.Engine.VPT
 {
 	public static class BackglassIndex
 	{
-		public const uint Desktop = 0;
-		public const uint Fullscreen = 1;
-		public const uint FullSingleScreen = 2;
+		public const int Desktop = 0;
+		public const int Fullscreen = 1;
+		public const int FullSingleScreen = 2;
 	}
 
 	public static class ItemType

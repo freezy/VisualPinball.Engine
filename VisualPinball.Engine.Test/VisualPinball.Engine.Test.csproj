@@ -4,11 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}</ProjectGuid>
+    <ProjectGuid>{9902C758-AB1F-4A15-9F77-51FB08642EF6}</ProjectGuid>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualPinball.Engine</RootNamespace>
-    <AssemblyName>VisualPinball.Engine</AssemblyName>
+    <RootNamespace>VisualPinball.Engine.Test</RootNamespace>
+    <AssemblyName>VisualPinball.Engine.Test</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,47 +33,32 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenMcdf, Version=2.2.1.4, Culture=neutral, PublicKeyToken=fdbb1629d7c00800">
-      <HintPath>..\packages\OpenMcdf.2.2.1.4\lib\net40\OpenMcdf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="zlib.net, Version=1.0.3.0, Culture=neutral, PublicKeyToken=47d7877cb3620160">
-      <HintPath>..\packages\zlib.net.1.0.4.0\lib\zlib.net.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c">
+      <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.assert, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c">
+      <HintPath>..\packages\xunit.assert.2.1.0\lib\dotnet\xunit.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c">
+      <HintPath>..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.execution.desktop, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c">
+      <HintPath>..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\BiffAttribute.cs" />
-    <Compile Include="IO\BiffData.cs" />
-    <Compile Include="IO\BiffUtil.cs" />
-    <Compile Include="IO\BiffZlib.cs" />
-    <Compile Include="Math\Constants.cs" />
-    <Compile Include="Math\MathF.cs" />
-    <Compile Include="Math\Matrix2D.cs" />
-    <Compile Include="Math\Matrix3D.cs" />
-    <Compile Include="Math\Vertex2D.cs" />
-    <Compile Include="Math\Vertex3D.cs" />
-    <Compile Include="Math\Vertex3DNoTex2.cs" />
+    <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VPT\Enums.cs" />
-    <Compile Include="VPT\Item.cs" />
-    <Compile Include="VPT\ItemData.cs" />
-    <Compile Include="VPT\Material.cs" />
-    <Compile Include="VPT\Mesh.cs" />
-    <Compile Include="VPT\Primitive\Primitive.cs" />
-    <Compile Include="VPT\Primitive\PrimitiveData.cs" />
-    <Compile Include="VPT\Primitive\PrimitiveMeshGenerator.cs" />
-    <Compile Include="VPT\Table\Table.cs" />
-    <Compile Include="VPT\Table\TableData.cs" />
-    <Compile Include="VPT\Table\TableLoader.cs" />
-    <Compile Include="VPT\Texture.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\VisualPinball.Engine\VisualPinball.Engine.csproj">
+      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
+      <Name>VisualPinball.Engine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

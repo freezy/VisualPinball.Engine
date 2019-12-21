@@ -6,7 +6,7 @@ namespace VisualPinball.Engine.Math
 	/// </summary>
 	///
 	/// <see href="https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Math/Mathf.cs">Original Source</see>
-	public class MathF
+	public static class MathF
 	{
 
 		// The infamous ''3.14159265358979...'' value (RO).
@@ -23,5 +23,9 @@ namespace VisualPinball.Engine.Math
 
 		// Returns square root of /f/.
 		public static float Sqrt(float f) { return (float)System.Math.Sqrt(f); }
+
+		public static float DegToRad(float deg) { return deg * (PI / 180.0f); }
+
+		public static float RadToDeg(float rad) { return rad * (180.0f / PI); }
 	}
 }
