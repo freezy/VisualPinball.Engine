@@ -50,6 +50,7 @@
     <Compile Include="IO\BiffData.cs" />
     <Compile Include="IO\BiffUtil.cs" />
     <Compile Include="IO\BiffZlib.cs" />
+    <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
     <Compile Include="Math\MathF.cs" />
     <Compile Include="Math\Matrix2D.cs" />

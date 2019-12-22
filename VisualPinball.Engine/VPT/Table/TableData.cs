@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -73,7 +74,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[Biff("OFFX", Index = 0)]
 		[Biff("OFFY", Index = 1)]
-		public float Offset;
+		public float[] Offset = new float[2];
 
 		[Biff("ZOOM")]
 		public float Zoom;
@@ -148,7 +149,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public int LightAmbient;
 
 		[Biff("LZDI")]
-		public int Light0Emission { set => Light[0].Emission = value; }
+		public int Light0Emission { set => Light[0].Emission = new Color(value, ColorFormat.Bgr); }
 
 		public readonly LightSource[] Light = { new LightSource() };
 
@@ -206,8 +207,8 @@ namespace VisualPinball.Engine.VPT.Table
 		[Biff("BLST")]
 		public float BloomStrength;
 
-		[Biff("BCLR")]
-		public int ColorBackdrop;
+		[Biff("BCLR", ColorFormat = ColorFormat.Bgr)]
+		public Color ColorBackdrop;
 
 		[Biff("CCUS", Count = 16)]
 		public uint[] Rgcolorcustom = new uint[16];
@@ -382,7 +383,7 @@ namespace VisualPinball.Engine.VPT.Table
 	}
 
 	public class LightSource {
-		public float Emission;
+		public Color Emission;
 		public dynamic Pos; //: Vertex3D;
 	}
 }

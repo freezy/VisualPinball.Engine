@@ -51,6 +51,11 @@ namespace VisualPinball.Engine.IO
 		public int Index;
 
 		/// <summary>
+		/// For colors, this defines how the integer is encoded.
+		/// </summary>
+		public ColorFormat ColorFormat = ColorFormat.Bgr;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
@@ -130,6 +135,9 @@ namespace VisualPinball.Engine.IO
 
 			} else if (Type == typeof(Vertex2D)) {
 				SetValue(obj, new Vertex2D(reader));
+
+			} else if (Type == typeof(Color)) {
+				SetValue(obj, new Color(reader.ReadInt32(), ColorFormat));
 
 			} else {
 				Console.Error.WriteLine("[BiffAttribute.Parse] Unknown type \"{0}\" for tag {1}", Type, Name);
