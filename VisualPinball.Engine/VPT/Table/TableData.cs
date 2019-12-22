@@ -146,7 +146,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public string PlayfieldMaterial;
 
 		[Biff("LZAM")]
-		public int LightAmbient;
+		public Color LightAmbient;
 
 		[Biff("LZDI")]
 		public int Light0Emission { set => Light[0].Emission = new Color(value, ColorFormat.Bgr); }
@@ -177,14 +177,14 @@ namespace VisualPinball.Engine.VPT.Table
 		[Biff("BREF")]
 		public int UseReflectionForBalls;
 
-		[Biff("PLST")]
-		public int PlayfieldReflectionStrength; // m_playfieldReflectionStrength = dequantizeUnsigned<8>(tmp);
+		[Biff("PLST", QuantizedUnsignedBits = 8)]
+		public float PlayfieldReflectionStrength;
 
 		[Biff("BTRA")]
 		public int UseTrailForBalls;
 
-		[Biff("BTST")]
-		public int BallTrailStrength; // m_ballTrailStrength = dequantizeUnsigned<8>(tmp);
+		[Biff("BTST", QuantizedUnsignedBits = 8)]
+		public float BallTrailStrength;
 
 		[Biff("BPRS")]
 		public float BallPlayfieldReflectionStrength;
@@ -202,7 +202,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public int UseSSR;
 
 		[Biff("UFXA")]
-		public float UseFXAA; // TODO getting NaN here
+		public int UseFXAA;
 
 		[Biff("BLST")]
 		public float BloomStrength;
@@ -211,7 +211,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Color ColorBackdrop;
 
 		[Biff("CCUS", Count = 16)]
-		public uint[] Rgcolorcustom = new uint[16];
+		public Color[] CustomColors = new Color[16];
 
 		[Biff("TDFT")]
 		public float GlobalDifficulty;

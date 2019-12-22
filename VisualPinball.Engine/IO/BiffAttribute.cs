@@ -39,6 +39,9 @@ namespace VisualPinball.Engine.IO
 		/// </summary>
 		public bool IsWideString;
 
+		public int QuantizedUnsignedBits = -1;
+		public bool AsPercent = false;
+
 		/// <summary>
 		/// For arrays, this defines how many values should be read
 		/// </summary>
@@ -90,7 +93,7 @@ namespace VisualPinball.Engine.IO
 		public virtual void Parse<T>(T obj, BinaryReader reader, int len) where T : ItemData
 		{
 			if (Type == typeof(float)) {
-				SetValue(obj, reader.ReadSingle());
+				SetValue(obj, ReadFloat(reader));
 
 			} else if (Type == typeof(int)) {
 				SetValue(obj, reader.ReadInt32());
@@ -100,11 +103,14 @@ namespace VisualPinball.Engine.IO
 
 			} else if (Type == typeof(float[])) {
 				if (GetValue(obj) is float[] arr) {
-					arr[Index] = reader.ReadSingle();
+					arr[Index] = ReadFloat(reader);
+				} else {
+					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected float[] for {Name}, but got {GetValue(obj).GetType()}.");
 				}
 
 			} else if (Type == typeof(uint[])) {
 				if (!(GetValue(obj) is uint[] arr)) {
+					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected uint[] for {Name}, but got {GetValue(obj).GetType()}.");
 					return;
 				}
 				if (Count > 1) {
@@ -117,18 +123,13 @@ namespace VisualPinball.Engine.IO
 
 			} else if (Type == typeof(string[])) {
 				if (GetValue(obj) is string[] arr) {
-					arr[Index] = Encoding.ASCII.GetString(reader.ReadBytes(len));
+					arr[Index] = ReadString(reader, len);
+				} else {
+					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected string[] for {Name}, but got {GetValue(obj).GetType()}.");
 				}
 
 			} else if (Type == typeof(string)) {
-				byte[] bytes;
-				if (IsWideString) {
-					var wideLen = reader.ReadInt32();
-					bytes = reader.ReadBytes(wideLen).Where((x, i) => i % 2 == 0).ToArray();
-				} else {
-					bytes = IsStreaming ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
-				}
-				SetValue(obj, Encoding.ASCII.GetString(bytes));
+				SetValue(obj, ReadString(reader, len));
 
 			} else if (Type == typeof(Vertex3D)) {
 				SetValue(obj, new Vertex3D(reader));
@@ -139,10 +140,54 @@ namespace VisualPinball.Engine.IO
 			} else if (Type == typeof(Color)) {
 				SetValue(obj, new Color(reader.ReadInt32(), ColorFormat));
 
+			} else if (Type == typeof(Color[])) {
+				if (GetValue(obj) is Color[] arr) {
+					if (Count > 1) {
+						for (var i = 0; i < Count; i++) {
+							arr[i] = new Color(reader.ReadInt32(), ColorFormat);
+						}
+					} else {
+						arr[Index] = new Color(reader.ReadInt32(), ColorFormat);
+					}
+				} else {
+					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected Color[] for {Name}, but got {GetValue(obj).GetType()}.");
+				}
+
 			} else {
 				Console.Error.WriteLine("[BiffAttribute.Parse] Unknown type \"{0}\" for tag {1}", Type, Name);
 				reader.BaseStream.Seek(len, SeekOrigin.Current);
 			}
+		}
+
+		private string ReadString(BinaryReader reader, int len)
+		{
+			byte[] bytes;
+			if (IsWideString) {
+				var wideLen = reader.ReadInt32();
+				bytes = reader.ReadBytes(wideLen).Where((x, i) => i % 2 == 0).ToArray();
+			} else {
+				bytes = IsStreaming ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
+			}
+			return Encoding.ASCII.GetString(bytes);
+		}
+
+		private float ReadFloat(BinaryReader reader)
+		{
+			var f = QuantizedUnsignedBits > 0
+				? DequantizeUnsigned(QuantizedUnsignedBits, reader.ReadInt32())
+				: reader.ReadSingle();
+
+			if (AsPercent) {
+				return f * 100f;
+			}
+
+			return f;
+		}
+
+		private float DequantizeUnsigned(int bits, int i)
+		{
+			var N = (1 << bits) - 1;
+			return System.Math.Min(i / (float) N, 1.0f);
 		}
 
 		/// <summary>
