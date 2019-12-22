@@ -24,15 +24,28 @@ Concretely, it should:
 - Table info is parsed
 - Primitives are parsed
 
-## How to Use
+## Unity
 
-This produces a DLL (or three, if you count the dependencies). In Unity, drop 
-these into your Assets folder. Then create a script and attach it to something,
-like the camera. Then create the scene on startup:
+There's an included project that should make it easy to integrate with Unity. 
+The goal is to bridge Unity's APIs with the ones the `VisualPinball.Engine` 
+library provides. It currently consist of extension methods that add 
+Unity-specific methods. 
+
+Drop the following DLLs from your `VisualPinball.Unity` build folder into Unity's
+asset folder:
+
+- `VisualPinball.Engine.dll` - The main library
+- `VisualPinball.Unity.dll` - The Unity extensions
+- `OpenMcdf.dll` - The VPX file format dependency
+- `zlib.net.dll` - The ZLib compression dependency
+
+Then create a script and attach it to something, like the camera. The script
+could look something like this:
 
 ```cs
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Extensions;
 
 public class Init : MonoBehaviour
 {
@@ -41,46 +54,27 @@ public class Init : MonoBehaviour
 	void Start()
 	{
 		var scale = 0.002f;
-		var table = Table.Load(@"D:\Pinball\Visual Pinball\Tables\Batman Dark Knight tt&NZ 1.2.vpx");
+		var table = Table.Load(@"path-to-a-vpx-file");
 		var material = new Material(Shader.Find("Specular"));
 
 		foreach (var primitive in table.Primitives.Values)
 		{
 			var vpMesh = primitive.GetMesh(table);
+			var mesh = vpMesh.ToUnityMesh();
 			var gameObj = new GameObject(primitive.Name);
 			gameObj.AddComponent<MeshFilter>();
 			gameObj.AddComponent<MeshRenderer>();
 			
-			var mesh = new Mesh();
 			gameObj.GetComponent<MeshFilter>().mesh = mesh;
+			gameObj.GetComponent<MeshRenderer>().material = material;
 			gameObj.transform.localScale = new Vector3(scale, scale, scale);
 			gameObj.transform.eulerAngles = new Vector3(-90, 0, 0);
-			gameObj.GetComponent<MeshRenderer>().material = material;
-
-			// vertices
-			var vertices = new Vector3[vpMesh.Vertices.Length];
-			var normals = new Vector3[vpMesh.Vertices.Length];
-			var uvs = new Vector2[vpMesh.Vertices.Length];
-			for (var i = 0; i < vertices.Length; i++) {
-				var vertex = vpMesh.Vertices[i];
-				vertices[i] = new Vector3(vertex.X, vertex.Y, vertex.Z);
-				normals[i] = new Vector3(vertex.Nx, vertex.Ny, vertex.Nz);
-				uvs[i] = new Vector2(vertex.Tu, vertex.Tv);
-			}
-			mesh.vertices = vertices;
-			mesh.normals = normals;
-			mesh.uv = uvs;
-
-			// faces
-			mesh.triangles = vpMesh.Indices;
-
 		}
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-
 	}
 }
 ```
