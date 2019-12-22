@@ -34,7 +34,7 @@ Unity-specific methods.
 Drop the following DLLs from your `VisualPinball.Unity` build folder into Unity's
 asset folder:
 
-- `VisualPinball.Engine.dll` - The main library
+- `VisualPinball.Engine.dll` - The game engine agnostic main library
 - `VisualPinball.Unity.dll` - The Unity extensions
 - `OpenMcdf.dll` - The VPX file format dependency
 - `zlib.net.dll` - The ZLib compression dependency
