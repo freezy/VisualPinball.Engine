@@ -9,16 +9,11 @@ namespace VisualPinball.Engine.VPT.Table
 	/// A table contains all the playfield elements, as well as a set of
 	/// global data.
 	/// </summary>
-	public class Table
+	public class Table : Item<TableData>
 	{
-		public readonly TableData Data;
-
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 
-		public Table(BinaryReader reader)
-		{
-			Data = new TableData(reader);
-		}
+		public Table(BinaryReader reader) : base(new TableData(reader)) { }
 
 		/// <summary>
 		/// The API to load the table from a file.
