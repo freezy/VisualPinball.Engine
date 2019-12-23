@@ -1,3 +1,9 @@
+#region ReSharper
+// ReSharper disable UnassignedField.Global
+// ReSharper disable StringLiteralTypo
+// ReSharper disable FieldCanBeMadeReadOnly.Global
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,10 +14,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 {
 	public class PrimitiveData : ItemData
 	{
-		[Biff("VPOS")]
+		[BiffVertex("VPOS")]
 		public Vertex3D Position;
 
-		[Biff("VSIZ")]
+		[BiffVertex("VSIZ")]
 		public Vertex3D Size = new Vertex3D(100, 100, 100);
 
 		[BiffVertices("M3DX")]
@@ -20,111 +26,111 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffIndices("M3CI", IsCompressed = true)]
 		public readonly Mesh Mesh = new Mesh();
 
-		[Biff("RTV0", Index = 0)]
-		[Biff("RTV1", Index = 1)]
-		[Biff("RTV2", Index = 2)]
-		[Biff("RTV3", Index = 3)]
-		[Biff("RTV4", Index = 4)]
-		[Biff("RTV5", Index = 5)]
-		[Biff("RTV6", Index = 6)]
-		[Biff("RTV7", Index = 7)]
-		[Biff("RTV8", Index = 8)]
+		[BiffFloat("RTV0", Index = 0)]
+		[BiffFloat("RTV1", Index = 1)]
+		[BiffFloat("RTV2", Index = 2)]
+		[BiffFloat("RTV3", Index = 3)]
+		[BiffFloat("RTV4", Index = 4)]
+		[BiffFloat("RTV5", Index = 5)]
+		[BiffFloat("RTV6", Index = 6)]
+		[BiffFloat("RTV7", Index = 7)]
+		[BiffFloat("RTV8", Index = 8)]
 		public float[] RotAndTra = new float[9];
 
-		[Biff("IMAG")]
+		[BiffString("IMAG")]
 		public string Image;
 
-		[Biff("NRMA")]
+		[BiffString("NRMA")]
 		public string NormalMap;
 
-		[Biff("SIDS")]
+		[BiffInt("SIDS")]
 		public int Sides;
 
-		[Biff("MATR")]
+		[BiffString("MATR")]
 		public string Material;
 
-		[Biff("SCOL")]
+		[BiffInt("SCOL")]
 		public int SideColor;
 
-		[Biff("TVIS")]
+		[BiffBool("TVIS")]
 		public bool IsVisible;
 
-		[Biff("REEN")]
+		[BiffBool("REEN")]
 		public bool IsReflectionEnabled;
 
-		[Biff("DTXI")]
+		[BiffBool("DTXI")]
 		public bool DrawTexturesInside;
 
-		[Biff("HTEV")]
+		[BiffBool("HTEV")]
 		public bool HitEvent;
 
-		[Biff("THRS")]
+		[BiffFloat("THRS")]
 		public float Threshold;
 
-		[Biff("ELAS")]
+		[BiffFloat("ELAS")]
 		public float Elasticity;
 
-		[Biff("ELFO")]
+		[BiffFloat("ELFO")]
 		public float ElasticityFalloff;
 
-		[Biff("RFCT")]
+		[BiffFloat("RFCT")]
 		public float Friction;
 
-		[Biff("RSCT")]
+		[BiffFloat("RSCT")]
 		public float Scatter;
 
-		[Biff("EFUI")]
+		[BiffFloat("EFUI")]
 		public float EdgeFactorUi;
 
-		[Biff("CORF")]
+		[BiffFloat("CORF")]
 		public float CollisionReductionFactor = 0;
 
-		[Biff("CLDR")]
+		[BiffBool("CLDR")]
 		public bool IsCollidable = true; // originally "CLDRP"
 
-		[Biff("ISTO")]
+		[BiffBool("ISTO")]
 		public bool IsToy;
 
-		[Biff("MAPH")]
+		[BiffString("MAPH")]
 		public string PhysicsMaterial;
 
-		[Biff("OVPH")]
+		[BiffBool("OVPH")]
 		public bool OverwritePhysics;
 
-		[Biff("STRE")]
+		[BiffBool("STRE")]
 		public bool StaticRendering;
 
-		[Biff("DILI")]
+		[BiffFloat("DILI")]
 		public float DisableLightingTop; // m_d.m_fDisableLightingTop = (tmp == 1) ? 1.f : dequantizeUnsigned<8>(tmp); // backwards compatible hacky loading!
 
-		[Biff("DILB")]
+		[BiffFloat("DILB")]
 		public float DisableLightingBelow;
 
-		[Biff("U3DM")]
+		[BiffBool("U3DM")]
 		public bool Use3DMesh;
 
-		[Biff("EBFC")]
+		[BiffBool("EBFC")]
 		public bool BackfacesEnabled;
 
-		[Biff("DIPT")]
+		[BiffBool("DIPT")]
 		public bool DisplayTexture;
 
-		[Biff("M3DN", IsWideString = true)]
+		[BiffString("M3DN", IsWideString = true)]
 		public string MeshFileName;
 
-		[Biff("M3VN")]
-		public int NumVertices = 0;
+		[BiffInt("M3VN")]
+		public int NumVertices;
 
-		[Biff("M3CY")]
-		public int CompressedVertices = 0;
+		[BiffInt("M3CY")]
+		public int CompressedVertices;
 
-		[Biff("M3FN")]
-		public int NumIndices = 0;
+		[BiffInt("M3FN")]
+		public int NumIndices;
 
-		[Biff("M3CJ")]
+		[BiffInt("M3CJ")]
 		public int CompressedIndices = 0;
 
-		[Biff("PIDB")]
+		[BiffFloat("PIDB")]
 		public float DepthBias = 0;
 
 		static PrimitiveData()
@@ -167,8 +173,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 					throw new Exception($"Error parsing vertices for {obj.Name} ({obj.StorageName}).", e);
 				}
 
-			} else {
-				base.Parse(obj, reader, len);
 			}
 		}
 
@@ -216,9 +220,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 				ParseIndices(tableData, IsCompressed
 					? BiffZlib.Decompress(reader.ReadBytes(len))
 					: reader.ReadBytes(len));
-
-			} else {
-				base.Parse(obj, reader, len);
 			}
 		}
 
@@ -242,5 +243,4 @@ namespace VisualPinball.Engine.VPT.Primitive
 			mesh.Indices = indices;
 		}
 	}
-
 }

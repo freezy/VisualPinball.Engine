@@ -1,7 +1,7 @@
 #region ReSharper
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
-// ReSharper disable IdentifierTypo
+// ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
 using System;
@@ -11,297 +11,298 @@ using System.Linq;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 
+
 namespace VisualPinball.Engine.VPT.Table
 {
 	public class TableData : ItemData
 	{
-		[Biff("LEFT")]
+		[BiffFloat("LEFT")]
 		public float Left;
 
-		[Biff("RGHT")]
+		[BiffFloat("RGHT")]
 		public float Right;
 
-		[Biff("TOPX")]
+		[BiffFloat("TOPX")]
 		public float Top;
 
-		[Biff("BOTM")]
+		[BiffFloat("BOTM")]
 		public float Bottom;
 
-		[Biff("EFSS")]
+		[BiffBool("EFSS")]
 		public bool BgEnableFss;
 		
-		[Biff("ORRP")]
+		[BiffBool("ORRP")]
 		public bool OverridePhysics;
 		
-		[Biff("ORPF")]
+		[BiffBool("ORPF")]
 		public bool OverridePhysicsFlipper;
 		
-		[Biff("GAVT")]
+		[BiffFloat("GAVT")]
 		public float Gravity;
 		
-		[Biff("FRCT")]
+		[BiffFloat("FRCT")]
 		public float Friction;
 		
-		[Biff("ELAS")]
+		[BiffFloat("ELAS")]
 		public float Elasticity;
 		
-		[Biff("ELFA")]
+		[BiffFloat("ELFA")]
 		public float ElasticityFalloff;
 	
-		[Biff("PFSC")]
+		[BiffFloat("PFSC")]
 		public float Scatter;
 	
-		[Biff("SCAT")]
+		[BiffFloat("SCAT")]
 		public float DefaultScatter;
 
-		[Biff("NDGT")]
+		[BiffFloat("NDGT")]
 		public float NudgeTime;
 
-		[Biff("MPGC")]
+		[BiffInt("MPGC")]
 		public int PlungerNormalize;
 
-		[Biff("MPDF")]
+		[BiffBool("MPDF")]
 		public bool PlungerFilter;
 
-		[Biff("PHML")]
+		[BiffInt("PHML")]
 		public int PhysicsMaxLoops;
 
-		[Biff("DECL")]
+		[BiffBool("DECL")]
 		public bool RenderDecals;
 
-		[Biff("REEL")]
+		[BiffBool("REEL")]
 		public bool RenderEmReels;
 
-		[Biff("OFFX", Index = 0)]
-		[Biff("OFFY", Index = 1)]
+		[BiffFloat("OFFX", Index = 0)]
+		[BiffFloat("OFFY", Index = 1)]
 		public float[] Offset = new float[2];
 
-		[Biff("ZOOM")]
+		[BiffFloat("ZOOM")]
 		public float Zoom;
 
-		[Biff("MAXS")]
-		public float _3DmaxSeparation;
+		[BiffFloat("MAXS")]
+		public float StereoMaxSeparation;
 
-		[Biff("ZPD")]
-		public float _3DZPD;
+		[BiffFloat("ZPD")]
+		public float StereoZeroParallaxDisplacement;
 
-		[Biff("STO")]
-		public float _3DOffset;
+		[BiffFloat("STO")]
+		public float StereoOffset;
 
-		[Biff("OGST")]
+		[BiffBool("OGST")]
 		public bool OverwriteGlobalStereo3D;
 
-		[Biff("SLPX")]
+		[BiffFloat("SLPX")]
 		public float AngleTiltMax;
 
-		[Biff("SLOP")]
-		public float AngletiltMin;
+		[BiffFloat("SLOP")]
+		public float AngleTiltMin;
 
-		[Biff("GLAS")]
+		[BiffFloat("GLAS")]
 		public float GlassHeight;
 
-		[Biff("TBLH")]
+		[BiffFloat("TBLH")]
 		public float TableHeight;
 
-		[Biff("IMAG")]
+		[BiffString("IMAG")]
 		public string Image;
 
-		[Biff("BLIM")]
+		[BiffString("BLIM")]
 		public string BallImage;
 
-		[Biff("BLIF")]
+		[BiffString("BLIF")]
 		public string BallImageFront;
 
-		[Biff("SSHT")]
+		[BiffString("SSHT")]
 		public string ScreenShot;
 
-		[Biff("FBCK")]
+		[BiffBool("FBCK")]
 		public bool DisplayBackdrop;
 
-		[Biff("SEDT")]
+		[BiffInt("SEDT")]
 		public int NumGameItems;
 
-		[Biff("SSND")]
+		[BiffInt("SSND")]
 		public int NumSounds;
 
-		[Biff("SIMG")]
+		[BiffInt("SIMG")]
 		public int NumTextures;
 
-		[Biff("SFNT")]
+		[BiffInt("SFNT")]
 		public int NumFonts;
 
-		[Biff("SCOL")]
+		[BiffInt("SCOL")]
 		public int NumCollections;
 
-		[Biff("BIMN")]
+		[BiffBool("BIMN")]
 		public bool ImageBackdropNightDay;
 
-		[Biff("IMCG")]
+		[BiffString("IMCG")]
 		public string ImageColorGrade;
 
-		[Biff("EIMG")]
+		[BiffString("EIMG")]
 		public string EnvImage;
 
-		[Biff("PLMA")]
+		[BiffString("PLMA")]
 		public string PlayfieldMaterial;
 
-		[Biff("LZAM")]
+		[BiffColor("LZAM")]
 		public Color LightAmbient;
 
-		[Biff("LZDI")]
+		[BiffInt("LZDI")]
 		public int Light0Emission { set => Light[0].Emission = new Color(value, ColorFormat.Bgr); }
 
 		public readonly LightSource[] Light = { new LightSource() };
 
-		[Biff("LZHI")]
+		[BiffFloat("LZHI")]
 		public float LightHeight;
 
-		[Biff("LZRA")]
+		[BiffFloat("LZRA")]
 		public float LightRange;
 
-		[Biff("LIES")]
+		[BiffFloat("LIES")]
 		public float LightEmissionScale;
 
-		[Biff("ENES")]
+		[BiffFloat("ENES")]
 		public float EnvEmissionScale;
 
-		[Biff("GLES")]
+		[BiffFloat("GLES")]
 		public float GlobalEmissionScale;
 
-		[Biff("AOSC")]
+		[BiffFloat("AOSC")]
 		public float AoScale;
 
-		[Biff("SSSC")]
+		[BiffFloat("SSSC")]
 		public float SsrScale;
 
-		[Biff("BREF")]
+		[BiffInt("BREF")]
 		public int UseReflectionForBalls;
 
-		[Biff("PLST", QuantizedUnsignedBits = 8)]
+		[BiffFloat("PLST", QuantizedUnsignedBits = 8)]
 		public float PlayfieldReflectionStrength;
 
-		[Biff("BTRA")]
+		[BiffInt("BTRA")]
 		public int UseTrailForBalls;
 
-		[Biff("BTST", QuantizedUnsignedBits = 8)]
+		[BiffFloat("BTST", QuantizedUnsignedBits = 8)]
 		public float BallTrailStrength;
 
-		[Biff("BPRS")]
+		[BiffFloat("BPRS")]
 		public float BallPlayfieldReflectionStrength;
 
-		[Biff("DBIS")]
+		[BiffFloat("DBIS")]
 		public float DefaultBulbIntensityScaleOnBall;
 
-		[Biff("UAAL")]
+		[BiffInt("UAAL")]
 		public int UseAA;
 
-		[Biff("UAOC")]
+		[BiffInt("UAOC")]
 		public int UseAO;
 
-		[Biff("USSR")]
+		[BiffInt("USSR")]
 		public int UseSSR;
 
-		[Biff("UFXA")]
+		[BiffInt("UFXA")]
 		public int UseFXAA;
 
-		[Biff("BLST")]
+		[BiffFloat("BLST")]
 		public float BloomStrength;
 
-		[Biff("BCLR", ColorFormat = ColorFormat.Bgr)]
+		[BiffColor("BCLR", ColorFormat = ColorFormat.Bgr)]
 		public Color ColorBackdrop;
 
-		[Biff("CCUS", Count = 16)]
+		[BiffColor("CCUS", Count = 16)]
 		public Color[] CustomColors = new Color[16];
 
-		[Biff("TDFT")]
+		[BiffFloat("TDFT")]
 		public float GlobalDifficulty;
 
-		[Biff("SVOL")]
+		[BiffFloat("SVOL")]
 		public float TableSoundVolume;
 
-		[Biff("BDMO")]
+		[BiffBool("BDMO")]
 		public bool BallDecalMode;
 
-		[Biff("MVOL")]
+		[BiffFloat("MVOL")]
 		public float TableMusicVolume;
 
-		[Biff("AVSY")]
+		[BiffInt("AVSY")]
 		public int TableAdaptiveVSync;
 
-		[Biff("OGAC")]
+		[BiffBool("OGAC")]
 		public bool OverwriteGlobalDetailLevel;
 
-		[Biff("OGDN")]
+		[BiffBool("OGDN")]
 		public bool OverwriteGlobalDayNight;
 
-		[Biff("GDAC")]
+		[BiffBool("GDAC")]
 		public bool ShowGrid;
 
-		[Biff("REOP")]
+		[BiffBool("REOP")]
 		public bool ReflectElementsOnPlayfield;
 
-		[Biff("ARAC")]
+		[BiffInt("ARAC")]
 		public int UserDetailLevel;
 
-		[Biff("MASI")]
+		[BiffInt("MASI")]
 		public int NumMaterials;
 
-		[Biff("CODE", IsStreaming = true)]
+		[BiffString("CODE", IsStreaming = true)]
 		public string Code;
 		
-		[Biff("ROTA", Index = BackglassIndex.Desktop)]
-		[Biff("ROTF", Index = BackglassIndex.Fullscreen)]
-		[Biff("ROFS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("ROTA", Index = BackglassIndex.Desktop)]
+		[BiffFloat("ROTF", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("ROFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgRotation = new float[3];
 		
-		[Biff("LAYB", Index = BackglassIndex.Desktop)]
-		[Biff("LAYF", Index = BackglassIndex.Fullscreen)]
-		[Biff("LAFS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("LAYB", Index = BackglassIndex.Desktop)]
+		[BiffFloat("LAYF", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("LAFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgLayback = new float[3];
 		
-		[Biff("INCL", Index = BackglassIndex.Desktop)]
-		[Biff("INCF", Index = BackglassIndex.Fullscreen)]
-		[Biff("INFS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("INCL", Index = BackglassIndex.Desktop)]
+		[BiffFloat("INCF", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("INFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgInclination = new float[3];
 
-		[Biff("FOVX", Index = BackglassIndex.Desktop)]
-		[Biff("FOVF", Index = BackglassIndex.Fullscreen)]
-		[Biff("FOFS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("FOVX", Index = BackglassIndex.Desktop)]
+		[BiffFloat("FOVF", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("FOFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgFov = new float[3];
 
-		[Biff("SCLX", Index = BackglassIndex.Desktop)]
-		[Biff("SCFX", Index = BackglassIndex.Fullscreen)]
-		[Biff("SCXS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("SCLX", Index = BackglassIndex.Desktop)]
+		[BiffFloat("SCFX", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("SCXS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgScaleX = new float[3];
 		
-		[Biff("SCLY", Index = BackglassIndex.Desktop)]
-		[Biff("SCFY", Index = BackglassIndex.Fullscreen)]
-		[Biff("SCYS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("SCLY", Index = BackglassIndex.Desktop)]
+		[BiffFloat("SCFY", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("SCYS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgScaleY = new float[3];
 
-		[Biff("SCLZ", Index = BackglassIndex.Desktop)]
-		[Biff("SCFZ", Index = BackglassIndex.Fullscreen)]
-		[Biff("SCZS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffFloat("SCLZ", Index = BackglassIndex.Desktop)]
+		[BiffFloat("SCFZ", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("SCZS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgScaleZ = new float[3];
 
-		[Biff("XLTX", Index = BackglassIndex.Desktop)]
-		[Biff("XLFX", Index = BackglassIndex.Fullscreen)]
-		[Biff("XLXS", Index = BackglassIndex.FullSingleScreen)]
-		public readonly float[] BgXlateX = new float[3];
+		[BiffFloat("XLTX", Index = BackglassIndex.Desktop)]
+		[BiffFloat("XLFX", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("XLXS", Index = BackglassIndex.FullSingleScreen)]
+		public readonly float[] BgOffsetX = new float[3];
 
-		[Biff("XLTY", Index = BackglassIndex.Desktop)]
-		[Biff("XLFY", Index = BackglassIndex.Fullscreen)]
-		[Biff("XLYS", Index = BackglassIndex.FullSingleScreen)]
-		public readonly float[] BgXlateY = new float[3];
+		[BiffFloat("XLTY", Index = BackglassIndex.Desktop)]
+		[BiffFloat("XLFY", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("XLYS", Index = BackglassIndex.FullSingleScreen)]
+		public readonly float[] BgOffsetY = new float[3];
 
-		[Biff("XLTZ", Index = BackglassIndex.Desktop)]
-		[Biff("XLFZ", Index = BackglassIndex.Fullscreen)]
-		[Biff("XLZS", Index = BackglassIndex.FullSingleScreen)]
-		public readonly float[] BgXlateZ = new float[3];
+		[BiffFloat("XLTZ", Index = BackglassIndex.Desktop)]
+		[BiffFloat("XLFZ", Index = BackglassIndex.Fullscreen)]
+		[BiffFloat("XLZS", Index = BackglassIndex.FullSingleScreen)]
+		public readonly float[] BgOffsetZ = new float[3];
 		
-		[Biff("BIMG", Index = BackglassIndex.Desktop)]
-		[Biff("BIMF", Index = BackglassIndex.Fullscreen)]
-		[Biff("BIMS", Index = BackglassIndex.FullSingleScreen)]
+		[BiffString("BIMG", Index = BackglassIndex.Desktop)]
+		[BiffString("BIMF", Index = BackglassIndex.Fullscreen)]
+		[BiffString("BIMS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly string[] BgImage = new string[3];
 
 		[BiffMaterials("MATE")]
@@ -345,8 +346,6 @@ namespace VisualPinball.Engine.VPT.Table
 				} else {
 					ParseMaterial(tableData, reader, len);
 				}
-			} else {
-				base.Parse(obj, reader, len);
 			}
 		}
 
@@ -384,6 +383,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 	public class LightSource {
 		public Color Emission;
-		public dynamic Pos; //: Vertex3D;
+		public Vertex3D Pos;
 	}
 }

@@ -51,6 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\BiffAttributeTest.cs" />
     <Compile Include="Math\ColorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />

@@ -11,6 +11,7 @@
     <AssemblyName>VisualPinball.Engine</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,8 +48,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BiffAttribute.cs" />
+    <Compile Include="IO\BiffBoolAttribute.cs" />
+    <Compile Include="IO\BiffColorAttribute.cs" />
     <Compile Include="IO\BiffData.cs" />
+    <Compile Include="IO\BiffFloatAttribute.cs" />
+    <Compile Include="IO\BiffIntAttribute.cs" />
+    <Compile Include="IO\BiffStringAttribute.cs" />
     <Compile Include="IO\BiffUtil.cs" />
+    <Compile Include="IO\BiffVertexAttribute.cs" />
     <Compile Include="IO\BiffZlib.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />

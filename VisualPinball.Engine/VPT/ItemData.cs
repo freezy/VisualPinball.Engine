@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.VPT
 	/// </summary>
 	public class ItemData : BiffData
 	{
-		[Biff("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true)]
 		public string Name;
 
 		public readonly string StorageName;

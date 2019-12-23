@@ -1,9 +1,6 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.IO
@@ -21,7 +18,7 @@ namespace VisualPinball.Engine.IO
 	/// <see href="https://en.wikipedia.org/wiki/COM_Structured_Storage">COM Structured Storage</see>
 	/// <see href="https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/cd03cb5f-ca02-4934-a391-bb674cb8aa06">BIFF Format</see>
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-	public class BiffAttribute : Attribute
+	public abstract class BiffAttribute : Attribute
 	{
 		/// <summary>
 		/// Name of the BIFF record, usually four characters
@@ -35,28 +32,15 @@ namespace VisualPinball.Engine.IO
 		public bool IsStreaming;
 
 		/// <summary>
-		/// Wide strings have a zero byte between each character.
-		/// </summary>
-		public bool IsWideString;
-
-		public int QuantizedUnsignedBits = -1;
-		public bool AsPercent = false;
-
-		/// <summary>
 		/// For arrays, this defines how many values should be read
 		/// </summary>
-		public int Count = 1;
+		public int Count = -1;
 
 		/// <summary>
 		/// For arrays, this defines that only one value should be read
 		/// and stored at the given position.
 		/// </summary>
-		public int Index;
-
-		/// <summary>
-		/// For colors, this defines how the integer is encoded.
-		/// </summary>
-		public ColorFormat ColorFormat = ColorFormat.Bgr;
+		public int Index = -1;
 
 		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
@@ -67,9 +51,9 @@ namespace VisualPinball.Engine.IO
 		/// </summary>
 		public PropertyInfo Property { get; set; }
 
-		private Type Type => Field != null ? Field.FieldType : Property.PropertyType;
+		protected Type Type => Field != null ? Field.FieldType : Property.PropertyType;
 
-		public BiffAttribute(string name)
+		protected BiffAttribute(string name)
 		{
 			Name = name;
 		}
@@ -90,105 +74,7 @@ namespace VisualPinball.Engine.IO
 		/// <param name="reader">Binary data from the VPX file</param>
 		/// <param name="len">Length of the BIFF record</param>
 		/// <typeparam name="T">Type of the item data we're currently parsing</typeparam>
-		public virtual void Parse<T>(T obj, BinaryReader reader, int len) where T : ItemData
-		{
-			if (Type == typeof(float)) {
-				SetValue(obj, ReadFloat(reader));
-
-			} else if (Type == typeof(int)) {
-				SetValue(obj, reader.ReadInt32());
-
-			} else if (Type == typeof(bool)) {
-				SetValue(obj, reader.ReadInt32() > 0);
-
-			} else if (Type == typeof(float[])) {
-				if (GetValue(obj) is float[] arr) {
-					arr[Index] = ReadFloat(reader);
-				} else {
-					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected float[] for {Name}, but got {GetValue(obj).GetType()}.");
-				}
-
-			} else if (Type == typeof(uint[])) {
-				if (!(GetValue(obj) is uint[] arr)) {
-					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected uint[] for {Name}, but got {GetValue(obj).GetType()}.");
-					return;
-				}
-				if (Count > 1) {
-					for (var i = 0; i < Count; i++) {
-						arr[i] = reader.ReadUInt32();
-					}
-				} else {
-					arr[Index] = reader.ReadUInt32();
-				}
-
-			} else if (Type == typeof(string[])) {
-				if (GetValue(obj) is string[] arr) {
-					arr[Index] = ReadString(reader, len);
-				} else {
-					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected string[] for {Name}, but got {GetValue(obj).GetType()}.");
-				}
-
-			} else if (Type == typeof(string)) {
-				SetValue(obj, ReadString(reader, len));
-
-			} else if (Type == typeof(Vertex3D)) {
-				SetValue(obj, new Vertex3D(reader));
-
-			} else if (Type == typeof(Vertex2D)) {
-				SetValue(obj, new Vertex2D(reader));
-
-			} else if (Type == typeof(Color)) {
-				SetValue(obj, new Color(reader.ReadInt32(), ColorFormat));
-
-			} else if (Type == typeof(Color[])) {
-				if (GetValue(obj) is Color[] arr) {
-					if (Count > 1) {
-						for (var i = 0; i < Count; i++) {
-							arr[i] = new Color(reader.ReadInt32(), ColorFormat);
-						}
-					} else {
-						arr[Index] = new Color(reader.ReadInt32(), ColorFormat);
-					}
-				} else {
-					Console.Error.WriteLine($"[BiffAttribute.Parse] Expected Color[] for {Name}, but got {GetValue(obj).GetType()}.");
-				}
-
-			} else {
-				Console.Error.WriteLine("[BiffAttribute.Parse] Unknown type \"{0}\" for tag {1}", Type, Name);
-				reader.BaseStream.Seek(len, SeekOrigin.Current);
-			}
-		}
-
-		private string ReadString(BinaryReader reader, int len)
-		{
-			byte[] bytes;
-			if (IsWideString) {
-				var wideLen = reader.ReadInt32();
-				bytes = reader.ReadBytes(wideLen).Where((x, i) => i % 2 == 0).ToArray();
-			} else {
-				bytes = IsStreaming ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
-			}
-			return Encoding.ASCII.GetString(bytes);
-		}
-
-		private float ReadFloat(BinaryReader reader)
-		{
-			var f = QuantizedUnsignedBits > 0
-				? DequantizeUnsigned(QuantizedUnsignedBits, reader.ReadInt32())
-				: reader.ReadSingle();
-
-			if (AsPercent) {
-				return f * 100f;
-			}
-
-			return f;
-		}
-
-		private float DequantizeUnsigned(int bits, int i)
-		{
-			var N = (1 << bits) - 1;
-			return System.Math.Min(i / (float) N, 1.0f);
-		}
+		public abstract void Parse<T>(T obj, BinaryReader reader, int len) where T : ItemData;
 
 		/// <summary>
 		/// Sets the value to either field or property, depending on which

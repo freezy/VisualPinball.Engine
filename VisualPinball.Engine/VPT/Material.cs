@@ -95,13 +95,13 @@ namespace VisualPinball.Engine.VPT
 			ClearCoat = BiffUtil.BgrToRgb(saveMaterial.ClearCoat);
 			WrapLighting = saveMaterial.WrapLighting;
 			Roughness = saveMaterial.Roughness;
-			GlossyImageLerp = 0; //1.0f - dequantizeUnsigned<8>(mats[i].fGlossyImageLerp); //!! '1.0f -' to be compatible with previous table versions
-			Thickness = 0; //(mats[i].fThickness == 0) ? 0.05f : dequantizeUnsigned<8>(mats[i].fThickness); //!! 0 -> 0.05f to be compatible with previous table versions
+			GlossyImageLerp = 1f - BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.GlossyImageLerp); //1.0f - dequantizeUnsigned<8>(mats[i].fGlossyImageLerp); //!! '1.0f -' to be compatible with previous table versions
+			Thickness = saveMaterial.Thickness == 0 ? 0.05f : BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.Thickness); //!! 0 -> 0.05f to be compatible with previous table versions
 			Edge = saveMaterial.Edge;
 			Opacity = saveMaterial.Opacity;
 			IsMetal = saveMaterial.IsMetal;
 			IsOpacityActive = (saveMaterial.OpacityActiveEdgeAlpha & 1) != 0;
-			EdgeAlpha = 0; //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
+			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
 		public void UpdatePhysics(SavePhysicsMaterial savePhysMat) {

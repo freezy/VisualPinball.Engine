@@ -12,11 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\VPX\TableData.vpx");
 			var data = table.Data;
 
-			Assert.Equal(0.01435f, data._3DmaxSeparation);
-			Assert.Equal(0.002f, data._3DOffset);
-			Assert.Equal(0.53f, data._3DZPD);
 			Assert.Equal(0.60606f, data.AngleTiltMax);
-			Assert.Equal(0.2033f, data.AngletiltMin);
+			Assert.Equal(0.2033f, data.AngleTiltMin);
 			Assert.Equal(1.23f, data.AoScale);
 			Assert.Equal(true, data.BallDecalMode);
 			Assert.Equal("test_pattern", data.BallImage);
@@ -48,15 +45,15 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			Assert.Equal(1.3211f, data.BgScaleZ[BackglassIndex.Desktop]);
 			Assert.Equal(1.41f, data.BgScaleZ[BackglassIndex.Fullscreen]);
 			Assert.Equal(12f, data.BgScaleZ[BackglassIndex.FullSingleScreen]);
-			Assert.Equal(12.33f, data.BgXlateX[BackglassIndex.Desktop]);
-			Assert.Equal(0.1f, data.BgXlateX[BackglassIndex.Fullscreen]);
-			Assert.Equal(0.2f, data.BgXlateX[BackglassIndex.FullSingleScreen]);
-			Assert.Equal(100.43f, data.BgXlateY[BackglassIndex.Desktop]);
-			Assert.Equal(90.1f, data.BgXlateY[BackglassIndex.Fullscreen]);
-			Assert.Equal(0.2332f, data.BgXlateY[BackglassIndex.FullSingleScreen]);
-			Assert.Equal(-50.092f, data.BgXlateZ[BackglassIndex.Desktop]);
-			Assert.Equal(400.1f, data.BgXlateZ[BackglassIndex.Fullscreen]);
-			Assert.Equal(-50.223f, data.BgXlateZ[BackglassIndex.FullSingleScreen]);
+			Assert.Equal(12.33f, data.BgOffsetX[BackglassIndex.Desktop]);
+			Assert.Equal(0.1f, data.BgOffsetX[BackglassIndex.Fullscreen]);
+			Assert.Equal(0.2f, data.BgOffsetX[BackglassIndex.FullSingleScreen]);
+			Assert.Equal(100.43f, data.BgOffsetY[BackglassIndex.Desktop]);
+			Assert.Equal(90.1f, data.BgOffsetY[BackglassIndex.Fullscreen]);
+			Assert.Equal(0.2332f, data.BgOffsetY[BackglassIndex.FullSingleScreen]);
+			Assert.Equal(-50.092f, data.BgOffsetZ[BackglassIndex.Desktop]);
+			Assert.Equal(400.1f, data.BgOffsetZ[BackglassIndex.Fullscreen]);
+			Assert.Equal(-50.223f, data.BgOffsetZ[BackglassIndex.FullSingleScreen]);
 			Assert.Equal(1.5055f, data.BloomStrength);
 			Assert.Equal(2224, data.Bottom);
 			Assert.Equal("Option Explicit\r\n", data.Code);
@@ -119,12 +116,16 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			Assert.Equal("", data.ScreenShot);
 			Assert.Equal(true, data.ShowGrid);
 			Assert.Equal(0.4123f, data.SsrScale);
+			Assert.Equal(0.01435f, data.StereoMaxSeparation);
+			Assert.Equal(0.002f, data.StereoOffset);
+			Assert.Equal(0.53f, data.StereoZeroParallaxDisplacement);
 			Assert.Equal(6649, data.TableAdaptiveVSync);
 			Assert.Equal(2.009231f, data.TableHeight);
 			Assert.Equal(0.24f, data.TableMusicVolume);
 			Assert.Equal(0.23f, data.TableSoundVolume);
 			Assert.Equal(0f, data.Top); // set in debug mode
 			Assert.Equal(0, data.UseAA);
+			Assert.Equal(0, data.UseAO);
 			Assert.Equal(1, data.UseFXAA);
 			Assert.Equal(7, data.UserDetailLevel);
 			Assert.Equal(0, data.UseReflectionForBalls);
