@@ -141,6 +141,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public PrimitiveData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+			Mesh.Name = Name;
 		}
 
 		private static readonly Dictionary<string, BiffAttribute> Attributes = new Dictionary<string, BiffAttribute>();

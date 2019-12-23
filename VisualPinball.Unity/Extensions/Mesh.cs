@@ -6,7 +6,7 @@ namespace VisualPinball.Unity.Extensions
 	{
 		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh)
 		{
-			var mesh = new UnityEngine.Mesh();
+			var mesh = new UnityEngine.Mesh { name = vpMesh.Name };
 
 			// vertices
 			var vertices = new Vector3[vpMesh.Vertices.Length];
