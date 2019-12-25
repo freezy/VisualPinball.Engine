@@ -21,5 +21,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 			return _meshGenerator.GetMesh(table);
 		}
+
+		public Mesh GetMeshSimple()
+		{
+			return _meshGenerator.GetMeshSimple();
+		}
 	}
 }

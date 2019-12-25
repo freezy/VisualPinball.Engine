@@ -17,6 +17,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var matrix = GetMatrix(table);
 			return mesh.Transform(matrix);
 		}
+		public Mesh GetMeshSimple() {
+			return _data.Mesh;
+		}
 
 		private Matrix3D GetMatrix(Table.Table table) {
 
