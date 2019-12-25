@@ -16,7 +16,7 @@ namespace VisualPinball.Engine.VPT
 		public string Name;
 		public Vertex3DNoTex2[] Vertices;
 		public int[] Indices;
-
+		
 		public Mesh Transform(Matrix3D matrix, Matrix3D normalMatrix = null, Func<float, float> getZ = null) {
 			foreach (var vertex in Vertices) {
 				var vert = new Vertex3D(vertex.X, vertex.Y, vertex.Z).MultiplyMatrix(matrix);
@@ -33,14 +33,15 @@ namespace VisualPinball.Engine.VPT
 		}
 
 		public Mesh Clone(string name = null) {
+			
 			var mesh = new Mesh {
 				Name = name ?? Name,
 				Vertices = new Vertex3DNoTex2[Vertices.Length],
 				Indices = new int[Indices.Length]
 			};
-			//mesh.animationFrames = this.animationFrames.map(a => a.clone());
-			Vertices.Select(v => v.Clone()).ToArray().CopyTo(mesh.Vertices, 0);
-			Indices.CopyTo(mesh.Indices, 0);
+			//mesh.animationFrames = this.animationFrames.map(a => a.clone());		
+			Vertices.Select(v => v.Clone()).ToArray().CopyTo(mesh.Vertices, 0);			
+			Indices.CopyTo(mesh.Indices, 0);		
 			//mesh.faceIndexOffset = this.faceIndexOffset;
 			return mesh;
 		}
