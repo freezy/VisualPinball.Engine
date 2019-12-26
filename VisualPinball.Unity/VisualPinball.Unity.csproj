@@ -47,7 +47,7 @@
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
-    <Compile Include="Importer\VPXData.cs" />
+    <Compile Include="Importer\VpxData.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
