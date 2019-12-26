@@ -71,7 +71,8 @@ namespace VisualPinball.Unity.Importer
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = transform;
 
-
+			var fixVertsTRS = new Matrix4x4();
+			fixVertsTRS.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));
 			foreach (var primitive in table.Primitives.Values) {
 
 				Mesh vpMesh;
@@ -89,8 +90,7 @@ namespace VisualPinball.Unity.Importer
 				var mf = obj.AddComponent<MeshFilter>();
 				var mr = obj.AddComponent<MeshRenderer>();
 				obj.transform.parent = primitivesObj.transform;
-				var fixVertsTRS = new Matrix4x4();
-				fixVertsTRS.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));
+				
 				var vertices = mesh.vertices;
 				for (var i = 0; i < vertices.Length; i++) {
 					vertices[i] = fixVertsTRS.MultiplyPoint(vertices[i]);
