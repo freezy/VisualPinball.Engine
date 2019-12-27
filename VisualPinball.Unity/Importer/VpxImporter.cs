@@ -29,24 +29,7 @@ namespace VisualPinball.Unity.Importer
 
 		public void ParseAsset(string path)
 		{
-			//handle saving a new material asset ......................................................................................
-
-			var mustSaveNewMaterials = false;
-			var directortPath = AssetUtility.CreateDirectory("Assets", "materials");
-			var materialName = "vpxDefault.mat";
-			var mat_1 = AssetUtility.LoadMaterial(directortPath, materialName);
-			if (mat_1 == null)
-			{
-				mat_1 = new Material(Shader.Find("Standard"));
-				var materialFilePath1 = AssetUtility.ConcatPathsWithForwardSlash(new string[] { directortPath, materialName });
-				AssetDatabase.CreateAsset(mat_1, materialFilePath1);
-				mustSaveNewMaterials = true;
-			}
-			if (mustSaveNewMaterials)
-			{
-				AssetDatabase.SaveAssets();
-				mat_1 = AssetUtility.LoadMaterial(directortPath, materialName);
-			}
+			
 
 			//load and parse vpx file
 			var table = Table.Load(path);
@@ -64,8 +47,10 @@ namespace VisualPinball.Unity.Importer
 
 			newAssetPath = AssetUtility.CreateDirectory("Assets", "vpx");
 			newAssetPath += "/"+ table.Name + ".prefab";
-			gameObject.name = table.Name;
-			PrefabUtility.SaveAsPrefabAsset(gameObject, newAssetPath);
+			gameObject.name = table.Name;			
+
+			//create directory if needed
+			var directortPath = AssetUtility.CreateDirectory("Assets/vpx", "materials");
 
 
 			var primitivesObj = new GameObject("Primitives");
@@ -87,8 +72,7 @@ namespace VisualPinball.Unity.Importer
 				var mesh = vpMesh.ToUnityMesh();
 				mesh.name = primitive.Name + "_mesh";
 				var obj = new GameObject(primitive.Name);
-				var mf = obj.AddComponent<MeshFilter>();
-				var mr = obj.AddComponent<MeshRenderer>();
+				var mf = obj.AddComponent<MeshFilter>();				
 				obj.transform.parent = primitivesObj.transform;
 				
 				var vertices = mesh.vertices;
@@ -99,10 +83,37 @@ namespace VisualPinball.Unity.Importer
 				mesh.RecalculateBounds();
 				AssetDatabase.AddObjectToAsset(mesh, vpxData);
 				mf.sharedMesh = mesh;
-				mr.material = mat_1;
+
+
+				//handle materials ......................................................................................
+				
+				VisualPinball.Engine.VPT.Material materialVPX = primitive.GetMaterial(table);
+				if (materialVPX != null)
+				{
+
+					var materialName = materialVPX.Name + ".mat";
+
+					//if the material already exists load it
+					UnityEngine.Material materialUnity = AssetUtility.LoadMaterial(directortPath, materialName);
+					//if result is null create the material
+					if (materialUnity == null)
+					{
+						materialUnity = materialVPX.ToUnityMaterial();
+						var materialFilePath1 = AssetUtility.ConcatPathsWithForwardSlash(new string[] { directortPath, materialName });
+						AssetDatabase.CreateAsset(materialUnity, materialFilePath1);
+
+					}
+
+					var mr = obj.AddComponent<MeshRenderer>();
+					mr.sharedMaterial = materialUnity;
+				}
+				else {
+					Debug.Log("material is null for primitive " + primitive.Name);
+				}
 			}
 
-			PrefabUtility.SaveAsPrefabAsset(gameObject, newAssetPath);
+			
+			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, newAssetPath, InteractionMode.UserAction);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 		}

@@ -1,4 +1,6 @@
 using System.IO;
+using System.Linq;
+using System;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -22,6 +24,19 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return _meshGenerator.GetMesh(table);
 		}
 
-		
+		public Material GetMaterial(Table.Table table)
+		{
+			Material mat = null;
+			try
+			{
+				mat = table.Data.Materials.First(m => m.Name == Data.Material);
+			}
+			catch (Exception e) {
+				
+			}
+			return mat;
+		}
+
+
 	}
 }

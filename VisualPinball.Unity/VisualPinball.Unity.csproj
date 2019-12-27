@@ -44,6 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
