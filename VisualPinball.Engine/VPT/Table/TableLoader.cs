@@ -9,6 +9,8 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public static class TableLoader
 	{
+		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
 		public static Table Load(string filename)
 		{
 			var cf = new CompoundFile(filename);
@@ -24,9 +26,9 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadGameItems(table, gameStorage);
 
 					// print some random data
-					Console.WriteLine("left = {0}", table.Data.Left);
-					Console.WriteLine("BgRotation = {0}", string.Join("/", table.Data.BgRotation));
-					Console.WriteLine("name = {0}", table.Data.Name);
+					Logger.Debug("left = {0}", table.Data.Left);
+					Logger.Debug("BgRotation = {0}", string.Join("/", table.Data.BgRotation));
+					Logger.Debug("name = {0}", table.Data.Name);
 
 					return table;
 				}
@@ -43,7 +45,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var itemStream = storage.GetStream(itemName);
 				var itemData = itemStream.GetData();
 				if (itemData.Length < 4) {
-					Console.WriteLine($"Skipping {itemName} because it has size of {itemData.Length}.");
+					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", itemName, itemData.Length);
 					continue;
 				}
 
@@ -51,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var itemType = reader.ReadInt32();
 				switch (itemType) {
 					case ItemType.Primitive: {
-						Console.WriteLine($"Loading primitive {itemName}");
+						Logger.Info("Loading primitive {itemName}", itemName);
 						var item = new VisualPinball.Engine.VPT.Primitive.Primitive(reader, itemName);
 						table.Primitives[item.Name] = item;
 						break;
