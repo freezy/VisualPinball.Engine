@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.Importer
 	{
 		public static string CreateDirectory(string basePath, string directoryPath)
 		{
-			var fullPath = ConcatPathsWithForwardSlash(new[] { basePath, directoryPath });
+			var fullPath = ConcatPathsWithForwardSlash(basePath, directoryPath);
 			if (!Directory.Exists(fullPath)) {
 				AssetDatabase.CreateFolder(basePath, directoryPath);
 			}
@@ -17,20 +17,13 @@ namespace VisualPinball.Unity.Importer
 
 		public static Material LoadMaterial(string basePath, string materialPath)
 		{
-			var fullPath = ConcatPathsWithForwardSlash(new[] { basePath, materialPath });
+			var fullPath = ConcatPathsWithForwardSlash(basePath, materialPath);
 			return AssetDatabase.LoadAssetAtPath(fullPath, typeof(Material)) as Material;
 		}
 
-		public static string ConcatPathsWithForwardSlash(string[] paths)
+		public static string ConcatPathsWithForwardSlash(params string[] paths)
 		{
-			var fullPath = "";
-			for (var i = 0; i < paths.Length; i++) {
-				fullPath += paths[i];
-				if (i < paths.Length - 1) {
-					fullPath += "/";
-				}
-			}
-			return fullPath;
+			return string.Join("/", paths);
 		}
 	}
 }
