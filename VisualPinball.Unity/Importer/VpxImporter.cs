@@ -9,9 +9,14 @@ namespace VisualPinball.Unity.Importer
 {
 	public class VpxImporter : MonoBehaviour
 	{
+		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
 		[MenuItem("Tools/Import VPX", false, 10)]
 		static void ImportVPX(MenuCommand menuCommand)
 		{
+			// TODO that somewhere else
+			Log.Logging.Setup();
+
 			var vpxGO = new GameObject("VPX");
 			var vpxI = vpxGO.AddComponent<VpxImporter>();
 
@@ -29,7 +34,7 @@ namespace VisualPinball.Unity.Importer
 
 		public void ParseAsset(string path)
 		{
-			
+
 
 			//load and parse vpx file
 			var table = Table.Load(path);
@@ -47,7 +52,7 @@ namespace VisualPinball.Unity.Importer
 
 			newAssetPath = AssetUtility.CreateDirectory("Assets", "vpx");
 			newAssetPath += "/"+ table.Name + ".prefab";
-			gameObject.name = table.Name;			
+			gameObject.name = table.Name;
 
 			//create directory if needed
 			var directortPath = AssetUtility.CreateDirectory("Assets/vpx", "materials");
@@ -72,9 +77,9 @@ namespace VisualPinball.Unity.Importer
 				var mesh = vpMesh.ToUnityMesh();
 				mesh.name = primitive.Name + "_mesh";
 				var obj = new GameObject(primitive.Name);
-				var mf = obj.AddComponent<MeshFilter>();				
+				var mf = obj.AddComponent<MeshFilter>();
 				obj.transform.parent = primitivesObj.transform;
-				
+
 				var vertices = mesh.vertices;
 				for (var i = 0; i < vertices.Length; i++) {
 					vertices[i] = fixVertsTRS.MultiplyPoint(vertices[i]);
@@ -86,7 +91,7 @@ namespace VisualPinball.Unity.Importer
 
 
 				//handle materials ......................................................................................
-				
+
 				VisualPinball.Engine.VPT.Material materialVPX = primitive.GetMaterial(table);
 				if (materialVPX != null)
 				{
@@ -112,7 +117,7 @@ namespace VisualPinball.Unity.Importer
 				}
 			}
 
-			
+
 			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, newAssetPath, InteractionMode.UserAction);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();

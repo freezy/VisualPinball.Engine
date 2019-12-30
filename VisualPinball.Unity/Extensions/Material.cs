@@ -5,21 +5,23 @@ namespace VisualPinball.Unity.Extensions
 	public static class Material
 	{
 
+		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
 		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial)
 		{
-			Debug.Log("material " + vpxMaterial.Name);
-			Debug.Log("BaseColor " + vpxMaterial.BaseColor);
-			Debug.Log("Roughness " + vpxMaterial.Roughness);
-			Debug.Log("Glossiness " + vpxMaterial.Glossiness);			
-			Debug.Log("GlossyImageLerp " + vpxMaterial.GlossyImageLerp);
-			Debug.Log("Thickness " + vpxMaterial.Thickness);			
-			Debug.Log("ClearCoat " + vpxMaterial.ClearCoat);
-			Debug.Log("Opacity " + vpxMaterial.Opacity);
-			Debug.Log("IsOpacityActive " + vpxMaterial.IsOpacityActive);
-			Debug.Log("IsMetal " + vpxMaterial.IsMetal);			
-			Debug.Log("Edge " + vpxMaterial.Edge);			
-			Debug.Log("EdgeAlpha " + vpxMaterial.EdgeAlpha);
-			Debug.Log("------------------------------------");
+			Logger.Info("material " + vpxMaterial.Name);
+			Logger.Info("BaseColor " + vpxMaterial.BaseColor);
+			Logger.Info("Roughness " + vpxMaterial.Roughness);
+			Logger.Info("Glossiness " + vpxMaterial.Glossiness);
+			Logger.Info("GlossyImageLerp " + vpxMaterial.GlossyImageLerp);
+			Logger.Info("Thickness " + vpxMaterial.Thickness);
+			Logger.Info("ClearCoat " + vpxMaterial.ClearCoat);
+			Logger.Info("Opacity " + vpxMaterial.Opacity);
+			Logger.Info("IsOpacityActive " + vpxMaterial.IsOpacityActive);
+			Logger.Info("IsMetal " + vpxMaterial.IsMetal);
+			Logger.Info("Edge " + vpxMaterial.Edge);
+			Logger.Info("EdgeAlpha " + vpxMaterial.EdgeAlpha);
+			Logger.Info("------------------------------------");
 
 			UnityEngine.Material generatedUnityMaterial = new UnityEngine.Material(Shader.Find("Standard"));
 			generatedUnityMaterial.name = vpxMaterial.Name;
