@@ -1,5 +1,10 @@
+#region ReSharper
+// ReSharper disable FieldCanBeMadeReadOnly.Global
+#endregion
+
 using System.IO;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT
 {
@@ -32,90 +37,85 @@ namespace VisualPinball.Engine.VPT
 		/// When sending to the render device, the roughness is defined like that:
 		/// > fRoughness = exp2f(10.0f * mat->m_fRoughness + 1.0f); // map from 0..1 to 2..2048
 		/// </description>
-		public float Roughness = 0f;
+		public float Roughness;
 
 		/// <summary>
 		/// Use image also for the glossy layer (0(no tinting at all)..1(use image)),
 		/// stupid quantization because of legacy loading/saving
 		/// </summary>
-		public float GlossyImageLerp = 1f;
+		public float GlossyImageLerp;
 
 		/// <summary>
 		/// Thickness for transparent materials (0(paper thin)..1(maximum)),
 		/// stupid quantization because of legacy loading/saving
 		/// </summary>
-		public float Thickness = 0.05f;
+		public float Thickness;
 
 		/// <summary>
 		/// Edge weight/brightness for glossy and clearcoat (0(dark edges)..1(full fresnel))
 		/// </summary>
-		public float Edge = 1.0f;
-		public float EdgeAlpha = 1.0f;
-		public float Opacity = 1.0f;
+		public float Edge;
+		public float EdgeAlpha;
+		public float Opacity;
 
 		/// <summary>
 		/// Can be overridden by texture on object itself
 		/// </summary>
-		public int BaseColor = 0xB469FF;
+		public Color BaseColor;
 
 		/// <summary>
 		/// Specular of glossy layer
 		/// </summary>
-		public float Glossiness = 0.0f;
+		public Color Glossiness;
 
 		/// <summary>
 		/// Specular of clearcoat layer
 		/// </summary>
-		public float ClearCoat = 0.0f;
+		public Color ClearCoat;
 
 		/// <summary>
 		/// Is a metal material or not
 		/// </summary>
-		public bool IsMetal = false;
+		public bool IsMetal;
 
-		public bool IsOpacityActive = false;
-
-		// these are a additional props
-		public int EmissiveColor;
-		public int EmissiveIntensity = 0;
-		public Texture EmissiveMap;
+		public bool IsOpacityActive;
 
 		// physics
-		public float Elasticity = 0.0f;
-		public float ElasticityFalloff = 0.0f;
-		public float Friction = 0.0f;
-		public float ScatterAngle = 0.0f;
+		public float Elasticity;
+		public float ElasticityFalloff;
+		public float Friction;
+		public float ScatterAngle;
 
 		public Material(BinaryReader reader)
 		{
-			var saveMaterial = new SaveMaterial(reader);
+			var saveMaterial = new MaterialData(reader);
 			Name = saveMaterial.Name;
-			BaseColor = BiffUtil.BgrToRgb(saveMaterial.BaseColor);
-			Glossiness = BiffUtil.BgrToRgb(saveMaterial.Glossiness);
-			ClearCoat = BiffUtil.BgrToRgb(saveMaterial.ClearCoat);
+			BaseColor = new Color(saveMaterial.BaseColor, ColorFormat.Bgr);
+			Glossiness = new Color(saveMaterial.Glossiness, ColorFormat.Bgr);
+			ClearCoat = new Color(saveMaterial.ClearCoat, ColorFormat.Bgr);
 			WrapLighting = saveMaterial.WrapLighting;
 			Roughness = saveMaterial.Roughness;
 			GlossyImageLerp = 1f - BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.GlossyImageLerp); //1.0f - dequantizeUnsigned<8>(mats[i].fGlossyImageLerp); //!! '1.0f -' to be compatible with previous table versions
 			Thickness = saveMaterial.Thickness == 0 ? 0.05f : BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.Thickness); //!! 0 -> 0.05f to be compatible with previous table versions
 			Edge = saveMaterial.Edge;
 			Opacity = saveMaterial.Opacity;
-			IsMetal = saveMaterial.IsMetal;
+			IsMetal = saveMaterial.IsMetal > 0;
 			IsOpacityActive = (saveMaterial.OpacityActiveEdgeAlpha & 1) != 0;
-			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
+			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
-		public void UpdatePhysics(SavePhysicsMaterial savePhysMat) {
-			Elasticity = savePhysMat.Elasticity;
-			ElasticityFalloff = savePhysMat.ElasticityFallOff;
-			Friction = savePhysMat.Friction;
-			ScatterAngle = savePhysMat.ScatterAngle;
+		public void UpdatePhysics(PhysicsMaterialData physMat) {
+			Elasticity = physMat.Elasticity;
+			ElasticityFalloff = physMat.ElasticityFallOff;
+			Friction = physMat.Friction;
+			ScatterAngle = physMat.ScatterAngle;
 		}
 	}
 
 	/// <summary>
-	/// This is the version of the material that is saved to the VPX file.
+	/// This is the version of the material that is saved to the VPX file (originally "SaveMaterial")
 	/// </summary>
-	internal class SaveMaterial
+	internal class MaterialData
 	{
 		public const int Size = 76;
 
@@ -144,7 +144,7 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// is a metal material or not
 		/// </summary>
-		public bool IsMetal;
+		public byte IsMetal;
 
 		/// <summary>
 		/// roughness of glossy layer (0(diffuse)..1(specular))
@@ -170,9 +170,9 @@ namespace VisualPinball.Engine.VPT
 		/// opacity (0..1)
 		/// </summary>
 		public float Opacity;
-		public int OpacityActiveEdgeAlpha;
+		public byte OpacityActiveEdgeAlpha;
 
-		public SaveMaterial(BinaryReader reader)
+		public MaterialData(BinaryReader reader)
 		{
 			var startPos = reader.BaseStream.Position;
 			Name = BiffUtil.ReadNullTerminatedString(reader, 32);
@@ -180,13 +180,15 @@ namespace VisualPinball.Engine.VPT
 			Glossiness = reader.ReadInt32();
 			ClearCoat = reader.ReadInt32();
 			WrapLighting = reader.ReadSingle();
-			IsMetal = reader.ReadSByte() > 0;
+			IsMetal = reader.ReadByte();
+			reader.BaseStream.Seek(3, SeekOrigin.Current);
 			Roughness = reader.ReadSingle();
-			GlossyImageLerp = reader.ReadInt32();
+			GlossyImageLerp = reader.ReadByte();
+			reader.BaseStream.Seek(3, SeekOrigin.Current);
 			Edge = reader.ReadSingle();
 			Thickness = reader.ReadInt32();
 			Opacity = reader.ReadSingle();
-			OpacityActiveEdgeAlpha = reader.ReadInt32();
+			OpacityActiveEdgeAlpha = reader.ReadByte();
 
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
 			if (remainingSize > 0) {
@@ -197,9 +199,9 @@ namespace VisualPinball.Engine.VPT
 
 	/// <summary>
 	/// That's the physics-related part of the material that is saved to the
-	/// VPX file.
+	/// VPX file (originally "SavePhysicsMaterial")
 	/// </summary>
-	public class SavePhysicsMaterial {
+	public class PhysicsMaterialData {
 
 		public const int Size = 48;
 
@@ -209,7 +211,7 @@ namespace VisualPinball.Engine.VPT
 		public float Friction;
 		public float ScatterAngle;
 
-		public SavePhysicsMaterial(BinaryReader reader) {
+		public PhysicsMaterialData(BinaryReader reader) {
 			var startPos = reader.BaseStream.Position;
 			Name = BiffUtil.ReadNullTerminatedString(reader, 32);
 			Elasticity = reader.ReadSingle();

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.IO
 {
@@ -42,8 +43,8 @@ namespace VisualPinball.Engine.IO
 
 		public static float DequantizeUnsigned(int bits, int i)
 		{
-			var N = (1 << bits) - 1;
-			return System.Math.Min(i / (float) N, 1.0f);
+			var n = (1 << bits) - 1;
+			return MathF.Min(i / (float) n, 1.0f);
 		}
 	}
 }

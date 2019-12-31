@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -23,6 +24,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public static Table Load(string filename)
 		{
 			return TableLoader.Load(filename);
+		}
+
+		public Material GetMaterial(string name)
+		{
+			return Data.Materials.First(m => m.Name == name);
 		}
 
 		public float GetScaleZ()

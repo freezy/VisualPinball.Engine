@@ -27,5 +27,73 @@ namespace VisualPinball.Engine.Math
 		public static float DegToRad(float deg) { return deg * (PI / 180.0f); }
 
 		public static float RadToDeg(float rad) { return rad * (180.0f / PI); }
+
+		 /// *listonly*
+        public static float Min(float a, float b) { return a < b ? a : b; }
+        // Returns the smallest of two or more values.
+        public static float Min(params float[] values)
+        {
+            var len = values.Length;
+            if (len == 0)
+                return 0;
+            var m = values[0];
+            for (var i = 1; i < len; i++)
+            {
+                if (values[i] < m)
+                    m = values[i];
+            }
+            return m;
+        }
+
+        /// *listonly*
+        public static int Min(int a, int b) { return a < b ? a : b; }
+        // Returns the smallest of two or more values.
+        public static int Min(params int[] values)
+        {
+            var len = values.Length;
+            if (len == 0)
+                return 0;
+            var m = values[0];
+            for (var i = 1; i < len; i++)
+            {
+                if (values[i] < m)
+                    m = values[i];
+            }
+            return m;
+        }
+
+        /// *listonly*
+        public static float Max(float a, float b) { return a > b ? a : b; }
+        // Returns largest of two or more values.
+        public static float Max(params float[] values)
+        {
+            var len = values.Length;
+            if (len == 0)
+                return 0;
+            var m = values[0];
+            for (var i = 1; i < len; i++)
+            {
+                if (values[i] > m)
+                    m = values[i];
+            }
+            return m;
+        }
+
+        /// *listonly*
+        public static int Max(int a, int b) { return a > b ? a : b; }
+        // Returns the largest of two or more values.
+        public static int Max(params int[] values)
+        {
+            var len = values.Length;
+            if (len == 0)
+                return 0;
+            var m = values[0];
+            for (var i = 1; i < len; i++)
+            {
+                if (values[i] > m)
+                    m = values[i];
+            }
+            return m;
+        }
 	}
 }
