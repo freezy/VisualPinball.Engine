@@ -25,15 +25,12 @@ namespace VisualPinball.Unity.Extensions
 
 			UnityEngine.Material generatedUnityMaterial = new UnityEngine.Material(Shader.Find("Standard"));
 			generatedUnityMaterial.name = vpxMaterial.Name;
-			float r = (vpxMaterial.BaseColor >> 16) & 0xff;
-			float g = (vpxMaterial.BaseColor >> 8) & 0xff;
-			float b = (vpxMaterial.BaseColor >> 0) & 0xff;
-			generatedUnityMaterial.SetColor("_Color", new UnityEngine.Color(r / 255f, g / 255f, b / 255f));
+			generatedUnityMaterial.SetColor("_Color", vpxMaterial.BaseColor.ToUnityColor());
 			if (vpxMaterial.IsMetal)
 			{
 				generatedUnityMaterial.SetFloat("_Metallic", 1f);
 			}
-			generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Glossiness);
+			//generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Glossiness);
 			return generatedUnityMaterial;
 		}
 

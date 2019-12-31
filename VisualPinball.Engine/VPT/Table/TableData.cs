@@ -351,8 +351,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private void ParseMaterial(TableData tableData, BinaryReader reader, int len)
 		{
-			if (len < tableData.NumMaterials * SaveMaterial.Size) {
-				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} of {tableData.NumMaterials * SaveMaterial.Size} bytes from a {len} bytes buffer.");
+			if (len < tableData.NumMaterials * MaterialData.Size) {
+				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} of {tableData.NumMaterials * MaterialData.Size} bytes from a {len} bytes buffer.");
 			}
 			var materials = new Material[tableData.NumMaterials];
 			for (var i = 0; i < tableData.NumMaterials; i++) {
@@ -363,15 +363,15 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private void ParsePhysicsMaterial(TableData tableData, BinaryReader reader, int len)
 		{
-			if (len < tableData.NumMaterials * SavePhysicsMaterial.Size) {
-				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} physics materials of {tableData.NumMaterials * SavePhysicsMaterial.Size} bytes from a {len} bytes buffer.");
+			if (len < tableData.NumMaterials * PhysicsMaterialData.Size) {
+				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} physics materials of {tableData.NumMaterials * PhysicsMaterialData.Size} bytes from a {len} bytes buffer.");
 			}
 
 			if (!(GetValue(tableData) is Material[] materials)) {
 				throw new ArgumentException("Materials must be loaded before physics properties!");
 			}
 			for (var i = 0; i < tableData.NumMaterials; i++) {
-				var savePhysMat = new SavePhysicsMaterial(reader);
+				var savePhysMat = new PhysicsMaterialData(reader);
 				var material = materials.First(m => m.Name == savePhysMat.Name);
 				if (material == null) {
 					throw new Exception($"Cannot find material \"{savePhysMat.Name}\" in [{ string.Join(", ", tableData.Materials.Select(m => m.Name))} ] for updating physics.");
