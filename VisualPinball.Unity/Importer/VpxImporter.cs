@@ -12,58 +12,59 @@ namespace VisualPinball.Unity.Importer
 	{
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-		[MenuItem("Tools/Import VPX", false, 10)]
-		static void ImportVPX(MenuCommand menuCommand)
+		[MenuItem("Visual Pinball/Import VPX", false, 10)]
+		static void ImportVpxMenu(MenuCommand menuCommand)
 		{
 			// TODO that somewhere else
 			Logging.Setup();
 
-			var vpxGO = new GameObject("VPX");
-			var vpxI = vpxGO.AddComponent<VpxImporter>();
+			// open file dialog
+			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", "Assets/", new[] { "Visual Pinball Table Files", "vpx" });
+			if (vpxPath.Length == 0) {
+				return;
+			}
 
-			// Ensure it gets reparented if this was a context click (otherwise does nothing)
-			GameObjectUtility.SetParentAndAlign(vpxGO, menuCommand.context as GameObject);
+			var rootGameObj = ImportVpx(vpxPath);
 
-			// Register the creation in the undo system
-			Undo.RegisterCreatedObjectUndo(vpxGO, "Create " + vpxGO.name);
-			Selection.activeObject = vpxGO;
-			var path = EditorUtility.OpenFilePanelWithFilters("Load .VPX File", "Assets/", new string[] { "vpx files", "vpx" });
-			if (path.Length == 0) return;
-			vpxI.ParseAsset(path);
+			// if an object was selected in the editor, make it its parent
+			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
+
+			// register undo system
+			Undo.RegisterCreatedObjectUndo(rootGameObj, $"Import VPX table file");
+
+			// select imported object
+			Selection.activeObject = rootGameObj;
+
 		}
 
-
-		public void ParseAsset(string path)
+		private static GameObject ImportVpx(string path)
 		{
+			var rootGameObj = new GameObject();
+			var import = rootGameObj.AddComponent<VpxImporter>();
 
-
-			//load and parse vpx file
+			// load and parse vpx file
 			var table = Table.Load(path);
 
-			//handle custom .asset for vpx mesh and any other non scene objects that needs to be serialized------------------------------
-
-			var newAssetPath = AssetUtility.CreateDirectory("Assets", "vpx");
-			newAssetPath += "/" + table.Name + "_data.asset";
+			// handle custom .asset for vpx mesh and any other non scene objects that needs to be serialized
+			var assetPath = $"{AssetUtility.CreateDirectory("Assets", "vpx")}/{table.Name}_data.asset";
 			var vpxData = ScriptableObject.CreateInstance<VpxData>();
-			AssetDatabase.CreateAsset(vpxData, newAssetPath);
+			AssetDatabase.CreateAsset(vpxData, assetPath);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			//--------------------------------------------------------------------------------------------------------------------------
+			var prefabPath = $"{AssetUtility.ConcatPathsWithForwardSlash("Assets", "vpx")}/{table.Name}.prefab";
+			rootGameObj.gameObject.name = table.Name;
 
-			newAssetPath = AssetUtility.CreateDirectory("Assets", "vpx");
-			newAssetPath += "/"+ table.Name + ".prefab";
-			gameObject.name = table.Name;
-
-			//create directory if needed
-			var directortPath = AssetUtility.CreateDirectory("Assets/vpx", "materials");
-
+			// create directory if needed
+			var directoryPath = AssetUtility.CreateDirectory("Assets/vpx", "materials");
 
 			var primitivesObj = new GameObject("Primitives");
-			primitivesObj.transform.parent = transform;
+			primitivesObj.transform.parent = rootGameObj.transform;
 
 			var fixVertsTRS = new Matrix4x4();
-			fixVertsTRS.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));
+			fixVertsTRS.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), Vector3.one);
+			//rootGameObj.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+			rootGameObj.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
 			foreach (var primitive in table.Primitives.Values) {
 
 				Mesh vpMesh;
@@ -100,12 +101,12 @@ namespace VisualPinball.Unity.Importer
 					var materialName = materialVPX.Name + ".mat";
 
 					//if the material already exists load it
-					UnityEngine.Material materialUnity = AssetUtility.LoadMaterial(directortPath, materialName);
+					UnityEngine.Material materialUnity = AssetUtility.LoadMaterial(directoryPath, materialName);
 					//if result is null create the material
 					if (materialUnity == null)
 					{
 						materialUnity = materialVPX.ToUnityMaterial();
-						var materialFilePath1 = AssetUtility.ConcatPathsWithForwardSlash(new string[] { directortPath, materialName });
+						var materialFilePath1 = AssetUtility.ConcatPathsWithForwardSlash(new string[] { directoryPath, materialName });
 						AssetDatabase.CreateAsset(materialUnity, materialFilePath1);
 
 					}
@@ -119,9 +120,11 @@ namespace VisualPinball.Unity.Importer
 			}
 
 
-			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, newAssetPath, InteractionMode.UserAction);
+			PrefabUtility.SaveAsPrefabAssetAndConnect(rootGameObj.gameObject, prefabPath, InteractionMode.UserAction);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
+
+			return rootGameObj;
 		}
 	}
 }
