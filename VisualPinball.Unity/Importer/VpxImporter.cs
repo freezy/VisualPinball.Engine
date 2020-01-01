@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.IO;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity.Importer
@@ -15,7 +16,7 @@ namespace VisualPinball.Unity.Importer
 		static void ImportVPX(MenuCommand menuCommand)
 		{
 			// TODO that somewhere else
-			Log.Logging.Setup();
+			Logging.Setup();
 
 			var vpxGO = new GameObject("VPX");
 			var vpxI = vpxGO.AddComponent<VpxImporter>();

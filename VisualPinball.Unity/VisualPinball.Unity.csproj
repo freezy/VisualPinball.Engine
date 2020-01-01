@@ -62,8 +62,8 @@
     <Compile Include="Importer\AssetUtility.cs" />
     <Compile Include="Importer\VpxData.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
-    <Compile Include="Log\Logging.cs" />
-    <Compile Include="Log\UnityTarget.cs" />
+    <Compile Include="IO\Logging.cs" />
+    <Compile Include="IO\UnityTarget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
