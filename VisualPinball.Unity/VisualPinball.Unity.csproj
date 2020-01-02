@@ -60,7 +60,6 @@
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
-    <Compile Include="Importer\VpxData.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
     <Compile Include="IO\Logging.cs" />
     <Compile Include="IO\UnityTarget.cs" />
