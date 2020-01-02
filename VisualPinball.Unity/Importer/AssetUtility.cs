@@ -23,17 +23,6 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		// public static Material LoadMaterial(string basePath, string materialPath)
-		// {
-		// 	var fullPath = ConcatPathsWithForwardSlash(basePath, materialPath);
-		// 	return AssetDatabase.LoadAssetAtPath(fullPath, typeof(Material)) as Material;
-		// }
-
-		// public static string ConcatPathsWithForwardSlash(params string[] paths)
-		// {
-		// 	return string.Join("/", paths);
-		// }
-
 		public static string StringToFilename(string str)
 		{
 			return Path.GetInvalidFileNameChars()
