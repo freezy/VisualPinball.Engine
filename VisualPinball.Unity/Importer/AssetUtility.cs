@@ -1,29 +1,43 @@
 ﻿using System.IO;
+using System.Linq;
+using NLog;
 using UnityEditor;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Importer
 {
 	internal static class AssetUtility
 	{
-		public static string CreateDirectory(string basePath, string directoryPath)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static void CreateFolders(params string[] folders)
 		{
-			var fullPath = ConcatPathsWithForwardSlash(basePath, directoryPath);
-			if (!Directory.Exists(fullPath)) {
-				AssetDatabase.CreateFolder(basePath, directoryPath);
+			foreach (var folder in folders) {
+				if (Directory.Exists(folder)) {
+					continue;
+				}
+				var dirNames = folder.Split('/');
+				var baseDir = string.Join("/", dirNames.Take(dirNames.Length - 1));
+				var newDir = dirNames.Last();
+				Logger.Info("Creating folder {0} at {1}", newDir, baseDir);
+				AssetDatabase.CreateFolder(baseDir, newDir);
 			}
-			return fullPath;
 		}
 
-		public static Material LoadMaterial(string basePath, string materialPath)
-		{
-			var fullPath = ConcatPathsWithForwardSlash(basePath, materialPath);
-			return AssetDatabase.LoadAssetAtPath(fullPath, typeof(Material)) as Material;
-		}
+		// public static Material LoadMaterial(string basePath, string materialPath)
+		// {
+		// 	var fullPath = ConcatPathsWithForwardSlash(basePath, materialPath);
+		// 	return AssetDatabase.LoadAssetAtPath(fullPath, typeof(Material)) as Material;
+		// }
 
-		public static string ConcatPathsWithForwardSlash(params string[] paths)
+		// public static string ConcatPathsWithForwardSlash(params string[] paths)
+		// {
+		// 	return string.Join("/", paths);
+		// }
+
+		public static string StringToFilename(string str)
 		{
-			return string.Join("/", paths);
+			return Path.GetInvalidFileNameChars()
+				.Aggregate(str, (current, c) => current.Replace(c, '_'));
 		}
 	}
 }

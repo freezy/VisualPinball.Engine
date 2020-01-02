@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>
 	{
+		public Material[] Materials => Data.Materials;
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 
 		public Table(BinaryReader reader) : base(new TableData(reader)) { }
