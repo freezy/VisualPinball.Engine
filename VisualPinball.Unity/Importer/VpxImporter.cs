@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -24,6 +25,7 @@ namespace VisualPinball.Unity.Importer
 		{
 			// TODO that somewhere else
 			Logging.Setup();
+			var watch = Stopwatch.StartNew();
 
 			// open file dialog
 			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", "Assets/", new[] { "Visual Pinball Table Files", "vpx" });
@@ -41,10 +43,13 @@ namespace VisualPinball.Unity.Importer
 			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
 
 			// register undo system
-			Undo.RegisterCreatedObjectUndo(rootGameObj, $"Import VPX table file");
+			Undo.RegisterCreatedObjectUndo(rootGameObj, "Import VPX table file");
 
 			// select imported object
 			Selection.activeObject = rootGameObj;
+
+			watch.Stop();
+			Logger.Info("[VpxImporter] Imported in {0}ms.", watch.ElapsedMilliseconds);
 		}
 
 		public void Import(string path)
@@ -101,7 +106,7 @@ namespace VisualPinball.Unity.Importer
 
 				// convert mesh
 				var mesh = primitive.GetMesh(table).ToUnityMesh();
-				mesh.name = primitive.Name + "_mesh";
+				mesh.name = $"{primitive.Name}_mesh";
 
 				// create game object for primitive
 				var obj = new GameObject(primitive.Name);

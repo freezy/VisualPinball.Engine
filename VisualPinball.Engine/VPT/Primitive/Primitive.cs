@@ -26,17 +26,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Material GetMaterial(Table.Table table)
 		{
-			Material mat = null;
-			try
-			{
-				mat = table.Data.Materials.First(m => m.Name == Data.Material);
-			}
-			catch (Exception e) {
-				
-			}
-			return mat;
+			return table.Data.Materials.FirstOrDefault(m => m.Name == Data.Material);
 		}
-
-
 	}
 }
