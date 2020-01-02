@@ -26,7 +26,8 @@ namespace VisualPinball.Unity.Importer
 		public static string StringToFilename(string str)
 		{
 			return Path.GetInvalidFileNameChars()
-				.Aggregate(str, (current, c) => current.Replace(c, '_'));
+				.Aggregate(str, (current, c) => current.Replace(c, '_'))
+				.Replace(" ", "_");
 		}
 	}
 }
