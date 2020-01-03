@@ -38,9 +38,10 @@ asset folder:
 - `VisualPinball.Unity.dll` - The Unity extensions
 - `OpenMcdf.dll` - The VPX file format dependency
 - `zlib.net.dll` - The ZLib compression dependency
+- `NLog.dll` - The logging library
 
-Then create a script and attach it to something, like the camera. The script
-could look something like this:
+There are two ways of importing a table. When importing runtime, create a new
+script, attach it to something, and do the import on start:
 
 ```cs
 using UnityEngine;
@@ -53,23 +54,7 @@ public class Init : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		var scale = 0.002f;
-		var table = Table.Load(@"path-to-a-vpx-file");
-		var material = new Material(Shader.Find("Specular"));
-
-		foreach (var primitive in table.Primitives.Values)
-		{
-			var vpMesh = primitive.GetMesh(table);
-			var mesh = vpMesh.ToUnityMesh();
-			var gameObj = new GameObject(primitive.Name);
-			gameObj.AddComponent<MeshFilter>();
-			gameObj.AddComponent<MeshRenderer>();
-			
-			gameObj.GetComponent<MeshFilter>().mesh = mesh;
-			gameObj.GetComponent<MeshRenderer>().material = material;
-			gameObj.transform.localScale = new Vector3(scale, scale, scale);
-			gameObj.transform.eulerAngles = new Vector3(-90, 0, 0);
-		}
+		VpxImporter.ImportVpxRuntime(@"<path-to-vpx>");
 	}
 
 	// Update is called once per frame
@@ -79,8 +64,9 @@ public class Init : MonoBehaviour
 }
 ```
 
-I'm sure there are better ways though, but that's what I've figured out in my 
-first hour with Unity. ;)
+We also provide an editor import function. When the Unity DLL is in your
+project, you'll have a *Visual Pinball* menu where you can import .vpx files.
+ 
 
 ## License
 
