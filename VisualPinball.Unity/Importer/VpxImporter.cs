@@ -17,7 +17,7 @@ namespace VisualPinball.Unity.Importer
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private bool _saveToAssets = false;
+		private bool _saveToAssets;
 		private string _tableFolder;
 		private string _materialFolder;
 		private string _tableDataPath;
