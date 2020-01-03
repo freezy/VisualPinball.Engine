@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using NLog;
 using UnityEditor;
@@ -11,17 +12,35 @@ using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity.Importer
 {
+
 	public class VpxImporter : MonoBehaviour
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		private bool _saveToAssets = false;
 		private string _tableFolder;
 		private string _materialFolder;
 		private string _tableDataPath;
 		private string _tablePrefabPath;
 
+		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+
+		public static void ImportVpxRuntime(string path)
+		{
+			ImportVpx(path, false);
+		}
+
+		/// <summary>
+		/// Imports a Visual Pinball File (.vpx) into the Unity Editor. <p/>
+		///
+		/// The goal of this is to be able to iterate rapidly without having to
+		/// execute the runtime on every test. This importer also saves the
+		/// imported data to the Assets folder so a project with an imported table
+		/// can be saved and loaded
+		/// </summary>
+		/// <param name="menuCommand">Context provided by the Editor</param>
 		[MenuItem("Visual Pinball/Import VPX", false, 10)]
-		static void ImportVpxMenu(MenuCommand menuCommand)
+		public static void ImportVpxEditor(MenuCommand menuCommand)
 		{
 			// TODO that somewhere else
 			Logging.Setup();
@@ -33,11 +52,7 @@ namespace VisualPinball.Unity.Importer
 				return;
 			}
 
-			// create root object
-			var rootGameObj = new GameObject();
-			var importer = rootGameObj.AddComponent<VpxImporter>();
-
-			importer.Import(vpxPath);
+			var rootGameObj = ImportVpx(vpxPath, true);
 
 			// if an object was selected in the editor, make it its parent
 			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
@@ -52,18 +67,32 @@ namespace VisualPinball.Unity.Importer
 			Logger.Info("[VpxImporter] Imported in {0}ms.", watch.ElapsedMilliseconds);
 		}
 
-		public void Import(string path)
+		private static GameObject ImportVpx(string path, bool saveToAssets) {
+
+			// create root object
+			var rootGameObj = new GameObject();
+			var importer = rootGameObj.AddComponent<VpxImporter>();
+
+			importer.Import(path, saveToAssets);
+
+			return rootGameObj;
+		}
+
+		private void Import(string path, bool saveToAssets)
 		{
 			// parse table
 			var table = Table.Load(path);
 			gameObject.name = table.Name;
 
 			// set paths
-			_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)}";
-			_materialFolder = $"{_tableFolder}/Materials";
-			_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
-			_tablePrefabPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}.prefab";
-			AssetUtility.CreateFolders(_tableFolder, _materialFolder);
+			_saveToAssets = saveToAssets;
+			if (_saveToAssets) {
+				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)}";
+				_materialFolder = $"{_tableFolder}/Materials";
+				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
+				_tablePrefabPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}.prefab";
+				AssetUtility.CreateFolders(_tableFolder, _materialFolder);
+			}
 
 			// create asset object
 			var asset = ScriptableObject.CreateInstance<VpxAsset>();
@@ -78,24 +107,27 @@ namespace VisualPinball.Unity.Importer
 		private void ImportMaterials(Table table)
 		{
 			foreach (var material in table.Materials) {
-				AssetDatabase.CreateAsset(material.ToUnityMaterial(), material.GetUnityFilename(_materialFolder));
+				SaveMaterial(material);
 			}
 		}
 
 		private void ImportGameItems(Table table, VpxAsset asset)
 		{
 			// save game objects to asset folder
-			AssetDatabase.CreateAsset(asset, _tableDataPath);
-			AssetDatabase.SaveAssets();
+			if (_saveToAssets) {
+				AssetDatabase.CreateAsset(asset, _tableDataPath);
+				AssetDatabase.SaveAssets();
+			}
 
 			// import game objects
 			ImportPrimitives(table, asset);
 
-			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			if (_saveToAssets) {
+				PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
+				AssetDatabase.SaveAssets();
+				AssetDatabase.Refresh();
+			}
 		}
-
 
 		private void ImportPrimitives(Table table, VpxAsset asset)
 		{
@@ -106,6 +138,9 @@ namespace VisualPinball.Unity.Importer
 
 				// convert mesh
 				var mesh = primitive.GetMesh(table).ToUnityMesh();
+				if (mesh == null) {
+					continue;
+				}
 				mesh.name = $"{primitive.Name}_mesh";
 
 				// create game object for primitive
@@ -119,14 +154,33 @@ namespace VisualPinball.Unity.Importer
 				// apply loaded material
 				var materialVpx = primitive.GetMaterial(table);
 				if (materialVpx != null) {
-					var materialUnity = AssetDatabase.LoadAssetAtPath(materialVpx.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
+					var materialUnity = LoadMaterial(materialVpx);
 					var mr = obj.AddComponent<MeshRenderer>();
 					mr.sharedMaterial = materialUnity;
 				}
 
 				// add mesh to asset
-				AssetDatabase.AddObjectToAsset(mesh, asset);
+				if (_saveToAssets) {
+					AssetDatabase.AddObjectToAsset(mesh, asset);
+				}
 			}
+		}
+
+		private void SaveMaterial(Engine.VPT.Material material)
+		{
+			if (_saveToAssets) {
+				AssetDatabase.CreateAsset(material.ToUnityMaterial(), material.GetUnityFilename(_materialFolder));
+			} else {
+				_materials[material.Name] = material.ToUnityMaterial();
+			}
+		}
+
+		private Material LoadMaterial(Engine.VPT.Material material)
+		{
+			if (_saveToAssets) {
+				return AssetDatabase.LoadAssetAtPath(material.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
+			}
+			return _materials[material.Name];
 		}
 	}
 

@@ -13,11 +13,14 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Mesh GetMesh(Table.Table table)
 		{
+			if (_data.Mesh == null) {
+				return null;
+			}
 			var mesh = _data.Mesh.Clone();
 			var matrix = GetMatrix(table);
 			return mesh.Transform(matrix);
 		}
-		
+
 
 		private Matrix3D GetMatrix(Table.Table table) {
 
