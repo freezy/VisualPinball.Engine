@@ -24,6 +24,7 @@ namespace VisualPinball.Engine.VPT.Table
 					var table = new Table(reader);
 
 					LoadGameItems(table, gameStorage);
+					LoadTextures(table, gameStorage);
 
 					// print some random data
 					Logger.Debug("left = {0}", table.Data.Left);
@@ -38,7 +39,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadGameItems(VisualPinball.Engine.VPT.Table.Table table, CFStorage storage)
+		private static void LoadGameItems(Table table, CFStorage storage)
 		{
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				var itemName = $"GameItem{i}";
@@ -59,6 +60,24 @@ namespace VisualPinball.Engine.VPT.Table
 						break;
 					}
 				}
+			}
+		}
+
+		private static void LoadTextures(Table table, CFStorage storage)
+		{
+			for (var i = 0; i < table.Data.NumTextures; i++) {
+				var textureName = $"Image{i}";
+				var textureStream = storage.GetStream(textureName);
+				var textureData = textureStream.GetData();
+				if (textureData.Length < 4) {
+					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", textureName, textureData.Length);
+					continue;
+				}
+
+				var reader = new BinaryReader(new MemoryStream(textureData));
+				Logger.Info("Loading texture {itemName}", textureName);
+				var texture = new Texture(reader, textureName);
+				table.Textures[texture.Name] = texture;
 			}
 		}
 	}
