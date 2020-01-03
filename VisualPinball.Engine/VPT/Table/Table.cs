@@ -14,6 +14,7 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public Material[] Materials => Data.Materials;
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
+		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 
 		public Table(BinaryReader reader) : base(new TableData(reader)) { }
 
@@ -29,7 +30,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Material GetMaterial(string name)
 		{
-			return Data.Materials.First(m => m.Name == name);
+			return Data.Materials.FirstOrDefault(m => m.Name == name);
 		}
 
 		public float GetScaleZ()

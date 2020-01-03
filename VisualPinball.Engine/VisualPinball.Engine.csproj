@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="IO\BiffAttribute.cs" />
     <Compile Include="IO\BiffBoolAttribute.cs" />
+    <Compile Include="IO\BiffByteAttribute.cs" />
     <Compile Include="IO\BiffColorAttribute.cs" />
     <Compile Include="IO\BiffData.cs" />
     <Compile Include="IO\BiffFloatAttribute.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Math\Vertex3D.cs" />
     <Compile Include="Math\Vertex3DNoTex2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VPT\BinaryData.cs" />
     <Compile Include="VPT\Enums.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
@@ -89,6 +91,7 @@
     <Compile Include="VPT\Table\TableData.cs" />
     <Compile Include="VPT\Table\TableLoader.cs" />
     <Compile Include="VPT\Texture.cs" />
+    <Compile Include="VPT\TextureData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
