@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.Extensions
 			var mesh = new UnityEngine.Mesh { name = vpMesh.Name };
 
 			var matrixRot = new Matrix4x4();
-			matrixRot.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), Vector3.one);
+			matrixRot.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));
 
 			// vertices
 			var vertices = new Vector3[vpMesh.Vertices.Length];
