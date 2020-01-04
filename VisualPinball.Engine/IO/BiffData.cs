@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.IO
 		/// </summary>
 		/// <param name="type">Type of the data class</param>
 		/// <param name="attributes">A dictionary to use for indexing</param>
-		protected static void Init(Type type, Dictionary<string, BiffAttribute> attributes)
+		protected static void Init(Type type, Dictionary<string, List<BiffAttribute>> attributes)
 		{
 			// get all fields and properties via reflection
 			var members = type.GetMembers().Where(member => member.MemberType == MemberTypes.Field || member.MemberType == MemberTypes.Property);
@@ -47,7 +47,11 @@ namespace VisualPinball.Engine.IO
 							attr.Property = property;
 							break;
 					}
-					attributes[attr.Name] = attr;
+
+					if (!attributes.ContainsKey(attr.Name)) {
+						attributes[attr.Name] = new List<BiffAttribute>();
+					}
+					attributes[attr.Name].Add(attr);
 				}
 			}
 		}
@@ -61,7 +65,7 @@ namespace VisualPinball.Engine.IO
 		/// <param name="attributes">The indexed Attributes of that data class</param>
 		/// <typeparam name="T">Type of the data class</typeparam>
 		/// <returns></returns>
-		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, BiffAttribute> attributes) where T : ItemData
+		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, List<BiffAttribute>> attributes) where T : ItemData
 		{
 			// initially read length and BIFF record name
 			var len = reader.ReadInt32();
@@ -70,12 +74,14 @@ namespace VisualPinball.Engine.IO
 			while (tag != "ENDB") {
 
 				if (attributes.ContainsKey(tag)) {
-					var attr = attributes[tag];
-					if (attr.IsStreaming) {
-						len = reader.ReadInt32();
-						attr.Parse(obj, reader, len);
-					} else {
-						attr.Parse(obj, reader, len - 4);
+					var attrs = attributes[tag];
+					foreach (var attr in attrs) {
+						if (attr.IsStreaming) {
+							len = reader.ReadInt32();
+							attr.Parse(obj, reader, len);
+						} else {
+							attr.Parse(obj, reader, len - 4);
+						}
 					}
 				} else {
 					Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
