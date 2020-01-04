@@ -6,8 +6,8 @@ namespace VisualPinball.Engine.VPT
 {
 	public class TextureData : ItemData
 	{
-		//[BiffString("NAME", IsWideString = false, HasExplicitLength = true)]
-		//public new string Name;
+		[BiffString("NAME", IsWideString = false, HasExplicitLength = true)]
+		public override string Name { get; set; }
 
 		[BiffString("INME")]
 		public string InternalName;
@@ -27,8 +27,8 @@ namespace VisualPinball.Engine.VPT
 		[BiffBinary("JPEG")]
 		public BinaryData Binary;
 
-		[BiffBits("BITS")]
-		public byte[] PdsBuffer;
+		[BiffBits("BITS")] // originally PdsBuffer;
+		public Bitmap Bitmap;
 
 		static TextureData()
 		{
@@ -60,7 +60,9 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			SetValue(obj, new BinaryData(reader, "none"));
+			if (obj is TextureData textureData) {
+				SetValue(obj, new Bitmap(reader, textureData.Width, textureData.Height));
+			}
 		}
 	}
 }

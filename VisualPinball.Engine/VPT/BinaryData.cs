@@ -6,6 +6,9 @@ namespace VisualPinball.Engine.VPT
 {
 	public class BinaryData : ItemData
 	{
+		[BiffString("NAME", IsWideString = true)]
+		public override string Name { get; set; }
+
 		[BiffString("INME")]
 		public string InternalName;
 

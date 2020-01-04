@@ -14,6 +14,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 {
 	public class PrimitiveData : ItemData
 	{
+		[BiffString("NAME", IsWideString = true)]
+		public override string Name { get; set; }
+
 		[BiffVertex("VPOS")]
 		public Vertex3D Position;
 
@@ -171,7 +174,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 						? BiffZlib.Decompress(reader.ReadBytes(len))
 						: reader.ReadBytes(len));
 				} catch (Exception e) {
-					throw new Exception($"Error parsing vertices for {obj.Name} ({obj.StorageName}).", e);
+					throw new Exception($"Error parsing vertices for {tableData.Name} ({obj.StorageName}).", e);
 				}
 
 			}
