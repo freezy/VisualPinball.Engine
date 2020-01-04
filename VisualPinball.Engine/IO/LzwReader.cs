@@ -1,10 +1,18 @@
+#region ReSharper
+// ReSharper disable IdentifierTypo
+#endregion
+
 namespace VisualPinball.Engine.IO
 {
+	/// <summary>
+	/// This is a 1:1 port of VPinball's lzwreader which is used to decompress
+	/// bitmaps.
+	/// </summary>
+	/// <see href="https://github.com/vpinball/vpinball/blob/master/media/lzwreader.cpp"/>
 	public class LzwReader
 	{
-
-		const int MAX_CODES = 4095;
-		private int[] CODE_MASK = {
+		private const int MaxCodes = 4095;
+		private readonly int[] _codeMask = {
 			0,
 			0x0001, 0x0003,
 			0x0007, 0x000F,
@@ -14,356 +22,330 @@ namespace VisualPinball.Engine.IO
 			0x07FF, 0x0FFF
 		};
 
-		private BufferPtr pstm;
+		private readonly BufferPtr _pstm;
 
 		/* output */
-		private readonly BufferPtr pbBitsOutCur;
-		private readonly int cbStride;
-		private int badCodeCount;
+		private readonly BufferPtr _pbBitsOutCur;
+		private readonly int _cbStride;
+		private int _badCodeCount;
 
 		/* Static variables */
-		private int currSize = 0;                 /* The current code size */
-		private int clear = 0;                    /* Value for a clear code */
-		private int ending = 0;                   /* Value for a ending code */
-		private int newCodes = 0;                 /* First available code */
-		private int topSlot = 0;                  /* Highest code for current size */
-		private int slot = 0;                     /* Last read code */
+		private int _currSize;                 /* The current code size */
+		private int _clear;                    /* Value for a clear code */
+		private int _ending;                   /* Value for a ending code */
+		private int _newCodes;                 /* First available code */
+		private int _topSlot;                  /* Highest code for current size */
+		private int _slot;                     /* Last read code */
 
 		/* The following static variables are used
 		 * for separating out codes
 		 */
-		private int numAvailBytes = 0;              /* # bytes left in block */
-		private int numBitsLeft = 0;                /* # bits left in current byte */
-		private byte b1 = 0x0;                         /* Current byte */
-		private byte[] byteBuff = new byte[257];      /* Current block */
-		private BufferPtr pBytes;                     /* points to byte_buff - Pointer to next byte in block */
+		private int _numAvailBytes;              /* # bytes left in block */
+		private int _numBitsLeft;                /* # bits left in current byte */
+		private byte _b1;                        /* Current byte */
+		private readonly byte[] _byteBuff = new byte[257];      /* Current block */
+		private BufferPtr _pBytes;                              /* points to byte_buff - Pointer to next byte in block */
 
-		private byte[] stack = new byte[MAX_CODES + 1];     /* Stack for storing pixels */
-		private byte[] suffix = new byte[MAX_CODES + 1];    /* Suffix table */
-		private int[] prefix = new int[MAX_CODES + 1];                        /* Prefix linked list */
+		private readonly byte[] _stack = new byte[MaxCodes + 1];     /* Stack for storing pixels */
+		private readonly byte[] _suffix = new byte[MaxCodes + 1];    /* Suffix table */
+		private readonly int[] _prefix = new int[MaxCodes + 1];      /* Prefix linked list */
 
-		private readonly int width;
-		private readonly int height;
-		private int linesLeft;
+		private readonly int _width;
+		private readonly int _height;
+		private int _linesLeft;
 
 		public LzwReader(byte[] pstm, int width, int height, int pitch) {
-			for (var i = 0; i < MAX_CODES + 1; i++) {
-				this.prefix[i] = 0;
+			for (var i = 0; i < MaxCodes + 1; i++) {
+				_prefix[i] = 0;
 			}
-			this.cbStride = pitch;
-			this.pbBitsOutCur = new BufferPtr(new byte[pitch * height]);
+			_cbStride = pitch;
+			_pbBitsOutCur = new BufferPtr(new byte[pitch * height]);
 
-			this.badCodeCount = 0;
+			_badCodeCount = 0;
 
-			this.pstm = new BufferPtr(pstm);
+			_pstm = new BufferPtr(pstm);
 
-			this.width = width; // 32-bit picture
-			this.height = height;
-			this.linesLeft = height + 1; // +1 because 1 gets taken o
+			_width = width; // 32-bit picture
+			_height = height;
+			_linesLeft = height + 1; // +1 because 1 gets taken o
 		}
 
-		public void decompress(out byte[] data, out int length) {
-
-			BufferPtr sp; // points to this.stack
-			BufferPtr bufPtr; // points to this.buf
-			BufferPtr buf;
-			int bufCnt;
-
-			int c;
-			int oc;
+		public void Decompress(out byte[] data, out int length) {
 			int fc;
-			int code;
-			int size;
 
-			/* Initialize for decoding a new image...
-			 */
-			size = 8;
-			this.initExp(size);
+			// Initialize for decoding a new image...
+			const int size = 8;
+			InitExp(size);
 
-			/* Initialize in case they forgot to put in a clear code.
-			 * (This shouldn't happen, but we'll try and decode it anyway...)
-			 */
-			oc = fc = 0;
+			// Initialize in case they forgot to put in a clear code.
+			// (This shouldn't happen, but we'll try and decode it anyway...)
+			var oc = fc = 0;
 
-			/* Allocate space for the decode buffer
-			 */
-			buf = this.NextLine();
+			// Allocate space for the decode buffer
+			var buf = NextLine();
 
-			/* Set up the stack pointer and decode buffer pointer
-			 */
-			sp = new BufferPtr(this.stack);
-			bufPtr = BufferPtr.fromPtr(buf);
-			bufCnt = this.width;
+			// Set up the stack pointer and decode buffer pointer
+			var sp = new BufferPtr(_stack);
+			var bufPtr = BufferPtr.FromPtr(buf);
+			var bufCnt = _width;
 
-			/* This is the main loop.  For each code we get we pass through the
-			 * linked list of prefix codes, pushing the corresponding "character" for
-			 * each code onto the stack.  When the list reaches a single "character"
-			 * we push that on the stack too, and then start unstacking each
-			 * character for output in the correct order.  Special handling is
-			 * included for the clear code, and the whole thing ends when we get
-			 * an ending code.
-			 */
-			c = this.getNextCode();
-			while (c != this.ending) {
+			// This is the main loop.  For each code we get we pass through the
+			// linked list of prefix codes, pushing the corresponding "character" for
+			// each code onto the stack.  When the list reaches a single "character"
+			// we push that on the stack too, and then start unstacking each
+			// character for output in the correct order.  Special handling is
+			// included for the clear code, and the whole thing ends when we get
+			// an ending code.
+			var c = GetNextCode();
+			while (c != _ending) {
 
-				/* If we had a file error, return without completing the decode
-				 */
+				// If we had a file error, return without completing the decode
 				if (c < 0) {
 					break;
 				}
 
-				/* If the code is a clear code, reinitialize all necessary items.
-				 */
-				if (c == this.clear) {
-					this.currSize = size + 1;
-					this.slot = this.newCodes;
-					this.topSlot = 1 << this.currSize;
+				// If the code is a clear code, reinitialize all necessary items.
+				if (c == _clear) {
+					_currSize = size + 1;
+					_slot = _newCodes;
+					_topSlot = 1 << _currSize;
 
-					/* Continue reading codes until we get a non-clear code
-					 * (Another unlikely, but possible case...)
-					 */
-					c = this.getNextCode();
-					while (c == this.clear) {
-						c = this.getNextCode();
+					// Continue reading codes until we get a non-clear code
+					// (Another unlikely, but possible case...)
+					c = GetNextCode();
+					while (c == _clear) {
+						c = GetNextCode();
 					}
 
-					/* If we get an ending code immediately after a clear code
-					 * (Yet another unlikely case), then break out of the loop.
-					 */
-					if (c == this.ending) {
+					// If we get an ending code immediately after a clear code
+					// (Yet another unlikely case), then break out of the loop.
+					if (c == _ending) {
 						break;
 					}
 
-					/* Finally, if the code is beyond the range of already set codes,
-					 * (This one had better NOT happen...  I have no idea what will
-					 * result from this, but I doubt it will look good...) then set it
-					 * to color zero.
-					 */
-					if (c >= this.slot) {
+					// Finally, if the code is beyond the range of already set codes,
+					// (This one had better NOT happen...  I have no idea what will
+					// result from this, but I doubt it will look good...) then set it
+					// to color zero.
+					if (c >= _slot) {
 						c = 0;
 					}
 
 					oc = fc = c;
 
-					/* And var us not forget to put the char into the buffer... And
-					 * if, on the off chance, we were exactly one pixel from the end
-					 * of the line, we have to send the buffer to the out_line()
-					 * routine...
-					 */
-					bufPtr.set((byte)c);
-					bufPtr.incr();
+					// And var us not forget to put the char into the buffer... And
+					// if, on the off chance, we were exactly one pixel from the end
+					// of the line, we have to send the buffer to the out_line()
+					// routine...
+					bufPtr.Set((byte)c);
+					bufPtr.Incr();
 
 					if (--bufCnt == 0) {
-						buf = this.NextLine();
-						bufPtr = BufferPtr.fromPtr(buf);
-						bufCnt = this.width;
+						buf = NextLine();
+						bufPtr = BufferPtr.FromPtr(buf);
+						bufCnt = _width;
 					}
 
 				} else {
 
-					/* In this case, it's not a clear code or an ending code, so
-					 * it must be a code code...  So we can now decode the code into
-					 * a stack of character codes. (Clear as mud, right?)
-					 */
-					code = c;
+					// In this case, it's not a clear code or an ending code, so
+					// it must be a code code...  So we can now decode the code into
+					// a stack of character codes. (Clear as mud, right?)
+					var code = c;
 
-					/* Here we go again with one of those off chances...  If, on the
-					 * off chance, the code we got is beyond the range of those already
-					 * set up (Another thing which had better NOT happen...) we trick
-					 * the decoder into thinking it actually got the last code read.
-					 * (Hmmn... I'm not sure why this works...  But it does...)
-					 */
-					if (code >= this.slot) {
-						if (code > this.slot) {
-							++this.badCodeCount;
+					// Here we go again with one of those off chances...  If, on the
+					// off chance, the code we got is beyond the range of those already
+					// set up (Another thing which had better NOT happen...) we trick
+					// the decoder into thinking it actually got the last code read.
+					// (Hmmn... I'm not sure why this works...  But it does...)
+					if (code >= _slot) {
+						if (code > _slot) {
+							++_badCodeCount;
 						}
 						code = oc;
-						sp.set((byte)fc);
-						sp.incr();
+						sp.Set((byte)fc);
+						sp.Incr();
 					}
 
-					/* Here we scan back along the linked list of prefixes, pushing
-					 * helpless characters (ie. suffixes) onto the stack as we do so.
-					 */
-					while (code >= this.newCodes) {
-						sp.set(this.suffix[code]);
-						sp.incr();
-						code = this.prefix[code];
+					// Here we scan back along the linked list of prefixes, pushing
+					// helpless characters (ie. suffixes) onto the stack as we do so.
+					while (code >= _newCodes) {
+						sp.Set(_suffix[code]);
+						sp.Incr();
+						code = _prefix[code];
 					}
 
-					/* Push the last character on the stack, and set up the new
-					 * prefix and suffix, and if the required slot number is greater
-					 * than that allowed by the current bit size, increase the bit
-					 * size.  (NOTE - If we are all full, we *don't* save the new
-					 * suffix and prefix...  I'm not certain if this is correct...
-					 * it might be more proper to overwrite the last code...
-					 */
-					sp.set((byte)code);
-					sp.incr();
-					if (this.slot < this.topSlot) {
+					// Push the last character on the stack, and set up the new
+					// prefix and suffix, and if the required slot number is greater
+					// than that allowed by the current bit size, increase the bit
+					// size.  (NOTE - If we are all full, we *don't* save the new
+					// suffix and prefix...  I'm not certain if this is correct...
+					// it might be more proper to overwrite the last code...
+					sp.Set((byte)code);
+					sp.Incr();
+					if (_slot < _topSlot) {
 						fc = code;
-						this.suffix[this.slot] = (byte)fc;	// = code;
-						this.prefix[this.slot++] = oc;
+						_suffix[_slot] = (byte)fc;	// = code;
+						_prefix[_slot++] = oc;
 						oc = c;
 					}
-					if (this.slot >= this.topSlot) {
-						if (this.currSize < 12) {
-							this.topSlot <<= 1;
-							++this.currSize;
+					if (_slot >= _topSlot) {
+						if (_currSize < 12) {
+							_topSlot <<= 1;
+							++_currSize;
 						}
 					}
 
-					/* Now that we've pushed the decoded string (in reverse order)
-					 * onto the stack, lets pop it off and put it into our decode
-					 * buffer...  And when the decode buffer is full, write another
-					 * line...
-					 */
-					while (sp.getPos() > 0) {
+					// Now that we've pushed the decoded string (in reverse order)
+					// onto the stack, lets pop it off and put it into our decode
+					// buffer...  And when the decode buffer is full, write another
+					// line...
+					while (sp.GetPos() > 0) {
 
-						sp.decr();
-						bufPtr.set(sp.get());
-						bufPtr.incr();
+						sp.Decr();
+						bufPtr.Set(sp.Get());
+						bufPtr.Incr();
 						if (--bufCnt == 0) {
-							buf = this.NextLine();
+							buf = NextLine();
 							bufPtr = buf;
-							bufCnt = this.width;
+							bufCnt = _width;
 						}
 					}
 				}
-				c = this.getNextCode();
+				c = GetNextCode();
 			}
 
-			data = this.pbBitsOutCur.getBuffer();
-			length = this.pstm.getPos();
+			data = _pbBitsOutCur.GetBuffer();
+			length = _pstm.GetPos();
 		}
 
-		private void initExp(int size) {
-			this.currSize = size + 1;
-			this.topSlot = 1 << this.currSize;
-			this.clear = 1 << size;
-			this.ending = this.clear + 1;
-			this.slot = this.newCodes = this.ending + 1;
-			this.numAvailBytes = this.numBitsLeft = 0;
+		private void InitExp(int size) {
+			_currSize = size + 1;
+			_topSlot = 1 << _currSize;
+			_clear = 1 << size;
+			_ending = _clear + 1;
+			_slot = _newCodes = _ending + 1;
+			_numAvailBytes = _numBitsLeft = 0;
 		}
 
 		private BufferPtr NextLine() {
-			var pbRet = BufferPtr.fromPtr(this.pbBitsOutCur);
-			this.pbBitsOutCur.incr(this.cbStride);	// fucking upside down dibs!
-			this.linesLeft--;
+			var pbRet = BufferPtr.FromPtr(_pbBitsOutCur);
+			_pbBitsOutCur.Incr(_cbStride);	// fucking upside down dibs!
+			_linesLeft--;
 			return pbRet;
 		}
 
-		private int getNextCode() {
+		private int GetNextCode() {
 			int ret;
-			if (this.numBitsLeft == 0) {
-				if (this.numAvailBytes <= 0) {
+			if (_numBitsLeft == 0) {
+				if (_numAvailBytes <= 0) {
 
-					/* Out of bytes in current block, so read next block
-					 */
-					this.pBytes = new BufferPtr(this.byteBuff);
-					this.numAvailBytes = this.getByte();
-					if (this.numAvailBytes < 0) {
-						return (this.numAvailBytes);
+					// Out of bytes in current block, so read next block
+					_pBytes = new BufferPtr(_byteBuff);
+					_numAvailBytes = GetByte();
+					if (_numAvailBytes < 0) {
+						return (_numAvailBytes);
 
-					} else if (this.numAvailBytes > 0) {
-						for (var i = 0; i < this.numAvailBytes; ++i) {
-							var x = this.getByte();
+					}
+
+					if (_numAvailBytes > 0) {
+						for (var i = 0; i < _numAvailBytes; ++i) {
+							var x = GetByte();
 							if (x < 0) {
 								return x;
 							}
-							this.byteBuff[i] = (byte)x;
+							_byteBuff[i] = (byte)x;
 						}
 					}
 				}
-				this.b1 = this.pBytes.get();
-				this.pBytes.incr();
-				this.numBitsLeft = 8;
-				--this.numAvailBytes;
+				_b1 = _pBytes.Get();
+				_pBytes.Incr();
+				_numBitsLeft = 8;
+				--_numAvailBytes;
 			}
 
-			ret = this.b1 >> (8 - this.numBitsLeft);
-			while (this.currSize > this.numBitsLeft) {
-				if (this.numAvailBytes <= 0) {
+			ret = _b1 >> (8 - _numBitsLeft);
+			while (_currSize > _numBitsLeft) {
+				if (_numAvailBytes <= 0) {
 
-					/* Out of bytes in current block, so read next block
-					 */
-					this.pBytes = new BufferPtr(this.byteBuff);
-					this.numAvailBytes = this.getByte();
-					if (this.numAvailBytes < 0) {
-						return this.numAvailBytes;
+					// Out of bytes in current block, so read next block
+					_pBytes = new BufferPtr(_byteBuff);
+					_numAvailBytes = GetByte();
+					if (_numAvailBytes < 0) {
+						return _numAvailBytes;
 
-					} else if (this.numAvailBytes > 0) {
-						for (var i = 0; i < this.numAvailBytes; ++i) {
-							var x = this.getByte();
+					}
+
+					if (_numAvailBytes > 0) {
+						for (var i = 0; i < _numAvailBytes; ++i) {
+							var x = GetByte();
 							if (x < 0) {
 								return x;
 							}
-							this.byteBuff[i] = (byte)x;
+							_byteBuff[i] = (byte)x;
 						}
 					}
 				}
-				this.b1 = this.pBytes.get();
-				this.pBytes.incr();
-				ret |= this.b1 << this.numBitsLeft;
-				this.numBitsLeft += 8;
-				--this.numAvailBytes;
+				_b1 = _pBytes.Get();
+				_pBytes.Incr();
+				ret |= _b1 << _numBitsLeft;
+				_numBitsLeft += 8;
+				--_numAvailBytes;
 			}
-			this.numBitsLeft -= this.currSize;
-			ret &= CODE_MASK[this.currSize];
+			_numBitsLeft -= _currSize;
+			ret &= _codeMask[_currSize];
 			return ret;
 		}
 
-		private int getByte() {
-			return this.pstm.next();
+		private int GetByte() {
+			return _pstm.Next();
 		}
 	}
 
-
-	/**
- * Simulates a C pointer to some data. Data is never copied,
- * only the pointer is updated.
- */
+	/// <summary>
+	/// Simulates a C pointer to some data. Data is never copied,
+	/// only the pointer is updated.
+	/// </summary>
 	internal class BufferPtr {
 
-		private readonly byte[] buf;
-		private int pos;
+		private readonly byte[] _buf;
+		private int _pos;
 
 		public BufferPtr(byte[] buf, int pos = 0) {
-			this.buf = buf;
-			this.pos = pos;
+			_buf = buf;
+			_pos = pos;
 		}
 
-		public static BufferPtr fromPtr(BufferPtr ptr) {
-			return new BufferPtr(ptr.buf, ptr.pos);
+		public static BufferPtr FromPtr(BufferPtr ptr) {
+			return new BufferPtr(ptr._buf, ptr._pos);
 		}
 
-		public void incr(int offset = 1) {
-			this.pos += offset;
+		public void Incr(int offset = 1) {
+			_pos += offset;
 		}
 
-		public void decr(int offset = 1) {
-			this.pos -= offset;
+		public void Decr(int offset = 1) {
+			_pos -= offset;
 		}
 
-		public byte get(int offset = -1) {
-			return this.buf[offset > -1 ? offset : this.pos];
+		public byte Get(int offset = -1) {
+			return _buf[offset > -1 ? offset : _pos];
 		}
 
-		public byte next() {
-			return this.buf[this.pos++];
+		public byte Next() {
+			return _buf[_pos++];
 		}
 
-		public void set(byte value) {
-			this.buf[this.pos] = value;
+		public void Set(byte value) {
+			_buf[_pos] = value;
 		}
 
-		public int getPos() {
-			return this.pos;
+		public int GetPos() {
+			return _pos;
 		}
 
-		public byte[] getBuffer() {
-			return this.buf;
+		public byte[] GetBuffer() {
+			return _buf;
 		}
 	}
-
 }

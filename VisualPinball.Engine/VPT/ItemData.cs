@@ -21,4 +21,9 @@ namespace VisualPinball.Engine.VPT
 			StorageName = storageName;
 		}
 	}
+
+	public interface IBinaryData
+	{
+		byte[] Bytes { get; }
+	}
 }

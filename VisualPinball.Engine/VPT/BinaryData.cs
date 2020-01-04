@@ -1,12 +1,20 @@
+#region ReSharper
+// ReSharper disable UnassignedField.Global
+// ReSharper disable StringLiteralTypo
+// ReSharper disable FieldCanBeMadeReadOnly.Global
+#endregion
+
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT
 {
-	public class BinaryData : ItemData
+	public class BinaryData : ItemData, IBinaryData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		public byte[] Bytes => Data;
+
+		[BiffString("NAME", HasExplicitLength = true)]
 		public override string Name { get; set; }
 
 		[BiffString("INME")]
