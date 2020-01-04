@@ -18,7 +18,8 @@ namespace VisualPinball.Engine.Math
 		public float Tu;
 		public float Tv;
 
-		public Vertex3DNoTex2(BinaryReader reader) {
+		public Vertex3DNoTex2(BinaryReader reader)
+		{
 			var startPos = reader.BaseStream.Position;
 			X = reader.ReadSingle();
 			Y = reader.ReadSingle();
@@ -45,9 +46,19 @@ namespace VisualPinball.Engine.Math
 			Tv = arr.Count > 7 ? arr[7] : float.NaN;
 		}
 
-		public Vertex3DNoTex2()
+		public Vertex3DNoTex2(float x, float y, float z, float nx, float ny, float nz, float tu, float tv)
 		{
+			X = x;
+			Y = y;
+			Z = z;
+			Nx = nx;
+			Ny = ny;
+			Nz = nz;
+			Tu = tu;
+			Tv = tv;
 		}
+
+		public Vertex3DNoTex2() { }
 
 		public Vertex3DNoTex2(float x, float y, float z)
 		{

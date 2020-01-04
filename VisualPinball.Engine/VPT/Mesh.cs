@@ -18,6 +18,15 @@ namespace VisualPinball.Engine.VPT
 		public int[] Indices;
 		public bool IsSet => Vertices != null && Indices != null;
 
+		public Mesh() { }
+
+		public Mesh(string name, float[][] vertices, int[] indices)
+		{
+			Name = name;
+			Vertices = vertices.Select(v => new Vertex3DNoTex2(v)).ToArray();
+			Indices = indices;
+		}
+
 		public Mesh Transform(Matrix3D matrix, Matrix3D normalMatrix = null, Func<float, float> getZ = null) {
 			foreach (var vertex in Vertices) {
 				var vert = new Vertex3D(vertex.X, vertex.Y, vertex.Z).MultiplyMatrix(matrix);
@@ -45,6 +54,16 @@ namespace VisualPinball.Engine.VPT
 			Indices.CopyTo(mesh.Indices, 0);
 			//mesh.faceIndexOffset = this.faceIndexOffset;
 			return mesh;
+		}
+
+		public Mesh MakeScale(float x, float y, float z)
+		{
+			foreach (var vertex in Vertices) {
+				vertex.X *= x;
+				vertex.Y *= y;
+				vertex.Z *= z;
+			}
+			return this;
 		}
 	}
 }

@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.VPT.Table
 	public class Table : Item<TableData>, IRenderable
 	{
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper> Bumpers = new Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
@@ -70,6 +71,24 @@ namespace VisualPinball.Engine.VPT.Table
 			} else {
 				_meshGenerator.SetFromTableDimensions(this);
 			}
+		}
+
+		public float GetSurfaceHeight(string surfaceName, float x, float y)
+		{
+			if (surfaceName == null) {
+				return Data.TableHeight;
+			}
+
+			// if (Surfaces.ContainsKey[surfaceName]) {
+			// 	return Data.TableHeight + Surfaces[surfaceName].Data.HeightTop;
+			// }
+			//
+			// if (Surfaces[surfaceName]) {
+			// 	return Data.TableHeight + Surfaces[surfaceName].GetSurfaceHeight(x, y, this);
+			// }
+
+			//logger().warn('[Table.getSurfaceHeight] Unknown surface %s.', surface);
+			return Data.TableHeight;
 		}
 	}
 }
