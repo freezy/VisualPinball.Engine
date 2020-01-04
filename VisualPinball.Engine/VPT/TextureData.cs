@@ -6,6 +6,9 @@ namespace VisualPinball.Engine.VPT
 {
 	public class TextureData : ItemData
 	{
+		//[BiffString("NAME", IsWideString = false, HasExplicitLength = true)]
+		//public new string Name;
+
 		[BiffString("INME")]
 		public string InternalName;
 
@@ -24,6 +27,9 @@ namespace VisualPinball.Engine.VPT
 		[BiffBinary("JPEG")]
 		public BinaryData Binary;
 
+		[BiffBits("BITS")]
+		public byte[] PdsBuffer;
+
 		static TextureData()
 		{
 			Init(typeof(TextureData), Attributes);
@@ -41,6 +47,16 @@ namespace VisualPinball.Engine.VPT
 	public class BiffBinaryAttribute : BiffAttribute
 	{
 		public BiffBinaryAttribute(string name) : base(name) { }
+
+		public override void Parse<T>(T obj, BinaryReader reader, int len)
+		{
+			SetValue(obj, new BinaryData(reader, "none"));
+		}
+	}
+
+	public class BiffBitsAttribute : BiffAttribute
+	{
+		public BiffBitsAttribute(string name) : base(name) { }
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{

@@ -69,6 +69,7 @@
     <Compile Include="IO\BiffVertexAttribute.cs" />
     <Compile Include="IO\BiffZlib.cs" />
     <Compile Include="IO\Logging.cs" />
+    <Compile Include="IO\LzwReader.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
     <Compile Include="Math\MathF.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Math\Vertex3DNoTex2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\BinaryData.cs" />
+    <Compile Include="VPT\Bitmap.cs" />
     <Compile Include="VPT\Enums.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
