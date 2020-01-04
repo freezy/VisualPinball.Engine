@@ -49,6 +49,12 @@ namespace VisualPinball.Engine.VPT.Table
 				var reader = new BinaryReader(new MemoryStream(itemData));
 				var itemType = reader.ReadInt32();
 				switch (itemType) {
+					case ItemType.Bumper: {
+						Logger.Info("Loading bumper {itemName}", itemName);
+						var item = new VisualPinball.Engine.VPT.Bumper.Bumper(reader, itemName);
+						table.Bumpers[item.Name] = item;
+						break;
+					}
 					case ItemType.Primitive: {
 						Logger.Info("Loading primitive {itemName}", itemName);
 						var item = new Primitive.Primitive(reader, itemName);
