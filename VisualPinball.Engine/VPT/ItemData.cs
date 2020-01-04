@@ -10,12 +10,11 @@ namespace VisualPinball.Engine.VPT
 	/// Every playfield item has its own data class. They can currently
 	/// only read data.
 	/// </summary>
-	public class ItemData : BiffData
+	public abstract class ItemData : BiffData
 	{
-		[BiffString("NAME", IsWideString = true)]
-		public string Name;
-
 		public readonly string StorageName;
+
+		public abstract string Name { get; set; }
 
 		public ItemData(string storageName)
 		{

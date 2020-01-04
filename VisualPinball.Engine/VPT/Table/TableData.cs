@@ -16,6 +16,9 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class TableData : ItemData
 	{
+		[BiffString("NAME", IsWideString = true)]
+		public override string Name { get; set; }
+
 		[BiffFloat("LEFT")]
 		public float Left;
 
@@ -30,28 +33,28 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[BiffBool("EFSS")]
 		public bool BgEnableFss;
-		
+
 		[BiffBool("ORRP")]
 		public bool OverridePhysics;
-		
+
 		[BiffBool("ORPF")]
 		public bool OverridePhysicsFlipper;
-		
+
 		[BiffFloat("GAVT")]
 		public float Gravity;
-		
+
 		[BiffFloat("FRCT")]
 		public float Friction;
-		
+
 		[BiffFloat("ELAS")]
 		public float Elasticity;
-		
+
 		[BiffFloat("ELFA")]
 		public float ElasticityFalloff;
-	
+
 		[BiffFloat("PFSC")]
 		public float Scatter;
-	
+
 		[BiffFloat("SCAT")]
 		public float DefaultScatter;
 
@@ -249,17 +252,17 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[BiffString("CODE", IsStreaming = true)]
 		public string Code;
-		
+
 		[BiffFloat("ROTA", Index = BackglassIndex.Desktop)]
 		[BiffFloat("ROTF", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("ROFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgRotation = new float[3];
-		
+
 		[BiffFloat("LAYB", Index = BackglassIndex.Desktop)]
 		[BiffFloat("LAYF", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("LAFS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgLayback = new float[3];
-		
+
 		[BiffFloat("INCL", Index = BackglassIndex.Desktop)]
 		[BiffFloat("INCF", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("INFS", Index = BackglassIndex.FullSingleScreen)]
@@ -274,7 +277,7 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffFloat("SCFX", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("SCXS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgScaleX = new float[3];
-		
+
 		[BiffFloat("SCLY", Index = BackglassIndex.Desktop)]
 		[BiffFloat("SCFY", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("SCYS", Index = BackglassIndex.FullSingleScreen)]
@@ -299,7 +302,7 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffFloat("XLFZ", Index = BackglassIndex.Fullscreen)]
 		[BiffFloat("XLZS", Index = BackglassIndex.FullSingleScreen)]
 		public readonly float[] BgOffsetZ = new float[3];
-		
+
 		[BiffString("BIMG", Index = BackglassIndex.Desktop)]
 		[BiffString("BIMF", Index = BackglassIndex.Fullscreen)]
 		[BiffString("BIMS", Index = BackglassIndex.FullSingleScreen)]

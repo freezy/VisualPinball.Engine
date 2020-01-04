@@ -18,7 +18,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\VPX\TableData.vpx");
+			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\VPX\TextureData.vpx");
 			var texture = table.Textures["test_pattern_jpg"];
 
 			Assert.Equal("test_pattern_jpg", texture.Name);

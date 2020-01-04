@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.IO
 		private readonly int height;
 		private int linesLeft;
 
-		LzwReader(byte[] pstm, int width, int height, int pitch) {
+		public LzwReader(byte[] pstm, int width, int height, int pitch) {
 			for (var i = 0; i < MAX_CODES + 1; i++) {
 				this.prefix[i] = 0;
 			}
