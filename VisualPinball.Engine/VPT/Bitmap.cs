@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.IO;
 using VisualPinball.Engine.IO;
 
@@ -9,17 +8,19 @@ namespace VisualPinball.Engine.VPT
 	///
 	/// See "BaseTexture" class in VP.
 	/// </summary>
-	public class Bitmap
+	public class Bitmap : IBinaryData
 	{
 		public const int RGBA = 0;
 		public const int RGB_FP = 1;
+
+		public byte[] Bytes => _data;
 
 		private int _width;
 		private int _height;
 		public int Format = RGBA;
 
 		private int _compressedLen;
-		private byte[] _data;
+		private readonly byte[] _data;
 
 		public Bitmap(BinaryReader reader, int width, int height, int format = RGBA)
 		{
@@ -29,14 +30,13 @@ namespace VisualPinball.Engine.VPT
 
 			var remainingLen = (int) (reader.BaseStream.Length - reader.BaseStream.Position);
 			var compressed = reader.ReadBytes(remainingLen);
-			var pitch = this.pitch();
+			var pitch = Pitch();
 
 			var lzw = new LzwReader(compressed, width * 4, height, pitch);
-			lzw.decompress(out _data, out _compressedLen);
+			lzw.Decompress(out _data, out _compressedLen);
 
 			var lenDiff = remainingLen - _compressedLen;
 			reader.BaseStream.Seek(-lenDiff, SeekOrigin.Current);
-
 
 			// Assume our 32 bit color structure
 			// Find out if all alpha values are zero
@@ -61,11 +61,11 @@ namespace VisualPinball.Engine.VPT
 				}
 			}
 
-			_data = rgbToBgr(width, height);
+			_data = RgbToBgr(width, height);
 		}
 
-		private byte[] rgbToBgr(int width, int height) {
-			var pitch = this.pitch();
+		private byte[] RgbToBgr(int width, int height) {
+			var pitch = Pitch();
 			var from = _data;
 			var to = new byte[pitch * height];
 			for (var i = 0; i < height; i++) {
@@ -96,7 +96,7 @@ namespace VisualPinball.Engine.VPT
 			return to;
 		}
 
-		private int pitch() {
+		private int Pitch() {
 			return (Format == RGBA ? 4 : 3 * 4) * _width;
 		}
 	}
