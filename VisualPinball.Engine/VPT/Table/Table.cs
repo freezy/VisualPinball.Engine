@@ -33,6 +33,11 @@ namespace VisualPinball.Engine.VPT.Table
 			return Data.Materials.FirstOrDefault(m => m.Name == name);
 		}
 
+		public Texture GetTexture(string name)
+		{
+			return Textures.ContainsKey(name) ? Textures[name] : null;
+		}
+
 		public float GetScaleZ()
 		{
 			return Data.BgScaleZ?[Data.BgCurrentSet] ?? 1.0f;
