@@ -20,9 +20,11 @@ namespace VisualPinball.Unity.Importer
 		private bool _saveToAssets;
 		private string _tableFolder;
 		private string _materialFolder;
+		private string _textureFolder;
 		private string _tableDataPath;
 		private string _tablePrefabPath;
 
+		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
 		public static void ImportVpxRuntime(string path)
@@ -89,19 +91,30 @@ namespace VisualPinball.Unity.Importer
 			if (_saveToAssets) {
 				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)}";
 				_materialFolder = $"{_tableFolder}/Materials";
+				_textureFolder = $"{_tableFolder}/Textures";
 				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
 				_tablePrefabPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}.prefab";
-				AssetUtility.CreateFolders(_tableFolder, _materialFolder);
+				AssetUtility.CreateFolders(_tableFolder, _materialFolder, _textureFolder);
 			}
 
 			// create asset object
 			var asset = ScriptableObject.CreateInstance<VpxAsset>();
 
 			// import materials
+			ImportTextures(table);
+
+			// import materials
 			ImportMaterials(table);
 
 			// import table
 			ImportGameItems(table, asset);
+		}
+
+		private void ImportTextures(Table table)
+		{
+			foreach (var texture in table.Textures.Values) {
+				SaveTexture(texture);
+			}
 		}
 
 		private void ImportMaterials(Table table)
@@ -181,6 +194,23 @@ namespace VisualPinball.Unity.Importer
 				return AssetDatabase.LoadAssetAtPath(material.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
 			}
 			return _materials[material.Name];
+		}
+
+		private void SaveTexture(Engine.VPT.Texture texture)
+		{
+			if (_saveToAssets) {
+				AssetDatabase.CreateAsset(texture.ToUnityTexture(), texture.GetUnityFilename(_textureFolder));
+			} else {
+				_textures[texture.Name] = texture.ToUnityTexture();
+			}
+		}
+
+		private Texture2D LoadTexture(Engine.VPT.Texture texture)
+		{
+			if (_saveToAssets) {
+				return AssetDatabase.LoadAssetAtPath(texture.GetUnityFilename(_textureFolder), typeof(Texture2D)) as Texture2D;
+			}
+			return _textures[texture.Name];
 		}
 	}
 

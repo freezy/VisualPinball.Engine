@@ -5,6 +5,9 @@ namespace VisualPinball.Engine.VPT
 {
 	public class Texture : Item<TextureData>
 	{
+		public int Width => Data.Width;
+		public int Height => Data.Width;
+
 		/// <summary>
 		/// Data as read from the .vpx file. Note that for bitmaps, it doesn't
 		/// contain the header.
