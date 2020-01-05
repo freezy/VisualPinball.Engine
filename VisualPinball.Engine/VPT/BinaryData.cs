@@ -13,6 +13,7 @@ namespace VisualPinball.Engine.VPT
 	public class BinaryData : ItemData, IBinaryData
 	{
 		public byte[] Bytes => Data;
+		public byte[] FileContent => Data;
 
 		[BiffString("NAME", HasExplicitLength = true)]
 		public override string Name { get; set; }

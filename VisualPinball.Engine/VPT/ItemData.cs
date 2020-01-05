@@ -25,5 +25,7 @@ namespace VisualPinball.Engine.VPT
 	public interface IBinaryData
 	{
 		byte[] Bytes { get; }
+
+		byte[] FileContent { get; }
 	}
 }
