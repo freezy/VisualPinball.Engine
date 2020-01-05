@@ -22,18 +22,18 @@ namespace VisualPinball.Engine.VPT
 		public byte[] FileContent => GetHeader().Concat(GetBody()).ToArray();
 
 
-		private readonly int _width;
-		private readonly int _height;
-		private readonly int _format;
+		public readonly int Width;
+		public readonly int Height;
+		public readonly int Format;
 
 		private int _compressedLen;
 		private readonly byte[] _data;
 
 		public Bitmap(BinaryReader reader, int width, int height, int format = RGBA)
 		{
-			_width = width;
-			_height = height;
-			_format = format;
+			Width = width;
+			Height = height;
+			Format = format;
 
 			var remainingLen = (int) (reader.BaseStream.Length - reader.BaseStream.Position);
 			var compressed = reader.ReadBytes(remainingLen);
@@ -75,30 +75,32 @@ namespace VisualPinball.Engine.VPT
 		{
 			const int headerSize = 54;
 			var header = new byte[headerSize];
-			var stream = new BinaryWriter(new MemoryStream(header));
-			var bmpLineSize = (_width * 4 + 3) & -4;    // line size ... 4 bytes per pixel + pad to 4 byte boundary
+			var bmpLineSize = (Width * 4 + 3) & -4;    // line size ... 4 bytes per pixel + pad to 4 byte boundary
 
-			// file header
-			stream.Write((byte) 0x42);                                    // type
-			stream.Write((byte) 0x4d);
-			stream.Write((uint) (headerSize + _height * bmpLineSize)); // size
-			stream.Write((short) 0);                                      // reserved 1
-			stream.Write((short) 0);                                      // reserved 2
-			stream.Write((uint) headerSize);                              // off bits
+			using (var stream = new MemoryStream(header))
+			using (var writer = new BinaryWriter(stream)) {
 
-			// bitmap info header
-			stream.Write((uint) 40);                         // size
-			stream.Write(_width);                            // width
-			stream.Write(_height);                           // height
-			stream.Write((ushort) 1);                        // planes
-			stream.Write((ushort) 32);                       // bit count
-			stream.Write((uint) 0);                          // compression
-			stream.Write((uint) (_height * bmpLineSize));    // size image
-			stream.Write(0);                                 // x pels per meter
-			stream.Write(0);                                 // y pels per meter
-			stream.Write((uint) 0);                          // clr used
-			stream.Write((uint) 0);                          // clr important
+				// file header
+				writer.Write((byte) 0x42);                                    // type
+				writer.Write((byte) 0x4d);
+				writer.Write((uint) (headerSize + Height * bmpLineSize));    // size
+				writer.Write((short) 0);                                      // reserved 1
+				writer.Write((short) 0);                                      // reserved 2
+				writer.Write((uint) headerSize);                              // off bits
 
+				// bitmap info header
+				writer.Write((uint) 40);                         // size
+				writer.Write(Width);                            // width
+				writer.Write(Height);                           // height
+				writer.Write((ushort) 1);                        // planes
+				writer.Write((ushort) 32);                       // bit count
+				writer.Write((uint) 0);                          // compression
+				writer.Write((uint) (Height * bmpLineSize));    // size image
+				writer.Write(0);                                 // x pels per meter
+				writer.Write(0);                                 // y pels per meter
+				writer.Write((uint) 0);                          // clr used
+				writer.Write((uint) 0);                          // clr important
+			}
 			return header;
 		}
 
@@ -107,9 +109,9 @@ namespace VisualPinball.Engine.VPT
 			var timer = new Stopwatch();
 			timer.Stop();
 			var body = new byte[_data.Length];
-			var lineSize = _data.Length / _height;
-			for (var i = _height - 1; i >= 0; i--) {
-				Array.Copy(_data, i * lineSize, body, (_height - i - 1) * lineSize, lineSize);
+			var lineSize = _data.Length / Height;
+			for (var i = Height - 1; i >= 0; i--) {
+				Array.Copy(_data, i * lineSize, body, (Height - i - 1) * lineSize, lineSize);
 			}
 			timer.Stop();
 			Console.WriteLine("Re-ordered after {0}ms", timer.ElapsedMilliseconds);
@@ -119,10 +121,10 @@ namespace VisualPinball.Engine.VPT
 
 		private byte[] ToggleRgbBgr(IReadOnlyList<byte> from) {
 			var pitch = Pitch();
-			var to = new byte[pitch * _height];
-			for (var i = 0; i < _height; i++) {
-				for (var l = 0; l < _width; l++) {
-					if (_format == RGBA) {
+			var to = new byte[pitch * Height];
+			for (var i = 0; i < Height; i++) {
+				for (var l = 0; l < Width; l++) {
+					if (Format == RGBA) {
 						to[i * pitch + 4 * l] = from[i * pitch + 4 * l + 2];     // r
 						to[i * pitch + 4 * l + 1] = from[i * pitch + 4 * l + 1]; // g
 						to[i * pitch + 4 * l + 2] = from[i * pitch + 4 * l];     // b
@@ -148,8 +150,8 @@ namespace VisualPinball.Engine.VPT
 			return to;
 		}
 
-		private int Pitch() {
-			return (_format == RGBA ? 4 : 3 * 4) * _width;
+		public int Pitch() {
+			return (Format == RGBA ? 4 : 3 * 4) * Width;
 		}
 	}
 }
