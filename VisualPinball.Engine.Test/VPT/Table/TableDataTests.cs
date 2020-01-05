@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\VPX\TableData.vpx");
+			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\TableData.vpx");
 			var data = table.Data;
 
 			Assert.Equal(0.60606f, data.AngleTiltMax);
