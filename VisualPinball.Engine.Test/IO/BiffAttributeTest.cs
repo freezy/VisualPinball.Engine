@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.IO
@@ -81,7 +82,29 @@ namespace VisualPinball.Engine.Test.IO
 			GetAttributes(typeof(BiffVertexAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(Vertex2D) && memberType != typeof(Vertex3D)) {
-					throw new Exception($"BiffColor of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either Vertex2D or Vertex3D, but is {memberType.Name}.");
+					throw new Exception($"BiffVertex of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either Vertex2D or Vertex3D, but is {memberType.Name}.");
+				}
+			});
+		}
+
+		[Fact]
+		public void ShouldBeAppliedToTextureBinary()
+		{
+			GetAttributes(typeof(BiffBinaryAttribute), (memberType, member, biffDataType, attr) =>
+			{
+				if (memberType != typeof(BinaryData)) {
+					throw new Exception($"BiffBinary of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be of type BinaryData, but is {memberType.Name}.");
+				}
+			});
+		}
+
+		[Fact]
+		public void ShouldBeAppliedToTextureBits()
+		{
+			GetAttributes(typeof(BiffBitsAttribute), (memberType, member, biffDataType, attr) =>
+			{
+				if (memberType != typeof(Bitmap)) {
+					throw new Exception($"BiffBits of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be of type Bitmap, but is {memberType.Name}.");
 				}
 			});
 		}
