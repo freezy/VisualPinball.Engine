@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Extensions
 
 		public static Vector3 ToUnityUvVector2(this Vertex3DNoTex2 vertex)
 		{
-			return new Vector2(vertex.Tu, vertex.Tv);
+			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
 	}
 }

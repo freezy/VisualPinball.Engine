@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Extensions
 {
 	public static class Mesh
 	{
-		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh)
+		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh, string name = null)
 		{
-			var mesh = new UnityEngine.Mesh { name = vpMesh.Name };
+			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
 
 			var matrixRot = new Matrix4x4();
 			matrixRot.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));

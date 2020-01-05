@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.CodeDom;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.IO;
@@ -26,6 +28,7 @@ namespace VisualPinball.Unity.Importer
 
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 
 		public static void ImportVpxRuntime(string path)
 		{
@@ -104,7 +107,7 @@ namespace VisualPinball.Unity.Importer
 			ImportTextures(table);
 
 			// import materials
-			ImportMaterials(table);
+			//ImportMaterials(table);
 
 			// import table
 			ImportGameItems(table, asset);
@@ -117,12 +120,12 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportMaterials(Table table)
-		{
-			foreach (var material in table.Materials) {
-				SaveMaterial(material);
-			}
-		}
+		// private void ImportMaterials(Table table)
+		// {
+		// 	foreach (var material in table.Materials) {
+		// 		SaveMaterial(material);
+		// 	}
+		// }
 
 		private void ImportGameItems(Table table, VpxAsset asset)
 		{
@@ -146,55 +149,81 @@ namespace VisualPinball.Unity.Importer
 		{
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
-
 			foreach (var primitive in table.Primitives.Values) {
-
-				// convert mesh
-				var mesh = primitive.GetMesh(table).ToUnityMesh();
-				if (mesh == null) {
-					continue;
-				}
-				mesh.name = $"{primitive.Name}_mesh";
-
-				// create game object for primitive
-				var obj = new GameObject(primitive.Name);
-				obj.transform.parent = primitivesObj.transform;
-
-				// apply mesh to game object
-				var mf = obj.AddComponent<MeshFilter>();
-				mf.sharedMesh = mesh;
-
-				// apply loaded material
-				var materialVpx = primitive.GetMaterial(table);
-				if (materialVpx != null) {
-					var materialUnity = LoadMaterial(materialVpx);
-					var mr = obj.AddComponent<MeshRenderer>();
-					mr.sharedMaterial = materialUnity;
-				}
-
-				// add mesh to asset
-				if (_saveToAssets) {
-					AssetDatabase.AddObjectToAsset(mesh, asset);
-				}
+				ImportRenderObjects(primitive.GetRenderObjects(table), primitive.Name, primitivesObj, asset);
 			}
 		}
 
-		private void SaveMaterial(Engine.VPT.Material material)
+		private void ImportRenderObjects(RenderObject[] renderObjects, string objectName, GameObject parent, VpxAsset asset)
 		{
-			if (_saveToAssets) {
-				AssetDatabase.CreateAsset(material.ToUnityMaterial(), material.GetUnityFilename(_materialFolder));
-			} else {
-				_materials[material.Name] = material.ToUnityMaterial();
+			var obj = new GameObject(objectName);
+			obj.transform.parent = parent.transform;
+
+			if (renderObjects.Length == 1) {
+				ImportRenderObject(renderObjects[0], obj, asset);
+
+			} else if (renderObjects.Length > 1) {
+				foreach (var ro in renderObjects) {
+					var subObj = new GameObject(ro.Name);
+					subObj.transform.parent = obj.transform;
+					ImportRenderObject(ro, subObj, asset);
+				}
 			}
 		}
 
-		private Material LoadMaterial(Engine.VPT.Material material)
+		private void ImportRenderObject(RenderObject renderObject, GameObject obj, VpxAsset asset)
 		{
-			if (_saveToAssets) {
-				return AssetDatabase.LoadAssetAtPath(material.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
+			if (renderObject.Mesh == null) {
+				Logger.Warn($"No mesh for object {obj.name}, skipping.");
+				return;
 			}
-			return _materials[material.Name];
+			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
+
+			// apply mesh to game object
+			var mf = obj.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply material
+			var mr = obj.AddComponent<MeshRenderer>();
+			mr.sharedMaterial = GetMaterial(renderObject, obj.name);
+
+			// add mesh to asset
+			if (_saveToAssets) {
+				AssetDatabase.AddObjectToAsset(mesh, asset);
+			}
 		}
+
+		private Material GetMaterial(RenderObject ro, string objectName)
+		{
+			var material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
+			if (ro.Map != null) {
+				material.SetTexture(MainTex, LoadTexture(ro.Map));
+			}
+			if (_saveToAssets) {
+				var assetName = ro.Material.GetUnityFilename(_materialFolder, objectName)
+					?? $"{_materialFolder}/{AssetUtility.StringToFilename(objectName)}_standard.mat";
+				AssetDatabase.CreateAsset(material, assetName);
+			}
+
+			return material;
+		}
+
+		// private void SaveMaterial(Engine.VPT.Material material)
+		// {
+		// 	if (_saveToAssets) {
+		// 		AssetDatabase.CreateAsset(material.ToUnityMaterial(), material.GetUnityFilename(_materialFolder));
+		// 	} else {
+		// 		_materials[material.Name] = material.ToUnityMaterial();
+		// 	}
+		// }
+		//
+		// private Material LoadMaterial(Engine.VPT.Material material)
+		// {
+		// 	if (_saveToAssets) {
+		// 		return AssetDatabase.LoadAssetAtPath(material.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
+		// 	}
+		// 	return _materials[material.Name];
+		// }
 
 		private void SaveTexture(Engine.VPT.Texture texture)
 		{
