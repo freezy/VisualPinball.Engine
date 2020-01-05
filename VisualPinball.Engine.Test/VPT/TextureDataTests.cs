@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_argb"];
 			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern_argb.bmp");
-			File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", texture.Content);
+			File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", texture.FileContent);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
 			Assert.Equal(image, texture.Content);
