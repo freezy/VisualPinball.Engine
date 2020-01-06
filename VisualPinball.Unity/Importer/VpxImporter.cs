@@ -103,11 +103,8 @@ namespace VisualPinball.Unity.Importer
 			// create asset object
 			var asset = ScriptableObject.CreateInstance<VpxAsset>();
 
-			// import materials
+			// import textures
 			ImportTextures(table);
-
-			// import materials
-			//ImportMaterials(table);
 
 			// import table
 			ImportGameItems(table, asset);

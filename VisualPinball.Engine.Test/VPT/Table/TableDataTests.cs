@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Math;
+﻿using System;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
