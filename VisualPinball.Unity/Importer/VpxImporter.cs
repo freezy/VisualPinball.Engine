@@ -1,5 +1,4 @@
-﻿using System.CodeDom;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NLog;
@@ -11,6 +10,7 @@ using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.IO;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
+using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
 {
@@ -117,13 +117,6 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		// private void ImportMaterials(Table table)
-		// {
-		// 	foreach (var material in table.Materials) {
-		// 		SaveMaterial(material);
-		// 	}
-		// }
-
 		private void ImportGameItems(Table table, VpxAsset asset)
 		{
 			// save game objects to asset folder
@@ -205,24 +198,7 @@ namespace VisualPinball.Unity.Importer
 			return material;
 		}
 
-		// private void SaveMaterial(Engine.VPT.Material material)
-		// {
-		// 	if (_saveToAssets) {
-		// 		AssetDatabase.CreateAsset(material.ToUnityMaterial(), material.GetUnityFilename(_materialFolder));
-		// 	} else {
-		// 		_materials[material.Name] = material.ToUnityMaterial();
-		// 	}
-		// }
-		//
-		// private Material LoadMaterial(Engine.VPT.Material material)
-		// {
-		// 	if (_saveToAssets) {
-		// 		return AssetDatabase.LoadAssetAtPath(material.GetUnityFilename(_materialFolder), typeof(Material)) as Material;
-		// 	}
-		// 	return _materials[material.Name];
-		// }
-
-		private void SaveTexture(Engine.VPT.Texture texture)
+		private void SaveTexture(Texture texture)
 		{
 			if (_saveToAssets) {
 				AssetDatabase.CreateAsset(texture.ToUnityTexture(), texture.GetUnityFilename(_textureFolder));
@@ -231,7 +207,7 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private Texture2D LoadTexture(Engine.VPT.Texture texture)
+		private Texture2D LoadTexture(Texture texture)
 		{
 			if (_saveToAssets) {
 				return AssetDatabase.LoadAssetAtPath(texture.GetUnityFilename(_textureFolder), typeof(Texture2D)) as Texture2D;
