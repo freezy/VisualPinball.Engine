@@ -76,11 +76,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 		 Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">
 	</Target>
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+  <Target Name="AfterBuild" Condition="'$(VPE_UNITY_SCRIPTS)' != ''">
+    <ItemGroup>
+      <BuildFiles Include="$(OutDir)*.dll" Exclude="$(OutDir)Unity*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="$(VPE_UNITY_SCRIPTS)" SkipUnchangedFiles="true"/>
+  </Target>
 </Project>
