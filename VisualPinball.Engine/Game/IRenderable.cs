@@ -5,6 +5,8 @@ namespace VisualPinball.Engine.Game
 {
 	public interface IRenderable
 	{
+		string Name { get; }
+
 		RenderObject[] GetRenderObjects(Table table);
 	}
 
@@ -18,7 +20,7 @@ namespace VisualPinball.Engine.Game
 		public readonly Material Material;
 		public readonly bool IsTransparent;
 
-		public RenderObject(string name, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isTransparent = default)
+		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isTransparent = default)
 		{
 			Name = name;
 			Mesh = mesh;

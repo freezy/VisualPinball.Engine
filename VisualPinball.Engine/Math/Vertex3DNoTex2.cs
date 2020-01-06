@@ -36,17 +36,24 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex3DNoTex2(IReadOnlyList<float> arr) {
 			X  = arr.Count > 0 ? arr[0] : float.NaN;
-			Y = arr.Count > 0 ? arr[1] : float.NaN;
-			Z = arr.Count > 0 ? arr[2] : float.NaN;
-			Nx = arr.Count > 0 ? arr[3] : float.NaN;
-			Ny = arr.Count > 0 ? arr[4] : float.NaN;
-			Nz = arr.Count > 0 ? arr[5] : float.NaN;
-			Tu = arr.Count > 0 ? arr[6] : float.NaN;
-			Tv = arr.Count > 0 ? arr[7] : float.NaN;
+			Y = arr.Count > 1 ? arr[1] : float.NaN;
+			Z = arr.Count > 2 ? arr[2] : float.NaN;
+			Nx = arr.Count > 3 ? arr[3] : float.NaN;
+			Ny = arr.Count > 4 ? arr[4] : float.NaN;
+			Nz = arr.Count > 5 ? arr[5] : float.NaN;
+			Tu = arr.Count > 6 ? arr[6] : float.NaN;
+			Tv = arr.Count > 7 ? arr[7] : float.NaN;
 		}
 
 		public Vertex3DNoTex2()
 		{
+		}
+
+		public Vertex3DNoTex2(float x, float y, float z)
+		{
+			X = x;
+			Y = y;
+			Z = z;
 		}
 
 		public Vertex3D GetVertex() {
