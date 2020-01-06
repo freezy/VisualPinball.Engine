@@ -1,5 +1,5 @@
-using System;
 using System.IO;
+using NLog;
 using OpenMcdf;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public static class TableLoader
 	{
-		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public static Table Load(string filename)
 		{
@@ -26,11 +26,7 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadGameItems(table, gameStorage);
 					LoadTextures(table, gameStorage);
 
-					// print some random data
-					Logger.Debug("left = {0}", table.Data.Left);
-					Logger.Debug("BgRotation = {0}", string.Join("/", table.Data.BgRotation));
-					Logger.Debug("name = {0}", table.Data.Name);
-
+					table.SetupPlayfieldMesh();
 					return table;
 				}
 
@@ -55,7 +51,7 @@ namespace VisualPinball.Engine.VPT.Table
 				switch (itemType) {
 					case ItemType.Primitive: {
 						Logger.Info("Loading primitive {itemName}", itemName);
-						var item = new VisualPinball.Engine.VPT.Primitive.Primitive(reader, itemName);
+						var item = new Primitive.Primitive(reader, itemName);
 						table.Primitives[item.Name] = item;
 						break;
 					}

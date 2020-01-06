@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			// import game objects
-			ImportPrimitives(table, asset);
+			ImportRenderables(table, asset);
 
 			if (_saveToAssets) {
 				PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
@@ -145,12 +145,12 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportPrimitives(Table table, VpxAsset asset)
+		private void ImportRenderables(Table table, VpxAsset asset)
 		{
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
-			foreach (var primitive in table.Primitives.Values) {
-				ImportRenderObjects(primitive.GetRenderObjects(table), primitive.Name, primitivesObj, asset);
+			foreach (var renderable in table.Renderables) {
+				ImportRenderObjects(renderable.GetRenderObjects(table), renderable.Name, primitivesObj, asset);
 			}
 		}
 

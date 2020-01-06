@@ -93,6 +93,7 @@
     <Compile Include="VPT\Table\Table.cs" />
     <Compile Include="VPT\Table\TableData.cs" />
     <Compile Include="VPT\Table\TableLoader.cs" />
+    <Compile Include="VPT\Table\TableMeshGenerator.cs" />
     <Compile Include="VPT\Texture.cs" />
     <Compile Include="VPT\TextureData.cs" />
   </ItemGroup>

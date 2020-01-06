@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 			return new[] {
 				new RenderObject(
-					name: "Geometry",
 					mesh: _meshGenerator.GetMesh(table),
 					map: table.GetTexture(Data.Image),
 					normalMap: table.GetTexture(Data.NormalMap),
@@ -32,17 +31,5 @@ namespace VisualPinball.Engine.VPT.Primitive
 				)
 			};
 		}
-
-		public Mesh GetMesh(Table.Table table)
-		{
-			return _meshGenerator.GetMesh(table);
-		}
-
-		public Material GetMaterial(Table.Table table)
-		{
-			return table.Data.Materials.FirstOrDefault(m => m.Name == Data.Material);
-		}
-
-
 	}
 }
