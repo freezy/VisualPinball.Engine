@@ -200,7 +200,7 @@ namespace VisualPinball.Unity.Importer
 				material.SetTexture(MainTex, LoadTexture(ro.Map));
 			}
 			if (_saveToAssets) {
-				var assetName = ro.Material.GetUnityFilename(_materialFolder, objectName)
+				var assetName = ro.Material?.GetUnityFilename(_materialFolder, objectName)
 					?? $"{_materialFolder}/{AssetUtility.StringToFilename(objectName)}_standard.mat";
 				AssetDatabase.CreateAsset(material, assetName);
 			}

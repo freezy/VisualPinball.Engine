@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,6 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>
 	{
-		public Material[] Materials => Data.Materials;
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 
@@ -30,12 +30,16 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Material GetMaterial(string name)
 		{
-			return Data.Materials.FirstOrDefault(m => m.Name == name);
+			return Data.Materials == null || name == null
+				? null
+				: Data.Materials.FirstOrDefault(m => m.Name == name);
 		}
 
 		public Texture GetTexture(string name)
 		{
-			return Textures.ContainsKey(name) ? Textures[name] : null;
+			return name == null
+				? null
+				: Textures.ContainsKey(name) ? Textures[name] : null;
 		}
 
 		public float GetScaleZ()
