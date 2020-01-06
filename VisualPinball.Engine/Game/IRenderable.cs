@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.VPT;
+﻿using System.Linq;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Game
@@ -19,6 +20,20 @@ namespace VisualPinball.Engine.Game
 		public readonly Texture EnvMap;
 		public readonly Material Material;
 		public readonly bool IsTransparent;
+
+		/// <summary>
+		/// A unique ID based on the material and its maps.
+		/// </summary>
+		public string MaterialId => string.Join("-", new[] {
+				Material?.Name ?? "__no_material",
+				Map?.Name ?? "__no_map",
+				NormalMap?.Name ?? "__no_normal_map",
+				EnvMap?.Name ?? "__no_env_map"
+			}
+			.Reverse()
+			.SkipWhile(s => s.StartsWith("__no_") && s != "__no_material")
+			.Reverse()
+		);
 
 		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isTransparent = default)
 		{

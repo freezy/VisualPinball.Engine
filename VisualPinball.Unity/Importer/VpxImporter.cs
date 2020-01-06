@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Importer
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 
 		public static void ImportVpxRuntime(string path)
 		{
@@ -185,14 +186,16 @@ namespace VisualPinball.Unity.Importer
 
 		private Material GetMaterial(RenderObject ro, string objectName)
 		{
-			var material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
-			if (ro.Map != null) {
-				material.SetTexture(MainTex, LoadTexture(ro.Map));
-			}
-			if (_saveToAssets) {
-				var assetName = ro.Material?.GetUnityFilename(_materialFolder, objectName)
-					?? $"{_materialFolder}/{AssetUtility.StringToFilename(objectName)}_standard.mat";
-				AssetDatabase.CreateAsset(material, assetName);
+			var material = LoadMaterial(ro);
+			if (material == null) {
+				material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
+				if (ro.Map != null) {
+					material.SetTexture(MainTex, LoadTexture(ro.Map));
+				}
+				if (ro.NormalMap != null) {
+					material.SetTexture(BumpMap, LoadTexture(ro.NormalMap));
+				}
+				SaveMaterial(ro, material);
 			}
 
 			return material;
@@ -210,9 +213,29 @@ namespace VisualPinball.Unity.Importer
 		private Texture2D LoadTexture(Texture texture)
 		{
 			if (_saveToAssets) {
-				return AssetDatabase.LoadAssetAtPath(texture.GetUnityFilename(_textureFolder), typeof(Texture2D)) as Texture2D;
+				return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
 			}
 			return _textures[texture.Name];
+		}
+
+		private void SaveMaterial(RenderObject ro, Material material)
+		{
+			if (_saveToAssets) {
+				var assetPath = $"{_materialFolder}/{ro.MaterialId}.mat";
+				AssetDatabase.CreateAsset(material, assetPath);
+			} else {
+				_materials[ro.MaterialId] = material;
+			}
+		}
+
+		private Material LoadMaterial(RenderObject ro)
+		{
+			if (_saveToAssets) {
+				var assetPath = $"{_materialFolder}/{ro.MaterialId}.mat";
+				return AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+			}
+
+			return _materials.ContainsKey(ro.MaterialId) ? _materials[ro.MaterialId] : null;
 		}
 	}
 
