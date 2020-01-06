@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return name == null
 				? null
-				: Textures.ContainsKey(name) ? Textures[name] : null;
+				: Textures.ContainsKey(name.ToLower()) ? Textures[name.ToLower()] : null;
 		}
 
 		public float GetScaleZ()

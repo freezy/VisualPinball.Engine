@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Extensions
 					}
 				}
 				unityTex = new Texture2D(bmp.Width, bmp.Height);
+				unityTex.name = vpTex.Name;
 				unityTex.SetPixels32(colArr);
 				unityTex.Apply();
 
