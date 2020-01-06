@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Mesh GetMesh(Table.Table table)
 		{
-			if (_data.Mesh == null) {
+			if (!_data.Mesh.IsSet) {
 				return null;
 			}
 			var mesh = _data.Mesh.Clone();
