@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
@@ -42,9 +43,9 @@ namespace VisualPinball.Engine.VPT
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
-		public BinaryData(byte[] data, string localFilename) : base(localFilename)
+		public BinaryData(Resource res) : base(res.Name)
 		{
-			Data = data;
+			Data = res.Data;
 		}
 	}
 }

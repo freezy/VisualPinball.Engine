@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
@@ -46,9 +47,10 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
-		public TextureData(byte[] data, string localFilename) : base(localFilename)
+		public TextureData(Resource res) : base(res.Name)
 		{
-			Binary = new BinaryData(data, localFilename);
+			Name = res.Name;
+			Binary = new BinaryData(res);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

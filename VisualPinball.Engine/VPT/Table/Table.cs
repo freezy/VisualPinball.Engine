@@ -19,6 +19,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
+			.Concat(Bumpers.Values)
 			.Concat(Primitives.Values)
 			.ToArray();
 

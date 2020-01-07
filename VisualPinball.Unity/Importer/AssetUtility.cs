@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using NLog;
 using UnityEditor;
@@ -25,6 +26,9 @@ namespace VisualPinball.Unity.Importer
 
 		public static string StringToFilename(string str)
 		{
+			if (str == null) {
+				throw new ArgumentException("String cannot be null.");
+			}
 			return Path.GetInvalidFileNameChars()
 				.Aggregate(str, (current, c) => current.Replace(c, '_'))
 				.Replace(" ", "_");

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Resources;
 using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Bumper
@@ -37,28 +36,28 @@ namespace VisualPinball.Engine.VPT.Bumper
 					name: "Base",
 					mesh: meshes["Base"],
 					material: table.GetMaterial(_data.BaseMaterial),
-					map: new Texture(Resource.BumperBase, Resource.BumperBaseFilename),
+					map: Texture.BumperBase,
 					isVisible: _data.IsBaseVisible
 				),
 				new RenderObject(
 					name: "Cap",
 					mesh: meshes["Cap"],
 					material: table.GetMaterial(_data.CapMaterial),
-					map: new Texture(Resource.BumperCap, Resource.BumperCapFilename),
+					map: Texture.BumperCap,
 					isVisible: _data.IsCapVisible
 				),
 				new RenderObject(
 					name: "Ring",
 					mesh: meshes["Ring"],
 					material: table.GetMaterial(_data.RingMaterial),
-					map: new Texture(Resource.BumperRing, Resource.BumperRingFilename),
+					map: Texture.BumperRing,
 					isVisible: _data.IsRingVisible
 				),
 				new RenderObject(
 					name: "Socket",
 					mesh: meshes["Socket"],
 					material: table.GetMaterial(_data.SocketMaterial),
-					map: new Texture(Resource.BumperSocket, Resource.BumperSocketFilename),
+					map: Texture.BumperSocket,
 					isVisible: _data.IsSocketVisible
 				)
 			};
