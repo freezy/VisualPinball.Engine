@@ -46,6 +46,11 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
+		public TextureData(byte[] data, string localFilename) : base(localFilename)
+		{
+			Binary = new BinaryData(data, localFilename);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 	}
 

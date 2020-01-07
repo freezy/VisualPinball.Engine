@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Resources;
 using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Bumper
@@ -26,18 +29,53 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
 		}
 
-		public Mesh[] GetMeshes(Table.Table table) {
+		public RenderObject[] GetRenderObjects(Table.Table table)
+		{
+			var meshes = GetMeshes(table);
+			return new[] {
+				new RenderObject(
+					name: "Base",
+					mesh: meshes["Base"],
+					material: table.GetMaterial(_data.BaseMaterial),
+					map: new Texture(Resource.BumperBase, Resource.BumperBaseFilename),
+					isVisible: _data.IsBaseVisible
+				),
+				new RenderObject(
+					name: "Cap",
+					mesh: meshes["Cap"],
+					material: table.GetMaterial(_data.CapMaterial),
+					map: new Texture(Resource.BumperCap, Resource.BumperCapFilename),
+					isVisible: _data.IsCapVisible
+				),
+				new RenderObject(
+					name: "Ring",
+					mesh: meshes["Ring"],
+					material: table.GetMaterial(_data.RingMaterial),
+					map: new Texture(Resource.BumperRing, Resource.BumperRingFilename),
+					isVisible: _data.IsRingVisible
+				),
+				new RenderObject(
+					name: "Socket",
+					mesh: meshes["Socket"],
+					material: table.GetMaterial(_data.SocketMaterial),
+					map: new Texture(Resource.BumperSocket, Resource.BumperSocketFilename),
+					isVisible: _data.IsSocketVisible
+				)
+			};
+		}
+
+		private Dictionary<string, Mesh> GetMeshes(Table.Table table) {
 			/* istanbul ignore if */
 			if (_data.Center == null) {
 				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
 			}
 			var matrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
-			return new [] {
-				GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height),
-				GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height),
-				GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f)),
-				GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height )
+			return new Dictionary<string, Mesh> {
+				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height) },
+				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height) },
+				{ "Socket", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f)) },
+				{ "Cap", GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height ) }
 			};
 		}
 

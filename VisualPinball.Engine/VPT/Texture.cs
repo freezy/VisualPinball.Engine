@@ -20,9 +20,9 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		public byte[] FileContent => GetBinaryData().FileContent;
 
-		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName))
-		{
-		}
+		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
+
+		public Texture(byte[] data, string localFilename) : base(new TextureData(data, localFilename)) { }
 
 		private IBinaryData GetBinaryData()
 		{
