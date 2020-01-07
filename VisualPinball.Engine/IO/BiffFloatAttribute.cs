@@ -13,22 +13,10 @@ namespace VisualPinball.Engine.IO
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (Type == typeof(float)) {
-				SetValue(obj, ReadFloat(reader));
-
-			} else if (Type == typeof(float[])) {
-				var arr = GetValue(obj) as float[];
-				if (Count > 1) {
-					for (var i = 0; i < Count; i++) {
-						arr[i] = ReadFloat(reader);
-					}
-				} else {
-					arr[Index] = ReadFloat(reader);
-				}
-			}
+			ParseValue(obj, reader, len, ReadFloat);
 		}
 
-		private float ReadFloat(BinaryReader reader)
+		private float ReadFloat(BinaryReader reader, int len)
 		{
 			var f = QuantizedUnsignedBits > 0
 				? DequantizeUnsigned(QuantizedUnsignedBits, reader.ReadInt32())

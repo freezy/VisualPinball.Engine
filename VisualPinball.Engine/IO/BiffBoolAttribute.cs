@@ -9,19 +9,12 @@ namespace VisualPinball.Engine.IO
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (Type == typeof(bool)) {
-				SetValue(obj, reader.ReadInt32() > 0);
+			ParseValue(obj, reader, len, ReadBool);
+		}
 
-			} else if (Type == typeof(bool[])) {
-				var arr = GetValue(obj) as bool[];
-				if (Count > 1) {
-					for (var i = 0; i < Count; i++) {
-						arr[i] = reader.ReadInt32() > 0;
-					}
-				} else {
-					arr[Index] = reader.ReadInt32() > 0;
-				}
-			}
+		private bool ReadBool(BinaryReader reader, int len)
+		{
+			return reader.ReadInt32() > 0;
 		}
 	}
 }

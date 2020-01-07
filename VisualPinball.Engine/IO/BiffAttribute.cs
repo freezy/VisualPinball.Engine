@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using VisualPinball.Engine.VPT;
 
@@ -46,6 +47,7 @@ namespace VisualPinball.Engine.IO
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
+
 		/// <summary>
 		/// If put on a property, this is the info from C#'s reflection API.
 		/// </summary>
@@ -73,8 +75,30 @@ namespace VisualPinball.Engine.IO
 		/// <param name="obj">Object instance that is being read</param>
 		/// <param name="reader">Binary data from the VPX file</param>
 		/// <param name="len">Length of the BIFF record</param>
-		/// <typeparam name="T">Type of the item data we're currently parsing</typeparam>
-		public abstract void Parse<T>(T obj, BinaryReader reader, int len) where T : ItemData;
+		/// <typeparam name="TItem">Type of the item data we're currently parsing</typeparam>
+		/// <typeparam name="TField">Type of the data field we're currently parsing</typeparam>
+		protected void ParseValue<TItem, TField>(TItem obj, BinaryReader reader, int len, Func<BinaryReader, int, TField> Read) where TItem : ItemData
+		{
+			if (Type == typeof(TField)) {
+				SetValue(obj, Read(reader, len));
+
+			} else if (Type == typeof(TField[])) {
+				var arr = GetValue(obj) as TField[];
+				if (Count > 1) {
+					for (var i = 0; i < Count; i++) {
+						arr[i] = Read(reader, len);
+					}
+
+				} else if (Index >= 0) {
+					arr[Index] = Read(reader, len);
+
+				} else {
+					SetValue(obj, arr.Concat(new []{ Read(reader, len) }).ToArray());
+				}
+			}
+		}
+
+		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : ItemData;
 
 		/// <summary>
 		/// Sets the value to either field or property, depending on which
