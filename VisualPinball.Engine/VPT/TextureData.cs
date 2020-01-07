@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
-		private static readonly Dictionary<string, BiffAttribute> Attributes = new Dictionary<string, BiffAttribute>();
+		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 	}
 
 	public class BiffBinaryAttribute : BiffAttribute

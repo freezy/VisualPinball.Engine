@@ -104,9 +104,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj">
       <Project>{f7c27e2c-8931-46f3-968e-f1103e975074}</Project>
       <Name>VisualPinball.Resources</Name>
