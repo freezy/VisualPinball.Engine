@@ -1,10 +1,19 @@
 using System.IO;
-using System.Xml.Schema;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
 	public class Texture : Item<TextureData>
 	{
+		public static readonly Texture BumperBase = new Texture(Resource.BumperBase);
+		public static readonly Texture BumperCap = new Texture(Resource.BumperCap);
+		public static readonly Texture BumperRing = new Texture(Resource.BumperRing);
+		public static readonly Texture BumperSocket = new Texture(Resource.BumperSocket);
+
+		public static readonly Texture[] LocalTextures = {
+			BumperBase, BumperCap, BumperRing, BumperSocket
+		};
+
 		public int Width => Data.Width;
 		public int Height => Data.Width;
 
@@ -22,7 +31,7 @@ namespace VisualPinball.Engine.VPT
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
 
-		public Texture(byte[] data, string localFilename) : base(new TextureData(data, localFilename)) { }
+		public Texture(Resource res) : base(new TextureData(res)) { }
 
 		private IBinaryData GetBinaryData()
 		{

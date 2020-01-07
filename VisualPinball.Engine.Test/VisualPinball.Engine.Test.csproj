@@ -55,6 +55,7 @@
     <Compile Include="Math\ColorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Bumper\BumperDataTests.cs" />
+    <Compile Include="VPT\Bumper\BumperMeshTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
     <Compile Include="VPT\TextureDataTests.cs" />

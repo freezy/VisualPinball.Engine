@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Importer
 			var watch = Stopwatch.StartNew();
 
 			// open file dialog
-			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", "Assets/", new[] { "Visual Pinball Table Files", "vpx" });
+			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
 			if (vpxPath.Length == 0) {
 				return;
 			}
@@ -114,6 +114,11 @@ namespace VisualPinball.Unity.Importer
 		private void ImportTextures(Table table)
 		{
 			foreach (var texture in table.Textures.Values) {
+				SaveTexture(texture);
+			}
+
+			// also import local textures
+			foreach (var texture in Texture.LocalTextures) {
 				SaveTexture(texture);
 			}
 		}
