@@ -88,5 +88,10 @@ namespace VisualPinball.Engine.Math
 		public bool HasTextureCoordinates() {
 			return !float.IsNaN(Tu) && !float.IsNaN(Tv);
 		}
+
+		public override string ToString()
+		{
+			return $"Vertex3DNoTex2({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz}, {Tu}/{Tv})";
+		}
 	}
 }

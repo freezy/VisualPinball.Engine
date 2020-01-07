@@ -55,6 +55,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Bumpers[item.Name] = item;
 						break;
 					}
+					case ItemType.Light: {
+						Logger.Info("Loading light {itemName}", itemName);
+						var item = new VisualPinball.Engine.VPT.Light.Light(reader, itemName);
+						table.Lights[item.Name] = item;
+						break;
+					}
 					case ItemType.Primitive: {
 						Logger.Info("Loading primitive {itemName}", itemName);
 						var item = new Primitive.Primitive(reader, itemName);

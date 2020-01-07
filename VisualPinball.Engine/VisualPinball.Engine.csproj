@@ -63,6 +63,7 @@
     <Compile Include="IO\BiffByteAttribute.cs" />
     <Compile Include="IO\BiffColorAttribute.cs" />
     <Compile Include="IO\BiffData.cs" />
+    <Compile Include="IO\BiffDragPointAttribute.cs" />
     <Compile Include="IO\BiffFloatAttribute.cs" />
     <Compile Include="IO\BiffIntAttribute.cs" />
     <Compile Include="IO\BiffStringAttribute.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="IO\LzwReader.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
+    <Compile Include="Math\DragPoint.cs" />
     <Compile Include="Math\MathF.cs" />
     <Compile Include="Math\Matrix2D.cs" />
     <Compile Include="Math\Matrix3D.cs" />
@@ -88,6 +90,8 @@
     <Compile Include="VPT\Enums.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
+    <Compile Include="VPT\Light\Light.cs" />
+    <Compile Include="VPT\Light\LightData.cs" />
     <Compile Include="VPT\Material.cs" />
     <Compile Include="VPT\Mesh.cs" />
     <Compile Include="VPT\Primitive\Primitive.cs" />

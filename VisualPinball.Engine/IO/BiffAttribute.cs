@@ -77,7 +77,7 @@ namespace VisualPinball.Engine.IO
 		/// <param name="len">Length of the BIFF record</param>
 		/// <typeparam name="TItem">Type of the item data we're currently parsing</typeparam>
 		/// <typeparam name="TField">Type of the data field we're currently parsing</typeparam>
-		protected void ParseValue<TItem, TField>(TItem obj, BinaryReader reader, int len, Func<BinaryReader, int, TField> Read) where TItem : ItemData
+		protected void ParseValue<TItem, TField>(TItem obj, BinaryReader reader, int len, Func<BinaryReader, int, TField> Read) where TItem : BiffData
 		{
 			if (Type == typeof(TField)) {
 				SetValue(obj, Read(reader, len));
@@ -85,6 +85,9 @@ namespace VisualPinball.Engine.IO
 			} else if (Type == typeof(TField[])) {
 				var arr = GetValue(obj) as TField[];
 				if (Count > 1) {
+					if (arr == null) {
+						arr = new TField[Count];
+					}
 					for (var i = 0; i < Count; i++) {
 						arr[i] = Read(reader, len);
 					}
@@ -93,12 +96,17 @@ namespace VisualPinball.Engine.IO
 					arr[Index] = Read(reader, len);
 
 				} else {
-					SetValue(obj, arr.Concat(new []{ Read(reader, len) }).ToArray());
+					if (arr == null) {
+						SetValue(obj, new []{ Read(reader, len) });
+
+					} else {
+						SetValue(obj, arr.Concat(new []{ Read(reader, len) }).ToArray());
+					}
 				}
 			}
 		}
 
-		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : ItemData;
+		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
 
 		/// <summary>
 		/// Sets the value to either field or property, depending on which

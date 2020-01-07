@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.IO
 
 		private Vertex3D ReadVertex3D(BinaryReader reader, int len)
 		{
-			return new Vertex3D(reader);
+			return new Vertex3D(reader, len);
 		}
 	}
 }
