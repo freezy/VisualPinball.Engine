@@ -29,11 +29,13 @@ namespace VisualPinball.Engine.Math
 			Z = v.Z;
 		}
 
-		public Vertex3D(BinaryReader reader)
+		public Vertex3D(BinaryReader reader, int len)
 		{
 			X = reader.ReadSingle();
 			Y = reader.ReadSingle();
-			Z = reader.ReadSingle();
+			if (len >= 12) {
+				Z = reader.ReadSingle();
+			}
 		}
 
 		public static void Reset(Vertex3D v)
@@ -223,6 +225,11 @@ namespace VisualPinball.Engine.Math
 		public Vertex3D MultiplyMatrixNoTranslate(Matrix3D matrix)
 		{
 			return matrix.MultiplyMatrixNoTranslate(this);
+		}
+
+		public override string ToString()
+		{
+			return $"Vertex3D({X}/{Y}/{Z})";
 		}
 	}
 }

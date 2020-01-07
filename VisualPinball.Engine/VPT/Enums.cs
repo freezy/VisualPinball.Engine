@@ -35,4 +35,11 @@ namespace VisualPinball.Engine.VPT
 		public const int Count = 23;
 		public const uint Invalid = 0xffffffff;
 	}
+
+	public static class LightStatus
+	{
+		public const int LightStateOff = 0;
+		public const int LightStateOn = 1;
+		public const int LightStateBlinking = 2;
+	}
 }

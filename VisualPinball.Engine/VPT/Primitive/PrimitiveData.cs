@@ -174,7 +174,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 						? BiffZlib.Decompress(reader.ReadBytes(len))
 						: reader.ReadBytes(len));
 				} catch (Exception e) {
-					throw new Exception($"Error parsing vertices for {tableData.Name} ({obj.StorageName}).", e);
+					throw new Exception($"Error parsing vertices for {tableData.Name} ({tableData.StorageName}).", e);
 				}
 
 			}

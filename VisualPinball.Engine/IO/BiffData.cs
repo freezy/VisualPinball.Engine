@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using NLog;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.IO
@@ -66,44 +66,50 @@ namespace VisualPinball.Engine.IO
 		/// <param name="attributes">The indexed Attributes of that data class</param>
 		/// <typeparam name="T">Type of the data class</typeparam>
 		/// <returns></returns>
-		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, List<BiffAttribute>> attributes) where T : ItemData
+		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, List<BiffAttribute>> attributes) where T : BiffData
 		{
 			// initially read length and BIFF record name
 			var len = reader.ReadInt32();
 			var tag = ReadTag(reader);
 
-			while (tag != "ENDB") {
+			try {
+				while (tag != "ENDB") {
+					if (attributes.ContainsKey(tag)) {
+						var attrs = attributes[tag];
+						var i = 0;
+						dynamic val = null;
+						foreach (var attr in attrs) {
+							// parse data on the first
+							if (i == 0) {
+								if (attr.IsStreaming) {
+									len = reader.ReadInt32();
+									attr.Parse(obj, reader, len);
 
-				if (attributes.ContainsKey(tag)) {
-					var attrs = attributes[tag];
-					var i = 0;
-					dynamic val = null;
-					foreach (var attr in attrs) {
-						// parse data on the first
-						if (i == 0) {
-							if (attr.IsStreaming) {
-								len = reader.ReadInt32();
-								attr.Parse(obj, reader, len);
+								} else {
+									attr.Parse(obj, reader, len - 4);
+								}
+								val = attr.GetValue(obj);
 
+							// only apply data on the others
 							} else {
-								attr.Parse(obj, reader, len - 4);
+								attr.SetValue(obj, val);
 							}
-							val = attr.GetValue(obj);
-
-						// only apply data on the others
-						} else {
-							attr.SetValue(obj, val);
+							i++;
 						}
-						i++;
+					} else {
+						Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
+						reader.BaseStream.Seek(len - 4, SeekOrigin.Current);
 					}
-				} else {
-					Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
-					reader.BaseStream.Seek(len - 4, SeekOrigin.Current);
-				}
 
-				// read next length and tag name for next record
-				len = reader.ReadInt32();
-				tag = ReadTag(reader);
+					// read next length and tag name for next record
+					len = reader.ReadInt32();
+					tag = ReadTag(reader);
+				}
+			} catch (Exception e) {
+				if (obj is ItemData itemData) {
+					throw new Exception("Error parsing tag \"" + tag + "\" at \"" + itemData.Name + "\" (" + itemData.StorageName + ").", e);
+				}
+				throw new Exception("Error parsing tag \"" + tag + "\".", e);
 			}
 			return obj;
 		}

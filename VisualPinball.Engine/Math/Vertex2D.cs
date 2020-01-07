@@ -90,5 +90,10 @@ namespace VisualPinball.Engine.Math
 			}
 			return X == v.X && Y == v.Y;
 		}
+
+		public override string ToString()
+		{
+			return $"Vertex2D({X}/{Y})";
+		}
 	}
 }
