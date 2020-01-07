@@ -79,6 +79,7 @@ namespace VisualPinball.Engine.IO
 					var i = 0;
 					dynamic val = null;
 					foreach (var attr in attrs) {
+						// parse data on the first
 						if (i == 0) {
 							if (attr.IsStreaming) {
 								len = reader.ReadInt32();
@@ -87,13 +88,9 @@ namespace VisualPinball.Engine.IO
 							} else {
 								attr.Parse(obj, reader, len - 4);
 							}
+							val = attr.GetValue(obj);
 
-							try {
-								val = attr.GetValue(obj);
-							} catch {
-								Debugger.Break();
-							}
-
+						// only apply data on the others
 						} else {
 							attr.SetValue(obj, val);
 						}
