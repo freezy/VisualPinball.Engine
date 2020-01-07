@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,21 +19,9 @@ namespace VisualPinball.Engine.IO
 
 		public BiffStringAttribute(string name) : base(name) { }
 
-		public override void Parse<T>(T obj, BinaryReader reader, int len)
+		public override void Parse<TItem>(TItem obj, BinaryReader reader, int len)
 		{
-			if (Type == typeof(string)) {
-				SetValue(obj, ReadString(reader, len));
-
-			} else if (Type == typeof(string[])) {
-				var arr = GetValue(obj) as string[];
-				if (Count > 1) {
-					for (var i = 0; i < Count; i++) {
-						arr[i] = ReadString(reader, len);
-					}
-				} else {
-					arr[Index] = ReadString(reader, len);
-				}
-			}
+			ParseValue(obj, reader, len, ReadString);
 		}
 
 		private string ReadString(BinaryReader reader, int len)
