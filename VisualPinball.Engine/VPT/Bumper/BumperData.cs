@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public string BaseMaterial;
 
 		[BiffString("SKMA")]
-		public string SkirtMaterial;
+		public string SocketMaterial;
 
 		[BiffFloat("THRS")]
 		public float Threshold = 1.0f;
@@ -75,7 +75,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffBool("BSVS")]
 		[BiffBool("BVIS")]
 		[BiffBool("SKVS")]
-		public bool IsSkirtVisible = true;
+		public bool IsSocketVisible = true;
 
 		[BiffBool("HAHE")]
 		public bool HitEvent = true;

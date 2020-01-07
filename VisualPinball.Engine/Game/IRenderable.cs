@@ -19,6 +19,7 @@ namespace VisualPinball.Engine.Game
 		public readonly Texture NormalMap;
 		public readonly Texture EnvMap;
 		public readonly Material Material;
+		public readonly bool IsVisible;
 		public readonly bool IsTransparent;
 
 		/// <summary>
@@ -35,7 +36,7 @@ namespace VisualPinball.Engine.Game
 			.Reverse()
 		);
 
-		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isTransparent = default)
+		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isVisible = true, bool isTransparent = false)
 		{
 			Name = name;
 			Mesh = mesh;
@@ -43,6 +44,7 @@ namespace VisualPinball.Engine.Game
 			NormalMap = normalMap;
 			EnvMap = envMap;
 			Material = material;
+			IsVisible = isVisible;
 			IsTransparent = isTransparent;
 		}
 	}

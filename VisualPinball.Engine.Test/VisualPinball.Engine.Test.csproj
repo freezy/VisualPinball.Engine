@@ -54,6 +54,7 @@
     <Compile Include="IO\BiffAttributeTest.cs" />
     <Compile Include="Math\ColorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VPT\Bumper\BumperDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
     <Compile Include="VPT\TextureDataTests.cs" />
@@ -63,14 +64,6 @@
       <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
       <Name>VisualPinball.Engine</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Fixtures\VPX" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Fixtures\MaterialData.vpx" />
-    <Content Include="Fixtures\TableData.vpx" />
-    <Content Include="Fixtures\TextureData.vpx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

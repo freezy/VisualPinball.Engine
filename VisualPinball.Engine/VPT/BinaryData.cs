@@ -41,5 +41,10 @@ namespace VisualPinball.Engine.VPT
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		public BinaryData(byte[] data, string localFilename) : base(localFilename)
+		{
+			Data = data;
+		}
 	}
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -75,13 +76,28 @@ namespace VisualPinball.Engine.IO
 
 				if (attributes.ContainsKey(tag)) {
 					var attrs = attributes[tag];
+					var i = 0;
+					dynamic val = null;
 					foreach (var attr in attrs) {
-						if (attr.IsStreaming) {
-							len = reader.ReadInt32();
-							attr.Parse(obj, reader, len);
+						if (i == 0) {
+							if (attr.IsStreaming) {
+								len = reader.ReadInt32();
+								attr.Parse(obj, reader, len);
+
+							} else {
+								attr.Parse(obj, reader, len - 4);
+							}
+
+							try {
+								val = attr.GetValue(obj);
+							} catch {
+								Debugger.Break();
+							}
+
 						} else {
-							attr.Parse(obj, reader, len - 4);
+							attr.SetValue(obj, val);
 						}
+						i++;
 					}
 				} else {
 					Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);

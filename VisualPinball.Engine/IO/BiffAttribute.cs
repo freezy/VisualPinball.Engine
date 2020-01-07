@@ -83,12 +83,13 @@ namespace VisualPinball.Engine.IO
 		///
 		/// <param name="obj">Object instance that is being read</param>
 		/// <param name="value">Value to be set the field or property this Attribute was attached to</param>
-		protected void SetValue(object obj, object value)
+		public void SetValue(object obj, dynamic value)
 		{
-			if (Field != null) {
-				Field.SetValue(obj, value);
-			} else {
+			if (Property != null && Property.CanWrite) {
 				Property.SetValue(obj, value);
+
+			} else if (Field != null) {
+				Field.SetValue(obj, value);
 			}
 		}
 
@@ -99,9 +100,13 @@ namespace VisualPinball.Engine.IO
 		///
 		/// <param name="obj">Object instance that is being read</param>
 		/// <returns></returns>
-		protected object GetValue(object obj)
+		public dynamic GetValue(object obj)
 		{
-			return Field != null ? Field.GetValue(obj) : Property.GetValue(obj);
+			if (Property != null && Property.CanRead) {
+				return Property.GetValue(obj);
+			}
+
+			return Field != null ? Field.GetValue(obj) : null;
 		}
 	}
 }
