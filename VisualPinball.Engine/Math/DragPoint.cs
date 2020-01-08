@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Math
 
 		public override string ToString()
 		{
-			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "S")}{(HasAutoTexture ? "A" : "")})";
+			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

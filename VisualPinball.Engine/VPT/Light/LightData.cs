@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public string OffImage;
 
 		[BiffBool("SHAP")]
-		public bool RoundLight = false;
+		public bool IsRoundLight = false;
 
 		[BiffString("BPAT")]
 		public string BlinkPattern = "0";
@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public bool IsBulbLight = false;
 
 		[BiffBool("IMMO")]
-		public bool HasImageMode = false;
+		public bool IsImageMode = false;
 
 		[BiffBool("SHBM")]
 		public bool ShowBulbMesh = false;
