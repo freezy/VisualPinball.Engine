@@ -162,6 +162,49 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
+		private void ResetGOOrigin(GameObject obj, UnityEngine.Mesh mesh) {
+
+
+
+			Quaternion rot = obj.transform.rotation;
+			obj.transform.rotation = Quaternion.identity;
+			var vertices = mesh.vertices;
+
+			int len = vertices.Length;
+			int v;
+			Vector3 c = Vector3.zero;
+			for (v = 0; v < len; v++)
+			{
+				c += vertices[v];
+			}
+
+			c /= len;
+			Vector3 d = Vector3.zero;
+			for (v = 0; v < len; v++)
+			{
+				d += obj.transform.TransformPoint(vertices[v]);
+			}
+			d /= len;
+			Matrix4x4 trs = Matrix4x4.TRS(-(c), Quaternion.identity, Vector3.one);
+			for (v = 0; v < len; v++)
+			{
+				vertices[v] = trs.MultiplyPoint(vertices[v]);
+
+			}
+
+			mesh.vertices = vertices;
+			mesh.RecalculateBounds();
+
+			Undo.RecordObject(obj, "set origin of parent");
+
+			obj.transform.position = d;
+			obj.transform.rotation = rot;
+
+
+
+
+		}
+
 		private void ImportRenderObject(RenderObject renderObject, GameObject obj, VpxAsset asset)
 		{
 			if (renderObject.Mesh == null) {
@@ -169,6 +212,11 @@ namespace VisualPinball.Unity.Importer
 				return;
 			}
 			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
+
+
+			//resetgameObject origin
+			ResetGOOrigin(obj, mesh);
+
 
 			// apply mesh to game object
 			var mf = obj.AddComponent<MeshFilter>();
@@ -189,9 +237,11 @@ namespace VisualPinball.Unity.Importer
 			var material = LoadMaterial(ro);
 			if (material == null) {
 				material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
-				if (ro.Map != null) {
+				if (ro.Map != null)
+				{
 					material.SetTexture(MainTex, LoadTexture(ro.Map));
 				}
+				
 				if (ro.NormalMap != null) {
 					material.SetTexture(BumpMap, LoadTexture(ro.NormalMap));
 				}
@@ -203,10 +253,26 @@ namespace VisualPinball.Unity.Importer
 
 		private void SaveTexture(Texture texture)
 		{
+
+			UnityEngine.Texture2D tex = texture.ToUnityTexture();
+			string path = texture.GetUnityFilename(_textureFolder);
+
 			if (_saveToAssets) {
-				AssetDatabase.CreateAsset(texture.ToUnityTexture(), texture.GetUnityFilename(_textureFolder));
+				//AssetDatabase.CreateAsset(tex, path);
+				
+				byte[] bytes = tex.EncodeToPNG();
+				File.WriteAllBytes(path, bytes);
+				AssetDatabase.ImportAsset(path);
+
+				TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+				textureImporter.alphaIsTransparency = true;
+				textureImporter.isReadable = true;
+				textureImporter.mipmapEnabled = false;
+				textureImporter.filterMode = FilterMode.Bilinear;
+				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+				AssetDatabase.ImportAsset(path);
 			} else {
-				_textures[texture.Name] = texture.ToUnityTexture();
+				_textures[texture.Name] = tex;
 			}
 		}
 

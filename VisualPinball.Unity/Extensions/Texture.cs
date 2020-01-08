@@ -44,8 +44,8 @@ namespace VisualPinball.Unity.Extensions
 		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null)
 		{
 			return folderName != null
-				? $"{folderName}/{AssetUtility.StringToFilename(vpTex.Name)}.asset"
-				: $"{AssetUtility.StringToFilename(vpTex.Name)}.asset";
+				? $"{folderName}/{AssetUtility.StringToFilename(vpTex.Name)}.png"
+				: $"{AssetUtility.StringToFilename(vpTex.Name)}.png";
 		}
 	}
 }
