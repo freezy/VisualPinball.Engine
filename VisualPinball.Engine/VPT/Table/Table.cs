@@ -21,6 +21,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
+			.Concat(Lights.Values)
 			.Concat(Primitives.Values)
 			.ToArray();
 

@@ -64,7 +64,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		private Dictionary<string, Mesh> GetMeshes(Table.Table table) {
-			/* istanbul ignore if */
 			if (_data.Center == null) {
 				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
 			}
