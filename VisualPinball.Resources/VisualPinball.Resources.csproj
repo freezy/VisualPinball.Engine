@@ -38,6 +38,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Meshes\BulbMesh.cs" />
+    <Compile Include="Meshes\BulbSocket.cs" />
     <Compile Include="Meshes\BumperBase.cs" />
     <Compile Include="Meshes\BumperCap.cs" />
     <Compile Include="Meshes\BumperRing.cs" />
