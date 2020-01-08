@@ -92,6 +92,7 @@
     <Compile Include="VPT\ItemData.cs" />
     <Compile Include="VPT\Light\Light.cs" />
     <Compile Include="VPT\Light\LightData.cs" />
+    <Compile Include="VPT\Light\LightMeshGenerator.cs" />
     <Compile Include="VPT\Material.cs" />
     <Compile Include="VPT\Mesh.cs" />
     <Compile Include="VPT\Primitive\Primitive.cs" />

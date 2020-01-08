@@ -104,6 +104,11 @@ namespace VisualPinball.Engine.VPT
 			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
+		public Material(string name)
+		{
+			Name = name;
+		}
+
 		public void UpdatePhysics(PhysicsMaterialData physMat) {
 			Elasticity = physMat.Elasticity;
 			ElasticityFalloff = physMat.ElasticityFallOff;
