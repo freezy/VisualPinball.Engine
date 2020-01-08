@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\Color.cs" />
+    <Compile Include="Extensions\Light.cs" />
     <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Mesh.cs" />
@@ -87,6 +88,6 @@
     <ItemGroup>
       <BuildFiles Include="$(OutDir)*.dll" Exclude="$(OutDir)Unity*" />
     </ItemGroup>
-    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="$(VPE_UNITY_SCRIPTS)" SkipUnchangedFiles="true"/>
+    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="$(VPE_UNITY_SCRIPTS)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

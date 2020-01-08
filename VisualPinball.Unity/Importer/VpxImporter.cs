@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -109,6 +110,8 @@ namespace VisualPinball.Unity.Importer
 
 			// import table
 			ImportGameItems(table, asset);
+
+			ImportGiLights(table);
 		}
 
 		private void ImportTextures(Table table)
@@ -138,6 +141,16 @@ namespace VisualPinball.Unity.Importer
 				PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
 				AssetDatabase.SaveAssets();
 				AssetDatabase.Refresh();
+			}
+		}
+
+		private void ImportGiLights(Table table)
+		{
+			var lightsObj = new GameObject("Lights");
+			lightsObj.transform.parent = gameObject.transform;
+			foreach (var vpxLight in table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
+				var unityLight = vpxLight.ToUnityPointLight();
+				unityLight.transform.parent = lightsObj.transform;
 			}
 		}
 
