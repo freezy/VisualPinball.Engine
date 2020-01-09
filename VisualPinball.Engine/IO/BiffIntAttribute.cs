@@ -7,6 +7,9 @@ namespace VisualPinball.Engine.IO
 	{
 		public BiffIntAttribute(string name) : base(name) { }
 
+		public int Min = int.MinValue;
+		public int Max = int.MaxValue;
+
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
 			ParseValue(obj, reader, len, ReadInt);
@@ -15,7 +18,16 @@ namespace VisualPinball.Engine.IO
 
 		private int ReadInt(BinaryReader reader, int len)
 		{
-			return reader.ReadInt32();
+			var i = reader.ReadInt32();
+			if (i > Max) {
+				i = Max;
+			}
+
+			if (i < Min) {
+				i = Min;
+			}
+
+			return i;
 		}
 
 		private uint ReadUInt(BinaryReader reader, int len)
