@@ -14,6 +14,7 @@ namespace VisualPinball.Engine.IO
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
 			ParseValue(obj, reader, len, ReadFloat);
+			ParseValue(obj, reader, len, ReadInt);
 		}
 
 		private float ReadFloat(BinaryReader reader, int len)
@@ -27,6 +28,11 @@ namespace VisualPinball.Engine.IO
 			}
 
 			return f;
+		}
+
+		private int ReadInt(BinaryReader reader, int len)
+		{
+			return (int) ReadFloat(reader, len);
 		}
 
 		public static float DequantizeUnsigned(int bits, int i)
