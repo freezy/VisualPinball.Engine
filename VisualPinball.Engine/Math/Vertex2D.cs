@@ -4,8 +4,8 @@ namespace VisualPinball.Engine.Math
 {
 	public class Vertex2D
 	{
-		public float X;
-		public float Y;
+		public float X { get; set; }
+		public float Y { get; set; }
 
 		public Vertex2D() : this(0.0f, 0.0f) { }
 
@@ -98,14 +98,4 @@ namespace VisualPinball.Engine.Math
 			return $"Vertex2D({X}/{Y})";
 		}
 	}
-
-	public class RenderVertex : Vertex2D
-	{
-		public bool Smooth = false;
-		public bool IsSlingshot = false;
-		public bool IsControlPoint = false; // Whether this point was a control point on the curve
-
-		RenderVertex(float x, float y) : base(x, y)
-		{
-		}
-	}
+}

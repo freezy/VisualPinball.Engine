@@ -2,11 +2,9 @@ using System.IO;
 
 namespace VisualPinball.Engine.Math
 {
-	public class Vertex3D
+	public class Vertex3D : Vertex2D
 	{
-		public float X;
-		public float Y;
-		public float Z;
+		public float Z { get; set; }
 
 		public Vertex3D()
 		{
@@ -15,10 +13,8 @@ namespace VisualPinball.Engine.Math
 			Z = 0;
 		}
 
-		public Vertex3D(float x, float y, float z)
+		public Vertex3D(float x, float y, float z) : base(x, y)
 		{
-			X = x;
-			Y = y;
 			Z = z;
 		}
 
@@ -59,12 +55,12 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		public Vertex3D Clone()
+		public new Vertex3D Clone()
 		{
 			return new Vertex3D(this);
 		}
 
-		public Vertex3D Normalize()
+		public new Vertex3D Normalize()
 		{
 			var len = Length();
 			return DivideScalar(len == 0 ? 1 : len);
@@ -79,22 +75,22 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		public float Length()
+		public new float Length()
 		{
 			return MathF.Sqrt(X * X + Y * Y + Z * Z);
 		}
 
-		public float LengthSq()
+		public new float LengthSq()
 		{
 			return X * X + Y * Y + Z * Z;
 		}
 
-		public Vertex3D DivideScalar(float scalar)
+		public new Vertex3D DivideScalar(float scalar)
 		{
 			return MultiplyScalar(1 / scalar);
 		}
 
-		public Vertex3D MultiplyScalar(float scalar)
+		public new Vertex3D MultiplyScalar(float scalar)
 		{
 			X *= scalar;
 			Y *= scalar;
@@ -160,7 +156,7 @@ namespace VisualPinball.Engine.Math
 			return new Vertex2D(X, Y);
 		}
 
-		public Vertex3D SetZero()
+		public new Vertex3D SetZero()
 		{
 			return Set(0f, 0f, 0f);
 		}
