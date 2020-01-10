@@ -93,5 +93,28 @@ namespace VisualPinball.Engine.VPT.Table
 			//logger().warn('[Table.getSurfaceHeight] Unknown surface %s.', surface);
 			return Data.TableHeight;
 		}
+
+		public Dimensions GetDimensions()
+		{
+			return new Dimensions(Data.Right - Data.Left, Data.Bottom - Data.Top);
+		}
+
+		public float GetTableHeight()
+		{
+			return Data.TableHeight;
+		}
+	}
+
+	public class Dimensions
+	{
+		public float Width;
+		public float Height;
+
+		public Dimensions(float width, float height)
+		{
+			Width = width;
+			Height = height;
+		}
 	}
 }
+
