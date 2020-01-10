@@ -1,22 +1,51 @@
 using System.Collections.Generic;
-using System.Linq;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Surface
 {
-	public class SurfaceMeshGenerator {
+	public class SurfaceMeshGenerator
+	{
+		private readonly SurfaceData _data;
 
-		/**
-		 * Returns the mesh of the surface.
-		 * @see Surface::GenerateMesh
-		 */
-		public Mesh[] GenerateMeshes(SurfaceData data, Table.Table table) {
+		public SurfaceMeshGenerator(SurfaceData data)
+		{
+			_data = data;
+		}
 
+		public RenderObject[] GetRenderObjects(Table.Table table)
+		{
+			var meshes = GenerateMeshes(table);
+			var renderObjects = new List<RenderObject>();
+			if (meshes.ContainsKey("Top")) {
+				renderObjects.Add(new RenderObject(
+					name: "Top",
+					mesh: meshes["Top"],
+					material: table.GetMaterial(_data.TopMaterial),
+					map: table.GetTexture(_data.Image),
+					isVisible: _data.IsTopBottomVisible));
+			}
+
+			if (meshes.ContainsKey("Side")) {
+				renderObjects.Add(new RenderObject(
+					name: "Side",
+					mesh: meshes["Side"],
+					material: table.GetMaterial(_data.SideMaterial),
+					map: table.GetTexture(_data.SideImage),
+					isVisible: _data.IsSideVisible));
+			}
+
+			return renderObjects.ToArray();
+		}
+
+		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table) {
+
+			var meshes = new Dictionary<string, Mesh>();
 			var topMesh = new Mesh("Top");
 			var sideMesh = new Mesh("Side");
 
-			var vVertex = DragPoint.GetRgVertex<RenderVertex2D>(data.DragPoints);
-			var rgTexCoord = DragPoint.GetTextureCoords(data.DragPoints, vVertex);
+			var vVertex = DragPoint.GetRgVertex<RenderVertex2D>(_data.DragPoints);
+			var rgTexCoord = DragPoint.GetTextureCoords(_data.DragPoints, vVertex);
 
 			var numVertices = vVertex.Length;
 			var rgNormal = new Vertex2D[numVertices];
@@ -33,12 +62,13 @@ namespace VisualPinball.Engine.VPT.Surface
 				rgNormal[i] = new Vertex2D {X = dy * invLen, Y = dx * invLen};
 			}
 
-			var bottom = data.HeightBottom * table.GetScaleZ() + table.GetTableHeight();
-			var top = data.HeightTop * table.GetScaleZ() + table.GetTableHeight();
+			var bottom = _data.HeightBottom * table.GetScaleZ() + table.GetTableHeight();
+			var top = _data.HeightTop * table.GetScaleZ() + table.GetTableHeight();
 
 			var offset = 0;
 
 			// Render side
+			sideMesh.Vertices = new Vertex3DNoTex2[numVertices * 4];
 			for (var i = 0; i < numVertices; i++) {
 
 				var pv1 = vVertex[i];
@@ -85,7 +115,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				sideMesh.Vertices[offset + 3].Y = pv2.Y;
 				sideMesh.Vertices[offset + 3].Z = bottom;
 
-				if (data.SideImage != null) {
+				if (_data.SideImage != null) {
 					sideMesh.Vertices[offset].Tu = rgTexCoord[i];
 					sideMesh.Vertices[offset].Tv = 1.0f;
 
@@ -120,6 +150,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 			// prepare index buffer for sides
 			var offset2 = 0;
+			sideMesh.Indices = new int[numVertices * 6];
 			for (var i = 0; i < numVertices; i++) {
 				sideMesh.Indices[i * 6] = offset2;
 				sideMesh.Indices[i * 6 + 1] = offset2 + 1;
@@ -132,7 +163,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 
 			// draw top
-			var vPoly = new List<int>(numVertices);
+			var vPoly = new List<int>(new int[numVertices]);
 			for (var i = 0; i < numVertices; i++) {
 				vPoly[i] = i;
 			}
@@ -142,11 +173,11 @@ namespace VisualPinball.Engine.VPT.Surface
 			var numPolys = topMesh.Indices.Length / 3;
 			if (numPolys == 0) {
 				// no polys to render leave vertex buffer undefined
-				return new Mesh[0];
+				return meshes;
 			}
 
-			var heightNotDropped = data.HeightTop * table.GetScaleZ();
-			var heightDropped = data.HeightBottom * table.GetScaleZ() + 0.1;
+			var heightNotDropped = _data.HeightTop * table.GetScaleZ();
+			var heightDropped = _data.HeightBottom * table.GetScaleZ() + 0.1;
 
 			var dim = table.GetDimensions();
 			var invTableWidth = 1.0f / dim.Width;
@@ -182,7 +213,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				vertsTop[2][i] = new Vertex3DNoTex2 {
 					X = pv0.X,
 					Y = pv0.Y,
-					Z = data.HeightBottom,
+					Z = _data.HeightBottom,
 					Tu = pv0.X * invTableWidth,
 					Tv = pv0.Y * invTableHeight,
 					Nx = 0,
@@ -192,12 +223,11 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 			topMesh.Vertices = vertsTop[0];
 
-			var meshes = new Mesh[0];
 			if (topMesh.Vertices.Length > 0) {
-				meshes = meshes.Concat(new[] {topMesh}).ToArray();
+				meshes["Top"] = topMesh;
 			}
 			if (System.Math.Abs(top - bottom) > 0.00001f) {
-				meshes = meshes.Concat(new[] {sideMesh}).ToArray();
+				meshes["Side"] = sideMesh;
 			}
 			return meshes;
 		}

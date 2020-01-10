@@ -100,7 +100,7 @@ namespace VisualPinball.Engine.Math
 			var numPoints = vv.Length;
 			var controlPoint = 0;
 
-			var coords = new List<float>();
+			var coords = new float[numPoints];
 
 			for (var i = 0; i < numPoints; ++i) {
 				var prv = vv[i];
@@ -175,11 +175,11 @@ namespace VisualPinball.Engine.Math
 					var texCoord = (float) (partialLength / totalLength);
 
 					coords[l % numPoints] = texCoord * deltacoord + startTexCoord;
-					partialLength = partialLength + length;
+					partialLength += length;
 				}
 			}
 
-			return coords.ToArray();
+			return coords;
 		}
 
 		private static List<IRenderVertex> RecurseSmoothLine(List<IRenderVertex> vv, CatmullCurve cc, float t1, float t2, IRenderVertex vt1, IRenderVertex vt2, float accuracy) {
