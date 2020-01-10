@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Math;
 
@@ -19,6 +20,11 @@ namespace VisualPinball.Engine.VPT
 		public bool IsSet => Vertices != null && Indices != null;
 
 		public Mesh() { }
+
+		public Mesh(string name)
+		{
+			Name = name;
+		}
 
 		public Mesh(string name, float[][] vertices, int[] indices)
 		{
@@ -64,6 +70,34 @@ namespace VisualPinball.Engine.VPT
 				vertex.Z *= z;
 			}
 			return this;
+		}
+
+		public static int[] PolygonToTriangles(RenderVertex[] rgv, int[] pvpoly)
+		{
+			// There should be this many convex triangles.
+			// If not, the polygon is self-intersecting
+			var tricount = pvpoly.Length - 2;
+			var pvtri = new List<int>();
+
+			for (var l = 0; l < tricount; ++l) {
+				for (var i = 0; i < pvpoly.Length; ++i) {
+					var s = pvpoly.Length;
+					var pre = pvpoly[(i == 0) ? (s - 1) : (i - 1)];
+					var a = pvpoly[i];
+					var b = pvpoly[(i < s - 1) ? (i + 1) : 0];
+					var c = pvpoly[(i < s - 2) ? (i + 2) : ((i + 2) - s)];
+					var post = pvpoly[(i < s - 3) ? (i + 3) : ((i + 3) - s)];
+					if (Mesh.advancePoint(rgv, pvpoly, a, b, c, pre, post))
+					{
+						pvtri.Add(a);
+						pvtri.Add(c);
+						pvtri.Add(b);
+						pvpoly.splice((i < s - 1) ? (i + 1) : 0, 1); // b
+						break;
+					}
+				}
+			}
+			return pvtri.ToArray();
 		}
 	}
 }

@@ -33,6 +33,9 @@ namespace VisualPinball.Engine.Math
 
 		public float CalcHeight;
 
+
+
+		#region Data
 		static DragPoint()
 		{
 			Init(typeof(DragPoint), Attributes);
@@ -43,11 +46,12 @@ namespace VisualPinball.Engine.Math
 			Load(this, reader, Attributes);
 		}
 
+		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+		#endregion
+
 		public override string ToString()
 		{
 			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
-
-		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 	}
 }
