@@ -72,12 +72,14 @@
     <Compile Include="IO\BiffZlib.cs" />
     <Compile Include="IO\Logging.cs" />
     <Compile Include="IO\LzwReader.cs" />
+    <Compile Include="Math\CatmullCurve.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
     <Compile Include="Math\DragPoint.cs" />
     <Compile Include="Math\MathF.cs" />
     <Compile Include="Math\Matrix2D.cs" />
     <Compile Include="Math\Matrix3D.cs" />
+    <Compile Include="Math\RenderVertex.cs" />
     <Compile Include="Math\Vertex2D.cs" />
     <Compile Include="Math\Vertex3D.cs" />
     <Compile Include="Math\Vertex3DNoTex2.cs" />

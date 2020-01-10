@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Surface
 {
-
 	public class SurfaceMeshGenerator {
 
 		/**
@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			var topMesh = new Mesh("Top");
 			var sideMesh = new Mesh("Side");
 
-			var vVertex = DragPoint.GetRgVertex<RenderVertex>(data.DragPoints, () => new RenderVertex(), CatmullCurve2D.FromVertex2D as any);
+			var vVertex = DragPoint.GetRgVertex<RenderVertex2D>(data.DragPoints);
 			var rgTexCoord = DragPoint.GetTextureCoords(data.DragPoints, vVertex);
 
 			var numVertices = vVertex.Length;
@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			for (var i = 0; i < numVertices; i++) {
 
 				var pv1 = vVertex[i];
-				var pv2 = vVertex[(i < numVertices - 1) ? (i + 1) : 0];
+				var pv2 = vVertex[i < numVertices - 1 ? i + 1 : 0];
 				var dx = pv1.X - pv2.X;
 				var dy = pv1.Y - pv2.Y;
 
@@ -42,13 +42,13 @@ namespace VisualPinball.Engine.VPT.Surface
 			for (var i = 0; i < numVertices; i++) {
 
 				var pv1 = vVertex[i];
-				var pv2 = vVertex[(i < numVertices - 1) ? (i + 1) : 0];
+				var pv2 = vVertex[i < numVertices - 1 ? i + 1 : 0];
 
-				var a = (i == 0) ? (numVertices - 1) : (i - 1);
-				var c = (i < numVertices - 1) ? (i + 1) : 0;
+				var a = i == 0 ? numVertices - 1 : i - 1;
+				var c = i < numVertices - 1 ? i + 1 : 0;
 
 				var vNormal = new []{new Vertex2D(), new Vertex2D()};
-				if (pv1.FSmooth) {
+				if (pv1.Smooth) {
 					vNormal[0].X = (rgNormal[a].X + rgNormal[i].X) * 0.5f;
 					vNormal[0].Y = (rgNormal[a].Y + rgNormal[i].Y) * 0.5f;
 				} else {
@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.VPT.Surface
 					vNormal[0].Y = rgNormal[i].Y;
 				}
 
-				if (pv2.FSmooth) {
+				if (pv2.Smooth) {
 					vNormal[1].X = (rgNormal[i].X + rgNormal[c].X) * 0.5f;
 					vNormal[1].Y = (rgNormal[i].Y + rgNormal[c].Y) * 0.5f;
 				} else {
@@ -132,7 +132,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 
 			// draw top
-			var vPoly = new int[numVertices];
+			var vPoly = new List<int>(numVertices);
 			for (var i = 0; i < numVertices; i++) {
 				vPoly[i] = i;
 			}
@@ -142,7 +142,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			var numPolys = topMesh.Indices.Length / 3;
 			if (numPolys == 0) {
 				// no polys to render leave vertex buffer undefined
-				return {};
+				return new Mesh[0];
 			}
 
 			var heightNotDropped = data.HeightTop * table.GetScaleZ();
