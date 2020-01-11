@@ -16,12 +16,14 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper> Bumpers = new Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper> Flippers = new Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Light.Light> Lights = new Dictionary<string, VisualPinball.Engine.VPT.Light.Light>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
+			.Concat(Flippers.Values)
 			.Concat(Surfaces.Values)
 			//.Concat(Lights.Values)
 			.Concat(Primitives.Values)

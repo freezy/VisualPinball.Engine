@@ -55,6 +55,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Bumpers[item.Name] = item;
 						break;
 					}
+					case ItemType.Flipper: {
+						Logger.Info("Loading flipper {itemName}", itemName);
+						var item = new VisualPinball.Engine.VPT.Flipper.Flipper(reader, itemName);
+						table.Flippers[item.Name] = item;
+						break;
+					}
 					case ItemType.Light: {
 						Logger.Info("Loading light {itemName}", itemName);
 						var item = new VisualPinball.Engine.VPT.Light.Light(reader, itemName);
