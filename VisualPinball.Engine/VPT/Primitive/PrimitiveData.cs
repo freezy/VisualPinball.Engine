@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System;
@@ -52,8 +53,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffString("MATR")]
 		public string Material;
 
-		[BiffInt("SCOL")]
-		public int SideColor;
+		[BiffColor("SCOL")]
+		public Color SideColor = new Color(0x0, ColorFormat.Bgr);
 
 		[BiffBool("TVIS")]
 		public bool IsVisible;
@@ -103,7 +104,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffBool("STRE")]
 		public bool StaticRendering;
 
-		[BiffFloat("DILI")]
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8)]
 		public float DisableLightingTop; // m_d.m_fDisableLightingTop = (tmp == 1) ? 1.f : dequantizeUnsigned<8>(tmp); // backwards compatible hacky loading!
 
 		[BiffFloat("DILB")]
@@ -118,7 +119,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffBool("DIPT")]
 		public bool DisplayTexture;
 
-		[BiffString("M3DN", IsWideString = true)]
+		[BiffString("M3DN")]
 		public string MeshFileName;
 
 		[BiffInt("M3VN")]
@@ -183,7 +184,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		private void ParseVertices(PrimitiveData data, byte[] bytes)
 		{
 			if (data.NumVertices == 0) {
-				throw new ArgumentOutOfRangeException($"Cannot add vertices when size is unknown.");
+				throw new ArgumentOutOfRangeException(nameof(data), "Cannot add vertices when size is unknown.");
 			}
 
 			if (bytes.Length < data.NumVertices * Vertex3DNoTex2.Size) {
