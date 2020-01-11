@@ -94,7 +94,9 @@
     <Compile Include="VPT\DispReel\DispReelData.cs" />
     <Compile Include="VPT\Enums.cs" />
     <Compile Include="VPT\Flasher\FlasherData.cs" />
+    <Compile Include="VPT\Flipper\Flipper.cs" />
     <Compile Include="VPT\Flipper\FlipperData.cs" />
+    <Compile Include="VPT\Flipper\FlipperMeshGenerator.cs" />
     <Compile Include="VPT\Gate\GateData.cs" />
     <Compile Include="VPT\HitTarget\HitTargetData.cs" />
     <Compile Include="VPT\Item.cs" />
