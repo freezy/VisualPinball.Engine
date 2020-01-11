@@ -7,4 +7,9 @@ namespace VisualPinball.Engine.Math
 
 		public const float Gravity = 1.81751f;
 	}
+
+	public static class PhysicsConstants
+	{
+		public static float HitShapeDetailLevel = 7.0f;
+	}
 }

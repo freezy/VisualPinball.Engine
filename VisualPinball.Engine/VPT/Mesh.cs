@@ -64,6 +64,37 @@ namespace VisualPinball.Engine.VPT
 			return mesh;
 		}
 
+		public static void ComputeNormals(Vertex3DNoTex2[] vertices, int numVertices, int[] indices, int numIndices) {
+
+			for (var i = 0; i < numVertices; i++) {
+				var v = vertices[i];
+				v.Nx = v.Ny = v.Nz = 0.0f;
+			}
+
+			for (var i = 0; i < numIndices; i += 3) {
+				var a = vertices[indices[i]];
+				var b = vertices[indices[i + 1]];
+				var c = vertices[indices[i + 2]];
+
+				var e0 = new Vertex3D(b.X - a.X, b.Y - a.Y, b.Z - a.Z);
+				var e1 = new Vertex3D(c.X - a.X, c.Y - a.Y, c.Z - a.Z);
+				var normal = e0.Clone().Cross(e1).Normalize();
+
+				a.Nx += normal.X; a.Ny += normal.Y; a.Nz += normal.Z;
+				b.Nx += normal.X; b.Ny += normal.Y; b.Nz += normal.Z;
+				c.Nx += normal.X; c.Ny += normal.Y; c.Nz += normal.Z;
+			}
+
+			for (var i = 0; i < numVertices; i++) {
+				var v = vertices[i];
+				var l = v.Nx * v.Nx + v.Ny * v.Ny + v.Nz * v.Nz;
+				var invL = l >= Constants.FloatMin ? 1.0f / MathF.Sqrt(l) : 0.0f;
+				v.Nx *= invL;
+				v.Ny *= invL;
+				v.Nz *= invL;
+			}
+		}
+
 		public Mesh MakeScale(float x, float y, float z)
 		{
 			foreach (var vertex in Vertices) {

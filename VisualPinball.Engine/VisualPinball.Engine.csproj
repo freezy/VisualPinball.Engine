@@ -80,6 +80,7 @@
     <Compile Include="Math\Matrix2D.cs" />
     <Compile Include="Math\Matrix3D.cs" />
     <Compile Include="Math\RenderVertex.cs" />
+    <Compile Include="Math\SplineVertex.cs" />
     <Compile Include="Math\Vertex2D.cs" />
     <Compile Include="Math\Vertex3D.cs" />
     <Compile Include="Math\Vertex3DNoTex2.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="VPT\Ramp\RampData.cs" />
     <Compile Include="VPT\Rubber\Rubber.cs" />
     <Compile Include="VPT\Rubber\RubberData.cs" />
+    <Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
     <Compile Include="VPT\Spinner\SpinnerData.cs" />
     <Compile Include="VPT\Surface\Surface.cs" />
     <Compile Include="VPT\Surface\SurfaceData.cs" />
