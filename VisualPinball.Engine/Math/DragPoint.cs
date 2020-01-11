@@ -45,8 +45,7 @@ namespace VisualPinball.Engine.Math
 
 			var vertex2 = new T();
 
-			for (var i = 0; i < lastPoint; i++)
-			{
+			for (var i = 0; i < lastPoint; i++) {
 				var pdp1 = dragPoints[i];
 				var pdp2 = dragPoints[i < numPoints - 1 ? i + 1 : 0];
 
@@ -55,12 +54,14 @@ namespace VisualPinball.Engine.Math
 				}
 
 				var prev = pdp1.IsSmooth ? i - 1 : i;
-				if (prev < 0)
+				if (prev < 0) {
 					prev = loop ? numPoints - 1 : 0;
+				}
 
 				var next = pdp2.IsSmooth ? i + 2 : i + 1;
-				if (next >= numPoints)
+				if (next >= numPoints) {
 					next = loop ? next - numPoints : numPoints - 1;
+				}
 
 				var pdp0 = dragPoints[prev];
 				var pdp3 = dragPoints[next];

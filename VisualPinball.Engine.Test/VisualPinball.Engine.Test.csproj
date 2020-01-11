@@ -60,6 +60,7 @@
     <Compile Include="VPT\Light\LightDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />
+    <Compile Include="VPT\Rubber\RubberDataTest.cs" />
     <Compile Include="VPT\Surface\SurfaceDataTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
     <Compile Include="VPT\TextureDataTests.cs" />
