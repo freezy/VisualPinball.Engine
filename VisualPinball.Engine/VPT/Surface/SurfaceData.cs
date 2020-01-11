@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -88,7 +89,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffBool("OVPH")]
 		public bool OverwritePhysics = true;
 
-		[BiffFloat("DILI")]
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8)]
 		public float DisableLightingTop;
 
 		[BiffFloat("DILB")]
