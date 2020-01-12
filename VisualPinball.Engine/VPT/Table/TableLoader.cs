@@ -50,7 +50,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var itemType = reader.ReadInt32();
 				switch (itemType) {
 					case ItemType.Primitive: {
-						Logger.Info("Loading primitive {itemName}", itemName);
+						//Logger.Info("Loading primitive {itemName}", itemName);
 						var item = new Primitive.Primitive(reader, itemName);
 						table.Primitives[item.Name] = item;
 						break;
@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 
 				var reader = new BinaryReader(new MemoryStream(textureData));
-				Logger.Info("Loading texture {itemName}", textureName);
+				//Logger.Info("Loading texture {itemName}", textureName);
 				var texture = new Texture(reader, textureName);
 				table.Textures[texture.Name.ToLower()] = texture;
 			}

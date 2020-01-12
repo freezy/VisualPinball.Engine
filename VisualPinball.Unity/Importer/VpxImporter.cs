@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Importer
 
 			// create asset object
 			var asset = ScriptableObject.CreateInstance<VpxAsset>();
-
+			AssetDatabase.SaveAssets();
 			// import textures
 			ImportTextures(table);
 
@@ -114,7 +114,10 @@ namespace VisualPinball.Unity.Importer
 		private void ImportTextures(Table table)
 		{
 			foreach (var texture in table.Textures.Values) {
+				
 				SaveTexture(texture);
+				
+				
 			}
 		}
 
@@ -160,6 +163,85 @@ namespace VisualPinball.Unity.Importer
 					ImportRenderObject(ro, subObj, asset);
 				}
 			}
+		}
+
+		private void CalculateTangents(UnityEngine.Mesh mesh) {
+
+			
+				// Speed: Cache mesh arrays
+				int[] triangles = mesh.triangles;
+				Vector3[] vertices = mesh.vertices;
+				Vector2[] uv = mesh.uv;
+				Vector3[] normals = mesh.normals;
+
+				//variable definitions
+				int triangleCount = triangles.Length;
+				int vertexCount = vertices.Length;
+
+				Vector3[] tan1 = new Vector3[vertexCount];
+				Vector3[] tan2 = new Vector3[vertexCount];
+
+				Vector4[] tangents = new Vector4[vertexCount];
+
+				for (int a = 0; a < triangleCount; a += 3) {
+					int i1 = triangles[a + 0];
+					int i2 = triangles[a + 1];
+					int i3 = triangles[a + 2];
+
+					Vector3 v1 = vertices[i1];
+					Vector3 v2 = vertices[i2];
+					Vector3 v3 = vertices[i3];
+
+					Vector2 w1 = uv[i1];
+					Vector2 w2 = uv[i2];
+					Vector2 w3 = uv[i3];
+
+					float x1 = v2.x - v1.x;
+					float x2 = v3.x - v1.x;
+					float y1 = v2.y - v1.y;
+					float y2 = v3.y - v1.y;
+					float z1 = v2.z - v1.z;
+					float z2 = v3.z - v1.z;
+
+					float s1 = w2.x - w1.x;
+					float s2 = w3.x - w1.x;
+					float t1 = w2.y - w1.y;
+					float t2 = w3.y - w1.y;
+
+					float r = 1.0f / (s1 * t2 - s2 * t1);
+
+					Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+					Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+					tan1[i1] += sdir;
+					tan1[i2] += sdir;
+					tan1[i3] += sdir;
+
+					tan2[i1] += tdir;
+					tan2[i2] += tdir;
+					tan2[i3] += tdir;
+
+				}
+
+
+				for (int a = 0; a < vertexCount; ++a) {
+					Vector3 n = normals[a];
+					Vector3 t = tan1[a];
+
+					Vector3.OrthoNormalize(ref n, ref t);
+
+					tangents[a].x = t.x;
+					tangents[a].y = t.y;
+					tangents[a].z = t.z;
+
+					tangents[a].w = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0f) ? -1.0f : 1.0f;
+				}
+
+				mesh.tangents = tangents;
+
+			
+
+
 		}
 
 		private void ResetGOOrigin(GameObject obj, UnityEngine.Mesh mesh) {
@@ -212,7 +294,7 @@ namespace VisualPinball.Unity.Importer
 				return;
 			}
 			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
+			CalculateTangents(mesh);
 
 			//resetgameObject origin
 			ResetGOOrigin(obj, mesh);
@@ -226,27 +308,49 @@ namespace VisualPinball.Unity.Importer
 			var mr = obj.AddComponent<MeshRenderer>();
 			mr.sharedMaterial = GetMaterial(renderObject, obj.name);
 
+			if (mr.sharedMaterial.name == "__no_material") {
+				mr.enabled = false;
+
+			}
+
 			// add mesh to asset
 			if (_saveToAssets) {
 				AssetDatabase.AddObjectToAsset(mesh, asset);
 			}
 		}
 
-		private Material GetMaterial(RenderObject ro, string objectName)
-		{
+		private Material GetMaterial(RenderObject ro, string objectName) {
+			
 			var material = LoadMaterial(ro);
 			if (material == null) {
-				material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
-				if (ro.Map != null)
-				{
-					material.SetTexture(MainTex, LoadTexture(ro.Map));
-				}
 				
+				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
+				if (ro.Map != null) {
+					material.SetTexture(MainTex, LoadTexture(ro.Map,".png"));
+				}
+
 				if (ro.NormalMap != null) {
-					material.SetTexture(BumpMap, LoadTexture(ro.NormalMap));
+					UnityEngine.Texture tex = LoadTexture(ro.NormalMap, ".png");
+					string path = AssetDatabase.GetAssetPath(tex);
+					//!! WARNING bizarre bug , this does fix the normal  map types on the importer objects , but hsa an extremely peculiar side effect
+					//in that the VPXAsset scriptableObject just randomly gets deleted during the build , not that the same point either
+					// which causes the build to not complete.
+					// commented out until I know why that is happening 
+
+					//fix importer for normal map -- currently causes a rip in space and time .. 
+
+					/*TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+					textureImporter.textureType = TextureImporterType.NormalMap;
+					AssetDatabase.Refresh();
+					AssetDatabase.ImportAsset(path);
+					material.SetTexture(BumpMap, tex);*/
+
+
+					//---------------------------
+
 				}
 				SaveMaterial(ro, material);
-			}
+			} 
 
 			return material;
 		}
@@ -254,13 +358,53 @@ namespace VisualPinball.Unity.Importer
 		private void SaveTexture(Texture texture)
 		{
 
-			UnityEngine.Texture2D tex = texture.ToUnityTexture();
-			string path = texture.GetUnityFilename(_textureFolder);
+
+			UnityEngine.Texture2D tex;
+			if (texture.IsHdr) {
+				tex = texture.ToUnityTexture();
+			} else {
+				tex = texture.ToUnityHDRTexture();
+			}
+			
+			
+			string path = "";
+			if (texture.IsHdr) {
+				path = texture.GetUnityFilename(".exr", _textureFolder);
+				
+			} else {
+				path = texture.GetUnityFilename(".png",_textureFolder);
+			}
+			
 
 			if (_saveToAssets) {
-				//AssetDatabase.CreateAsset(tex, path);
 				
-				byte[] bytes = tex.EncodeToPNG();
+				byte[] bytes = null;
+
+				if (texture.IsHdr) {
+
+					//this is a hack to decompress the texture or unity will throw an error as it cant write compressed files.
+					RenderTexture renderTex = RenderTexture.GetTemporary(
+					tex.width,
+					tex.height,
+					0,
+					RenderTextureFormat.Default,
+					RenderTextureReadWrite.Linear);
+					Graphics.Blit(tex, renderTex);
+					RenderTexture previous = RenderTexture.active;
+					RenderTexture.active = renderTex;
+					Texture2D readableText = new Texture2D(tex.width, tex.height, TextureFormat.RGBAFloat, false);
+					readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+					readableText.Apply();
+					RenderTexture.active = previous;
+					RenderTexture.ReleaseTemporary(renderTex);
+					Texture2D decopmpresseTex = readableText;
+					decopmpresseTex.Apply();
+					bytes = decopmpresseTex.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+				} else {
+					bytes = tex.EncodeToPNG();
+				}
+
+				
 				File.WriteAllBytes(path, bytes);
 				AssetDatabase.ImportAsset(path);
 
@@ -269,17 +413,17 @@ namespace VisualPinball.Unity.Importer
 				textureImporter.isReadable = true;
 				textureImporter.mipmapEnabled = false;
 				textureImporter.filterMode = FilterMode.Bilinear;
-				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+				//EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
 				AssetDatabase.ImportAsset(path);
 			} else {
 				_textures[texture.Name] = tex;
 			}
 		}
 
-		private Texture2D LoadTexture(Texture texture)
+		private Texture2D LoadTexture(Texture texture,string extension)
 		{
 			if (_saveToAssets) {
-				return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
+				return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(extension, _textureFolder));
 			}
 			return _textures[texture.Name];
 		}

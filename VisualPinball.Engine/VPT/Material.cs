@@ -86,6 +86,8 @@ namespace VisualPinball.Engine.VPT
 		public float Friction;
 		public float ScatterAngle;
 
+		public int OpacityActiveEdgeAlpha;
+
 		public Material(BinaryReader reader)
 		{
 			var saveMaterial = new MaterialData(reader);
@@ -100,6 +102,7 @@ namespace VisualPinball.Engine.VPT
 			Edge = saveMaterial.Edge;
 			Opacity = saveMaterial.Opacity;
 			IsMetal = saveMaterial.IsMetal > 0;
+			OpacityActiveEdgeAlpha = saveMaterial.OpacityActiveEdgeAlpha;
 			IsOpacityActive = (saveMaterial.OpacityActiveEdgeAlpha & 1) != 0;
 			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
