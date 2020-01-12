@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, string name, Mesh[] meshes)
+		protected static void AssertObjMesh(ObjFile objFile, string name, Mesh[] meshes, double threshold = FloatThresholdComparer.Threshold)
 		{
 			var objGroup = objFile.Groups.First(g => g.Name == name);
 
@@ -46,9 +46,9 @@ namespace VisualPinball.Engine.Test.Test
 			// compare concatenated mesh
 			var i = 0;
 			foreach (var face in objGroup.Faces) {
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, vertices[indices[i]]);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, vertices[indices[i + 1]]);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, vertices[indices[i + 2]]);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, vertices[indices[i]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, vertices[indices[i + 1]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, vertices[indices[i + 2]], threshold);
 
 				i += 3;
 			}
@@ -71,20 +71,26 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual)
+		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, double threshold = FloatThresholdComparer.Threshold)
 		{
-			Assert.Equal(expected.X, actual.X, new FloatThresholdComparer());
-			Assert.Equal(expected.Y, actual.Y, new FloatThresholdComparer());
-			Assert.Equal(expected.Z, actual.Z, new FloatThresholdComparer());
+			Assert.Equal(expected.X, actual.X, new FloatThresholdComparer(threshold));
+			Assert.Equal(expected.Y, actual.Y, new FloatThresholdComparer(threshold));
+			Assert.Equal(expected.Z, actual.Z, new FloatThresholdComparer(threshold));
 		}
 
-		public class FloatThresholdComparer : IEqualityComparer<float>
+		private class FloatThresholdComparer : IEqualityComparer<float>
 		{
-			private const double Threshold = 0.0001;
+			public const double Threshold = 0.0001;
+			private double _threshold;
+
+			public FloatThresholdComparer(double threshold)
+			{
+				_threshold = threshold;
+			}
 
 			public bool Equals(float x, float y)
 			{
-				return System.Math.Abs((double)x - y) <= Threshold;
+				return System.Math.Abs((double)x - y) <= _threshold;
 			}
 
 			public int GetHashCode(float obj)
