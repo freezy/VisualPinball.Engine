@@ -36,14 +36,14 @@ namespace VisualPinball.Engine.Math
 
 		public float CalcHeight;
 
-		public static IRenderVertex[] GetRgVertex<T>(DragPoint[] dragPoints, bool loop = true, float accuracy = 4.0f) where T : IRenderVertex, new()
+		public static TVertex[] GetRgVertex<TVertex, TCatmullCurveFactory>(DragPoint[] dragPoints, bool loop = true, float accuracy = 4.0f) where TVertex : IRenderVertex, new() where TCatmullCurveFactory : ICatmullCurveFactory<TVertex>, new()
 		// 4 = maximum precision that we allow for
 		{
-			var vertices = new List<IRenderVertex>();
+			var vertices = new List<TVertex>();
 			var numPoints = dragPoints.Length;
 			var lastPoint = loop ? numPoints : numPoints - 1;
 
-			var vertex2 = new T();
+			var vertex2 = new TVertex();
 
 			for (var i = 0; i < lastPoint; i++) {
 				var pdp1 = dragPoints[i];
@@ -66,9 +66,9 @@ namespace VisualPinball.Engine.Math
 				var pdp0 = dragPoints[prev];
 				var pdp3 = dragPoints[next];
 
-				var cc = CatmullCurve.Instance<T>(pdp0.Vertex, pdp1.Vertex, pdp2.Vertex, pdp3.Vertex);
+				var cc = CatmullCurve<TVertex>.GetInstance<TCatmullCurveFactory>(pdp0.Vertex, pdp1.Vertex, pdp2.Vertex, pdp3.Vertex);
 
-				var vertex1 = new T();
+				var vertex1 = new TVertex();
 
 				vertex1.Set(pdp1.Vertex);
 				vertex1.Smooth = pdp1.IsSmooth;
@@ -183,7 +183,7 @@ namespace VisualPinball.Engine.Math
 			return coords;
 		}
 
-		private static List<IRenderVertex> RecurseSmoothLine(List<IRenderVertex> vv, CatmullCurve cc, float t1, float t2, IRenderVertex vt1, IRenderVertex vt2, float accuracy) {
+		private static List<TVertex> RecurseSmoothLine<TVertex>(List<TVertex> vv, CatmullCurve<TVertex> cc, float t1, float t2, TVertex vt1, TVertex vt2, float accuracy) where TVertex : IRenderVertex {
 
 			var tMid = (t1 + t2) * 0.5f;
 

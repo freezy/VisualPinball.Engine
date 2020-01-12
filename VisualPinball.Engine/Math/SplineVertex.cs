@@ -131,7 +131,7 @@ namespace VisualPinball.Engine.Math
 				accuracy = 4.0f * MathF.Pow(10.0f, (10.0f - accuracy) * (float) (1.0 / 1.5));
 			}
 
-			return DragPoint.GetRgVertex<RenderVertex2D>(dragPoints, true, accuracy) as RenderVertex2D[];
+			return DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(dragPoints, true, accuracy);
 		}
 	}
 }
