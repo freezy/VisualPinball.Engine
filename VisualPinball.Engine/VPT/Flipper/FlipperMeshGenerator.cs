@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 			renderObjects.Add(new RenderObject(
 				name: "Base",
-				mesh: meshes["Base"].Transform(matrix),
+				mesh: meshes["Base"].Transform(matrix).Transform(Matrix3D.RightHanded),
 				material: table.GetMaterial(_data.Material),
 				map: table.GetTexture(_data.Image),
 				isVisible: _data.IsVisible));
@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			if (meshes.ContainsKey("Rubber")) {
 				renderObjects.Add(new RenderObject(
 					name: "Rubber",
-					mesh: meshes["Rubber"].Transform(matrix),
+					mesh: meshes["Rubber"].Transform(matrix).Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.RubberMaterial),
 					isVisible: _data.IsVisible));
 			}

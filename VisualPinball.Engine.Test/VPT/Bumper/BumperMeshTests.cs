@@ -1,17 +1,31 @@
-﻿using VisualPinball.Engine.Math;
+﻿using System.Linq;
+using JeremyAnsel.Media.WavefrontObj;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
-	public class BumperMeshTests
+	public class BumperMeshTests : MeshTests
 	{
-		[Fact]
-		public void ShouldGenerateAMesh()
+		private readonly Engine.VPT.Table.Table _table;
+		private readonly ObjFile _obj;
+
+		public BumperMeshTests()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\BumperData.vpx");
-			var bumper = table.Bumpers["Bumper1"];
-			var ros = bumper.GetRenderObjects(table);
+			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\BumperData.vpx");
+			_obj = LoadObjFixture(@"..\..\Fixtures\BumperData.obj");
+		}
+
+		[Fact]
+		public void ShouldGenerateMesh()
+		{
+			var bumper = _table.Bumpers["Bumper2"];
+			var bumperMeshes = bumper.GetRenderObjects(_table).Select(ro => ro.Mesh);
+			foreach (var bumperMesh in bumperMeshes) {
+				AssertObjMesh(_obj, bumperMesh, $"{bumper.Name}{bumperMesh.Name}");
+			}
 		}
 	}
 }

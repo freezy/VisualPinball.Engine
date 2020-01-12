@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -24,7 +25,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 			return new[] {
 				new RenderObject(
-					mesh: _meshGenerator.GetMesh(table),
+					mesh: _meshGenerator.GetMesh(table).Transform(Matrix3D.RightHanded),
 					map: table.GetTexture(Data.Image),
 					normalMap: table.GetTexture(Data.NormalMap),
 					material: table.GetMaterial(Data.Material)

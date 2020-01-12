@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog;
 using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -21,6 +22,8 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
@@ -84,19 +87,19 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public float GetSurfaceHeight(string surfaceName, float x, float y)
 		{
-			if (surfaceName == null) {
+			if (string.IsNullOrEmpty(surfaceName)) {
 				return Data.TableHeight;
 			}
 
-			// if (Surfaces.ContainsKey[surfaceName]) {
-			// 	return Data.TableHeight + Surfaces[surfaceName].Data.HeightTop;
-			// }
-			//
-			// if (Surfaces[surfaceName]) {
-			// 	return Data.TableHeight + Surfaces[surfaceName].GetSurfaceHeight(x, y, this);
+			if (Surfaces.ContainsKey(surfaceName)) {
+				return Data.TableHeight + Surfaces[surfaceName].Data.HeightTop;
+			}
+
+			// if (RampData.ContainsKey(surfaceName)) {
+			// 	return Data.TableHeight + RampData[surfaceName].GetSurfaceHeight(x, y, this);
 			// }
 
-			//logger().warn('[Table.getSurfaceHeight] Unknown surface %s.', surface);
+			Logger.Warn($"[Table.getSurfaceHeight] Unknown surface {surfaceName}.");
 			return Data.TableHeight;
 		}
 

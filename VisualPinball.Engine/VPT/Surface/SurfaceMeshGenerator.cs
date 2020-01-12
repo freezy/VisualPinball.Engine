@@ -17,22 +17,23 @@ namespace VisualPinball.Engine.VPT.Surface
 		{
 			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
-			if (meshes.ContainsKey("Top")) {
-				renderObjects.Add(new RenderObject(
-					name: "Top",
-					mesh: meshes["Top"],
-					material: table.GetMaterial(_data.TopMaterial),
-					map: table.GetTexture(_data.Image),
-					isVisible: _data.IsTopBottomVisible));
-			}
 
 			if (meshes.ContainsKey("Side")) {
 				renderObjects.Add(new RenderObject(
 					name: "Side",
-					mesh: meshes["Side"],
+					mesh: meshes["Side"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.SideMaterial),
 					map: table.GetTexture(_data.SideImage),
 					isVisible: _data.IsSideVisible));
+			}
+
+			if (meshes.ContainsKey("Top")) {
+				renderObjects.Add(new RenderObject(
+					name: "Top",
+					mesh: meshes["Top"].Transform(Matrix3D.RightHanded),
+					material: table.GetMaterial(_data.TopMaterial),
+					map: table.GetTexture(_data.Image),
+					isVisible: _data.IsTopBottomVisible));
 			}
 
 			return renderObjects.ToArray();
