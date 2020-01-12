@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.Extensions
 
 		static Mesh()
 		{
-			GlobalMatrix.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, 0.01f));
+			GlobalMatrix.SetTRS(Vector3.zero, Quaternion.Euler(-90, 0, 0), new Vector3(0.01f, 0.01f, -0.01f));
 		}
 
 		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh, string name = null)

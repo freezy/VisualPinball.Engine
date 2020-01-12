@@ -18,12 +18,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject[] GetRenderObjects(Table.Table table)
 		{
-			var (vertexMatrix, normalMatrix) = GetMatrices(table);
 			var mesh = GetMesh(table);
+			var (vertexMatrix, normalMatrix) = GetMatrices(table);
 			return new[] {
 				new RenderObject(
 					name: "Base",
-					mesh: mesh.Transform(vertexMatrix, normalMatrix),
+					mesh: mesh.Transform(vertexMatrix, normalMatrix).Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.Material),
 					map: table.GetTexture(_data.Image),
 					isVisible: _data.IsVisible
@@ -33,6 +33,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		private Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
+			_data.StaticRendering = true;
 			var mesh = new Mesh(_data.Name);
 			int accuracy;
 			if (table.GetDetailLevel() < 5) {
@@ -63,8 +64,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			var numVertices = numRings * numSegments;
 			var numIndices = 6 * numVertices; //m_numVertices*2+2;
-
 			var height = _data.HitHeight + table.GetTableHeight();
+
+			mesh.Vertices = new Vertex3DNoTex2[numVertices];
+			mesh.Indices = new int[numIndices];
 
 			var prevB = new Vertex3D();
 			var invNr = 1.0f / numRings;
@@ -81,8 +84,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 					var up = new Vertex3D(sv.MiddlePoints[i2].X + sv.MiddlePoints[i].X, sv.MiddlePoints[i2].Y + sv.MiddlePoints[i].Y, height * 2.0f);
 					normal = new Vertex3D(tangent.Y * up.Z, -tangent.X * up.Z, tangent.X * up.Y - tangent.Y * up.X); // = CrossProduct(tangent, up)
 					biNormal = new Vertex3D(tangent.Y * normal.Z, -tangent.X * normal.Z, tangent.X * normal.Y - tangent.Y * normal.X); // = CrossProduct(tangent, normal)
-				}
-				else {
+
+				} else {
 					normal = prevB.Clone().Cross(tangent);
 					biNormal = tangent.Clone().Cross(normal);
 				}
@@ -214,8 +217,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
 				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.GetTableHeight());
-			}
-			else {
+
+			} else {
 				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y,
 					_data.Height * table.GetScaleZ() + table.GetTableHeight());
 			}

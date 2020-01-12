@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		private static readonly Mesh BaseMesh = new Mesh("Base", BumperBase.Vertices, BumperBase.Indices);
 		private static readonly Mesh CapMesh = new Mesh("Cap", BumperCap.Vertices, BumperCap.Indices);
 		private static readonly Mesh RingMesh = new Mesh("Ring", BumperRing.Vertices, BumperRing.Indices);
-		private static readonly Mesh SocketMesh = new Mesh("Socket", BumperSocket.Vertices, BumperSocket.Indices);
+		private static readonly Mesh SocketMesh = new Mesh("Skirt", BumperSocket.Vertices, BumperSocket.Indices);
 
 		private readonly BumperData _data;
 
@@ -34,31 +34,31 @@ namespace VisualPinball.Engine.VPT.Bumper
 			return new[] {
 				new RenderObject(
 					name: "Base",
-					mesh: meshes["Base"],
+					mesh: meshes["Base"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.BaseMaterial),
 					map: Texture.BumperBase,
 					isVisible: _data.IsBaseVisible
 				),
 				new RenderObject(
-					name: "Cap",
-					mesh: meshes["Cap"],
-					material: table.GetMaterial(_data.CapMaterial),
-					map: Texture.BumperCap,
-					isVisible: _data.IsCapVisible
-				),
-				new RenderObject(
 					name: "Ring",
-					mesh: meshes["Ring"],
+					mesh: meshes["Ring"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.RingMaterial),
 					map: Texture.BumperRing,
 					isVisible: _data.IsRingVisible
 				),
 				new RenderObject(
-					name: "Socket",
-					mesh: meshes["Socket"],
+					name: "Skirt",
+					mesh: meshes["Skirt"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.SocketMaterial),
 					map: Texture.BumperSocket,
 					isVisible: _data.IsSocketVisible
+				),
+				new RenderObject(
+					name: "Cap",
+					mesh: meshes["Cap"].Transform(Matrix3D.RightHanded),
+					material: table.GetMaterial(_data.CapMaterial),
+					map: Texture.BumperCap,
+					isVisible: _data.IsCapVisible
 				)
 			};
 		}
@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 			return new Dictionary<string, Mesh> {
 				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height) },
 				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height) },
-				{ "Socket", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f)) },
+				{ "Skirt", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f)) },
 				{ "Cap", GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height ) }
 			};
 		}

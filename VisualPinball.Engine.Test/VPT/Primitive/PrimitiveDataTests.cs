@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Engine.Test.VPT.Primitive
 {
-	public class SurfaceDataTests
+	public class PrimitiveDataTests
 	{
 		[Fact]
 		public void ShouldLoadCorrectData()

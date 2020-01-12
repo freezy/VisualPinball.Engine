@@ -8,13 +8,17 @@ namespace VisualPinball.Engine.IO
 	{
 		public int QuantizedUnsignedBits = -1;
 		public bool AsPercent = false;
+		public bool AsInt = false;
 
 		public BiffFloatAttribute(string name) : base(name) { }
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			ParseValue(obj, reader, len, ReadFloat);
-			ParseValue(obj, reader, len, ReadInt);
+			if (!AsInt) {
+				ParseValue(obj, reader, len, ReadFloat);
+			} else {
+				ParseValue(obj, reader, len, ReadInt);
+			}
 		}
 
 		private float ReadFloat(BinaryReader reader, int len)

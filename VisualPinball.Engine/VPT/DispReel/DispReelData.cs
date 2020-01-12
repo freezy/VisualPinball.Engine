@@ -40,13 +40,13 @@ namespace VisualPinball.Engine.VPT.DispReel
 		[BiffString("IMAG")]
 		public string Image;
 
-		[BiffFloat("RCNT")] // parsed as float, saved as int
+		[BiffFloat("RCNT", AsInt = true)]
 		public int ReelCount = 5;
 
 		[BiffFloat("RSPC")]
 		public float ReelSpacing = 4.0f;
 
-		[BiffFloat("MSTP")] // parsed as float, saved as int
+		[BiffFloat("MSTP", AsInt = true)]
 		public int MotorSteps = 2;
 
 		[BiffString("SOUN")]
@@ -58,7 +58,7 @@ namespace VisualPinball.Engine.VPT.DispReel
 		[BiffInt("GIPR")]
 		public int ImagesPerGridRow = 1;
 
-		[BiffFloat("RANG")] // parsed as float, saved as int
+		[BiffFloat("RANG", AsInt = true)]
 		public int DigitRange = 9;
 
 		[BiffInt("UPTM")]

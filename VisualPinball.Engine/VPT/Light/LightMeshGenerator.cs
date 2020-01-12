@@ -26,12 +26,12 @@ namespace VisualPinball.Engine.VPT.Light
 			return new[] {
 				new RenderObject(
 					name: "Bulb",
-					mesh: meshes["Bulb"],
+					mesh: meshes["Bulb"].Transform(Matrix3D.RightHanded),
 					material: GetBulbMaterial()
 				),
 				new RenderObject(
 					name: "Socket",
-					mesh: meshes["Socket"],
+					mesh: meshes["Socket"].Transform(Matrix3D.RightHanded),
 					material: GetSocketMaterial()
 				),
 			};

@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldNotUseCountAndIndex()
 		{
-			GetAttributes(typeof(BiffAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffAttribute>(typeof(BiffAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (attr.Count > -1 && attr.Index > -1) {
 					throw new Exception($"Must use either Count or Index but not both at {biffDataType.FullName}.{member.Name} ({attr.Name}).");
@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToStrings()
 		{
-			GetAttributes(typeof(BiffStringAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffStringAttribute>(typeof(BiffStringAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(string) && memberType != typeof(string[])) {
 					throw new Exception($"BiffString of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either string or string[], but is {memberType.Name}.");
@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToIntegers()
 		{
-			GetAttributes(typeof(BiffIntAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffIntAttribute>(typeof(BiffIntAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(int) && memberType != typeof(int[])) {
 					throw new Exception($"BiffInt of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either int or int[], but is {memberType.Name}.");
@@ -46,10 +46,16 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToFloats()
 		{
-			GetAttributes(typeof(BiffFloatAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffFloatAttribute>(typeof(BiffFloatAttribute), (memberType, member, biffDataType, attr) =>
 			{
-				if (memberType != typeof(float) && memberType != typeof(float[])) {
-					throw new Exception($"BiffFloat of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either float or float[], but is {memberType.Name}.");
+				if (!attr.AsInt) {
+					if (memberType != typeof(float) && memberType != typeof(float[])) {
+						throw new Exception($"BiffFloat of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either float or float[], but is {memberType.Name}.");
+					}
+				} else {
+					if (memberType != typeof(int) && memberType != typeof(int[])) {
+						throw new Exception($"BiffFloat of {biffDataType.FullName}.{member.Name} ({attr.Name}) is marked to be int or int[], but is {memberType.Name}.");
+					}
 				}
 			});
 		}
@@ -57,7 +63,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToBooleans()
 		{
-			GetAttributes(typeof(BiffBoolAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffBoolAttribute>(typeof(BiffBoolAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(bool) && memberType != typeof(bool[])) {
 					throw new Exception($"BiffBool of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either bool or bool[], but is {memberType.Name}.");
@@ -68,7 +74,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToColors()
 		{
-			GetAttributes(typeof(BiffColorAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffColorAttribute>(typeof(BiffColorAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(Color) && memberType != typeof(Color[])) {
 					throw new Exception($"BiffColor of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either Color or Color[], but is {memberType.Name}.");
@@ -79,7 +85,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToVertices()
 		{
-			GetAttributes(typeof(BiffVertexAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffVertexAttribute>(typeof(BiffVertexAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(Vertex2D) && memberType != typeof(Vertex3D)) {
 					throw new Exception($"BiffVertex of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either Vertex2D or Vertex3D, but is {memberType.Name}.");
@@ -90,7 +96,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToTextureBinary()
 		{
-			GetAttributes(typeof(BiffBinaryAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffBinaryAttribute>(typeof(BiffBinaryAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(BinaryData)) {
 					throw new Exception($"BiffBinary of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be of type BinaryData, but is {memberType.Name}.");
@@ -101,7 +107,7 @@ namespace VisualPinball.Engine.Test.IO
 		[Fact]
 		public void ShouldBeAppliedToTextureBits()
 		{
-			GetAttributes(typeof(BiffBitsAttribute), (memberType, member, biffDataType, attr) =>
+			GetAttributes<BiffBitsAttribute>(typeof(BiffBitsAttribute), (memberType, member, biffDataType, attr) =>
 			{
 				if (memberType != typeof(Bitmap)) {
 					throw new Exception($"BiffBits of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be of type Bitmap, but is {memberType.Name}.");
@@ -109,7 +115,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		private static void GetAttributes(Type attributeType, Action<Type, MemberInfo, Type, BiffAttribute> assert)
+		private static void GetAttributes<T>(Type attributeType, Action<Type, MemberInfo, Type, T> assert) where T: BiffAttribute
 		{
 			var biffDataTypes = AppDomain.CurrentDomain
 				.GetAssemblies()
@@ -143,7 +149,7 @@ namespace VisualPinball.Engine.Test.IO
 							throw new Exception("Member type is null, that shouldn't happen because we filter by fields and properties.");
 						}
 
-						assert(memberType, member, biffDataType, attr);
+						assert(memberType, member, biffDataType, attr as T);
 					}
 				}
 			}
