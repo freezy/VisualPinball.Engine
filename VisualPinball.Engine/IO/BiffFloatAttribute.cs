@@ -7,7 +7,6 @@ namespace VisualPinball.Engine.IO
 	public class BiffFloatAttribute : BiffAttribute
 	{
 		public int QuantizedUnsignedBits = -1;
-		public bool AsPercent = false;
 		public bool AsInt = false;
 
 		public BiffFloatAttribute(string name) : base(name) { }
@@ -26,10 +25,6 @@ namespace VisualPinball.Engine.IO
 			var f = QuantizedUnsignedBits > 0
 				? DequantizeUnsigned(QuantizedUnsignedBits, reader.ReadInt32())
 				: reader.ReadSingle();
-
-			if (AsPercent) {
-				return f * 100f;
-			}
 
 			return f;
 		}

@@ -19,17 +19,5 @@ namespace VisualPinball.Engine.IO
 			var nullPos = Array.IndexOf(bytes, (byte)0x0);
 			return Encoding.ASCII.GetString(nullPos > -1 ? bytes.Take(nullPos).ToArray() : bytes);
 		}
-
-		/// <summary>
-		/// Converts a BGR color to a RGB color.
-		/// </summary>
-		/// <param name="bgr">BGR color</param>
-		/// <returns>RGB color</returns>
-		public static int BgrToRgb(int bgr) {
-			var r = (bgr & 0xff) << 16;
-			var g = bgr & 0xff00;
-			var b = (bgr & 0xff0000) >> 16;
-			return r + g + b;
-		}
 	}
 }
