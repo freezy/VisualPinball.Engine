@@ -2,14 +2,15 @@
 
 namespace VisualPinball.Engine.Math
 {
-	public abstract class CatmullCurve
+	public abstract class CatmullCurve<T> where T : IRenderVertex
 	{
-		public static CatmullCurve Instance<T>(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3) where T: IRenderVertex =>
-			typeof(T) == typeof(RenderVertex2D) ? (CatmullCurve)new CatmullCurve2D(v0, v1, v2, v3) :
-			typeof(T) == typeof(RenderVertex3D) ? new CatmullCurve3D(v0, v1, v2, v3) :
-			null;
+		public static CatmullCurve<T> GetInstance<TFactory>(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3) where TFactory : ICatmullCurveFactory<T>, new()
+		{
+			var fact = new TFactory();
+			return fact.Create(v0, v1, v2, v3);
+		}
 
-		public abstract IRenderVertex GetPointAt(float t);
+		public abstract T GetPointAt(float t);
 
 		protected static Tuple<float, float, float> Clamp(float dt0, float dt1, float dt2) {
 
@@ -50,7 +51,7 @@ namespace VisualPinball.Engine.Math
 		}
 	}
 
-	public class CatmullCurve2D : CatmullCurve
+	public class CatmullCurve2D : CatmullCurve<RenderVertex2D>
 	{
 		private readonly Coeff2 _c = new Coeff2();
 
@@ -65,7 +66,7 @@ namespace VisualPinball.Engine.Math
 			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt0, dt1, dt2);
 		}
 
-		public override IRenderVertex GetPointAt(float t)
+		public override RenderVertex2D GetPointAt(float t)
 		{
 			var t2 = t * t;
 			var t3 = t2 * t;
@@ -74,10 +75,9 @@ namespace VisualPinball.Engine.Math
 				_c.Y[3] * t3 + _c.Y[2] * t2 + _c.Y[1] * t + _c.Y[0]
 			);
 		}
-
 	}
 
-	public class CatmullCurve3D : CatmullCurve
+	public class CatmullCurve3D : CatmullCurve<RenderVertex3D>
 	{
 		private readonly Coeff3 _c = new Coeff3();
 
@@ -92,7 +92,7 @@ namespace VisualPinball.Engine.Math
 			_c.Z = InitNonuniformCatmullCoeffs(v0.Z, v1.Z, v2.Z, v3.Z, dt0, dt1, dt2);
 		}
 
-		public override IRenderVertex GetPointAt(float t) {
+		public override RenderVertex3D GetPointAt(float t) {
 			var t2 = t * t;
 			var t3 = t2 * t;
 			return new RenderVertex3D(
@@ -100,6 +100,24 @@ namespace VisualPinball.Engine.Math
 				_c.Y[3] * t3 + _c.Y[2] * t2 + _c.Y[1] * t + _c.Y[0],
 				_c.Z[3] * t3 + _c.Z[2] * t2 + _c.Z[1] * t + _c.Z[0]
 			);
+		}
+	}
+
+	public interface ICatmullCurveFactory<T> where T : IRenderVertex {
+		CatmullCurve<T> Create(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3);
+	}
+
+	public class CatmullCurve2DCatmullCurveFactory : ICatmullCurveFactory<RenderVertex2D> {
+		public CatmullCurve<RenderVertex2D> Create(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3)
+		{
+			return new CatmullCurve2D(v0, v1, v2, v3);
+		}
+	}
+
+	public class CatmullCurve3DCatmullCurveFactory : ICatmullCurveFactory<RenderVertex3D> {
+		public CatmullCurve<RenderVertex3D> Create(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3)
+		{
+			return new CatmullCurve3D(v0, v1, v2, v3);
 		}
 	}
 

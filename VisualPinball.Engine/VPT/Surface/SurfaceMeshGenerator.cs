@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			var topMesh = new Mesh("Top");
 			var sideMesh = new Mesh("Side");
 
-			var vVertex = DragPoint.GetRgVertex<RenderVertex2D>(_data.DragPoints);
+			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
 			var rgTexCoord = DragPoint.GetTextureCoords(_data.DragPoints, vVertex);
 
 			var numVertices = vVertex.Length;
