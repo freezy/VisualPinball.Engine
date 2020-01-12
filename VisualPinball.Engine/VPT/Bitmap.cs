@@ -83,19 +83,19 @@ namespace VisualPinball.Engine.VPT
 				// file header
 				writer.Write((byte) 0x42);                                    // type
 				writer.Write((byte) 0x4d);
-				writer.Write((uint) (headerSize + Height * bmpLineSize));    // size
+				writer.Write((uint) (headerSize + Height * bmpLineSize));     // size
 				writer.Write((short) 0);                                      // reserved 1
 				writer.Write((short) 0);                                      // reserved 2
 				writer.Write((uint) headerSize);                              // off bits
 
 				// bitmap info header
 				writer.Write((uint) 40);                         // size
-				writer.Write(Width);                            // width
-				writer.Write(Height);                           // height
+				writer.Write(Width);                             // width
+				writer.Write(Height);                            // height
 				writer.Write((ushort) 1);                        // planes
 				writer.Write((ushort) 32);                       // bit count
 				writer.Write((uint) 0);                          // compression
-				writer.Write((uint) (Height * bmpLineSize));    // size image
+				writer.Write((uint) (Height * bmpLineSize));     // size image
 				writer.Write(0);                                 // x pels per meter
 				writer.Write(0);                                 // y pels per meter
 				writer.Write((uint) 0);                          // clr used
