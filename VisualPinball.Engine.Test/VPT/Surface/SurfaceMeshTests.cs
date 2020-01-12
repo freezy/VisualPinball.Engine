@@ -23,5 +23,25 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 			var surfaceMeshes = surface.GetRenderObjects(_table).Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, surface.Name, surfaceMeshes);
 		}
+
+		[Fact]
+		public void ShouldGenerateOnlyTop()
+		{
+			var surface = _table.Surfaces["SideInvisible"];
+			var surfaceMeshes = surface.GetRenderObjects(_table)
+				.Where(ro => ro.IsVisible)
+				.Select(ro => ro.Mesh).ToArray();
+			AssertObjMesh(_obj, surface.Name, surfaceMeshes, 0.001);
+		}
+
+		[Fact]
+		public void ShouldGenerateOnlySide()
+		{
+			var surface = _table.Surfaces["TopInvisible"];
+			var surfaceMeshes = surface.GetRenderObjects(_table)
+				.Where(ro => ro.IsVisible)
+				.Select(ro => ro.Mesh).ToArray();
+			AssertObjMesh(_obj, surface.Name, surfaceMeshes);
+		}
 	}
 }
