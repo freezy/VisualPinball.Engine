@@ -30,6 +30,8 @@ namespace VisualPinball.Unity.Importer
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
+		//move declaration from local in method to class as it was loosing reference while building .. it you think you can solve that , be my guest ;) 
+		internal VpxAsset asset;
 
 		public static void ImportVpxRuntime(string path)
 		{
@@ -102,22 +104,23 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			// create asset object
-			var asset = ScriptableObject.CreateInstance<VpxAsset>();
+			
+			asset = ScriptableObject.CreateInstance<VpxAsset>();			
 			AssetDatabase.SaveAssets();
 			// import textures
 			ImportTextures(table);
 
 			// import table
 			ImportGameItems(table, asset);
+
+			
+			
 		}
 
 		private void ImportTextures(Table table)
 		{
-			foreach (var texture in table.Textures.Values) {
-				
-				SaveTexture(texture);
-				
-				
+			foreach (var texture in table.Textures.Values) {				
+					SaveTexture(texture);				
 			}
 		}
 
@@ -165,127 +168,6 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void CalculateTangents(UnityEngine.Mesh mesh) {
-
-			
-				// Speed: Cache mesh arrays
-				int[] triangles = mesh.triangles;
-				Vector3[] vertices = mesh.vertices;
-				Vector2[] uv = mesh.uv;
-				Vector3[] normals = mesh.normals;
-
-				//variable definitions
-				int triangleCount = triangles.Length;
-				int vertexCount = vertices.Length;
-
-				Vector3[] tan1 = new Vector3[vertexCount];
-				Vector3[] tan2 = new Vector3[vertexCount];
-
-				Vector4[] tangents = new Vector4[vertexCount];
-
-				for (int a = 0; a < triangleCount; a += 3) {
-					int i1 = triangles[a + 0];
-					int i2 = triangles[a + 1];
-					int i3 = triangles[a + 2];
-
-					Vector3 v1 = vertices[i1];
-					Vector3 v2 = vertices[i2];
-					Vector3 v3 = vertices[i3];
-
-					Vector2 w1 = uv[i1];
-					Vector2 w2 = uv[i2];
-					Vector2 w3 = uv[i3];
-
-					float x1 = v2.x - v1.x;
-					float x2 = v3.x - v1.x;
-					float y1 = v2.y - v1.y;
-					float y2 = v3.y - v1.y;
-					float z1 = v2.z - v1.z;
-					float z2 = v3.z - v1.z;
-
-					float s1 = w2.x - w1.x;
-					float s2 = w3.x - w1.x;
-					float t1 = w2.y - w1.y;
-					float t2 = w3.y - w1.y;
-
-					float r = 1.0f / (s1 * t2 - s2 * t1);
-
-					Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
-					Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
-
-					tan1[i1] += sdir;
-					tan1[i2] += sdir;
-					tan1[i3] += sdir;
-
-					tan2[i1] += tdir;
-					tan2[i2] += tdir;
-					tan2[i3] += tdir;
-
-				}
-
-
-				for (int a = 0; a < vertexCount; ++a) {
-					Vector3 n = normals[a];
-					Vector3 t = tan1[a];
-
-					Vector3.OrthoNormalize(ref n, ref t);
-
-					tangents[a].x = t.x;
-					tangents[a].y = t.y;
-					tangents[a].z = t.z;
-
-					tangents[a].w = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0f) ? -1.0f : 1.0f;
-				}
-
-				mesh.tangents = tangents;
-
-			
-
-
-		}
-
-		private void ResetGOOrigin(GameObject obj, UnityEngine.Mesh mesh) {
-
-
-
-			Quaternion rot = obj.transform.rotation;
-			obj.transform.rotation = Quaternion.identity;
-			var vertices = mesh.vertices;
-
-			int len = vertices.Length;
-			int v;
-			Vector3 c = Vector3.zero;
-			for (v = 0; v < len; v++)
-			{
-				c += vertices[v];
-			}
-
-			c /= len;
-			Vector3 d = Vector3.zero;
-			for (v = 0; v < len; v++)
-			{
-				d += obj.transform.TransformPoint(vertices[v]);
-			}
-			d /= len;
-			Matrix4x4 trs = Matrix4x4.TRS(-(c), Quaternion.identity, Vector3.one);
-			for (v = 0; v < len; v++)
-			{
-				vertices[v] = trs.MultiplyPoint(vertices[v]);
-
-			}
-
-			mesh.vertices = vertices;
-			mesh.RecalculateBounds();
-
-			Undo.RecordObject(obj, "set origin of parent");
-
-			obj.transform.position = d;
-			obj.transform.rotation = rot;
-
-
-
-
-		}
 
 		private void ImportRenderObject(RenderObject renderObject, GameObject obj, VpxAsset asset)
 		{
@@ -298,6 +180,11 @@ namespace VisualPinball.Unity.Importer
 
 			//resetgameObject origin
 			ResetGOOrigin(obj, mesh);
+
+			// add mesh to asset
+			if (_saveToAssets) {
+				AssetDatabase.AddObjectToAsset(mesh, asset);
+			}
 
 
 			// apply mesh to game object
@@ -313,10 +200,7 @@ namespace VisualPinball.Unity.Importer
 
 			}
 
-			// add mesh to asset
-			if (_saveToAssets) {
-				AssetDatabase.AddObjectToAsset(mesh, asset);
-			}
+			
 		}
 
 		private Material GetMaterial(RenderObject ro, string objectName) {
@@ -326,30 +210,39 @@ namespace VisualPinball.Unity.Importer
 				
 				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
 				if (ro.Map != null) {
-					material.SetTexture(MainTex, LoadTexture(ro.Map,".png"));
+					UnityEngine.Texture tex = LoadTexture(ro.Map, ".png");
+					string path = AssetDatabase.GetAssetPath(tex);					
+					TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+					textureImporter.textureType = TextureImporterType.Default;
+					textureImporter.alphaIsTransparency = true;
+					textureImporter.isReadable = true;
+					textureImporter.mipmapEnabled = true;
+					textureImporter.filterMode = FilterMode.Bilinear;
+					EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+					AssetDatabase.ImportAsset(path);
+					material.SetTexture(MainTex, tex);
 				}
 
 				if (ro.NormalMap != null) {
 					UnityEngine.Texture tex = LoadTexture(ro.NormalMap, ".png");
-					string path = AssetDatabase.GetAssetPath(tex);
-					//!! WARNING bizarre bug , this does fix the normal  map types on the importer objects , but hsa an extremely peculiar side effect
-					//in that the VPXAsset scriptableObject just randomly gets deleted during the build , not that the same point either
-					// which causes the build to not complete.
-					// commented out until I know why that is happening 
-
-					//fix importer for normal map -- currently causes a rip in space and time .. 
-
-					/*TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+					string path = AssetDatabase.GetAssetPath(tex);					
+					TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
 					textureImporter.textureType = TextureImporterType.NormalMap;
-					AssetDatabase.Refresh();
+					textureImporter.isReadable = true;
+					textureImporter.mipmapEnabled = true;
+					textureImporter.filterMode = FilterMode.Bilinear;
+					EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
 					AssetDatabase.ImportAsset(path);
-					material.SetTexture(BumpMap, tex);*/
+					material.SetTexture(BumpMap, tex);
 
 
 					//---------------------------
 
 				}
 				SaveMaterial(ro, material);
+
+
+			
 			} 
 
 			return material;
@@ -358,62 +251,51 @@ namespace VisualPinball.Unity.Importer
 		private void SaveTexture(Texture texture)
 		{
 
-
+			
 			UnityEngine.Texture2D tex;
-			if (texture.IsHdr) {
+			if (!texture.IsHdr) {
 				tex = texture.ToUnityTexture();
 			} else {
-				tex = texture.ToUnityHDRTexture();
+				tex = texture.ToUnityHDRTexture();				
+				Logger.Info("SaveTexture");
+				Logger.Info("tex.width  " + tex.width);
+				Logger.Info("tex.height  " + tex.height);
 			}
-			
-			
-			string path = "";
-			if (texture.IsHdr) {
+
+
+
+
+
+			string path = "";		
+			if (texture.IsHdr) {				
 				path = texture.GetUnityFilename(".exr", _textureFolder);
-				
 			} else {
 				path = texture.GetUnityFilename(".png",_textureFolder);
-			}
-			
+			}			
 
-			if (_saveToAssets) {
-				
+			if (_saveToAssets) {				
 				byte[] bytes = null;
-
 				if (texture.IsHdr) {
-
 					//this is a hack to decompress the texture or unity will throw an error as it cant write compressed files.
 					RenderTexture renderTex = RenderTexture.GetTemporary(
 					tex.width,
 					tex.height,
 					0,
 					RenderTextureFormat.Default,
-					RenderTextureReadWrite.Linear);
-					Graphics.Blit(tex, renderTex);
+					RenderTextureReadWrite.Linear);						
 					RenderTexture previous = RenderTexture.active;
-					RenderTexture.active = renderTex;
-					Texture2D readableText = new Texture2D(tex.width, tex.height, TextureFormat.RGBAFloat, false);
-					readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
-					readableText.Apply();
+					RenderTexture.active = renderTex;					
+					Graphics.Blit(tex, renderTex);					
+					Texture2D unCpmpressedImage = new Texture2D(tex.width, tex.height, TextureFormat.RGBAFloat, false);
+					unCpmpressedImage.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+					unCpmpressedImage.Apply();					
 					RenderTexture.active = previous;
-					RenderTexture.ReleaseTemporary(renderTex);
-					Texture2D decopmpresseTex = readableText;
-					decopmpresseTex.Apply();
-					bytes = decopmpresseTex.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+					RenderTexture.ReleaseTemporary(renderTex);					
+					bytes = unCpmpressedImage.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);					
 				} else {
 					bytes = tex.EncodeToPNG();
-				}
-
-				
+				}				
 				File.WriteAllBytes(path, bytes);
-				AssetDatabase.ImportAsset(path);
-
-				TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
-				textureImporter.alphaIsTransparency = true;
-				textureImporter.isReadable = true;
-				textureImporter.mipmapEnabled = false;
-				textureImporter.filterMode = FilterMode.Bilinear;
-				//EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D)) as Texture2D, TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
 				AssetDatabase.ImportAsset(path);
 			} else {
 				_textures[texture.Name] = tex;
@@ -447,6 +329,127 @@ namespace VisualPinball.Unity.Importer
 
 			return _materials.ContainsKey(ro.MaterialId) ? _materials[ro.MaterialId] : null;
 		}
+
+
+		private void CalculateTangents(UnityEngine.Mesh mesh) {
+
+
+			// Speed: Cache mesh arrays
+			int[] triangles = mesh.triangles;
+			Vector3[] vertices = mesh.vertices;
+			Vector2[] uv = mesh.uv;
+			Vector3[] normals = mesh.normals;
+
+			//variable definitions
+			int triangleCount = triangles.Length;
+			int vertexCount = vertices.Length;
+
+			Vector3[] tan1 = new Vector3[vertexCount];
+			Vector3[] tan2 = new Vector3[vertexCount];
+
+			Vector4[] tangents = new Vector4[vertexCount];
+
+			for (int a = 0; a < triangleCount; a += 3) {
+				int i1 = triangles[a + 0];
+				int i2 = triangles[a + 1];
+				int i3 = triangles[a + 2];
+
+				Vector3 v1 = vertices[i1];
+				Vector3 v2 = vertices[i2];
+				Vector3 v3 = vertices[i3];
+
+				Vector2 w1 = uv[i1];
+				Vector2 w2 = uv[i2];
+				Vector2 w3 = uv[i3];
+
+				float x1 = v2.x - v1.x;
+				float x2 = v3.x - v1.x;
+				float y1 = v2.y - v1.y;
+				float y2 = v3.y - v1.y;
+				float z1 = v2.z - v1.z;
+				float z2 = v3.z - v1.z;
+
+				float s1 = w2.x - w1.x;
+				float s2 = w3.x - w1.x;
+				float t1 = w2.y - w1.y;
+				float t2 = w3.y - w1.y;
+
+				float r = 1.0f / (s1 * t2 - s2 * t1);
+
+				Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+				Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
+
+				tan1[i1] += sdir;
+				tan1[i2] += sdir;
+				tan1[i3] += sdir;
+
+				tan2[i1] += tdir;
+				tan2[i2] += tdir;
+				tan2[i3] += tdir;
+
+			}
+
+
+			for (int a = 0; a < vertexCount; ++a) {
+				Vector3 n = normals[a];
+				Vector3 t = tan1[a];
+
+				Vector3.OrthoNormalize(ref n, ref t);
+
+				tangents[a].x = t.x;
+				tangents[a].y = t.y;
+				tangents[a].z = t.z;
+
+				tangents[a].w = (Vector3.Dot(Vector3.Cross(n, t), tan2[a]) < 0.0f) ? -1.0f : 1.0f;
+			}
+
+			mesh.tangents = tangents;
+
+
+
+
+		}
+
+		private void ResetGOOrigin(GameObject obj, UnityEngine.Mesh mesh) {
+
+
+
+			Quaternion rot = obj.transform.rotation;
+			obj.transform.rotation = Quaternion.identity;
+			var vertices = mesh.vertices;
+
+			int len = vertices.Length;
+			int v;
+			Vector3 c = Vector3.zero;
+			for (v = 0; v < len; v++) {
+				c += vertices[v];
+			}
+
+			c /= len;
+			Vector3 d = Vector3.zero;
+			for (v = 0; v < len; v++) {
+				d += obj.transform.TransformPoint(vertices[v]);
+			}
+			d /= len;
+			Matrix4x4 trs = Matrix4x4.TRS(-(c), Quaternion.identity, Vector3.one);
+			for (v = 0; v < len; v++) {
+				vertices[v] = trs.MultiplyPoint(vertices[v]);
+
+			}
+
+			mesh.vertices = vertices;
+			mesh.RecalculateBounds();
+
+			Undo.RecordObject(obj, "set origin of parent");
+
+			obj.transform.position = d;
+			obj.transform.rotation = rot;
+
+
+
+
+		}
+
 	}
 
 	internal class VpxAsset : ScriptableObject

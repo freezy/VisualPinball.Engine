@@ -57,8 +57,9 @@ namespace VisualPinball.Unity.Extensions
 			}
 			generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Roughness);
 			if (vpxMaterial.IsOpacityActive) {
-
-				blendMode = BlendMode.Cutout;
+				blendMode = BlendMode.Transparent;
+				col.a = vpxMaterial.Opacity;
+				generatedUnityMaterial.SetColor("_Color", col);
 			}
 			if (vpxMaterial.Edge < 1) {
 				blendMode = BlendMode.Cutout;
@@ -129,3 +130,7 @@ namespace VisualPinball.Unity.Extensions
 
 	}
 }
+
+
+
+
