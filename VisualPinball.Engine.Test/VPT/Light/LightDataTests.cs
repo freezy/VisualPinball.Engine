@@ -1,4 +1,5 @@
 ﻿using System;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\LightData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
 			var data = table.Lights["Light1"].Data;
 
 			Assert.Equal(126, data.BlinkInterval);
@@ -46,7 +47,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Fact]
 		public void ShouldLoadCorrectDragPointData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\LightData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
 			var dragPoints = table.Lights["PlayfieldLight"].Data.DragPoints;
 
 			Assert.Equal(false, dragPoints[0].IsSmooth);

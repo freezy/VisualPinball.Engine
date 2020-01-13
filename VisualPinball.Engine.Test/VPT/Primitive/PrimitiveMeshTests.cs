@@ -11,8 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 
 		public PrimitiveMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\PrimitiveData.vpx");
-			_obj = LoadObjFixture(@"..\..\Fixtures\PrimitiveData.obj");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			_obj = LoadObjFixture(ObjPath.Primitive);
 		}
 
 		[Fact]
@@ -20,6 +20,20 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		{
 			var bookMesh = _table.Primitives["Books"].GetRenderObjects(_table)[0].Mesh;
 			AssertObjMesh(_obj, bookMesh);
+		}
+
+		[Fact]
+		public void ShouldGenerateACube()
+		{
+			var cubeMesh = _table.Primitives["Cube"].GetRenderObjects(_table)[0].Mesh;
+			AssertObjMesh(_obj, cubeMesh);
+		}
+
+		[Fact]
+		public void ShouldGenerateATriangle()
+		{
+			var triangleMesh = _table.Primitives["Triangle"].GetRenderObjects(_table)[0].Mesh;
+			AssertObjMesh(_obj, triangleMesh);
 		}
 	}
 }

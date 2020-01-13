@@ -23,14 +23,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public RenderObject[] GetRenderObjects(Table.Table table)
 		{
-			return new[] {
-				new RenderObject(
-					mesh: _meshGenerator.GetMesh(table).Transform(Matrix3D.RightHanded),
-					map: table.GetTexture(Data.Image),
-					normalMap: table.GetTexture(Data.NormalMap),
-					material: table.GetMaterial(Data.Material)
-				)
-			};
+			return _meshGenerator.GetRenderObjects(table);
 		}
 	}
 }

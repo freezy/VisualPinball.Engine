@@ -168,10 +168,11 @@
     <Compile Include="Math\ColorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Test\MeshTests.cs" />
+    <Compile Include="Test\Fixtures.cs" />
     <Compile Include="VPT\Bumper\BumperDataTests.cs" />
     <Compile Include="VPT\Bumper\BumperMeshTests.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshTests.cs" />
-    <Compile Include="VPT\Flipper\FlipperDataTest.cs" />
+    <Compile Include="VPT\Flipper\FlipperDataTests.cs" />
     <Compile Include="VPT\Light\LightDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />

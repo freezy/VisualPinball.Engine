@@ -1,4 +1,5 @@
 ﻿using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\MaterialData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
 			var material = table.GetMaterial("Material1");
 
 			Assert.Equal("Material1", material.Name);

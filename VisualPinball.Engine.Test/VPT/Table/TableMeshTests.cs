@@ -11,8 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.Table
 
 		public TableMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\TableData.vpx");
-			_obj = LoadObjFixture(@"..\..\Fixtures\TableData.obj");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+			_obj = LoadObjFixture(ObjPath.Table);
 		}
 
 		[Fact]

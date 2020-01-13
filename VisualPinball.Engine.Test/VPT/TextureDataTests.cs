@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,7 +16,7 @@ namespace VisualPinball.Engine.Test.VPT
 
 		public TextureDataTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\TextureData.vpx");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Texture);
 		}
 
 		[Fact]
@@ -23,7 +24,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_argb"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern_argb.bmp");
+			var image = File.ReadAllBytes(TexturePath.BmpArgb);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
 			Assert.Equal("test_pattern_argb", texture.Data.InternalName);
@@ -37,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_bmp"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern.bmp");
+			var image = File.ReadAllBytes(TexturePath.Bmp);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
 			Assert.Equal("test_pattern_bmp", texture.Data.InternalName);
@@ -51,7 +52,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_exr"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\comp_piz.exr");
+			var image = File.ReadAllBytes(TexturePath.Exr);
 			Assert.Equal(587, texture.Data.Width);
 			Assert.Equal(675, texture.Data.Height);
 			Assert.Equal("test_pattern_exr", texture.Data.InternalName);
@@ -65,7 +66,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_hdr"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern_hdr.hdr");
+			var image = File.ReadAllBytes(TexturePath.Hdr);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(512, texture.Data.Height);
 			Assert.Equal("test_pattern_hdr", texture.Data.InternalName);
@@ -79,7 +80,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_jpg"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern.jpg");
+			var image = File.ReadAllBytes(TexturePath.Jpg);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
 			Assert.Equal("test_pattern_jpg", texture.Data.InternalName);
@@ -93,7 +94,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_png"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern.png");
+			var image = File.ReadAllBytes(TexturePath.Png);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
 			Assert.Equal("test_pattern_png", texture.Data.InternalName);
@@ -107,7 +108,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_transparent"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern_transparent.png");
+			var image = File.ReadAllBytes(TexturePath.PngTransparent);
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);
@@ -122,7 +123,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			var texture = _table.Textures["test_pattern_xrgb"];
 			var blob = texture.FileContent;
-			var image = File.ReadAllBytes(@"..\..\Fixtures\test_pattern_xrgb.bmp");
+			var image = File.ReadAllBytes(TexturePath.BmpXrgb);
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			Assert.Equal(1024, texture.Data.Width);
 			Assert.Equal(768, texture.Data.Height);

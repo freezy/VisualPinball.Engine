@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using VisualPinball.Engine.Test.Test;
+using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
@@ -7,7 +8,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\SurfaceData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
 			var data = table.Surfaces["TopInvisible"].Data;
 
 			Assert.Equal(0.6985f, data.DisableLightingBelow);
