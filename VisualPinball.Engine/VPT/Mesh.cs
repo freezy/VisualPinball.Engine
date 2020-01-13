@@ -35,6 +35,12 @@ namespace VisualPinball.Engine.VPT
 			Indices = indices;
 		}
 
+		public Mesh(Vertex3DNoTex2[] vertices, int[] indices)
+		{
+			Vertices = vertices;
+			Indices = indices;
+		}
+
 		public Mesh Transform(Matrix3D matrix, Matrix3D normalMatrix = null, Func<float, float> getZ = null) {
 
 			// abort on identity matrices
@@ -54,6 +60,17 @@ namespace VisualPinball.Engine.VPT
 				vertex.Ny = norm.Y;
 				vertex.Nz = norm.Z;
 			}
+			return this;
+		}
+
+		public Mesh MakeTranslation(float x, float y, float z)
+		{
+			foreach (var vertex in Vertices) {
+				vertex.X += x;
+				vertex.Y += y;
+				vertex.Z += z;
+			}
+
 			return this;
 		}
 

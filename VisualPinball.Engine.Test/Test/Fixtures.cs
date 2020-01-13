@@ -6,6 +6,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.vpx";
 		public const string Light = @"..\..\VPT\Light\LightTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
+		public const string Ramp = @"..\..\VPT\Ramp\RampTest.vpx";
 		public const string Rubber = @"..\..\VPT\Rubber\RubberTest.vpx";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.vpx";
 		public const string Table = @"..\..\VPT\Table\TableTest.vpx";
@@ -18,6 +19,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Bumper = @"..\..\VPT\Bumper\BumperTest.obj";
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.obj";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.obj";
+		public const string Ramp = @"..\..\VPT\Ramp\RampTest.obj";
 		public const string Rubber = @"..\..\VPT\Rubber\RubberTest.obj";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.obj";
 		public const string Table = @"..\..\VPT\Table\TableTest.obj";

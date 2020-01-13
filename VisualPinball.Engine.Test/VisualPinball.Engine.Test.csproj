@@ -177,6 +177,8 @@
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveMeshTests.cs" />
+    <Compile Include="VPT\Ramp\RampDataTests.cs" />
+    <Compile Include="VPT\Ramp\RampMeshTests.cs" />
     <Compile Include="VPT\Rubber\RubberDataTest.cs" />
     <Compile Include="VPT\Rubber\RubberMeshTest.cs" />
     <Compile Include="VPT\Surface\SurfaceDataTests.cs" />
