@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using VisualPinball.Engine.Test.Test;
+using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Primitive
 {
@@ -7,7 +8,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\PrimitiveData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
 			var data = table.Primitives["Cube"].Data;
 
 			Assert.Equal(false, data.BackfacesEnabled);

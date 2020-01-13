@@ -12,8 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 
 		public SurfaceMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\SurfaceData.vpx");
-			_obj = LoadObjFixture(@"..\..\Fixtures\SurfaceData.obj");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
+			_obj = LoadObjFixture(ObjPath.Surface);
 		}
 
 		[Fact]

@@ -1,4 +1,5 @@
 ﻿using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\BumperData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			var data = table.Bumpers["Bumper1"].Data;
 
 			Assert.Equal("Material2", data.BaseMaterial);

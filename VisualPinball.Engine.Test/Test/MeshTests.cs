@@ -11,7 +11,6 @@ using Xunit;
 namespace VisualPinball.Engine.Test.Test
 {
 
-
 	public abstract class MeshTests
 	{
 		protected ObjFile LoadObjFixture(string filePath)

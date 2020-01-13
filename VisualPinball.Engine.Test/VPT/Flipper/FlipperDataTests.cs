@@ -1,14 +1,15 @@
-﻿using VisualPinball.Engine.VPT;
+﻿using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
-	public class FlipperDataTest
+	public class FlipperDataTests
 	{
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\FlipperData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
 			var data = table.Flippers["FatFlipper"].Data;
 
 			Assert.Equal(30.0303f, data.BaseRadius);

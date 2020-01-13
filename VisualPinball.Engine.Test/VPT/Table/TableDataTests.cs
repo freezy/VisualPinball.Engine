@@ -1,5 +1,6 @@
 ﻿using System;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\TableData.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
 			var data = table.Data;
 
 			Assert.Equal(0.60606f, data.AngleTiltMax);

@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
@@ -14,8 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 
 		public BumperMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\BumperData.vpx");
-			_obj = LoadObjFixture(@"..\..\Fixtures\BumperData.obj");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			_obj = LoadObjFixture(ObjPath.Bumper);
 		}
 
 		[Fact]

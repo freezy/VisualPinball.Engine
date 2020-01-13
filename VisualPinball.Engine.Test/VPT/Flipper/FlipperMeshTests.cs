@@ -12,8 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 
 		public FlipperMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(@"..\..\Fixtures\FlipperData.vpx");
-			_obj = LoadObjFixture(@"..\..\Fixtures\FlipperData.obj");
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			_obj = LoadObjFixture(ObjPath.Flipper);
 		}
 
 		[Fact]

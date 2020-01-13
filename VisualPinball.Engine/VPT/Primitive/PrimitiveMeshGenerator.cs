@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Math;
+﻿using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -11,16 +12,200 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public Mesh GetMesh(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table)
 		{
-			if (!_data.Mesh.IsSet) {
-				return null;
-			}
-			var mesh = _data.Mesh.Clone();
 			var matrix = GetMatrix(table);
-			return mesh.Transform(matrix);
+			return new[] {
+				new RenderObject(
+					mesh: GetMesh(table).Transform(matrix).Transform(Matrix3D.RightHanded),
+					map: table.GetTexture(_data.Image),
+					normalMap: table.GetTexture(_data.NormalMap),
+					material: table.GetMaterial(_data.Material)
+				)
+			};
 		}
 
+		private Mesh GetMesh(Table.Table table)
+		{
+			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
+		}
+
+		private Mesh CalculateBuiltinOriginal()
+		{
+			var mesh = new Mesh(_data.Name);
+
+			// this recalculates the Original Vertices -> should be only called, when sides are altered.
+			var outerRadius = -0.5f / MathF.Cos(MathF.PI / _data.Sides);
+			var addAngle = 2.0f * MathF.PI / _data.Sides;
+			var offsAngle = MathF.PI / _data.Sides;
+			var minX = Constants.FloatMax;
+			var minY = Constants.FloatMax;
+			var maxX = -Constants.FloatMax;
+			var maxY = -Constants.FloatMax;
+
+			mesh.Vertices = new Vertex3DNoTex2[4 * _data.Sides + 2];
+
+			// middle point top
+			mesh.Vertices[0] = new Vertex3DNoTex2 {X = 0.0f, Y = 0.0f, Z = 0.5f};
+			// middle point bottom
+			mesh.Vertices[_data.Sides + 1] = new Vertex3DNoTex2 {X = 0.0f, Y = 0.0f, Z = -0.5f};
+
+			for (var i = 0; i < _data.Sides; ++i) {
+				var currentAngle = addAngle * i + offsAngle;
+
+				// calculate Top
+				var topVert = new Vertex3DNoTex2 { // top point at side
+					X = MathF.Sin(currentAngle) * outerRadius,
+					Y = MathF.Cos(currentAngle) * outerRadius,
+					Z = 0.5f
+				};
+				mesh.Vertices[i + 1] = topVert;
+
+				// calculate bottom
+				var bottomVert = new Vertex3DNoTex2 { // bottom point at side
+					X = topVert.X,
+					Y = topVert.Y,
+					Z = -0.5f
+				};
+				mesh.Vertices[i + 1 + _data.Sides + 1] = bottomVert;
+
+				// calculate sides
+				mesh.Vertices[_data.Sides * 2 + 2 + i] = topVert.Clone(); // sideTopVert
+				mesh.Vertices[_data.Sides * 3 + 2 + i] = bottomVert.Clone(); // sideBottomVert
+
+				// calculate bounds for X and Y
+				if (topVert.X < minX) {
+					minX = topVert.X;
+				}
+
+				if (topVert.X > maxX) {
+					maxX = topVert.X;
+				}
+
+				if (topVert.Y < minY) {
+					minY = topVert.Y;
+				}
+
+				if (topVert.Y > maxY) {
+					maxY = topVert.Y;
+				}
+			}
+
+			// these have to be replaced for image mapping
+			var middle = mesh.Vertices[0]; // middle point top
+			middle.Tu = 0.25f; // /4
+			middle.Tv = 0.25f; // /4
+			middle = mesh.Vertices[_data.Sides + 1]; // middle point bottom
+			middle.Tu = 0.25f * 3.0f; // /4*3
+			middle.Tv = 0.25f; // /4
+			var invX = 0.5f / (maxX - minX);
+			var invY = 0.5f / (maxY - minY);
+			var invS = 1.0f / _data.Sides;
+
+			for (var i = 0; i < _data.Sides; i++) {
+				var topVert = mesh.Vertices[i + 1]; // top point at side
+				topVert.Tu = (topVert.X - minX) * invX;
+				topVert.Tv = (topVert.Y - minY) * invY;
+
+				var bottomVert = mesh.Vertices[i + 1 + _data.Sides + 1]; // bottom point at side
+				bottomVert.Tu = topVert.Tu + 0.5f;
+				bottomVert.Tv = topVert.Tv;
+
+				var sideTopVert = mesh.Vertices[_data.Sides * 2 + 2 + i];
+				var sideBottomVert = mesh.Vertices[_data.Sides * 3 + 2 + i];
+
+				sideTopVert.Tu = i * invS;
+				sideTopVert.Tv = 0.5f;
+				sideBottomVert.Tu = sideTopVert.Tu;
+				sideBottomVert.Tv = 1.0f;
+			}
+
+			// So how many indices are needed?
+			// 3 per Triangle top - we have m_sides triangles -> 0, 1, 2, 0, 2, 3, 0, 3, 4, ...
+			// 3 per Triangle bottom - we have m_sides triangles
+			// 6 per Side at the side (two triangles form a rectangle) - we have m_sides sides
+			// == 12 * m_sides
+			// * 2 for both cullings (m_DrawTexturesInside == true)
+			// == 24 * m_sides
+			// this will also be the initial sorting, when depths, Vertices and Indices are recreated, because calculateRealTimeOriginal is called.
+
+			// 2 restore indices
+			//   check if anti culling is enabled:
+			if (_data.DrawTexturesInside) {
+				mesh.Indices = new int[_data.Sides * 24];
+				// draw yes everything twice
+				// restore indices
+				for (var i = 0; i < _data.Sides; i++) {
+					var tmp = i == _data.Sides - 1 ? 1 : i + 2; // wrapping around
+					// top
+					mesh.Indices[i * 6] = 0;
+					mesh.Indices[i * 6 + 1] = i + 1;
+					mesh.Indices[i * 6 + 2] = tmp;
+					mesh.Indices[i * 6 + 3] = 0;
+					mesh.Indices[i * 6 + 4] = tmp;
+					mesh.Indices[i * 6 + 5] = i + 1;
+
+					var tmp2 = tmp + 1;
+
+					// bottom
+					mesh.Indices[6 * (i + _data.Sides)] = _data.Sides + 1;
+					mesh.Indices[6 * (i + _data.Sides) + 1] = _data.Sides + tmp2;
+					mesh.Indices[6 * (i + _data.Sides) + 2] = _data.Sides + 2 + i;
+					mesh.Indices[6 * (i + _data.Sides) + 3] = _data.Sides + 1;
+					mesh.Indices[6 * (i + _data.Sides) + 4] = _data.Sides + 2 + i;
+					mesh.Indices[6 * (i + _data.Sides) + 5] = _data.Sides + tmp2;
+
+					// sides
+					mesh.Indices[12 * (i + _data.Sides)] = _data.Sides * 2 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 1] = _data.Sides * 2 + 2 + i;
+					mesh.Indices[12 * (i + _data.Sides) + 2] = _data.Sides * 3 + 2 + i;
+					mesh.Indices[12 * (i + _data.Sides) + 3] = _data.Sides * 2 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 4] = _data.Sides * 3 + 2 + i;
+					mesh.Indices[12 * (i + _data.Sides) + 5] = _data.Sides * 3 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 6] = _data.Sides * 2 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 7] = _data.Sides * 3 + 2 + i;
+					mesh.Indices[12 * (i + _data.Sides) + 8] = _data.Sides * 2 + 2 + i;
+					mesh.Indices[12 * (i + _data.Sides) + 9] = _data.Sides * 2 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 10] = _data.Sides * 3 + tmp2;
+					mesh.Indices[12 * (i + _data.Sides) + 11] = _data.Sides * 3 + 2 + i;
+				}
+
+			} else {
+				// only no out-facing polygons
+				// restore indices
+				mesh.Indices = new int[_data.Sides * 12];
+				for (var i = 0; i < _data.Sides; i++) {
+					var tmp = i == _data.Sides - 1 ? 1 : i + 2; // wrapping around
+					// top
+					mesh.Indices[i * 3] = 0;
+					mesh.Indices[i * 3 + 2] = i + 1;
+					mesh.Indices[i * 3 + 1] = tmp;
+
+					//SetNormal(mesh.Vertices[0], &mesh.Indices[i+3], 3); // see below
+
+					var tmp2 = tmp + 1;
+					// bottom
+					mesh.Indices[3 * (i + _data.Sides)] = _data.Sides + 1;
+					mesh.Indices[3 * (i + _data.Sides) + 1] = _data.Sides + 2 + i;
+					mesh.Indices[3 * (i + _data.Sides) + 2] = _data.Sides + tmp2;
+
+					//SetNormal(mesh.Vertices[0], &mesh.Indices[3*(i+_data.Sides)], 3); // see below
+
+					// sides
+					mesh.Indices[6 * (i + _data.Sides)] = _data.Sides * 2 + tmp2;
+					mesh.Indices[6 * (i + _data.Sides) + 1] = _data.Sides * 3 + 2 + i;
+					mesh.Indices[6 * (i + _data.Sides) + 2] = _data.Sides * 2 + 2 + i;
+					mesh.Indices[6 * (i + _data.Sides) + 3] = _data.Sides * 2 + tmp2;
+					mesh.Indices[6 * (i + _data.Sides) + 4] = _data.Sides * 3 + tmp2;
+					mesh.Indices[6 * (i + _data.Sides) + 5] = _data.Sides * 3 + 2 + i;
+				}
+			}
+
+			//SetNormal(mesh.Vertices[0], &mesh.Indices[0], m_mesh.NumIndices()); // SetNormal only works for plane polygons
+			Mesh.ComputeNormals(mesh.Vertices, mesh.Vertices.Length, mesh.Indices, mesh.Indices.Length);
+
+			return mesh;
+		}
 
 		private Matrix3D GetMatrix(Table.Table table) {
 
