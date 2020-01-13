@@ -73,6 +73,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Primitives[item.Name] = item;
 						break;
 					}
+					case ItemType.Ramp: {
+						Logger.Info("Loading ramp {itemName}", itemName);
+						var item = new Ramp.Ramp(reader, itemName);
+						table.Ramps[item.Name] = item;
+						break;
+					}
 					case ItemType.Rubber: {
 						Logger.Info("Loading rubber {itemName}", itemName);
 						var item = new Rubber.Rubber(reader, itemName);
