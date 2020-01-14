@@ -24,6 +24,7 @@ namespace VisualPinball.Engine.VPT.Surface
 					mesh: meshes["Side"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.SideMaterial),
 					map: table.GetTexture(_data.SideImage),
+					matrix: Matrix3D.Identity,
 					isVisible: _data.IsSideVisible));
 			}
 
@@ -33,6 +34,7 @@ namespace VisualPinball.Engine.VPT.Surface
 					mesh: meshes["Top"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.TopMaterial),
 					map: table.GetTexture(_data.Image),
+					matrix: Matrix3D.Identity,
 					isVisible: _data.IsTopBottomVisible));
 			}
 

@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_meshGenerator = new RubberMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global)
 		{
 			return _meshGenerator.GetRenderObjects(table);
 		}

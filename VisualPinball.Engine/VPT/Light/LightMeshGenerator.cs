@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Resources.Meshes;
@@ -17,24 +18,45 @@ namespace VisualPinball.Engine.VPT.Light
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
 		{
 			if (!RenderBulb()) {
 				return new RenderObject[0];
 			}
-			var meshes = GetMeshes(table);
+			var meshes = GetMeshes(table, origin);
+			var translationMatrix = GetPostMatrix(table, origin);
 			return new[] {
 				new RenderObject(
 					name: "Bulb",
 					mesh: meshes["Bulb"].Transform(Matrix3D.RightHanded),
+					matrix: translationMatrix,
 					material: GetBulbMaterial()
 				),
 				new RenderObject(
 					name: "Socket",
 					mesh: meshes["Socket"].Transform(Matrix3D.RightHanded),
+					matrix: translationMatrix,
 					material: GetSocketMaterial()
 				),
 			};
+		}
+
+		private Matrix3D GetPostMatrix(Table.Table table, Origin origin)
+		{
+			switch (origin) {
+				case Origin.Original:
+					return new Matrix3D().SetTranslation(
+						_data.Center.X,
+						_data.Center.Y,
+						table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ()
+					);
+
+				case Origin.Global:
+					return Matrix3D.Identity;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
+			}
 		}
 
 		private static Material GetBulbMaterial()
@@ -73,21 +95,24 @@ namespace VisualPinball.Engine.VPT.Light
 			};
 		}
 
-		private Dictionary<string, Mesh> GetMeshes(Table.Table table)
+		private Dictionary<string, Mesh> GetMeshes(Table.Table table, Origin origin)
 		{
 			var lightMesh = Bulb.Clone();
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+			var transX = origin == Origin.Global ? _data.Center.X : 0f;
+			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
+			var transZ = origin == Origin.Global ? height : 0f;
 			foreach (var vertex in lightMesh.Vertices) {
-				vertex.X = vertex.X * _data.MeshRadius + _data.Center.X;
-				vertex.Y = vertex.Y * _data.MeshRadius + _data.Center.Y;
-				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + height;
+				vertex.X = vertex.X * _data.MeshRadius + transX;
+				vertex.Y = vertex.Y * _data.MeshRadius + transY;
+				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
 
 			var socketMesh = Socket.Clone();
 			foreach (var vertex in socketMesh.Vertices) {
-				vertex.X = vertex.X * _data.MeshRadius + _data.Center.X;
-				vertex.Y = vertex.Y * _data.MeshRadius + _data.Center.Y;
-				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + height;
+				vertex.X = vertex.X * _data.MeshRadius + transX;
+				vertex.Y = vertex.Y * _data.MeshRadius + transY;
+				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
 
 			return new Dictionary<string, Mesh> {

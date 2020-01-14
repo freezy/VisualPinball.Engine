@@ -15,9 +15,9 @@ namespace VisualPinball.Engine.VPT.Light
 			_meshGenerator = new LightMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
 		{
-			return _meshGenerator.GetRenderObjects(table);
+			return _meshGenerator.GetRenderObjects(table, origin);
 		}
 	}
 }

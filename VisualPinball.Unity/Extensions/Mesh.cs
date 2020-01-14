@@ -16,7 +16,6 @@ namespace VisualPinball.Unity.Extensions
 		{
 			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
 
-
 			// vertices
 			var vertices = new Vector3[vpMesh.Vertices.Length];
 			var normals = new Vector3[vpMesh.Vertices.Length];

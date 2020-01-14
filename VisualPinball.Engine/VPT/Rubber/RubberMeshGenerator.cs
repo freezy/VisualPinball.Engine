@@ -22,10 +22,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var (vertexMatrix, normalMatrix) = GetMatrices(table);
 			return new[] {
 				new RenderObject(
-					name: "Base",
 					mesh: mesh.Transform(vertexMatrix, normalMatrix).Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.Material),
 					map: table.GetTexture(_data.Image),
+					matrix: Matrix3D.Identity,
 					isVisible: _data.IsVisible
 				)
 			};
