@@ -35,6 +35,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Surfaces.Values)
 			//.Concat(Lights.Values)
 			.Concat(Primitives.Values)
+			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
 			.ToArray();
 
