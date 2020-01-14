@@ -126,10 +126,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var invTableWidth = 1.0f / dim.Width;
 			var invTableHeight = 1.0f / dim.Height;
 			var numVertices = rv.pcvertex * 2;
+			var numIndices = (rampVertex - 1) * 6;
 
 			var mesh = new Mesh("Floor") {
 				Vertices = new Vertex3DNoTex2[numVertices],
-				Indices = new int[numVertices * 6]
+				Indices = new int[numIndices]
 			};
 			for (var i = 0; i < rampVertex; i++) {
 				var rgv3d1 = new Vertex3DNoTex2();
@@ -192,10 +193,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var invTableWidth = 1.0f / dim.Width;
 			var invTableHeight = 1.0f / dim.Height;
 			var numVertices = rampVertex * 2;
+			var numIndices = (rampVertex - 1) * 6;
 
 			var mesh = new Mesh("LeftWall") {
 				Vertices = new Vertex3DNoTex2[numVertices],
-				Indices = new int[numVertices * 6]
+				Indices = new int[numIndices]
 			};
 			for (var i = 0; i < rampVertex; i++) {
 				var rgv3d1 = new Vertex3DNoTex2();
@@ -256,10 +258,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var invTableWidth = 1.0f / dim.Width;
 			var invTableHeight = 1.0f / dim.Height;
 			var numVertices = rampVertex * 2;
+			var numIndices = (rampVertex - 1) * 6;
 
 			var mesh = new Mesh("RightWall") {
 				Vertices = new Vertex3DNoTex2[numVertices],
-				Indices = new int[numVertices * 6]
+				Indices = new int[numIndices]
 			};
 			for (var i = 0; i < rampVertex; i++) {
 				var rgv3d1 = new Vertex3DNoTex2();
@@ -328,7 +331,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var mat = table.GetMaterial(_data.Material);
 			if (mat == null || !mat.IsOpacityActive)
 			{
-				accuracy = (int) (10.0f * 1.3f); // see above
+				accuracy = 12; // see above
 			}
 
 			var rv = GetRampVertex(table, -1, false);
@@ -415,15 +418,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var rgvbuf = new Vertex3DNoTex2[numRings * numSegments];
 			var prevB = new Vertex3D();
 			var index = 0;
-			for (var i = 0; i < numRings; i++)
-			{
+			for (var i = 0; i < numRings; i++) {
 				var i2 = i == numRings - 1 ? i : i + 1;
 				var height = rgheightInit[i];
 
 				var tangent = new Vertex3D(midPoints[i2].X - midPoints[i].X, midPoints[i2].Y - midPoints[i].Y,
 					rgheightInit[i2] - rgheightInit[i]);
-				if (i == numRings - 1)
-				{
+				if (i == numRings - 1) {
 					// for the last spline point use the previous tangent again, otherwise we won"t see the complete wire (it stops one control point too early)
 					tangent.X = midPoints[i].X - midPoints[i - 1].X;
 					tangent.Y = midPoints[i].Y - midPoints[i - 1].Y;
@@ -431,15 +432,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				Vertex3D binorm;
 				Vertex3D normal;
-				if (i == 0)
-				{
+				if (i == 0) {
 					var up = new Vertex3D(midPoints[i2].X + midPoints[i].X, midPoints[i2].Y + midPoints[i].Y,
 						rgheightInit[i2] - height);
 					normal = tangent.Clone().Cross(up); //normal
 					binorm = tangent.Clone().Cross(normal);
-				}
-				else
-				{
+
+				} else {
 					normal = prevB.Clone().Cross(tangent);
 					binorm = tangent.Clone().Cross(normal);
 				}
@@ -451,10 +450,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 				var invNumRings = 1.0f / numRings;
 				var invNumSegments = 1.0f / numSegments;
 				var u = i * invNumRings;
-				for (var j = 0; j < numSegments; j++, index++)
-				{
+				for (var j = 0; j < numSegments; j++, index++) {
 					var v = (j + u) * invNumSegments;
-					Vertex3D tmp = Vertex3D.GetRotatedAxis(j * (360.0f * invNumSegments), tangent, normal)
+					Vertex3D tmp = Vertex3D
+						.GetRotatedAxis(j * (360.0f * invNumSegments), tangent, normal)
 						.MultiplyScalar(_data.WireDiameter * 0.5f);
 					rgvbuf[index] = new Vertex3DNoTex2();
 					rgvbuf[index].X = midPoints[i].X + tmp.X;
@@ -587,24 +586,19 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				// only change the width if we want to create vertices for rendering or for the editor
 				// the collision engine uses flat type ramps
-				if (IsHabitrail() && _data.RampType != RampType.RampType1Wire)
-				{
+				if (IsHabitrail() && _data.RampType != RampType.RampType1Wire) {
 					currentWidth = _data.WireDistanceX;
-					if (incWidth)
-					{
-						currentWidth = currentWidth + 20.0f;
+					if (incWidth) {
+						currentWidth += 20.0f;
 					}
-				}
-				else if (_data.RampType == RampType.RampType1Wire)
-				{
+
+				} else if (_data.RampType == RampType.RampType1Wire) {
 					currentWidth = _data.WireDiameter;
 				}
 
 				result.pMiddlePoints[i] = new Vertex2D(vmiddle.X, vmiddle.Y).Add(vnormal);
-				result.rgvLocal[i] =
-					new Vertex2D(vmiddle.X, vmiddle.Y).Add(vnormal.Clone().MultiplyScalar(currentWidth * 0.5f));
-				result.rgvLocal[cvertex * 2 - i - 1] =
-					new Vertex2D(vmiddle.X, vmiddle.Y).Sub(vnormal.Clone().MultiplyScalar(currentWidth * 0.5f));
+				result.rgvLocal[i] = new Vertex2D(vmiddle.X, vmiddle.Y).Add(vnormal.Clone().MultiplyScalar(currentWidth * 0.5f));
+				result.rgvLocal[cvertex * 2 - i - 1] = new Vertex2D(vmiddle.X, vmiddle.Y).Sub(vnormal.Clone().MultiplyScalar(currentWidth * 0.5f));
 			}
 
 			return result;

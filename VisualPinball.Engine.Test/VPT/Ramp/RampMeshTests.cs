@@ -28,6 +28,31 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			ShouldGenerate("Flat");
 		}
 
+		[Fact]
+		public void ShouldGenerate1WireRamp()
+		{
+			ShouldGenerate("Wire1");
+		}
+
+		[Fact]
+		public void ShouldGenerate2WireRamp()
+		{
+			ShouldGenerate("Wire2");
+		}
+
+		[Fact]
+		public void ShouldGenerate3WireRamp()
+		{
+			ShouldGenerate("Wire3L");
+			ShouldGenerate("Wire3R");
+		}
+
+		[Fact]
+		public void ShouldGenerate4WireRamp()
+		{
+			ShouldGenerate("Wire4");
+		}
+
 		private void ShouldGenerate(string name)
 		{
 			var ramp = _table.Ramps[name];
