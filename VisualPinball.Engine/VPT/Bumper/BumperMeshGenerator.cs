@@ -28,15 +28,17 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global)
 		{
-			var meshes = GetMeshes(table);
+			var meshes = GetMeshes(table, origin);
+			var translationMatrix = GetPostMatrix(origin);
 			return new[] {
 				new RenderObject(
 					name: "Base",
 					mesh: meshes["Base"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.BaseMaterial),
 					map: Texture.BumperBase,
+					matrix: translationMatrix,
 					isVisible: _data.IsBaseVisible
 				),
 				new RenderObject(
@@ -44,6 +46,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: meshes["Ring"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.RingMaterial),
 					map: Texture.BumperRing,
+					matrix: translationMatrix,
 					isVisible: _data.IsRingVisible
 				),
 				new RenderObject(
@@ -51,6 +54,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: meshes["Skirt"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.SocketMaterial),
 					map: Texture.BumperSocket,
+					matrix: translationMatrix,
 					isVisible: _data.IsSocketVisible
 				),
 				new RenderObject(
@@ -58,31 +62,48 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: meshes["Cap"].Transform(Matrix3D.RightHanded),
 					material: table.GetMaterial(_data.CapMaterial),
 					map: Texture.BumperCap,
+					matrix: translationMatrix,
 					isVisible: _data.IsCapVisible
 				)
 			};
 		}
 
-		private Dictionary<string, Mesh> GetMeshes(Table.Table table) {
+		private Matrix3D GetPostMatrix(Origin origin)
+		{
+			switch (origin) {
+				case Origin.Original:
+					return new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
+
+				case Origin.Global:
+					return Matrix3D.Identity;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
+			}
+		}
+
+		private Dictionary<string, Mesh> GetMeshes(Table.Table table, Origin origin) {
 			if (_data.Center == null) {
 				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
 			}
 			var matrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
 			return new Dictionary<string, Mesh> {
-				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height) },
-				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height) },
-				{ "Skirt", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f)) },
-				{ "Cap", GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height ) }
+				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height, origin) },
+				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height, origin) },
+				{ "Skirt", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f), origin) },
+				{ "Cap", GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height, origin) }
 			};
 		}
 
-		private Mesh GenerateMesh(Mesh mesh, Matrix3D matrix, Func<float, float> zPos) {
+		private Mesh GenerateMesh(Mesh mesh, Matrix3D matrix, Func<float, float> zPos, Origin origin) {
 			var generatedMesh = mesh.Clone();
 			foreach (var vertex in generatedMesh.Vertices) {
 				var vert = new Vertex3D(vertex.X, vertex.Y, vertex.Z).MultiplyMatrix(matrix);
-				vertex.X = vert.X + _data.Center.X;
-				vertex.Y = vert.Y + _data.Center.Y;
+				if (origin == Origin.Global) {
+					vertex.X = vert.X + _data.Center.X;
+					vertex.Y = vert.Y + _data.Center.Y;
+				}
 				vertex.Z = zPos(vert.Z);
 
 				var normal = new Vertex3D(vertex.Nx, vertex.Ny, vertex.Nz).MultiplyMatrixNoTranslate(matrix);

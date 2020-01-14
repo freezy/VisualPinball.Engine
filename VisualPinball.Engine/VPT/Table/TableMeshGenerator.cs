@@ -8,20 +8,26 @@ namespace VisualPinball.Engine.VPT.Table
 	public class TableMeshGenerator
 	{
 		private readonly TableData _data;
-
-		public RenderObject Playfield { get; private set; }
+		private Primitive.Primitive _playfield;
 
 		public TableMeshGenerator(TableData data)
 		{
 			_data = data;
 		}
 
-		public void SetFromPrimitive(Table table, Primitive.Primitive primitive)
+		public RenderObject[] GetRenderObjects(Table table, Origin origin)
 		{
-			Playfield = primitive.GetRenderObjects(table)[0];
+			return _playfield != null
+				? _playfield.GetRenderObjects(table, origin)
+				: new[] { GetFromTableDimensions(table) };
 		}
 
-		public void SetFromTableDimensions(Table table)
+		public void SetFromPrimitive(Table table, Primitive.Primitive primitive)
+		{
+			_playfield = primitive;
+		}
+
+		private RenderObject GetFromTableDimensions(Table table)
 		{
 			var rgv = new[] {
 				new Vertex3DNoTex2(_data.Left, _data.Top, _data.TableHeight),
@@ -60,10 +66,11 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 			}
 
-			Playfield = new RenderObject(
+			return new RenderObject(
 				mesh: mesh.Transform(Matrix3D.RightHanded),
 				map: table.GetTexture(_data.Image),
-				material: table.GetMaterial(_data.PlayfieldMaterial)
+				material: table.GetMaterial(_data.PlayfieldMaterial),
+				matrix: Matrix3D.Identity
 			);
 		}
 	}

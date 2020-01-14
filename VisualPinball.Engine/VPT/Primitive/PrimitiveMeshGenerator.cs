@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Game;
+﻿using System;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Primitive
@@ -12,15 +13,17 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
 		{
-			var matrix = GetMatrix(table);
+			var preMatrix = GetPreMatrix(table, origin);
+			var postMatrix = GetPostMatrix(origin);
 			return new[] {
 				new RenderObject(
-					mesh: GetMesh(table).Transform(matrix).Transform(Matrix3D.RightHanded),
+					mesh: GetMesh(table).Transform(preMatrix).Transform(Matrix3D.RightHanded),
 					map: table.GetTexture(_data.Image),
 					normalMap: table.GetTexture(_data.NormalMap),
-					material: table.GetMaterial(_data.Material)
+					material: table.GetMaterial(_data.Material),
+					matrix: postMatrix
 				)
 			};
 		}
@@ -28,6 +31,58 @@ namespace VisualPinball.Engine.VPT.Primitive
 		private Mesh GetMesh(Table.Table table)
 		{
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
+		}
+
+
+		private Matrix3D GetPreMatrix(Table.Table table, Origin origin) {
+
+			// scale matrix
+			var scaleMatrix = new Matrix3D();
+			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
+
+			// translation matrix
+			var transMatrix = new Matrix3D();
+			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z);
+
+			// translation + rotation matrix
+			var rotTransMatrix = new Matrix3D();
+			rotTransMatrix.SetTranslation(_data.RotAndTra[3], _data.RotAndTra[4], _data.RotAndTra[5]);
+
+			var tempMatrix = new Matrix3D();
+			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.RotAndTra[2]));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateYMatrix(MathF.DegToRad(_data.RotAndTra[1]));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateXMatrix(MathF.DegToRad(_data.RotAndTra[0]));
+			rotTransMatrix.Multiply(tempMatrix);
+
+			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.RotAndTra[8]));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateYMatrix(MathF.DegToRad(_data.RotAndTra[7]));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateXMatrix(MathF.DegToRad(_data.RotAndTra[6]));
+			rotTransMatrix.Multiply(tempMatrix);
+
+			var fullMatrix = scaleMatrix.Clone();
+			fullMatrix.Multiply(rotTransMatrix);
+			if (origin == Origin.Global) {
+				fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
+			}
+			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			fullMatrix.Multiply(scaleMatrix);
+
+			return fullMatrix;
+		}
+
+
+		private Matrix3D GetPostMatrix(Origin origin)
+		{
+			switch (origin) {
+				case Origin.Original: return new Matrix3D().SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z);;
+				case Origin.Global: return Matrix3D.Identity;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
+			}
 		}
 
 		private Mesh CalculateBuiltinOriginal()
@@ -205,44 +260,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 			Mesh.ComputeNormals(mesh.Vertices, mesh.Vertices.Length, mesh.Indices, mesh.Indices.Length);
 
 			return mesh;
-		}
-
-		private Matrix3D GetMatrix(Table.Table table) {
-
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
-
-			// translation matrix
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z);
-
-			// translation + rotation matrix
-			var rotTransMatrix = new Matrix3D();
-			rotTransMatrix.SetTranslation(_data.RotAndTra[3], _data.RotAndTra[4], _data.RotAndTra[5]);
-
-			var tempMatrix = new Matrix3D();
-			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.RotAndTra[2]));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(_data.RotAndTra[1]));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(_data.RotAndTra[0]));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.RotAndTra[8]));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(_data.RotAndTra[7]));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(_data.RotAndTra[6]));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotTransMatrix);
-			fullMatrix.Multiply(transMatrix);        // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
-			fullMatrix.Multiply(scaleMatrix);
-
-			return fullMatrix;
 		}
 	}
 }

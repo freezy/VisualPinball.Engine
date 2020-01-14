@@ -51,9 +51,9 @@ namespace VisualPinball.Engine.VPT.Table
 			_meshGenerator = new TableMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table table)
+		public RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global)
 		{
-			return new[] { _meshGenerator.Playfield };
+			return _meshGenerator.GetRenderObjects(table, origin);
 		}
 
 		public Material GetMaterial(string name)
@@ -80,8 +80,6 @@ namespace VisualPinball.Engine.VPT.Table
 			if (Primitives.ContainsKey("playfield_mesh")) {
 				_meshGenerator.SetFromPrimitive(this, Primitives["playfield_mesh"]);
 				Primitives.Remove("playfield_mesh");
-			} else {
-				_meshGenerator.SetFromTableDimensions(this);
 			}
 		}
 

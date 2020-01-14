@@ -12,9 +12,9 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_meshGenerator = new BumperMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global)
 		{
-			return _meshGenerator.GetRenderObjects(table);
+			return _meshGenerator.GetRenderObjects(table, origin);
 		}
 	}
 }
