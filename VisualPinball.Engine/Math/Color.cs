@@ -30,6 +30,11 @@ namespace VisualPinball.Engine.Math
 					break;
 			}
 		}
+
+		public bool IsGray()
+		{
+			return Red == Green && Green == Blue;
+		}
 	}
 
 	public enum ColorFormat

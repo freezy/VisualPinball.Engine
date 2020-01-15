@@ -223,7 +223,7 @@ namespace VisualPinball.Unity.Importer
 		{
 			var material = LoadMaterial(ro);
 			if (material == null) {
-				material = ro.Material?.ToUnityMaterial() ?? new Material(Shader.Find("Standard"));
+				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
 				if (ro.Map != null) {
 					material.SetTexture(MainTex, LoadTexture(ro.Map));
 				}
