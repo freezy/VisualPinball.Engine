@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
@@ -29,26 +29,27 @@ namespace VisualPinball.Engine.VPT.Ramp
 			for (var i = 1; i <= 4; i++) {
 				var name = $"Wire{i}";
 				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, meshes, name));
+					renderObjects.Add(GetRenderObject(table, meshes, name, asRightHanded));
 				}
 			}
 
 			// floor and walls
 			foreach (var name in new[] { "Floor", "RightWall", "LeftWall" }) {
 				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, meshes, name));
+					renderObjects.Add(GetRenderObject(table, meshes, name, asRightHanded));
 				}
 			}
 
 			return renderObjects.ToArray();
 		}
 
-		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name)
+		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
 		{
 			return new RenderObject(
 				name: name,
-				mesh: meshes[name].Transform(Matrix3D.RightHanded),
+				mesh: asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
 				material: table.GetMaterial(_data.Material),
+				matrix: Matrix3D.Identity,
 				isVisible: _data.IsVisible
 			);
 		}
@@ -123,9 +124,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private Mesh GenerateFlatFloorMesh(Table.Table table, RampVertex rv)
 		{
-			var dim = table.GetDimensions();
-			var invTableWidth = 1.0f / dim.Width;
-			var invTableHeight = 1.0f / dim.Height;
+			var invTableWidth = 1.0f / table.Width;
+			var invTableHeight = 1.0f / table.Height;
 			var numVertices = rv.VertexCount * 2;
 			var numIndices = (rv.VertexCount - 1) * 6;
 
@@ -187,9 +187,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private Mesh GenerateFlatLeftWall(Table.Table table, RampVertex rv)
 		{
-			var dim = table.GetDimensions();
-			var invTableWidth = 1.0f / dim.Width;
-			var invTableHeight = 1.0f / dim.Height;
+			var invTableWidth = 1.0f / table.Width;
+			var invTableHeight = 1.0f / table.Height;
 			var numVertices = rv.VertexCount * 2;
 			var numIndices = (rv.VertexCount - 1) * 6;
 
@@ -250,9 +249,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private Mesh GenerateFlatRightWall(Table.Table table, RampVertex rv)
 		{
-			var dim = table.GetDimensions();
-			var invTableWidth = 1.0f / dim.Width;
-			var invTableHeight = 1.0f / dim.Height;
+			var invTableWidth = 1.0f / table.Width;
+			var invTableHeight = 1.0f / table.Height;
 			var numVertices = rv.VertexCount * 2;
 			var numIndices = (rv.VertexCount - 1) * 6;
 
