@@ -23,6 +23,7 @@ namespace VisualPinball.Engine.VPT
 
 		public int Width => Data.Width;
 		public int Height => Data.Width;
+		public bool IsHdr => (Data.Path?.ToLower().EndsWith(".hdr") ?? false) || (Data.Path?.ToLower().EndsWith(".exr") ?? false);
 
 		/// <summary>
 		/// Data as read from the .vpx file. Note that for bitmaps, it doesn't
