@@ -11,9 +11,9 @@ namespace VisualPinball.Engine.VPT.Surface
 			_meshGenerator = new SurfaceMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table);
+			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 	}
 }

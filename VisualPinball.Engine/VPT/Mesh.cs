@@ -36,6 +36,13 @@ namespace VisualPinball.Engine.VPT
 		}
 
 		public Mesh Transform(Matrix3D matrix, Matrix3D normalMatrix = null, Func<float, float> getZ = null) {
+
+			// abort on identity matrices
+			if (matrix.IsIdentity() && (normalMatrix == null || normalMatrix.IsIdentity())) {
+				return this;
+			}
+
+			// transform vertices
 			foreach (var vertex in Vertices) {
 				var vert = new Vertex3D(vertex.X, vertex.Y, vertex.Z).MultiplyMatrix(matrix);
 				vertex.X = vert.X;

@@ -109,6 +109,7 @@
     <Compile Include="VPT\Light\LightMeshGenerator.cs" />
     <Compile Include="VPT\Material.cs" />
     <Compile Include="VPT\Mesh.cs" />
+    <Compile Include="VPT\MeshGenerator.cs" />
     <Compile Include="VPT\Plunger\PlungerData.cs" />
     <Compile Include="VPT\Primitive\Primitive.cs" />
     <Compile Include="VPT\Primitive\PrimitiveData.cs" />

@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			if (meshes.ContainsKey("Side")) {
 				renderObjects.Add(new RenderObject(
 					name: "Side",
-					mesh: meshes["Side"].Transform(Matrix3D.RightHanded),
+					mesh: asRightHanded ? meshes["Side"].Transform(Matrix3D.RightHanded) : meshes["Side"],
 					material: table.GetMaterial(_data.SideMaterial),
 					map: table.GetTexture(_data.SideImage),
 					matrix: Matrix3D.Identity,
@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			if (meshes.ContainsKey("Top")) {
 				renderObjects.Add(new RenderObject(
 					name: "Top",
-					mesh: meshes["Top"].Transform(Matrix3D.RightHanded),
+					mesh: asRightHanded ? meshes["Top"].Transform(Matrix3D.RightHanded) : meshes["Top"],
 					material: table.GetMaterial(_data.TopMaterial),
 					map: table.GetTexture(_data.Image),
 					matrix: Matrix3D.Identity,
@@ -182,9 +182,8 @@ namespace VisualPinball.Engine.VPT.Surface
 			var heightNotDropped = _data.HeightTop * table.GetScaleZ();
 			var heightDropped = _data.HeightBottom * table.GetScaleZ() + 0.1;
 
-			var dim = table.GetDimensions();
-			var invTableWidth = 1.0f / dim.Width;
-			var invTableHeight = 1.0f / dim.Height;
+			var invTableWidth = 1.0f / table.Width;
+			var invTableHeight = 1.0f / table.Height;
 
 			Vertex3DNoTex2[][] vertsTop = { new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices]};
 			for (var i = 0; i < numVertices; i++) {

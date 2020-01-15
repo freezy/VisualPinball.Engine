@@ -19,6 +19,9 @@ namespace VisualPinball.Unity.Importer
 
 	public class VpxImporter : MonoBehaviour
 	{
+		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
+		private const float GlobalScale = 0.01f;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private bool _saveToAssets;
@@ -112,7 +115,13 @@ namespace VisualPinball.Unity.Importer
 			// import table
 			ImportGameItems(table, asset);
 
+			// import lights
 			ImportGiLights(table);
+
+			// set root transformation
+			gameObject.transform.localRotation = GlobalRotation;
+			gameObject.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
+			gameObject.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 		}
 
 		private void ImportTextures(Table table)
@@ -160,7 +169,7 @@ namespace VisualPinball.Unity.Importer
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
 			foreach (var renderable in table.Renderables) {
-				ImportRenderObjects(renderable.GetRenderObjects(table, Origin.Original), renderable.Name, primitivesObj, asset);
+				ImportRenderObjects(renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj, asset);
 			}
 		}
 
@@ -182,12 +191,7 @@ namespace VisualPinball.Unity.Importer
 
 			// apply transformation
 			if (renderObjects.Length > 0) {
-				var trs = renderObjects[0].TransformationMatrix.ToUnityMatrix();
-				/*obj.transform.rotation = Quaternion.LookRotation(
-					trs.GetColumn(2),
-					trs.GetColumn(1)
-				);*/
-				obj.transform.position = trs.GetColumn(3) * 0.01f; // FIXME use the "global transformation we apply to table
+				SetTransform(obj.transform, renderObjects[0].TransformationMatrix.ToUnityMatrix());
 			}
 		}
 
@@ -197,9 +201,8 @@ namespace VisualPinball.Unity.Importer
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
 				return;
 			}
-			var mesh = renderObject.Mesh.ToUnityMesh(renderObject,$"{obj.name}_mesh");
+			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
 			obj.SetActive(renderObject.IsVisible);
-
 
 
 			// apply mesh to game object
@@ -268,6 +271,21 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			return _materials.ContainsKey(ro.MaterialId) ? _materials[ro.MaterialId] : null;
+		}
+
+		private static void SetTransform(Transform tf, Matrix4x4 trs)
+		{
+			tf.localScale = new Vector3(
+				trs.GetColumn(0).magnitude,
+				trs.GetColumn(1).magnitude,
+				trs.GetColumn(2).magnitude
+			);
+			Logger.Info($"Scaling at {trs.GetColumn(0).magnitude}/{trs.GetColumn(1).magnitude}/{trs.GetColumn(2).magnitude}");
+			tf.localPosition = trs.GetColumn(3);
+			tf.localRotation = Quaternion.LookRotation(
+				trs.GetColumn(2),
+				trs.GetColumn(1)
+			);
 		}
 	}
 

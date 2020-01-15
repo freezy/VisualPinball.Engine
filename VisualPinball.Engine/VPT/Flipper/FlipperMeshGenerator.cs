@@ -8,7 +8,7 @@ using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
-	public class FlipperMeshGenerator
+	public class FlipperMeshGenerator : MeshGenerator
 	{
 		private static readonly Mesh FlipperBaseMesh = new Mesh("Base", FlipperBase.Vertices, FlipperBase.Indices);
 
@@ -19,15 +19,15 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
-			var preMatrix = GetPreMatrix(origin);
-			var postMatrix = GetPostMatrix(origin);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
 					name: "Base",
-					mesh: meshes["Base"].Transform(preMatrix).Transform(Matrix3D.RightHanded),
+					mesh: meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
 					material: table.GetMaterial(_data.Material),
 					map: table.GetTexture(_data.Image),
 					matrix: postMatrix,
@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			if (meshes.ContainsKey("Rubber")) {
 				renderObjects.Add(new RenderObject(
 					name: "Rubber",
-					mesh: meshes["Rubber"].Transform(preMatrix).Transform(Matrix3D.RightHanded),
+					mesh: meshes["Rubber"].Transform(preVertexMatrix, preNormalsMatrix),
 					material: table.GetMaterial(_data.RubberMaterial),
 					matrix: postMatrix,
 					isVisible: _data.IsVisible));
@@ -46,34 +46,14 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return renderObjects.ToArray();
 		}
 
-		private Matrix3D GetPreMatrix(Origin origin)
-		{
-			switch (origin) {
-				case Origin.Original: return Matrix3D.Identity;
-				case Origin.Global: return GetTransformationMatrix();
-				default:
-					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
-			}
-		}
-
-		private Matrix3D GetPostMatrix(Origin origin)
-		{
-			switch (origin) {
-				case Origin.Original: return GetTransformationMatrix();
-				case Origin.Global: return Matrix3D.Identity;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
-			}
-		}
-
-		private Matrix3D GetTransformationMatrix()
+		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
 		{
 			var matrix = new Matrix3D();
 			var tempMatrix = new Matrix3D();
 			matrix.SetTranslation(_data.Center.X, _data.Center.Y, 0);
 			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.StartAngle));
 			matrix.PreMultiply(tempMatrix);
-			return matrix;
+			return new Tuple<Matrix3D, Matrix3D>(matrix, null);
 		}
 
 		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table)

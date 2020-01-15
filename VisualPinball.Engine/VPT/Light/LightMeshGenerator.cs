@@ -18,23 +18,23 @@ namespace VisualPinball.Engine.VPT.Light
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			if (!RenderBulb()) {
 				return new RenderObject[0];
 			}
-			var meshes = GetMeshes(table, origin);
+			var meshes= GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(table, origin);
 			return new[] {
 				new RenderObject(
 					name: "Bulb",
-					mesh: meshes["Bulb"].Transform(Matrix3D.RightHanded),
+					mesh: asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],
 					matrix: translationMatrix,
 					material: GetBulbMaterial()
 				),
 				new RenderObject(
 					name: "Socket",
-					mesh: meshes["Socket"].Transform(Matrix3D.RightHanded),
+					mesh: asRightHanded ? meshes["Socket"].Transform(Matrix3D.RightHanded) : meshes["Socket"],
 					matrix: translationMatrix,
 					material: GetSocketMaterial()
 				),
