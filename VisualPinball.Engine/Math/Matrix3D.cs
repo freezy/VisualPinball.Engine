@@ -1,3 +1,5 @@
+using System;
+
 namespace VisualPinball.Engine.Math
 {
 	public class Matrix3D
@@ -11,6 +13,11 @@ namespace VisualPinball.Engine.Math
 			new [] { 0f, 0f, 1f, 0f },
 			new [] { 0f, 0f, 0f, 1f },
 		};
+
+		public Tuple<float, float, float, float> Column1 => new Tuple<float, float, float, float>(_11, _12, _13, _14);
+		public Tuple<float, float, float, float> Column2 => new Tuple<float, float, float, float>(_21, _22, _23, _24);
+		public Tuple<float, float, float, float> Column3 => new Tuple<float, float, float, float>(_31, _32, _33, _34);
+		public Tuple<float, float, float, float> Column4 => new Tuple<float, float, float, float>(_41, _42, _43, _44);
 
 		public Matrix3D Set(float[][] matrix) {
 			for (var i = 0; i < 4; i++) {
