@@ -12,9 +12,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_meshGenerator = new RampMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table);
+			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 	}
 }
