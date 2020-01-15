@@ -1,38 +1,127 @@
-﻿using UnityEngine;
+﻿// ReSharper disable StringLiteralTypo
+
+using System;
+using UnityEngine;
 using VisualPinball.Unity.Importer;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity.Extensions
 {
 	public static class Material
 	{
-
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial)
-		{
-			// Logger.Info("material " + vpxMaterial.Name);
-			// Logger.Info("BaseColor " + vpxMaterial.BaseColor);
-			// Logger.Info("Roughness " + vpxMaterial.Roughness);
-			// Logger.Info("Glossiness " + vpxMaterial.Glossiness);
-			// Logger.Info("GlossyImageLerp " + vpxMaterial.GlossyImageLerp);
-			// Logger.Info("Thickness " + vpxMaterial.Thickness);
-			// Logger.Info("ClearCoat " + vpxMaterial.ClearCoat);
-			// Logger.Info("Opacity " + vpxMaterial.Opacity);
-			// Logger.Info("IsOpacityActive " + vpxMaterial.IsOpacityActive);
-			// Logger.Info("IsMetal " + vpxMaterial.IsMetal);
-			// Logger.Info("Edge " + vpxMaterial.Edge);
-			// Logger.Info("EdgeAlpha " + vpxMaterial.EdgeAlpha);
-			// Logger.Info("------------------------------------");
+		private static readonly int Color = Shader.PropertyToID("_Color");
+		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
+		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
+		private static readonly int Mode = Shader.PropertyToID("_Mode");
+		private static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
+		private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
+		private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
 
-			UnityEngine.Material generatedUnityMaterial = new UnityEngine.Material(Shader.Find("Standard"));
-			generatedUnityMaterial.name = vpxMaterial.Name;
-			generatedUnityMaterial.SetColor("_Color", vpxMaterial.BaseColor.ToUnityColor());
-			if (vpxMaterial.IsMetal)
-			{
-				generatedUnityMaterial.SetFloat("_Metallic", 1f);
+		private enum BlendMode
+		{
+			Opaque,
+			Cutout,
+			Fade,
+			Transparent
+		}
+
+		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro) {
+
+			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
+				name = vpxMaterial.Name
+			};
+
+			// color
+			var col = vpxMaterial.BaseColor.ToUnityColor();
+			if (vpxMaterial.BaseColor.IsGray() && col.grayscale > 0.8) {
+				// we dont want bright or solid white colors, never good for CG
+				col.r = col.g = col.b = 0.8f;
 			}
-			//generatedUnityMaterial.SetFloat("_Glossiness", vpxMaterial.Glossiness);
-			return generatedUnityMaterial;
+			unityMaterial.SetColor(Color, col);
+
+			// metal and glossiness
+			if (vpxMaterial.IsMetal) {
+				unityMaterial.SetFloat(Metallic, 1f);
+			}
+			unityMaterial.SetFloat(Glossiness, vpxMaterial.Roughness);
+
+			// blend modes
+			var blendMode = BlendMode.Opaque;
+			if (!vpxMaterial.IsOpacityActive) {
+				if (vpxMaterial.Edge < 1) {
+					blendMode = BlendMode.Cutout;
+				}
+			} else if (vpxMaterial.IsOpacityActive) {
+				var isCutout = false;
+				if (vpxMaterial.Edge < 1) {
+					blendMode = BlendMode.Cutout;
+					isCutout = true;
+				}
+				if (vpxMaterial.Opacity < 0.9 && !isCutout) {
+					blendMode = BlendMode.Transparent;
+					col.a = vpxMaterial.Opacity;
+					unityMaterial.SetColor(Color, col);
+				}
+			}
+
+			// normal map
+			if (ro.NormalMap != null) {
+				unityMaterial.EnableKeyword("_NORMALMAP");
+			}
+
+			// blend mode
+			switch (blendMode) {
+				case BlendMode.Opaque:
+					unityMaterial.SetFloat(Mode, 0);
+					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
+					unityMaterial.SetInt(ZWrite, 1);
+					unityMaterial.DisableKeyword("_ALPHATEST_ON");
+					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
+					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+					unityMaterial.renderQueue = -1;
+					break;
+
+				case BlendMode.Cutout:
+					unityMaterial.SetFloat(Mode, 1);
+					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
+					unityMaterial.SetInt(ZWrite, 1);
+					unityMaterial.EnableKeyword("_ALPHATEST_ON");
+					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
+					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+					unityMaterial.renderQueue = 2450;
+					break;
+
+				case BlendMode.Fade:
+					unityMaterial.SetFloat(Mode, 2);
+					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+					unityMaterial.SetInt(ZWrite, 0);
+					unityMaterial.DisableKeyword("_ALPHATEST_ON");
+					unityMaterial.EnableKeyword("_ALPHABLEND_ON");
+					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+					unityMaterial.renderQueue = 3000;
+					break;
+
+				case BlendMode.Transparent:
+					unityMaterial.SetFloat(Mode, 3);
+					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+					unityMaterial.SetInt(ZWrite, 0);
+					unityMaterial.DisableKeyword("_ALPHATEST_ON");
+					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
+					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+					unityMaterial.renderQueue = 3000;
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+			return unityMaterial;
 		}
 
 		public static string GetUnityFilename(this VisualPinball.Engine.VPT.Material vpxMaterial, string folderName, string objectName)
