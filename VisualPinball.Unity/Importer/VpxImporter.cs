@@ -25,6 +25,7 @@ namespace VisualPinball.Unity.Importer
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		private VpxAsset _asset;
 		private bool _saveToAssets;
 		private string _tableFolder;
 		private string _materialFolder;
@@ -112,13 +113,14 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			// create asset object
-			var asset = ScriptableObject.CreateInstance<VpxAsset>();
+			_asset = ScriptableObject.CreateInstance<VpxAsset>();
+			AssetDatabase.SaveAssets();
 
 			// import textures
 			ImportTextures(table);
 
 			// import table
-			ImportGameItems(table, asset);
+			ImportGameItems(table);
 
 			// import lights
 			ImportGiLights(table);
@@ -142,16 +144,16 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportGameItems(Table table, VpxAsset asset)
+		private void ImportGameItems(Table table)
 		{
 			// save game objects to asset folder
 			if (_saveToAssets) {
-				AssetDatabase.CreateAsset(asset, _tableDataPath);
+				AssetDatabase.CreateAsset(_asset, _tableDataPath);
 				AssetDatabase.SaveAssets();
 			}
 
 			// import game objects
-			ImportRenderables(table, asset);
+			ImportRenderables(table);
 
 			if (_saveToAssets) {
 				PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
@@ -170,28 +172,28 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportRenderables(Table table, VpxAsset asset)
+		private void ImportRenderables(Table table)
 		{
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
 			foreach (var renderable in table.Renderables) {
-				ImportRenderObjects(renderable, renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj, asset);
+				ImportRenderObjects(renderable, renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj);
 			}
 		}
 
-		private void ImportRenderObjects(IRenderable item, IReadOnlyList<RenderObject> renderObjects, string objectName, GameObject parent, VpxAsset asset)
+		private void ImportRenderObjects(IRenderable item, IReadOnlyList<RenderObject> renderObjects, string objectName, GameObject parent)
 		{
 			var obj = new GameObject(objectName);
 			obj.transform.parent = parent.transform;
 
 			if (renderObjects.Count == 1) {
-				ImportRenderObject(item, renderObjects[0], obj, asset);
+				ImportRenderObject(item, renderObjects[0], obj);
 
 			} else if (renderObjects.Count > 1) {
 				foreach (var ro in renderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.parent = obj.transform;
-					ImportRenderObject(item, ro, subObj, asset);
+					ImportRenderObject(item, ro, subObj);
 				}
 			}
 
@@ -201,7 +203,7 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportRenderObject(IRenderable item, RenderObject renderObject, GameObject obj, VpxAsset asset)
+		private void ImportRenderObject(IRenderable item, RenderObject renderObject, GameObject obj)
 		{
 			if (renderObject.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
@@ -218,6 +220,9 @@ namespace VisualPinball.Unity.Importer
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
 			mr.sharedMaterial = GetMaterial(renderObject, obj.name);
+			if (mr.sharedMaterial.name == RenderObject.MaterialNameNoMaterial) {
+				mr.enabled = false;
+			}
 
 			// patch
 			_patcher.ApplyPatches(item, renderObject, obj);
@@ -248,7 +253,7 @@ namespace VisualPinball.Unity.Importer
 		private void SaveTexture(Texture texture)
 		{
 			if (_saveToAssets) {
-				AssetDatabase.CreateAsset(texture.ToUnityTexture(), texture.GetUnityFilename(_textureFolder));
+				AssetUtility.CreateTexture(texture, _textureFolder);
 			} else {
 				_textures[texture.Name] = texture.ToUnityTexture();
 			}

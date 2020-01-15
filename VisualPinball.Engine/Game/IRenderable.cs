@@ -48,17 +48,19 @@ namespace VisualPinball.Engine.Game
 		public readonly bool IsVisible;
 		public readonly bool IsTransparent;
 
+		public const string MaterialNameNoMaterial = "__no_material";
+
 		/// <summary>
 		/// A unique ID based on the material and its maps.
 		/// </summary>
 		public string MaterialId => string.Join("-", new[] {
-				Material?.Name ?? "__no_material",
+				Material?.Name ?? MaterialNameNoMaterial,
 				Map?.Name ?? "__no_map",
 				NormalMap?.Name ?? "__no_normal_map",
 				EnvMap?.Name ?? "__no_env_map"
 			}
 			.Reverse()
-			.SkipWhile(s => s.StartsWith("__no_") && s != "__no_material")
+			.SkipWhile(s => s.StartsWith("__no_") && s != MaterialNameNoMaterial)
 			.Reverse()
 		);
 
