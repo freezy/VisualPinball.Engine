@@ -1,4 +1,5 @@
 ﻿using JeremyAnsel.Media.WavefrontObj;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Test.Test;
 using Xunit;
 
@@ -34,6 +35,19 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		{
 			var triangleMesh = _table.Primitives["Triangle"].GetRenderObjects(_table)[0].Mesh;
 			AssertObjMesh(_obj, triangleMesh);
+		}
+
+		[Fact]
+		public void ShouldProvideCorrectTransformationMatrices()
+		{
+			var ro = _table.Primitives["Primitive1"].GetRenderObjects(_table, Origin.Original, false)[0];
+			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().X);
+			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().Y);
+			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().Z);
+
+			Assert.Equal(505f, ro.TransformationMatrix.GetTranslation().X);
+			Assert.Equal(1305f, ro.TransformationMatrix.GetTranslation().Y);
+			Assert.Equal(0f, ro.TransformationMatrix.GetTranslation().Z);
 		}
 	}
 }

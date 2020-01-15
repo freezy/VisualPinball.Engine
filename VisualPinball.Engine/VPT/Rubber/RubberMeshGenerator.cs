@@ -6,7 +6,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Rubber
 {
-	public class RubberMeshGenerator
+	public class RubberMeshGenerator : MeshGenerator
 	{
 		public readonly Vertex3D MiddlePoint = new Vertex3D();
 		private readonly RubberData _data;
@@ -16,19 +16,48 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var mesh = GetMesh(table);
-			var (vertexMatrix, normalMatrix) = GetMatrices(table);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var postMatrix = GetPostMatrix(table, origin);
 			return new[] {
 				new RenderObject(
-					mesh: mesh.Transform(vertexMatrix, normalMatrix).Transform(Matrix3D.RightHanded),
+					mesh: mesh.Transform(preVertexMatrix, preNormalsMatrix),
 					material: table.GetMaterial(_data.Material),
 					map: table.GetTexture(_data.Image),
-					matrix: Matrix3D.Identity,
+					matrix: postMatrix,
 					isVisible: _data.IsVisible
 				)
 			};
+		}
+
+		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		{
+			var fullMatrix = new Matrix3D();
+			var tempMat = new Matrix3D();
+			fullMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
+			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
+			fullMatrix.Multiply(tempMat);
+			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
+			fullMatrix.Multiply(tempMat);
+
+			var vertMatrix = new Matrix3D();
+			tempMat.SetTranslation(-MiddlePoint.X, -MiddlePoint.Y, -MiddlePoint.Z);
+			vertMatrix.Multiply(tempMat, fullMatrix);
+			tempMat.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			vertMatrix.Multiply(tempMat);
+			if (_data.Height == _data.HitHeight) {
+				// do not z-scale the hit mesh
+				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.GetTableHeight());
+
+			} else {
+				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height * table.GetScaleZ() + table.GetTableHeight());
+			}
+
+			vertMatrix.Multiply(tempMat);
+
+			return new Tuple<Matrix3D, Matrix3D>(vertMatrix, fullMatrix);
 		}
 
 		private Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
@@ -197,35 +226,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 			MiddlePoint.Z = (maxZ + minZ) * 0.5f;
 
 			return mesh;
-		}
-
-		private Tuple<Matrix3D, Matrix3D> GetMatrices(Table.Table table)
-		{
-			var fullMatrix = new Matrix3D();
-			var tempMat = new Matrix3D();
-			fullMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
-			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
-			fullMatrix.Multiply(tempMat);
-			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
-			fullMatrix.Multiply(tempMat);
-
-			var vertMatrix = new Matrix3D();
-			tempMat.SetTranslation(-MiddlePoint.X, -MiddlePoint.Y, -MiddlePoint.Z);
-			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetScaling(1.0f, 1.0f, table.GetScaleZ());
-			vertMatrix.Multiply(tempMat);
-			if (_data.Height == _data.HitHeight) {
-				// do not z-scale the hit mesh
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.GetTableHeight());
-
-			} else {
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y,
-					_data.Height * table.GetScaleZ() + table.GetTableHeight());
-			}
-
-			vertMatrix.Multiply(tempMat);
-
-			return new Tuple<Matrix3D, Matrix3D>(vertMatrix, fullMatrix);
 		}
 	}
 }

@@ -25,6 +25,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		public float Width => Data.Right - Data.Left;
+		public float Height => Data.Bottom - Data.Top;
+
 		public IRenderable[] Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
@@ -51,9 +54,9 @@ namespace VisualPinball.Engine.VPT.Table
 			_meshGenerator = new TableMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global)
+		public RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin);
+			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
 		public Material GetMaterial(string name)
@@ -101,11 +104,6 @@ namespace VisualPinball.Engine.VPT.Table
 			return Data.TableHeight;
 		}
 
-		public Dimensions GetDimensions()
-		{
-			return new Dimensions(Data.Right - Data.Left, Data.Bottom - Data.Top);
-		}
-
 		public float GetTableHeight()
 		{
 			return Data.TableHeight;
@@ -114,18 +112,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public int GetDetailLevel()
 		{
 			return 10; // TODO
-		}
-	}
-
-	public class Dimensions
-	{
-		public float Width;
-		public float Height;
-
-		public Dimensions(float width, float height)
-		{
-			Width = width;
-			Height = height;
 		}
 	}
 }

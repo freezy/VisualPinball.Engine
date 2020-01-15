@@ -1,3 +1,5 @@
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using System;
 
 namespace VisualPinball.Engine.Math
@@ -28,6 +30,14 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
+		public bool IsIdentity()
+		{
+			return _11 == 1f && _22 == 1f && _33 == 1f &&_44 == 1f
+				&& _12 == 0f && _13 == 0f && _14 == 0f && _41 == 0f
+				&& _21 == 0f && _23 == 0f && _24 == 0f && _42 == 0f
+				&& _31 == 0f && _32 == 0f && _34 == 0f && _43 == 0f;
+		}
+
 		public Matrix3D SetEach(params float[] m) {
 			for (var i = 0; i < 4; i++) {
 				for (var j = 0; j < 4; j++) {
@@ -53,12 +63,22 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
+		public Vertex3D GetTranslation()
+		{
+			return new Vertex3D(_41, _42, _43);
+		}
+
 		public Matrix3D SetScaling(float sx, float sy, float sz) {
 			SetIdentity();
 			this._11 = sx;
 			this._22 = sy;
 			this._33 = sz;
 			return this;
+		}
+
+		public Vertex3D GetScaling()
+		{
+			return new Vertex3D(_11, _22, _33);
 		}
 
 		public Matrix3D RotateXMatrix(float x) {

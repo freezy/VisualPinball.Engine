@@ -4,7 +4,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
-	public class PrimitiveMeshGenerator
+	public class PrimitiveMeshGenerator : MeshGenerator
 	{
 		private readonly PrimitiveData _data;
 
@@ -13,13 +13,13 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
-			var preMatrix = GetPreMatrix(table, origin);
-			var postMatrix = GetPostMatrix(origin);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var postMatrix = GetPostMatrix(table, origin);
 			return new[] {
 				new RenderObject(
-					mesh: GetMesh(table).Transform(preMatrix).Transform(Matrix3D.RightHanded),
+					mesh: GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
 					map: table.GetTexture(_data.Image),
 					normalMap: table.GetTexture(_data.NormalMap),
 					material: table.GetMaterial(_data.Material),
@@ -33,9 +33,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
 		}
 
-
-		private Matrix3D GetPreMatrix(Table.Table table, Origin origin) {
-
+		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		{
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
 			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
@@ -65,25 +64,13 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			var fullMatrix = scaleMatrix.Clone();
 			fullMatrix.Multiply(rotTransMatrix);
-			if (origin == Origin.Global) {
-				fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			}
+			fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
 			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
 			fullMatrix.Multiply(scaleMatrix);
 
-			return fullMatrix;
+			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
 		}
 
-
-		private Matrix3D GetPostMatrix(Origin origin)
-		{
-			switch (origin) {
-				case Origin.Original: return new Matrix3D().SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z);;
-				case Origin.Global: return Matrix3D.Identity;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
-			}
-		}
 
 		private Mesh CalculateBuiltinOriginal()
 		{

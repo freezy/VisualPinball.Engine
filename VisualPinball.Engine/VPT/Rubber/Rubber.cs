@@ -12,9 +12,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_meshGenerator = new RubberMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global)
+		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table);
+			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 	}
 }

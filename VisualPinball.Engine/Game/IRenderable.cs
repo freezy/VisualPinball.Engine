@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.Game
 	{
 		string Name { get; }
 
-		RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global);
+		RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
 	}
 
 	public enum Origin
