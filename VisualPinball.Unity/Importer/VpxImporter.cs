@@ -183,10 +183,10 @@ namespace VisualPinball.Unity.Importer
 			// apply transformation
 			if (renderObjects.Length > 0) {
 				var trs = renderObjects[0].TransformationMatrix.ToUnityMatrix();
-				obj.transform.rotation = Quaternion.LookRotation(
+				/*obj.transform.rotation = Quaternion.LookRotation(
 					trs.GetColumn(2),
 					trs.GetColumn(1)
-				);
+				);*/
 				obj.transform.position = trs.GetColumn(3) * 0.01f; // FIXME use the "global transformation we apply to table
 			}
 		}
@@ -197,7 +197,7 @@ namespace VisualPinball.Unity.Importer
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
 				return;
 			}
-			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
+			var mesh = renderObject.Mesh.ToUnityMesh(renderObject,$"{obj.name}_mesh");
 			obj.SetActive(renderObject.IsVisible);
 
 
