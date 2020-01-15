@@ -11,6 +11,7 @@ using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.IO;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
+using Mesh = VisualPinball.Unity.Extensions.Mesh;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
@@ -159,7 +160,7 @@ namespace VisualPinball.Unity.Importer
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
 			foreach (var renderable in table.Renderables) {
-				ImportRenderObjects(renderable.GetRenderObjects(table), renderable.Name, primitivesObj, asset);
+				ImportRenderObjects(renderable.GetRenderObjects(table, Origin.Original), renderable.Name, primitivesObj, asset);
 			}
 		}
 
@@ -178,6 +179,16 @@ namespace VisualPinball.Unity.Importer
 					ImportRenderObject(ro, subObj, asset);
 				}
 			}
+
+			// apply transformation
+			if (renderObjects.Length > 0) {
+				var trs = renderObjects[0].TransformationMatrix.ToUnityMatrix();
+				obj.transform.rotation = Quaternion.LookRotation(
+					trs.GetColumn(2),
+					trs.GetColumn(1)
+				);
+				obj.transform.position = trs.GetColumn(3) * 0.01f; // FIXME use the "global transformation we apply to table
+			}
 		}
 
 		private void ImportRenderObject(RenderObject renderObject, GameObject obj, VpxAsset asset)
@@ -188,6 +199,8 @@ namespace VisualPinball.Unity.Importer
 			}
 			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
 			obj.SetActive(renderObject.IsVisible);
+
+
 
 			// apply mesh to game object
 			var mf = obj.AddComponent<MeshFilter>();

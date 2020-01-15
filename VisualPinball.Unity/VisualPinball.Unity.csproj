@@ -59,6 +59,7 @@
     <Compile Include="Extensions\Light.cs" />
     <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />
+    <Compile Include="Extensions\Matrix3D.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
