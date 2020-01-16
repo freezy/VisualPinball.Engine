@@ -127,16 +127,22 @@ namespace VisualPinball.Unity.Importer
 		}
 
 		private void PostScaleFix() {
-
-			MeshFilter[] mfs = FindObjectsOfType<MeshFilter>();
-			for (int i = 0; i < mfs.Length; i++) {
-				Matrix4x4 trs = new Matrix4x4();
-				Vector3 scaleCurrent = mfs[i].gameObject.transform.localScale* (GlobalScale);
-				//use the root scale to adjust the per item scale as well
-
-				Vector3 positionFix = mfs[i].gameObject.transform.localPosition;
+			List<Transform> transforms = AssetUtility.FindObjectsOfTypeAll<Transform>();
+			for (int i = 0; i < transforms.Count; i++) {
+				Vector3 positionFix = transforms[i].localPosition;
 				positionFix *= GlobalScale;
-				mfs[i].gameObject.transform.localPosition = positionFix;
+				transforms[i].localPosition = positionFix;
+			}
+
+
+
+			List<MeshFilter> mfs = AssetUtility.FindObjectsOfTypeAll<MeshFilter>();
+			for (int i = 0; i < mfs.Count; i++) {
+				Matrix4x4 trs = new Matrix4x4();
+				//use the root scale to adjust the per item scale as well
+				Vector3 scaleCurrent = mfs[i].gameObject.transform.localScale* (GlobalScale);
+				
+				
 				trs.SetTRS(Vector3.zero, Quaternion.identity, scaleCurrent);
 				UnityEngine.Mesh m = mfs[i].sharedMesh;
 				Vector3[] vertices = m.vertices;
@@ -151,12 +157,7 @@ namespace VisualPinball.Unity.Importer
 			}
 			gameObject.transform.localScale = Vector3.one;
 
-			Light[] lights = FindObjectsOfType<Light>();
-			for (int i = 0; i < lights.Length; i++) {
-				Vector3 positionFix = lights[i].gameObject.transform.localPosition;
-				positionFix *= GlobalScale;
-				lights[i].gameObject.transform.localPosition = positionFix;
-			}
+			
 
 		}
 
