@@ -32,6 +32,8 @@ namespace VisualPinball.Unity.Importer
 		private string _tableDataPath;
 		private string _tablePrefabPath;
 
+		private Patcher.Patcher.Patcher _patcher;
+
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
@@ -96,6 +98,7 @@ namespace VisualPinball.Unity.Importer
 			var table = Table.Load(path);
 			var go = gameObject;
 			go.name = table.Name;
+			_patcher = new Patcher.Patcher.Patcher(table, Path.GetFileName(path));
 
 			// set paths
 			_saveToAssets = saveToAssets;
@@ -172,33 +175,33 @@ namespace VisualPinball.Unity.Importer
 			var primitivesObj = new GameObject("Primitives");
 			primitivesObj.transform.parent = gameObject.transform;
 			foreach (var renderable in table.Renderables) {
-				ImportRenderObjects(renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj, asset);
+				ImportRenderObjects(renderable, renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj, asset);
 			}
 		}
 
-		private void ImportRenderObjects(RenderObject[] renderObjects, string objectName, GameObject parent, VpxAsset asset)
+		private void ImportRenderObjects(IRenderable item, IReadOnlyList<RenderObject> renderObjects, string objectName, GameObject parent, VpxAsset asset)
 		{
 			var obj = new GameObject(objectName);
 			obj.transform.parent = parent.transform;
 
-			if (renderObjects.Length == 1) {
-				ImportRenderObject(renderObjects[0], obj, asset);
+			if (renderObjects.Count == 1) {
+				ImportRenderObject(item, renderObjects[0], obj, asset);
 
-			} else if (renderObjects.Length > 1) {
+			} else if (renderObjects.Count > 1) {
 				foreach (var ro in renderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.parent = obj.transform;
-					ImportRenderObject(ro, subObj, asset);
+					ImportRenderObject(item, ro, subObj, asset);
 				}
 			}
 
 			// apply transformation
-			if (renderObjects.Length > 0) {
+			if (renderObjects.Count > 0) {
 				SetTransform(obj.transform, renderObjects[0].TransformationMatrix.ToUnityMatrix());
 			}
 		}
 
-		private void ImportRenderObject(RenderObject renderObject, GameObject obj, VpxAsset asset)
+		private void ImportRenderObject(IRenderable item, RenderObject renderObject, GameObject obj, VpxAsset asset)
 		{
 			if (renderObject.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
@@ -215,6 +218,9 @@ namespace VisualPinball.Unity.Importer
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
 			mr.sharedMaterial = GetMaterial(renderObject, obj.name);
+
+			// patch
+			_patcher.ApplyPatches(item, renderObject, obj);
 
 			// add mesh to asset
 			if (_saveToAssets) {
@@ -283,7 +289,7 @@ namespace VisualPinball.Unity.Importer
 				trs.GetColumn(1).magnitude,
 				trs.GetColumn(2).magnitude
 			);
-			Logger.Info($"Scaling at {trs.GetColumn(0).magnitude}/{trs.GetColumn(1).magnitude}/{trs.GetColumn(2).magnitude}");
+			//Logger.Info($"Scaling at {trs.GetColumn(0).magnitude}/{trs.GetColumn(1).magnitude}/{trs.GetColumn(2).magnitude}");
 			tf.localPosition = trs.GetColumn(3);
 			tf.localRotation = Quaternion.LookRotation(
 				trs.GetColumn(2),

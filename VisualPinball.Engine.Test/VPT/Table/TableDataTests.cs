@@ -139,5 +139,22 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			Assert.Equal(556f, data.Offset[0]);
 			Assert.Equal(1112f, data.Offset[1]);
 		}
+
+		[Fact]
+		public void ShouldLoadCorrectTableInfo()
+		{
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+
+			Assert.Equal("test@vpdb.io", table.InfoAuthorEmail);
+			Assert.Equal("Table Author", table.InfoAuthorName);
+			Assert.Equal("https://vpdb.io", table.InfoAuthorWebsite);
+			Assert.Equal("2019-04-14", table.InfoReleaseDate);
+			Assert.Equal("Short Blurb", table.InfoBlurb);
+			Assert.Equal("Description", table.InfoDescription);
+			Assert.Equal("Table Name", table.InfoName);
+			Assert.Equal("Rules", table.InfoRules);
+			Assert.Equal("Version", table.InfoVersion);
+			Assert.Equal("customvalue1", table.TableInfo["customdata1"]);
+		}
 	}
 }

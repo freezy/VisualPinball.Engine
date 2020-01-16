@@ -1,6 +1,7 @@
 using System.IO;
 using NLog;
 using OpenMcdf;
+using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -23,6 +24,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var reader = new BinaryReader(stream)) {
 					var table = new Table(reader);
 
+					LoadTableInfo(table, cf.RootStorage);
 					LoadGameItems(table, gameStorage);
 					LoadTextures(table, gameStorage);
 
@@ -111,6 +113,20 @@ namespace VisualPinball.Engine.VPT.Table
 				var texture = new Texture(reader, textureName);
 				table.Textures[texture.Name.ToLower()] = texture;
 			}
+		}
+
+		private static void LoadTableInfo(Table table, CFStorage storage)
+		{
+			var tableInfoStorage = storage.GetStorage("TableInfo");
+			tableInfoStorage.VisitEntries(item => {
+				if (item.IsStream) {
+					var itemStream = item as CFStream;
+					if (itemStream != null) {
+						table.TableInfo[item.Name] = BiffUtil.ParseWideString(itemStream.GetData());
+					}
+				}
+			}, false);
+
 		}
 	}
 }

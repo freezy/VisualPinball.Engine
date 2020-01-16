@@ -74,6 +74,10 @@
       <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
       <Name>VisualPinball.Engine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj">
+      <Project>{040d1234-942b-47fe-9a55-841e25a6305d}</Project>
+      <Name>VisualPinball.Unity.Patcher</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
