@@ -93,7 +93,8 @@ namespace VisualPinball.Unity.Importer
 		{
 			// parse table
 			var table = Table.Load(path);
-			gameObject.name = table.Name;
+			var go = gameObject;
+			go.name = table.Name;
 
 			// set paths
 			_saveToAssets = saveToAssets;
@@ -119,46 +120,10 @@ namespace VisualPinball.Unity.Importer
 			ImportGiLights(table);
 
 			// set root transformation
-			gameObject.transform.localRotation = GlobalRotation;
-			gameObject.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
-			gameObject.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
-			PostScaleFix();
-
-		}
-
-		private void PostScaleFix() {
-			List<Transform> transforms = AssetUtility.FindObjectsOfTypeAll<Transform>();
-			for (int i = 0; i < transforms.Count; i++) {
-				Vector3 positionFix = transforms[i].localPosition;
-				positionFix *= GlobalScale;
-				transforms[i].localPosition = positionFix;
-			}
-
-
-
-			List<MeshFilter> mfs = AssetUtility.FindObjectsOfTypeAll<MeshFilter>();
-			for (int i = 0; i < mfs.Count; i++) {
-				Matrix4x4 trs = new Matrix4x4();
-				//use the root scale to adjust the per item scale as well
-				Vector3 scaleCurrent = mfs[i].gameObject.transform.localScale* (GlobalScale);
-				
-				
-				trs.SetTRS(Vector3.zero, Quaternion.identity, scaleCurrent);
-				UnityEngine.Mesh m = mfs[i].sharedMesh;
-				Vector3[] vertices = m.vertices;
-				for (int j = 0; j < vertices.Length; j++) {
-					vertices[j] = trs.MultiplyPoint(vertices[j]);
-				}
-				m.vertices = vertices;
-				mfs[i].gameObject.transform.localScale = Vector3.one;
-				
-				
-				m.RecalculateBounds();
-			}
-			gameObject.transform.localScale = Vector3.one;
-
-			
-
+			go.transform.localRotation = GlobalRotation;
+			go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
+			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
+			ScaleNormalizer.Normalize(go, GlobalScale);
 		}
 
 		private void ImportTextures(Table table)

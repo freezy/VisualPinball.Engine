@@ -63,6 +63,7 @@
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
+    <Compile Include="Importer\ScaleNormalizer.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
     <Compile Include="IO\Logging.cs" />
     <Compile Include="IO\UnityTarget.cs" />
