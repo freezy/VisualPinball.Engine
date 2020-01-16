@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable
 	{
+		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper> Bumpers = new Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper> Flippers = new Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper>();
@@ -23,6 +24,18 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp> Ramps = new Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
+
+		#region Table Info
+		public string InfoAuthorEmail => TableInfo["AuthorEmail"];
+		public string InfoAuthorName => TableInfo["AuthorName"];
+		public string InfoAuthorWebsite => TableInfo["AuthorWebSite"];
+		public string InfoReleaseDate => TableInfo["ReleaseDate"];
+		public string InfoBlurb => TableInfo["TableBlurb"];
+		public string InfoDescription => TableInfo["TableDescription"];
+		public string InfoName => TableInfo["TableName"];
+		public string InfoRules => TableInfo["TableRules"];
+		public string InfoVersion => TableInfo["TableVersion"];
+		#endregion
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
