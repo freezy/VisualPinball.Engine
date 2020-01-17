@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Extensions
 			// 	// we dont want bright or solid white colors, never good for CG
 			// 	col.r = col.g = col.b = 0.8f;
 			// }
-			// unityMaterial.SetColor(Color, col);
+			unityMaterial.SetColor(Color, col);
 
 			// metal and glossiness
 			if (vpxMaterial.IsMetal) {
