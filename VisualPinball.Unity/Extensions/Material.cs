@@ -66,6 +66,17 @@ namespace VisualPinball.Unity.Extensions
 				}
 			}
 
+			// if we cannot determine transparency or cutout through material
+			// props, look at the texture.
+			if (blendMode == BlendMode.Opaque) {
+				var stats = ro.Map?.GetStats(1000);
+				if (stats != null && !stats.IsOpaque) {
+					blendMode = stats.Translucent / stats.Transparent > 0.1
+						? BlendMode.Transparent
+						: BlendMode.Cutout;
+				}
+			}
+
 			// normal map
 			if (ro.NormalMap != null) {
 				unityMaterial.EnableKeyword("_NORMALMAP");
