@@ -1,12 +1,5 @@
-using System;
-using System.IO;
-using System.Net;
-using System.Reflection;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT
 {
