@@ -133,6 +133,11 @@ namespace VisualPinball.Engine.VPT
 	public class TextureStats
 	{
 		/// <summary>
+		/// How many opaque pixels found relative to total number of pixels
+		/// </summary>
+		public float Opaque => (float) _numOpaquePixels / _numTotalPixels;
+
+		/// <summary>
 		/// How many translucent pixels found relative to total number of pixels
 		/// </summary>
 		public float Translucent => (float) _numTranslucentPixels / _numTotalPixels;
