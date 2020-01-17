@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// ReSharper disable ConvertIfStatementToReturnStatement
+
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,7 +13,6 @@ using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.IO;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
-using Mesh = VisualPinball.Unity.Extensions.Mesh;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
