@@ -37,6 +37,7 @@ namespace VisualPinball.Unity.Importer
 
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 
@@ -174,23 +175,27 @@ namespace VisualPinball.Unity.Importer
 
 		private void ImportRenderables(Table table)
 		{
-			var primitivesObj = new GameObject("Primitives");
-			primitivesObj.transform.parent = gameObject.transform;
 			foreach (var renderable in table.Renderables) {
-				ImportRenderObjects(renderable, renderable.GetRenderObjects(table, Origin.Original, false), renderable.Name, primitivesObj);
+				var ro = renderable.GetRenderObjects(table, Origin.Original, false);
+				if (!_parents.ContainsKey(ro.Parent)) {
+					var parent = new GameObject(ro.Parent);
+					parent.transform.parent = gameObject.transform;
+					_parents[ro.Parent] = parent;
+				}
+				ImportRenderObjects(renderable, ro, _parents[ro.Parent]);
 			}
 		}
 
-		private void ImportRenderObjects(IRenderable item, IReadOnlyList<RenderObject> renderObjects, string objectName, GameObject parent)
+		private void ImportRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent)
 		{
-			var obj = new GameObject(objectName);
+			var obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
 
-			if (renderObjects.Count == 1) {
-				ImportRenderObject(item, renderObjects[0], obj);
+			if (rog.HasOnlyChild) {
+				ImportRenderObject(item, rog.RenderObjects[0], obj);
 
-			} else if (renderObjects.Count > 1) {
-				foreach (var ro in renderObjects) {
+			} else if (rog.HasChildren) {
+				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.parent = obj.transform;
 					ImportRenderObject(item, ro, subObj);
@@ -198,8 +203,8 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			// apply transformation
-			if (renderObjects.Count > 0) {
-				SetTransform(obj.transform, renderObjects[0].TransformationMatrix.ToUnityMatrix());
+			if (rog.HasChildren) {
+				SetTransform(obj.transform, rog.TransformationMatrix.ToUnityMatrix());
 			}
 		}
 

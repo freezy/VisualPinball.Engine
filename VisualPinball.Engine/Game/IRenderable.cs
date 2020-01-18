@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.Game
 	{
 		string Name { get; }
 
-		RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
+		RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
 	}
 
 	public enum Origin
@@ -36,11 +36,46 @@ namespace VisualPinball.Engine.Game
 		//Local
 	}
 
+	public class RenderObjectGroup
+	{
+		public readonly string Name;
+		public readonly string Parent;
+		public readonly RenderObject[] RenderObjects;
+		public readonly Matrix3D TransformationMatrix;
+
+		public bool HasOnlyChild => RenderObjects.Length == 1;
+		public bool HasChildren => RenderObjects.Length > 0;
+
+		public RenderObjectGroup(string name, string parent)
+		{
+			Name = name;
+			Parent = parent;
+			RenderObjects = new RenderObject[0];
+			TransformationMatrix = Matrix3D.Identity;
+		}
+
+		public RenderObjectGroup(string name, string parent, RenderObject renderObject, Matrix3D matrix)
+		{
+			Name = name;
+			Parent = parent;
+			RenderObjects = new []{ renderObject };
+			TransformationMatrix = matrix;
+		}
+
+		public RenderObjectGroup(string name, string parent, RenderObject[] renderObjects, Matrix3D matrix)
+		{
+			Name = name;
+			Parent = parent;
+			RenderObjects = renderObjects;
+			TransformationMatrix = matrix;
+		}
+	}
+
 	public class RenderObject
 	{
 		public readonly string Name;
 		public readonly Mesh Mesh;
-		public readonly Matrix3D TransformationMatrix;
+
 		public readonly Texture Map;
 		public readonly Texture NormalMap;
 		public readonly Texture EnvMap;
@@ -64,11 +99,10 @@ namespace VisualPinball.Engine.Game
 			.Reverse()
 		);
 
-		public RenderObject(string name = null, Mesh mesh = null, Matrix3D matrix = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isVisible = true, bool isTransparent = false)
+		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isVisible = true, bool isTransparent = false)
 		{
 			Name = name;
 			Mesh = mesh;
-			TransformationMatrix = matrix;
 			Map = map;
 			NormalMap = normalMap;
 			EnvMap = envMap;

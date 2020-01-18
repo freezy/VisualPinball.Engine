@@ -13,19 +13,16 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true, string parent = null)
 		{
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new[] {
-				new RenderObject(
-					mesh: GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
-					map: table.GetTexture(_data.Image),
-					normalMap: table.GetTexture(_data.NormalMap),
-					material: table.GetMaterial(_data.Material),
-					matrix: postMatrix
-				)
-			};
+			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", new RenderObject(
+				mesh: GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
+				map: table.GetTexture(_data.Image),
+				normalMap: table.GetTexture(_data.NormalMap),
+				material: table.GetMaterial(_data.Material)
+			), postMatrix);
 		}
 
 		private Mesh GetMesh(Table.Table table)

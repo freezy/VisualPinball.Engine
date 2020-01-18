@@ -16,20 +16,17 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var mesh = GetMesh(table);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new[] {
-				new RenderObject(
-					mesh: mesh.Transform(preVertexMatrix, preNormalsMatrix),
-					material: table.GetMaterial(_data.Material),
-					map: table.GetTexture(_data.Image),
-					matrix: postMatrix,
-					isVisible: _data.IsVisible
-				)
-			};
+			return new RenderObjectGroup(_data.Name, "Rubbers", new RenderObject(
+				mesh: mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				material: table.GetMaterial(_data.Material),
+				map: table.GetTexture(_data.Image),
+				isVisible: _data.IsVisible
+			), postMatrix);
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)

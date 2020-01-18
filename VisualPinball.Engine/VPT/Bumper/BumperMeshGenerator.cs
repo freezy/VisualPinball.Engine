@@ -28,17 +28,17 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			var meshes = GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(origin);
-			return new[] {
+
+			return new RenderObjectGroup(_data.Name, "Bumpers", new[] {
 				new RenderObject(
 					name: "Base",
 					mesh: asRightHanded ? meshes["Base"].Transform(Matrix3D.RightHanded) : meshes["Base"],
 					material: table.GetMaterial(_data.BaseMaterial),
 					map: Texture.BumperBase,
-					matrix: translationMatrix,
 					isVisible: _data.IsBaseVisible
 				),
 				new RenderObject(
@@ -46,7 +46,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: asRightHanded ? meshes["Ring"].Transform(Matrix3D.RightHanded) : meshes["Ring"],
 					material: table.GetMaterial(_data.RingMaterial),
 					map: Texture.BumperRing,
-					matrix: translationMatrix,
 					isVisible: _data.IsRingVisible
 				),
 				new RenderObject(
@@ -54,7 +53,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: asRightHanded ? meshes["Skirt"].Transform(Matrix3D.RightHanded) : meshes["Skirt"],
 					material: table.GetMaterial(_data.SocketMaterial),
 					map: Texture.BumperSocket,
-					matrix: translationMatrix,
 					isVisible: _data.IsSocketVisible
 				),
 				new RenderObject(
@@ -62,10 +60,9 @@ namespace VisualPinball.Engine.VPT.Bumper
 					mesh: asRightHanded ? meshes["Cap"].Transform(Matrix3D.RightHanded) : meshes["Cap"],
 					material: table.GetMaterial(_data.CapMaterial),
 					map: Texture.BumperCap,
-					matrix: translationMatrix,
 					isVisible: _data.IsCapVisible
 				)
-			};
+			}, translationMatrix);
 		}
 
 		private Matrix3D GetPostMatrix(Origin origin)

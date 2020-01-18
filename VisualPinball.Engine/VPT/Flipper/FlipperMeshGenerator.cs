@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
@@ -30,7 +30,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 					mesh: meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
 					material: table.GetMaterial(_data.Material),
 					map: table.GetTexture(_data.Image),
-					matrix: postMatrix,
 					isVisible: _data.IsVisible)
 			};
 
@@ -39,11 +38,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 					name: "Rubber",
 					mesh: meshes["Rubber"].Transform(preVertexMatrix, preNormalsMatrix),
 					material: table.GetMaterial(_data.RubberMaterial),
-					matrix: postMatrix,
 					isVisible: _data.IsVisible));
 			}
 
-			return renderObjects.ToArray();
+			return new RenderObjectGroup(_data.Name, "Flippers", renderObjects.ToArray(), postMatrix);
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)

@@ -15,11 +15,11 @@ namespace VisualPinball.Engine.VPT.Table
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
 		{
 			return _playfield != null
-				? _playfield.GetRenderObjects(table, origin, asRightHanded)
-				: new[] { GetFromTableDimensions(table, asRightHanded) };
+				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table")
+				: new RenderObjectGroup(_data.Name, "Table", GetFromTableDimensions(table, asRightHanded), Matrix3D.Identity);
 		}
 
 		public void SetFromPrimitive(Table table, Primitive.Primitive primitive)
@@ -69,8 +69,7 @@ namespace VisualPinball.Engine.VPT.Table
 			return new RenderObject(
 				mesh: asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
 				map: table.GetTexture(_data.Image),
-				material: table.GetMaterial(_data.PlayfieldMaterial),
-				matrix: Matrix3D.Identity
+				material: table.GetMaterial(_data.PlayfieldMaterial)
 			);
 		}
 	}

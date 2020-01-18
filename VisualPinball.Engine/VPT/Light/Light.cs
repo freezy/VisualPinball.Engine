@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.VPT.Light
 			_meshGenerator = new LightMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}

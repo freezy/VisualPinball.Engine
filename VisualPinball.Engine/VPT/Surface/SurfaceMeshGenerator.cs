@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Surface
 					mesh: asRightHanded ? meshes["Side"].Transform(Matrix3D.RightHanded) : meshes["Side"],
 					material: table.GetMaterial(_data.SideMaterial),
 					map: table.GetTexture(_data.SideImage),
-					matrix: Matrix3D.Identity,
 					isVisible: _data.IsSideVisible));
 			}
 
@@ -34,11 +33,10 @@ namespace VisualPinball.Engine.VPT.Surface
 					mesh: asRightHanded ? meshes["Top"].Transform(Matrix3D.RightHanded) : meshes["Top"],
 					material: table.GetMaterial(_data.TopMaterial),
 					map: table.GetTexture(_data.Image),
-					matrix: Matrix3D.Identity,
 					isVisible: _data.IsTopBottomVisible));
 			}
 
-			return renderObjects.ToArray();
+			return new RenderObjectGroup(_data.Name, "Surfaces", renderObjects.ToArray(), Matrix3D.Identity);
 		}
 
 		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table) {

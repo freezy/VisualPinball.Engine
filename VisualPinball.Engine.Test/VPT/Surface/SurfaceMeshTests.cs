@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldGenerateTopAndSides()
 		{
 			var surface = _table.Surfaces["Wall"];
-			var surfaceMeshes = surface.GetRenderObjects(_table).Select(ro => ro.Mesh).ToArray();
+			var surfaceMeshes = surface.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, surface.Name, surfaceMeshes);
 		}
 
@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldGenerateOnlyTop()
 		{
 			var surface = _table.Surfaces["SideInvisible"];
-			var surfaceMeshes = surface.GetRenderObjects(_table)
+			var surfaceMeshes = surface.GetRenderObjects(_table).RenderObjects
 				.Where(ro => ro.IsVisible)
 				.Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, surface.Name, surfaceMeshes, 0.001);
@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldGenerateOnlySide()
 		{
 			var surface = _table.Surfaces["TopInvisible"];
-			var surfaceMeshes = surface.GetRenderObjects(_table)
+			var surfaceMeshes = surface.GetRenderObjects(_table).RenderObjects
 				.Where(ro => ro.IsVisible)
 				.Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, surface.Name, surfaceMeshes);

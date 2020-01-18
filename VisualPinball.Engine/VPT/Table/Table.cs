@@ -69,7 +69,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_meshGenerator = new TableMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}

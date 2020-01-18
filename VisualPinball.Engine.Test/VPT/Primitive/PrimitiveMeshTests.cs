@@ -19,35 +19,35 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Fact]
 		public void ShouldGenerateImportedMesh()
 		{
-			var bookMesh = _table.Primitives["Books"].GetRenderObjects(_table)[0].Mesh;
+			var bookMesh = _table.Primitives["Books"].GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, bookMesh);
 		}
 
 		[Fact]
 		public void ShouldGenerateACube()
 		{
-			var cubeMesh = _table.Primitives["Cube"].GetRenderObjects(_table)[0].Mesh;
+			var cubeMesh = _table.Primitives["Cube"].GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, cubeMesh);
 		}
 
 		[Fact]
 		public void ShouldGenerateATriangle()
 		{
-			var triangleMesh = _table.Primitives["Triangle"].GetRenderObjects(_table)[0].Mesh;
+			var triangleMesh = _table.Primitives["Triangle"].GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, triangleMesh);
 		}
 
 		[Fact]
 		public void ShouldProvideCorrectTransformationMatrices()
 		{
-			var ro = _table.Primitives["Primitive1"].GetRenderObjects(_table, Origin.Original, false)[0];
-			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().X);
-			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().Y);
-			Assert.Equal(100f, ro.TransformationMatrix.GetScaling().Z);
+			var rog = _table.Primitives["Primitive1"].GetRenderObjects(_table, Origin.Original, false);
+			Assert.Equal(100f, rog.TransformationMatrix.GetScaling().X);
+			Assert.Equal(100f, rog.TransformationMatrix.GetScaling().Y);
+			Assert.Equal(100f, rog.TransformationMatrix.GetScaling().Z);
 
-			Assert.Equal(505f, ro.TransformationMatrix.GetTranslation().X);
-			Assert.Equal(1305f, ro.TransformationMatrix.GetTranslation().Y);
-			Assert.Equal(0f, ro.TransformationMatrix.GetTranslation().Z);
+			Assert.Equal(505f, rog.TransformationMatrix.GetTranslation().X);
+			Assert.Equal(1305f, rog.TransformationMatrix.GetTranslation().Y);
+			Assert.Equal(0f, rog.TransformationMatrix.GetTranslation().Z);
 		}
 	}
 }

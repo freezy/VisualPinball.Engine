@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		private void ShouldGenerate(string name)
 		{
 			var ramp = _table.Ramps[name];
-			var rampMeshes = ramp.GetRenderObjects(_table).Select(ro => ro.Mesh).ToArray();
+			var rampMeshes = ramp.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, ramp.Name, rampMeshes);
 		}
 	}

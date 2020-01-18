@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_data = data;
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 			}
 
-			return renderObjects.ToArray();
+			return new RenderObjectGroup(_data.Name, "Ramps", renderObjects.ToArray(), Matrix3D.Identity);
 		}
 
 		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
@@ -49,7 +49,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 				name: name,
 				mesh: asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
 				material: table.GetMaterial(_data.Material),
-				matrix: Matrix3D.Identity,
 				isVisible: _data.IsVisible
 			);
 		}

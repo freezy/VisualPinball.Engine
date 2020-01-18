@@ -21,7 +21,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_meshGenerator = new PrimitiveMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent)
+		{
+			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent);
+		}
+
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}

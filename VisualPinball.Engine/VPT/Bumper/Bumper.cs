@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_meshGenerator = new BumperMeshGenerator(Data);
 		}
 
-		public RenderObject[] GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
