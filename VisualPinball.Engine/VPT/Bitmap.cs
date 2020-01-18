@@ -13,14 +13,13 @@ namespace VisualPinball.Engine.VPT
 	///
 	/// See "BaseTexture" class in VP.
 	/// </summary>
-	public class Bitmap : IBinaryData
+	public class Bitmap : IImageData
 	{
 		public const int RGBA = 0;
 		public const int RGB_FP = 1;
 
 		public byte[] Bytes => _data;
 		public byte[] FileContent => GetHeader().Concat(GetBody()).ToArray();
-
 
 		public readonly int Width;
 		public readonly int Height;
@@ -69,6 +68,10 @@ namespace VisualPinball.Engine.VPT
 			}
 
 			_data = ToggleRgbBgr(_data);
+		}
+
+		public byte[] GetRawData() {
+			return _data;
 		}
 
 		private IEnumerable<byte> GetHeader()

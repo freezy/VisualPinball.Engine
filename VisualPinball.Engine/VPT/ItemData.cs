@@ -16,16 +16,9 @@ namespace VisualPinball.Engine.VPT
 
 		public abstract string Name { get; set; }
 
-		public ItemData(string storageName)
+		protected ItemData(string storageName)
 		{
 			StorageName = storageName;
 		}
-	}
-
-	public interface IBinaryData
-	{
-		byte[] Bytes { get; }
-
-		byte[] FileContent { get; }
 	}
 }

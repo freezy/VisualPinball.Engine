@@ -1,11 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -22,7 +16,7 @@ namespace VisualPinball.Engine.VPT
 		};
 
 		public int Width => Data.Width;
-		public int Height => Data.Width;
+		public int Height => Data.Height;
 		public bool IsHdr => (Data.Path?.ToLower().EndsWith(".hdr") ?? false) || (Data.Path?.ToLower().EndsWith(".exr") ?? false);
 
 		/// <summary>
@@ -30,12 +24,42 @@ namespace VisualPinball.Engine.VPT
 		/// contain the header.
 		/// </summary>
 		/// <see cref="FileContent"/>
-		public byte[] Content => GetBinaryData().Bytes;
+		public byte[] Content => Image.Bytes;
 
 		/// <summary>
 		/// Data as it would written to an image file (incl headers).
 		/// </summary>
-		public byte[] FileContent => GetBinaryData().FileContent;
+		public byte[] FileContent => Image.FileContent;
+
+		private IImageData Image => Data.Binary as IImageData ?? Data.Bitmap;
+
+		/// <summary>
+		/// Returns true if at least one pixel is not opaque. <p/>
+		///
+		/// Loops through the bitmap if necessary, but only the first time.
+		/// </summary>
+		public bool HasTransparentPixels {
+			get {
+				if (!HasTransparentFormat) {
+					return false;
+				}
+
+				if (_lastStats != null) {
+					return !_lastStats.IsOpaque;
+				}
+
+				if (_hasTransparentPixels == null) {
+					_hasTransparentPixels = FindTransparentPixel(Image.GetRawData());
+				}
+
+				return (bool) _hasTransparentPixels;
+			}
+		}
+
+		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
+
+		private TextureStats _lastStats;
+		private bool? _hasTransparentPixels;
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
 
@@ -49,15 +73,12 @@ namespace VisualPinball.Engine.VPT
 		/// <returns>Statistics</returns>
 		public TextureStats GetStats(int threshold)
 		{
-			if (Data.Path == null || !Data.Path.ToLower().EndsWith(".png")) {
+			if (!HasTransparentFormat) {
 				return null;
 			}
-			var img = Decode();
-			if (img == null) {
-				return null;
-			}
-			var data = MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
-			return Analyze(data, img.Width, img.Height, threshold);
+
+			_lastStats = Analyze(Image.GetRawData(), threshold);
+			return _lastStats;
 		}
 
 		/// <summary>
@@ -68,16 +89,16 @@ namespace VisualPinball.Engine.VPT
 		/// through the image, in order to get a good average fast.
 		/// </summary>
 		/// <param name="data">Bitmap data, as RGBA</param>
-		/// <param name="width">Width of the image</param>
-		/// <param name="height">Height of the image</param>
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <param name="numBlocks">In how many blocks the loop is divided</param>
 		/// <returns></returns>
-		private static TextureStats Analyze(IReadOnlyList<byte> data, int width, int height, int threshold, int numBlocks = 10)
+		private TextureStats Analyze(IReadOnlyList<byte> data, int threshold, int numBlocks = 10)
 		{
 			var opaque = 0;
 			var translucent = 0;
 			var transparent = 0;
+			var width = Width;
+			var height = Height;
 			var dx = (int)System.Math.Ceiling((float)width / numBlocks);
 			var dy = (int)System.Math.Ceiling((float)height / numBlocks);
 			for (var yy= 0; yy < dy; yy ++) {
@@ -109,25 +130,59 @@ namespace VisualPinball.Engine.VPT
 			return new TextureStats(opaque, translucent, transparent);
 		}
 
-		private Image<Rgba32> Decode()
+		/// <summary>
+		/// Loops intelligently through all pixels and breaks at the first
+		/// non-opaque pixel.<p/>
+		///
+		/// The loop is brute force to default maximum steps required to check
+		/// every pixel within the loop a second guessing approximation index
+		/// is used. It tries to look ahead in larger steps to find a hit while
+		/// brute force continues if this index becomes greater than the array
+		/// length, the approximationStepDistance is scaled.
+		/// So the guessing starts wildly for a chance of a early out hit , but
+		/// if not successful, it keeps guessing , but refines the distance.
+		/// When the guessing restarts it does not recheck the pixel already
+		/// check via brute force , so it always starts at the
+		/// bruteForceIndex + 2, + 2 and not + 1 is to avoid a overlap on the
+		/// loop after setting approximationIndex;
+		///
+		/// using 254 instead of 255, just to count out miniscule hits or even precision errors
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		private bool FindTransparentPixel(IReadOnlyList<byte> data)
 		{
-			if (Data.Binary == null) {
-				return null;
-			}
+			var width = Width;
+			var height = Height;
+			var numPixels = width * height;
+			var approximationIndex = 0;
+			var approximationStepDistance = (int)((float)numPixels / 10); // this is how many pixels the approximationIndex is incremented by
+			const float approximationStepDistanceScalar = 0.8f;
+			var mustCalculateApproximationIndexStartValue = true;
 
-			using (var stream = new MemoryStream(Data.Binary.Data)) {
-				try {
-					return Image.Load<Rgba32>(stream, new PngDecoder());
+			for (var i = 0; i < numPixels; i++) {
+				if (data[i * 4 + 3] < 254) {
+					return true;
+				}
 
-				} catch (Exception) {
-					return null;
+				// approximation
+				if (mustCalculateApproximationIndexStartValue) {
+					approximationIndex = System.Math.Min(numPixels - 1, i + 2);
+					mustCalculateApproximationIndexStartValue = false;
+				}
+
+				if (data[approximationIndex * 4 + 3] < 254) {
+					return true;
+				}
+				approximationIndex += approximationStepDistance;
+				//need to see if the index of approximation is larger than array
+				//if so then refine the guessing distance and start again at new approximationIndex;
+				if (approximationIndex >= numPixels) {
+					mustCalculateApproximationIndexStartValue = true;
+					approximationStepDistance = (int)(approximationStepDistance * approximationStepDistanceScalar);
 				}
 			}
-		}
-
-		private IBinaryData GetBinaryData()
-		{
-			return Data.Binary as IBinaryData ?? Data.Bitmap;
+			return false;
 		}
 	}
 
@@ -165,5 +220,14 @@ namespace VisualPinball.Engine.VPT
 			_numTransparentPixels = numTransparentPixels;
 			_numTotalPixels = numOpaquePixels + numTranslucentPixels + numTransparentPixels;
 		}
+	}
+
+	public interface IImageData
+	{
+		byte[] Bytes { get; }
+
+		byte[] FileContent { get; }
+
+		byte[] GetRawData();
 	}
 }

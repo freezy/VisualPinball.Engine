@@ -263,21 +263,22 @@ namespace VisualPinball.Unity.Importer
 		{
 			if (_saveToAssets) {
 				var unityTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
-				ImportTextureAs(type, AssetDatabase.GetAssetPath(unityTex));
+				ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
 				return unityTex;
 			}
 			return _textures[texture.Name];
 		}
 
-		private static void ImportTextureAs(TextureImporterType type, string path)
+		private static void ImportTextureAs(Texture map, TextureImporterType type, string path)
 		{
 			var textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
 			if (textureImporter != null) {
 				textureImporter.textureType = type;
+				textureImporter.alphaIsTransparency = map.HasTransparentPixels;
 				textureImporter.isReadable = true;
 				textureImporter.mipmapEnabled = true;
 				textureImporter.filterMode = FilterMode.Bilinear;
-				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), TextureFormat.ARGB32, UnityEditor.TextureCompressionQuality.Best);
+				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), map.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
 				AssetDatabase.ImportAsset(path);
 			}
 		}
