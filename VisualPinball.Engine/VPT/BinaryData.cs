@@ -4,14 +4,20 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
-	public class BinaryData : ItemData, IBinaryData
+	public class BinaryData : ItemData, IImageData
 	{
 		public byte[] Bytes => Data;
 		public byte[] FileContent => Data;
@@ -31,6 +37,30 @@ namespace VisualPinball.Engine.VPT
 		[BiffByte("DATA")]
 		public byte[] Data;
 
+		public BinaryData(Resource res) : base(res.Name)
+		{
+			Data = res.Data;
+		}
+
+		public byte[] GetRawData()
+		{
+			var img = Decode();
+			return img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
+		}
+
+		private Image<Rgba32> Decode()
+		{
+			using (var stream = new MemoryStream(Data)) {
+				try {
+					return Image.Load<Rgba32>(stream, new PngDecoder());
+
+				} catch (Exception) {
+					return null;
+				}
+			}
+		}
+
+		#region BIFF
 		static BinaryData()
 		{
 			Init(typeof(BinaryData), Attributes);
@@ -42,10 +72,6 @@ namespace VisualPinball.Engine.VPT
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
-
-		public BinaryData(Resource res) : base(res.Name)
-		{
-			Data = res.Data;
-		}
+		#endregion
 	}
 }
