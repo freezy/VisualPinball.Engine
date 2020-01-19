@@ -13,8 +13,8 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 
 		public PrimitiveMeshTests(ITestOutputHelper output) : base(output)
 		{
-			// _table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
-			// _obj = LoadObjFixture(ObjPath.Primitive);
+			_table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			_obj = LoadObjFixture(ObjPath.Primitive);
 		}
 
 		[Fact]
@@ -52,10 +52,13 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		}
 
 		[Fact]
-		public void ShouldNotCrash()
+		public void ShouldGenerateACompressedMesh()
 		{
-			Logger.Info("log test");
-			Engine.VPT.Table.Table.Load(@"..\..\VPT\Primitive\PrimitiveLzwError2.vpx");
+			var table = Engine.VPT.Table.Table.Load(VpxPath.PrimitiveCompressed);
+			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
+
+			var compressedMesh = table.Primitives["compressed"].GetRenderObjects(_table).RenderObjects[0].Mesh;
+			AssertObjMesh(obj, compressedMesh);
 		}
 	}
 }

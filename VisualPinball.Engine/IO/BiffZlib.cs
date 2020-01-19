@@ -12,8 +12,7 @@ namespace VisualPinball.Engine.IO
 		{
 			using (var outMemoryStream = new MemoryStream())
 			using (var outZStream = new ZOutputStream(outMemoryStream))
-			using (Stream inMemoryStream = new MemoryStream(bytes))
-			{
+			using (Stream inMemoryStream = new MemoryStream(bytes)) {
 				CopyStream(inMemoryStream, outZStream);
 				outZStream.finish();
 				return outMemoryStream.ToArray();
@@ -22,9 +21,9 @@ namespace VisualPinball.Engine.IO
 
 		private static void CopyStream(Stream input, Stream output)
 		{
-			var buffer = new byte[2000];
+			var buffer = new byte[32768];
 			int len;
-			while ((len = input.Read(buffer, 0, 2000)) > 0) {
+			while ((len = input.Read(buffer, 0, buffer.Length)) > 0) {
 				output.Write(buffer, 0, len);
 			}
 			output.Flush();
