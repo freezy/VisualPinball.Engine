@@ -7,12 +7,16 @@ using JeremyAnsel.Media.WavefrontObj;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.Test
 {
-
-	public abstract class MeshTests
+	public abstract class MeshTests : BaseTests
 	{
+		protected MeshTests(ITestOutputHelper output) : base(output)
+		{
+		}
+
 		protected ObjFile LoadObjFixture(string filePath)
 		{
 			var lines = File
@@ -97,5 +101,6 @@ namespace VisualPinball.Engine.Test.Test
 				return obj.GetHashCode();
 			}
 		}
+
 	}
 }

@@ -2,6 +2,7 @@
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Test.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Primitive
 {
@@ -10,10 +11,10 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public PrimitiveMeshTests()
+		public PrimitiveMeshTests(ITestOutputHelper output) : base(output)
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
-			_obj = LoadObjFixture(ObjPath.Primitive);
+			// _table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			// _obj = LoadObjFixture(ObjPath.Primitive);
 		}
 
 		[Fact]
@@ -48,6 +49,13 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			Assert.Equal(505f, rog.TransformationMatrix.GetTranslation().X);
 			Assert.Equal(1305f, rog.TransformationMatrix.GetTranslation().Y);
 			Assert.Equal(0f, rog.TransformationMatrix.GetTranslation().Z);
+		}
+
+		[Fact]
+		public void ShouldNotCrash()
+		{
+			Logger.Info("log test");
+			Engine.VPT.Table.Table.Load(@"..\..\VPT\Primitive\PrimitiveLzwError2.vpx");
 		}
 	}
 }

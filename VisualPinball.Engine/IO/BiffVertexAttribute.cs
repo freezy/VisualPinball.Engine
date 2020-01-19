@@ -13,12 +13,12 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadVertex3D);
 		}
 
-		private Vertex2D ReadVertex2D(BinaryReader reader, int len)
+		private static Vertex2D ReadVertex2D(BinaryReader reader, int len)
 		{
-			return new Vertex2D(reader);
+			return new Vertex2D(reader, len);
 		}
 
-		private Vertex3D ReadVertex3D(BinaryReader reader, int len)
+		private static Vertex3D ReadVertex3D(BinaryReader reader, int len)
 		{
 			return new Vertex3D(reader, len);
 		}

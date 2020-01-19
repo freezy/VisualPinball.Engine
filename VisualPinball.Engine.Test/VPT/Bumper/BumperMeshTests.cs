@@ -2,6 +2,7 @@
 using JeremyAnsel.Media.WavefrontObj;
 using VisualPinball.Engine.Test.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
@@ -10,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public BumperMeshTests()
+		public BumperMeshTests(ITestOutputHelper output) : base(output)
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			_obj = LoadObjFixture(ObjPath.Bumper);

@@ -2,6 +2,7 @@
 using JeremyAnsel.Media.WavefrontObj;
 using VisualPinball.Engine.Test.Test;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
@@ -10,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public RampMeshTests()
+		public RampMeshTests(ITestOutputHelper output) : base(output)
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
 			_obj = LoadObjFixture(ObjPath.Ramp);

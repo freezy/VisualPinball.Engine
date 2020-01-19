@@ -17,6 +17,8 @@ namespace VisualPinball.Engine.IO
 	/// </summary>
 	public class BiffData
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// Indexes the BiffAttributes of the data class.<p/>
 		///
@@ -72,8 +74,10 @@ namespace VisualPinball.Engine.IO
 			var len = reader.ReadInt32();
 			var tag = ReadTag(reader);
 
+			Logger.Info("Class: {0}", obj);
 			try {
 				while (tag != "ENDB") {
+					Logger.Info("Tag: {0} ({1})", tag, len);
 					if (attributes.ContainsKey(tag)) {
 						var attrs = attributes[tag];
 						var i = 0;

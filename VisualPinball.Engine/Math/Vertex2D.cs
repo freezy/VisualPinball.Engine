@@ -15,10 +15,13 @@ namespace VisualPinball.Engine.Math
 			Y = y;
 		}
 
-		public Vertex2D(BinaryReader reader)
+		public Vertex2D(BinaryReader reader, int len)
 		{
 			X = reader.ReadSingle();
 			Y = reader.ReadSingle();
+			if (len > 8) {
+				reader.BaseStream.Seek(len - 8, SeekOrigin.Current);
+			}
 		}
 
 		public Vertex2D Set(float x, float y)

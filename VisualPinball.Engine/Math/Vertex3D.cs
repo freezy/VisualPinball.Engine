@@ -32,6 +32,9 @@ namespace VisualPinball.Engine.Math
 			if (len >= 12) {
 				Z = reader.ReadSingle();
 			}
+			if (len > 12) {
+				reader.BaseStream.Seek(len - 12, SeekOrigin.Current);
+			}
 		}
 
 		public static void Reset(Vertex3D v)
