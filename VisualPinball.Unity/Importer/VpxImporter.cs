@@ -291,7 +291,7 @@ namespace VisualPinball.Unity.Importer
 		private void SaveMaterial(RenderObject ro, Material material)
 		{
 			if (_saveToAssets) {
-				var assetPath = $"{_materialFolder}/{ro.MaterialId}.mat";
+				var assetPath = $"{_materialFolder}/{AssetUtility.StringToFilename(ro.MaterialId)}.mat";
 				AssetDatabase.CreateAsset(material, assetPath);
 			} else {
 				_materials[ro.MaterialId] = material;
@@ -301,7 +301,7 @@ namespace VisualPinball.Unity.Importer
 		private Material LoadMaterial(RenderObject ro)
 		{
 			if (_saveToAssets) {
-				var assetPath = $"{_materialFolder}/{ro.MaterialId}.mat";
+				var assetPath = $"{_materialFolder}/{AssetUtility.StringToFilename(ro.MaterialId)}.mat";
 				return AssetDatabase.LoadAssetAtPath<Material>(assetPath);
 			}
 
