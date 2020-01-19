@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffFloat("DILB")]
 		public float DisableLightingBelow;
 
-		[BiffFloat("DILI")]
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8)]
 		public float DisableLightingTop;
 
 		[BiffFloat("DRSP")]
@@ -53,7 +54,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public bool IsVisible = true;
 
 		[BiffBool("LEMO")]
-		public bool Legacy = false;
+		public bool IsLegacy = false;
 
 		[BiffBool("OVPH")]
 		public bool OverwritePhysics = false;
@@ -88,6 +89,13 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffVertex("VSIZ")]
 		public Vertex3D Size = new Vertex3D(32, 32, 32);
 
+		public bool IsDropTarget =>
+			   TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetBeveled
+			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetFlatSimple
+			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
+
+		#region Biff
+
 		static HitTargetData()
 		{
 			Init(typeof(HitTargetData), Attributes);
@@ -99,5 +107,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

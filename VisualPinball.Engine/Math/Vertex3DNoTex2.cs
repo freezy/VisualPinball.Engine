@@ -71,6 +71,10 @@ namespace VisualPinball.Engine.Math
 			return new Vertex3D(X, Y, Z);
 		}
 
+		public Vertex3D GetNormal() {
+			return new Vertex3D(Nx, Ny, Nz);
+		}
+
 		public Vertex3DNoTex2 Clone() {
 			var vertex = new Vertex3DNoTex2 {
 				X = X,

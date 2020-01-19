@@ -183,6 +183,8 @@
     <Compile Include="VPT\Bumper\BumperMeshTests.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshTests.cs" />
     <Compile Include="VPT\Flipper\FlipperDataTests.cs" />
+    <Compile Include="VPT\HitTarget\HitTargetMeshTests.cs" />
+    <Compile Include="VPT\HitTarget\HitTargetDataTests.cs" />
     <Compile Include="VPT\Light\LightDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />
