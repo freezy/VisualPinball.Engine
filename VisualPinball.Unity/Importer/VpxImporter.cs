@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.Importer
 			// set paths
 			_saveToAssets = saveToAssets;
 			if (_saveToAssets) {
-				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)}";
+				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path).Trim()}";
 				_materialFolder = $"{_tableFolder}/Materials";
 				_textureFolder = $"{_tableFolder}/Textures";
 				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
