@@ -35,6 +35,12 @@ namespace VisualPinball.Engine.VPT
 			Indices = indices;
 		}
 
+		public Mesh(float[][] vertices, int[] indices)
+		{
+			Vertices = vertices.Select(v => new Vertex3DNoTex2(v)).ToArray();
+			Indices = indices;
+		}
+
 		public Mesh(Vertex3DNoTex2[] vertices, int[] indices)
 		{
 			Vertices = vertices;

@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localRotation = GlobalRotation;
 			go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
-			ScaleNormalizer.Normalize(go, GlobalScale);
+			//ScaleNormalizer.Normalize(go, GlobalScale);
 		}
 
 		private void ImportTextures(Table table)

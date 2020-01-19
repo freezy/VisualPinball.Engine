@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.VPT
 					return asRightHanded
 						? new Tuple<Matrix3D, Matrix3D>(Matrix3D.RightHanded, null)
 						: new Tuple<Matrix3D, Matrix3D>(Matrix3D.Identity, null);
+
 				case Origin.Global:
 					var m = GetTransformationMatrix(table);
 					return asRightHanded
