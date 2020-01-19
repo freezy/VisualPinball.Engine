@@ -26,15 +26,15 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
 
 		#region Table Info
-		public string InfoAuthorEmail => TableInfo["AuthorEmail"];
-		public string InfoAuthorName => TableInfo["AuthorName"];
-		public string InfoAuthorWebsite => TableInfo["AuthorWebSite"];
-		public string InfoReleaseDate => TableInfo["ReleaseDate"];
-		public string InfoBlurb => TableInfo["TableBlurb"];
-		public string InfoDescription => TableInfo["TableDescription"];
-		public string InfoName => TableInfo["TableName"];
-		public string InfoRules => TableInfo["TableRules"];
-		public string InfoVersion => TableInfo["TableVersion"];
+		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
+		public string InfoAuthorName => TableInfo.ContainsKey("AuthorName") ? TableInfo["AuthorName"] : null;
+		public string InfoAuthorWebsite => TableInfo.ContainsKey("AuthorWebSite") ? TableInfo["AuthorWebSite"] : null;
+		public string InfoReleaseDate => TableInfo.ContainsKey("ReleaseDate") ? TableInfo["ReleaseDate"] : null;
+		public string InfoBlurb => TableInfo.ContainsKey("TableBlurb") ? TableInfo["TableBlurb"] : null;
+		public string InfoDescription => TableInfo.ContainsKey("TableDescription") ? TableInfo["TableDescription"] : null;
+		public string InfoName => TableInfo.ContainsKey("TableName") ? TableInfo["TableName"] : null;
+		public string InfoRules => TableInfo.ContainsKey("TableRules") ? TableInfo["TableRules"] : null;
+		public string InfoVersion => TableInfo.ContainsKey("TableVersion") ? TableInfo["TableVersion"] : null;
 		#endregion
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
