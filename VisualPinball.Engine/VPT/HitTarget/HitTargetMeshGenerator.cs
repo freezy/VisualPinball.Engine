@@ -30,18 +30,13 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
 		{
-			var dropOffset = 0f;
-			if (_data.IsDropTarget && _data.IsDropped) {
-				dropOffset = -(HitTarget.DropTargetLimit * table.GetScaleZ());
-			}
-
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
 			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z + dropOffset);
+			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z + table.TableHeight);
 
 			// // rotation matrix
 			var rotMatrix = new Matrix3D();
@@ -55,34 +50,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
 		}
-
-		// private Mesh GenerateMesh()
-		// {
-		// 	var hitTargetMesh = GetBaseMesh();
-		//
-		// 	var fullMatrix = new Matrix3D();
-		// 	var tempMatrix = new Matrix3D();
-		// 	tempMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
-		// 	fullMatrix.Multiply(tempMatrix);
-		//
-		// 	foreach (var vertex in hitTargetMesh.Vertices) {
-		// 		var vert = vertex.GetVertex();
-		// 		// vert.X *= _data.Size.X;
-		// 		// vert.Y *= _data.Size.Y;
-		// 		// vert.Z *= _data.Size.Z;
-		// 		//vert.MultiplyMatrix(fullMatrix);
-		//
-		// 		vertex.X = vert.X; // + _data.Position.X;
-		// 		vertex.Y = vert.Y; // + _data.Position.Y;
-		// 		vertex.Z = vert.Z; // * table.GetScaleZ() + _data.Position.Z + table.GetTableHeight() + dropOffset;
-		//
-		// 		var normal = vertex.GetNormal().MultiplyMatrixNoTranslate(fullMatrix);
-		// 		vertex.Nx = normal.X;
-		// 		vertex.Ny = normal.Y;
-		// 		vertex.Nz = normal.Z;
-		// 	}
-		// 	return hitTargetMesh;
-		// }
 
 		private Mesh GetBaseMesh()
 		{

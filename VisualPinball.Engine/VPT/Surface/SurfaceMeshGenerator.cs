@@ -63,8 +63,8 @@ namespace VisualPinball.Engine.VPT.Surface
 				rgNormal[i] = new Vertex2D {X = dy * invLen, Y = dx * invLen};
 			}
 
-			var bottom = _data.HeightBottom * table.GetScaleZ() + table.GetTableHeight();
-			var top = _data.HeightTop * table.GetScaleZ() + table.GetTableHeight();
+			var bottom = _data.HeightBottom * table.GetScaleZ() + table.TableHeight;
+			var top = _data.HeightTop * table.GetScaleZ() + table.TableHeight;
 
 			var offset = 0;
 
@@ -191,7 +191,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				vertsTop[0][i] = new Vertex3DNoTex2 {
 					X = pv0.X,
 					Y = pv0.Y,
-					Z = heightNotDropped + table.GetTableHeight(),
+					Z = heightNotDropped + table.TableHeight,
 					Tu = pv0.X * invTableWidth,
 					Tv = pv0.Y * invTableHeight,
 					Nx = 0,

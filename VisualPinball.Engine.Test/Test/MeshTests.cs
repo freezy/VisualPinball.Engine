@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using JeremyAnsel.Media.WavefrontObj;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,6 +29,14 @@ namespace VisualPinball.Engine.Test.Test
 			// now, parse
 			using (var memStream = new MemoryStream(Encoding.ASCII.GetBytes(string.Join("\n", lines)))) {
 				return ObjFile.FromStream(memStream);
+			}
+		}
+
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable)
+		{
+			var targetMeshes = renderable.GetRenderObjects(table).RenderObjects.Select(ro => ro.Mesh);
+			foreach (var mesh in targetMeshes) {
+				AssertObjMesh(obj, mesh);
 			}
 		}
 

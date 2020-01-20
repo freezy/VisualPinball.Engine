@@ -495,8 +495,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			// Compute an approximation to the length of the central curve
 			// by adding up the lengths of the line segments.
 			var totalLength = 0f;
-			var bottomHeight = _data.HeightBottom + table.GetTableHeight();
-			var topHeight = _data.HeightTop + table.GetTableHeight();
+			var bottomHeight = _data.HeightBottom + table.TableHeight;
+			var topHeight = _data.HeightTop + table.TableHeight;
 
 			for (var i = 0; i < numVertices - 1; i++) {
 				var v1 = vertex[i];

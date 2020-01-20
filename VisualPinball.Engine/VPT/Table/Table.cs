@@ -42,6 +42,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
+		public float TableHeight => Data.TableHeight;
 
 		public IRenderable[] Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
@@ -118,11 +119,6 @@ namespace VisualPinball.Engine.VPT.Table
 			// }
 
 			Logger.Warn($"[Table.getSurfaceHeight] Unknown surface {surfaceName}.");
-			return Data.TableHeight;
-		}
-
-		public float GetTableHeight()
-		{
 			return Data.TableHeight;
 		}
 

@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 			Assert.Equal(false, data.IsLegacy);
 			Assert.Equal(true, data.IsReflectionEnabled);
 			Assert.Equal(true, data.IsVisible);
-			Assert.Equal("", data.Material);
+			Assert.Equal("Playfield", data.Material);
 			Assert.Equal(true, data.OverwritePhysics);
 			Assert.Equal("", data.PhysicsMaterial);
 			Assert.Equal(427.12f, data.Position.X);
