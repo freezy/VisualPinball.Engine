@@ -46,10 +46,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 			vertMatrix.Multiply(tempMat);
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.GetTableHeight());
+				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.TableHeight);
 
 			} else {
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height * table.GetScaleZ() + table.GetTableHeight());
+				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
 			}
 
 			vertMatrix.Multiply(tempMat);
@@ -90,7 +90,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			var numVertices = numRings * numSegments;
 			var numIndices = 6 * numVertices; //m_numVertices*2+2;
-			var height = _data.HitHeight + table.GetTableHeight();
+			var height = _data.HitHeight + table.TableHeight;
 
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
