@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 					isVisible: _data.IsVisible));
 			}
 
-			return new RenderObjectGroup(_data.Name, "Flippers", renderObjects.ToArray(), postMatrix);
+			return new RenderObjectGroup(_data.Name, "Flippers", postMatrix, renderObjects.ToArray());
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)

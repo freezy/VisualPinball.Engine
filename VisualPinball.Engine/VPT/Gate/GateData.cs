@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -31,8 +32,8 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffFloat("GFRC")]
 		public float Friction = 0.02f;
 
-		[BiffFloat("GATY")]
-		public float GateType = VisualPinball.Engine.VPT.GateType.GateWireW;
+		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate)]
+		public int GateType = VisualPinball.Engine.VPT.GateType.GateWireW;
 
 		[BiffFloat("GGFC")]
 		public float GravityFactor = 0.25f;
@@ -70,6 +71,8 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffVertex("VCEN")]
 		public Vertex2D Center;
 
+		#region Biff
+
 		static GateData()
 		{
 			Init(typeof(GateData), Attributes);
@@ -81,5 +84,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

@@ -21,12 +21,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var mesh = GetMesh(table);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Rubbers", new RenderObject(
+			return new RenderObjectGroup(_data.Name, "Rubbers", postMatrix, new RenderObject(
 				mesh: mesh.Transform(preVertexMatrix, preNormalsMatrix),
 				material: table.GetMaterial(_data.Material),
 				map: table.GetTexture(_data.Image),
 				isVisible: _data.IsVisible
-			), postMatrix);
+			));
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)

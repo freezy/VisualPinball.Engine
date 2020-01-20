@@ -20,11 +20,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		[Fact]
 		public void ShouldGenerateMesh()
 		{
-			var bumper = _table.Bumpers["Bumper2"];
-			var bumperMeshes = bumper.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh);
-			foreach (var bumperMesh in bumperMeshes) {
-				AssertObjMesh(_obj, bumperMesh, $"{bumper.Name}{bumperMesh.Name}");
-			}
+			AssertObjMesh(_table, _obj, _table.Bumpers["Bumper2"], (item, mesh) => $"{item.Name}{mesh.Name}");
 		}
 	}
 }

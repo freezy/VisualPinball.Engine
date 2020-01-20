@@ -54,15 +54,7 @@ namespace VisualPinball.Engine.Game
 			TransformationMatrix = Matrix3D.Identity;
 		}
 
-		public RenderObjectGroup(string name, string parent, RenderObject renderObject, Matrix3D matrix)
-		{
-			Name = name;
-			Parent = parent;
-			RenderObjects = new []{ renderObject };
-			TransformationMatrix = matrix;
-		}
-
-		public RenderObjectGroup(string name, string parent, RenderObject[] renderObjects, Matrix3D matrix)
+		public RenderObjectGroup(string name, string parent, Matrix3D matrix, params RenderObject[] renderObjects)
 		{
 			Name = name;
 			Parent = parent;

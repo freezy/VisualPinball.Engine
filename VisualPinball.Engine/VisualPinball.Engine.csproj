@@ -125,7 +125,9 @@
     <Compile Include="VPT\Flipper\Flipper.cs" />
     <Compile Include="VPT\Flipper\FlipperData.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshGenerator.cs" />
+    <Compile Include="VPT\Gate\Gate.cs" />
     <Compile Include="VPT\Gate\GateData.cs" />
+    <Compile Include="VPT\Gate\GateMeshGenerator.cs" />
     <Compile Include="VPT\HitTarget\HitTarget.cs" />
     <Compile Include="VPT\HitTarget\HitTargetData.cs" />
     <Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs" />

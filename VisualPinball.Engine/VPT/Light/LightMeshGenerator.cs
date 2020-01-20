@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.VPT.Light
 			}
 			var meshes= GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Lights",  new[] {
+			return new RenderObjectGroup(_data.Name, "Lights", translationMatrix,
 				new RenderObject(
 					name: "Bulb",
 					mesh: asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],
@@ -36,7 +36,7 @@ namespace VisualPinball.Engine.VPT.Light
 					mesh: asRightHanded ? meshes["Socket"].Transform(Matrix3D.RightHanded) : meshes["Socket"],
 					material: GetSocketMaterial()
 				)
-			}, translationMatrix);
+			);
 		}
 
 		private Matrix3D GetPostMatrix(Table.Table table, Origin origin)

@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 			var meshes = GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(origin);
 
-			return new RenderObjectGroup(_data.Name, "Bumpers", new[] {
+			return new RenderObjectGroup(_data.Name, "Bumpers", translationMatrix,
 				new RenderObject(
 					name: "Base",
 					mesh: asRightHanded ? meshes["Base"].Transform(Matrix3D.RightHanded) : meshes["Base"],
@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 					map: Texture.BumperCap,
 					isVisible: _data.IsCapVisible
 				)
-			}, translationMatrix);
+			);
 		}
 
 		private Matrix3D GetPostMatrix(Origin origin)
