@@ -19,13 +19,13 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			var mesh = GetBaseMesh();
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "HitTargets", new RenderObject(
+			return new RenderObjectGroup(_data.Name, "HitTargets", postMatrix, new RenderObject(
 				name: _data.Name,
 				mesh: mesh.Transform(preMatrix),
 				material: table.GetMaterial(_data.Material),
 				map: table.GetTexture(_data.Image),
 				isVisible: _data.IsVisible
-			), postMatrix);
+			));
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			var transMatrix = new Matrix3D();
 			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z + table.TableHeight);
 
-			// // rotation matrix
+			// rotation matrix
 			var rotMatrix = new Matrix3D();
 			rotMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
 

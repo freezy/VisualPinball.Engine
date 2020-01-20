@@ -63,6 +63,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Flippers[item.Name] = item;
 						break;
 					}
+					case ItemType.Gate: {
+						Logger.Info("Loading gate {itemName}", itemName);
+						var item = new VisualPinball.Engine.VPT.Gate.Gate(reader, itemName);
+						table.Gates[item.Name] = item;
+						break;
+					}
 					case ItemType.HitTarget: {
 						Logger.Info("Loading hit target {itemName}", itemName);
 						var item = new VisualPinball.Engine.VPT.HitTarget.HitTarget(reader, itemName);

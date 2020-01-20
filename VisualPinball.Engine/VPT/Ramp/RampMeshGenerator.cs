@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 			}
 
-			return new RenderObjectGroup(_data.Name, "Ramps", renderObjects.ToArray(), Matrix3D.Identity);
+			return new RenderObjectGroup(_data.Name, "Ramps", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
 		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)

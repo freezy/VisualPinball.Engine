@@ -36,7 +36,7 @@ namespace VisualPinball.Engine.VPT.Surface
 					isVisible: _data.IsTopBottomVisible));
 			}
 
-			return new RenderObjectGroup(_data.Name, "Surfaces", renderObjects.ToArray(), Matrix3D.Identity);
+			return new RenderObjectGroup(_data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
 		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table) {

@@ -32,11 +32,11 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable)
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null)
 		{
 			var targetMeshes = renderable.GetRenderObjects(table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var mesh in targetMeshes) {
-				AssertObjMesh(obj, mesh);
+				AssertObjMesh(obj, mesh, getName?.Invoke(renderable, mesh));
 			}
 		}
 
@@ -81,6 +81,14 @@ namespace VisualPinball.Engine.Test.Test
 				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]]);
 
 				i += 3;
+			}
+		}
+
+		protected static void AssertNoObjMesh(ObjFile objFile, string name)
+		{
+			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
+			if (objGroup != null) {
+				throw new Exception($"Group {name} must not exist, but does.");
 			}
 		}
 

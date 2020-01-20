@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return _playfield != null
 				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table")
-				: new RenderObjectGroup(_data.Name, "Table", GetFromTableDimensions(table, asRightHanded), Matrix3D.Identity);
+				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(table, asRightHanded));
 		}
 
 		public void SetFromPrimitive(Table table, Primitive.Primitive primitive)

@@ -4,6 +4,7 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		public const string Bumper = @"..\..\VPT\Bumper\BumperTest.vpx";
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.vpx";
+		public const string Gate = @"..\..\VPT\Gate\GateTest.vpx";
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.vpx";
 		public const string Light = @"..\..\VPT\Light\LightTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
@@ -20,6 +21,7 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		public const string Bumper = @"..\..\VPT\Bumper\BumperTest.obj";
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.obj";
+		public const string Gate = @"..\..\VPT\Gate\GateTest.obj";
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.obj";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.obj";
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.obj";
