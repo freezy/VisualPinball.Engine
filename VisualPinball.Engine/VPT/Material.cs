@@ -86,6 +86,8 @@ namespace VisualPinball.Engine.VPT
 		public float Friction;
 		public float ScatterAngle;
 
+		
+
 		public Material(BinaryReader reader)
 		{
 			var saveMaterial = new MaterialData(reader);

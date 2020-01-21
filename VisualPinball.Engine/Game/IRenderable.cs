@@ -76,6 +76,8 @@ namespace VisualPinball.Engine.Game
 		public readonly bool IsTransparent;
 
 		public const string MaterialNameNoMaterial = "__no_material";
+		public string buildInfo = "";
+		public string MaterialIdFixed = "";
 
 		/// <summary>
 		/// A unique ID based on the material and its maps.

@@ -57,12 +57,12 @@
   <ItemGroup>
     <Compile Include="Extensions\Color.cs" />
     <Compile Include="Extensions\Light.cs" />
-    <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Matrix3D.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
+    <Compile Include="Importer\UnityMaterialGenerator.cs" />
     <Compile Include="Importer\ScaleNormalizer.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
     <Compile Include="IO\Logging.cs" />

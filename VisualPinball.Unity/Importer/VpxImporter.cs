@@ -32,6 +32,8 @@ namespace VisualPinball.Unity.Importer
 		private string _textureFolder;
 		private string _tableDataPath;
 		private string _tablePrefabPath;
+		private static string debugLogCombined = "";
+		private static List<string> debugLogList = new List<string>();
 
 		private Patcher.Patcher.Patcher _patcher;
 
@@ -40,6 +42,17 @@ namespace VisualPinball.Unity.Importer
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
+
+
+
+		public static void WriteDebugToFile() {
+			string path = "Assets/debug.txt";
+
+			//Write some text to the test.txt file
+			StreamWriter writer = new StreamWriter(path, false);
+			writer.WriteLine(debugLogCombined);
+			writer.Close();			
+		}
 
 		public static void ImportVpxRuntime(string path)
 		{
@@ -81,6 +94,9 @@ namespace VisualPinball.Unity.Importer
 
 			watch.Stop();
 			Logger.Info("[VpxImporter] Imported in {0}ms.", watch.ElapsedMilliseconds);
+			debugLogList.Sort();
+			debugLogCombined = string.Join("", debugLogList.ToArray());
+			WriteDebugToFile();
 		}
 
 		private static GameObject ImportVpx(string path, bool saveToAssets) {
@@ -131,6 +147,8 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
+
+			
 		}
 
 		private void ImportTextures(Table table)
@@ -195,10 +213,13 @@ namespace VisualPinball.Unity.Importer
 				ImportRenderObject(item, rog.RenderObjects[0], obj);
 
 			} else if (rog.HasChildren) {
+				
 				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.parent = obj.transform;
+					
 					ImportRenderObject(item, ro, subObj);
+					
 				}
 			}
 
@@ -210,6 +231,7 @@ namespace VisualPinball.Unity.Importer
 
 		private void ImportRenderObject(IRenderable item, RenderObject renderObject, GameObject obj)
 		{
+			renderObject.MaterialIdFixed = AssetUtility.StringToFilename(renderObject.MaterialId);
 			if (renderObject.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
 				return;
@@ -242,15 +264,23 @@ namespace VisualPinball.Unity.Importer
 		{
 			var material = LoadMaterial(ro);
 			if (material == null) {
-				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
+				
+				if (ro.Material == null) {
+					material = UnityMaterialGenerator.ToUnityMaterial(ro);
+				} else {
+					material = UnityMaterialGenerator.ToUnityMaterial(ro.Material, ro);
+				}				
 				if (ro.Map != null) {
 					material.SetTexture(MainTex, LoadTexture(ro.Map, TextureImporterType.Default));
 				}
 				if (ro.NormalMap != null) {
 					material.SetTexture(BumpMap, LoadTexture(ro.NormalMap, TextureImporterType.NormalMap));
 				}
+				debugLogList.Add(ro.buildInfo);
 				SaveMaterial(ro, material);
-			}
+			} 
+
+			
 
 			return material;
 		}
