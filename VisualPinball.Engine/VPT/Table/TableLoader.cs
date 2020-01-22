@@ -117,6 +117,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Surfaces[item.Name] = item;
 						break;
 					}
+					case ItemType.Trigger: {
+						Logger.Info("Loading trigger {itemName}", itemName);
+						var item = new Trigger.Trigger(reader, itemName);
+						table.Triggers[item.Name] = item;
+						break;
+					}
 				}
 			}
 		}
