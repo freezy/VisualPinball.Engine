@@ -60,9 +60,12 @@
     <Compile Include="Meshes\HitTargetT1Slim.cs" />
     <Compile Include="Meshes\HitTargetT2Slim.cs" />
     <Compile Include="Meshes\KickerCup.cs" />
+    <Compile Include="Meshes\KickerGottlieb.cs" />
     <Compile Include="Meshes\KickerHole.cs" />
     <Compile Include="Meshes\KickerPlate.cs" />
     <Compile Include="Meshes\KickerSimpleHole.cs" />
+    <Compile Include="Meshes\KickerT1.cs" />
+    <Compile Include="Meshes\KickerWilliams.cs" />
     <Compile Include="Meshes\SpinnerBracket.cs" />
     <Compile Include="Meshes\SpinnerPlate.cs" />
     <Compile Include="Meshes\TriggerSimple.cs" />
