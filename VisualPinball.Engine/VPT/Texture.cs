@@ -206,7 +206,7 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// True if no translucent or transparent pixels found, false otherwise.
 		/// </summary>
-		public bool IsOpaque => _numTranslucentPixels == 0 && _numTranslucentPixels == 0;
+		public bool IsOpaque => _numTranslucentPixels == 0 && _numTransparentPixels == 0;
 
 		private readonly int _numOpaquePixels;
 		private readonly int _numTranslucentPixels;
