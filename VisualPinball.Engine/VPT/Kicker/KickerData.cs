@@ -3,6 +3,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 #endregion
 
 using System.Collections.Generic;
@@ -53,6 +54,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffBool("LEMO")]
 		public bool LegacyMode = false;
 
+		#region BIFF
+
 		static KickerData()
 		{
 			Init(typeof(KickerData), Attributes);
@@ -64,5 +67,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

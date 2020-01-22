@@ -6,7 +6,10 @@ namespace VisualPinball.Engine.VPT
 {
 	public abstract class MeshGenerator
 	{
-		protected abstract Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table);
+		protected abstract float BaseHeight(Table.Table table);
+		protected abstract Vertex3D Position { get; }
+		protected abstract Vertex3D Scale { get; }
+		protected abstract float RotationZ { get; }
 
 		protected Tuple<Matrix3D, Matrix3D> GetPreMatrix(Table.Table table, Origin origin, bool asRightHanded)
 		{
@@ -34,6 +37,32 @@ namespace VisualPinball.Engine.VPT
 				default:
 					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
 			}
+		}
+
+		protected virtual Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		{
+			var scale = Scale;
+			var position = Position;
+
+			// scale matrix
+			var scaleMatrix = new Matrix3D();
+			scaleMatrix.SetScaling(scale.X, scale.Y, scale.Z);
+
+			// translation matrix
+			var transMatrix = new Matrix3D();
+			transMatrix.SetTranslation(position.X, position.Y, position.Z + BaseHeight(table));
+
+			// rotation matrix
+			var rotMatrix = new Matrix3D();
+			rotMatrix.RotateZMatrix(RotationZ);
+
+			var fullMatrix = scaleMatrix.Clone();
+			fullMatrix.Multiply(rotMatrix);
+			fullMatrix.Multiply(transMatrix);
+			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			fullMatrix.Multiply(scaleMatrix);
+
+			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿// ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
+using System.Numerics;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
@@ -10,6 +11,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 	{
 		public readonly Vertex3D MiddlePoint = new Vertex3D();
 		private readonly RubberData _data;
+
+		protected override Vertex3D Position => new Vertex3D(MiddlePoint.X, MiddlePoint.Y, MiddlePoint.Z);
+		protected override Vertex3D Scale => Vertex3D.One;
+		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
 
 		public RubberMeshGenerator(RubberData data)
 		{
@@ -33,23 +38,23 @@ namespace VisualPinball.Engine.VPT.Rubber
 		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
-			fullMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
+			fullMatrix.RotateZMatrix(RotationZ);
 			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
 			fullMatrix.Multiply(tempMat);
 			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
 			fullMatrix.Multiply(tempMat);
 
 			var vertMatrix = new Matrix3D();
-			tempMat.SetTranslation(-MiddlePoint.X, -MiddlePoint.Y, -MiddlePoint.Z);
+			tempMat.SetTranslation(-Position.X, -Position.Y, -Position.Z);
 			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z * table.GetScaleZ());
 			vertMatrix.Multiply(tempMat);
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height + table.TableHeight);
+				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table.TableHeight);
 
 			} else {
-				tempMat.SetTranslation(MiddlePoint.X, MiddlePoint.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
+				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
 			}
 
 			vertMatrix.Multiply(tempMat);
@@ -224,5 +229,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			return mesh;
 		}
+
+		protected override float BaseHeight(Table.Table table)
+		{
+			return 0f;
+		}
+
 	}
 }

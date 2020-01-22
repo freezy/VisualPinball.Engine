@@ -9,6 +9,10 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	{
 		private readonly HitTargetData _data;
 
+		protected override Vertex3D Position => _data.Position;
+		protected override Vertex3D Scale => _data.Size;
+		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
+
 		public HitTargetMeshGenerator(HitTargetData data)
 		{
 			_data = data;
@@ -28,27 +32,9 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			));
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override float BaseHeight(Table.Table table)
 		{
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
-
-			// translation matrix
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z + table.TableHeight);
-
-			// rotation matrix
-			var rotMatrix = new Matrix3D();
-			rotMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotMatrix);
-			fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
-			fullMatrix.Multiply(scaleMatrix);
-
-			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
+			return table.TableHeight;
 		}
 
 		private Mesh GetBaseMesh()

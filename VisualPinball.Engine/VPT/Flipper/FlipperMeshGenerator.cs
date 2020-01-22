@@ -14,6 +14,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		private readonly FlipperData _data;
 
+		protected override Vertex3D Position => new Vertex3D(_data.Center.X, _data.Center.Y, 0);
+		protected override Vertex3D Scale => Vertex3D.One;
+		protected override float RotationZ => MathF.DegToRad(_data.StartAngle);
+
 		public FlipperMeshGenerator(FlipperData data)
 		{
 			_data = data;
@@ -44,14 +48,9 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return new RenderObjectGroup(_data.Name, "Flippers", postMatrix, renderObjects.ToArray());
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override float BaseHeight(Table.Table table)
 		{
-			var matrix = new Matrix3D();
-			var tempMatrix = new Matrix3D();
-			matrix.SetTranslation(_data.Center.X, _data.Center.Y, 0);
-			tempMatrix.RotateZMatrix(MathF.DegToRad(_data.StartAngle));
-			matrix.PreMultiply(tempMatrix);
-			return new Tuple<Matrix3D, Matrix3D>(matrix, null);
+			return 0f; // already in vertices
 		}
 
 		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table)
@@ -136,6 +135,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return meshes;
 		}
 
+		#region Mesh Data
+
 		private static readonly Vertex3D[] VertsTipBottom = {
 			new Vertex3D(-0.101425f, 0.786319f, 0.003753f),
 			new Vertex3D(-0.097969f, 0.812569f, 0.003753f),
@@ -199,5 +200,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			new Vertex3D(0.097329f, -0.026079f, 1.004253f),
 			new Vertex3D(0.100762f, -0.000000f, 1.004253f),
 		};
+
+		#endregion
 	}
 }
