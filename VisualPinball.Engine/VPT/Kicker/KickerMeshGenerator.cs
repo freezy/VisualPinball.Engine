@@ -29,6 +29,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
 		{
+			var baseHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
 			var zOffset = 0.0f;
 			var zRot = _data.Orientation;
 			switch (_data.KickerType) {
@@ -52,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, zOffset * _data.Radius);
+			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, baseHeight + zOffset * _data.Radius);
 
 			// rotation matrix
 			var rotMatrix = new Matrix3D();

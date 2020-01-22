@@ -27,6 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			AssertObjMesh(_table, _obj, _table.Kickers["Williams"], threshold: 0.001);
 			AssertObjMesh(_table, _obj, _table.Kickers["Scaled"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["Rotated"]);
+			AssertObjMesh(_table, _obj, _table.Kickers["Surface"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["Data"]);
 		}
 	}
