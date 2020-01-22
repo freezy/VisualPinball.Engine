@@ -32,11 +32,11 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null)
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null, double threshold = FloatThresholdComparer.Threshold)
 		{
 			var targetMeshes = renderable.GetRenderObjects(table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var mesh in targetMeshes) {
-				AssertObjMesh(obj, mesh, getName?.Invoke(renderable, mesh));
+				AssertObjMesh(obj, mesh, getName?.Invoke(renderable, mesh), threshold);
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null)
+		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, double threshold = FloatThresholdComparer.Threshold)
 		{
 			name = name ?? mesh.Name;
 			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
@@ -76,9 +76,9 @@ namespace VisualPinball.Engine.Test.Test
 			}
 			var i = 0;
 			foreach (var face in objGroup.Faces) {
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]]);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]]);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]]);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]], threshold);
 
 				i += 3;
 			}
@@ -102,7 +102,7 @@ namespace VisualPinball.Engine.Test.Test
 		private class FloatThresholdComparer : IEqualityComparer<float>
 		{
 			public const double Threshold = 0.0001;
-			private double _threshold;
+			private readonly double _threshold;
 
 			public FloatThresholdComparer(double threshold)
 			{

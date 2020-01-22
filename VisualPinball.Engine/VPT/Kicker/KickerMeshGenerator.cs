@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, zOffset);
+			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, zOffset * _data.Radius);
 
 			// rotation matrix
 			var rotMatrix = new Matrix3D();
@@ -70,13 +70,13 @@ namespace VisualPinball.Engine.VPT.Kicker
 		private Mesh GetBaseMesh()
 		{
 			switch (_data.KickerType) {
-				case KickerType.KickerCup: return KickerCupMesh.Clone();
-				case KickerType.KickerWilliams: return KickerWilliamsMesh.Clone();
-				case KickerType.KickerGottlieb: return KickerGottliebMesh.Clone();
-				case KickerType.KickerCup2: return KickerT1Mesh.Clone();
-				case KickerType.KickerHole: return KickerHoleMesh.Clone();
-				case KickerType.KickerHoleSimple: return KickerSimpleHoleMesh.Clone();
-				default:  return KickerSimpleHoleMesh.Clone();
+				case KickerType.KickerCup: return KickerCupMesh.Clone(_data.Name);
+				case KickerType.KickerWilliams: return KickerWilliamsMesh.Clone(_data.Name);
+				case KickerType.KickerGottlieb: return KickerGottliebMesh.Clone(_data.Name);
+				case KickerType.KickerCup2: return KickerT1Mesh.Clone(_data.Name);
+				case KickerType.KickerHole: return KickerHoleMesh.Clone(_data.Name);
+				case KickerType.KickerHoleSimple: return KickerSimpleHoleMesh.Clone(_data.Name);
+				default:  return KickerSimpleHoleMesh.Clone(_data.Name);
 			}
 		}
 
