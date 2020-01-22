@@ -73,11 +73,10 @@ namespace VisualPinball.Engine.VPT
 		/// <returns>Statistics</returns>
 		public TextureStats GetStats(int threshold)
 		{
-			if (!HasTransparentFormat) {
-				return null;
-			}
+			_lastStats = HasTransparentFormat
+					? Analyze(Image.GetRawData(), threshold)
+					: new TextureStats(1, 0, 0);
 
-			_lastStats = Analyze(Image.GetRawData(), threshold);
 			return _lastStats;
 		}
 
