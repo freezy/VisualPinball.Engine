@@ -16,8 +16,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffString("NAME", IsWideString = true)]
 		public override string Name { get; set; }
 
-		[BiffFloat("TYPE")]
-		public float KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;
+		[BiffInt("TYPE")]
+		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;
 
 		[BiffVertex("VCEN")]
 		public Vertex2D Center;
