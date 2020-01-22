@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -61,6 +62,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 		[BiffBool("REEN")]
 		public bool IsReflectionEnabled = true;
 
+		#region Biff
+
 		static TriggerData()
 		{
 			Init(typeof(TriggerData), Attributes);
@@ -72,5 +75,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

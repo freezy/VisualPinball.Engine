@@ -1,6 +1,6 @@
 namespace VisualPinball.Engine.Resources.Meshes
 {
-	public class TriggerStar
+	public static class TriggerStar
 	{
 		public static readonly float[][] Vertices = {
 			new []{0.000000f,0.002343f,0.291799f, 0.000000f,0.000000f,1.000000f, 0.500000f,0.430000f},

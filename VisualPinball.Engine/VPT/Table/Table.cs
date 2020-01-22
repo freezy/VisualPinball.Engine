@@ -28,6 +28,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner> Spinners = new Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger> Triggers = new Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger>();
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
@@ -59,6 +60,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Rubbers.Values)
 			.Concat(Spinners.Values)
 			.Concat(Surfaces.Values)
+			.Concat(Triggers.Values)
 			.ToArray();
 
 		private readonly TableMeshGenerator _meshGenerator;

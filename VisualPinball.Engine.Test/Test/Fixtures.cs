@@ -8,6 +8,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.vpx";
 		public const string Kicker = @"..\..\VPT\Kicker\KickerTest.vpx";
 		public const string Light = @"..\..\VPT\Light\LightTest.vpx";
+		public const string Material = @"..\..\VPT\MaterialTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.vpx";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.vpx";
@@ -16,7 +17,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.vpx";
 		public const string Table = @"..\..\VPT\Table\TableTest.vpx";
 		public const string Texture = @"..\..\VPT\TextureTest.vpx";
-		public const string Material = @"..\..\VPT\MaterialTest.vpx";
+		public const string Trigger = @"..\..\VPT\Trigger\TriggerTest.vpx";
 	}
 
 	public static class ObjPath
@@ -33,6 +34,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Spinner = @"..\..\VPT\Spinner\SpinnerTest.obj";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.obj";
 		public const string Table = @"..\..\VPT\Table\TableTest.obj";
+		public const string Trigger = @"..\..\VPT\Trigger\TriggerTest.obj";
 	}
 
 	public static class TexturePath

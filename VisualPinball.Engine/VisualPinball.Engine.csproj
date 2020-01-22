@@ -167,7 +167,9 @@
     <Compile Include="VPT\Texture.cs" />
     <Compile Include="VPT\TextureData.cs" />
     <Compile Include="VPT\Timer\TimerData.cs" />
+    <Compile Include="VPT\Trigger\Trigger.cs" />
     <Compile Include="VPT\Trigger\TriggerData.cs" />
+    <Compile Include="VPT\Trigger\TriggerMeshGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
