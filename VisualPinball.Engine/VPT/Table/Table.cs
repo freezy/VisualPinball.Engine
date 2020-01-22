@@ -21,6 +21,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper> Flippers = new Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Gate.Gate> Gates = new Dictionary<string, VisualPinball.Engine.VPT.Gate.Gate>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget> HitTargets = new Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker> Kickers = new Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Light.Light> Lights = new Dictionary<string, VisualPinball.Engine.VPT.Light.Light>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp> Ramps = new Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp>();
@@ -50,6 +51,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
 			.Concat(HitTargets.Values)
+			.Concat(Kickers.Values)
 			.Concat(Surfaces.Values)
 			//.Concat(Lights.Values)
 			.Concat(Primitives.Values)

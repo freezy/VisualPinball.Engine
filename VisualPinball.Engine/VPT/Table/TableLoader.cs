@@ -75,6 +75,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.HitTargets[item.Name] = item;
 						break;
 					}
+					case ItemType.Kicker: {
+						Logger.Info("Loading kicker {itemName}", itemName);
+						var item = new VisualPinball.Engine.VPT.Kicker.Kicker(reader, itemName);
+						table.Kickers[item.Name] = item;
+						break;
+					}
 					case ItemType.Light: {
 						Logger.Info("Loading light {itemName}", itemName);
 						var item = new VisualPinball.Engine.VPT.Light.Light(reader, itemName);

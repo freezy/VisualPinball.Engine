@@ -6,6 +6,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.vpx";
 		public const string Gate = @"..\..\VPT\Gate\GateTest.vpx";
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.vpx";
+		public const string Kicker = @"..\..\VPT\Kicker\KickerTest.vpx";
 		public const string Light = @"..\..\VPT\Light\LightTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.vpx";
@@ -23,6 +24,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.obj";
 		public const string Gate = @"..\..\VPT\Gate\GateTest.obj";
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.obj";
+		public const string Kicker = @"..\..\VPT\Kicker\KickerTest.obj";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.obj";
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.obj";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.obj";
