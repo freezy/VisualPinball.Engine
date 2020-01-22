@@ -153,7 +153,9 @@
     <Compile Include="VPT\Rubber\Rubber.cs" />
     <Compile Include="VPT\Rubber\RubberData.cs" />
     <Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
+    <Compile Include="VPT\Spinner\Spinner.cs" />
     <Compile Include="VPT\Spinner\SpinnerData.cs" />
+    <Compile Include="VPT\Spinner\SpinnerMeshGenerator.cs" />
     <Compile Include="VPT\Surface\Surface.cs" />
     <Compile Include="VPT\Surface\SurfaceData.cs" />
     <Compile Include="VPT\Surface\SurfaceMeshGenerator.cs" />

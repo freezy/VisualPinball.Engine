@@ -197,6 +197,8 @@
     <Compile Include="VPT\Ramp\RampMeshTests.cs" />
     <Compile Include="VPT\Rubber\RubberDataTest.cs" />
     <Compile Include="VPT\Rubber\RubberMeshTest.cs" />
+    <Compile Include="VPT\Spinner\SpinnerDataTests.cs" />
+    <Compile Include="VPT\Spinner\SpinnerMeshTests.cs" />
     <Compile Include="VPT\Surface\SurfaceDataTests.cs" />
     <Compile Include="VPT\Surface\SurfaceMeshTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
