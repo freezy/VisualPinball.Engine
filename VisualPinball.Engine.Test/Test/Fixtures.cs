@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.vpx";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.vpx";
 		public const string Rubber = @"..\..\VPT\Rubber\RubberTest.vpx";
+		public const string Spinner = @"..\..\VPT\Spinner\SpinnerTest.vpx";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.vpx";
 		public const string Table = @"..\..\VPT\Table\TableTest.vpx";
 		public const string Texture = @"..\..\VPT\TextureTest.vpx";
@@ -29,6 +30,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.obj";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.obj";
 		public const string Rubber = @"..\..\VPT\Rubber\RubberTest.obj";
+		public const string Spinner = @"..\..\VPT\Spinner\SpinnerTest.obj";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.obj";
 		public const string Table = @"..\..\VPT\Table\TableTest.obj";
 	}

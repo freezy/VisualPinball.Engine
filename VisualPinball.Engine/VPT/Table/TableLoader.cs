@@ -105,6 +105,12 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Rubbers[item.Name] = item;
 						break;
 					}
+					case ItemType.Spinner: {
+						Logger.Info("Loading spinner {itemName}", itemName);
+						var item = new Spinner.Spinner(reader, itemName);
+						table.Spinners[item.Name] = item;
+						break;
+					}
 					case ItemType.Surface: {
 						Logger.Info("Loading surface {itemName}", itemName);
 						var item = new Surface.Surface(reader, itemName);

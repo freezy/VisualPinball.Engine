@@ -26,6 +26,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp> Ramps = new Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner> Spinners = new Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
 
 		#region Table Info
@@ -52,11 +53,12 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Gates.Values)
 			.Concat(HitTargets.Values)
 			.Concat(Kickers.Values)
-			.Concat(Surfaces.Values)
 			//.Concat(Lights.Values)
 			.Concat(Primitives.Values)
 			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
+			.Concat(Spinners.Values)
+			.Concat(Surfaces.Values)
 			.ToArray();
 
 		private readonly TableMeshGenerator _meshGenerator;
