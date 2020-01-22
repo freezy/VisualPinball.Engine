@@ -9,6 +9,22 @@ namespace VisualPinball.Engine.VPT.Kicker
 	{
 		private readonly KickerData _data;
 
+		protected override Vertex3D Position => new Vertex3D(
+			_data.Center.X,
+			_data.Center.Y,
+			(_data.KickerType == KickerType.KickerCup ? -0.18f : 0f) * _data.Radius
+		);
+
+		protected override Vertex3D Scale => new Vertex3D(_data.Radius, _data.Radius, _data.Radius);
+
+		protected override float RotationZ { get {
+			switch (_data.KickerType) {
+				case KickerType.KickerCup: return MathF.DegToRad(_data.Orientation);
+				case KickerType.KickerWilliams: return MathF.DegToRad(_data.Orientation + 90.0f);
+				default: return MathF.DegToRad(0.0f);
+			}
+		} }
+
 		public KickerMeshGenerator(KickerData data)
 		{
 			_data = data;
@@ -27,45 +43,9 @@ namespace VisualPinball.Engine.VPT.Kicker
 			);
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override float BaseHeight(Table.Table table)
 		{
-			var baseHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
-			var zOffset = 0.0f;
-			var zRot = _data.Orientation;
-			switch (_data.KickerType) {
-				case KickerType.KickerCup:
-					zOffset = -0.18f;
-					break;
-				case KickerType.KickerWilliams:
-					zRot = _data.Orientation + 90.0f;
-					break;
-				case KickerType.KickerHole:
-					zRot = 0.0f;
-					break;
-				default:
-					zRot = 0.0f;
-					break;
-			}
-
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(_data.Radius, _data.Radius, _data.Radius);
-
-			// translation matrix
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, baseHeight + zOffset * _data.Radius);
-
-			// rotation matrix
-			var rotMatrix = new Matrix3D();
-			rotMatrix.RotateZMatrix(MathF.DegToRad(zRot));
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotMatrix);
-			fullMatrix.Multiply(transMatrix);
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
-			fullMatrix.Multiply(scaleMatrix);
-
-			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
+			return table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 		}
 
 		private Mesh GetBaseMesh()

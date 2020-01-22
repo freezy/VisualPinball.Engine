@@ -10,6 +10,10 @@ namespace VisualPinball.Engine.VPT.Gate
 	{
 		private readonly GateData _data;
 
+		protected override Vertex3D Position => new Vertex3D(_data.Center.X, _data.Center.Y, _data.Height);
+		protected override Vertex3D Scale => new Vertex3D(_data.Length, _data.Length, _data.Length);
+		protected override float RotationZ => MathF.DegToRad(_data.Rotation);
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public GateMeshGenerator(GateData data)
@@ -36,29 +40,9 @@ namespace VisualPinball.Engine.VPT.Gate
 			);
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override float BaseHeight(Table.Table table)
 		{
-			var baseHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
-
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(_data.Length, _data.Length, _data.Length);
-
-			// translation matrix
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Center.X, _data.Center.Y, _data.Height + baseHeight);
-
-			// rotation matrix
-			var rotMatrix = new Matrix3D();
-			rotMatrix.RotateZMatrix(MathF.DegToRad(_data.Rotation));
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotMatrix);
-			fullMatrix.Multiply(transMatrix);
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
-			fullMatrix.Multiply(scaleMatrix);
-
-			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
+			return table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 		}
 
 		private Mesh GetBaseMesh()

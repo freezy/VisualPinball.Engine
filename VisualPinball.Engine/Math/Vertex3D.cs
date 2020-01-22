@@ -4,6 +4,8 @@ namespace VisualPinball.Engine.Math
 {
 	public class Vertex3D : Vertex2D
 	{
+		public static readonly Vertex3D One = new Vertex3D(1.0f, 1.0f, 1.0f);
+
 		public float Z { get; set; }
 
 		public Vertex3D()

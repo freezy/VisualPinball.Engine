@@ -1,6 +1,7 @@
 // ReSharper disable UnassignedField.Global
 
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT
 {

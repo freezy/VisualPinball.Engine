@@ -8,6 +8,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 	{
 		private readonly PrimitiveData _data;
 
+		protected override Vertex3D Position => _data.Position;
+		protected override Vertex3D Scale => _data.Size;
+		protected override float RotationZ => _data.RotAndTra[5];
+
 		public PrimitiveMeshGenerator(PrimitiveData data)
 		{
 			_data = data;
@@ -30,15 +34,20 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
 		}
 
+		protected override float BaseHeight(Table.Table table)
+		{
+			return 0f;
+		}
+
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
 		{
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(_data.Size.X, _data.Size.Y, _data.Size.Z);
+			scaleMatrix.SetScaling(Scale.X, Scale.Y, Scale.Z);
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(_data.Position.X, _data.Position.Y, _data.Position.Z);
+			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z);
 
 			// translation + rotation matrix
 			var rotTransMatrix = new Matrix3D();
