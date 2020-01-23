@@ -1,13 +1,20 @@
 ﻿// ReSharper disable ConvertIfStatementToReturnStatement
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NLog;
+using OpenMcdf;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.IO;
@@ -97,7 +104,13 @@ namespace VisualPinball.Unity.Importer
 		private void Import(string path, bool saveToAssets)
 		{
 			// parse table
-			var table = Table.Load(path);
+			var tableLoad = new Stopwatch();
+			tableLoad.Start();
+			var table = LoadTable(path);
+			//var table = Table.Load(path);
+			tableLoad.Stop();
+			Logger.Info("Table loaded in {0}ms (jobs).", tableLoad.ElapsedMilliseconds);
+
 			var go = gameObject;
 			go.name = table.Name;
 			_patcher = new Patcher.Patcher.Patcher(table, Path.GetFileName(path));
@@ -105,7 +118,7 @@ namespace VisualPinball.Unity.Importer
 			// set paths
 			_saveToAssets = saveToAssets;
 			if (_saveToAssets) {
-				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path).Trim()}";
+				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)?.Trim()}";
 				_materialFolder = $"{_tableFolder}/Materials";
 				_textureFolder = $"{_tableFolder}/Textures";
 				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
@@ -131,6 +144,62 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
+		}
+
+		private Table LoadTable(string path)
+		{
+			var table = Table.Load(path, false);
+			var cf = new CompoundFile(path);
+			try {
+				var storage = cf.RootStorage.GetStorage("GameStg");
+
+				const Allocator allocator = Allocator.Persistent;
+				var data = new NativeArray<IntPtr>(table.Data.NumGameItems, allocator);
+				var dataLength = new NativeArray<int>(table.Data.NumGameItems, allocator);
+				for (var i = 0; i < table.Data.NumGameItems; i++) {
+					var itemName = $"GameItem{i}";
+					var itemStream = storage.GetStream(itemName);
+					var bytes = itemStream.GetData();
+
+					var dataPtr = Marshal.AllocHGlobal(bytes.Length);
+					Marshal.Copy(bytes, 0, dataPtr, bytes.Length);
+
+					data[i] = dataPtr;
+					dataLength[i] = bytes.Length;
+				}
+
+				var gameItemJob = new GameItemImportJob {
+					Data = data,
+					DataLength = dataLength,
+					ItemObj = new NativeArray<IntPtr>(table.Data.NumGameItems, allocator),
+					ItemType = new NativeArray<int>(table.Data.NumGameItems, allocator),
+				};
+
+				var handle = gameItemJob.Schedule(table.Data.NumGameItems, 64);
+				handle.Complete();
+
+				for (var i = 0; i < table.Data.NumGameItems; i++) {
+					if (gameItemJob.ItemObj[i].ToInt32() > 0) {
+						var objHandle = (GCHandle) gameItemJob.ItemObj[i];
+						switch (gameItemJob.ItemType[i]) {
+							case ItemType.Primitive: {
+								var item = objHandle.Target as Primitive;
+								table.Primitives[item.Name] = item;
+								break;
+							}
+						}
+						objHandle.Free();
+					}
+				}
+
+				gameItemJob.ItemObj.Dispose();
+				gameItemJob.ItemType.Dispose();
+
+			} finally {
+				cf.Close();
+			}
+
+			return table;
 		}
 
 		private void ImportTextures(Table table)

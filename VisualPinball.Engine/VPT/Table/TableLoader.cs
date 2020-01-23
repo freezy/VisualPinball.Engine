@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using NLog;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
@@ -12,7 +14,7 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static Table Load(string filename)
+		public static Table Load(string filename, bool loadGameItems = true)
 		{
 			var cf = new CompoundFile(filename);
 			try {
@@ -25,7 +27,9 @@ namespace VisualPinball.Engine.VPT.Table
 					var table = new Table(reader);
 
 					LoadTableInfo(table, cf.RootStorage);
-					LoadGameItems(table, gameStorage);
+					if (loadGameItems) {
+						LoadGameItems(table, gameStorage);
+					}
 					LoadTextures(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
@@ -35,6 +39,28 @@ namespace VisualPinball.Engine.VPT.Table
 			} finally {
 				cf.Close();
 			}
+		}
+
+		public static IntPtr LoadGameItem(byte[] itemData, int storageIndex, out int itemType)
+		{
+			object item = null;
+			var itemName = $"GameItem{storageIndex}";
+			var reader = new BinaryReader(new MemoryStream(itemData));
+			itemType = reader.ReadInt32();
+			switch (itemType) {
+				case ItemType.Primitive: {
+					item = new Primitive.Primitive(reader, itemName);
+					break;
+				}
+			}
+
+			if (item != null) {
+				var gcHandle = GCHandle.Alloc(item);
+				return (IntPtr) gcHandle;
+			}
+
+			itemType = -1;
+			return new IntPtr();
 		}
 
 		private static void LoadGameItems(Table table, CFStorage storage)
