@@ -71,9 +71,9 @@ namespace VisualPinball.Engine.VPT.Table
 		/// </summary>
 		/// <param name="filename">Path to the VPX file</param>
 		/// <returns>The parsed table</returns>
-		public static Table Load(string filename)
+		public static Table Load(string filename, bool loadGameItems = true)
 		{
-			return TableLoader.Load(filename);
+			return TableLoader.Load(filename, loadGameItems);
 		}
 
 		public Table(BinaryReader reader) : base(new TableData(reader))

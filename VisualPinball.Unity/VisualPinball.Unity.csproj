@@ -38,6 +38,10 @@
       <HintPath>..\packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OpenMcdf, Version=2.2.1.4, Culture=neutral, PublicKeyToken=fdbb1629d7c00800">
+      <HintPath>..\packages\OpenMcdf.2.2.1.4\lib\net40\OpenMcdf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -63,6 +67,7 @@
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
+    <Compile Include="Importer\GameItemImportJob.cs" />
     <Compile Include="Importer\ScaleNormalizer.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
     <Compile Include="IO\Logging.cs" />
