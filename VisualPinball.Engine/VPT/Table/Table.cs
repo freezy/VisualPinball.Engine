@@ -23,6 +23,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget> HitTargets = new Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker> Kickers = new Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Light.Light> Lights = new Dictionary<string, VisualPinball.Engine.VPT.Light.Light>();
+		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flasher.Flasher> Flashers = new Dictionary<string, VisualPinball.Engine.VPT.Flasher.Flasher>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp> Ramps = new Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();

@@ -3,6 +3,7 @@ namespace VisualPinball.Engine.Test.Test
 	public static class VpxPath
 	{
 		public const string Bumper = @"..\..\VPT\Bumper\BumperTest.vpx";
+		public const string Flasher = @"..\..\VPT\Flasher\FlasherTest.vpx";
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.vpx";
 		public const string Gate = @"..\..\VPT\Gate\GateTest.vpx";
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.vpx";

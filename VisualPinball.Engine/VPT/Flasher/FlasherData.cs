@@ -2,6 +2,8 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -19,9 +21,10 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffFloat("FHEI")]
 		public float Height = 50.0f;
 
-		[BiffVertex("FLAX", Index = 0)]
-		[BiffVertex("FLAY", Index = 1)]
-		public Vertex2D Center;
+		[BiffFloat("FLAX")] public float PosX { set => Center.X = value; }
+		[BiffFloat("FLAY")] public float PosY { set => Center.Y = value; }
+
+		public Vertex2D Center = new Vertex2D();
 
 		[BiffFloat("FROX")]
 		public float RotX = 0.0f;
@@ -71,6 +74,8 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffInt("FIAM")]
 		public int FilterAmount = 100;
 
+		#region Biff
+
 		static FlasherData()
 		{
 			Init(typeof(FlasherData), Attributes);
@@ -82,5 +87,7 @@ namespace VisualPinball.Engine.VPT.Flasher
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

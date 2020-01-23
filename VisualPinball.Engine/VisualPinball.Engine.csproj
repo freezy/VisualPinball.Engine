@@ -121,6 +121,7 @@
     <Compile Include="VPT\Decal\DecalData.cs" />
     <Compile Include="VPT\DispReel\DispReelData.cs" />
     <Compile Include="VPT\Enums.cs" />
+    <Compile Include="VPT\Flasher\Flasher.cs" />
     <Compile Include="VPT\Flasher\FlasherData.cs" />
     <Compile Include="VPT\Flipper\Flipper.cs" />
     <Compile Include="VPT\Flipper\FlipperData.cs" />
