@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		private Mesh GetMesh()
 		{
 			var vertexMatrix = GetVertexTransformationMatrix();
-			return GetBaseMesh().Transform(vertexMatrix);
+			return UpdateWireThickness(GetBaseMesh()).Transform(vertexMatrix);
 		}
 
 		private Matrix3D GetVertexTransformationMatrix()
@@ -89,6 +89,25 @@ namespace VisualPinball.Engine.VPT.Trigger
 			fullMatrix.Multiply(transMatrix);
 
 			return fullMatrix;
+		}
+
+		private Mesh UpdateWireThickness(Mesh mesh)
+		{
+			if (System.Math.Abs(_data.WireThickness) < 0.001) {
+				return mesh;
+			}
+			if (_data.Shape != TriggerShape.TriggerWireA && _data.Shape != TriggerShape.TriggerWireB &&
+			    _data.Shape != TriggerShape.TriggerWireC && _data.Shape != TriggerShape.TriggerWireD) {
+				return mesh;
+			}
+
+			foreach (var vertex in mesh.Vertices) {
+				vertex.X += vertex.Nx * _data.WireThickness;
+				vertex.Y += vertex.Ny * _data.WireThickness;
+				vertex.Z += vertex.Nz * _data.WireThickness;
+			}
+
+			return mesh;
 		}
 
 		private Mesh GetBaseMesh()
