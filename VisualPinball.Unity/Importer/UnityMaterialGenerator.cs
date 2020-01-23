@@ -57,8 +57,17 @@ namespace VisualPinball.Unity.Importer
 			unityMaterial.SetColor(Color, col);
 
 			// validate IsMetal of vpxMaterial , if true set the Metallic value of unityMaterial;
+			//found vpx authors setting metallic as well as translceunt at the same time , which does not render correctly in unity
+			// so I have to check if this value is true and also if opacity <= 1 
 			if (vpxMaterial.IsMetal) {
-				unityMaterial.SetFloat(Metallic, 1f);
+				if (!vpxMaterial.IsOpacityActive) {
+					unityMaterial.SetFloat(Metallic, 1f);
+				} else {
+					if (vpxMaterial.Opacity >= 1) {
+						unityMaterial.SetFloat(Metallic, 1f);
+					}
+				}
+				
 			}
 
 			//log IsMetal
