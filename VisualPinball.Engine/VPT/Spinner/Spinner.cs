@@ -5,6 +5,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class Spinner : Item<SpinnerData>, IRenderable
 	{
+		public const string BracketMaterialName = "__spinnerBracketMaterial";
+
 		private readonly SpinnerMeshGenerator _meshGenerator;
 
 		public Spinner(BinaryReader reader, string itemName) : base(new SpinnerData(reader, itemName))
