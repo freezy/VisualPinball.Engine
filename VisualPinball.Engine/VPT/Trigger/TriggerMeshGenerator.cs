@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 					name: _data.Name,
 					mesh: GetMesh().Transform(preMatrix),
 					material: table.GetMaterial(_data.Material),
-					isVisible: _data.IsVisible
+					isVisible: _data.IsVisible && _data.Shape != TriggerShape.TriggerNone
 				)
 			);
 		}
