@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 using VisualPinball.Unity.Importer;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Unity.Extensions
 {
@@ -27,8 +28,9 @@ namespace VisualPinball.Unity.Extensions
 			Transparent
 		}
 
-		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro) {
-
+		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro)
+		{
+			Profiler.Start("Material.ToUnityMaterial()");
 			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
 				name = vpxMaterial.Name
 			};
@@ -61,7 +63,9 @@ namespace VisualPinball.Unity.Extensions
 			} else if (blendMode == BlendMode.Opaque) {
 				// if we cannot determine transparency or cutout through material
 				// props, look at the texture.
+				Profiler.Start("GetStats()");
 				var stats = ro.Map?.GetStats(1000);
+				Profiler.Stop("GetStats()");
 				if (stats != null && !stats.IsOpaque) {
 					blendMode = stats.Translucent / stats.Transparent > 0.1
 						? BlendMode.Transparent
@@ -125,7 +129,7 @@ namespace VisualPinball.Unity.Extensions
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-
+			Profiler.Stop("Material.ToUnityMaterial()");
 			return unityMaterial;
 		}
 

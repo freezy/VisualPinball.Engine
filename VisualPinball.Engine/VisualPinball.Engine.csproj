@@ -99,6 +99,7 @@
     <Compile Include="IO\BiffZlib.cs" />
     <Compile Include="IO\Logging.cs" />
     <Compile Include="IO\LzwReader.cs" />
+    <Compile Include="IO\Profiler.cs" />
     <Compile Include="Math\CatmullCurve.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
