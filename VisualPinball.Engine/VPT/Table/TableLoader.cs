@@ -46,9 +46,9 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		public static IntPtr LoadGameItem(byte[] itemData, int storageIndex, out int itemType)
+		public static void LoadGameItem(byte[] itemData, int storageIndex, out int itemType, out object item)
 		{
-			object item = null;
+			item = null;
 			var itemName = $"GameItem{storageIndex}";
 			var reader = new BinaryReader(new MemoryStream(itemData));
 			itemType = reader.ReadInt32();
@@ -57,15 +57,10 @@ namespace VisualPinball.Engine.VPT.Table
 					item = new Primitive.Primitive(reader, itemName);
 					break;
 				}
+				default:
+					itemType = -1;
+					break;
 			}
-
-			if (item != null) {
-				var gcHandle = GCHandle.Alloc(item);
-				return (IntPtr) gcHandle;
-			}
-
-			itemType = -1;
-			return new IntPtr();
 		}
 
 		private static void LoadGameItems(Table table, CFStorage storage)

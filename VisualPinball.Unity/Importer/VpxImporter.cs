@@ -107,8 +107,8 @@ namespace VisualPinball.Unity.Importer
 		{
 			// parse table
 			Profiler.Start("VpxImporter.Import()");
-			//var table = LoadTable(path);
-			var table = Table.Load(path);
+			var table = TableLoader.LoadTable(path);
+			//var table = Table.Load(path);
 
 			var go = gameObject;
 			go.name = table.Name;
@@ -144,62 +144,6 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 			Profiler.Stop("VpxImporter.Import()");
-		}
-
-		private Table LoadTable(string path)
-		{
-			var table = Table.Load(path, false);
-			var cf = new CompoundFile(path);
-			try {
-				var storage = cf.RootStorage.GetStorage("GameStg");
-
-				const Allocator allocator = Allocator.Persistent;
-				var data = new NativeArray<IntPtr>(table.Data.NumGameItems, allocator);
-				var dataLength = new NativeArray<int>(table.Data.NumGameItems, allocator);
-				for (var i = 0; i < table.Data.NumGameItems; i++) {
-					var itemName = $"GameItem{i}";
-					var itemStream = storage.GetStream(itemName);
-					var bytes = itemStream.GetData();
-
-					var dataPtr = Marshal.AllocHGlobal(bytes.Length);
-					Marshal.Copy(bytes, 0, dataPtr, bytes.Length);
-
-					data[i] = dataPtr;
-					dataLength[i] = bytes.Length;
-				}
-
-				var gameItemJob = new GameItemImportJob {
-					Data = data,
-					DataLength = dataLength,
-					ItemObj = new NativeArray<IntPtr>(table.Data.NumGameItems, allocator),
-					ItemType = new NativeArray<int>(table.Data.NumGameItems, allocator),
-				};
-
-				var handle = gameItemJob.Schedule(table.Data.NumGameItems, 64);
-				handle.Complete();
-
-				for (var i = 0; i < table.Data.NumGameItems; i++) {
-					if (gameItemJob.ItemObj[i].ToInt32() > 0) {
-						var objHandle = (GCHandle) gameItemJob.ItemObj[i];
-						switch (gameItemJob.ItemType[i]) {
-							case ItemType.Primitive: {
-								var item = objHandle.Target as Primitive;
-								table.Primitives[item.Name] = item;
-								break;
-							}
-						}
-						objHandle.Free();
-					}
-				}
-
-				gameItemJob.ItemObj.Dispose();
-				gameItemJob.ItemType.Dispose();
-
-			} finally {
-				cf.Close();
-			}
-
-			return table;
 		}
 
 		private void ImportTextures(Table table)
