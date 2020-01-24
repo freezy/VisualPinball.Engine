@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using NLog;
 using OpenMcdf;
@@ -23,38 +24,34 @@ namespace VisualPinball.Unity.Importer
 
 				// pull in data from storage
 				var storage = cf.RootStorage.GetStorage("GameStg");
-				var gameItemJob = new GameItemImportJob(table.Data.NumGameItems);
+				var job = new GameItemJob(table.Data.NumGameItems);
 				for (var i = 0; i < table.Data.NumGameItems; i++) {
 					var itemName = $"GameItem{i}";
 					var itemStream = storage.GetStream(itemName);
 					var bytes = itemStream.GetData();
 
-					var dataPtr = Marshal.AllocHGlobal(bytes.Length);
-					Marshal.Copy(bytes, 0, dataPtr, bytes.Length);
-
-					gameItemJob.Data[i] = dataPtr;
-					gameItemJob.DataLength[i] = bytes.Length;
+					job.Data[i] = MemHelper.FromByteArray(bytes);
+					job.DataLength[i] = bytes.Length;
 				}
 
 				// parse threaded
-				var handle = gameItemJob.Schedule(table.Data.NumGameItems, 64);
+				var handle = job.Schedule(table.Data.NumGameItems, 64);
 				handle.Complete();
 
+				// update table with results
 				for (var i = 0; i < table.Data.NumGameItems; i++) {
-					if (gameItemJob.ItemObj[i].ToInt32() > 0) {
-						var objHandle = (GCHandle) gameItemJob.ItemObj[i];
-						switch (gameItemJob.ItemType[i]) {
+					if (job.ItemObj[i].ToInt32() > 0) {
+						var objHandle = (GCHandle) job.ItemObj[i];
+						switch (job.ItemType[i]) {
 							case ItemType.Primitive: {
 								var item = objHandle.Target as Primitive;
 								table.Primitives[item.Name] = item;
 								break;
 							}
 						}
-						objHandle.Free();
 					}
 				}
-
-				gameItemJob.Dispose();
+				job.Dispose();
 
 			} finally {
 				cf.Close();
@@ -65,7 +62,7 @@ namespace VisualPinball.Unity.Importer
 		}
 	}
 
-	internal struct GameItemImportJob : IJobParallelFor, IDisposable
+	internal struct GameItemJob : IJobParallelFor, IDisposable
 	{
 		[ReadOnly]
 		public NativeArray<IntPtr> Data;
@@ -79,7 +76,7 @@ namespace VisualPinball.Unity.Importer
 		[WriteOnly]
 		public NativeArray<IntPtr> ItemObj;
 
-		public GameItemImportJob(int size) : this()
+		public GameItemJob(int size) : this()
 		{
 			const Allocator allocator = Allocator.Persistent;
 			Data = new NativeArray<IntPtr>(size, allocator);
@@ -104,6 +101,9 @@ namespace VisualPinball.Unity.Importer
 
 		public void Dispose()
 		{
+			foreach (var ptr in ItemObj.Where(ptr => ptr.ToInt32() > 0)) {
+				((GCHandle)ptr).Free();
+			}
 			Data.Dispose();
 			DataLength.Dispose();
 			ItemType.Dispose();
