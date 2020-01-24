@@ -12,6 +12,14 @@ namespace VisualPinball.Unity.Importer
 			return new CopiedPtr<byte[]>(ptr, data);
 		}
 
+		public static IntPtr FromByteArray(byte[] bytes)
+		{
+			var dataPtr = Marshal.AllocHGlobal(bytes.Length);
+			Marshal.Copy(bytes, 0, dataPtr, bytes.Length);
+
+			return dataPtr;
+		}
+
 		public static IntPtr ToIntPtr(object item)
 		{
 			if (item != null) {
