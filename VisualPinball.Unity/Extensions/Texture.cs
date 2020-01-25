@@ -11,18 +11,16 @@ namespace VisualPinball.Unity.Extensions
 		{
 			if (vpTex.Data.Bitmap != null) {
 				return FromBitmap(vpTex);
-
 			}
-
 			return vpTex.IsHdr ? FromHdrBinary(vpTex) : FromBinary(vpTex);
 		}
 
 		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null)
 		{
-			var ext = vpTex.IsHdr ? "exr" : "png";
+			var fileName = $"{AssetUtility.StringToFilename(vpTex.Name)}{vpTex.FileExtension}";
 			return folderName != null
-				? $"{folderName}/{AssetUtility.StringToFilename(vpTex.Name)}.{ext}"
-				: $"{AssetUtility.StringToFilename(vpTex.Name)}.{ext}";
+				? $"{folderName}/{fileName}"
+				: $"{fileName}";
 		}
 
 		private static Texture2D FromBinary(Engine.VPT.Texture vpTex)

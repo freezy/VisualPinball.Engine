@@ -129,19 +129,24 @@ namespace VisualPinball.Unity.Importer
 			_asset = ScriptableObject.CreateInstance<VpxAsset>();
 			AssetDatabase.SaveAssets();
 
+
 			// import textures
-			ImportTextures(table);
-
-			// import table
-			ImportGameItems(table);
-
-			// import lights
-			ImportGiLights(table);
+			Profiler.Start("ImportTextures via Job");
+			var textureImporter = new TextureImporter(table);
+			textureImporter.ImportTextures(_textureFolder);
+			Profiler.Stop("ImportTextures via Job");
+			// ImportTextures(table);
+			//
+			// // import table
+			// ImportGameItems(table);
+			//
+			// // import lights
+			// ImportGiLights(table);
 
 			// set root transformation
-			go.transform.localRotation = GlobalRotation;
-			go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
-			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
+			// go.transform.localRotation = GlobalRotation;
+			// go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
+			// go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 			Profiler.Stop("VpxImporter.Import()");
 		}
@@ -253,7 +258,6 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("ToUnityMesh");
 			obj.SetActive(renderObject.IsVisible);
 
-
 			// apply mesh to game object
 			var mf = obj.AddComponent<MeshFilter>();
 			mf.sharedMesh = mesh;
@@ -318,16 +322,16 @@ namespace VisualPinball.Unity.Importer
 				var unityTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
 				Profiler.Stop("LoadAssetAtPath");
 				ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
+				Profiler.Stop("LoadTexture");
 				return unityTex;
 			}
-			Profiler.Stop("LoadTexture");
 			return _textures[texture.Name];
 		}
 
 		private static void ImportTextureAs(Texture map, TextureImporterType type, string path)
 		{
 			Profiler.Start("ImportTextureAs");
-			var textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+			var textureImporter = AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
 			if (textureImporter != null) {
 				textureImporter.textureType = type;
 				Profiler.Start("HasTransparentPixels");
