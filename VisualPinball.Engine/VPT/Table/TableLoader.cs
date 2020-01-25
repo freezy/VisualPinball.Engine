@@ -20,11 +20,11 @@ namespace VisualPinball.Engine.VPT.Table
 			Profiler.Start("TableLoader.Load()");
 			var cf = new CompoundFile(filename);
 			try {
-				Profiler.Start("I/O");
+				Profiler.Start("TableLoader.Load (I/O)");
 				var gameStorage = cf.RootStorage.GetStorage("GameStg");
 				var gameData = gameStorage.GetStream("GameData");
 				var bytes = gameData.GetData();
-				Profiler.Stop("I/O");
+				Profiler.Stop("TableLoader.Load (I/O)");
 
 				using (var stream = new MemoryStream(bytes))
 				using (var reader = new BinaryReader(stream)) {
@@ -53,13 +53,20 @@ namespace VisualPinball.Engine.VPT.Table
 			var reader = new BinaryReader(new MemoryStream(itemData));
 			itemType = reader.ReadInt32();
 			switch (itemType) {
-				case ItemType.Primitive: {
-					item = new Primitive.Primitive(reader, itemName);
-					break;
-				}
-				default:
-					itemType = -1;
-					break;
+				case ItemType.Bumper: item = new Bumper.Bumper(reader, itemName); break;
+				case ItemType.Flasher: item = new Flasher.Flasher(reader, itemName); break;
+				case ItemType.Flipper: item = new Flipper.Flipper(reader, itemName); break;
+				case ItemType.Gate: item = new Gate.Gate(reader, itemName); break;
+				case ItemType.HitTarget: item = new HitTarget.HitTarget(reader, itemName); break;
+				case ItemType.Kicker: item = new Kicker.Kicker(reader, itemName); break;
+				case ItemType.Light: item = new Light.Light(reader, itemName); break;
+				case ItemType.Primitive: item = new Primitive.Primitive(reader, itemName); break;
+				case ItemType.Ramp: item = new Ramp.Ramp(reader, itemName); break;
+				case ItemType.Rubber: item = new Rubber.Rubber(reader, itemName); break;
+				case ItemType.Spinner: item = new Spinner.Spinner(reader, itemName); break;
+				case ItemType.Surface: item = new Surface.Surface(reader, itemName); break;
+				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
+				default: itemType = -1; break;
 			}
 		}
 
