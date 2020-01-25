@@ -20,6 +20,12 @@ namespace VisualPinball.Unity.Importer
 			return dataPtr;
 		}
 
+		public static T ToObj<T>(IntPtr ptr) where T : class
+		{
+			var handle = (GCHandle) ptr;
+			return handle.Target as T;
+		}
+
 		public static IntPtr ToIntPtr(object item)
 		{
 			if (item != null) {

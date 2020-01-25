@@ -19,6 +19,19 @@ namespace VisualPinball.Engine.VPT
 		public int Height => Data.Height;
 		public bool IsHdr => (Data.Path?.ToLower().EndsWith(".hdr") ?? false) || (Data.Path?.ToLower().EndsWith(".exr") ?? false);
 
+		public string FileExtension {
+			get {
+				if (Data.Path == null) {
+					return ".png";
+				}
+				var ext = Path.GetExtension(Data.Path).ToLower();
+				if (ext == ".jpeg") {
+					ext = ".jpg";
+				}
+				return ext;
+			}
+		}
+
 		/// <summary>
 		/// Data as read from the .vpx file. Note that for bitmaps, it doesn't
 		/// contain the header.
@@ -44,8 +57,8 @@ namespace VisualPinball.Engine.VPT
 					return false;
 				}
 
-				if (_lastStats != null) {
-					return !_lastStats.IsOpaque;
+				if (_stats != null) {
+					return !_stats.IsOpaque;
 				}
 
 				if (_hasTransparentPixels == null) {
@@ -58,7 +71,9 @@ namespace VisualPinball.Engine.VPT
 
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
-		private TextureStats _lastStats;
+		public bool IsMarkedToAnalyze => _stats != null && _stats.IsEmpty;
+
+		private TextureStats _stats;
 		private bool? _hasTransparentPixels;
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
@@ -71,14 +86,24 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <returns>Statistics</returns>
-		public TextureStats GetStats(int threshold)
+		public TextureStats GetStats(int threshold = 1000)
 		{
 			if (!HasTransparentFormat) {
 				return null;
 			}
 
-			_lastStats = Analyze(Image.GetRawData(), threshold);
-			return _lastStats;
+			if (_stats == null || _stats.IsEmpty) {
+				_stats = Analyze(Image.GetRawData(), threshold);
+			}
+
+			return _stats;
+		}
+
+		public void MarkAnalyze()
+		{
+			if (_stats == null) {
+				_stats = new TextureStats();
+			}
 		}
 
 		/// <summary>
@@ -208,10 +233,16 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		public bool IsOpaque => _numTranslucentPixels == 0 && _numTranslucentPixels == 0;
 
+		public bool IsEmpty => _numTotalPixels == 0;
+
 		private readonly int _numOpaquePixels;
 		private readonly int _numTranslucentPixels;
 		private readonly int _numTransparentPixels;
 		private readonly int _numTotalPixels;
+
+		public TextureStats()
+		{
+		}
 
 		public TextureStats(int numOpaquePixels, int numTranslucentPixels, int numTransparentPixels)
 		{
