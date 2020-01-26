@@ -52,27 +52,27 @@ namespace VisualPinball.Unity.Extensions
 
 			// blend modes
 			var blendMode = BlendMode.Opaque;
-			if (vpxMaterial.IsOpacityActive) {
+			if (ro.Map != null && ro.Map.HasTransparentPixels) {
+				blendMode = BlendMode.Cutout;
+			}
+			if (vpxMaterial.IsOpacityActive && vpxMaterial.Opacity < 1f) {
 				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
 				unityMaterial.SetColor(Color, col);
 				blendMode = BlendMode.Transparent;
 			}
-			if (vpxMaterial.Edge < 1) {
-				blendMode = BlendMode.Cutout;
 
-			}
-			if (blendMode == BlendMode.Opaque && ro.Map != null) {
-				// if we cannot determine transparency or cutout through material
-				// props, look at the texture.
-				Profiler.Start("GetStats()");
-				var stats = ro.Map.GetStats(1000);
-				Profiler.Stop("GetStats()");
-				if (!stats.IsOpaque) {
-					blendMode = stats.Translucent / stats.Transparent > 0.1
-						? BlendMode.Transparent
-						: BlendMode.Cutout;
-				}
-			}
+			// if (blendMode == BlendMode.Opaque && ro.Map != null) {
+			// 	// if we cannot determine transparency or cutout through material
+			// 	// props, look at the texture.
+			// 	Profiler.Start("GetStats()");
+			// 	//var stats = ro.Map.GetStats(1000);
+			// 	Profiler.Stop("GetStats()");
+			// 	if (!stats.IsOpaque) {
+			// 		blendMode = stats.Translucent / stats.Transparent > 0.1
+			// 			? BlendMode.Transparent
+			// 			: BlendMode.Cutout;
+			// 	}
+			// }
 
 			// normal map
 			if (ro.NormalMap != null) {
