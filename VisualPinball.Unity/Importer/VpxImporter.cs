@@ -43,11 +43,13 @@ namespace VisualPinball.Unity.Importer
 
 		private Patcher.Patcher.Patcher _patcher;
 
+		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
+		private Table _table;
 
 		public static void ImportVpxRuntime(string path)
 		{
@@ -107,12 +109,12 @@ namespace VisualPinball.Unity.Importer
 		{
 			// parse table
 			Profiler.Start("VpxImporter.Import()");
-			var table = TableLoader.LoadTable(path);
+			_table = TableLoader.LoadTable(path);
 			//var table = Table.Load(path);
 
 			var go = gameObject;
-			go.name = table.Name;
-			_patcher = new Patcher.Patcher.Patcher(table, Path.GetFileName(path));
+			go.name = _table.Name;
+			_patcher = new Patcher.Patcher.Patcher(_table, Path.GetFileName(path));
 
 			// set paths
 			_saveToAssets = saveToAssets;
@@ -120,8 +122,8 @@ namespace VisualPinball.Unity.Importer
 				_tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(path)?.Trim()}";
 				_materialFolder = $"{_tableFolder}/Materials";
 				_textureFolder = $"{_tableFolder}/Textures";
-				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
-				_tablePrefabPath = $"{_tableFolder}/{AssetUtility.StringToFilename(table.Name)}.prefab";
+				_tableDataPath = $"{_tableFolder}/{AssetUtility.StringToFilename(_table.Name)}_data.asset";
+				_tablePrefabPath = $"{_tableFolder}/{AssetUtility.StringToFilename(_table.Name)}.prefab";
 				AssetUtility.CreateFolders(_tableFolder, _materialFolder, _textureFolder);
 			}
 
@@ -129,24 +131,28 @@ namespace VisualPinball.Unity.Importer
 			_asset = ScriptableObject.CreateInstance<VpxAsset>();
 			AssetDatabase.SaveAssets();
 
+			// generate meshes now
+			foreach (var r in _table.Renderables) {
+				_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
+			}
 
 			// import textures
 			Profiler.Start("ImportTextures via Job");
-			var textureImporter = new TextureImporter(table);
+			var textureImporter = new TextureImporter(_renderObjects.Values.ToArray(), _table.Textures.Values.Concat(Texture.LocalTextures).ToArray());
 			textureImporter.ImportTextures(_textureFolder);
 			Profiler.Stop("ImportTextures via Job");
 			// ImportTextures(table);
-			//
-			// // import table
-			// ImportGameItems(table);
-			//
-			// // import lights
-			// ImportGiLights(table);
+
+			// import table
+			ImportGameItems();
+
+			// import lights
+			ImportGiLights();
 
 			// set root transformation
-			// go.transform.localRotation = GlobalRotation;
-			// go.transform.localPosition = new Vector3(-table.Width / 2 * GlobalScale, 0f, -table.Height / 2 * GlobalScale);
-			// go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
+			go.transform.localRotation = GlobalRotation;
+			go.transform.localPosition = new Vector3(-_table.Width / 2 * GlobalScale, 0f, -_table.Height / 2 * GlobalScale);
+			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 			Profiler.Stop("VpxImporter.Import()");
 		}
@@ -169,20 +175,18 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("VpxImporter.ImportTextures()");
 		}
 
-		private void ImportGameItems(Table table)
+		private void ImportGameItems()
 		{
 			Profiler.Start("VpxImporter.ImportGameItems()");
 
 			// save game objects to asset folder
 			if (_saveToAssets) {
-				Profiler.Start("ItemsAssets");
 				AssetDatabase.CreateAsset(_asset, _tableDataPath);
 				AssetDatabase.SaveAssets();
-				Profiler.Stop("ItemsAssets");
 			}
 
 			// import game objects
-			ImportRenderables(table);
+			ImportRenderables();
 
 			if (_saveToAssets) {
 				Profiler.Start("ItemsAssets");
@@ -195,23 +199,21 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("VpxImporter.ImportGameItems()");
 		}
 
-		private void ImportGiLights(Table table)
+		private void ImportGiLights()
 		{
 			var lightsObj = new GameObject("Lights");
 			lightsObj.transform.parent = gameObject.transform;
-			foreach (var vpxLight in table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
+			foreach (var vpxLight in _table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
 				var unityLight = vpxLight.ToUnityPointLight();
 				unityLight.transform.parent = lightsObj.transform;
 			}
 		}
 
-		private void ImportRenderables(Table table)
+		private void ImportRenderables()
 		{
 			Profiler.Start("VpxImporter.ImportRenderables()");
-			foreach (var renderable in table.Renderables) {
-				Profiler.Start("Generate");
-				var ro = renderable.GetRenderObjects(table, Origin.Original, false);
-				Profiler.Stop("Generate");
+			foreach (var renderable in _renderObjects.Keys) {
+				var ro = _renderObjects[renderable];
 				if (!_parents.ContainsKey(ro.Parent)) {
 					var parent = new GameObject(ro.Parent);
 					parent.transform.parent = gameObject.transform;
@@ -321,7 +323,7 @@ namespace VisualPinball.Unity.Importer
 				Profiler.Start("LoadAssetAtPath");
 				var unityTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
 				Profiler.Stop("LoadAssetAtPath");
-				ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
+				//ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
 				Profiler.Stop("LoadTexture");
 				return unityTex;
 			}

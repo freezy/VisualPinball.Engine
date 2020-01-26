@@ -37,6 +37,8 @@ namespace VisualPinball.Engine.VPT
 		[BiffByte("DATA")]
 		public byte[] Data;
 
+		private byte[] _rawData;
+
 		public BinaryData(Resource res) : base(res.Name)
 		{
 			Data = res.Data;
@@ -44,8 +46,13 @@ namespace VisualPinball.Engine.VPT
 
 		public byte[] GetRawData()
 		{
+			if (_rawData != null) {
+				return _rawData;
+			}
 			var img = Decode();
-			return img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
+			_rawData = img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
+
+			return _rawData;
 		}
 
 		private Image<Rgba32> Decode()

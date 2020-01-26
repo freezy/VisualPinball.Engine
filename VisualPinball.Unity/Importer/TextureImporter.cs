@@ -6,10 +6,12 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using Object = System.Object;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
@@ -19,18 +21,15 @@ namespace VisualPinball.Unity.Importer
 		private readonly RenderObjectGroup[] _renderObjects;
 		private readonly Texture[] _textures;
 
-		public TextureImporter(Table table)
+		public TextureImporter(RenderObjectGroup[] renderObjects, Texture[] textures)
 		{
-			// takes 120ms for batman, might be faster on threads
-			_renderObjects = table.Renderables.Select(r => r.GetRenderObjects(table, Origin.Original, false)).ToArray();
-			_textures = table.Textures.Values.Concat(Texture.LocalTextures).ToArray();
+			_renderObjects = renderObjects;
+			_textures = textures;
 		}
 
 		public void ImportTextures(string textureFolder)
 		{
-			Profiler.Start("Mark to analyze");
 			MarkTexturesToAnalyze();
-			Profiler.Stop("Mark to analyze");
 
 			Profiler.Start("Run job");
 			using (var job = new TextureJob(_textures, textureFolder)) {
@@ -38,6 +37,25 @@ namespace VisualPinball.Unity.Importer
 				handle.Complete();
 			}
 			Profiler.Stop("Run job");
+
+			Profiler.Start("Unity asset configuration");
+			foreach (var texture in _textures) {
+				var path = texture.GetUnityFilename(textureFolder);
+				TexturePostProcessor.Textures[path] = texture;
+				// var textureImporter = AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+				// if (textureImporter != null) {
+				// 	//textureImporter.textureType = type;
+				// 	textureImporter.alphaIsTransparency = texture.HasTransparentPixels;
+				// 	textureImporter.isReadable = true;
+				// 	textureImporter.mipmapEnabled = true;
+				// 	textureImporter.filterMode = FilterMode.Bilinear;
+				// 	EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), texture.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
+				// 	Profiler.Start("AssetDatabase.ImportAsset");
+				// 	AssetDatabase.ImportAsset(path);
+				// 	Profiler.Stop("AssetDatabase.ImportAsset");
+				// }
+			}
+			Profiler.Stop("Unity asset configuration");
 
 			// now the assets are written to disk, explicitly import them
 			Profiler.Start("Unity asset import");
@@ -81,9 +99,10 @@ namespace VisualPinball.Unity.Importer
 			var textureFolder =  MemHelper.ToObj<string>(_textureFolder);
 
 			// get stats if marked
-			if (texture.IsMarkedToAnalyze) {
+			//if (texture.IsMarkedToAnalyze) {
 				texture.GetStats();
-			}
+			//}
+			//var _ = texture.HasTransparentPixels;
 
 			// write to disk
 			var path = texture.GetUnityFilename(textureFolder);
@@ -93,6 +112,26 @@ namespace VisualPinball.Unity.Importer
 		public void Dispose()
 		{
 			_textures.Dispose();
+		}
+	}
+
+	public class TexturePostProcessor : AssetPostprocessor
+	{
+		public static readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+
+		public void OnPreprocessTexture()
+		{
+			var importer = assetImporter as UnityEditor.TextureImporter;
+			if (importer != null) {
+				var texture = Textures[importer.assetPath];
+
+				//importer.textureType = type;
+				importer.alphaIsTransparency = texture.HasTransparentPixels;
+				importer.isReadable = true;
+				importer.mipmapEnabled = true;
+				importer.filterMode = FilterMode.Bilinear;
+				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(importer.assetPath), texture.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
+			}
 		}
 	}
 }
