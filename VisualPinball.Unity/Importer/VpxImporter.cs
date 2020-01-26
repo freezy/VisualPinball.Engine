@@ -157,23 +157,23 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("VpxImporter.Import()");
 		}
 
-		private void ImportTextures(Table table)
-		{
-			Profiler.Start("VpxImporter.ImportTextures()");
-			Profiler.Start("Table");
-			foreach (var texture in table.Textures.Values) {
-				SaveTexture(texture);
-			}
-			Profiler.Stop("Table");
-
-			// also import local textures
-			Profiler.Start("Local");
-			foreach (var texture in Texture.LocalTextures) {
-				SaveTexture(texture);
-			}
-			Profiler.Stop("Local");
-			Profiler.Stop("VpxImporter.ImportTextures()");
-		}
+		// private void ImportTextures(Table table)
+		// {
+		// 	Profiler.Start("VpxImporter.ImportTextures()");
+		// 	Profiler.Start("Table");
+		// 	foreach (var texture in table.Textures.Values) {
+		// 		SaveTexture(texture);
+		// 	}
+		// 	Profiler.Stop("Table");
+		//
+		// 	// also import local textures
+		// 	Profiler.Start("Local");
+		// 	foreach (var texture in Texture.LocalTextures) {
+		// 		SaveTexture(texture);
+		// 	}
+		// 	Profiler.Stop("Local");
+		// 	Profiler.Stop("VpxImporter.ImportTextures()");
+		// }
 
 		private void ImportGameItems()
 		{
@@ -190,9 +190,15 @@ namespace VisualPinball.Unity.Importer
 
 			if (_saveToAssets) {
 				Profiler.Start("ItemsAssets");
+				Profiler.Start("PrefabUtility.SaveAsPrefabAssetAndConnect");
 				PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
+				Profiler.Stop("PrefabUtility.SaveAsPrefabAssetAndConnect");
+				Profiler.Start("AssetDatabase.SaveAssets");
 				AssetDatabase.SaveAssets();
+				Profiler.Stop("AssetDatabase.SaveAssets");
+				Profiler.Start("AssetDatabase.Refresh");
 				AssetDatabase.Refresh();
+				Profiler.Stop("AssetDatabase.Refresh");
 				Profiler.Stop("ItemsAssets");
 			}
 
@@ -307,14 +313,14 @@ namespace VisualPinball.Unity.Importer
 			return material;
 		}
 
-		private void SaveTexture(Texture texture)
-		{
-			if (_saveToAssets) {
-				AssetUtility.CreateTexture(texture, _textureFolder);
-			} else {
-				_textures[texture.Name] = texture.ToUnityTexture();
-			}
-		}
+		// private void SaveTexture(Texture texture)
+		// {
+		// 	if (_saveToAssets) {
+		// 		AssetUtility.CreateTexture(texture, _textureFolder);
+		// 	} else {
+		// 		_textures[texture.Name] = texture.ToUnityTexture();
+		// 	}
+		// }
 
 		private Texture2D LoadTexture(Texture texture, TextureImporterType type)
 		{
@@ -330,31 +336,33 @@ namespace VisualPinball.Unity.Importer
 			return _textures[texture.Name];
 		}
 
-		private static void ImportTextureAs(Texture map, TextureImporterType type, string path)
-		{
-			Profiler.Start("ImportTextureAs");
-			var textureImporter = AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
-			if (textureImporter != null) {
-				textureImporter.textureType = type;
-				Profiler.Start("HasTransparentPixels");
-				textureImporter.alphaIsTransparency = map.HasTransparentPixels;
-				Profiler.Stop("HasTransparentPixels");
-				textureImporter.isReadable = true;
-				textureImporter.mipmapEnabled = true;
-				textureImporter.filterMode = FilterMode.Bilinear;
-				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), map.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
-				Profiler.Start("AssetDatabase.ImportAsset");
-				AssetDatabase.ImportAsset(path);
-				Profiler.Stop("AssetDatabase.ImportAsset");
-			}
-			Profiler.Stop("ImportTextureAs");
-		}
+		// private static void ImportTextureAs(Texture map, TextureImporterType type, string path)
+		// {
+		// 	Profiler.Start("ImportTextureAs");
+		// 	var textureImporter = AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+		// 	if (textureImporter != null) {
+		// 		textureImporter.textureType = type;
+		// 		Profiler.Start("HasTransparentPixels");
+		// 		textureImporter.alphaIsTransparency = map.HasTransparentPixels;
+		// 		Profiler.Stop("HasTransparentPixels");
+		// 		textureImporter.isReadable = true;
+		// 		textureImporter.mipmapEnabled = true;
+		// 		textureImporter.filterMode = FilterMode.Bilinear;
+		// 		EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), map.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
+		// 		Profiler.Start("AssetDatabase.ImportAsset");
+		// 		AssetDatabase.ImportAsset(path);
+		// 		Profiler.Stop("AssetDatabase.ImportAsset");
+		// 	}
+		// 	Profiler.Stop("ImportTextureAs");
+		// }
 
 		private void SaveMaterial(RenderObject ro, Material material)
 		{
 			if (_saveToAssets) {
 				var assetPath = $"{_materialFolder}/{AssetUtility.StringToFilename(ro.MaterialId)}.mat";
+				Profiler.Start("AssetDatabase.CreateAsset");
 				AssetDatabase.CreateAsset(material, assetPath);
+				Profiler.Stop("AssetDatabase.CreateAsset");
 			} else {
 				_materials[ro.MaterialId] = material;
 			}
