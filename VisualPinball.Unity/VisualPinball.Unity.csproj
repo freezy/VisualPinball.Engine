@@ -67,7 +67,6 @@
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
-    <Compile Include="Importer\GameItemImporter.cs" />
     <Compile Include="Importer\TableLoader.cs" />
     <Compile Include="Importer\TextureImporter.cs" />
     <Compile Include="Importer\MemHelper.cs" />

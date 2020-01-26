@@ -11,6 +11,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using Material = UnityEngine.Material;
 using Object = System.Object;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
@@ -38,29 +39,16 @@ namespace VisualPinball.Unity.Importer
 			}
 			Profiler.Stop("Run job");
 
-			Profiler.Start("Unity asset configuration");
+			// set filename -> texture map for OnPreprocessTexture()
 			foreach (var texture in _textures) {
 				var path = texture.GetUnityFilename(textureFolder);
 				TexturePostProcessor.Textures[path] = texture;
-				// var textureImporter = AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
-				// if (textureImporter != null) {
-				// 	//textureImporter.textureType = type;
-				// 	textureImporter.alphaIsTransparency = texture.HasTransparentPixels;
-				// 	textureImporter.isReadable = true;
-				// 	textureImporter.mipmapEnabled = true;
-				// 	textureImporter.filterMode = FilterMode.Bilinear;
-				// 	EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(path), texture.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
-				// 	Profiler.Start("AssetDatabase.ImportAsset");
-				// 	AssetDatabase.ImportAsset(path);
-				// 	Profiler.Stop("AssetDatabase.ImportAsset");
-				// }
 			}
-			Profiler.Stop("Unity asset configuration");
 
 			// now the assets are written to disk, explicitly import them
-			Profiler.Start("Unity asset import");
+			Profiler.Start("AssetDatabase.ImportAsset");
 			AssetDatabase.ImportAsset(textureFolder, ImportAssetOptions.ImportRecursive);
-			Profiler.Stop("Unity asset import");
+			Profiler.Stop("AssetDatabase.ImportAsset");
 		}
 
 		private void MarkTexturesToAnalyze()
@@ -130,7 +118,7 @@ namespace VisualPinball.Unity.Importer
 				importer.isReadable = true;
 				importer.mipmapEnabled = true;
 				importer.filterMode = FilterMode.Bilinear;
-				EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(importer.assetPath), texture.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
+				//EditorUtility.CompressTexture(AssetDatabase.LoadAssetAtPath<Texture2D>(importer.assetPath), texture.HasTransparentPixels ? TextureFormat.ARGB32 : TextureFormat.RGB24, UnityEditor.TextureCompressionQuality.Best);
 			}
 		}
 	}
