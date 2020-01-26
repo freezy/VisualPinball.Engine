@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Importer
 
 		public void ImportTextures(string textureFolder)
 		{
-			MarkTexturesToAnalyze();
+			//MarkTexturesToAnalyze();
 
 			Profiler.Start("Run job");
 			using (var job = new TextureJob(_textures, textureFolder)) {
@@ -51,18 +51,18 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("AssetDatabase.ImportAsset");
 		}
 
-		private void MarkTexturesToAnalyze()
-		{
-			foreach (var rog in _renderObjects) {
-				foreach (var ro in rog.RenderObjects) {
-					if (ro.Material != null && ro.Map != null) {
-						if (!ro.Material.IsOpacityActive && ro.Material.Edge >= 1 && ro.Map.HasTransparentFormat) {
-							ro.Map.MarkAnalyze();
-						}
-					}
-				}
-			}
-		}
+		// private void MarkTexturesToAnalyze()
+		// {
+		// 	foreach (var rog in _renderObjects) {
+		// 		foreach (var ro in rog.RenderObjects) {
+		// 			if (ro.Material != null && ro.Map != null) {
+		// 				if (!ro.Material.IsOpacityActive && ro.Material.Edge >= 1 && ro.Map.HasTransparentFormat) {
+		// 					ro.Map.MarkAnalyze();
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	internal struct TextureJob : IJobParallelFor, IDisposable
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Importer
 
 			// get stats if marked
 			//if (texture.IsMarkedToAnalyze) {
-				texture.GetStats();
+			texture.Analyze();
 			//}
 			//var _ = texture.HasTransparentPixels;
 

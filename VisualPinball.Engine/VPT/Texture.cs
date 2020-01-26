@@ -55,25 +55,7 @@ namespace VisualPinball.Engine.VPT
 		///
 		/// Loops through the bitmap if necessary, but only the first time.
 		/// </summary>
-		public bool HasTransparentPixels {
-			get {
-
-				if (!HasTransparentFormat) {
-					return false;
-				}
-
-				if (HasStats) {
-					return !_stats.IsOpaque;
-				}
-
-				if (_hasTransparentPixels == null) {
-					return false;
-					//_hasTransparentPixels = FindTransparentPixel(ImageData.GetRawData());
-				}
-
-				return (bool) _hasTransparentPixels;
-			}
-		}
+		public bool HasTransparentPixels;
 
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
@@ -81,12 +63,24 @@ namespace VisualPinball.Engine.VPT
 		public bool HasStats => _stats != null && !_stats.IsEmpty;
 
 		private TextureStats _stats;
-		private bool? _hasTransparentPixels;
+		//private bool? _hasTransparentPixels;
 		private Image _image;
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
 
 		private Texture(Resource res) : base(new TextureData(res)) { }
+
+		public void Analyze()
+		{
+			try {
+				_image = Image.NewFromBuffer(ImageData.FileContent);
+				HasTransparentPixels = _image.HasAlpha();
+				_image.Dispose();
+
+			} catch (VipsException e) {
+				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
+			}
+		}
 
 		/// <summary>
 		/// Returns statistics about transparent and translucent pixels in the
@@ -94,25 +88,25 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <returns>Statistics</returns>
-		public TextureStats GetStats(int threshold = 1000)
-		{
-			if (!HasTransparentFormat) {
-				_stats = new TextureStats(1, 0, 0);
-			}
+		// public TextureStats GetStats(int threshold = 1000)
+		// {
+		// 	if (!HasTransparentFormat) {
+		// 		_stats = new TextureStats(1, 0, 0);
+		// 	}
+		//
+		// 	if (!HasStats) {
+		// 		_stats = Analyze(threshold);
+		// 	}
+		//
+		// 	return _stats;
+		// }
 
-			if (!HasStats) {
-				_stats = Analyze(threshold);
-			}
-
-			return _stats;
-		}
-
-		public void MarkAnalyze()
-		{
-			if (_stats == null) {
-				_stats = new TextureStats();
-			}
-		}
+		// public void MarkAnalyze()
+		// {
+		// 	if (_stats == null) {
+		// 		_stats = new TextureStats();
+		// 	}
+		// }
 
 		/// <summary>
 		/// Retrieves metrics on how many pixels are opaque (no alpha),
@@ -125,57 +119,59 @@ namespace VisualPinball.Engine.VPT
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <param name="numBlocks">In how many blocks the loop is divided</param>
 		/// <returns></returns>
-		private TextureStats Analyze(int threshold, int numBlocks = 10)
-		{
-			if (_image == null) {
-				try {
-					_image = Image.NewFromBuffer(ImageData.FileContent);
-
-				} catch (VipsException e) {
-					Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
-				}
-			}
-			// _image.HasAlpha();
-			// _image.Stats();
-			//
-			// var opaque = 0;
-			// var translucent = 0;
-			// var transparent = 0;
-			// var width = Width;
-			// var height = Height;
-			// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
-			// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
-			// for (var yy= 0; yy < dy; yy ++) {
-			// 	for (var xx = 0; xx < dx; xx++) {
-			// 		for (var y = 0; y < height; y += dy) {
-			// 			var posY = y + yy;
-			// 			if (posY >= height) {
-			// 				break;
-			// 			}
-			// 			for (var x = 0; x < width; x += dx) {
-			// 				var posX = x + xx;
-			// 				if (posX >= width) {
-			// 					break;
-			// 				}
-			// 				var a = data[posY * 4 * width + posX * 4 + 3];
-			// 				switch (a) {
-			// 					case 0x0: transparent++; break;
-			// 					case 0xff: opaque++; break;
-			// 					default: translucent++; break;
-			// 				}
-			//
-			// 				if (translucent + transparent > threshold) {
-			// 					return new TextureStats(opaque, translucent, transparent);
-			// 				}
-			// 			}
-			// 		}
-			// 	}
-			//
-			// 	break; // todo remove
-			// }
-			// return new TextureStats(opaque, translucent, transparent);
-			return new TextureStats(1, 0, 0);
-		}
+		// private TextureStats Analyze(int threshold, int numBlocks = 10)
+		// {
+		// 	if (_image == null) {
+		// 		try {
+		// 			_image = Image.NewFromBuffer(ImageData.FileContent);
+		// 			_hasTransparentPixels = _image.HasAlpha();
+		// 			_image.Dispose();
+		//
+		// 		} catch (VipsException e) {
+		// 			Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
+		// 		}
+		// 	}
+		// 	_image.HasAlpha();
+		// 	_image.Stats();
+		//
+		// 	// var opaque = 0;
+		// 	// var translucent = 0;
+		// 	// var transparent = 0;
+		// 	// var width = Width;
+		// 	// var height = Height;
+		// 	// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
+		// 	// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
+		// 	// for (var yy= 0; yy < dy; yy ++) {
+		// 	// 	for (var xx = 0; xx < dx; xx++) {
+		// 	// 		for (var y = 0; y < height; y += dy) {
+		// 	// 			var posY = y + yy;
+		// 	// 			if (posY >= height) {
+		// 	// 				break;
+		// 	// 			}
+		// 	// 			for (var x = 0; x < width; x += dx) {
+		// 	// 				var posX = x + xx;
+		// 	// 				if (posX >= width) {
+		// 	// 					break;
+		// 	// 				}
+		// 	// 				var a = data[posY * 4 * width + posX * 4 + 3];
+		// 	// 				switch (a) {
+		// 	// 					case 0x0: transparent++; break;
+		// 	// 					case 0xff: opaque++; break;
+		// 	// 					default: translucent++; break;
+		// 	// 				}
+		// 	//
+		// 	// 				if (translucent + transparent > threshold) {
+		// 	// 					return new TextureStats(opaque, translucent, transparent);
+		// 	// 				}
+		// 	// 			}
+		// 	// 		}
+		// 	// 	}
+		// 	//
+		// 	// 	break; // todo remove
+		// 	// }
+		// 	// return new TextureStats(opaque, translucent, transparent);
+		// 	return new TextureStats(1, 0, 0);
+		// }
 
 		/// <summary>
 		/// Loops intelligently through all pixels and breaks at the first
