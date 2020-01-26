@@ -53,11 +53,12 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		public bool HasTransparentPixels {
 			get {
+
 				if (!HasTransparentFormat) {
 					return false;
 				}
 
-				if (_stats != null) {
+				if (HasStats) {
 					return !_stats.IsOpaque;
 				}
 
@@ -72,6 +73,7 @@ namespace VisualPinball.Engine.VPT
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
 		public bool IsMarkedToAnalyze => _stats != null && _stats.IsEmpty;
+		public bool HasStats => _stats != null && !_stats.IsEmpty;
 
 		private TextureStats _stats;
 		private bool? _hasTransparentPixels;
@@ -89,10 +91,10 @@ namespace VisualPinball.Engine.VPT
 		public TextureStats GetStats(int threshold = 1000)
 		{
 			if (!HasTransparentFormat) {
-				return null;
+				_stats = new TextureStats(1, 0, 0);
 			}
 
-			if (_stats == null || _stats.IsEmpty) {
+			if (!HasStats) {
 				_stats = Analyze(Image.GetRawData(), threshold);
 			}
 
@@ -151,6 +153,8 @@ namespace VisualPinball.Engine.VPT
 						}
 					}
 				}
+
+				break; // todo remove
 			}
 			return new TextureStats(opaque, translucent, transparent);
 		}
@@ -177,36 +181,36 @@ namespace VisualPinball.Engine.VPT
 		/// <returns></returns>
 		private bool FindTransparentPixel(IReadOnlyList<byte> data)
 		{
-			var width = Width;
-			var height = Height;
-			var numPixels = width * height;
-			var approximationIndex = 0;
-			var approximationStepDistance = (int)((float)numPixels / 10); // this is how many pixels the approximationIndex is incremented by
-			const float approximationStepDistanceScalar = 0.8f;
-			var mustCalculateApproximationIndexStartValue = true;
-
-			for (var i = 0; i < numPixels; i++) {
-				if (data[i * 4 + 3] < 254) {
-					return true;
-				}
-
-				// approximation
-				if (mustCalculateApproximationIndexStartValue) {
-					approximationIndex = System.Math.Min(numPixels - 1, i + 2);
-					mustCalculateApproximationIndexStartValue = false;
-				}
-
-				if (data[approximationIndex * 4 + 3] < 254) {
-					return true;
-				}
-				approximationIndex += approximationStepDistance;
-				//need to see if the index of approximation is larger than array
-				//if so then refine the guessing distance and start again at new approximationIndex;
-				if (approximationIndex >= numPixels) {
-					mustCalculateApproximationIndexStartValue = true;
-					approximationStepDistance = (int)(approximationStepDistance * approximationStepDistanceScalar);
-				}
-			}
+			// var width = Width;
+			// var height = Height;
+			// var numPixels = width * height;
+			// var approximationIndex = 0;
+			// var approximationStepDistance = (int)((float)numPixels / 10); // this is how many pixels the approximationIndex is incremented by
+			// const float approximationStepDistanceScalar = 0.8f;
+			// var mustCalculateApproximationIndexStartValue = true;
+			//
+			// for (var i = 0; i < numPixels; i++) {
+			// 	if (data[i * 4 + 3] < 254) {
+			// 		return true;
+			// 	}
+			//
+			// 	// approximation
+			// 	if (mustCalculateApproximationIndexStartValue) {
+			// 		approximationIndex = System.Math.Min(numPixels - 1, i + 2);
+			// 		mustCalculateApproximationIndexStartValue = false;
+			// 	}
+			//
+			// 	if (data[approximationIndex * 4 + 3] < 254) {
+			// 		return true;
+			// 	}
+			// 	approximationIndex += approximationStepDistance;
+			// 	//need to see if the index of approximation is larger than array
+			// 	//if so then refine the guessing distance and start again at new approximationIndex;
+			// 	if (approximationIndex >= numPixels) {
+			// 		mustCalculateApproximationIndexStartValue = true;
+			// 		approximationStepDistance = (int)(approximationStepDistance * approximationStepDistanceScalar);
+			// 	}
+			// }
 			return false;
 		}
 	}

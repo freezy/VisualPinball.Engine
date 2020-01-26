@@ -60,13 +60,14 @@ namespace VisualPinball.Unity.Extensions
 			if (vpxMaterial.Edge < 1) {
 				blendMode = BlendMode.Cutout;
 
-			} else if (blendMode == BlendMode.Opaque) {
+			}
+			if (blendMode == BlendMode.Opaque && ro.Map != null) {
 				// if we cannot determine transparency or cutout through material
 				// props, look at the texture.
 				Profiler.Start("GetStats()");
-				var stats = ro.Map?.GetStats(1000);
+				var stats = ro.Map.GetStats(1000);
 				Profiler.Stop("GetStats()");
-				if (stats != null && !stats.IsOpaque) {
+				if (!stats.IsOpaque) {
 					blendMode = stats.Translucent / stats.Transparent > 0.1
 						? BlendMode.Transparent
 						: BlendMode.Cutout;
