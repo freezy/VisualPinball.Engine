@@ -70,9 +70,9 @@ namespace VisualPinball.Engine.VPT
 			_data = ToggleRgbBgr(_data);
 		}
 
-		public byte[] GetRawData() {
-			return _data;
-		}
+		// public byte[] GetRawData() {
+		// 	return _data;
+		// }
 
 		private IEnumerable<byte> GetHeader()
 		{

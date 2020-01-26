@@ -8,10 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
+using NetVips;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
@@ -37,35 +34,31 @@ namespace VisualPinball.Engine.VPT
 		[BiffByte("DATA")]
 		public byte[] Data;
 
-		private byte[] _rawData;
-
 		public BinaryData(Resource res) : base(res.Name)
 		{
 			Data = res.Data;
 		}
 
-		public byte[] GetRawData()
-		{
-			if (_rawData != null) {
-				return _rawData;
-			}
-			var img = Decode();
-			_rawData = img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
-
-			return _rawData;
-		}
-
-		private Image<Rgba32> Decode()
-		{
-			using (var stream = new MemoryStream(Data)) {
-				try {
-					return Image.Load<Rgba32>(stream, new PngDecoder());
-
-				} catch (Exception) {
-					return null;
-				}
-			}
-		}
+		// public byte[] GetRawData()
+		// {
+		// 	if (_rawData != null) {
+		// 		return _rawData;
+		// 	}
+		// 	var img = Decode();
+		// 	_rawData = img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
+		//
+		// 	return _rawData;
+		// }
+		//
+		// private Image<Rgba32> Decode()
+		// {
+		// 	try {
+		// 		return Image.Load<Rgba32>(stream, new PngDecoder());
+		//
+		// 	} catch (Exception) {
+		// 		return null;
+		// 	}
+		// }
 
 		#region BIFF
 		static BinaryData()

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using NetVips;
+using NLog;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -10,6 +12,8 @@ namespace VisualPinball.Engine.VPT
 		public static readonly Texture BumperCap = new Texture(Resource.BumperCap);
 		public static readonly Texture BumperRing = new Texture(Resource.BumperRing);
 		public static readonly Texture BumperSocket = new Texture(Resource.BumperSocket);
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public static readonly Texture[] LocalTextures = {
 			BumperBase, BumperCap, BumperRing, BumperSocket
@@ -37,14 +41,14 @@ namespace VisualPinball.Engine.VPT
 		/// contain the header.
 		/// </summary>
 		/// <see cref="FileContent"/>
-		public byte[] Content => Image.Bytes;
+		public byte[] Content => ImageData.Bytes;
 
 		/// <summary>
 		/// Data as it would written to an image file (incl headers).
 		/// </summary>
-		public byte[] FileContent => Image.FileContent;
+		public byte[] FileContent => ImageData.FileContent;
 
-		private IImageData Image => Data.Binary as IImageData ?? Data.Bitmap;
+		private IImageData ImageData => Data.Binary as IImageData ?? Data.Bitmap;
 
 		/// <summary>
 		/// Returns true if at least one pixel is not opaque. <p/>
@@ -63,7 +67,8 @@ namespace VisualPinball.Engine.VPT
 				}
 
 				if (_hasTransparentPixels == null) {
-					_hasTransparentPixels = FindTransparentPixel(Image.GetRawData());
+					return false;
+					//_hasTransparentPixels = FindTransparentPixel(ImageData.GetRawData());
 				}
 
 				return (bool) _hasTransparentPixels;
@@ -77,6 +82,7 @@ namespace VisualPinball.Engine.VPT
 
 		private TextureStats _stats;
 		private bool? _hasTransparentPixels;
+		private Image _image;
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
 
@@ -95,7 +101,7 @@ namespace VisualPinball.Engine.VPT
 			}
 
 			if (!HasStats) {
-				_stats = Analyze(Image.GetRawData(), threshold);
+				_stats = Analyze(threshold);
 			}
 
 			return _stats;
@@ -119,44 +125,56 @@ namespace VisualPinball.Engine.VPT
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <param name="numBlocks">In how many blocks the loop is divided</param>
 		/// <returns></returns>
-		private TextureStats Analyze(IReadOnlyList<byte> data, int threshold, int numBlocks = 10)
+		private TextureStats Analyze(int threshold, int numBlocks = 10)
 		{
-			var opaque = 0;
-			var translucent = 0;
-			var transparent = 0;
-			var width = Width;
-			var height = Height;
-			var dx = (int)System.Math.Ceiling((float)width / numBlocks);
-			var dy = (int)System.Math.Ceiling((float)height / numBlocks);
-			for (var yy= 0; yy < dy; yy ++) {
-				for (var xx = 0; xx < dx; xx++) {
-					for (var y = 0; y < height; y += dy) {
-						var posY = y + yy;
-						if (posY >= height) {
-							break;
-						}
-						for (var x = 0; x < width; x += dx) {
-							var posX = x + xx;
-							if (posX >= width) {
-								break;
-							}
-							var a = data[posY * 4 * width + posX * 4 + 3];
-							switch (a) {
-								case 0x0: transparent++; break;
-								case 0xff: opaque++; break;
-								default: translucent++; break;
-							}
+			if (_image == null) {
+				try {
+					_image = Image.NewFromBuffer(ImageData.FileContent);
 
-							if (translucent + transparent > threshold) {
-								return new TextureStats(opaque, translucent, transparent);
-							}
-						}
-					}
+				} catch (VipsException e) {
+					Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
 				}
-
-				break; // todo remove
 			}
-			return new TextureStats(opaque, translucent, transparent);
+			// _image.HasAlpha();
+			// _image.Stats();
+			//
+			// var opaque = 0;
+			// var translucent = 0;
+			// var transparent = 0;
+			// var width = Width;
+			// var height = Height;
+			// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
+			// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
+			// for (var yy= 0; yy < dy; yy ++) {
+			// 	for (var xx = 0; xx < dx; xx++) {
+			// 		for (var y = 0; y < height; y += dy) {
+			// 			var posY = y + yy;
+			// 			if (posY >= height) {
+			// 				break;
+			// 			}
+			// 			for (var x = 0; x < width; x += dx) {
+			// 				var posX = x + xx;
+			// 				if (posX >= width) {
+			// 					break;
+			// 				}
+			// 				var a = data[posY * 4 * width + posX * 4 + 3];
+			// 				switch (a) {
+			// 					case 0x0: transparent++; break;
+			// 					case 0xff: opaque++; break;
+			// 					default: translucent++; break;
+			// 				}
+			//
+			// 				if (translucent + transparent > threshold) {
+			// 					return new TextureStats(opaque, translucent, transparent);
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			//
+			// 	break; // todo remove
+			// }
+			// return new TextureStats(opaque, translucent, transparent);
+			return new TextureStats(1, 0, 0);
 		}
 
 		/// <summary>
@@ -263,6 +281,6 @@ namespace VisualPinball.Engine.VPT
 
 		byte[] FileContent { get; }
 
-		byte[] GetRawData();
+		//byte[] GetRawData();
 	}
 }
