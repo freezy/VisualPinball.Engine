@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using NetVips;
 using NLog;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -59,12 +62,11 @@ namespace VisualPinball.Engine.VPT
 
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
-		public bool IsMarkedToAnalyze => _stats != null && _stats.IsEmpty;
-		public bool HasStats => _stats != null && !_stats.IsEmpty;
+		public bool UsageNormalMap;
+
+		public bool UsageOpaqueMaterial;
 
 		private TextureStats _stats;
-		//private bool? _hasTransparentPixels;
-		private Image _image;
 
 		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
 
@@ -72,14 +74,30 @@ namespace VisualPinball.Engine.VPT
 
 		public void Analyze()
 		{
+			using (var image = GetImage()) {
+				HasTransparentPixels = image != null && image.HasAlpha();
+				// if (UsageOpaqueMaterial && HasTransparentPixels) {
+				// 	var sw = new Stopwatch();
+				// 	sw.Start();
+				// 	_stats = AnalyzeAlpha(1, 254);
+				// 	sw.Stop();
+				// 	Logger.Warn("Texture {0} is used by at least one opaque material but has transparent pixels. Analyzed in {1}ms to determine whether to render as cut-out or transparent.", Name, sw.ElapsedMilliseconds);
+				// }
+			}
+		}
+
+		private Image GetImage()
+		{
 			try {
-				_image = Image.NewFromBuffer(ImageData.FileContent);
-				HasTransparentPixels = _image.HasAlpha();
-				_image.Dispose();
+				return Data.Binary != null
+					? Image.NewFromBuffer(Data.Binary.Data)
+					: Image.NewFromMemory(Data.Bitmap.Bytes, Width, Height, 4, Enums.BandFormat.Uchar);
 
 			} catch (VipsException e) {
 				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
 			}
+
+			return null;
 		}
 
 		/// <summary>
@@ -88,25 +106,18 @@ namespace VisualPinball.Engine.VPT
 		/// </summary>
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <returns>Statistics</returns>
-		// public TextureStats GetStats(int threshold = 1000)
-		// {
-		// 	if (!HasTransparentFormat) {
-		// 		_stats = new TextureStats(1, 0, 0);
-		// 	}
-		//
-		// 	if (!HasStats) {
-		// 		_stats = Analyze(threshold);
-		// 	}
-		//
-		// 	return _stats;
-		// }
+		public TextureStats GetStats()
+		{
+			if (_stats == null && (!HasTransparentFormat || !HasTransparentPixels)) {
+				_stats = new TextureStats(1, 0, 0);
+			}
 
-		// public void MarkAnalyze()
-		// {
-		// 	if (_stats == null) {
-		// 		_stats = new TextureStats();
-		// 	}
-		// }
+			if (_stats == null) {
+				throw new InvalidOperationException("Unknown stats. Please pre-compute in parallel.");
+			}
+
+			return _stats;
+		}
 
 		/// <summary>
 		/// Retrieves metrics on how many pixels are opaque (no alpha),
@@ -119,113 +130,94 @@ namespace VisualPinball.Engine.VPT
 		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <param name="numBlocks">In how many blocks the loop is divided</param>
 		/// <returns></returns>
-		// private TextureStats Analyze(int threshold, int numBlocks = 10)
-		// {
-		// 	if (_image == null) {
-		// 		try {
-		// 			_image = Image.NewFromBuffer(ImageData.FileContent);
-		// 			_hasTransparentPixels = _image.HasAlpha();
-		// 			_image.Dispose();
-		//
-		// 		} catch (VipsException e) {
-		// 			Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
-		// 		}
-		// 	}
-		// 	_image.HasAlpha();
-		// 	_image.Stats();
-		//
-		// 	// var opaque = 0;
-		// 	// var translucent = 0;
-		// 	// var transparent = 0;
-		// 	// var width = Width;
-		// 	// var height = Height;
-		// 	// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
-		// 	// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
-		// 	// for (var yy= 0; yy < dy; yy ++) {
-		// 	// 	for (var xx = 0; xx < dx; xx++) {
-		// 	// 		for (var y = 0; y < height; y += dy) {
-		// 	// 			var posY = y + yy;
-		// 	// 			if (posY >= height) {
-		// 	// 				break;
-		// 	// 			}
-		// 	// 			for (var x = 0; x < width; x += dx) {
-		// 	// 				var posX = x + xx;
-		// 	// 				if (posX >= width) {
-		// 	// 					break;
-		// 	// 				}
-		// 	// 				var a = data[posY * 4 * width + posX * 4 + 3];
-		// 	// 				switch (a) {
-		// 	// 					case 0x0: transparent++; break;
-		// 	// 					case 0xff: opaque++; break;
-		// 	// 					default: translucent++; break;
-		// 	// 				}
-		// 	//
-		// 	// 				if (translucent + transparent > threshold) {
-		// 	// 					return new TextureStats(opaque, translucent, transparent);
-		// 	// 				}
-		// 	// 			}
-		// 	// 		}
-		// 	// 	}
-		// 	//
-		// 	// 	break; // todo remove
-		// 	// }
-		// 	// return new TextureStats(opaque, translucent, transparent);
-		// 	return new TextureStats(1, 0, 0);
-		// }
-
-		/// <summary>
-		/// Loops intelligently through all pixels and breaks at the first
-		/// non-opaque pixel.<p/>
-		///
-		/// The loop is brute force to default maximum steps required to check
-		/// every pixel within the loop a second guessing approximation index
-		/// is used. It tries to look ahead in larger steps to find a hit while
-		/// brute force continues if this index becomes greater than the array
-		/// length, the approximationStepDistance is scaled.
-		/// So the guessing starts wildly for a chance of a early out hit , but
-		/// if not successful, it keeps guessing , but refines the distance.
-		/// When the guessing restarts it does not recheck the pixel already
-		/// check via brute force , so it always starts at the
-		/// bruteForceIndex + 2, + 2 and not + 1 is to avoid a overlap on the
-		/// loop after setting approximationIndex;
-		///
-		/// using 254 instead of 255, just to count out miniscule hits or even precision errors
-		/// </summary>
-		/// <param name="data"></param>
-		/// <returns></returns>
-		private bool FindTransparentPixel(IReadOnlyList<byte> data)
+		private TextureStats AnalyzeAlpha(int translucentStart, int translucentEnd)
 		{
-			// var width = Width;
-			// var height = Height;
-			// var numPixels = width * height;
-			// var approximationIndex = 0;
-			// var approximationStepDistance = (int)((float)numPixels / 10); // this is how many pixels the approximationIndex is incremented by
-			// const float approximationStepDistanceScalar = 0.8f;
-			// var mustCalculateApproximationIndexStartValue = true;
-			//
-			// for (var i = 0; i < numPixels; i++) {
-			// 	if (data[i * 4 + 3] < 254) {
-			// 		return true;
-			// 	}
-			//
-			// 	// approximation
-			// 	if (mustCalculateApproximationIndexStartValue) {
-			// 		approximationIndex = System.Math.Min(numPixels - 1, i + 2);
-			// 		mustCalculateApproximationIndexStartValue = false;
-			// 	}
-			//
-			// 	if (data[approximationIndex * 4 + 3] < 254) {
-			// 		return true;
-			// 	}
-			// 	approximationIndex += approximationStepDistance;
-			// 	//need to see if the index of approximation is larger than array
-			// 	//if so then refine the guessing distance and start again at new approximationIndex;
-			// 	if (approximationIndex >= numPixels) {
-			// 		mustCalculateApproximationIndexStartValue = true;
-			// 		approximationStepDistance = (int)(approximationStepDistance * approximationStepDistanceScalar);
-			// 	}
-			// }
-			return false;
+			Profiler.Start("Analyze");
+			using (var image = GetImage()) {
+
+				// libvips couldn't load
+				if (image == null) {
+					return new TextureStats(Width * Height, 0, 0);
+				}
+
+				if (image.Bands < 4) {
+					return new TextureStats(image.Width * image.Height, 0, 0);
+				}
+
+				var opaque = 0;
+				var translucent = 0;
+				var transparent = 0;
+
+				Profiler.Start("HistFind");
+				var hist = image.HistFind(3);
+				Profiler.Stop("HistFind");
+				//var dist = new double[hist.Width];
+
+				Profiler.Start("HistCount");
+				for (var i = 0; i < hist.Width; i++) {
+					if (i < translucentStart) {
+						transparent += (int)hist[i, 0][0];
+
+					} else if (i <= translucentEnd) {
+						translucent += (int)hist[i, 0][0];
+
+					} else {
+						opaque += (int)hist[i, 0][0];
+					}
+					//dist[i] = hist[i, 0][0];
+				}
+				Profiler.Stop("HistCount");
+
+
+				// var width = Width;
+				// var height = Height;
+				// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
+				// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
+				// for (var yy= 0; yy < dy; yy ++) {
+				// 	for (var xx = 0; xx < dx; xx++) {
+				// 		for (var y = 0; y < height; y += dy) {
+				// 			var posY = y + yy;
+				// 			if (posY >= height) {
+				// 				break;
+				// 			}
+				// 			for (var x = 0; x < width; x += dx) {
+				// 				var posX = x + xx;
+				// 				if (posX >= width) {
+				// 					break;
+				// 				}
+				//
+				// 				try {
+				// 					var a = image[posX, posY][3];
+				// 					//var a = data[posY * 4 * width + posX * 4 + 3];
+				// 					if (a > 0) {
+				// 						if (a < 255) {
+				// 							translucent++;
+				//
+				// 						} else {
+				// 							opaque++;
+				// 						}
+				// 					} else {
+				// 						transparent++;
+				// 					}
+				// 				} catch (Exception e) {
+				// 					Logger.Error(e);
+				// 				}
+				// 				// switch (a) {
+				// 				// 	case 0x0: transparent++; break;
+				// 				// 	case 0xff: opaque++; break;
+				// 				// 	default: translucent++; break;
+				// 				// }
+				//
+				// 				if (translucent + transparent > threshold) {
+				// 					return new TextureStats(opaque, translucent, transparent);
+				// 				}
+				// 			}
+				// 		}
+				// 	}
+				// }
+				Profiler.Stop("Analyze");
+				return new TextureStats(opaque, translucent, transparent);
+			}
 		}
 	}
 
