@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Importer
 
 		public void ImportTextures(string textureFolder)
 		{
-			//MarkTexturesToAnalyze();
+			UpdateUsages();
 
 			Profiler.Start("Run job");
 			using (var job = new TextureJob(_textures, textureFolder)) {
@@ -51,18 +51,23 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("AssetDatabase.ImportAsset");
 		}
 
-		// private void MarkTexturesToAnalyze()
-		// {
-		// 	foreach (var rog in _renderObjects) {
-		// 		foreach (var ro in rog.RenderObjects) {
-		// 			if (ro.Material != null && ro.Map != null) {
-		// 				if (!ro.Material.IsOpacityActive && ro.Material.Edge >= 1 && ro.Map.HasTransparentFormat) {
-		// 					ro.Map.MarkAnalyze();
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// }
+		private void UpdateUsages()
+		{
+			foreach (var rog in _renderObjects) {
+				foreach (var ro in rog.RenderObjects) {
+
+					if (ro.Material != null && ro.Map != null) {
+						if (!ro.Material.IsOpacityActive) {
+							ro.Map.UsageOpaqueMaterial = true;
+						}
+					}
+
+					if (ro.NormalMap != null) {
+						ro.NormalMap.UsageNormalMap = true;
+					}
+				}
+			}
+		}
 	}
 
 	internal struct TextureJob : IJobParallelFor, IDisposable
@@ -86,11 +91,8 @@ namespace VisualPinball.Unity.Importer
 			var texture = MemHelper.ToObj<Texture>(_textures[index]);
 			var textureFolder =  MemHelper.ToObj<string>(_textureFolder);
 
-			// get stats if marked
-			//if (texture.IsMarkedToAnalyze) {
+			// analyze
 			texture.Analyze();
-			//}
-			//var _ = texture.HasTransparentPixels;
 
 			// write to disk
 			var path = texture.GetUnityFilename(textureFolder);
@@ -113,7 +115,7 @@ namespace VisualPinball.Unity.Importer
 			if (importer != null) {
 				var texture = Textures[importer.assetPath];
 
-				//importer.textureType = type;
+				importer.textureType = texture.UsageNormalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
 				importer.alphaIsTransparency = texture.HasTransparentPixels;
 				importer.isReadable = true;
 				importer.mipmapEnabled = true;

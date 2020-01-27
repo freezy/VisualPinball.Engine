@@ -51,15 +51,30 @@ namespace VisualPinball.Unity.Extensions
 			unityMaterial.SetFloat(Glossiness, vpxMaterial.Roughness);
 
 			// blend modes
-			var blendMode = BlendMode.Opaque;
-			if (ro.Map != null && ro.Map.HasTransparentPixels) {
+			var blendMode = BlendMode.Opaque;                                         // opaque per default
+			if (ro.Map != null && ro.Map.HasTransparentPixels) {                      // but if there is transparency, cut-out.
 				blendMode = BlendMode.Cutout;
 			}
-			if (vpxMaterial.IsOpacityActive && vpxMaterial.Opacity < 1f) {
+
+			if (vpxMaterial.IsOpacityActive) {            // if opacity is set and below 1, blend transparent.
 				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
 				unityMaterial.SetColor(Color, col);
 				blendMode = BlendMode.Transparent;
-			}
+
+			} /*else if (ro.Map != null && ro.Map.HasTransparentPixels) {
+				// special case: opacity is *not* active (or active but set to 1), but there are transparent pixels.
+				// this should not happen because VPX renders those weirdly.
+				// still, in this case, we set the blend mode based on how many pixels are transparent, and how many
+				// are translucent.
+
+				var stats = ro.Map.GetStats();
+				if (!stats.IsOpaque) {
+				 	blendMode = stats.Translucent / stats.Transparent > 0.1
+				 		? vpxMaterial.IsOpacityActive ? BlendMode.Transparent : BlendMode.Opaque
+				 		: BlendMode.Cutout;
+				}
+			}*/
+
 
 			// if (blendMode == BlendMode.Opaque && ro.Map != null) {
 			// 	// if we cannot determine transparency or cutout through material

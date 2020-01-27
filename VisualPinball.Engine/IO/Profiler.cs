@@ -16,9 +16,19 @@ namespace VisualPinball.Engine.IO
 
 		public static void Start(string key)
 		{
+			GetProfile(key).Start();
+		}
+
+		public static IDisposable StartUsing(string key)
+		{
+			return new ProfileSpan(GetProfile(key));
+		}
+
+		private static Profile GetProfile(string key)
+		{
 			if (Profiles.ContainsKey(key)) {
 				_parent = Profiles[key];
-				Profiles[key].Start();
+				return _parent;
 
 			} else {
 				_parent = new Profile(key, _parent);
@@ -26,6 +36,7 @@ namespace VisualPinball.Engine.IO
 				if (_parent.Parent == null) {
 					RootProfiles.Add(_parent);
 				}
+				return _parent;
 			}
 		}
 
@@ -49,15 +60,39 @@ namespace VisualPinball.Engine.IO
 		}
 	}
 
+	internal class ProfileSpan : IDisposable
+	{
+		public long ElapsedMilliseconds => _stopwatch.ElapsedMilliseconds;
+
+		private readonly Profile _profile;
+		private readonly Stopwatch _stopwatch = new Stopwatch();
+
+		public ProfileSpan(Profile profile)
+		{
+			_profile = profile;
+			_stopwatch.Start();
+		}
+
+		public void Dispose()
+		{
+			_stopwatch.Stop();
+			_profile.Add(this);
+		}
+	}
+
 	internal class Profile
 	{
+		public long ElapsedMilliseconds => _stopwatch.ElapsedMilliseconds + _spanSum;
+
 		private string Name { get; }
 		public Profile Parent { get; }
 		private readonly List<Profile> _children = new List<Profile>();
 		private bool _isRunning;
+		private int _count;
 
 		private readonly int _level;
 		private readonly Stopwatch _stopwatch = new Stopwatch();
+		private long _spanSum = 0;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -67,15 +102,16 @@ namespace VisualPinball.Engine.IO
 			Parent = parent;
 			_level = parent?._level + 1 ?? 0;
 			parent?._children.Add(this);
-			Start();
 		}
 
-		public void Start()
+		public Profile Start()
 		{
 			if (!_isRunning) {
 				_stopwatch.Start();
 			}
+			_count++;
 			_isRunning = true;
+			return this;
 		}
 
 		public void Stop()
@@ -88,21 +124,21 @@ namespace VisualPinball.Engine.IO
 			_isRunning = false;
 		}
 
-		public void Print()
-		{
-			Logger.Debug(this);
-			_children.ForEach(c => c.Print());
-		}
-
 		public override string ToString()
 		{
-			var childrenSum = _children.Select(c => c._stopwatch.ElapsedMilliseconds).Sum();
-			var str = $"{Name}: {_stopwatch.ElapsedMilliseconds}ms";
+			var childrenSum = _children.Select(c => c.ElapsedMilliseconds).Sum();
+			var str = $"{Name}: {ElapsedMilliseconds}ms / {_count}";
 			if (_children.Count > 0) {
-				str += $" (delta = {childrenSum - _stopwatch.ElapsedMilliseconds}ms)";
+				str += $" (delta = {childrenSum - ElapsedMilliseconds}ms)";
 			}
 			var children = _children.Count > 0 ? "\n" + string.Join("\n", _children.Select(c => c.ToString())) : "";
 			return str.PadLeft(str.Length + _level * 3) + children;
+		}
+
+		public void Add(ProfileSpan span)
+		{
+			_count++;
+			_spanSum += span.ElapsedMilliseconds;
 		}
 	}
 }
