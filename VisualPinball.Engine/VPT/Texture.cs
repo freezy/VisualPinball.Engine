@@ -77,10 +77,10 @@ namespace VisualPinball.Engine.VPT
 			using (var image = GetImage()) {
 				HasTransparentPixels = image != null && image.HasAlpha();
 				// if (UsageOpaqueMaterial && HasTransparentPixels) {
-				// 	var sw = new Stopwatch();
-				// 	sw.Start();
-				// 	_stats = AnalyzeAlpha(1, 254);
-				// 	sw.Stop();
+					var sw = new Stopwatch();
+					sw.Start();
+					_stats = AnalyzeAlpha(1, 254);
+					sw.Stop();
 				// 	Logger.Warn("Texture {0} is used by at least one opaque material but has transparent pixels. Analyzed in {1}ms to determine whether to render as cut-out or transparent.", Name, sw.ElapsedMilliseconds);
 				// }
 			}
@@ -132,7 +132,7 @@ namespace VisualPinball.Engine.VPT
 		/// <returns></returns>
 		private TextureStats AnalyzeAlpha(int translucentStart, int translucentEnd)
 		{
-			Profiler.Start("Analyze");
+			Profiler.Start("AnalyzeAlpha");
 			using (var image = GetImage()) {
 
 				// libvips couldn't load
@@ -144,80 +144,25 @@ namespace VisualPinball.Engine.VPT
 					return new TextureStats(image.Width * image.Height, 0, 0);
 				}
 
-				var opaque = 0;
-				var translucent = 0;
-				var transparent = 0;
+				// https://github.com/libvips/libvips/issues/1535
+				var hist = image[3].HistFind();
+				var total = image.Width * image.Height;
+				var alpha0 = BandStats(hist, 0);
+				var alpha1 = BandStats(hist, 254);
 
-				Profiler.Start("HistFind");
-				var hist = image.HistFind(3);
-				Profiler.Stop("HistFind");
-				//var dist = new double[hist.Width];
+				var opaque = (int)alpha1;
+				var translucent = (int)(alpha0 - alpha1);
+				var transparent = (int)(total - alpha0);
 
-				Profiler.Start("HistCount");
-				for (var i = 0; i < hist.Width; i++) {
-					if (i < translucentStart) {
-						transparent += (int)hist[i, 0][0];
-
-					} else if (i <= translucentEnd) {
-						translucent += (int)hist[i, 0][0];
-
-					} else {
-						opaque += (int)hist[i, 0][0];
-					}
-					//dist[i] = hist[i, 0][0];
-				}
-				Profiler.Stop("HistCount");
-
-
-				// var width = Width;
-				// var height = Height;
-				// var dx = (int)System.Math.Ceiling((float)width / numBlocks);
-				// var dy = (int)System.Math.Ceiling((float)height / numBlocks);
-				// for (var yy= 0; yy < dy; yy ++) {
-				// 	for (var xx = 0; xx < dx; xx++) {
-				// 		for (var y = 0; y < height; y += dy) {
-				// 			var posY = y + yy;
-				// 			if (posY >= height) {
-				// 				break;
-				// 			}
-				// 			for (var x = 0; x < width; x += dx) {
-				// 				var posX = x + xx;
-				// 				if (posX >= width) {
-				// 					break;
-				// 				}
-				//
-				// 				try {
-				// 					var a = image[posX, posY][3];
-				// 					//var a = data[posY * 4 * width + posX * 4 + 3];
-				// 					if (a > 0) {
-				// 						if (a < 255) {
-				// 							translucent++;
-				//
-				// 						} else {
-				// 							opaque++;
-				// 						}
-				// 					} else {
-				// 						transparent++;
-				// 					}
-				// 				} catch (Exception e) {
-				// 					Logger.Error(e);
-				// 				}
-				// 				// switch (a) {
-				// 				// 	case 0x0: transparent++; break;
-				// 				// 	case 0xff: opaque++; break;
-				// 				// 	default: translucent++; break;
-				// 				// }
-				//
-				// 				if (translucent + transparent > threshold) {
-				// 					return new TextureStats(opaque, translucent, transparent);
-				// 				}
-				// 			}
-				// 		}
-				// 	}
-				// }
-				Profiler.Stop("Analyze");
+				Profiler.Stop("AnalyzeAlpha");
 				return new TextureStats(opaque, translucent, transparent);
 			}
+		}
+
+		private static double BandStats(Image hist, int val)
+		{
+			var mask = (Image.Identity() > val) / 255;
+			return (hist * mask).Avg() * 256;
 		}
 	}
 
