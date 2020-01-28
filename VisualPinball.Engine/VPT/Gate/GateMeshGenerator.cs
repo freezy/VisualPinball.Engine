@@ -26,16 +26,16 @@ namespace VisualPinball.Engine.VPT.Gate
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Gates", postMatrix, new RenderObject(
-					name: "Wire",
-					mesh: GetBaseMesh().Transform(preMatrix),
-					material: table.GetMaterial(_data.Material),
-					isVisible: _data.IsVisible
+					"Wire",
+					GetBaseMesh().Transform(preMatrix),
+					new PbrMaterial(table.GetMaterial(_data.Material)),
+					_data.IsVisible
 				),
 				new RenderObject(
-					name:"Bracket",
-					mesh: GateBracketMesh.Clone().Transform(preMatrix),
-					material: table.GetMaterial(_data.Material),
-					isVisible: _data.IsVisible && _data.ShowBracket
+					"Bracket",
+					GateBracketMesh.Clone().Transform(preMatrix),
+					new PbrMaterial(table.GetMaterial(_data.Material)),
+					_data.IsVisible && _data.ShowBracket
 				)
 			);
 		}

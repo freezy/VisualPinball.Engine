@@ -22,10 +22,14 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
-				mesh: GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
-				map: table.GetTexture(_data.Image),
-				normalMap: table.GetTexture(_data.NormalMap),
-				material: table.GetMaterial(_data.Material)
+				_data.Name,
+				GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
+				new PbrMaterial(
+					table.GetMaterial(_data.Material),
+					table.GetTexture(_data.Image),
+					table.GetTexture(_data.NormalMap)
+				),
+				_data.IsVisible
 			));
 		}
 

@@ -35,10 +35,10 @@ namespace VisualPinball.Engine.VPT.Kicker
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Kickers", postMatrix, new RenderObject(
-					name: _data.Name,
-					mesh: GetBaseMesh().Transform(preMatrix),
-					material: table.GetMaterial(_data.Material),
-					isVisible: _data.KickerType != KickerType.KickerInvisible
+					_data.Name,
+					GetBaseMesh().Transform(preMatrix),
+					new PbrMaterial(table.GetMaterial(_data.Material)),
+					_data.KickerType != KickerType.KickerInvisible
 				)
 			);
 		}

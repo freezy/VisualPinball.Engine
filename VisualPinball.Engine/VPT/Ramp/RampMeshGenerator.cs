@@ -46,10 +46,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
 		{
 			return new RenderObject(
-				name: name,
-				mesh: asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
-				material: table.GetMaterial(_data.Material),
-				isVisible: _data.IsVisible
+				name,
+				asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
+				new PbrMaterial(table.GetMaterial(_data.Material)),
+				_data.IsVisible
 			);
 		}
 

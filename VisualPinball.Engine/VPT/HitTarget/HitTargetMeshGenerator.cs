@@ -24,11 +24,10 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "HitTargets", postMatrix, new RenderObject(
-				name: _data.Name,
-				mesh: mesh.Transform(preMatrix),
-				material: table.GetMaterial(_data.Material),
-				map: table.GetTexture(_data.Image),
-				isVisible: _data.IsVisible
+				_data.Name,
+				mesh.Transform(preMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material),table.GetTexture(_data.Image)),
+				_data.IsVisible
 			));
 		}
 

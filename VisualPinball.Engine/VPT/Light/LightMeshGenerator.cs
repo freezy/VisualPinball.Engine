@@ -27,14 +27,16 @@ namespace VisualPinball.Engine.VPT.Light
 			var translationMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Lights", translationMatrix,
 				new RenderObject(
-					name: "Bulb",
-					mesh: asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],
-					material: GetBulbMaterial()
+					"Bulb",
+					asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],
+					new PbrMaterial(GetBulbMaterial()),
+					true
 				),
 				new RenderObject(
-					name: "Socket",
-					mesh: asRightHanded ? meshes["Socket"].Transform(Matrix3D.RightHanded) : meshes["Socket"],
-					material: GetSocketMaterial()
+					"Socket",
+					asRightHanded ? meshes["Socket"].Transform(Matrix3D.RightHanded) : meshes["Socket"],
+					new PbrMaterial(GetSocketMaterial()),
+					true
 				)
 			);
 		}

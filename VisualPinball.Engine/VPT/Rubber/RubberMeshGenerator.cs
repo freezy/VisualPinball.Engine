@@ -27,10 +27,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Rubbers", postMatrix, new RenderObject(
-				mesh: mesh.Transform(preVertexMatrix, preNormalsMatrix),
-				material: table.GetMaterial(_data.Material),
-				map: table.GetTexture(_data.Image),
-				isVisible: _data.IsVisible
+				_data.Name,
+				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				_data.IsVisible
 			));
 		}
 

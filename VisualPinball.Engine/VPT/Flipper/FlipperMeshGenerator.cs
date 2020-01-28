@@ -30,19 +30,20 @@ namespace VisualPinball.Engine.VPT.Flipper
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
-					name: "Base",
-					mesh: meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
-					material: table.GetMaterial(_data.Material),
-					map: table.GetTexture(_data.Image),
-					isVisible: _data.IsVisible)
+					"Base",
+					meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
+					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+					_data.IsVisible
+				)
 			};
 
 			if (meshes.ContainsKey("Rubber")) {
 				renderObjects.Add(new RenderObject(
 					name: "Rubber",
 					mesh: meshes["Rubber"].Transform(preVertexMatrix, preNormalsMatrix),
-					material: table.GetMaterial(_data.RubberMaterial),
-					isVisible: _data.IsVisible));
+					material: new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
+					isVisible: _data.IsVisible
+				));
 			}
 
 			return new RenderObjectGroup(_data.Name, "Flippers", postMatrix, renderObjects.ToArray());

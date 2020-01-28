@@ -1,4 +1,6 @@
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT
@@ -38,15 +40,12 @@ namespace VisualPinball.Engine.Test.VPT
 		public void ShouldAnalyzeATransparentTexture()
 		{
 			var texture = _table.Textures["test_pattern_transparent"];
+			texture.Analyze(true);
 			var stats = texture.GetStats();
 
 			Assert.Equal(0.657285035f, stats.Opaque);
 			Assert.Equal(0.0102373762f, stats.Translucent);
 			Assert.Equal(0.33247757f, stats.Transparent);
-
-			// Assert.Equal(0.66273582f, stats.Opaque);
-			// Assert.Equal(0.0114555256f, stats.Translucent);
-			// Assert.Equal(0.325808614f, stats.Transparent);
 		}
 	}
 }
