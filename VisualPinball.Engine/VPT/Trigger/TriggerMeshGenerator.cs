@@ -23,10 +23,10 @@ namespace VisualPinball.Engine.VPT.Trigger
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Triggers", postMatrix, new RenderObject(
-					name: _data.Name,
-					mesh: GetMesh().Transform(preMatrix),
-					material: table.GetMaterial(_data.Material),
-					isVisible: _data.IsVisible && _data.Shape != TriggerShape.TriggerNone
+					_data.Name,
+					GetMesh().Transform(preMatrix),
+					new PbrMaterial(table.GetMaterial(_data.Material)),
+					_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
 				)
 			);
 		}

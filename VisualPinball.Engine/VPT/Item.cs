@@ -1,3 +1,6 @@
+using System.Text.RegularExpressions;
+using VisualPinball.Engine.Common;
+
 namespace VisualPinball.Engine.VPT
 {
 	/// <summary>

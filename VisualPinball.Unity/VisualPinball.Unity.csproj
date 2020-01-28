@@ -16,7 +16,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -67,6 +67,7 @@
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Importer\AssetUtility.cs" />
+    <Compile Include="Importer\MaterialImporter.cs" />
     <Compile Include="Importer\TableLoader.cs" />
     <Compile Include="Importer\TextureImporter.cs" />
     <Compile Include="Importer\MemHelper.cs" />

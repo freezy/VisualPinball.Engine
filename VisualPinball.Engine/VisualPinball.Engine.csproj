@@ -17,7 +17,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -88,6 +88,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Game\IRenderable.cs" />
     <Compile Include="IO\BiffAttribute.cs" />
     <Compile Include="IO\BiffBoolAttribute.cs" />
@@ -147,8 +148,10 @@
     <Compile Include="VPT\Light\LightData.cs" />
     <Compile Include="VPT\Light\LightMeshGenerator.cs" />
     <Compile Include="VPT\Material.cs" />
+    <Compile Include="VPT\MaterialData.cs" />
     <Compile Include="VPT\Mesh.cs" />
     <Compile Include="VPT\MeshGenerator.cs" />
+    <Compile Include="VPT\PbrMaterial.cs" />
     <Compile Include="VPT\Plunger\PlungerData.cs" />
     <Compile Include="VPT\Primitive\Primitive.cs" />
     <Compile Include="VPT\Primitive\PrimitiveData.cs" />

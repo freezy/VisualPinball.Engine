@@ -67,9 +67,10 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			return new RenderObject(
-				mesh: asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				map: table.GetTexture(_data.Image),
-				material: table.GetMaterial(_data.PlayfieldMaterial)
+				_data.Name,
+				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+				new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image)),
+				true
 			);
 		}
 	}

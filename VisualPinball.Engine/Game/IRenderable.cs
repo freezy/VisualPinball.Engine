@@ -68,39 +68,15 @@ namespace VisualPinball.Engine.Game
 		public readonly string Name;
 		public readonly Mesh Mesh;
 
-		public readonly Texture Map;
-		public readonly Texture NormalMap;
-		public readonly Texture EnvMap;
-		public readonly Material Material;
+		public readonly PbrMaterial Material;
 		public readonly bool IsVisible;
-		public readonly bool IsTransparent;
 
-		public const string MaterialNameNoMaterial = "__no_material";
-
-		/// <summary>
-		/// A unique ID based on the material and its maps.
-		/// </summary>
-		public string MaterialId => string.Join("-", new[] {
-				Material?.Name ?? MaterialNameNoMaterial,
-				Map?.Name ?? "__no_map",
-				NormalMap?.Name ?? "__no_normal_map",
-				EnvMap?.Name ?? "__no_env_map"
-			}
-			.Reverse()
-			.SkipWhile(s => s.StartsWith("__no_") && s != MaterialNameNoMaterial)
-			.Reverse()
-		);
-
-		public RenderObject(string name = null, Mesh mesh = null, Texture map = null, Texture normalMap = null, Texture envMap = null, Material material = null, bool isVisible = true, bool isTransparent = false)
+		public RenderObject(string name, Mesh mesh, PbrMaterial material, bool isVisible)
 		{
 			Name = name;
 			Mesh = mesh;
-			Map = map;
-			NormalMap = normalMap;
-			EnvMap = envMap;
 			Material = material;
 			IsVisible = isVisible;
-			IsTransparent = isTransparent;
 		}
 	}
 }

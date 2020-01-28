@@ -25,7 +25,6 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
 {
-
 	public class VpxImporter : MonoBehaviour
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
@@ -47,8 +46,7 @@ namespace VisualPinball.Unity.Importer
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
-		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
-		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
+
 		private Table _table;
 
 		public static void ImportVpxRuntime(string path)
@@ -92,6 +90,7 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("VpxImporter.ImportVpxEditor()");
 			Logger.Info("[VpxImporter] Imported!");
 			Profiler.Print();
+			Profiler.Reset();
 		}
 
 		private static GameObject ImportVpx(string path, bool saveToAssets) {
@@ -132,16 +131,28 @@ namespace VisualPinball.Unity.Importer
 			AssetDatabase.SaveAssets();
 
 			// generate meshes now
+			var materials = new Dictionary<string, PbrMaterial>();
 			foreach (var r in _table.Renderables) {
 				_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
+				foreach (var ro in _renderObjects[r].RenderObjects) {
+					if (!materials.ContainsKey(ro.Material.Id)) {
+						materials[ro.Material.Id] = ro.Material;
+					}
+				}
 			}
 
 			// import textures
 			Profiler.Start("ImportTextures via Job");
-			var textureImporter = new TextureImporter(_renderObjects.Values.ToArray(), _table.Textures.Values.Concat(Texture.LocalTextures).ToArray());
+			var textureImporter = new TextureImporter(_table.Textures.Values.Concat(Texture.LocalTextures).ToArray());
 			textureImporter.ImportTextures(_textureFolder);
 			Profiler.Stop("ImportTextures via Job");
 			// ImportTextures(table);
+
+			// import materials
+			Profiler.Start("ImportMaterials via Job");
+			var materialImporter = new MaterialImporter(materials.Values.ToArray());
+			materialImporter.ImportMaterials(_materialFolder, _textureFolder);
+			Profiler.Stop("ImportMaterials via Job");
 
 			// import table
 			ImportGameItems();
@@ -254,17 +265,17 @@ namespace VisualPinball.Unity.Importer
 			}
 		}
 
-		private void ImportRenderObject(IRenderable item, RenderObject renderObject, GameObject obj)
+		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)
 		{
-			if (renderObject.Mesh == null) {
+			if (ro.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
 				return;
 			}
 
 			Profiler.Start("ToUnityMesh");
-			var mesh = renderObject.Mesh.ToUnityMesh($"{obj.name}_mesh");
+			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
 			Profiler.Stop("ToUnityMesh");
-			obj.SetActive(renderObject.IsVisible);
+			obj.SetActive(ro.IsVisible);
 
 			// apply mesh to game object
 			var mf = obj.AddComponent<MeshFilter>();
@@ -272,14 +283,14 @@ namespace VisualPinball.Unity.Importer
 
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = GetMaterial(renderObject, obj.name);
-			if (mr.sharedMaterial.name == RenderObject.MaterialNameNoMaterial) {
+			mr.sharedMaterial = GetMaterial(ro.Material);
+			if (mr.sharedMaterial.name == PbrMaterial.NameNoMaterial) {
 				mr.enabled = false;
 			}
 
 			// patch
 			Profiler.Start("Patch & Assets");
-			_patcher.ApplyPatches(item, renderObject, obj);
+			_patcher.ApplyPatches(item, ro, obj);
 
 			// add mesh to asset
 			if (_saveToAssets) {
@@ -288,26 +299,26 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Stop("Patch & Assets");
 		}
 
-		private Material GetMaterial(RenderObject ro, string objectName)
+		private Material GetMaterial(PbrMaterial mat)
 		{
 			Profiler.Start("GetMaterial");
-			var material = LoadMaterial(ro);
-			if (material == null) {
-				material = ro.Material?.ToUnityMaterial(ro) ?? new Material(Shader.Find("Standard"));
-				if (ro.Map != null) {
-					Profiler.Start("SetTexture");
-					material.SetTexture(MainTex, LoadTexture(ro.Map, TextureImporterType.Default));
-					Profiler.Stop("SetTexture");
-				}
-				if (ro.NormalMap != null) {
-					Profiler.Start("SetTexture");
-					material.SetTexture(BumpMap, LoadTexture(ro.NormalMap, TextureImporterType.NormalMap));
-					Profiler.Stop("SetTexture");
-				}
-				Profiler.Start("SaveMaterial");
-				SaveMaterial(ro, material);
-				Profiler.Stop("SaveMaterial");
-			}
+			var material = LoadMaterial(mat);
+			// if (material == null) {
+			// 	material = ro.Material.ToUnityMaterial();
+			// 	// if (ro.Map != null) {
+			// 	// 	Profiler.Start("SetTexture");
+			// 	// 	material.SetTexture(MainTex, LoadTexture(ro.Map, TextureImporterType.Default));
+			// 	// 	Profiler.Stop("SetTexture");
+			// 	// }
+			// 	// if (ro.NormalMap != null) {
+			// 	// 	Profiler.Start("SetTexture");
+			// 	// 	material.SetTexture(BumpMap, LoadTexture(ro.NormalMap, TextureImporterType.NormalMap));
+			// 	// 	Profiler.Stop("SetTexture");
+			// 	// }
+			// 	Profiler.Start("SaveMaterial");
+			// 	SaveMaterial(ro, material);
+			// 	Profiler.Stop("SaveMaterial");
+			// }
 			Profiler.Stop("GetMaterial");
 
 			return material;
@@ -322,19 +333,19 @@ namespace VisualPinball.Unity.Importer
 		// 	}
 		// }
 
-		private Texture2D LoadTexture(Texture texture, TextureImporterType type)
-		{
-			Profiler.Start("LoadTexture");
-			if (_saveToAssets) {
-				Profiler.Start("LoadAssetAtPath");
-				var unityTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
-				Profiler.Stop("LoadAssetAtPath");
-				//ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
-				Profiler.Stop("LoadTexture");
-				return unityTex;
-			}
-			return _textures[texture.Name];
-		}
+		// private Texture2D LoadTexture(Texture texture, TextureImporterType type)
+		// {
+		// 	Profiler.Start("LoadTexture");
+		// 	if (_saveToAssets) {
+		// 		Profiler.Start("LoadAssetAtPath");
+		// 		var unityTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
+		// 		Profiler.Stop("LoadAssetAtPath");
+		// 		//ImportTextureAs(texture, type, AssetDatabase.GetAssetPath(unityTex));
+		// 		Profiler.Stop("LoadTexture");
+		// 		return unityTex;
+		// 	}
+		// 	return _textures[texture.Name];
+		// }
 
 		// private static void ImportTextureAs(Texture map, TextureImporterType type, string path)
 		// {
@@ -356,26 +367,24 @@ namespace VisualPinball.Unity.Importer
 		// 	Profiler.Stop("ImportTextureAs");
 		// }
 
-		private void SaveMaterial(RenderObject ro, Material material)
+		// private void SaveMaterial(RenderObject ro, Material material)
+		// {
+		// 	if (_saveToAssets) {
+		// 		Profiler.Start("AssetDatabase.CreateAsset");
+		// 		AssetDatabase.CreateAsset(material, ro.Material.GetUnityFilename(_materialFolder));
+		// 		Profiler.Stop("AssetDatabase.CreateAsset");
+		// 	} else {
+		// 		_materials[ro.Material.Id] = material;
+		// 	}
+		// }
+
+		private Material LoadMaterial(PbrMaterial mat)
 		{
 			if (_saveToAssets) {
-				var assetPath = $"{_materialFolder}/{AssetUtility.StringToFilename(ro.MaterialId)}.mat";
-				Profiler.Start("AssetDatabase.CreateAsset");
-				AssetDatabase.CreateAsset(material, assetPath);
-				Profiler.Stop("AssetDatabase.CreateAsset");
-			} else {
-				_materials[ro.MaterialId] = material;
-			}
-		}
-
-		private Material LoadMaterial(RenderObject ro)
-		{
-			if (_saveToAssets) {
-				var assetPath = $"{_materialFolder}/{AssetUtility.StringToFilename(ro.MaterialId)}.mat";
-				return AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+				return AssetDatabase.LoadAssetAtPath<Material>(mat.GetUnityFilename(_materialFolder));
 			}
 
-			return _materials.ContainsKey(ro.MaterialId) ? _materials[ro.MaterialId] : null;
+			return _materials.ContainsKey(mat.Id) ? _materials[mat.Id] : null;
 		}
 
 		private static void SetTransform(Transform tf, Matrix4x4 trs)

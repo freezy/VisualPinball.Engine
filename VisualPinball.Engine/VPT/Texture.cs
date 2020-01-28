@@ -54,17 +54,13 @@ namespace VisualPinball.Engine.VPT
 		private IImageData ImageData => Data.Binary as IImageData ?? Data.Bitmap;
 
 		/// <summary>
-		/// Returns true if at least one pixel is not opaque. <p/>
-		///
-		/// Loops through the bitmap if necessary, but only the first time.
+		/// Returns false if at least one pixel is not opaque. <p/>
 		/// </summary>
-		public bool HasTransparentPixels;
+		public bool IsOpaque;
 
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
 		public bool UsageNormalMap;
-
-		public bool UsageOpaqueMaterial;
 
 		private TextureStats _stats;
 
@@ -72,50 +68,33 @@ namespace VisualPinball.Engine.VPT
 
 		private Texture(Resource res) : base(new TextureData(res)) { }
 
-		public void Analyze()
+		public void Analyze(bool full)
 		{
+			if (!HasTransparentFormat) {
+				// don't even bother
+				return;
+			}
 			using (var image = GetImage()) {
-				HasTransparentPixels = image != null && image.HasAlpha();
-				// if (UsageOpaqueMaterial && HasTransparentPixels) {
-					var sw = new Stopwatch();
-					sw.Start();
-					_stats = AnalyzeAlpha(1, 254);
-					sw.Stop();
-				// 	Logger.Warn("Texture {0} is used by at least one opaque material but has transparent pixels. Analyzed in {1}ms to determine whether to render as cut-out or transparent.", Name, sw.ElapsedMilliseconds);
-				// }
+				IsOpaque = image == null || !image.HasAlpha();
+				if (full && !IsOpaque) {
+					_stats = AnalyzeAlpha();
+				}
 			}
-		}
-
-		private Image GetImage()
-		{
-			try {
-				return Data.Binary != null
-					? Image.NewFromBuffer(Data.Binary.Data)
-					: Image.NewFromMemory(Data.Bitmap.Bytes, Width, Height, 4, Enums.BandFormat.Uchar);
-
-			} catch (VipsException e) {
-				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
-			}
-
-			return null;
 		}
 
 		/// <summary>
 		/// Returns statistics about transparent and translucent pixels in the
 		/// texture.
 		/// </summary>
-		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
 		/// <returns>Statistics</returns>
 		public TextureStats GetStats()
 		{
-			if (_stats == null && (!HasTransparentFormat || !HasTransparentPixels)) {
+			if (_stats == null) {
+				if (!IsOpaque) {
+					Logger.Warn("Stats of texture {0} requested, but has not been analyzed.", Data.Name);
+				}
 				_stats = new TextureStats(1, 0, 0);
 			}
-
-			if (_stats == null) {
-				throw new InvalidOperationException("Unknown stats. Please pre-compute in parallel.");
-			}
-
 			return _stats;
 		}
 
@@ -123,14 +102,10 @@ namespace VisualPinball.Engine.VPT
 		/// Retrieves metrics on how many pixels are opaque (no alpha),
 		/// translucent (some alpha), and transparent (100% alpha). <p/>
 		///
-		/// It loops through the image through blocks, progressing rapidly
-		/// through the image, in order to get a good average fast.
+		/// It uses the native libvips, so speed is decent.
 		/// </summary>
-		/// <param name="data">Bitmap data, as RGBA</param>
-		/// <param name="threshold">How many transparent or translucent pixels to count before aborting</param>
-		/// <param name="numBlocks">In how many blocks the loop is divided</param>
 		/// <returns></returns>
-		private TextureStats AnalyzeAlpha(int translucentStart, int translucentEnd)
+		private TextureStats AnalyzeAlpha()
 		{
 			Profiler.Start("AnalyzeAlpha");
 			using (var image = GetImage()) {
@@ -159,6 +134,20 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
+		private Image GetImage()
+		{
+			try {
+				return Data.Binary != null
+					? Image.NewFromBuffer(Data.Binary.Data)
+					: Image.NewFromMemory(Data.Bitmap.Bytes, Width, Height, 4, Enums.BandFormat.Uchar);
+
+			} catch (VipsException e) {
+				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
+			}
+
+			return null;
+		}
+
 		private static double BandStats(Image hist, int val)
 		{
 			var mask = (Image.Identity() > val) / 255;
@@ -182,6 +171,8 @@ namespace VisualPinball.Engine.VPT
 		/// How many transparent pixels found relative to total number of pixels
 		/// </summary>
 		public float Transparent => (float) _numTransparentPixels / _numTotalPixels;
+
+		public bool HasTransparentPixels => _numTransparentPixels > 0;
 
 		/// <summary>
 		/// True if no translucent or transparent pixels found, false otherwise.

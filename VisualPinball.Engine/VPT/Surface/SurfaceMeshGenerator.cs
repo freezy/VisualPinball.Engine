@@ -20,20 +20,20 @@ namespace VisualPinball.Engine.VPT.Surface
 
 			if (meshes.ContainsKey("Side")) {
 				renderObjects.Add(new RenderObject(
-					name: "Side",
-					mesh: asRightHanded ? meshes["Side"].Transform(Matrix3D.RightHanded) : meshes["Side"],
-					material: table.GetMaterial(_data.SideMaterial),
-					map: table.GetTexture(_data.SideImage),
-					isVisible: _data.IsSideVisible));
+					"Side",
+					asRightHanded ? meshes["Side"].Transform(Matrix3D.RightHanded) : meshes["Side"],
+					new PbrMaterial(table.GetMaterial(_data.SideMaterial), table.GetTexture(_data.SideImage)),
+					_data.IsSideVisible
+				));
 			}
 
 			if (meshes.ContainsKey("Top")) {
 				renderObjects.Add(new RenderObject(
-					name: "Top",
-					mesh: asRightHanded ? meshes["Top"].Transform(Matrix3D.RightHanded) : meshes["Top"],
-					material: table.GetMaterial(_data.TopMaterial),
-					map: table.GetTexture(_data.Image),
-					isVisible: _data.IsTopBottomVisible));
+					"Top",
+					asRightHanded ? meshes["Top"].Transform(Matrix3D.RightHanded) : meshes["Top"],
+					new PbrMaterial(table.GetMaterial(_data.TopMaterial), table.GetTexture(_data.Image)),
+					_data.IsTopBottomVisible
+				));
 			}
 
 			return new RenderObjectGroup(_data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());

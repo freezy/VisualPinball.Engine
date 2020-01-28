@@ -5,6 +5,7 @@ using UnityEngine;
 using VisualPinball.Unity.Importer;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Extensions
 {
@@ -20,81 +21,56 @@ namespace VisualPinball.Unity.Extensions
 		private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
 		private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
 
-		private enum BlendMode
-		{
-			Opaque,
-			Cutout,
-			Fade,
-			Transparent
-		}
-
-		public static UnityEngine.Material ToUnityMaterial(this VisualPinball.Engine.VPT.Material vpxMaterial, RenderObject ro)
+		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial)
 		{
 			Profiler.Start("Material.ToUnityMaterial()");
 			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
-				name = vpxMaterial.Name
+				name = vpxMaterial.Id
 			};
 
-			// color
-			var col = vpxMaterial.BaseColor.ToUnityColor();
-			// TODO re-enable or remove
-			// if (vpxMaterial.BaseColor.IsGray() && col.grayscale > 0.8) {
-			// 	// we dont want bright or solid white colors, never good for CG
-			// 	col.r = col.g = col.b = 0.8f;
-			// }
+			// apply some basic manipulations to the color. this just makes very
+			// very white colors be clipped to 0.8204 aka 204/255 is 0.8
+			// this is to give room to lighting values. so there is more modulation
+			// of brighter colors when being lit without blow outs too soon.
+			var col = vpxMaterial.Color.ToUnityColor();
+			if (vpxMaterial.Color.IsGray() && col.grayscale > 0.8) {
+				col.r = col.g = col.b = 0.8f;
+			}
 			unityMaterial.SetColor(Color, col);
 
-			// metal and glossiness
+			// validate IsMetal. if true, set the metallic value.
+			// found VPX authors setting metallic as well as translucent at the
+			// same time, which does not render correctly in unity so we have
+			// to check if this value is true and also if opacity <= 1.
 			if (vpxMaterial.IsMetal) {
-				unityMaterial.SetFloat(Metallic, 1f);
+				if (!vpxMaterial.IsOpacityActive) {
+					unityMaterial.SetFloat(Metallic, 1f);
+				} else if (vpxMaterial.Opacity >= 1) {
+					unityMaterial.SetFloat(Metallic, 1f);
+				}
 			}
+
+			// roughness / glossiness
 			unityMaterial.SetFloat(Glossiness, vpxMaterial.Roughness);
 
-			// blend modes
-			var blendMode = BlendMode.Opaque;                                         // opaque per default
-			if (ro.Map != null && ro.Map.HasTransparentPixels) {                      // but if there is transparency, cut-out.
-				blendMode = BlendMode.Cutout;
-			}
-
-			if (vpxMaterial.IsOpacityActive) {            // if opacity is set and below 1, blend transparent.
+			// blend mode
+			ApplyBlendMode(unityMaterial, vpxMaterial.MapBlendMode);
+			if (vpxMaterial.MapBlendMode == BlendMode.Translucent) {
 				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
 				unityMaterial.SetColor(Color, col);
-				blendMode = BlendMode.Transparent;
-
-			} /*else if (ro.Map != null && ro.Map.HasTransparentPixels) {
-				// special case: opacity is *not* active (or active but set to 1), but there are transparent pixels.
-				// this should not happen because VPX renders those weirdly.
-				// still, in this case, we set the blend mode based on how many pixels are transparent, and how many
-				// are translucent.
-
-				var stats = ro.Map.GetStats();
-				if (!stats.IsOpaque) {
-				 	blendMode = stats.Translucent / stats.Transparent > 0.1
-				 		? vpxMaterial.IsOpacityActive ? BlendMode.Transparent : BlendMode.Opaque
-				 		: BlendMode.Cutout;
-				}
-			}*/
-
-
-			// if (blendMode == BlendMode.Opaque && ro.Map != null) {
-			// 	// if we cannot determine transparency or cutout through material
-			// 	// props, look at the texture.
-			// 	Profiler.Start("GetStats()");
-			// 	//var stats = ro.Map.GetStats(1000);
-			// 	Profiler.Stop("GetStats()");
-			// 	if (!stats.IsOpaque) {
-			// 		blendMode = stats.Translucent / stats.Transparent > 0.1
-			// 			? BlendMode.Transparent
-			// 			: BlendMode.Cutout;
-			// 	}
-			// }
+			}
 
 			// normal map
-			if (ro.NormalMap != null) {
+			if (vpxMaterial.HasNormalMap) {
 				unityMaterial.EnableKeyword("_NORMALMAP");
 			}
 
-			// blend mode
+			Profiler.Stop("Material.ToUnityMaterial()");
+			return unityMaterial;
+		}
+
+		private static void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
+		{
 			switch (blendMode) {
 				case BlendMode.Opaque:
 					unityMaterial.SetFloat(Mode, 0);
@@ -118,18 +94,7 @@ namespace VisualPinball.Unity.Extensions
 					unityMaterial.renderQueue = 2450;
 					break;
 
-				case BlendMode.Fade:
-					unityMaterial.SetFloat(Mode, 2);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-					unityMaterial.SetInt(ZWrite, 0);
-					unityMaterial.DisableKeyword("_ALPHATEST_ON");
-					unityMaterial.EnableKeyword("_ALPHABLEND_ON");
-					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-					unityMaterial.renderQueue = 3000;
-					break;
-
-				case BlendMode.Transparent:
+				case BlendMode.Translucent:
 					unityMaterial.SetFloat(Mode, 3);
 					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
 					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -145,8 +110,11 @@ namespace VisualPinball.Unity.Extensions
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			Profiler.Stop("Material.ToUnityMaterial()");
-			return unityMaterial;
+		}
+
+		public static string GetUnityFilename(this Engine.VPT.PbrMaterial vpMat, string folderName)
+		{
+			return $"{folderName}/{vpMat.Id}.mat";
 		}
 
 		public static string GetUnityFilename(this VisualPinball.Engine.VPT.Material vpxMaterial, string folderName, string objectName)

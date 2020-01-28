@@ -1,4 +1,7 @@
-﻿using System;
+﻿// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedMember.Global
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,37 +10,29 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
-using Material = UnityEngine.Material;
-using Object = System.Object;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer
 {
 	public class TextureImporter
 	{
-		private readonly RenderObjectGroup[] _renderObjects;
 		private readonly Texture[] _textures;
 
-		public TextureImporter(RenderObjectGroup[] renderObjects, Texture[] textures)
+		public TextureImporter(Texture[] textures)
 		{
-			_renderObjects = renderObjects;
 			_textures = textures;
 		}
 
 		public void ImportTextures(string textureFolder)
 		{
-			UpdateUsages();
-
-			Profiler.Start("Run job");
+			Profiler.Start("Run texture job");
 			using (var job = new TextureJob(_textures, textureFolder)) {
 				var handle = job.Schedule(_textures.Length, 64);
 				handle.Complete();
 			}
-			Profiler.Stop("Run job");
+			Profiler.Stop("Run texture job");
 
 			// set filename -> texture map for OnPreprocessTexture()
 			foreach (var texture in _textures) {
@@ -49,24 +44,6 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Start("AssetDatabase.ImportAsset");
 			AssetDatabase.ImportAsset(textureFolder, ImportAssetOptions.ImportRecursive);
 			Profiler.Stop("AssetDatabase.ImportAsset");
-		}
-
-		private void UpdateUsages()
-		{
-			foreach (var rog in _renderObjects) {
-				foreach (var ro in rog.RenderObjects) {
-
-					if (ro.Material != null && ro.Map != null) {
-						if (!ro.Material.IsOpacityActive) {
-							ro.Map.UsageOpaqueMaterial = true;
-						}
-					}
-
-					if (ro.NormalMap != null) {
-						ro.NormalMap.UsageNormalMap = true;
-					}
-				}
-			}
 		}
 	}
 
@@ -91,9 +68,6 @@ namespace VisualPinball.Unity.Importer
 			var texture = MemHelper.ToObj<Texture>(_textures[index]);
 			var textureFolder =  MemHelper.ToObj<string>(_textureFolder);
 
-			// analyze
-			texture.Analyze();
-
 			// write to disk
 			var path = texture.GetUnityFilename(textureFolder);
 			File.WriteAllBytes(path, texture.FileContent);
@@ -116,7 +90,7 @@ namespace VisualPinball.Unity.Importer
 				var texture = Textures[importer.assetPath];
 
 				importer.textureType = texture.UsageNormalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
-				importer.alphaIsTransparency = texture.HasTransparentPixels;
+				importer.alphaIsTransparency = !texture.IsOpaque;
 				importer.isReadable = true;
 				importer.mipmapEnabled = true;
 				importer.filterMode = FilterMode.Bilinear;

@@ -35,32 +35,28 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 			return new RenderObjectGroup(_data.Name, "Bumpers", translationMatrix,
 				new RenderObject(
-					name: "Base",
-					mesh: asRightHanded ? meshes["Base"].Transform(Matrix3D.RightHanded) : meshes["Base"],
-					material: table.GetMaterial(_data.BaseMaterial),
-					map: Texture.BumperBase,
-					isVisible: _data.IsBaseVisible
+					"Base",
+					asRightHanded ? meshes["Base"].Transform(Matrix3D.RightHanded) : meshes["Base"],
+					new PbrMaterial(table.GetMaterial(_data.BaseMaterial), Texture.BumperBase),
+					_data.IsBaseVisible
 				),
 				new RenderObject(
-					name: "Ring",
-					mesh: asRightHanded ? meshes["Ring"].Transform(Matrix3D.RightHanded) : meshes["Ring"],
-					material: table.GetMaterial(_data.RingMaterial),
-					map: Texture.BumperRing,
-					isVisible: _data.IsRingVisible
+					"Ring",
+					asRightHanded ? meshes["Ring"].Transform(Matrix3D.RightHanded) : meshes["Ring"],
+					new PbrMaterial(table.GetMaterial(_data.RingMaterial), Texture.BumperRing),
+					_data.IsRingVisible
 				),
 				new RenderObject(
-					name: "Skirt",
-					mesh: asRightHanded ? meshes["Skirt"].Transform(Matrix3D.RightHanded) : meshes["Skirt"],
-					material: table.GetMaterial(_data.SocketMaterial),
-					map: Texture.BumperSocket,
-					isVisible: _data.IsSocketVisible
+					"Skirt",
+					asRightHanded ? meshes["Skirt"].Transform(Matrix3D.RightHanded) : meshes["Skirt"],
+					new PbrMaterial(table.GetMaterial(_data.SocketMaterial), Texture.BumperSocket),
+					_data.IsSocketVisible
 				),
 				new RenderObject(
-					name: "Cap",
-					mesh: asRightHanded ? meshes["Cap"].Transform(Matrix3D.RightHanded) : meshes["Cap"],
-					material: table.GetMaterial(_data.CapMaterial),
-					map: Texture.BumperCap,
-					isVisible: _data.IsCapVisible
+					"Cap",
+					asRightHanded ? meshes["Cap"].Transform(Matrix3D.RightHanded) : meshes["Cap"],
+					new PbrMaterial(table.GetMaterial(_data.CapMaterial), Texture.BumperCap),
+					_data.IsCapVisible
 				)
 			);
 		}
