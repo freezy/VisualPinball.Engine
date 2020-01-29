@@ -38,7 +38,19 @@ namespace VisualPinball.Unity.Importer
 
 		public static void ImportVpxRuntime(string path)
 		{
-			ImportVpx(path);
+			ImportVpx(path, false);
+		}
+
+		[MenuItem("Visual Pinball/Import VPX as Asset", false, 10)]
+		public static void ImportVpxEditorAsset(MenuCommand menuCommand)
+		{
+			ImportVpxEditor(menuCommand, true);
+		}
+
+		[MenuItem("Visual Pinball/Import VPX into Memory", false, 10)]
+		public static void ImportVpxEditorMemory(MenuCommand menuCommand)
+		{
+			ImportVpxEditor(menuCommand, false);
 		}
 
 		/// <summary>
@@ -50,8 +62,7 @@ namespace VisualPinball.Unity.Importer
 		/// can be saved and loaded
 		/// </summary>
 		/// <param name="menuCommand">Context provided by the Editor</param>
-		[MenuItem("Visual Pinball/Import VPX", false, 10)]
-		public static void ImportVpxEditor(MenuCommand menuCommand)
+		public static void ImportVpxEditor(MenuCommand menuCommand, bool saveLocally)
 		{
 			// TODO that somewhere else
 			Logging.Setup();
@@ -63,7 +74,7 @@ namespace VisualPinball.Unity.Importer
 			}
 
 			Profiler.Start("VpxImporter.ImportVpxEditor()");
-			var rootGameObj = ImportVpx(vpxPath);
+			var rootGameObj = ImportVpx(vpxPath, saveLocally);
 
 			// if an object was selected in the editor, make it its parent
 			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
@@ -80,18 +91,18 @@ namespace VisualPinball.Unity.Importer
 			Profiler.Reset();
 		}
 
-		private static GameObject ImportVpx(string path) {
+		private static GameObject ImportVpx(string path, bool saveLocally) {
 
 			// create root object
 			var rootGameObj = new GameObject();
 			var importer = rootGameObj.AddComponent<VpxImporter>();
 
-			importer.Import(path);
+			importer.Import(path, saveLocally);
 
 			return rootGameObj;
 		}
 
-		private void Import(string path)
+		private void Import(string path, bool saveLocally)
 		{
 			// parse table
 			Profiler.Start("VpxImporter.Import()");
@@ -102,7 +113,9 @@ namespace VisualPinball.Unity.Importer
 			_patcher = new Patcher.Patcher.Patcher(_table, Path.GetFileName(path));
 
 			// setup asset handler
-			_assetHandler = new AssetDatabaseHandler(_table, path);
+			_assetHandler = saveLocally
+				? new AssetDatabaseHandler(_table, path) as IAssetHandler
+				: new AssetMemoryHandler();
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
