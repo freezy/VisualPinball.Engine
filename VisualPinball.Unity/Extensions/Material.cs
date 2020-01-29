@@ -7,6 +7,7 @@ using VisualPinball.Unity.Importer;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Importer.AssetHandler;
 
 namespace VisualPinball.Unity.Extensions
 {
@@ -21,8 +22,10 @@ namespace VisualPinball.Unity.Extensions
 		private static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
 		private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
 		private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
+		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 
-		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial)
+		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, IAssetHandler assetHandler)
 		{
 			Profiler.Start("Material.ToUnityMaterial()");
 			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
@@ -61,9 +64,21 @@ namespace VisualPinball.Unity.Extensions
 				unityMaterial.SetColor(Color, col);
 			}
 
+			// map
+			if (vpxMaterial.HasMap) {
+				unityMaterial.SetTexture(
+					MainTex,
+					assetHandler.LoadTexture(vpxMaterial.Map)
+				);
+			}
+
 			// normal map
 			if (vpxMaterial.HasNormalMap) {
 				unityMaterial.EnableKeyword("_NORMALMAP");
+				unityMaterial.SetTexture(
+					BumpMap,
+					assetHandler.LoadTexture(vpxMaterial.NormalMap)
+				);
 			}
 
 			Profiler.Stop("Material.ToUnityMaterial()");
