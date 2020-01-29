@@ -59,6 +59,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Extensions\Color.cs" />
     <Compile Include="Extensions\Light.cs" />
     <Compile Include="Extensions\Material.cs" />
@@ -73,8 +75,6 @@
     <Compile Include="Importer\MemHelper.cs" />
     <Compile Include="Importer\ScaleNormalizer.cs" />
     <Compile Include="Importer\VpxImporter.cs" />
-    <Compile Include="IO\Logging.cs" />
-    <Compile Include="IO\UnityTarget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

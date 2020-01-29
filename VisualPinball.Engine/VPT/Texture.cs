@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using NetVips;
 using NLog;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
@@ -71,7 +72,7 @@ namespace VisualPinball.Engine.VPT
 		public void Analyze(bool full)
 		{
 			if (!HasTransparentFormat) {
-				// don't even bother
+				IsOpaque = true;
 				return;
 			}
 			using (var image = GetImage()) {

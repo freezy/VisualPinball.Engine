@@ -10,6 +10,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Unity.Extensions;
 using Texture = VisualPinball.Engine.VPT.Texture;

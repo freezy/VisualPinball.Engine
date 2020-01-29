@@ -4,6 +4,7 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Unity.Extensions;
 using Logger = NLog.Logger;

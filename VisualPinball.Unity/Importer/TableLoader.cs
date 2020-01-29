@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using OpenMcdf;
 using Unity.Collections;
 using Unity.Jobs;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -23,7 +24,6 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Importer
 {
-
 	public static class TableLoader
 	{
 		public static Table LoadTable(string path)
