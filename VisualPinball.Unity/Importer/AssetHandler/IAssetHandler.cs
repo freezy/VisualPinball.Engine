@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
@@ -9,7 +10,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	public interface IAssetHandler
 	{
 		void HandleTextureData(Texture texture);
-		void ImportTextures(Texture[] textures);
+		void ImportTextures(IEnumerable<Texture> textures);
 		Texture2D LoadTexture(Texture materialMap);
 		void SaveMaterial(PbrMaterial material, Material unityMaterial);
 		void OnMaterialsSaved(PbrMaterial[] materials);

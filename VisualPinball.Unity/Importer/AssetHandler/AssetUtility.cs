@@ -1,44 +1,17 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.IO;
 using VisualPinball.Unity.Extensions;
 using Logger = NLog.Logger;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
-namespace VisualPinball.Unity.Importer
+namespace VisualPinball.Unity.Importer.AssetHandler
 {
 	internal static class AssetUtility
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static void CreateFolders(params string[] folders)
-		{
-			foreach (var folder in folders) {
-				if (Directory.Exists(folder)) {
-					continue;
-				}
-				var dirNames = folder.Split('/');
-				var baseDir = string.Join("/", dirNames.Take(dirNames.Length - 1));
-				var newDir = dirNames.Last();
-				Logger.Info("Creating folder {0} at {1}", newDir, baseDir);
-				AssetDatabase.CreateFolder(baseDir, newDir);
-			}
-		}
-
-		public static string StringToFilename(string str)
-		{
-			if (str == null) {
-				throw new ArgumentException("String cannot be null.");
-			}
-			return Path.GetInvalidFileNameChars()
-				.Aggregate(str, (current, c) => current.Replace(c, '_'))
-				.Replace(" ", "_");
-		}
 
 		public static void CreateTexture(Texture vpxTex, string textureFolder)
 		{

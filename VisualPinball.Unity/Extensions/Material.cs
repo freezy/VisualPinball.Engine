@@ -132,11 +132,5 @@ namespace VisualPinball.Unity.Extensions
 		{
 			return $"{folderName}/{vpMat.Id}.mat";
 		}
-
-		public static string GetUnityFilename(this VisualPinball.Engine.VPT.Material vpxMaterial, string folderName, string objectName)
-		{
-			return $"{folderName}/{AssetUtility.StringToFilename(objectName)}_{AssetUtility.StringToFilename(vpxMaterial.Name)}.mat";
-		}
-
 	}
 }

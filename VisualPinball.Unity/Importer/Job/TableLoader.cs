@@ -1,3 +1,5 @@
+// ReSharper disable PossibleNullReferenceException
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -5,7 +7,6 @@ using OpenMcdf;
 using Unity.Collections;
 using Unity.Jobs;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flasher;
@@ -22,7 +23,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 
-namespace VisualPinball.Unity.Importer
+namespace VisualPinball.Unity.Importer.Job
 {
 	public static class TableLoader
 	{
