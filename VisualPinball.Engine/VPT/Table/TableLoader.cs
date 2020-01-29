@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using NLog;
 using OpenMcdf;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT.Table

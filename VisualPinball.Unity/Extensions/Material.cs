@@ -2,6 +2,7 @@
 
 using System;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Importer;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;

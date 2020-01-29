@@ -1,6 +1,6 @@
 ﻿using NLog;
 
-namespace VisualPinball.Engine.IO
+namespace VisualPinball.Engine.Common
 {
 	public static class Logging
 	{

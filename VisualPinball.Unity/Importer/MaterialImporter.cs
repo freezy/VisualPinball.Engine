@@ -8,6 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Extensions;
@@ -52,7 +53,6 @@ namespace VisualPinball.Unity.Importer
 				AssetDatabase.CreateAsset(unityMaterial, path);
 			}
 			AssetDatabase.SaveAssets();
-
 			Logger.Info("Saved {0} materials to {1}.", _materials.Length, materialFolder);
 		}
 	}
@@ -62,21 +62,15 @@ namespace VisualPinball.Unity.Importer
 		[ReadOnly]
 		private NativeArray<IntPtr> _materials;
 
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
-		private readonly IntPtr _materialFolder;
-
 		public MaterialJob(IEnumerable<PbrMaterial> materials, string materialFolder)
 		{
 			_materials = new NativeArray<IntPtr>(materials.Select(MemHelper.ToIntPtr).ToArray(), Allocator.Persistent);
-			_materialFolder = MemHelper.ToIntPtr(materialFolder);
 		}
 
 		public void Execute(int index)
 		{
 			// unpack pointers
 			var material = MemHelper.ToObj<PbrMaterial>(_materials[index]);
-			var materialFolder =  MemHelper.ToObj<string>(_materialFolder);
 
 			// analyze
 			material.AnalyzeMap();
