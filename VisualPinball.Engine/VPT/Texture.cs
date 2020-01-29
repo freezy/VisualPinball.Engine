@@ -108,7 +108,6 @@ namespace VisualPinball.Engine.VPT
 		/// <returns></returns>
 		private TextureStats AnalyzeAlpha()
 		{
-			Profiler.Start("AnalyzeAlpha");
 			using (var image = GetImage()) {
 
 				// libvips couldn't load
@@ -130,7 +129,6 @@ namespace VisualPinball.Engine.VPT
 				var translucent = (int)(alpha0 - alpha1);
 				var transparent = (int)(total - alpha0);
 
-				Profiler.Stop("AnalyzeAlpha");
 				return new TextureStats(opaque, translucent, transparent);
 			}
 		}
