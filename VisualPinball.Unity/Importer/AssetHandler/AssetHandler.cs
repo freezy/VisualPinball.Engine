@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -21,7 +22,6 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	{
 		private readonly string _materialFolder;
 		private readonly string _textureFolder;
-		private readonly string _tableDataPath;
 		private readonly string _tablePrefabPath;
 		private readonly VpxAsset _asset;
 
@@ -33,13 +33,13 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			var tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(tablePath)?.Trim()}";
 			_materialFolder = $"{tableFolder}/Materials";
 			_textureFolder = $"{tableFolder}/Textures";
-			_tableDataPath = $"{tableFolder}/{AssetUtility.StringToFilename(table.Name)}_data.asset";
-			_tablePrefabPath = $"{tableFolder}/{AssetUtility.StringToFilename(table.Name)}.prefab";
-			AssetUtility.CreateFolders(tableFolder, _materialFolder, _textureFolder);
+			_tablePrefabPath = $"{tableFolder}/{table.Name.ToNormalizedName()}.prefab";
+			CreateFolders(tableFolder, _materialFolder, _textureFolder);
 
-			// setup game object to save
+			// setup game asset to save
+			var tableDataPath = $"{tableFolder}/{table.Name.ToNormalizedName()}_data.asset";
 			_asset = ScriptableObject.CreateInstance<VpxAsset>();
-			AssetDatabase.CreateAsset(_asset, _tableDataPath);
+			AssetDatabase.CreateAsset(_asset, tableDataPath);
 			AssetDatabase.SaveAssets();
 		}
 
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			File.WriteAllBytes(path, texture.FileContent);
 		}
 
-		public void ImportTextures(Texture[] textures)
+		public void ImportTextures(IEnumerable<Texture> textures)
 		{
 			// set filename -> texture map for OnPreprocessTexture()
 			foreach (var texture in textures) {
@@ -103,6 +103,20 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 		{
 			return AssetDatabase.LoadAssetAtPath<Material>(material.GetUnityFilename(_materialFolder));
 		}
+
+		private static void CreateFolders(params string[] folders)
+		{
+			foreach (var folder in folders) {
+				if (Directory.Exists(folder)) {
+					continue;
+				}
+				var dirNames = folder.Split('/');
+				var baseDir = string.Join("/", dirNames.Take(dirNames.Length - 1));
+				var newDir = dirNames.Last();
+				Logger.Info("Creating folder {0} at {1}", newDir, baseDir);
+				AssetDatabase.CreateFolder(baseDir, newDir);
+			}
+		}
 	}
 
 	public class TexturePostProcessor : AssetPostprocessor
@@ -111,7 +125,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 
 		public void OnPreprocessTexture()
 		{
-			var importer = assetImporter as UnityEditor.TextureImporter;
+			var importer = assetImporter as TextureImporter;
 			if (importer != null) {
 				var texture = Textures[importer.assetPath];
 

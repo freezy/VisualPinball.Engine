@@ -15,6 +15,7 @@ using VisualPinball.Unity.Importer.AssetHandler;
 using VisualPinball.Unity.Importer.Job;
 using Logger = NLog.Logger;
 using Logging = VisualPinball.Unity.IO.Logging;
+using TableLoader = VisualPinball.Unity.Importer.Job.TableLoader;
 using Texture = VisualPinball.Engine.VPT.Texture;
 using TextureImporter = VisualPinball.Unity.Importer.Job.TextureImporter;
 

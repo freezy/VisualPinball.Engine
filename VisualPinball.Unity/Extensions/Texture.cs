@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Importer;
 
@@ -17,7 +18,7 @@ namespace VisualPinball.Unity.Extensions
 
 		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null)
 		{
-			var fileName = $"{AssetUtility.StringToFilename(vpTex.Name)}{vpTex.FileExtension}";
+			var fileName = $"{vpTex.Name.ToNormalizedName()}{vpTex.FileExtension}";
 			return folderName != null
 				? $"{folderName}/{fileName}"
 				: $"{fileName}";
