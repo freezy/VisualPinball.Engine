@@ -1,10 +1,9 @@
 ﻿// ReSharper disable ConvertIfStatementToReturnStatement
+// ReSharper disable ClassNeverInstantiated.Global
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using NLog;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
@@ -14,10 +13,7 @@ using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Importer.AssetHandler;
 using VisualPinball.Unity.Importer.Job;
 using Logger = NLog.Logger;
-using Logging = VisualPinball.Unity.IO.Logging;
-using TableLoader = VisualPinball.Unity.Importer.Job.TableLoader;
 using Texture = VisualPinball.Engine.VPT.Texture;
-using TextureImporter = VisualPinball.Unity.Importer.Job.TextureImporter;
 
 namespace VisualPinball.Unity.Importer
 {
@@ -36,86 +32,14 @@ namespace VisualPinball.Unity.Importer
 		private Table _table;
 		private IAssetHandler _assetHandler;
 
-		public static void ImportVpxRuntime(string path)
+		public void Import(string fileName, Table table, IAssetHandler assetHandler)
 		{
-			ImportVpx(path, false);
-		}
-
-		[MenuItem("Visual Pinball/Import VPX as Asset", false, 10)]
-		public static void ImportVpxEditorAsset(MenuCommand menuCommand)
-		{
-			ImportVpxEditor(menuCommand, true);
-		}
-
-		[MenuItem("Visual Pinball/Import VPX into Memory", false, 10)]
-		public static void ImportVpxEditorMemory(MenuCommand menuCommand)
-		{
-			ImportVpxEditor(menuCommand, false);
-		}
-
-		/// <summary>
-		/// Imports a Visual Pinball File (.vpx) into the Unity Editor. <p/>
-		///
-		/// The goal of this is to be able to iterate rapidly without having to
-		/// execute the runtime on every test. This importer also saves the
-		/// imported data to the Assets folder so a project with an imported table
-		/// can be saved and loaded
-		/// </summary>
-		/// <param name="menuCommand">Context provided by the Editor</param>
-		public static void ImportVpxEditor(MenuCommand menuCommand, bool saveLocally)
-		{
-			// TODO that somewhere else
-			Logging.Setup();
-
-			// open file dialog
-			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
-			if (vpxPath.Length == 0) {
-				return;
-			}
-
-			Profiler.Start("VpxImporter.ImportVpxEditor()");
-			var rootGameObj = ImportVpx(vpxPath, saveLocally);
-
-			// if an object was selected in the editor, make it its parent
-			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
-
-			// register undo system
-			Undo.RegisterCreatedObjectUndo(rootGameObj, "Import VPX table file");
-
-			// select imported object
-			Selection.activeObject = rootGameObj;
-
-			Profiler.Stop("VpxImporter.ImportVpxEditor()");
-			Logger.Info("[VpxImporter] Imported!");
-			Profiler.Print();
-			Profiler.Reset();
-		}
-
-		private static GameObject ImportVpx(string path, bool saveLocally) {
-
-			// create root object
-			var rootGameObj = new GameObject();
-			var importer = rootGameObj.AddComponent<VpxImporter>();
-
-			importer.Import(path, saveLocally);
-
-			return rootGameObj;
-		}
-
-		private void Import(string path, bool saveLocally)
-		{
-			// parse table
-			Profiler.Start("VpxImporter.Import()");
-			_table = TableLoader.LoadTable(path);
+			_table = table;
+			_assetHandler = assetHandler;
 
 			var go = gameObject;
 			go.name = _table.Name;
-			_patcher = new Patcher.Patcher.Patcher(_table, Path.GetFileName(path));
-
-			// setup asset handler
-			_assetHandler = saveLocally
-				? new AssetDatabaseHandler(_table, path) as IAssetHandler
-				: new AssetMemoryHandler();
+			_patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
@@ -139,7 +63,6 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localPosition = new Vector3(-_table.Width / 2 * GlobalScale, 0f, -_table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
-			Profiler.Stop("VpxImporter.Import()");
 		}
 
 		private void ImportTextures()

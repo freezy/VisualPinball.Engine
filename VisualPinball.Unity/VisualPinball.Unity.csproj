@@ -71,7 +71,10 @@
     <Compile Include="Importer\AssetHandler\AssetDatabaseHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetMemoryHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetUtility.cs" />
+    <Compile Include="Importer\AssetHandler\AssetVpxHandler.cs" />
     <Compile Include="Importer\AssetHandler\IAssetHandler.cs" />
+    <Compile Include="Importer\Editor\VpxMenuImporter.cs" />
+    <Compile Include="Importer\Editor\VpxAssetImporter.cs" />
     <Compile Include="Importer\Job\MaterialImporter.cs" />
     <Compile Include="Importer\Job\TableLoader.cs" />
     <Compile Include="Importer\Job\TextureImporter.cs" />
