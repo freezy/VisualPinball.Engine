@@ -12,8 +12,8 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	public class AssetMemoryHandler : IAssetHandler
 	{
 
-		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
-		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		protected readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
+		protected readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
 		public void HandleTextureData(Texture texture)
 		{
