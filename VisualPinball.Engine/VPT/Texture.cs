@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
 using NetVips;
 using NLog;
-using VisualPinball.Engine.Common;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -152,6 +148,26 @@ namespace VisualPinball.Engine.VPT
 			var mask = (Image.Identity() > val) / 255;
 			return (hist * mask).Avg() * 256;
 		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+
+			sb.AppendLine($"{Name}");
+			sb.AppendLine($"    Resolution  {Width}x{Height}");
+			sb.AppendLine($"    Extension   {FileExtension}");
+			sb.AppendLine($"    IsOpaque    {IsOpaque}");
+			if (_stats == null || _stats.IsEmpty) {
+				sb.AppendLine("    Stats       none");
+			} else {
+				sb.AppendLine("    Stats:");
+				sb.AppendLine($"       Opaque      {_stats.Opaque}");
+				sb.AppendLine($"       Translucent {_stats.Translucent}");
+				sb.AppendLine($"       Transparent {_stats.Transparent}");
+			}
+
+			return sb.ToString();
+		}
 	}
 
 	public class TextureStats
@@ -172,22 +188,12 @@ namespace VisualPinball.Engine.VPT
 		public float Transparent => (float) _numTransparentPixels / _numTotalPixels;
 
 		public bool HasTransparentPixels => _numTransparentPixels > 0;
-
-		/// <summary>
-		/// True if no translucent or transparent pixels found, false otherwise.
-		/// </summary>
-		public bool IsOpaque => _numTranslucentPixels == 0 && _numTranslucentPixels == 0;
-
-		public bool IsEmpty => _numTotalPixels == 0;
+		public bool IsEmpty => _numTotalPixels <= 1;
 
 		private readonly int _numOpaquePixels;
 		private readonly int _numTranslucentPixels;
 		private readonly int _numTransparentPixels;
 		private readonly int _numTotalPixels;
-
-		public TextureStats()
-		{
-		}
 
 		public TextureStats(int numOpaquePixels, int numTranslucentPixels, int numTransparentPixels)
 		{
@@ -203,7 +209,5 @@ namespace VisualPinball.Engine.VPT
 		byte[] Bytes { get; }
 
 		byte[] FileContent { get; }
-
-		//byte[] GetRawData();
 	}
 }

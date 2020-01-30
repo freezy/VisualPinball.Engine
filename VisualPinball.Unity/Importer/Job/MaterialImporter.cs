@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using NLog;
 using Unity.Collections;
 using Unity.Jobs;
@@ -26,6 +28,8 @@ namespace VisualPinball.Unity.Importer.Job
 
 		public void ImportMaterials()
 		{
+			var debug = new StringBuilder();
+
 			Profiler.Start("*ImportMaterials");
 			using (var job = new MaterialJob(_materials, _assetHandler)) {
 				var handle = job.Schedule(_materials.Length, 64);
@@ -35,8 +39,16 @@ namespace VisualPinball.Unity.Importer.Job
 
 			// create and write materials to disk
 			foreach (var material in _materials) {
-				_assetHandler.SaveMaterial(material, material.ToUnityMaterial(_assetHandler));
+				debug.Append(material);
+				_assetHandler.SaveMaterial(material, material.ToUnityMaterial(_assetHandler, debug));
+				debug.AppendLine("*****************************************************");
 			}
+
+			// dump debug log
+			var writer = new StreamWriter("Assets/debug2.txt", false);
+			writer.Write(debug.ToString());
+			writer.Close();
+
 			_assetHandler.OnMaterialsSaved(_materials);
 		}
 	}
