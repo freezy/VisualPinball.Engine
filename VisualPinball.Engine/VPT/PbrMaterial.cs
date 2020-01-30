@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.VPT
 			if (!HasMap) {
 				return;
 			}
-			Map.Analyze(true);
+			Map.Analyze();
 		}
 
 		private BlendMode GetBlendMode()
@@ -74,13 +74,15 @@ namespace VisualPinball.Engine.VPT
 					: BlendMode.Opaque;
 			}
 
+			// if there's a map, we need stats.
+			var stats = Map.GetStats();
+
 			// map is opaque: easy
-			if (Map.IsOpaque) {
+			if (stats.IsOpaque) {
 				return BlendMode.Opaque;
 			}
 
-			// not opaque, but all alphas are > 0:
-			var stats = Map.GetStats();
+			// not opaque, but all alphas are > 0
 			if (!stats.HasTransparentPixels) {
 				return BlendMode.Translucent;
 			}

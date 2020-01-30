@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 				var texture = Textures[importer.assetPath];
 
 				importer.textureType = texture.UsageNormalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
-				importer.alphaIsTransparency = !texture.IsOpaque;
+				importer.alphaIsTransparency = !texture.GetStats().IsOpaque;
 				importer.isReadable = true;
 				importer.mipmapEnabled = true;
 				importer.filterMode = FilterMode.Bilinear;

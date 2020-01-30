@@ -50,11 +50,6 @@ namespace VisualPinball.Engine.VPT
 
 		private IImageData ImageData => Data.Binary as IImageData ?? Data.Bitmap;
 
-		/// <summary>
-		/// Returns false if at least one pixel is not opaque. <p/>
-		/// </summary>
-		public bool IsOpaque;
-
 		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
 		public bool UsageNormalMap;
@@ -65,17 +60,16 @@ namespace VisualPinball.Engine.VPT
 
 		private Texture(Resource res) : base(new TextureData(res)) { }
 
-		public void Analyze(bool full)
+		public void Analyze()
 		{
 			if (!HasTransparentFormat) {
-				IsOpaque = true;
+				_stats = new TextureStats(1, 0, 0);
 				return;
 			}
 			using (var image = GetImage()) {
-				IsOpaque = image == null || !image.HasAlpha();
-				if (full && !IsOpaque) {
-					_stats = AnalyzeAlpha();
-				}
+				_stats = image.HasAlpha()
+					? AnalyzeAlpha()
+					: new TextureStats(image.Width * image.Height, 0, 0);
 			}
 		}
 
@@ -87,9 +81,7 @@ namespace VisualPinball.Engine.VPT
 		public TextureStats GetStats()
 		{
 			if (_stats == null) {
-				if (!IsOpaque) {
-					Logger.Warn("Stats of texture {0} requested, but has not been analyzed.", Data.Name);
-				}
+				Logger.Warn("Stats of texture {0} requested, but has not been analyzed.", Data.Name);
 				_stats = new TextureStats(1, 0, 0);
 			}
 			return _stats;
@@ -156,8 +148,7 @@ namespace VisualPinball.Engine.VPT
 			sb.AppendLine($"{Name}");
 			sb.AppendLine($"    Resolution  {Width}x{Height}");
 			sb.AppendLine($"    Extension   {FileExtension}");
-			sb.AppendLine($"    IsOpaque    {IsOpaque}");
-			if (_stats == null || _stats.IsEmpty) {
+			if (_stats == null) {
 				sb.AppendLine("    Stats       none");
 			} else {
 				sb.AppendLine("    Stats:");
@@ -188,7 +179,7 @@ namespace VisualPinball.Engine.VPT
 		public float Transparent => (float) _numTransparentPixels / _numTotalPixels;
 
 		public bool HasTransparentPixels => _numTransparentPixels > 0;
-		public bool IsEmpty => _numTotalPixels <= 1;
+		public bool IsOpaque => _numTranslucentPixels == 0 && _numTransparentPixels == 0;
 
 		private readonly int _numOpaquePixels;
 		private readonly int _numTranslucentPixels;

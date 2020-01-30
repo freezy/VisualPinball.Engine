@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.Test.VPT
 			// var texture = _table.Textures["mat_cutout"];
 			// texture.Analyze();
 
-			var image = Image.NewFromFile(@"..\..\VPT\test_pattern_transparent.png");
+			var image = Image.NewFromFile(@"..\..\VPT\target-yellow.png");
 
 			var sw = new Stopwatch();
 			sw.Start();

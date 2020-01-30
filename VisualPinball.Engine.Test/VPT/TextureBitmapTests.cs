@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.Test.VPT
 		public void ShouldAnalyzeATransparentTexture()
 		{
 			var texture = _table.Textures["test_pattern_transparent"];
-			texture.Analyze(true);
+			texture.Analyze();
 			var stats = texture.GetStats();
 
 			Assert.Equal(0.657285035f, stats.Opaque);
