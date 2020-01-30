@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.VPT
 			if (!HasMap) {
 				return;
 			}
-			Map.Analyze(IsOpacityActive);
+			Map.Analyze(true);
 		}
 
 		private BlendMode GetBlendMode()
@@ -74,23 +74,18 @@ namespace VisualPinball.Engine.VPT
 					: BlendMode.Opaque;
 			}
 
-			// no transparent pixels: easy
+			// map is opaque: easy
 			if (Map.IsOpaque) {
 				return BlendMode.Opaque;
 			}
 
-			// opacity not active is difficult. if the map has transparency, it
-			// might be be cut-out, so let's look at the edge (might be worth
-			// looking at the stats, in which case AnalyzeMap() needs to be adapted)
-			if (!IsOpacityActive) {
-				return Edge < 1 ? BlendMode.Cutout : BlendMode.Opaque;
-			}
-
-			// here, opacity is active. let's look at the stats.
+			// not opaque, but all alphas are > 0:
 			var stats = Map.GetStats();
 			if (!stats.HasTransparentPixels) {
 				return BlendMode.Translucent;
 			}
+
+			// educated guess based on alpha stats (might need to be tweaked)
 			return stats.Translucent / stats.Transparent > 0.1
 				? BlendMode.Translucent
 				: BlendMode.Cutout;
