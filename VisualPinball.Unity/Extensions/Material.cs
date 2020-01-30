@@ -1,19 +1,19 @@
 ﻿// ReSharper disable StringLiteralTypo
 
 using System;
+using System.Text;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Importer;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Importer.AssetHandler;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Extensions
 {
 	public static class Material
 	{
-		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private static readonly int Color = Shader.PropertyToID("_Color");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Extensions
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 
-		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, IAssetHandler assetHandler)
+		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, IAssetHandler assetHandler, StringBuilder debug = null)
 		{
 			Profiler.Start("Material.ToUnityMaterial()");
 			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Extensions
 			// of brighter colors when being lit without blow outs too soon.
 			var col = vpxMaterial.Color.ToUnityColor();
 			if (vpxMaterial.Color.IsGray() && col.grayscale > 0.8) {
+				debug?.AppendLine("Color manipulation performed, brightness reduced.");
 				col.r = col.g = col.b = 0.8f;
 			}
 			unityMaterial.SetColor(Color, col);
@@ -46,12 +47,9 @@ namespace VisualPinball.Unity.Extensions
 			// found VPX authors setting metallic as well as translucent at the
 			// same time, which does not render correctly in unity so we have
 			// to check if this value is true and also if opacity <= 1.
-			if (vpxMaterial.IsMetal) {
-				if (!vpxMaterial.IsOpacityActive) {
-					unityMaterial.SetFloat(Metallic, 1f);
-				} else if (vpxMaterial.Opacity >= 1) {
-					unityMaterial.SetFloat(Metallic, 1f);
-				}
+			if (vpxMaterial.IsMetal && (!vpxMaterial.IsOpacityActive || vpxMaterial.Opacity >= 1)) {
+				unityMaterial.SetFloat(Metallic, 1f);
+				debug?.AppendLine("Metallic set to 1.");
 			}
 
 			// roughness / glossiness
@@ -128,7 +126,7 @@ namespace VisualPinball.Unity.Extensions
 			}
 		}
 
-		public static string GetUnityFilename(this Engine.VPT.PbrMaterial vpMat, string folderName)
+		public static string GetUnityFilename(this PbrMaterial vpMat, string folderName)
 		{
 			return $"{folderName}/{vpMat.Id}.mat";
 		}

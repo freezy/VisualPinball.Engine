@@ -1,7 +1,4 @@
-using System;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
@@ -10,7 +7,7 @@ namespace VisualPinball.Engine.VPT
 {
 	public class PbrMaterial
 	{
-		public const float ColorOpacityThreshold = 0.9f;
+		private const float ColorOpacityThreshold = 0.9f;
 
 		public readonly Texture Map;
 		public readonly Texture NormalMap;
@@ -25,7 +22,7 @@ namespace VisualPinball.Engine.VPT
 		public bool IsOpacityActive => _material?.IsOpacityActive ?? false;
 		public float Opacity => MathF.Min(1, MathF.Max(0, _material?.Opacity ?? 1f));
 		public float Roughness => _material?.Roughness ?? 0.5f;
-		public float Edge => _material?.Edge ?? 0f;
+		private float Edge => _material?.Edge ?? 0f;
 
 		public const string NameNoMaterial = "__std";
 		private const string NameNoMap = "__no_map";
@@ -97,6 +94,23 @@ namespace VisualPinball.Engine.VPT
 			return stats.Translucent / stats.Transparent > 0.1
 				? BlendMode.Translucent
 				: BlendMode.Cutout;
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine($"Id              {Id}");
+			sb.AppendLine($"Color           {Color}");
+			sb.AppendLine($"IsMetal         {IsMetal}");
+			sb.AppendLine($"Roughness       {Roughness}");
+			sb.AppendLine($"Edge            {Edge}");
+			sb.AppendLine($"IsOpacityActive {IsOpacityActive}");
+			sb.AppendLine($"Opacity         {Opacity}");
+			sb.AppendLine($"Map             {Map?.ToString() ?? "none"}".Trim());
+			sb.AppendLine($"MapBlendMode    {MapBlendMode}");
+			sb.AppendLine($"NormalMap       {NormalMap?.ToString() ?? "none"}".Trim());
+
+			return sb.ToString();
 		}
 	}
 
