@@ -16,6 +16,6 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 		void OnMaterialsSaved(PbrMaterial[] materials);
 		Material LoadMaterial(PbrMaterial material);
 		void OnMeshesImported(GameObject gameObject);
-		void SaveMesh(Mesh mesh);
+		void SaveMesh(Mesh mesh, string itemName);
 	}
 }

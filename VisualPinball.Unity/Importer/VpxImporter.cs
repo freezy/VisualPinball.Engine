@@ -175,7 +175,7 @@ namespace VisualPinball.Unity.Importer
 			_patcher.ApplyPatches(item, ro, obj);
 
 			// add mesh to asset
-			_assetHandler.SaveMesh(mesh);
+			_assetHandler.SaveMesh(mesh, item.Name);
 			Profiler.Stop("Patch & Assets");
 		}
 
