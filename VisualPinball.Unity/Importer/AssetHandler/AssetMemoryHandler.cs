@@ -14,6 +14,14 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 		protected readonly Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
 		protected readonly Dictionary<string, Material> Materials = new Dictionary<string, Material>();
 
+		/// <summary>
+		/// This is a trivial asset handler that keeps all the assets in a
+		/// dictionary. <p/>
+		///
+		/// It has a very quick import time and is mainly useful when testing
+		/// code changes.
+		/// </summary>
+		/// <param name="texture"></param>
 		public void HandleTextureData(Texture texture)
 		{
 			// nothing to do

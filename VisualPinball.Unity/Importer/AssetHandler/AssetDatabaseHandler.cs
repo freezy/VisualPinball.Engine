@@ -18,6 +18,13 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Importer.AssetHandler
 {
+	/// <summary>
+	/// Using this asset handler will use Unity's AssetDatabase, and write all
+	/// assets from the VPX file in Unity's native format to the assets folder. <p/>
+	///
+	/// This makes starting the game faster, but the import time is about ten
+	/// times longer.
+	/// </summary>
 	public class AssetDatabaseHandler : IAssetHandler
 	{
 		private readonly string _materialFolder;
