@@ -11,9 +11,8 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 {
 	public class AssetMemoryHandler : IAssetHandler
 	{
-
-		protected readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
-		protected readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		protected readonly Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
+		protected readonly Dictionary<string, Material> Materials = new Dictionary<string, Material>();
 
 		public void HandleTextureData(Texture texture)
 		{
@@ -23,23 +22,23 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 		public void ImportTextures(IEnumerable<Texture> textures)
 		{
 			foreach (var tex in textures) {
-				_textures[tex.Name] = tex.ToUnityTexture();
+				Textures[tex.Name] = tex.ToUnityTexture();
 			}
 		}
 
 		public Texture2D LoadTexture(Texture texture)
 		{
-			return _textures[texture.Name];
+			return Textures[texture.Name];
 		}
 
 		public void SaveMaterial(PbrMaterial material, Material unityMaterial)
 		{
-			_materials[material.Id] = unityMaterial;
+			Materials[material.Id] = unityMaterial;
 		}
 
 		public Material LoadMaterial(PbrMaterial material)
 		{
-			return _materials[material.Id];
+			return Materials[material.Id];
 		}
 
 		public void OnMaterialsSaved(PbrMaterial[] materials)

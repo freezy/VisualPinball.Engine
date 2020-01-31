@@ -26,14 +26,18 @@ namespace VisualPinball.Unity.Extensions
 
 		private static Texture2D FromBinary(Engine.VPT.Texture vpTex)
 		{
-			var unityTex = new Texture2D(vpTex.Width, vpTex.Height, TextureFormat.RGBA32, true);
+			var unityTex = new Texture2D(vpTex.Width, vpTex.Height, TextureFormat.RGBA32, true) {
+				name = vpTex.Name
+			};
 			unityTex.LoadImage(vpTex.FileContent);
 			return unityTex;
 		}
 
 		private static Texture2D FromHdrBinary(Engine.VPT.Texture vpTex)
 		{
-			var unityTex = new Texture2D(vpTex.Width, vpTex.Height, TextureFormat.Alpha8,false);
+			var unityTex = new Texture2D(vpTex.Width, vpTex.Height, TextureFormat.Alpha8, false) {
+				name = vpTex.Name
+			};
 			unityTex.LoadRawTextureData(vpTex.FileContent);
 			return unityTex;
 		}
