@@ -11,6 +11,14 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	{
 		private readonly AssetImportContext _ctx;
 
+		/// <summary>
+		/// This asset handler is used when importing a .vpx file that has been
+		/// dropped into the assets folder and is imported via <see cref="ScriptedImporter"/>. <p/>
+		///
+		/// It basically adds all objects (textures, materials and meshes) to
+		/// the given context.
+		/// </summary>
+		/// <param name="ctx"></param>
 		public AssetImportHandler(AssetImportContext ctx)
 		{
 			_ctx = ctx;
