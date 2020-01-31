@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			Profiler.Stop("OnMeshesImported");
 		}
 
-		public void SaveMesh(Mesh mesh)
+		public void SaveMesh(Mesh mesh, string itemName)
 		{
 			AssetDatabase.AddObjectToAsset(mesh, _asset);
 		}

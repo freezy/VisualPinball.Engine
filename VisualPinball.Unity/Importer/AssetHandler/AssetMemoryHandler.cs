@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			// nothing to do
 		}
 
-		public void SaveMesh(Mesh mesh)
+		public void SaveMesh(Mesh mesh, string itemName)
 		{
 			// nothing to do
 		}

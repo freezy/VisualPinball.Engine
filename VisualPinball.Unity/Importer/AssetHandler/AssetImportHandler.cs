@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using NLog;
 using UnityEditor.Experimental.AssetImporters;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -32,10 +30,10 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			_ctx.AddObjectToAsset($"material-{material.Id}", unityMaterial);
 		}
 
-		public new void SaveMesh(Mesh mesh)
+		public new void SaveMesh(Mesh mesh, string itemName)
 		{
-			base.SaveMesh(mesh);
-			_ctx.AddObjectToAsset($"mesh-{mesh.name.ToNormalizedName()}", mesh);
+			base.SaveMesh(mesh, itemName);
+			_ctx.AddObjectToAsset($"mesh-{itemName.ToNormalizedName()}-{mesh.name.ToNormalizedName()}", mesh);
 		}
 	}
 }
