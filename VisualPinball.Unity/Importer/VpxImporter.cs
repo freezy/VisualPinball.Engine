@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Importer
 
 			// set root transformation
 			go.transform.localRotation = GlobalRotation;
-			go.transform.localPosition = new Vector3(-_table.Width / 2 * GlobalScale, 0f, -_table.Height / 2 * GlobalScale);
+			go.transform.localPosition = new Vector3(-_table.Width / 2 * GlobalScale, 0f, _table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 		}
