@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Gates.Values)
 			.Concat(HitTargets.Values)
 			.Concat(Kickers.Values)
-			//.Concat(Lights.Values)
+			.Concat(Lights.Values)
 			.Concat(Primitives.Values)
 			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
