@@ -4,9 +4,11 @@ using System;
 using System.Text;
 using NLog;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Importer.AssetHandler;
+using BlendMode = VisualPinball.Engine.VPT.BlendMode;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Extensions
@@ -28,7 +30,7 @@ namespace VisualPinball.Unity.Extensions
 		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, IAssetHandler assetHandler, StringBuilder debug = null)
 		{
 			Profiler.Start("Material.ToUnityMaterial()");
-			var unityMaterial = new UnityEngine.Material(Shader.Find("Standard")) {
+			var unityMaterial = new UnityEngine.Material(GetShader()) {
 				name = vpxMaterial.Id
 			};
 
@@ -123,6 +125,17 @@ namespace VisualPinball.Unity.Extensions
 
 				default:
 					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		private static Shader GetShader()
+		{
+			if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
+				return Shader.Find("Standard");
+				//return Shader.Find("HDRP/Lit");
+
+			} else {
+				return Shader.Find("Standard");
 			}
 		}
 

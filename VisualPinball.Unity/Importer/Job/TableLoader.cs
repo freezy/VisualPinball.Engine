@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using OpenMcdf;
 using Unity.Collections;
 using Unity.Jobs;
 using VisualPinball.Engine.Common;
@@ -30,105 +29,94 @@ namespace VisualPinball.Unity.Importer.Job
 		public static Table LoadTable(string path)
 		{
 			var table = Table.Load(path, false);
-			var cf = new CompoundFile(path);
 			Profiler.Start("LoadGameItems via Job");
-			try {
 
-				// pull in data from storage
-				var storage = cf.RootStorage.GetStorage("GameStg");
-				var job = new GameItemJob(table.Data.NumGameItems);
-				for (var i = 0; i < table.Data.NumGameItems; i++) {
-					var itemName = $"GameItem{i}";
-					var itemStream = storage.GetStream(itemName);
-					var bytes = itemStream.GetData();
+			var job = new GameItemJob(table.Data.NumGameItems);
+			var gameItems = VisualPinball.Engine.VPT.Table.TableLoader.ReadGameItems(path, table.Data.NumGameItems);
+			for (var i = 0; i < table.Data.NumGameItems; i++) {
+				job.Data[i] = MemHelper.FromByteArray(gameItems[i]);
+				job.DataLength[i] = gameItems[i].Length;
+			}
 
-					job.Data[i] = MemHelper.FromByteArray(bytes);
-					job.DataLength[i] = bytes.Length;
-				}
+			// parse threaded
+			var handle = job.Schedule(table.Data.NumGameItems, 64);
+			handle.Complete();
 
-				// parse threaded
-				var handle = job.Schedule(table.Data.NumGameItems, 64);
-				handle.Complete();
-
-				// update table with results
-				for (var i = 0; i < table.Data.NumGameItems; i++) {
-					if (job.ItemObj[i].ToInt32() > 0) {
-						var objHandle = (GCHandle) job.ItemObj[i];
-						switch (job.ItemType[i]) {
-							case ItemType.Bumper: {
-								var item = objHandle.Target as Bumper;
-								table.Bumpers[item.Name] = item;
-								break;
-							}
-							case ItemType.Flasher: {
-								var item = objHandle.Target as Flasher;
-								table.Flashers[item.Name] = item;
-								break;
-							}
-							case ItemType.Flipper: {
-								var item = objHandle.Target as Flipper;
-								table.Flippers[item.Name] = item;
-								break;
-							}
-							case ItemType.Gate: {
-								var item = objHandle.Target as Gate;
-								table.Gates[item.Name] = item;
-								break;
-							}
-							case ItemType.HitTarget: {
-								var item = objHandle.Target as HitTarget;
-								table.HitTargets[item.Name] = item;
-								break;
-							}
-							case ItemType.Kicker: {
-								var item = objHandle.Target as Kicker;
-								table.Kickers[item.Name] = item;
-								break;
-							}
-							case ItemType.Light: {
-								var item = objHandle.Target as Light;
-								table.Lights[item.Name] = item;
-								break;
-							}
-							case ItemType.Primitive: {
-								var item = objHandle.Target as Primitive;
-								table.Primitives[item.Name] = item;
-								break;
-							}
-							case ItemType.Ramp: {
-								var item = objHandle.Target as Ramp;
-								table.Ramps[item.Name] = item;
-								break;
-							}
-							case ItemType.Rubber: {
-								var item = objHandle.Target as Rubber;
-								table.Rubbers[item.Name] = item;
-								break;
-							}
-							case ItemType.Spinner: {
-								var item = objHandle.Target as Spinner;
-								table.Spinners[item.Name] = item;
-								break;
-							}
-							case ItemType.Surface: {
-								var item = objHandle.Target as Surface;
-								table.Surfaces[item.Name] = item;
-								break;
-							}
-							case ItemType.Trigger: {
-								var item = objHandle.Target as Trigger;
-								table.Triggers[item.Name] = item;
-								break;
-							}
+			// update table with results
+			for (var i = 0; i < table.Data.NumGameItems; i++) {
+				if (job.ItemObj[i].ToInt32() > 0) {
+					var objHandle = (GCHandle) job.ItemObj[i];
+					switch (job.ItemType[i]) {
+						case ItemType.Bumper: {
+							var item = objHandle.Target as Bumper;
+							table.Bumpers[item.Name] = item;
+							break;
+						}
+						case ItemType.Flasher: {
+							var item = objHandle.Target as Flasher;
+							table.Flashers[item.Name] = item;
+							break;
+						}
+						case ItemType.Flipper: {
+							var item = objHandle.Target as Flipper;
+							table.Flippers[item.Name] = item;
+							break;
+						}
+						case ItemType.Gate: {
+							var item = objHandle.Target as Gate;
+							table.Gates[item.Name] = item;
+							break;
+						}
+						case ItemType.HitTarget: {
+							var item = objHandle.Target as HitTarget;
+							table.HitTargets[item.Name] = item;
+							break;
+						}
+						case ItemType.Kicker: {
+							var item = objHandle.Target as Kicker;
+							table.Kickers[item.Name] = item;
+							break;
+						}
+						case ItemType.Light: {
+							var item = objHandle.Target as Light;
+							table.Lights[item.Name] = item;
+							break;
+						}
+						case ItemType.Primitive: {
+							var item = objHandle.Target as Primitive;
+							table.Primitives[item.Name] = item;
+							break;
+						}
+						case ItemType.Ramp: {
+							var item = objHandle.Target as Ramp;
+							table.Ramps[item.Name] = item;
+							break;
+						}
+						case ItemType.Rubber: {
+							var item = objHandle.Target as Rubber;
+							table.Rubbers[item.Name] = item;
+							break;
+						}
+						case ItemType.Spinner: {
+							var item = objHandle.Target as Spinner;
+							table.Spinners[item.Name] = item;
+							break;
+						}
+						case ItemType.Surface: {
+							var item = objHandle.Target as Surface;
+							table.Surfaces[item.Name] = item;
+							break;
+						}
+						case ItemType.Trigger: {
+							var item = objHandle.Target as Trigger;
+							table.Triggers[item.Name] = item;
+							break;
 						}
 					}
 				}
-				job.Dispose();
-
-			} finally {
-				cf.Close();
-				Profiler.Stop("LoadGameItems via Job");
 			}
+			job.Dispose();
+				Profiler.Stop("LoadGameItems via Job");
 
 			return table;
 		}

@@ -47,6 +47,23 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
+		public static byte[][] ReadGameItems(string fileName, int numGameItems)
+		{
+			var gameItemData = new byte[numGameItems][];
+			var cf = new CompoundFile(fileName);
+			try {
+				var storage = cf.RootStorage.GetStorage("GameStg");
+				for (var i = 0; i < numGameItems; i++) {
+					var itemName = $"GameItem{i}";
+					var itemStream = storage.GetStream(itemName);
+					gameItemData[i] = itemStream.GetData();
+				}
+			} finally {
+				cf.Close();
+			}
+			return gameItemData;
+		}
+
 		public static void LoadGameItem(byte[] itemData, int storageIndex, out int itemType, out object item)
 		{
 			item = null;
