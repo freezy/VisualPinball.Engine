@@ -130,13 +130,7 @@ namespace VisualPinball.Unity.Extensions
 
 		private static Shader GetShader()
 		{
-			if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
-				return Shader.Find("Standard");
-				//return Shader.Find("HDRP/Lit");
-
-			} else {
-				return Shader.Find("Standard");
-			}
+			return Shader.Find("Standard");
 		}
 
 		public static string GetUnityFilename(this PbrMaterial vpMat, string folderName)
