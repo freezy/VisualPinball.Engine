@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 			OnDataSet();
 		}
 
-		protected void RebuildMeshes()
+		private void RebuildMeshes()
 		{
 			if (data == null) {
 				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
@@ -54,6 +54,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)
 		{
+			if (go == null) {
+				_logger.Warn("Could not find game object to update.");
+				return;
+			}
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
 			if (ro == null) {
 				_logger.Warn("Cannot find mesh {0} in {1} {2}.", childName, typeof(TItem).Name, data.Name);
