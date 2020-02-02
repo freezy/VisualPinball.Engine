@@ -21,7 +21,6 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Importer.Job
 {
@@ -33,7 +32,7 @@ namespace VisualPinball.Unity.Importer.Job
 			Profiler.Start("LoadGameItems via Job");
 
 			var job = new GameItemJob(table.Data.NumGameItems);
-			var gameItems = VisualPinball.Engine.VPT.Table.TableLoader.ReadGameItems(path, table.Data.NumGameItems);
+			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, table.Data.NumGameItems);
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				job.Data[i] = MemHelper.FromByteArray(gameItems[i]);
 				job.DataLength[i] = gameItems[i].Length;
@@ -119,7 +118,6 @@ namespace VisualPinball.Unity.Importer.Job
 			job.Dispose();
 			Profiler.Stop("LoadGameItems via Job");
 
-			LoadedTable.Table = table;
 			return table;
 		}
 	}
