@@ -13,5 +13,14 @@ namespace VisualPinball.Engine.IO
 				SetValue(obj, reader.ReadBytes(len));
 			}
 		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			if (Type == typeof(byte[])) {
+				var bytes = GetValue(obj) as byte[];
+				WriteStart(writer, bytes.Length);
+				writer.Write(bytes);
+			}
+		}
 	}
 }

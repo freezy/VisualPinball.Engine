@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		[BiffBool("REEN")]
 		public bool IsReflectionEnabled = true;
 
-		#region Biff
+		#region BIFF
 
 		static TriggerData()
 		{
@@ -72,6 +72,13 @@ namespace VisualPinball.Engine.VPT.Trigger
 		public TriggerData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Trigger);
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

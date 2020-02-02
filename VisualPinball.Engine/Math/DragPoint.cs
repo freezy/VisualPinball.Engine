@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using VisualPinball.Engine.IO;
 
 
@@ -242,6 +243,12 @@ namespace VisualPinball.Engine.Math
 		public DragPoint(BinaryReader reader)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public override void Write(BinaryWriter writer)
+		{
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

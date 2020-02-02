@@ -67,6 +67,8 @@ namespace VisualPinball.Engine.VPT.DispReel
 		// [BiffString("FONT")]
 		// public string Font = "";
 
+		#region BIFF
+
 		static DispReelData()
 		{
 			Init(typeof(DispReelData), Attributes);
@@ -77,6 +79,15 @@ namespace VisualPinball.Engine.VPT.DispReel
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.DispReel);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffVertex("VCEN")]
 		public Vertex2D Center;
 
-		#region Biff
+		#region BIFF
 
 		static GateData()
 		{
@@ -81,6 +81,13 @@ namespace VisualPinball.Engine.VPT.Gate
 		public GateData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Gate);
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

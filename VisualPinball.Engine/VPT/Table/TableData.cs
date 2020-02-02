@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 
@@ -154,7 +155,10 @@ namespace VisualPinball.Engine.VPT.Table
 		public Color LightAmbient;
 
 		[BiffInt("LZDI")]
-		public int Light0Emission { set => Light[0].Emission = new Color(value, ColorFormat.Bgr); }
+		public int Light0Emission {
+			set => Light[0].Emission = new Color(value, ColorFormat.Bgr);
+			get => Light[0].Emission.Bgr;
+		}
 
 		public readonly LightSource[] Light = { new LightSource() };
 
@@ -316,6 +320,8 @@ namespace VisualPinball.Engine.VPT.Table
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
 
+		#region BIFF
+
 		static TableData()
 		{
 			Init(typeof(TableData), Attributes);
@@ -326,7 +332,15 @@ namespace VisualPinball.Engine.VPT.Table
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 
 	/// <summary>
@@ -350,6 +364,27 @@ namespace VisualPinball.Engine.VPT.Table
 				} else {
 					ParseMaterial(tableData, reader, len);
 				}
+			} else {
+				throw new InvalidOperationException();
+			}
+		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			var materials = GetValue(obj) as Material[];
+			using (var stream = new MemoryStream())
+			using (var dataWriter = new BinaryWriter(stream)) {
+				foreach (var material in materials) {
+					if (IsPhysics) {
+						material.PhysicsMaterialData.Write(dataWriter);
+					} else {
+						material.MaterialData.Write(dataWriter);
+					}
+				}
+
+				var data = stream.ToArray();
+				WriteStart(writer, data.Length);
+				writer.Write(data);
 			}
 		}
 

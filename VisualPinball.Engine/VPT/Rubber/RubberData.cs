@@ -80,6 +80,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffDragPoint("DPNT")]
 		public DragPoint[] DragPoints;
 
+		#region BIFF
+
 		static RubberData()
 		{
 			Init(typeof(RubberData), Attributes);
@@ -90,6 +92,15 @@ namespace VisualPinball.Engine.VPT.Rubber
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Rubber);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

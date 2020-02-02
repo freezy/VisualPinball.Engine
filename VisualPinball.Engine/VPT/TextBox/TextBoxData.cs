@@ -43,6 +43,8 @@ namespace VisualPinball.Engine.VPT.TextBox
 		[BiffBool("IDMD")]
 		public bool IsDMD = false;
 
+		#region BIFF
+
 		static TextBoxData()
 		{
 			Init(typeof(TextBoxData), Attributes);
@@ -53,6 +55,15 @@ namespace VisualPinball.Engine.VPT.TextBox
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Textbox);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

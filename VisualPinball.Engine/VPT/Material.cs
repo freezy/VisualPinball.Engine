@@ -86,22 +86,25 @@ namespace VisualPinball.Engine.VPT
 		public float Friction;
 		public float ScatterAngle;
 
+		internal readonly MaterialData MaterialData;
+		internal PhysicsMaterialData PhysicsMaterialData;
+
 		public Material(BinaryReader reader)
 		{
-			var saveMaterial = new MaterialData(reader);
-			Name = saveMaterial.Name;
-			BaseColor = new Color(saveMaterial.BaseColor, ColorFormat.Bgr);
-			Glossiness = new Color(saveMaterial.Glossiness, ColorFormat.Bgr);
-			ClearCoat = new Color(saveMaterial.ClearCoat, ColorFormat.Bgr);
-			WrapLighting = saveMaterial.WrapLighting;
-			Roughness = saveMaterial.Roughness;
-			GlossyImageLerp = 1f - BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.GlossyImageLerp); //1.0f - dequantizeUnsigned<8>(mats[i].fGlossyImageLerp); //!! '1.0f -' to be compatible with previous table versions
-			Thickness = saveMaterial.Thickness == 0 ? 0.05f : BiffFloatAttribute.DequantizeUnsigned(8, saveMaterial.Thickness); //!! 0 -> 0.05f to be compatible with previous table versions
-			Edge = saveMaterial.Edge;
-			Opacity = saveMaterial.Opacity;
-			IsMetal = saveMaterial.IsMetal > 0;
-			IsOpacityActive = (saveMaterial.OpacityActiveEdgeAlpha & 1) != 0;
-			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, saveMaterial.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
+			MaterialData = new MaterialData(reader);
+			Name = MaterialData.Name;
+			BaseColor = new Color(MaterialData.BaseColor, ColorFormat.Bgr);
+			Glossiness = new Color(MaterialData.Glossiness, ColorFormat.Bgr);
+			ClearCoat = new Color(MaterialData.ClearCoat, ColorFormat.Bgr);
+			WrapLighting = MaterialData.WrapLighting;
+			Roughness = MaterialData.Roughness;
+			GlossyImageLerp = 1f - BiffFloatAttribute.DequantizeUnsigned(8, MaterialData.GlossyImageLerp); //1.0f - dequantizeUnsigned<8>(mats[i].fGlossyImageLerp); //!! '1.0f -' to be compatible with previous table versions
+			Thickness = MaterialData.Thickness == 0 ? 0.05f : BiffFloatAttribute.DequantizeUnsigned(8, MaterialData.Thickness); //!! 0 -> 0.05f to be compatible with previous table versions
+			Edge = MaterialData.Edge;
+			Opacity = MaterialData.Opacity;
+			IsMetal = MaterialData.IsMetal > 0;
+			IsOpacityActive = (MaterialData.OpacityActiveEdgeAlpha & 1) != 0;
+			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, MaterialData.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
 		public Material(string name)
@@ -109,7 +112,9 @@ namespace VisualPinball.Engine.VPT
 			Name = name;
 		}
 
-		public void UpdatePhysics(PhysicsMaterialData physMat) {
+		public void UpdatePhysics(PhysicsMaterialData physMat)
+		{
+			PhysicsMaterialData = physMat;
 			Elasticity = physMat.Elasticity;
 			ElasticityFalloff = physMat.ElasticityFallOff;
 			Friction = physMat.Friction;

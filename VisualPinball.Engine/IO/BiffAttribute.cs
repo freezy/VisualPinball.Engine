@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using NLog;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.IO
@@ -60,6 +62,11 @@ namespace VisualPinball.Engine.IO
 			Name = name;
 		}
 
+		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
+
+		public abstract void Write<TItem>(TItem obj, BinaryWriter writer) where TItem : BiffData;
+
+
 		/// <summary>
 		/// Parses the value given a stream of binary data from the VPX file.<p/>
 		///
@@ -106,7 +113,34 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
-		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
+		protected void WriteValue<TItem, TField>(TItem obj, BinaryWriter writer, Action<BinaryWriter, TField> write, Func<int, int> overrideLength = null) where TItem : BiffData
+		{
+			var value = GetValue(obj);
+			using (var stream = new MemoryStream())
+			using (var dataWriter = new BinaryWriter(stream)) {
+				if (Type == typeof(TField)) {
+					write(dataWriter, value);
+
+				} else if (Type == typeof(TField[])) {
+					var arr = value as TField[];
+					if (Index >= 0) {
+						write(dataWriter, arr[Index]);
+
+					} else {
+						foreach (var val in arr) {
+							write(dataWriter, val);
+						}
+					}
+				} else {
+					throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
+				}
+
+				var data = stream.ToArray();
+				var length = overrideLength?.Invoke(data.Length) ?? data.Length;
+				WriteStart(writer, length);
+				writer.Write(data);
+			}
+		}
 
 		/// <summary>
 		/// Sets the value to either field or property, depending on which
@@ -139,6 +173,12 @@ namespace VisualPinball.Engine.IO
 			}
 
 			return Field != null ? Field.GetValue(obj) : null;
+		}
+
+		protected void WriteStart(BinaryWriter writer, int dataLength)
+		{
+			writer.Write(dataLength + 4);
+			writer.Write(Encoding.ASCII.GetBytes(Name));
 		}
 	}
 }

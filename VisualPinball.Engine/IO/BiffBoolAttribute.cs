@@ -12,9 +12,19 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadBool);
 		}
 
-		private bool ReadBool(BinaryReader reader, int len)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			WriteValue<TItem, bool>(obj, writer, WriteBool);
+		}
+
+		private static bool ReadBool(BinaryReader reader, int len)
 		{
 			return reader.ReadInt32() > 0;
+		}
+
+		private static void WriteBool(BinaryWriter writer, bool value)
+		{
+			writer.Write(value ? 1 : 0);
 		}
 	}
 }

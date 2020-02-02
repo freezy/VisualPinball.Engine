@@ -15,9 +15,22 @@ namespace VisualPinball.Engine.IO
 	/// This statically indexes all fields and properties tagged with the Biff
 	/// Attribute.
 	/// </summary>
-	public class BiffData
+	public abstract class BiffData
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		private readonly Dictionary<string, byte[]> UnknownTags = new Dictionary<string, byte[]>();
+
+		public abstract void Write(BinaryWriter writer);
+
+		protected byte[] ToStreamData()
+		{
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream)) {
+				Write(writer);
+				return stream.ToArray();
+			}
+		}
 
 		/// <summary>
 		/// Indexes the BiffAttributes of the data class.<p/>
@@ -100,7 +113,7 @@ namespace VisualPinball.Engine.IO
 						}
 					} else {
 						Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
-						reader.BaseStream.Seek(len - 4, SeekOrigin.Current);
+						obj.UnknownTags.Add(tag, reader.ReadBytes(len - 4));
 					}
 
 					// read next length and tag name for next record
@@ -114,6 +127,19 @@ namespace VisualPinball.Engine.IO
 				throw new Exception("Error parsing tag \"" + tag + "\".", e);
 			}
 			return obj;
+		}
+
+		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes)
+		{
+			foreach (var tag in attributes.Keys) {
+				var attr = attributes[tag][0];
+				attr.Write(this, writer);
+			}
+		}
+
+		protected void WriteEnd(BinaryWriter writer)
+		{
+			writer.Write(Encoding.ASCII.GetBytes("ENDB"));
 		}
 
 		/// <summary>

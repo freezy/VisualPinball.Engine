@@ -4,11 +4,8 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
-using NetVips;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
@@ -39,27 +36,6 @@ namespace VisualPinball.Engine.VPT
 			Data = res.Data;
 		}
 
-		// public byte[] GetRawData()
-		// {
-		// 	if (_rawData != null) {
-		// 		return _rawData;
-		// 	}
-		// 	var img = Decode();
-		// 	_rawData = img == null ? null : MemoryMarshal.AsBytes(img.GetPixelSpan()).ToArray();
-		//
-		// 	return _rawData;
-		// }
-		//
-		// private Image<Rgba32> Decode()
-		// {
-		// 	try {
-		// 		return Image.Load<Rgba32>(stream, new PngDecoder());
-		//
-		// 	} catch (Exception) {
-		// 		return null;
-		// 	}
-		// }
-
 		#region BIFF
 		static BinaryData()
 		{
@@ -71,7 +47,14 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
 		#endregion
 	}
 }
