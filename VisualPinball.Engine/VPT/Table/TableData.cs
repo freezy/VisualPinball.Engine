@@ -14,6 +14,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Table
 {
+	[Serializable]
 	public class TableData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true)]

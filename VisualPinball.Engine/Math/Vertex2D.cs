@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 
 namespace VisualPinball.Engine.Math
 {
+	[Serializable]
 	public class Vertex2D
 	{
 		public float X { get; set; }

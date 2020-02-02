@@ -5,6 +5,7 @@
 // ReSharper disable ConvertToConstant.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -12,6 +13,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
+	[Serializable]
 	public class FlipperData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true)]

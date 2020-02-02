@@ -8,6 +8,7 @@ using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Importer.AssetHandler;
@@ -63,6 +64,9 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localPosition = new Vector3(-_table.Width / 2 * GlobalScale, 0f, _table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
+
+			// add table component
+			_table.AddComponent(go);
 		}
 
 		private void ImportTextures()
@@ -144,6 +148,13 @@ namespace VisualPinball.Unity.Importer
 			// apply transformation
 			if (rog.HasChildren) {
 				SetTransform(obj.transform, rog.TransformationMatrix.ToUnityMatrix());
+			}
+
+			if (rog.Parent == "Flippers") {
+				Logger.Info("Adding flipper component!");
+				(item as Flipper).AddComponent(obj);
+			} else {
+				Logger.Info("not a flipper (" + rog.Parent + ")");
 			}
 		}
 

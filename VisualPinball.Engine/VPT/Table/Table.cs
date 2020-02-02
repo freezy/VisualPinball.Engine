@@ -76,10 +76,12 @@ namespace VisualPinball.Engine.VPT.Table
 			return TableLoader.Load(filename, loadGameItems);
 		}
 
-		public Table(BinaryReader reader) : base(new TableData(reader))
+		public Table(TableData data) : base(data)
 		{
 			_meshGenerator = new TableMeshGenerator(Data);
 		}
+
+		public Table(BinaryReader reader) : this(new TableData(reader)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

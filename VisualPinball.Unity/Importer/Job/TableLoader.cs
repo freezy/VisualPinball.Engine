@@ -21,6 +21,7 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Importer.Job
 {
@@ -116,8 +117,9 @@ namespace VisualPinball.Unity.Importer.Job
 				}
 			}
 			job.Dispose();
-				Profiler.Stop("LoadGameItems via Job");
+			Profiler.Stop("LoadGameItems via Job");
 
+			LoadedTable.Table = table;
 			return table;
 		}
 	}

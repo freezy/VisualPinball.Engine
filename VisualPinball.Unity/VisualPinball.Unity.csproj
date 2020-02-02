@@ -57,13 +57,18 @@
   <ItemGroup>
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\UnityTarget.cs" />
+    <Compile Include="Editor\FlipperComponent.cs" />
+    <Compile Include="Editor\FlipperEditor.cs" />
+    <Compile Include="Editor\TableComponent.cs" />
     <Compile Include="Extensions\Color.cs" />
+    <Compile Include="Extensions\FlipperExtension.cs" />
     <Compile Include="Extensions\Light.cs" />
     <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Matrix3D.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
+    <Compile Include="Game\LoadedTable.cs" />
     <Compile Include="Importer\AssetHandler\AssetDatabaseHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetMemoryHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetUtility.cs" />
