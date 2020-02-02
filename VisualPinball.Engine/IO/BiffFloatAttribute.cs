@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using VisualPinball.Engine.Math;
 
@@ -20,6 +19,15 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			if (!AsInt) {
+				WriteValue<TItem, float>(obj, writer, WriteFloat);
+			} else {
+				WriteValue<TItem, int>(obj, writer, WriteFloat);
+			}
+		}
+
 		private float ReadFloat(BinaryReader reader, int len)
 		{
 			var f = QuantizedUnsignedBits > 0
@@ -32,6 +40,17 @@ namespace VisualPinball.Engine.IO
 		private int ReadInt(BinaryReader reader, int len)
 		{
 			return (int) ReadFloat(reader, len);
+		}
+
+		private static void WriteFloat(BinaryWriter writer, float value)
+		{
+			// todo QuantizedUnsignedBits
+			writer.Write(value);
+		}
+
+		private static void WriteFloat(BinaryWriter writer, int value)
+		{
+			writer.Write((float)value);
 		}
 
 		public static float DequantizeUnsigned(int bits, int i)

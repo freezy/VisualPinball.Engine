@@ -105,6 +105,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Color Color = new Color(0x4c4c4cf, ColorFormat.Bgr);
 
+		#region BIFF
+
 		static PlungerData()
 		{
 			Init(typeof(PlungerData), Attributes);
@@ -115,6 +117,15 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Plunger);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

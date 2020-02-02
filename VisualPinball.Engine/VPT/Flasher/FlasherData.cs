@@ -74,7 +74,7 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffInt("FIAM")]
 		public int FilterAmount = 100;
 
-		#region Biff
+		#region BIFF
 
 		static FlasherData()
 		{
@@ -84,6 +84,13 @@ namespace VisualPinball.Engine.VPT.Flasher
 		public FlasherData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Flasher);
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

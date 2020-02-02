@@ -86,6 +86,8 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffBool("REEN")]
 		public bool IsReflectionEnabled = true;
 
+		#region BIFF
+
 		static BumperData()
 		{
 			Init(typeof(BumperData), Attributes);
@@ -96,6 +98,15 @@ namespace VisualPinball.Engine.VPT.Bumper
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Bumper);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

@@ -94,7 +94,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetFlatSimple
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
 
-		#region Biff
+		#region BIFF
 
 		static HitTargetData()
 		{
@@ -104,6 +104,13 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public HitTargetData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.HitTarget);
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

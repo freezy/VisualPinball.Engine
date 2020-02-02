@@ -37,6 +37,8 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 					LoadTextures(table, gameStorage);
 
+					// todo sounds
+
 					table.SetupPlayfieldMesh();
 					return table;
 				}

@@ -16,6 +16,19 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadUInt);
 		}
 
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			if (Type == typeof(int)) {
+				WriteValue<TItem, int>(obj, writer, WriteInt);
+
+			} else if (Type == typeof(uint)) {
+				WriteValue<TItem, uint>(obj, writer, WriteUInt);
+
+			} else {
+				throw new InvalidOperationException("Unknown type for [BiffInt] on field \"" + Name + "\".");
+			}
+		}
+
 		private int ReadInt(BinaryReader reader, int len)
 		{
 			var i = reader.ReadInt32();
@@ -30,10 +43,19 @@ namespace VisualPinball.Engine.IO
 			return i;
 		}
 
-		private uint ReadUInt(BinaryReader reader, int len)
+		private static uint ReadUInt(BinaryReader reader, int len)
 		{
 			return reader.ReadUInt32();
 		}
 
+		private static void WriteInt(BinaryWriter writer, int value)
+		{
+			writer.Write(value);
+		}
+
+		private static void WriteUInt(BinaryWriter writer, uint value)
+		{
+			writer.Write(value);
+		}
 	}
 }

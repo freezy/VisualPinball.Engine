@@ -27,6 +27,8 @@ namespace VisualPinball.Engine.VPT.Collection
 		[BiffBool("SSNG")]
 		public bool StopSingleEvents = false;
 
+		#region BIFF
+
 		static CollectionData()
 		{
 			Init(typeof(CollectionData), Attributes);
@@ -37,6 +39,15 @@ namespace VisualPinball.Engine.VPT.Collection
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Collection);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

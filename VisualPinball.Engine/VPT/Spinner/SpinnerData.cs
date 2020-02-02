@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -55,6 +56,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffString("SURF")]
 		public string Surface;
 
+		#region BIFF
+
 		static SpinnerData()
 		{
 			Init(typeof(SpinnerData), Attributes);
@@ -65,6 +68,15 @@ namespace VisualPinball.Engine.VPT.Spinner
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Spinner);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

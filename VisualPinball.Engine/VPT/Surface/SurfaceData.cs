@@ -104,6 +104,8 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffDragPoint("DPNT")]
 		public DragPoint[] DragPoints;
 
+		#region BIFF
+
 		static SurfaceData()
 		{
 			Init(typeof(SurfaceData), Attributes);
@@ -114,6 +116,15 @@ namespace VisualPinball.Engine.VPT.Surface
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Surface);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

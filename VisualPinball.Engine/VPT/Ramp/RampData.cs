@@ -101,6 +101,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffFloat("RADY")]
 		public float WireDistanceY = 88f;
 
+
+		#region BIFF
+
 		static RampData()
 		{
 			Init(typeof(RampData), Attributes);
@@ -111,6 +114,15 @@ namespace VisualPinball.Engine.VPT.Ramp
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Ramp);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

@@ -5,15 +5,17 @@ namespace VisualPinball.Engine.Math
 	[Serializable]
 	public class Color
 	{
-		public int Red = 0x0;
-		public int Green = 0x0;
-		public int Blue = 0x0;
+		public int Red;
+		public int Green;
+		public int Blue;
 		public int Alpha = 0xff;
 
 		public float R => Red / 255f;
 		public float G => Green / 255f;
 		public float B => Blue / 255f;
 		public float A => Alpha / 255f;
+
+		public int Bgr => Red * 65536 + Green * 256 + Blue;
 
 		public Color(long color, ColorFormat format)
 		{

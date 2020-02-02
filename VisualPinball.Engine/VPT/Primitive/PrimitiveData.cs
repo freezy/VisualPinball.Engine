@@ -137,6 +137,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffFloat("PIDB")]
 		public float DepthBias = 0;
 
+		#region BIFF
+
 		static PrimitiveData()
 		{
 			Init(typeof(PrimitiveData), Attributes);
@@ -148,7 +150,16 @@ namespace VisualPinball.Engine.VPT.Primitive
 			Mesh.Name = Name;
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Primitive);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 
 	/// <summary>
@@ -169,16 +180,20 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is PrimitiveData tableData) {
+			if (obj is PrimitiveData primitiveData) {
 				try {
-					ParseVertices(tableData, IsCompressed
+					ParseVertices(primitiveData, IsCompressed
 						? BiffZlib.Decompress(reader.ReadBytes(len))
 						: reader.ReadBytes(len));
 				} catch (Exception e) {
-					throw new Exception($"Error parsing vertices for {tableData.Name} ({tableData.StorageName}).", e);
+					throw new Exception($"Error parsing vertices for {primitiveData.Name} ({primitiveData.StorageName}).", e);
 				}
-
 			}
+		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			throw new NotImplementedException();
 		}
 
 		private void ParseVertices(PrimitiveData data, byte[] bytes)
@@ -226,6 +241,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 					? BiffZlib.Decompress(reader.ReadBytes(len))
 					: reader.ReadBytes(len));
 			}
+		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			throw new NotImplementedException();
 		}
 
 		private void ParseIndices(PrimitiveData data, byte[] bytes)

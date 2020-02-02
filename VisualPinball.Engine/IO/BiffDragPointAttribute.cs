@@ -12,7 +12,17 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadDragPoint);
 		}
 
-		private DragPoint ReadDragPoint(BinaryReader reader, int len)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			WriteValue<TItem, DragPoint>(obj, writer, WriteDragpoint);
+		}
+
+		private static void WriteDragpoint(BinaryWriter writer, DragPoint value)
+		{
+			value.Write(writer);
+		}
+
+		private static DragPoint ReadDragPoint(BinaryReader reader, int len)
 		{
 			return new DragPoint(reader);
 		}

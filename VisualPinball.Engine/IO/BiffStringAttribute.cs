@@ -24,6 +24,11 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadString);
 		}
 
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			WriteValue<TItem, string>(obj, writer, WriteString, len => IsStreaming ? 0 : len + 4);
+		}
+
 		private string ReadString(BinaryReader reader, int len)
 		{
 			byte[] bytes;
@@ -32,13 +37,23 @@ namespace VisualPinball.Engine.IO
 				bytes = reader.ReadBytes(wideLen).Where((x, i) => i % 2 == 0).ToArray();
 			} else {
 				if (HasExplicitLength) {
-					var wideLen = reader.ReadInt32();
-					bytes = reader.ReadBytes(wideLen).ToArray();
+					var explicitLength = reader.ReadInt32();
+					bytes = reader.ReadBytes(explicitLength).ToArray();
 				} else {
 					bytes = IsStreaming ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
 				}
 			}
 			return Encoding.ASCII.GetString(bytes);
+		}
+
+		private void WriteString(BinaryWriter writer, string value)
+		{
+			var bytes = Encoding.ASCII.GetBytes(value);
+			if (IsWideString) {
+				bytes = bytes.SelectMany(b => new byte[] {b, 0x0}).ToArray();
+			}
+			writer.Write(bytes.Length);
+			writer.Write(bytes);
 		}
 	}
 }

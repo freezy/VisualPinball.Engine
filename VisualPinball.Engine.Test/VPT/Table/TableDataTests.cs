@@ -2,6 +2,7 @@
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Table
@@ -155,6 +156,19 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			Assert.Equal("Rules", table.InfoRules);
 			Assert.Equal("Version", table.InfoVersion);
 			Assert.Equal("customvalue1", table.TableInfo["customdata1"]);
+		}
+
+		[Fact]
+		public void ShouldWriteTable()
+		{
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+			TableWriter.WriteTable(table, "written.vpx");
+
+			// using (var stream = new MemoryStream())
+			// using (var writer = new BinaryWriter(stream)) {
+			// 	Write(writer);
+			// 	return stream.ToArray();
+			// }
 		}
 	}
 }

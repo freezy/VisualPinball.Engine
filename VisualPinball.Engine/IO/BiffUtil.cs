@@ -21,6 +21,24 @@ namespace VisualPinball.Engine.IO
 			return Encoding.ASCII.GetString(nullPos > -1 ? bytes.Take(nullPos).ToArray() : bytes);
 		}
 
+		public static byte[] GetNullTerminatedString(string value, int length)
+		{
+			var bytes = Encoding.ASCII.GetBytes(value);
+			if (bytes.Length == length) {
+				return bytes;
+
+			}
+
+			if (bytes.Length > length) {
+				return bytes.Take(length).ToArray();
+
+			}
+
+			var newArray = new byte[length];
+			Array.Copy(bytes, 0, newArray, 0, bytes.Length);
+			return newArray;
+		}
+
 		public static string ParseWideString(IEnumerable<byte> data)
 		{
 			return Encoding.ASCII.GetString(data.Where((x, i) => i % 2 == 0).ToArray());

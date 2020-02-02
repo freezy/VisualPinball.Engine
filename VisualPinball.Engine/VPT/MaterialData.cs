@@ -1,6 +1,8 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
+using System;
 using System.IO;
+using NetVips;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT
@@ -83,12 +85,35 @@ namespace VisualPinball.Engine.VPT
 			Thickness = reader.ReadInt32();
 			Opacity = reader.ReadSingle();
 			OpacityActiveEdgeAlpha = reader.ReadByte();
+			reader.BaseStream.Seek(3, SeekOrigin.Current);
 
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
-			if (remainingSize > 0)
-			{
-				reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
+			if (remainingSize > 0) {
+				throw new InvalidOperationException("There are still " + remainingSize + " bytes left to read.");
+				//reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
 			}
+		}
+
+		public void Write(BinaryWriter writer)
+		{
+			writer.Write(BiffUtil.GetNullTerminatedString(Name, 32));
+			writer.Write(BaseColor);
+			writer.Write(Glossiness);
+			writer.Write(ClearCoat);
+			writer.Write(WrapLighting);
+			writer.Write(IsMetal);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write(Roughness);
+			writer.Write(GlossyImageLerp);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write(Edge);
+			writer.Write(Thickness);
+			writer.Write(Opacity);
+			writer.Write(OpacityActiveEdgeAlpha);
 		}
 	}
 
@@ -115,8 +140,18 @@ namespace VisualPinball.Engine.VPT
 			ScatterAngle = reader.ReadSingle();
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
 			if (remainingSize > 0) {
-				reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
+				throw new InvalidOperationException("There are still " + remainingSize + " bytes left to read.");
+				//reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
 			}
+		}
+
+		public void Write(BinaryWriter writer)
+		{
+			writer.Write(BiffUtil.GetNullTerminatedString(Name, 32));
+			writer.Write(Elasticity);
+			writer.Write(ElasticityFallOff);
+			writer.Write(Friction);
+			writer.Write(ScatterAngle);
 		}
 	}
 }

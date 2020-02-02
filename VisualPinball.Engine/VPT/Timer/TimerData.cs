@@ -22,6 +22,8 @@ namespace VisualPinball.Engine.VPT.Timer
 		[BiffBool("BGLS")]
 		public bool Backglass = false;
 
+		#region BIFF
+
 		static TimerData()
 		{
 			Init(typeof(TimerData), Attributes);
@@ -32,6 +34,15 @@ namespace VisualPinball.Engine.VPT.Timer
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Timer);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

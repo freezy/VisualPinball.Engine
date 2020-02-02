@@ -109,6 +109,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffBool("REEN")]
 		public bool IsReflectionEnabled = true;
 
+		#region BIFF
+
 		static FlipperData()
 		{
 			Init(typeof(FlipperData), Attributes);
@@ -119,6 +121,15 @@ namespace VisualPinball.Engine.VPT.Flipper
 			Load(this, reader, Attributes);
 		}
 
+		public override void Write(BinaryWriter writer)
+		{
+			writer.Write(ItemType.Flipper);
+			Write(writer, Attributes);
+			WriteEnd(writer);
+		}
+
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 }

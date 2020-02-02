@@ -17,6 +17,16 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadColor);
 		}
 
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			WriteValue<TItem, Color>(obj, writer, WriteColor);
+		}
+
+		private static void WriteColor(BinaryWriter writer, Color value)
+		{
+			writer.Write(value.Bgr);
+		}
+
 		private Color ReadColor(BinaryReader reader, int len)
 		{
 			return new Color(reader.ReadInt32(), ColorFormat);

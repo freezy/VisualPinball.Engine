@@ -4,6 +4,7 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -37,6 +38,14 @@ namespace VisualPinball.Engine.VPT
 		[BiffBits("BITS")]
 		public Bitmap Bitmap; // originally "PdsBuffer";
 
+		public TextureData(Resource res) : base(res.Name)
+		{
+			Name = res.Name;
+			Binary = new BinaryData(res);
+		}
+
+		#region BIFF
+
 		static TextureData()
 		{
 			Init(typeof(TextureData), Attributes);
@@ -47,13 +56,15 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
-		public TextureData(Resource res) : base(res.Name)
+		public override void Write(BinaryWriter writer)
 		{
-			Name = res.Name;
-			Binary = new BinaryData(res);
+			Write(writer, Attributes);
+			WriteEnd(writer);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+
+		#endregion
 	}
 
 	public class BiffBinaryAttribute : BiffAttribute
@@ -66,6 +77,11 @@ namespace VisualPinball.Engine.VPT
 				SetValue(obj, new BinaryData(reader, textureData.StorageName));
 			}
 		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 
 	public class BiffBitsAttribute : BiffAttribute
@@ -77,6 +93,11 @@ namespace VisualPinball.Engine.VPT
 			if (obj is TextureData textureData) {
 				SetValue(obj, new Bitmap(reader, textureData.Width, textureData.Height));
 			}
+		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
