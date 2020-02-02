@@ -57,9 +57,9 @@
   <ItemGroup>
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\UnityTarget.cs" />
-    <Compile Include="Editor\FlipperComponent.cs" />
-    <Compile Include="Editor\ItemComponent.cs" />
-    <Compile Include="Editor\TableComponent.cs" />
+    <Compile Include="Components\VisualPinballFlipper.cs" />
+    <Compile Include="Components\ItemComponent.cs" />
+    <Compile Include="Components\VisualPinballTable.cs" />
     <Compile Include="Extensions\Color.cs" />
     <Compile Include="Extensions\FlipperExtension.cs" />
     <Compile Include="Extensions\Light.cs" />
@@ -96,6 +96,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Editor" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

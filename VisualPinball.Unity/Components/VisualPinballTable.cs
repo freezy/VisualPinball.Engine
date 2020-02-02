@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
+﻿using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Editor;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity.Components
 {
-	public class TableComponent : ItemComponent<Table, TableData>
+	public class VisualPinballTable : ItemComponent<Table, TableData>
 	{
 		public Table Table => Item;
 
@@ -13,6 +13,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected override void OnDataSet()
+		{
+		}
+
+		protected override void OnFieldsUpdated()
 		{
 		}
 

@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
 using Logger = NLog.Logger;
 
@@ -11,7 +14,7 @@ namespace VisualPinball.Unity.Editor
 	public abstract class ItemComponent<TItem, TData> : MonoBehaviour where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
-		[HideInInspector]
+		//[HideInInspector]
 		protected TData data;
 
 		protected TItem Item => _item ?? (_item = GetItem(data));
@@ -26,13 +29,13 @@ namespace VisualPinball.Unity.Editor
 			OnDataSet();
 		}
 
-		protected void UpdateMeshes()
+		protected void RebuildMeshes()
 		{
 			if (data == null) {
 				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
 				return;
 			}
-			var table = transform.root.GetComponent<TableComponent>().Table;
+			var table = transform.root.GetComponent<VisualPinballTable>().Table;
 			if (table == null) {
 				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.Name);
 				return;
@@ -60,9 +63,28 @@ namespace VisualPinball.Unity.Editor
 			ro.Mesh.ApplyToUnityMesh(unityMesh);
 		}
 
+		private void OnValidate()
+		{
+			if (data == null) {
+				return;
+			}
+			var rebuild = ShouldRebuildMesh();
+			OnFieldsUpdated();
+			if (rebuild) {
+				RebuildMeshes();
+			}
+		}
+
+		protected virtual bool ShouldRebuildMesh()
+		{
+			return false;
+		}
+
 		protected abstract TItem GetItem(TData data);
 
 		protected abstract void OnDataSet();
+
+		protected abstract void OnFieldsUpdated();
 
 		protected abstract string[] GetChildren();
 	}

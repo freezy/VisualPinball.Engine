@@ -153,8 +153,6 @@ namespace VisualPinball.Unity.Importer
 			if (rog.Parent == "Flippers") {
 				Logger.Info("Adding flipper component!");
 				(item as Flipper).AddComponent(obj);
-			} else {
-				Logger.Info("not a flipper (" + rog.Parent + ")");
 			}
 		}
 
@@ -177,9 +175,6 @@ namespace VisualPinball.Unity.Importer
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
 			mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
-			if (mr.sharedMaterial.name == PbrMaterial.NameNoMaterial) {
-				mr.enabled = false;
-			}
 
 			// patch
 			Profiler.Start("Patch & Assets");
