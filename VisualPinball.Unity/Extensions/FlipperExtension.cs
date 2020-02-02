@@ -1,22 +1,23 @@
 ﻿using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Extensions
 {
 	public static class FlipperExtension
 	{
-		public static FlipperComponent AddComponent(this Flipper flipper, GameObject go)
+		public static VisualPinballFlipper AddComponent(this Flipper flipper, GameObject go)
 		{
-			var component = go.AddComponent<FlipperComponent>();
+			var component = go.AddComponent<VisualPinballFlipper>();
 			component.SetData(flipper.Data);
 			return component;
 		}
 
-		public static TableComponent AddComponent(this Table table, GameObject go)
+		public static VisualPinballTable AddComponent(this Table table, GameObject go)
 		{
-			var component = go.AddComponent<TableComponent>();
+			var component = go.AddComponent<VisualPinballTable>();
 			component.SetData(table.Data);
 			return component;
 		}
