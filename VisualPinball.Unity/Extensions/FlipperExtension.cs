@@ -10,14 +10,14 @@ namespace VisualPinball.Unity.Extensions
 		public static FlipperComponent AddComponent(this Flipper flipper, GameObject go)
 		{
 			var component = go.AddComponent<FlipperComponent>();
-			component.FlipperData = flipper.Data;
+			component.SetData(flipper.Data);
 			return component;
 		}
 
 		public static TableComponent AddComponent(this Table table, GameObject go)
 		{
 			var component = go.AddComponent<TableComponent>();
-			component.Data = table.Data;
+			component.SetData(table.Data);
 			return component;
 		}
 	}
