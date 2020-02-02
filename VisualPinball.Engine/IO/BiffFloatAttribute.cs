@@ -42,10 +42,13 @@ namespace VisualPinball.Engine.IO
 			return (int) ReadFloat(reader, len);
 		}
 
-		private static void WriteFloat(BinaryWriter writer, float value)
+		private void WriteFloat(BinaryWriter writer, float value)
 		{
-			// todo QuantizedUnsignedBits
-			writer.Write(value);
+			if (QuantizedUnsignedBits > 0) {
+				writer.Write(QuantizeUnsigned(QuantizedUnsignedBits, value));
+			} else {
+				writer.Write(value);
+			}
 		}
 
 		private static void WriteFloat(BinaryWriter writer, int value)
@@ -57,6 +60,13 @@ namespace VisualPinball.Engine.IO
 		{
 			var n = (1 << bits) - 1;
 			return MathF.Min(i / (float) n, 1.0f);
+		}
+
+		private static uint QuantizeUnsigned(int bits, float x)
+		{
+			var n = (1 << bits) - 1;
+			var np1 = (1 << bits);
+			return System.Math.Min((uint)(x * np1), (uint)n);
 		}
 	}
 }

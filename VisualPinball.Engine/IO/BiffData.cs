@@ -131,14 +131,15 @@ namespace VisualPinball.Engine.IO
 
 		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes)
 		{
-			foreach (var tag in attributes.Keys) {
-				var attr = attributes[tag][0];
+			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
+			foreach (var attr in attrs) {
 				attr.Write(this, writer);
 			}
 		}
 
-		protected void WriteEnd(BinaryWriter writer)
+		protected static void WriteEnd(BinaryWriter writer)
 		{
+			writer.Write(4);
 			writer.Write(Encoding.ASCII.GetBytes("ENDB"));
 		}
 
