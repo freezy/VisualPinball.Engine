@@ -68,7 +68,6 @@
     <Compile Include="Extensions\Matrix3D.cs" />
     <Compile Include="Extensions\Mesh.cs" />
     <Compile Include="Extensions\Texture.cs" />
-    <Compile Include="Game\LoadedTable.cs" />
     <Compile Include="Importer\AssetHandler\AssetDatabaseHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetMemoryHandler.cs" />
     <Compile Include="Importer\AssetHandler\AssetUtility.cs" />
