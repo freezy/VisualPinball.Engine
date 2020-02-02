@@ -8,7 +8,12 @@ namespace VisualPinball.Unity.Extensions
 		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh, string name = null)
 		{
 			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
+			vpMesh.ApplyToUnityMesh(mesh);
+			return mesh;
+		}
 
+		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, UnityEngine.Mesh mesh)
+		{
 			// vertices
 			var vertices = new Vector3[vpMesh.Vertices.Length];
 			var normals = new Vector3[vpMesh.Vertices.Length];
@@ -26,8 +31,6 @@ namespace VisualPinball.Unity.Extensions
 
 			// faces
 			mesh.triangles = vpMesh.Indices;
-
-			return mesh;
 		}
 	}
 }

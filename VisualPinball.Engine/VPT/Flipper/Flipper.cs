@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 	{
 		private readonly FlipperMeshGenerator _meshGenerator;
 
-		public Flipper(BinaryReader reader, string itemName) : base(new FlipperData(reader, itemName))
+		public Flipper(FlipperData data) : base(data)
 		{
 			_meshGenerator = new FlipperMeshGenerator(Data);
 		}
+
+		public Flipper(BinaryReader reader, string itemName) : this(new FlipperData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

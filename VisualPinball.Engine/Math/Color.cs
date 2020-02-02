@@ -2,6 +2,7 @@
 
 namespace VisualPinball.Engine.Math
 {
+	[Serializable]
 	public class Color
 	{
 		public int Red = 0x0;
