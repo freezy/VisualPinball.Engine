@@ -7,13 +7,18 @@ namespace VisualPinball.Unity.Editor
 	{
 		public Table Table => Item;
 
-		protected override Table GetItem(TableData data)
+		protected override Table GetItem(TableData d)
 		{
-			return new Table(data);
+			return new Table(d);
 		}
 
-		protected override void OnDataSet(TableData data)
+		protected override void OnDataSet()
 		{
+		}
+
+		protected override string[] GetChildren()
+		{
+			return null;
 		}
 	}
 }
