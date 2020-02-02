@@ -58,7 +58,7 @@
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Editor\FlipperComponent.cs" />
-    <Compile Include="Editor\FlipperEditor.cs" />
+    <Compile Include="Editor\ItemComponent.cs" />
     <Compile Include="Editor\TableComponent.cs" />
     <Compile Include="Extensions\Color.cs" />
     <Compile Include="Extensions\FlipperExtension.cs" />

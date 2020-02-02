@@ -3,12 +3,17 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class TableComponent : MonoBehaviour
+	public class TableComponent : ItemComponent<Table, TableData>
 	{
-		public TableData Data;
+		public Table Table => Item;
 
-		public Table Table => _table ?? (_table = new Table(Data));
+		protected override Table GetItem(TableData data)
+		{
+			return new Table(data);
+		}
 
-		private Table _table;
+		protected override void OnDataSet(TableData data)
+		{
+		}
 	}
 }
