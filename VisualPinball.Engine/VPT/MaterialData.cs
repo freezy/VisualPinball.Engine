@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using NetVips;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT

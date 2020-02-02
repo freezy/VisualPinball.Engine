@@ -29,6 +29,11 @@ namespace VisualPinball.Engine.IO
 		public string Name { get; }
 
 		/// <summary>
+		/// The attribute position when writing.
+		/// </summary>
+		public int Pos = 0;
+
+		/// <summary>
 		/// Some records like CODE have their actual length set after
 		/// the BIFF name. If that's the case set this field to `true`.
 		/// </summary>
@@ -179,6 +184,10 @@ namespace VisualPinball.Engine.IO
 		{
 			writer.Write(dataLength + 4);
 			writer.Write(Encoding.ASCII.GetBytes(Name));
+			if (Name.Length < 4) {
+				writer.Write(new byte[4 - Name.Length]);
+			}
+
 		}
 	}
 }

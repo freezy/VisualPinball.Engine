@@ -1,5 +1,4 @@
-﻿using System;
-using VisualPinball.Engine.Math;
+﻿using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;

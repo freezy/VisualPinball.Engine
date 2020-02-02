@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.Math
 		public float B => Blue / 255f;
 		public float A => Alpha / 255f;
 
-		public int Bgr => Red * 65536 + Green * 256 + Blue;
+		public int Bgr => Blue * 65536 + Green * 256 + Red;
 
 		public Color(long color, ColorFormat format)
 		{
