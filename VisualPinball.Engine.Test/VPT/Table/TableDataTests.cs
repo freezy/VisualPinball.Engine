@@ -3,17 +3,50 @@ using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Table
 {
-	public class TableDataTests
+	public class TableDataTests : BaseTests
 	{
+		public TableDataTests(ITestOutputHelper output) : base(output) { }
+
 		[Fact]
 		public void ShouldLoadCorrectData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			var data = table.Data;
+			ValidateTableData(table.Data);
+		}
 
+		[Fact]
+		public void ShouldLoadCorrectTableInfo()
+		{
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+
+			Assert.Equal("test@vpdb.io", table.InfoAuthorEmail);
+			Assert.Equal("Table Author", table.InfoAuthorName);
+			Assert.Equal("https://vpdb.io", table.InfoAuthorWebsite);
+			Assert.Equal("2019-04-14", table.InfoReleaseDate);
+			Assert.Equal("Short Blurb", table.InfoBlurb);
+			Assert.Equal("Description", table.InfoDescription);
+			Assert.Equal("Table Name", table.InfoName);
+			Assert.Equal("Rules", table.InfoRules);
+			Assert.Equal("Version", table.InfoVersion);
+			Assert.Equal("customvalue1", table.TableInfo["customdata1"]);
+		}
+
+		[Fact]
+		public void ShouldWriteTable()
+		{
+			const string tmpFileName = "ShouldWriteTable.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+			TableWriter.WriteTable(table, tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateTableData(writtenTable.Data);
+		}
+
+		private static void ValidateTableData(TableData data)
+		{
 			Assert.Equal(0.60606f, data.AngleTiltMax);
 			Assert.Equal(0.2033f, data.AngleTiltMin);
 			Assert.Equal(1.23f, data.AoScale);
@@ -138,36 +171,6 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			// these change whether the file was saved with backglass or playfield active
 			Assert.Equal(556f, data.Offset[0]);
 			Assert.Equal(1112f, data.Offset[1]);
-		}
-
-		[Fact]
-		public void ShouldLoadCorrectTableInfo()
-		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-
-			Assert.Equal("test@vpdb.io", table.InfoAuthorEmail);
-			Assert.Equal("Table Author", table.InfoAuthorName);
-			Assert.Equal("https://vpdb.io", table.InfoAuthorWebsite);
-			Assert.Equal("2019-04-14", table.InfoReleaseDate);
-			Assert.Equal("Short Blurb", table.InfoBlurb);
-			Assert.Equal("Description", table.InfoDescription);
-			Assert.Equal("Table Name", table.InfoName);
-			Assert.Equal("Rules", table.InfoRules);
-			Assert.Equal("Version", table.InfoVersion);
-			Assert.Equal("customvalue1", table.TableInfo["customdata1"]);
-		}
-
-		[Fact]
-		public void ShouldWriteTable()
-		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			TableWriter.WriteTable(table, "written.vpx");
-
-			// using (var stream = new MemoryStream())
-			// using (var writer = new BinaryWriter(stream)) {
-			// 	Write(writer);
-			// 	return stream.ToArray();
-			// }
 		}
 	}
 }
