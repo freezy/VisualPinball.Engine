@@ -9,9 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using VisualPinball.Engine.IO;
-
 
 namespace VisualPinball.Engine.Math
 {
@@ -240,7 +238,7 @@ namespace VisualPinball.Engine.Math
 			Init(typeof(DragPoint), Attributes);
 		}
 
-		public DragPoint(BinaryReader reader)
+		public DragPoint(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
 		}

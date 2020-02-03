@@ -371,7 +371,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			var materials = GetValue(obj) as Material[];
+			if (!(GetValue(obj) is Material[] materials)) {
+				return;
+			}
 			using (var stream = new MemoryStream())
 			using (var dataWriter = new BinaryWriter(stream)) {
 				foreach (var material in materials) {

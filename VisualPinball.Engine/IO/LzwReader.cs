@@ -2,6 +2,8 @@
 // ReSharper disable IdentifierTypo
 #endregion
 
+using System.Linq;
+
 namespace VisualPinball.Engine.IO
 {
 	/// <summary>
@@ -330,6 +332,10 @@ namespace VisualPinball.Engine.IO
 
 		public byte Get(int offset = -1) {
 			return _buf[offset > -1 ? offset : _pos];
+		}
+
+		public byte[] GetMany(int length) {
+			return _buf.Skip(_pos).Take(length).ToArray();
 		}
 
 		public byte Next() {

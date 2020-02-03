@@ -5,6 +5,7 @@ using System.Reflection;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -131,6 +132,15 @@ namespace VisualPinball.Engine.Test.VPT
 			Assert.Equal(1.0f, texture.Data.AlphaTestValue);
 			Assert.StartsWith(@"C:\", texture.Data.Path);
 			Assert.Equal(image, blob);
+		}
+
+		[Fact]
+		public void ShouldWriteCorrectBinary()
+		{
+			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";
+			TableWriter.WriteTable(_table, tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			Assert.Equal(_table.Textures["Image0"].Data.Binary.Data, writtenTable.Textures["Image0"].Data.Binary.Data);
 		}
 	}
 }

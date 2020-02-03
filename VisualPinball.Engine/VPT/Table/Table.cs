@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NLog;
 using VisualPinball.Engine.Game;
 
@@ -49,7 +50,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public float Height => Data.Bottom - Data.Top;
 		public float TableHeight => Data.TableHeight;
 
-		public IRenderable[] Renderables => new IRenderable[] { this }
+		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
@@ -61,8 +62,22 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Rubbers.Values)
 			.Concat(Spinners.Values)
 			.Concat(Surfaces.Values)
-			.Concat(Triggers.Values)
-			.ToArray();
+			.Concat(Triggers.Values);
+
+		public IEnumerable<ItemData> Writeables => new ItemData[] {Data}
+			.Concat(Bumpers.Values.Select(i => i.Data))
+			.Concat(Flippers.Values.Select(i => i.Data))
+			.Concat(Gates.Values.Select(i => i.Data))
+			.Concat(HitTargets.Values.Select(i => i.Data))
+			.Concat(Kickers.Values.Select(i => i.Data))
+			.Concat(Lights.Values.Select(i => i.Data))
+			.Concat(Primitives.Values.Select(i => i.Data))
+			.Concat(Ramps.Values.Select(i => i.Data))
+			.Concat(Rubbers.Values.Select(i => i.Data))
+			.Concat(Spinners.Values.Select(i => i.Data))
+			.Concat(Surfaces.Values.Select(i => i.Data))
+			.Concat(Triggers.Values.Select(i => i.Data))
+			.Concat(Textures.Values.Select(i => i.Data));
 
 		private readonly TableMeshGenerator _meshGenerator;
 

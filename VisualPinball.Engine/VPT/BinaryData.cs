@@ -16,19 +16,19 @@ namespace VisualPinball.Engine.VPT
 		public byte[] Bytes => Data;
 		public byte[] FileContent => Data;
 
-		[BiffString("NAME", HasExplicitLength = true)]
+		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
 		public override string Name { get; set; }
 
-		[BiffString("INME")]
+		[BiffString("INME", Pos = 2)]
 		public string InternalName;
 
-		[BiffString("PATH")]
+		[BiffString("PATH", Pos = 3)]
 		public string Path;
 
-		[BiffInt("SIZE")]
+		[BiffInt("SIZE", Pos = 4)]
 		public int Size;
 
-		[BiffByte("DATA")]
+		[BiffByte("DATA", Pos = 5)]
 		public byte[] Data;
 
 		public BinaryData(Resource res) : base(res.Name)

@@ -19,7 +19,13 @@ namespace VisualPinball.Engine.IO
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		public readonly string StorageName;
 		private readonly Dictionary<string, byte[]> UnknownTags = new Dictionary<string, byte[]>();
+
+		protected BiffData(string storageName)
+		{
+			StorageName = storageName;
+		}
 
 		public abstract void Write(BinaryWriter writer);
 
@@ -133,7 +139,12 @@ namespace VisualPinball.Engine.IO
 		{
 			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
 			foreach (var attr in attrs) {
-				attr.Write(this, writer);
+				try {
+					attr.Write(this, writer);
+
+				} catch (Exception e) {
+					throw new InvalidOperationException("Error writing [" + attr.GetType().Name + "] at \"" + attr.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
+				}
 			}
 		}
 

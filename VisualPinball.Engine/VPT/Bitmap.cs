@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using OpenMcdf;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT
@@ -70,9 +69,11 @@ namespace VisualPinball.Engine.VPT
 			_data = ToggleRgbBgr(_data);
 		}
 
-		// public byte[] GetRawData() {
-		// 	return _data;
-		// }
+		public void WriteCompressed(BinaryWriter writer)
+		{
+			var lzwWriter = new LzwWriter(writer, _data, Width * 4, Height, Pitch());
+			lzwWriter.CompressBits(8 + 1);
+		}
 
 		private IEnumerable<byte> GetHeader()
 		{
