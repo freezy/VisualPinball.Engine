@@ -96,7 +96,11 @@ namespace VisualPinball.Engine.VPT.Table
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				Profiler.Start("LoadGameItems (I/O)");
 				var itemName = $"GameItem{i}";
-				var itemStream = storage.GetStream(itemName);
+				storage.TryGetStream(itemName, out var itemStream);
+				if (itemStream == null) {
+					Logger.Warn("Could not find stream {0}, skipping.", itemName);
+					continue;
+				}
 				var itemData = itemStream.GetData();
 				Profiler.Stop("LoadGameItems (I/O)");
 				if (itemData.Length < 4) {
@@ -185,7 +189,11 @@ namespace VisualPinball.Engine.VPT.Table
 			for (var i = 0; i < table.Data.NumTextures; i++) {
 				var textureName = $"Image{i}";
 				Profiler.Start("LoadTextures (I/O)");
-				var textureStream = storage.GetStream(textureName);
+				storage.TryGetStream(textureName, out var textureStream);
+				if (textureStream == null) {
+					Logger.Warn("Could not find stream {0}, skipping.", textureName);
+					continue;
+				}
 				var textureData = textureStream.GetData();
 				Profiler.Stop("LoadTextures (I/O)");
 				if (textureData.Length < 4) {
@@ -204,7 +212,11 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private static void LoadTableInfo(Table table, CFStorage storage)
 		{
-			var tableInfoStorage = storage.GetStorage("TableInfo");
+			storage.TryGetStorage("TableInfo", out var tableInfoStorage);
+			if (tableInfoStorage == null) {
+				Logger.Info("TableInfo storage not found, skipping.");
+				return;
+			}
 			tableInfoStorage.VisitEntries(item => {
 				if (item.IsStream) {
 					var itemStream = item as CFStream;

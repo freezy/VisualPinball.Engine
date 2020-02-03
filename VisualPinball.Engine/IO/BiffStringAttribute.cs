@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.IO
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			WriteValue<TItem, string>(obj, writer, WriteString, len => IsStreaming ? 0 : len + 4);
+			WriteValue<TItem, string>(obj, writer, WriteString, len => IsStreaming ? 0 : len);
 		}
 
 		private string ReadString(BinaryReader reader, int len)
