@@ -121,6 +121,11 @@ namespace VisualPinball.Engine.IO
 		protected void WriteValue<TItem, TField>(TItem obj, BinaryWriter writer, Action<BinaryWriter, TField> write, Func<int, int> overrideLength = null) where TItem : BiffData
 		{
 			var value = GetValue(obj);
+
+			// don't write null values
+			if (value == null) {
+				return;
+			}
 			using (var stream = new MemoryStream())
 			using (var dataWriter = new BinaryWriter(stream)) {
 				if (Type == typeof(TField)) {

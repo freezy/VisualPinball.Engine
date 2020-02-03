@@ -105,6 +105,7 @@
     <Compile Include="IO\BiffVertexAttribute.cs" />
     <Compile Include="IO\BiffZlib.cs" />
     <Compile Include="IO\LzwReader.cs" />
+    <Compile Include="IO\LzwWriter.cs" />
     <Compile Include="Math\CatmullCurve.cs" />
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />

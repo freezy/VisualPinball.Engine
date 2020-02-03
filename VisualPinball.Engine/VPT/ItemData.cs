@@ -14,14 +14,9 @@ namespace VisualPinball.Engine.VPT
 	/// </summary>
 	public abstract class ItemData : BiffData
 	{
-		public readonly string StorageName;
-
 		public abstract string Name { get; set; }
 
-		protected ItemData(string storageName)
-		{
-			StorageName = storageName;
-		}
+		protected ItemData(string storageName) : base(storageName) { }
 
 		public void WriteData(CFStorage gameStorage)
 		{

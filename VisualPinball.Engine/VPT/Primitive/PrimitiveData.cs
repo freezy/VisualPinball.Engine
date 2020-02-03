@@ -193,7 +193,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			throw new NotImplementedException();
+			//throw new NotImplementedException();
 		}
 
 		private void ParseVertices(PrimitiveData data, byte[] bytes)
@@ -245,7 +245,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			throw new NotImplementedException();
+			//throw new NotImplementedException();
 		}
 
 		private void ParseIndices(PrimitiveData data, byte[] bytes)

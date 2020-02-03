@@ -14,28 +14,28 @@ namespace VisualPinball.Engine.VPT
 {
 	public class TextureData : ItemData
 	{
-		[BiffString("NAME", HasExplicitLength = true)]
+		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
 		public override string Name { get; set; }
 
-		[BiffString("INME")]
+		[BiffString("INME", Pos = 2)]
 		public string InternalName;
 
-		[BiffString("PATH")]
+		[BiffString("PATH", Pos = 3)]
 		public string Path;
 
-		[BiffInt("WDTH")]
+		[BiffInt("WDTH", Pos = 4)]
 		public int Width;
 
-		[BiffInt("HGHT")]
+		[BiffInt("HGHT", Pos = 5)]
 		public int Height;
 
-		[BiffFloat("ALTV")]
+		[BiffFloat("ALTV", Pos = 7)]
 		public float AlphaTestValue;
 
-		[BiffBinary("JPEG")]
+		[BiffBinary("JPEG", Pos = 6)]
 		public BinaryData Binary;
 
-		[BiffBits("BITS")]
+		[BiffBits("BITS", Pos = 6)]
 		public Bitmap Bitmap; // originally "PdsBuffer";
 
 		public TextureData(Resource res) : base(res.Name)
@@ -80,7 +80,16 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			throw new System.NotImplementedException();
+			if (Type == typeof(BinaryData)) {
+				if (!(GetValue(obj) is BinaryData data)) {
+					return;
+				}
+				WriteStart(writer, 0);
+				data.Write(writer);
+
+			} else {
+				throw new InvalidOperationException("Unknown type " + Type + " for [" + GetType().Name + "] on field \"" + Name + "\".");
+			}
 		}
 	}
 
@@ -97,7 +106,16 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer)
 		{
-			throw new NotImplementedException();
+			if (Type == typeof(Bitmap)) {
+				if (!(GetValue(obj) is Bitmap bitmap)) {
+					return;
+				}
+				WriteStart(writer, 0);
+				bitmap.WriteCompressed(writer);
+
+			} else {
+				throw new InvalidOperationException("Unknown type " + Type + " for [" + GetType().Name + "] on field \"" + Name + "\".");
+			}
 		}
 	}
 }
