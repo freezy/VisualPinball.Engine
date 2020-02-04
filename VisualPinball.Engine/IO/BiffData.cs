@@ -30,9 +30,11 @@ namespace VisualPinball.Engine.IO
 		{
 			StorageName = storageName;
 
-			var match = new Regex(@"\d+$").Match(StorageName);
-			if (match.Success) {
-				int.TryParse(match.Value, out StorageIndex);
+			if (StorageName != null) {
+				var match = new Regex(@"\d+$").Match(StorageName);
+				if (match.Success) {
+					int.TryParse(match.Value, out StorageIndex);
+				}
 			}
 		}
 
@@ -155,12 +157,19 @@ namespace VisualPinball.Engine.IO
 			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
 			foreach (var attr in attrs) {
 				try {
-					attr.Write(this, writer, hashWriter);
+					if (!attr.SkipWrite && !SkipWrite(attr)) {
+						attr.Write(this, writer, hashWriter);
+					}
 
 				} catch (Exception e) {
 					throw new InvalidOperationException("Error writing [" + attr.GetType().Name + "] at \"" + attr.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
 				}
 			}
+		}
+
+		protected virtual bool SkipWrite(BiffAttribute attr)
+		{
+			return false;
 		}
 
 		protected static void WriteEnd(BinaryWriter writer, HashWriter hashWriter)

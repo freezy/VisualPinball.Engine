@@ -19,6 +19,18 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
+		public static byte[] Compress(byte[] inData)
+		{
+			using (var outMemoryStream = new MemoryStream())
+			using (var outZStream = new ZOutputStream(outMemoryStream, zlibConst.Z_BEST_COMPRESSION))
+			using (Stream inMemoryStream = new MemoryStream(inData))
+			{
+				CopyStream(inMemoryStream, outZStream);
+				outZStream.finish();
+				return outMemoryStream.ToArray();
+			}
+		}
+
 		private static void CopyStream(Stream input, Stream output)
 		{
 			var buffer = new byte[32768];

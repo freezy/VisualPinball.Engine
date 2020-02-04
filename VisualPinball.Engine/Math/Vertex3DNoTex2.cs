@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -31,7 +32,7 @@ namespace VisualPinball.Engine.Math
 			Tv = reader.ReadSingle();
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
 			if (remainingSize > 0) {
-				reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
+				throw new InvalidOperationException();
 			}
 		}
 
@@ -65,6 +66,18 @@ namespace VisualPinball.Engine.Math
 			X = x;
 			Y = y;
 			Z = z;
+		}
+
+		public void Write(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Z);
+			writer.Write(Nx);
+			writer.Write(Ny);
+			writer.Write(Nz);
+			writer.Write(Tu);
+			writer.Write(Tv);
 		}
 
 		public Vertex3D GetVertex() {

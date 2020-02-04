@@ -1,4 +1,6 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿﻿using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Table;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Primitive
@@ -10,7 +12,21 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
 			var data = table.Primitives["Cube"].Data;
+			ValidateTableData(data);
+		}
 
+		[Fact]
+		public void ShouldWritePrimitiveData()
+		{
+			const string tmpFileName = "ShouldWritePrimitiveData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			new TableWriter(table).WriteTable(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateTableData(writtenTable.Primitives["Cube"].Data);
+		}
+
+		private static void ValidateTableData(PrimitiveData data)
+		{
 			Assert.Equal(false, data.BackfacesEnabled);
 			Assert.Equal(0.6119f, data.CollisionReductionFactor);
 			Assert.Equal(53, data.CompressedIndices);
@@ -60,6 +76,15 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			Assert.Equal(true, data.StaticRendering);
 			Assert.Equal(2f, data.Threshold);
 			Assert.Equal(true, data.Use3DMesh);
+
+			Assert.Equal(1f, data.Mesh.Vertices[0].X);
+			Assert.Equal(1f, data.Mesh.Vertices[0].Y);
+			Assert.Equal(-1f, data.Mesh.Vertices[0].Z);
+			Assert.Equal(0f, data.Mesh.Vertices[0].Nx);
+			Assert.Equal(1f, data.Mesh.Vertices[0].Ny);
+			Assert.Equal(0f, data.Mesh.Vertices[0].Nz);
+			Assert.Equal(0.375f, data.Mesh.Vertices[0].Tu);
+			Assert.Equal(0f, data.Mesh.Vertices[0].Tv);
 		}
 	}
 }

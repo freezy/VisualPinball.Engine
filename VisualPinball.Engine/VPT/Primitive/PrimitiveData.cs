@@ -16,127 +16,144 @@ namespace VisualPinball.Engine.VPT.Primitive
 {
 	public class PrimitiveData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 15)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VPOS")]
+		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
 		public Vertex3D Position;
 
-		[BiffVertex("VSIZ")]
+		[BiffVertex("VSIZ", IsPadded = true, Pos = 2)]
 		public Vertex3D Size = new Vertex3D(100, 100, 100);
 
-		[BiffVertices("M3DX")]
-		[BiffVertices("M3CX", IsCompressed = true)]
-		[BiffIndices("M3DI")]
-		[BiffIndices("M3CI", IsCompressed = true)]
-		public readonly Mesh Mesh = new Mesh();
-
-		[BiffFloat("RTV0", Index = 0)]
-		[BiffFloat("RTV1", Index = 1)]
-		[BiffFloat("RTV2", Index = 2)]
-		[BiffFloat("RTV3", Index = 3)]
-		[BiffFloat("RTV4", Index = 4)]
-		[BiffFloat("RTV5", Index = 5)]
-		[BiffFloat("RTV6", Index = 6)]
-		[BiffFloat("RTV7", Index = 7)]
-		[BiffFloat("RTV8", Index = 8)]
-		public float[] RotAndTra = new float[9];
-
-		[BiffString("IMAG")]
-		public string Image;
-
-		[BiffString("NRMA")]
-		public string NormalMap;
-
-		[BiffInt("SIDS")]
-		public int Sides;
-
-		[BiffString("MATR")]
-		public string Material;
-
-		[BiffColor("SCOL")]
-		public Color SideColor = new Color(0x0, ColorFormat.Bgr);
-
-		[BiffBool("TVIS")]
-		public bool IsVisible;
-
-		[BiffBool("REEN")]
-		public bool IsReflectionEnabled;
-
-		[BiffBool("DTXI")]
-		public bool DrawTexturesInside;
-
-		[BiffBool("HTEV")]
-		public bool HitEvent;
-
-		[BiffFloat("THRS")]
-		public float Threshold;
-
-		[BiffFloat("ELAS")]
-		public float Elasticity;
-
-		[BiffFloat("ELFO")]
-		public float ElasticityFalloff;
-
-		[BiffFloat("RFCT")]
-		public float Friction;
-
-		[BiffFloat("RSCT")]
-		public float Scatter;
-
-		[BiffFloat("EFUI")]
-		public float EdgeFactorUi;
-
-		[BiffFloat("CORF")]
-		public float CollisionReductionFactor = 0;
-
-		[BiffBool("CLDR")]
-		public bool IsCollidable = true; // originally "CLDRP"
-
-		[BiffBool("ISTO")]
-		public bool IsToy;
-
-		[BiffString("MAPH")]
-		public string PhysicsMaterial;
-
-		[BiffBool("OVPH")]
-		public bool OverwritePhysics;
-
-		[BiffBool("STRE")]
-		public bool StaticRendering;
-
-		[BiffFloat("DILI", QuantizedUnsignedBits = 8)]
-		public float DisableLightingTop; // m_d.m_fDisableLightingTop = (tmp == 1) ? 1.f : dequantizeUnsigned<8>(tmp); // backwards compatible hacky loading!
-
-		[BiffFloat("DILB")]
-		public float DisableLightingBelow;
-
-		[BiffBool("U3DM")]
-		public bool Use3DMesh;
-
-		[BiffBool("EBFC")]
-		public bool BackfacesEnabled;
-
-		[BiffBool("DIPT")]
-		public bool DisplayTexture;
-
-		[BiffString("M3DN")]
-		public string MeshFileName;
-
-		[BiffInt("M3VN")]
+		[BiffInt("M3VN", Pos = 40)]
 		public int NumVertices;
 
-		[BiffInt("M3CY")]
+		[BiffInt("M3CY", Pos = 41)]
 		public int CompressedVertices;
 
-		[BiffInt("M3FN")]
+		[BiffInt("M3FN", Pos = 43)]
 		public int NumIndices;
 
-		[BiffInt("M3CJ")]
+		[BiffInt("M3CJ", Pos = 44)]
 		public int CompressedIndices = 0;
 
-		[BiffFloat("PIDB")]
+		[BiffVertices("M3DX", SkipWrite = true)]
+		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
+		[BiffIndices("M3DI", SkipWrite = true)]
+		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
+		public readonly Mesh Mesh = new Mesh();
+
+		[BiffFloat("RTV0", Index = 0, Pos = 3)]
+		[BiffFloat("RTV1", Index = 1, Pos = 4)]
+		[BiffFloat("RTV2", Index = 2, Pos = 5)]
+		[BiffFloat("RTV3", Index = 3, Pos = 6)]
+		[BiffFloat("RTV4", Index = 4, Pos = 7)]
+		[BiffFloat("RTV5", Index = 5, Pos = 8)]
+		[BiffFloat("RTV6", Index = 6, Pos = 9)]
+		[BiffFloat("RTV7", Index = 7, Pos = 10)]
+		[BiffFloat("RTV8", Index = 8, Pos = 11)]
+		public float[] RotAndTra = new float[9];
+
+		[BiffString("IMAG", Pos = 12)]
+		public string Image;
+
+		[BiffString("NRMA", Pos = 13)]
+		public string NormalMap;
+
+		[BiffInt("SIDS", Pos = 14)]
+		public int Sides;
+
+		[BiffString("MATR", Pos = 16)]
+		public string Material;
+
+		[BiffColor("SCOL", Pos = 17)]
+		public Color SideColor = new Color(0x0, ColorFormat.Bgr);
+
+		[BiffBool("TVIS", Pos = 18)]
+		public bool IsVisible;
+
+		[BiffBool("REEN", Pos = 34)]
+		public bool IsReflectionEnabled;
+
+		[BiffBool("DTXI", Pos = 19)]
+		public bool DrawTexturesInside;
+
+		[BiffBool("HTEV", Pos = 20)]
+		public bool HitEvent;
+
+		[BiffFloat("THRS", Pos = 21)]
+		public float Threshold;
+
+		[BiffFloat("ELAS", Pos = 22)]
+		public float Elasticity;
+
+		[BiffFloat("ELFO", Pos = 23)]
+		public float ElasticityFalloff;
+
+		[BiffFloat("RFCT", Pos = 24)]
+		public float Friction;
+
+		[BiffFloat("RSCT", Pos = 25)]
+		public float Scatter;
+
+		[BiffFloat("EFUI", Pos = 26)]
+		public float EdgeFactorUi;
+
+		[BiffFloat("CORF", Pos = 27)]
+		public float CollisionReductionFactor = 0;
+
+		[BiffBool("CLDR", Pos = 28)]
+		public bool IsCollidable = true; // originally "CLDRP"
+
+		[BiffBool("ISTO", Pos = 29)]
+		public bool IsToy;
+
+		[BiffString("MAPH", Pos = 36)]
+		public string PhysicsMaterial;
+
+		[BiffBool("OVPH", Pos = 37)]
+		public bool OverwritePhysics;
+
+		[BiffBool("STRE", Pos = 31)]
+		public bool StaticRendering;
+
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 32)]
+		public float DisableLightingTop; // m_d.m_fDisableLightingTop = (tmp == 1) ? 1.f : dequantizeUnsigned<8>(tmp); // backwards compatible hacky loading!
+
+		[BiffFloat("DILB", Pos = 33)]
+		public float DisableLightingBelow;
+
+		[BiffBool("U3DM", Pos = 30)]
+		public bool Use3DMesh;
+
+		[BiffBool("EBFC", Pos = 35)]
+		public bool BackfacesEnabled;
+
+		[BiffBool("DIPT", Pos = 38)]
+		public bool DisplayTexture;
+
+		[BiffBool("OSNM", Pos = 38.5)]
+		public bool ObjectSpaceNormalMap;
+
+		[BiffString("M3DN", Pos = 39)]
+		public string MeshFileName;
+
+		[BiffFloat("PIDB", Pos = 46)]
 		public float DepthBias = 0;
+
+		protected override bool SkipWrite(BiffAttribute attr)
+		{
+			if (!Use3DMesh) {
+				switch (attr.Name) {
+					case "M3VN":
+					case "M3CY":
+					case "M3FN":
+					case "M3CJ":
+						return true;
+				}
+			}
+			return false;
+		}
 
 		#region BIFF
 
@@ -194,7 +211,20 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			//throw new NotImplementedException();
+			if (obj is PrimitiveData primitiveData) {
+				if (!primitiveData.Use3DMesh) {
+					// don't write vertices if not using 3d mesh
+					return;
+				}
+				var vertexData = SerializeVertices(primitiveData);
+				var data = IsCompressed ? BiffZlib.Compress(vertexData) : vertexData;
+				WriteStart(writer, data.Length, hashWriter);
+				writer.Write(data);
+				hashWriter.Write(data);
+
+			} else {
+				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
+			}
 		}
 
 		private void ParseVertices(PrimitiveData data, byte[] bytes)
@@ -219,6 +249,17 @@ namespace VisualPinball.Engine.VPT.Primitive
 				}
 			}
 			mesh.Vertices = vertices;
+		}
+
+		private static byte[] SerializeVertices(PrimitiveData data)
+		{
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream)) {
+				for (var i = 0; i < data.NumVertices; i++) {
+					data.Mesh.Vertices[i].Write(writer);
+				}
+				return stream.ToArray();
+			}
 		}
 	}
 
@@ -246,7 +287,19 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			//throw new NotImplementedException();
+			if (obj is PrimitiveData primitiveData) {
+				if (!primitiveData.Use3DMesh) {
+					return;
+				}
+				var indexData = SerializeIndices(primitiveData);
+				var data = IsCompressed ? BiffZlib.Compress(indexData) : indexData;
+				WriteStart(writer, data.Length, hashWriter);
+				writer.Write(data);
+				hashWriter.Write(data);
+
+			} else {
+				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
+			}
 		}
 
 		private void ParseIndices(PrimitiveData data, byte[] bytes)
@@ -267,6 +320,22 @@ namespace VisualPinball.Engine.VPT.Primitive
 				}
 			}
 			mesh.Indices = indices;
+		}
+
+		private static byte[] SerializeIndices(PrimitiveData data)
+		{
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream)) {
+				for (var i = 0; i < data.NumIndices; i++) {
+					if (data.NumVertices > 65535) {
+						writer.Write((uint) data.Mesh.Indices[i]);
+
+					} else {
+						writer.Write((ushort) data.Mesh.Indices[i]);
+					}
+				}
+				return stream.ToArray();
+			}
 		}
 	}
 }
