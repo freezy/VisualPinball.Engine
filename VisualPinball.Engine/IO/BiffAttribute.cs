@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.IO
 		/// <summary>
 		/// The attribute position when writing.
 		/// </summary>
-		public int Pos = 0;
+		public double Pos = 0;
 
 		/// <summary>
 		/// Some records like CODE have their actual length set after
@@ -53,6 +53,15 @@ namespace VisualPinball.Engine.IO
 		/// If true, write the size/tag header for each value, if an array.
 		/// </summary>
 		public bool TagAll = false;
+
+		/// <summary>
+		/// If true, this tag won't be written.
+		///
+		/// Useful if two tags write on the same field, e.g. due to legacy
+		/// formats, and we want to support reading multiple formats but only
+		/// write one format.
+		/// </summary>
+		public bool SkipWrite = false;
 
 		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.

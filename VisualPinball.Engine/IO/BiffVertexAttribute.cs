@@ -7,6 +7,8 @@ namespace VisualPinball.Engine.IO
 {
 	public class BiffVertexAttribute : BiffAttribute
 	{
+		public bool IsPadded = false;
+
 		public BiffVertexAttribute(string name) : base(name) { }
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
@@ -48,17 +50,18 @@ namespace VisualPinball.Engine.IO
 
 		private void WriteVertex2D(BinaryWriter writer, Vertex2D value, HashWriter hashWriter)
 		{
-			WriteStart(writer, 8, hashWriter);
 			writer.Write(value.X);
 			writer.Write(value.Y);
 		}
 
 		private void WriteVertex3D(BinaryWriter writer, Vertex3D value, HashWriter hashWriter)
 		{
-			WriteStart(writer, 12, hashWriter);
 			writer.Write(value.X);
 			writer.Write(value.Y);
 			writer.Write(value.Z);
+			if (IsPadded) {
+				writer.Write(0f);
+			}
 		}
 	}
 }

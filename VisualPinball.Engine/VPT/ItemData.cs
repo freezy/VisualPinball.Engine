@@ -14,6 +14,12 @@ namespace VisualPinball.Engine.VPT
 	{
 		public abstract string Name { get; set; }
 
+		[BiffBool("LOCK", Pos = 1000)]
+		public bool IsLocked;
+
+		[BiffInt("LAYR", Pos = 1001)]
+		public int EditorLayer;
+
 		protected ItemData(string storageName) : base(storageName) { }
 	}
 }
