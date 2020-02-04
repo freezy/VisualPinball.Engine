@@ -145,4 +145,10 @@ namespace VisualPinball.Engine.VPT
 		public const int TriggerWireD = 6;
 	}
 
+	public static class SoundOutTypes
+	{
+		public const int Table = 0;
+		public const int Backglass = 1;
+	}
+
 }
