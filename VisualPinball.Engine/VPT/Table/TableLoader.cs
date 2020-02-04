@@ -117,6 +117,21 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Bumpers[item.Name] = item;
 						break;
 					}
+					case ItemType.Collection: {
+						var item = new VisualPinball.Engine.VPT.Collection.Collection(reader, itemName);
+						table.Collections[item.Name] = item;
+						break;
+					}
+					case ItemType.Decal: {
+						var item = new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName);
+						table.Decals[item.Name] = item;
+						break;
+					}
+					case ItemType.DispReel: {
+						var item = new VisualPinball.Engine.VPT.DispReel.DispReel(reader, itemName);
+						table.DispReels[item.Name] = item;
+						break;
+					}
 					case ItemType.Flasher: {
 						var item = new VisualPinball.Engine.VPT.Flasher.Flasher(reader, itemName);
 						table.Flashers[item.Name] = item;
@@ -147,6 +162,16 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Lights[item.Name] = item;
 						break;
 					}
+					case ItemType.LightSeq: {
+						var item = new VisualPinball.Engine.VPT.LightSeq.LightSeq(reader, itemName);
+						table.LightSeqs[item.Name] = item;
+						break;
+					}
+					case ItemType.Plunger: {
+						var item = new VisualPinball.Engine.VPT.Plunger.Plunger(reader, itemName);
+						table.Plungers[item.Name] = item;
+						break;
+					}
 					case ItemType.Primitive: {
 						var item = new Primitive.Primitive(reader, itemName);
 						table.Primitives[item.Name] = item;
@@ -170,6 +195,16 @@ namespace VisualPinball.Engine.VPT.Table
 					case ItemType.Surface: {
 						var item = new Surface.Surface(reader, itemName);
 						table.Surfaces[item.Name] = item;
+						break;
+					}
+					case ItemType.Textbox: {
+						var item = new TextBox.TextBox(reader, itemName);
+						table.TextBoxes[item.Name] = item;
+						break;
+					}
+					case ItemType.Timer: {
+						var item = new Timer.Timer(reader, itemName);
+						table.Timers[item.Name] = item;
 						break;
 					}
 					case ItemType.Trigger: {

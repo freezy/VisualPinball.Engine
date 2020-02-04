@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using NLog;
 using VisualPinball.Engine.Game;
 
@@ -16,25 +14,37 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable
 	{
-		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
-		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper> Bumpers = new Dictionary<string, VisualPinball.Engine.VPT.Bumper.Bumper>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper> Flippers = new Dictionary<string, VisualPinball.Engine.VPT.Flipper.Flipper>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Gate.Gate> Gates = new Dictionary<string, VisualPinball.Engine.VPT.Gate.Gate>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget> HitTargets = new Dictionary<string, VisualPinball.Engine.VPT.HitTarget.HitTarget>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker> Kickers = new Dictionary<string, VisualPinball.Engine.VPT.Kicker.Kicker>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Light.Light> Lights = new Dictionary<string, VisualPinball.Engine.VPT.Light.Light>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Flasher.Flasher> Flashers = new Dictionary<string, VisualPinball.Engine.VPT.Flasher.Flasher>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive> Primitives = new Dictionary<string, VisualPinball.Engine.VPT.Primitive.Primitive>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp> Ramps = new Dictionary<string, VisualPinball.Engine.VPT.Ramp.Ramp>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber> Rubbers = new Dictionary<string, VisualPinball.Engine.VPT.Rubber.Rubber>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner> Spinners = new Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
-		public readonly Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger> Triggers = new Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger>();
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
 
+		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
+		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+
+		#region GameItems
+
+		public readonly Dictionary<string, Bumper.Bumper> Bumpers = new Dictionary<string, Bumper.Bumper>();
+		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
+		public readonly Dictionary<string, Decal.Decal> Decals = new Dictionary<string, Decal.Decal>();
+		public readonly Dictionary<string, DispReel.DispReel> DispReels = new Dictionary<string, DispReel.DispReel>();
+		public readonly Dictionary<string, Flipper.Flipper> Flippers = new Dictionary<string, Flipper.Flipper>();
+		public readonly Dictionary<string, Gate.Gate> Gates = new Dictionary<string, Gate.Gate>();
+		public readonly Dictionary<string, HitTarget.HitTarget> HitTargets = new Dictionary<string, HitTarget.HitTarget>();
+		public readonly Dictionary<string, Kicker.Kicker> Kickers = new Dictionary<string, Kicker.Kicker>();
+		public readonly Dictionary<string, Light.Light> Lights = new Dictionary<string, Light.Light>();
+		public readonly Dictionary<string, LightSeq.LightSeq> LightSeqs = new Dictionary<string, LightSeq.LightSeq>();
+		public readonly Dictionary<string, Plunger.Plunger> Plungers = new Dictionary<string, Plunger.Plunger>();
+		public readonly Dictionary<string, Flasher.Flasher> Flashers = new Dictionary<string, Flasher.Flasher>();
+		public readonly Dictionary<string, Primitive.Primitive> Primitives = new Dictionary<string, Primitive.Primitive>();
+		public readonly Dictionary<string, Ramp.Ramp> Ramps = new Dictionary<string, Ramp.Ramp>();
+		public readonly Dictionary<string, Rubber.Rubber> Rubbers = new Dictionary<string, Rubber.Rubber>();
+		public readonly Dictionary<string, Spinner.Spinner> Spinners = new Dictionary<string, Spinner.Spinner>();
+		public readonly Dictionary<string, Surface.Surface> Surfaces = new Dictionary<string, Surface.Surface>();
+		public readonly Dictionary<string, TextBox.TextBox> TextBoxes = new Dictionary<string, TextBox.TextBox>();
+		public readonly Dictionary<string, Timer.Timer> Timers = new Dictionary<string, Timer.Timer>();
+		public readonly Dictionary<string, Trigger.Trigger> Triggers = new Dictionary<string, Trigger.Trigger>();
+
+		#endregion
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
@@ -70,16 +80,23 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<ItemData> GameItems => new ItemData[] {}
 			.Concat(Bumpers.Values.Select(i => i.Data))
+			.Concat(Collections.Values.Select(i => i.Data))
+			.Concat(Decals.Values.Select(i => i.Data))
+			.Concat(DispReels.Values.Select(i => i.Data))
 			.Concat(Flippers.Values.Select(i => i.Data))
 			.Concat(Gates.Values.Select(i => i.Data))
 			.Concat(HitTargets.Values.Select(i => i.Data))
 			.Concat(Kickers.Values.Select(i => i.Data))
 			.Concat(Lights.Values.Select(i => i.Data))
+			.Concat(LightSeqs.Values.Select(i => i.Data))
+			.Concat(Plungers.Values.Select(i => i.Data))
 			.Concat(Primitives.Values.Select(i => i.Data))
 			.Concat(Ramps.Values.Select(i => i.Data))
 			.Concat(Rubbers.Values.Select(i => i.Data))
 			.Concat(Spinners.Values.Select(i => i.Data))
 			.Concat(Surfaces.Values.Select(i => i.Data))
+			.Concat(TextBoxes.Values.Select(i => i.Data))
+			.Concat(Timers.Values.Select(i => i.Data))
 			.Concat(Triggers.Values.Select(i => i.Data));
 
 		private readonly TableMeshGenerator _meshGenerator;
@@ -88,6 +105,7 @@ namespace VisualPinball.Engine.VPT.Table
 		/// The API to load the table from a file.
 		/// </summary>
 		/// <param name="filename">Path to the VPX file</param>
+		/// <param name="loadGameItems">If false, game items are not loaded. Useful when loading them on multiple threads.</param>
 		/// <returns>The parsed table</returns>
 		public static Table Load(string filename, bool loadGameItems = true)
 		{

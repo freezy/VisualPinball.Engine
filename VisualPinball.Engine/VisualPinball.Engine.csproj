@@ -124,8 +124,11 @@
     <Compile Include="VPT\Bumper\Bumper.cs" />
     <Compile Include="VPT\Bumper\BumperData.cs" />
     <Compile Include="VPT\Bumper\BumperMeshGenerator.cs" />
+    <Compile Include="VPT\Collection\Collection.cs" />
     <Compile Include="VPT\Collection\CollectionData.cs" />
+    <Compile Include="VPT\Decal\Decal.cs" />
     <Compile Include="VPT\Decal\DecalData.cs" />
+    <Compile Include="VPT\DispReel\DispReel.cs" />
     <Compile Include="VPT\DispReel\DispReelData.cs" />
     <Compile Include="VPT\Enums.cs" />
     <Compile Include="VPT\Flasher\Flasher.cs" />
@@ -144,6 +147,7 @@
     <Compile Include="VPT\Kicker\Kicker.cs" />
     <Compile Include="VPT\Kicker\KickerData.cs" />
     <Compile Include="VPT\Kicker\KickerMeshGenerator.cs" />
+    <Compile Include="VPT\LightSeq\LightSeq.cs" />
     <Compile Include="VPT\LightSeq\LightSeqData.cs" />
     <Compile Include="VPT\Light\Light.cs" />
     <Compile Include="VPT\Light\LightData.cs" />
@@ -153,6 +157,7 @@
     <Compile Include="VPT\Mesh.cs" />
     <Compile Include="VPT\MeshGenerator.cs" />
     <Compile Include="VPT\PbrMaterial.cs" />
+    <Compile Include="VPT\Plunger\Plunger.cs" />
     <Compile Include="VPT\Plunger\PlungerData.cs" />
     <Compile Include="VPT\Primitive\Primitive.cs" />
     <Compile Include="VPT\Primitive\PrimitiveData.cs" />
@@ -163,6 +168,8 @@
     <Compile Include="VPT\Rubber\Rubber.cs" />
     <Compile Include="VPT\Rubber\RubberData.cs" />
     <Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
+    <Compile Include="VPT\Sound\SoundData.cs" />
+    <Compile Include="VPT\Sound\WaveFormat.cs" />
     <Compile Include="VPT\Spinner\Spinner.cs" />
     <Compile Include="VPT\Spinner\SpinnerData.cs" />
     <Compile Include="VPT\Spinner\SpinnerMeshGenerator.cs" />
@@ -176,9 +183,11 @@
     <Compile Include="VPT\Table\TableLoader.cs" />
     <Compile Include="VPT\Table\TableMeshGenerator.cs" />
     <Compile Include="VPT\Table\TableWriter.cs" />
+    <Compile Include="VPT\TextBox\TextBox.cs" />
     <Compile Include="VPT\TextBox\TextBoxData.cs" />
     <Compile Include="VPT\Texture.cs" />
     <Compile Include="VPT\TextureData.cs" />
+    <Compile Include="VPT\Timer\Timer.cs" />
     <Compile Include="VPT\Timer\TimerData.cs" />
     <Compile Include="VPT\Trigger\Trigger.cs" />
     <Compile Include="VPT\Trigger\TriggerData.cs" />
