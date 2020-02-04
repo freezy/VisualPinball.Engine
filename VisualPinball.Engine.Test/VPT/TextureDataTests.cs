@@ -138,7 +138,7 @@ namespace VisualPinball.Engine.Test.VPT
 		public void ShouldWriteCorrectBinary()
 		{
 			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";
-			TableWriter.WriteTable(_table, tmpFileName);
+			new TableWriter(_table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
 			Assert.Equal(_table.Textures["Image0"].Data.Binary.Data, writtenTable.Textures["Image0"].Data.Binary.Data);
 		}

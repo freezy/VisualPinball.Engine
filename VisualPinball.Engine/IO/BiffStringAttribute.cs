@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -25,9 +26,9 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadString);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, string>(obj, writer, WriteString, len => IsStreaming ? 0 : len);
+			WriteValue<TItem, string>(obj, writer, WriteString, hashWriter, len => IsStreaming ? 0 : len);
 		}
 
 		private string ReadString(BinaryReader reader, int len)

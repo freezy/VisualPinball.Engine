@@ -332,10 +332,10 @@ namespace VisualPinball.Engine.VPT.Table
 			Load(this, reader, Attributes);
 		}
 
-		public override void Write(BinaryWriter writer)
+		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes);
-			WriteEnd(writer);
+			Write(writer, Attributes, hashWriter);
+			WriteEnd(writer, hashWriter);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
@@ -369,7 +369,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (!(GetValue(obj) is Material[] materials)) {
 				return;
@@ -385,8 +385,9 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 
 				var data = stream.ToArray();
-				WriteStart(writer, data.Length);
+				WriteStart(writer, data.Length, hashWriter);
 				writer.Write(data);
+				hashWriter?.Write(data);
 			}
 		}
 

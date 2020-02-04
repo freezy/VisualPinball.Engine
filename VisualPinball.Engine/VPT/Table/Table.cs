@@ -31,6 +31,10 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner> Spinners = new Dictionary<string, VisualPinball.Engine.VPT.Spinner.Spinner>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface> Surfaces = new Dictionary<string, VisualPinball.Engine.VPT.Surface.Surface>();
 		public readonly Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger> Triggers = new Dictionary<string, VisualPinball.Engine.VPT.Trigger.Trigger>();
+		public CustomInfoTags CustomInfoTags { get; set; }
+		public int FileVersion { get; set; }
+		public byte[] FileHash { get; set; }
+
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
@@ -64,7 +68,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Surfaces.Values)
 			.Concat(Triggers.Values);
 
-		public IEnumerable<ItemData> Writeables => new ItemData[] {Data}
+		public IEnumerable<ItemData> GameItems => new ItemData[] {}
 			.Concat(Bumpers.Values.Select(i => i.Data))
 			.Concat(Flippers.Values.Select(i => i.Data))
 			.Concat(Gates.Values.Select(i => i.Data))
@@ -76,8 +80,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Rubbers.Values.Select(i => i.Data))
 			.Concat(Spinners.Values.Select(i => i.Data))
 			.Concat(Surfaces.Values.Select(i => i.Data))
-			.Concat(Triggers.Values.Select(i => i.Data))
-			.Concat(Textures.Values.Select(i => i.Data));
+			.Concat(Triggers.Values.Select(i => i.Data));
 
 		private readonly TableMeshGenerator _meshGenerator;
 

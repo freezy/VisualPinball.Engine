@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -150,11 +151,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 			Mesh.Name = Name;
 		}
 
-		public override void Write(BinaryWriter writer)
+		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.Primitive);
-			Write(writer, Attributes);
-			WriteEnd(writer);
+			Write(writer, Attributes, hashWriter);
+			WriteEnd(writer, hashWriter);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
@@ -191,7 +192,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			//throw new NotImplementedException();
 		}
@@ -243,7 +244,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			//throw new NotImplementedException();
 		}

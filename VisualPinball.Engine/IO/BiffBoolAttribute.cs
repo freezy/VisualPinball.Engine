@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -12,9 +13,9 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadBool);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, bool>(obj, writer, WriteBool);
+			WriteValue<TItem, bool>(obj, writer, WriteBool, hashWriter);
 		}
 
 		private static bool ReadBool(BinaryReader reader, int len)

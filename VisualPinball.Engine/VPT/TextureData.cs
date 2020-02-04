@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT
 {
@@ -56,10 +57,10 @@ namespace VisualPinball.Engine.VPT
 			Load(this, reader, Attributes);
 		}
 
-		public override void Write(BinaryWriter writer)
+		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes);
-			WriteEnd(writer);
+			Write(writer, Attributes, hashWriter);
+			WriteEnd(writer, hashWriter);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
@@ -78,14 +79,14 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(BinaryData)) {
 				if (!(GetValue(obj) is BinaryData data)) {
 					return;
 				}
-				WriteStart(writer, 0);
-				data.Write(writer);
+				WriteStart(writer, 0, hashWriter);
+				data.Write(writer, hashWriter);
 
 			} else {
 				throw new InvalidOperationException("Unknown type " + Type + " for [" + GetType().Name + "] on field \"" + Name + "\".");
@@ -104,13 +105,13 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(Bitmap)) {
 				if (!(GetValue(obj) is Bitmap bitmap)) {
 					return;
 				}
-				WriteStart(writer, 0);
+				WriteStart(writer, 0, hashWriter);
 				bitmap.WriteCompressed(writer);
 
 			} else {

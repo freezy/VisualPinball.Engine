@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -14,13 +15,21 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadVertex3D);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(Vertex2D)) {
-				WriteValue<TItem, Vertex2D>(obj, writer, WriteVertex2D);
+				WriteValue<TItem, Vertex2D>(
+					obj,
+					writer,
+					(w, v) =>  WriteVertex2D(w, v, hashWriter),
+					hashWriter);
 
 			} else if (Type == typeof(Vertex3D)) {
-				WriteValue<TItem, Vertex3D>(obj, writer, WriteVertex3D);
+				WriteValue<TItem, Vertex3D>(
+					obj,
+					writer,
+					(w, v) => WriteVertex3D(w, v, hashWriter),
+					hashWriter);
 
 			} else {
 				throw new InvalidOperationException("Unknown type for [BiffVertex] on field \"" + Name + "\".");
@@ -37,16 +46,16 @@ namespace VisualPinball.Engine.IO
 			return new Vertex3D(reader, len);
 		}
 
-		private void WriteVertex2D(BinaryWriter writer, Vertex2D value)
+		private void WriteVertex2D(BinaryWriter writer, Vertex2D value, HashWriter hashWriter)
 		{
-			WriteStart(writer, 8);
+			WriteStart(writer, 8, hashWriter);
 			writer.Write(value.X);
 			writer.Write(value.Y);
 		}
 
-		private void WriteVertex3D(BinaryWriter writer, Vertex3D value)
+		private void WriteVertex3D(BinaryWriter writer, Vertex3D value, HashWriter hashWriter)
 		{
-			WriteStart(writer, 12);
+			WriteStart(writer, 12, hashWriter);
 			writer.Write(value.X);
 			writer.Write(value.Y);
 			writer.Write(value.Z);

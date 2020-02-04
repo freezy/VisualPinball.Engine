@@ -169,6 +169,8 @@
     <Compile Include="VPT\Surface\Surface.cs" />
     <Compile Include="VPT\Surface\SurfaceData.cs" />
     <Compile Include="VPT\Surface\SurfaceMeshGenerator.cs" />
+    <Compile Include="VPT\Table\CustomInfoTags.cs" />
+    <Compile Include="VPT\Table\HashWriter.cs" />
     <Compile Include="VPT\Table\Table.cs" />
     <Compile Include="VPT\Table\TableData.cs" />
     <Compile Include="VPT\Table\TableLoader.cs" />
