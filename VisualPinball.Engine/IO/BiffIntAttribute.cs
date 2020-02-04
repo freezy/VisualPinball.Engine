@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -16,13 +17,13 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadUInt);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(int)) {
-				WriteValue<TItem, int>(obj, writer, WriteInt);
+				WriteValue<TItem, int>(obj, writer, WriteInt, hashWriter);
 
 			} else if (Type == typeof(uint)) {
-				WriteValue<TItem, uint>(obj, writer, WriteUInt);
+				WriteValue<TItem, uint>(obj, writer, WriteUInt, hashWriter);
 
 			} else {
 				throw new InvalidOperationException("Unknown type for [BiffInt] on field \"" + Name + "\".");

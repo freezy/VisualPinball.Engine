@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var reader = new BinaryReader(stream)) {
 					var table = new Table(reader);
 
-					LoadTableInfo(table, cf.RootStorage);
+					LoadTableInfo(table, cf.RootStorage, gameStorage);
 					if (loadGameItems) {
 						LoadGameItems(table, gameStorage);
 					}
@@ -202,17 +202,30 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 
 				Profiler.Start("LoadTextures (parse)");
-				var reader = new BinaryReader(new MemoryStream(textureData));
-				var texture = new Texture(reader, textureName);
-				table.Textures[texture.Name.ToLower()] = texture;
+				using (var stream = new MemoryStream(textureData))
+				using (var reader = new BinaryReader(stream)) {
+					var texture = new Texture(reader, textureName);
+					table.Textures[texture.Name.ToLower()] = texture;
+				}
 				Profiler.Stop("LoadTextures (parse)");
 			}
 			Profiler.Stop("LoadTextures");
 		}
 
-		private static void LoadTableInfo(Table table, CFStorage storage)
+		private static void LoadTableInfo(Table table, CFStorage rootStorage, CFStorage gameStorage)
 		{
-			storage.TryGetStorage("TableInfo", out var tableInfoStorage);
+			// first, although we can loop through entries, get them from the game storage, so we
+			// know their order, which is important when writing back (because you know, hashing).
+			gameStorage.TryGetStream("CustomInfoTags", out var citStream);
+			if (citStream != null) {
+				using (var stream = new MemoryStream(citStream.GetData()))
+				using (var reader = new BinaryReader(stream)) {
+					table.CustomInfoTags = new CustomInfoTags(reader);
+				}
+			}
+
+			// now actually read them in
+			rootStorage.TryGetStorage("TableInfo", out var tableInfoStorage);
 			if (tableInfoStorage == null) {
 				Logger.Info("TableInfo storage not found, skipping.");
 				return;
@@ -225,7 +238,26 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 				}
 			}, false);
+		}
 
+		private static void LoadTableMeta(Table table, CFStorage gameStorage)
+		{
+			// version
+			gameStorage.TryGetStream("Version", out var versionBytes);
+			if (versionBytes != null) {
+				table.FileVersion = BitConverter.ToInt32(versionBytes.GetData(), 0);
+			} else {
+				Logger.Info("No Version under GameStg found, skipping.");
+			}
+
+
+			// hash
+			gameStorage.TryGetStream("Version", out var hashBytes);
+			if (hashBytes != null) {
+				table.FileHash = hashBytes.GetData();
+			} else {
+				Logger.Info("No MAC under GameStg found, skipping.");
+			}
 		}
 	}
 }

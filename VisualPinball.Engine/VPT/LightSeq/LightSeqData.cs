@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.LightSeq
 {
@@ -44,11 +45,11 @@ namespace VisualPinball.Engine.VPT.LightSeq
 			Load(this, reader, Attributes);
 		}
 
-		public override void Write(BinaryWriter writer)
+		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.LightSeq);
-			Write(writer, Attributes);
-			WriteEnd(writer);
+			Write(writer, Attributes, hashWriter);
+			WriteEnd(writer, hashWriter);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();

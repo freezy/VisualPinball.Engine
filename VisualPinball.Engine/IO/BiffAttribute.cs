@@ -3,8 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using NLog;
-using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -51,6 +50,11 @@ namespace VisualPinball.Engine.IO
 		public int Index = -1;
 
 		/// <summary>
+		/// If true, write the size/tag header for each value, if an array.
+		/// </summary>
+		public bool TagAll = false;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
@@ -69,7 +73,7 @@ namespace VisualPinball.Engine.IO
 
 		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
 
-		public abstract void Write<TItem>(TItem obj, BinaryWriter writer) where TItem : BiffData;
+		public abstract void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData;
 
 
 		/// <summary>
@@ -87,12 +91,13 @@ namespace VisualPinball.Engine.IO
 		/// <param name="obj">Object instance that is being read</param>
 		/// <param name="reader">Binary data from the VPX file</param>
 		/// <param name="len">Length of the BIFF record</param>
+		/// <param name="read">Read function</param>
 		/// <typeparam name="TItem">Type of the item data we're currently parsing</typeparam>
 		/// <typeparam name="TField">Type of the data field we're currently parsing</typeparam>
-		protected void ParseValue<TItem, TField>(TItem obj, BinaryReader reader, int len, Func<BinaryReader, int, TField> Read) where TItem : BiffData
+		protected void ParseValue<TItem, TField>(TItem obj, BinaryReader reader, int len, Func<BinaryReader, int, TField> read) where TItem : BiffData
 		{
 			if (Type == typeof(TField)) {
-				SetValue(obj, Read(reader, len));
+				SetValue(obj, read(reader, len));
 
 			} else if (Type == typeof(TField[])) {
 				var arr = GetValue(obj) as TField[];
@@ -101,24 +106,24 @@ namespace VisualPinball.Engine.IO
 						arr = new TField[Count];
 					}
 					for (var i = 0; i < Count; i++) {
-						arr[i] = Read(reader, len);
+						arr[i] = read(reader, len);
 					}
 
 				} else if (Index >= 0) {
-					arr[Index] = Read(reader, len);
+					arr[Index] = read(reader, len);
 
 				} else {
 					if (arr == null) {
-						SetValue(obj, new []{ Read(reader, len) });
+						SetValue(obj, new []{ read(reader, len) });
 
 					} else {
-						SetValue(obj, arr.Concat(new []{ Read(reader, len) }).ToArray());
+						SetValue(obj, arr.Concat(new []{ read(reader, len) }).ToArray());
 					}
 				}
 			}
 		}
 
-		protected void WriteValue<TItem, TField>(TItem obj, BinaryWriter writer, Action<BinaryWriter, TField> write, Func<int, int> overrideLength = null) where TItem : BiffData
+		protected void WriteValue<TItem, TField>(TItem obj, BinaryWriter writer, Action<BinaryWriter, TField> write, HashWriter hashWriter, Func<int, int> overrideLength = null) where TItem : BiffData
 		{
 			var value = GetValue(obj);
 
@@ -138,17 +143,34 @@ namespace VisualPinball.Engine.IO
 
 					} else {
 						foreach (var val in arr) {
-							write(dataWriter, val);
+							if (TagAll) {
+								using (var separateStream = new MemoryStream())
+								using (var separateDataWriter = new BinaryWriter(separateStream)) {
+									write(separateDataWriter, val);
+									var separateData = separateStream.ToArray();
+									WriteStart(writer, separateData.Length, hashWriter);
+									writer.Write(separateData);
+									hashWriter?.Write(separateData);
+								}
+							} else {
+								write(dataWriter, val);
+							}
 						}
 					}
 				} else {
 					throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
 				}
 
+				if (TagAll) {
+					// everything's been written already
+					return;
+				}
+
 				var data = stream.ToArray();
 				var length = overrideLength?.Invoke(data.Length) ?? data.Length;
-				WriteStart(writer, length);
+				WriteStart(writer, length, hashWriter);
 				writer.Write(data);
+				hashWriter?.Write(IsStreaming ? data.Skip(4).ToArray() : data);
 			}
 		}
 
@@ -185,14 +207,15 @@ namespace VisualPinball.Engine.IO
 			return Field != null ? Field.GetValue(obj) : null;
 		}
 
-		protected void WriteStart(BinaryWriter writer, int dataLength)
+		protected void WriteStart(BinaryWriter writer, int dataLength, HashWriter hashWriter)
 		{
-			writer.Write(dataLength + 4);
-			writer.Write(Encoding.ASCII.GetBytes(Name));
+			var tag = Encoding.ASCII.GetBytes(Name);
 			if (Name.Length < 4) {
-				writer.Write(new byte[4 - Name.Length]);
+				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
 			}
-
+			writer.Write(dataLength + 4);
+			writer.Write(tag);
+			hashWriter?.Write(tag); // only write tag
 		}
 	}
 }

@@ -4,8 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using NLog;
+using OpenMcdf;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -20,20 +23,32 @@ namespace VisualPinball.Engine.IO
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public readonly string StorageName;
+		public readonly int StorageIndex;
 		private readonly Dictionary<string, byte[]> UnknownTags = new Dictionary<string, byte[]>();
 
 		protected BiffData(string storageName)
 		{
 			StorageName = storageName;
+
+			var match = new Regex(@"\d+$").Match(StorageName);
+			if (match.Success) {
+				int.TryParse(match.Value, out StorageIndex);
+			}
 		}
 
-		public abstract void Write(BinaryWriter writer);
+		public abstract void Write(BinaryWriter writer, HashWriter hashWriter);
 
-		protected byte[] ToStreamData()
+		public void WriteData(CFStorage gameStorage, HashWriter hashWriter = null)
+		{
+			var itemData = gameStorage.AddStream(StorageName);
+			itemData.SetData(ToStreamData(hashWriter));
+		}
+
+		private byte[] ToStreamData(HashWriter hashWriter)
 		{
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				Write(writer);
+				Write(writer, hashWriter);
 				return stream.ToArray();
 			}
 		}
@@ -135,12 +150,12 @@ namespace VisualPinball.Engine.IO
 			return obj;
 		}
 
-		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes)
+		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
 		{
 			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
 			foreach (var attr in attrs) {
 				try {
-					attr.Write(this, writer);
+					attr.Write(this, writer, hashWriter);
 
 				} catch (Exception e) {
 					throw new InvalidOperationException("Error writing [" + attr.GetType().Name + "] at \"" + attr.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
@@ -148,10 +163,12 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
-		protected static void WriteEnd(BinaryWriter writer)
+		protected static void WriteEnd(BinaryWriter writer, HashWriter hashWriter)
 		{
+			var endTag = Encoding.ASCII.GetBytes("ENDB");
 			writer.Write(4);
-			writer.Write(Encoding.ASCII.GetBytes("ENDB"));
+			writer.Write(endTag);
+			hashWriter.Write(endTag);
 		}
 
 		/// <summary>

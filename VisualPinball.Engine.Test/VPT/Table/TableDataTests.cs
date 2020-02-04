@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Math;
+﻿using System.Text;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -40,9 +41,28 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		{
 			const string tmpFileName = "ShouldWriteTable.vpx";
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			TableWriter.WriteTable(table, tmpFileName);
+			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
 			ValidateTableData(writtenTable.Data);
+		}
+
+		[Fact]
+		public void ShouldWriteCorrectHash()
+		{
+			const string tmpFileName = "ShouldWriteCorrectHash.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.TableChecksum);
+			new TableWriter(table).WriteTable(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+
+			Assert.Equal(table.FileHash, writtenTable.FileHash);
+		}
+
+		[Fact]
+		public void ShouldReadCustomInfoTags()
+		{
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+			Assert.Equal("customdata1", table.CustomInfoTags.TagNames[0]);
+			Assert.Equal("foo", table.CustomInfoTags.TagNames[1]);
 		}
 
 		private static void ValidateTableData(TableData data)

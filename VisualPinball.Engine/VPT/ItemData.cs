@@ -1,8 +1,6 @@
 // ReSharper disable UnassignedField.Global
 
-using OpenMcdf;
 using VisualPinball.Engine.IO;
-using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT
 {
@@ -17,11 +15,5 @@ namespace VisualPinball.Engine.VPT
 		public abstract string Name { get; set; }
 
 		protected ItemData(string storageName) : base(storageName) { }
-
-		public void WriteData(CFStorage gameStorage)
-		{
-			var itemData = gameStorage.AddStream(StorageName);
-			itemData.SetData(ToStreamData());
-		}
 	}
 }

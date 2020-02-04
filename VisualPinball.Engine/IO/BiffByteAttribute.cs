@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -14,12 +15,13 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(byte[])) {
 				var bytes = GetValue(obj) as byte[];
-				WriteStart(writer, bytes.Length);
+				WriteStart(writer, bytes.Length, hashWriter);
 				writer.Write(bytes);
+				hashWriter?.Write(bytes);
 			}
 		}
 	}

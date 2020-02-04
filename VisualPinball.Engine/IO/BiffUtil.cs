@@ -43,5 +43,10 @@ namespace VisualPinball.Engine.IO
 		{
 			return Encoding.ASCII.GetString(data.Where((x, i) => i % 2 == 0).ToArray());
 		}
+
+		public static byte[] GetWideString(string value)
+		{
+			return Encoding.ASCII.GetBytes(value).SelectMany(b => new byte[] {b, 0x0}).ToArray();
+		}
 	}
 }

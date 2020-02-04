@@ -1,5 +1,6 @@
 using System.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -19,12 +20,12 @@ namespace VisualPinball.Engine.IO
 			}
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (!AsInt) {
-				WriteValue<TItem, float>(obj, writer, WriteFloat);
+				WriteValue<TItem, float>(obj, writer, WriteFloat, hashWriter);
 			} else {
-				WriteValue<TItem, int>(obj, writer, WriteFloat);
+				WriteValue<TItem, int>(obj, writer, WriteFloat, hashWriter);
 			}
 		}
 

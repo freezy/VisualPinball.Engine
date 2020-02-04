@@ -1,5 +1,6 @@
 using System.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -17,9 +18,9 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadColor);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, Color>(obj, writer, WriteColor);
+			WriteValue<TItem, Color>(obj, writer, WriteColor, hashWriter);
 		}
 
 		private static void WriteColor(BinaryWriter writer, Color value)

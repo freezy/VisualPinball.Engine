@@ -1,5 +1,6 @@
 using System.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
@@ -12,14 +13,14 @@ namespace VisualPinball.Engine.IO
 			ParseValue(obj, reader, len, ReadDragPoint);
 		}
 
-		public override void Write<TItem>(TItem obj, BinaryWriter writer)
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, DragPoint>(obj, writer, WriteDragpoint);
+			WriteValue<TItem, DragPoint>(obj, writer, (w, v) => WriteDragpoint(w, v, hashWriter), hashWriter);
 		}
 
-		private static void WriteDragpoint(BinaryWriter writer, DragPoint value)
+		private static void WriteDragpoint(BinaryWriter writer, DragPoint value, HashWriter hashWriter)
 		{
-			value.Write(writer);
+			value.Write(writer, hashWriter);
 		}
 
 		private static DragPoint ReadDragPoint(BinaryReader reader, int len)
