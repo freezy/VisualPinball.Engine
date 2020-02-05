@@ -52,7 +52,6 @@ namespace VisualPinball.Unity.Importer.Editor
 				return;
 			}
 
-			Profiler.Start("VpxImporter.ImportVpxEditor()");
 			var rootGameObj = ImportVpx(vpxPath, saveLocally);
 
 			// if an object was selected in the editor, make it its parent
@@ -64,15 +63,10 @@ namespace VisualPinball.Unity.Importer.Editor
 			// select imported object
 			Selection.activeObject = rootGameObj;
 
-			Profiler.Stop("VpxImporter.ImportVpxEditor()");
 			Logger.Info("[VpxImporter] Imported!");
-			Profiler.Print();
-			Profiler.Reset();
 		}
 
 		private static GameObject ImportVpx(string path, bool saveLocally) {
-
-			Profiler.Start("VpxImporter.ImportVpx()");
 
 			// create root object
 			var rootGameObj = new GameObject();
@@ -88,7 +82,6 @@ namespace VisualPinball.Unity.Importer.Editor
 
 			importer.Import(Path.GetFileName(path), table, assetHandler);
 
-			Profiler.Stop("VpxImporter.ImportVpx()");
 			return rootGameObj;
 		}
 	}

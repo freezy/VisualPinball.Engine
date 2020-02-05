@@ -15,12 +15,9 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 
 		public static void CreateTexture(Texture vpxTex, string textureFolder)
 		{
-			Profiler.Start("ToUnityTexture");
 			var unityTex = vpxTex.ToUnityTexture();
-			Profiler.Stop("ToUnityTexture");
 			byte[] bytes = null;
 			if (vpxTex.IsHdr) {
-				Profiler.Start("HDR");
 				// this is a hack to decompress the texture or unity will throw an error as it cant write compressed files.
 				var renderTex = RenderTexture.GetTemporary(
 					unityTex.width,
@@ -38,21 +35,14 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 				RenderTexture.active = previous;
 				RenderTexture.ReleaseTemporary(renderTex);
 				bytes = rawImage.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-				Profiler.Stop("HDR");
 
 			} else {
-				Profiler.Start("EncodeToPNG");
 				bytes = unityTex.EncodeToPNG();
-				Profiler.Stop("EncodeToPNG");
 			}
 
-			Profiler.Start("I/O");
 			var path = vpxTex.GetUnityFilename(textureFolder);
 			File.WriteAllBytes(path, bytes);
-			Profiler.Stop("I/O");
-			Profiler.Start("ImportAsset");
 			AssetDatabase.ImportAsset(path);
-			Profiler.Stop("ImportAsset");
 		}
 	}
 }

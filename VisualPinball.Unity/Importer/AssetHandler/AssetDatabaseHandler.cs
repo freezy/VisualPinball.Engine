@@ -65,9 +65,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			}
 
 			// now the assets are written to disk, explicitly import them
-			Profiler.Start("AssetDatabase.ImportAsset");
 			AssetDatabase.ImportAsset(_textureFolder, ImportAssetOptions.ImportRecursive);
-			Profiler.Stop("AssetDatabase.ImportAsset");
 		}
 
 		public Texture2D LoadTexture(Texture texture)
@@ -77,10 +75,8 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 
 		public void SaveMaterial(PbrMaterial material, Material unityMaterial)
 		{
-			Profiler.Start("SaveMaterial");
 			var path = material.GetUnityFilename(_materialFolder);
 			AssetDatabase.CreateAsset(unityMaterial, path);
-			Profiler.Stop("SaveMaterial");
 		}
 
 		public void OnMaterialsSaved(PbrMaterial[] materials)
@@ -91,14 +87,8 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 
 		public void OnMeshesImported(GameObject gameObject)
 		{
-			Profiler.Start("OnMeshesImported");
-			Profiler.Start("PrefabUtility.SaveAsPrefabAssetAndConnect");
 			PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, _tablePrefabPath, InteractionMode.UserAction);
-			Profiler.Stop("PrefabUtility.SaveAsPrefabAssetAndConnect");
-			Profiler.Start("AssetDatabase.SaveAssets");
 			AssetDatabase.SaveAssets();
-			Profiler.Stop("AssetDatabase.SaveAssets");
-			Profiler.Stop("OnMeshesImported");
 		}
 
 		public void SaveMesh(Mesh mesh, string itemName)

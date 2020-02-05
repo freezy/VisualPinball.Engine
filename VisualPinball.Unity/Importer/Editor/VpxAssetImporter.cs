@@ -40,9 +40,6 @@ namespace VisualPinball.Unity.Importer.Editor
 
 			// select imported object
 			Selection.activeObject = rootGameObj;
-
-			Profiler.Print();
-			Profiler.Reset();
 		}
 	}
 }

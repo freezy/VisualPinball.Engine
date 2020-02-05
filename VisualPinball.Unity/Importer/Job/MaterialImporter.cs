@@ -30,12 +30,10 @@ namespace VisualPinball.Unity.Importer.Job
 		{
 			var debug = new StringBuilder();
 
-			Profiler.Start("*ImportMaterials");
 			using (var job = new MaterialJob(_materials, _assetHandler)) {
 				var handle = job.Schedule(_materials.Length, 64);
 				handle.Complete();
 			}
-			Profiler.Stop("*ImportMaterials");
 
 			// create and write materials to disk
 			foreach (var material in _materials) {
