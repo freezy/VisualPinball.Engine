@@ -1,6 +1,8 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Trigger;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +17,21 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
 			var data = table.TextBoxes["TextBox001"].Data;
+			ValidateTableData(data);
+		}
 
+		[Fact]
+		public void ShouldWriteTextBoxData()
+		{
+			const string tmpFileName = "ShouldWriteTextBoxData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
+			new TableWriter(table).WriteTable(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateTableData(writtenTable.TextBoxes["TextBox001"].Data);
+		}
+
+		private void ValidateTableData(TextBoxData data)
+		{
 			Assert.Equal(TextAlignment.TextAlignCenter, data.Align);
 			Assert.Equal(0, data.BackColor.Red);
 			Assert.Equal(128, data.BackColor.Green);

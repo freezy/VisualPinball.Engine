@@ -1,3 +1,5 @@
+// ReSharper disable FieldCanBeMadeReadOnly.Global
+
 using System.IO;
 
 namespace VisualPinball.Engine.VPT.Sound
