@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using VisualPinball.Engine.VPT.Table;
 
@@ -19,9 +18,11 @@ namespace VisualPinball.Engine.IO
 		{
 			if (Type == typeof(byte[])) {
 				var bytes = GetValue(obj) as byte[];
-				WriteStart(writer, bytes.Length, hashWriter);
+				WriteStart(writer, bytes.Length, WriteHash(obj) ? hashWriter : null);
 				writer.Write(bytes);
-				hashWriter?.Write(bytes);
+				if (WriteHash(obj)) {
+					hashWriter?.Write(bytes);
+				}
 			}
 		}
 	}

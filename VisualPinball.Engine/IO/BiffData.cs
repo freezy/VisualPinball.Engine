@@ -50,7 +50,7 @@ namespace VisualPinball.Engine.IO
 		{
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				Write(writer, hashWriter);
+				Write(writer, !SkipHash() ? hashWriter : null);
 				return stream.ToArray();
 			}
 		}
@@ -157,8 +157,10 @@ namespace VisualPinball.Engine.IO
 			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
 			foreach (var attr in attrs) {
 				try {
-					if (!attr.SkipWrite && !SkipWrite(attr)) {
-						attr.Write(this, writer, hashWriter);
+					var skipWrite = attr.SkipWrite || SkipWrite(attr);
+					var skipHash = false; //attr.SkipHash;
+					if (!skipWrite) {
+						attr.Write(this, writer, !skipHash ? hashWriter : null);
 					}
 
 				} catch (Exception e) {
@@ -172,12 +174,21 @@ namespace VisualPinball.Engine.IO
 			return false;
 		}
 
+		/// <summary>
+		/// Override this if you want to skip hashing an entire data type.
+		/// </summary>
+		/// <returns>True if to skip, default false</returns>
+		protected virtual bool SkipHash()
+		{
+			return false;
+		}
+
 		protected static void WriteEnd(BinaryWriter writer, HashWriter hashWriter)
 		{
 			var endTag = Encoding.ASCII.GetBytes("ENDB");
 			writer.Write(4);
 			writer.Write(endTag);
-			hashWriter.Write(endTag);
+			hashWriter?.Write(endTag);
 		}
 
 		/// <summary>

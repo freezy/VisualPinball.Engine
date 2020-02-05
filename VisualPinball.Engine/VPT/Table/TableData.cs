@@ -320,6 +320,16 @@ namespace VisualPinball.Engine.VPT.Table
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
 
+		protected override bool SkipWrite(BiffAttribute attr)
+		{
+			switch (attr.Name) {
+				case "LOCK":
+				case "LAYR":
+					return true;
+			}
+			return false;
+		}
+
 		#region BIFF
 
 		static TableData()
