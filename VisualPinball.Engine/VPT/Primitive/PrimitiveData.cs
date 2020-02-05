@@ -155,6 +155,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return false;
 		}
 
+		protected override bool SkipHash() => true;
+
 		#region BIFF
 
 		static PrimitiveData()
@@ -220,7 +222,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 				var data = IsCompressed ? BiffZlib.Compress(vertexData) : vertexData;
 				WriteStart(writer, data.Length, hashWriter);
 				writer.Write(data);
-				hashWriter.Write(data);
+				hashWriter?.Write(data);
 
 			} else {
 				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
@@ -295,7 +297,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 				var data = IsCompressed ? BiffZlib.Compress(indexData) : indexData;
 				WriteStart(writer, data.Length, hashWriter);
 				writer.Write(data);
-				hashWriter.Write(data);
+				hashWriter?.Write(data);
 
 			} else {
 				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");

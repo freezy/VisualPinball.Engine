@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
@@ -64,6 +65,11 @@ namespace VisualPinball.Engine.IO
 		public bool SkipWrite = false;
 
 		/// <summary>
+		/// If true, don't read this tag when computing the table's checksum.
+		/// </summary>
+		//public bool SkipHash = false;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
@@ -74,6 +80,8 @@ namespace VisualPinball.Engine.IO
 		public PropertyInfo Property { get; set; }
 
 		protected Type Type => Field != null ? Field.FieldType : Property.PropertyType;
+
+		protected bool WriteHash(BiffData data) => true; //!SkipHash;
 
 		protected BiffAttribute(string name)
 		{
@@ -159,7 +167,9 @@ namespace VisualPinball.Engine.IO
 									var separateData = separateStream.ToArray();
 									WriteStart(writer, separateData.Length, hashWriter);
 									writer.Write(separateData);
-									hashWriter?.Write(separateData);
+									if (WriteHash(obj)) {
+										hashWriter?.Write(separateData);
+									}
 								}
 							} else {
 								write(dataWriter, val);
@@ -177,9 +187,11 @@ namespace VisualPinball.Engine.IO
 
 				var data = stream.ToArray();
 				var length = overrideLength?.Invoke(data.Length) ?? data.Length;
-				WriteStart(writer, length, hashWriter);
+				WriteStart(writer, length, WriteHash(obj) ? hashWriter : null);
 				writer.Write(data);
-				hashWriter?.Write(IsStreaming ? data.Skip(4).ToArray() : data);
+				if (WriteHash(obj)) {
+					hashWriter?.Write(IsStreaming ? data.Skip(4).ToArray() : data);
+				}
 			}
 		}
 
