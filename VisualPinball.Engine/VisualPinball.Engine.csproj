@@ -99,6 +99,7 @@
     <Compile Include="IO\BiffData.cs" />
     <Compile Include="IO\BiffDragPointAttribute.cs" />
     <Compile Include="IO\BiffFloatAttribute.cs" />
+    <Compile Include="IO\BiffFontAttribute.cs" />
     <Compile Include="IO\BiffIntAttribute.cs" />
     <Compile Include="IO\BiffStringAttribute.cs" />
     <Compile Include="IO\BiffUtil.cs" />
@@ -136,6 +137,7 @@
     <Compile Include="VPT\Flipper\Flipper.cs" />
     <Compile Include="VPT\Flipper\FlipperData.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshGenerator.cs" />
+    <Compile Include="VPT\Font.cs" />
     <Compile Include="VPT\Gate\Gate.cs" />
     <Compile Include="VPT\Gate\GateData.cs" />
     <Compile Include="VPT\Gate\GateMeshGenerator.cs" />

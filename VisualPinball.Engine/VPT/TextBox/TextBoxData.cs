@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -42,7 +43,10 @@ namespace VisualPinball.Engine.VPT.TextBox
 		public bool IsTransparent = false;
 
 		[BiffBool("IDMD")]
-		public bool IsDMD = false;
+		public bool IsDmd = false;
+
+		[BiffFont("FONT")]
+		public Font Font;
 
 		#region BIFF
 

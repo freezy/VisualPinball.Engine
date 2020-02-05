@@ -20,6 +20,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.vpx";
 		public const string Table = @"..\..\VPT\Table\TableTest.vpx";
 		public const string TableChecksum = @"..\..\VPT\Table\TableChecksumTest.vpx";
+		public const string TextBox = @"..\..\VPT\Textbox\TextboxTest.vpx";
 		public const string Texture = @"..\..\VPT\TextureTest.vpx";
 		public const string Trigger = @"..\..\VPT\Trigger\TriggerTest.vpx";
 	}
