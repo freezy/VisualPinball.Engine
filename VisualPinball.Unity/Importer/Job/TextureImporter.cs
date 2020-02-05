@@ -23,12 +23,10 @@ namespace VisualPinball.Unity.Importer.Job
 
 		public void ImportTextures()
 		{
-			Profiler.Start("*ImportTextures");
 			using (var job = new TextureJob(_textures, _assetHandler)) {
 				var handle = job.Schedule(_textures.Length, 64);
 				handle.Complete();
 			}
-			Profiler.Stop("*ImportTextures");
 
 			_assetHandler.ImportTextures(_textures);
 		}

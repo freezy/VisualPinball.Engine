@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Importer.Job
 		public static Table LoadTable(string path)
 		{
 			var table = Table.Load(path, false);
-			Profiler.Start("LoadGameItems via Job");
 
 			var job = new GameItemJob(table.Data.NumGameItems);
 			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, table.Data.NumGameItems);
@@ -116,7 +115,6 @@ namespace VisualPinball.Unity.Importer.Job
 				}
 			}
 			job.Dispose();
-			Profiler.Stop("LoadGameItems via Job");
 
 			return table;
 		}

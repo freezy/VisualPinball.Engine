@@ -19,14 +19,11 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public static Table Load(string filename, bool loadGameItems = true)
 		{
-			Profiler.Start("TableLoader.Load()");
 			var cf = new CompoundFile(filename);
 			try {
-				Profiler.Start("TableLoader.Load (I/O)");
 				var gameStorage = cf.RootStorage.GetStorage("GameStg");
 				var gameData = gameStorage.GetStream("GameData");
 				var bytes = gameData.GetData();
-				Profiler.Stop("TableLoader.Load (I/O)");
 
 				using (var stream = new MemoryStream(bytes))
 				using (var reader = new BinaryReader(stream)) {
@@ -45,7 +42,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 			} finally {
 				cf.Close();
-				Profiler.Stop("TableLoader.Load()");
 			}
 		}
 
@@ -92,9 +88,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private static void LoadGameItems(Table table, CFStorage storage)
 		{
-			Profiler.Start("LoadGameItems");
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
-				Profiler.Start("LoadGameItems (I/O)");
 				var itemName = $"GameItem{i}";
 				storage.TryGetStream(itemName, out var itemStream);
 				if (itemStream == null) {
@@ -102,7 +96,6 @@ namespace VisualPinball.Engine.VPT.Table
 					continue;
 				}
 				var itemData = itemStream.GetData();
-				Profiler.Stop("LoadGameItems (I/O)");
 				if (itemData.Length < 4) {
 					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", itemName, itemData.Length);
 					continue;
@@ -110,7 +103,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 				var reader = new BinaryReader(new MemoryStream(itemData));
 				var itemType = reader.ReadInt32();
-				Profiler.Start("LoadGameItems (parse)");
 				switch (itemType) {
 					case ItemType.Bumper: {
 						var item = new VisualPinball.Engine.VPT.Bumper.Bumper(reader, itemName);
@@ -213,38 +205,30 @@ namespace VisualPinball.Engine.VPT.Table
 						break;
 					}
 				}
-				Profiler.Stop("LoadGameItems (parse)");
 			}
-			Profiler.Stop("LoadGameItems");
 		}
 
 		private static void LoadTextures(Table table, CFStorage storage)
 		{
-			Profiler.Start("LoadTextures");
 			for (var i = 0; i < table.Data.NumTextures; i++) {
 				var textureName = $"Image{i}";
-				Profiler.Start("LoadTextures (I/O)");
 				storage.TryGetStream(textureName, out var textureStream);
 				if (textureStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", textureName);
 					continue;
 				}
 				var textureData = textureStream.GetData();
-				Profiler.Stop("LoadTextures (I/O)");
 				if (textureData.Length < 4) {
 					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", textureName, textureData.Length);
 					continue;
 				}
 
-				Profiler.Start("LoadTextures (parse)");
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
 					table.Textures[texture.Name.ToLower()] = texture;
 				}
-				Profiler.Stop("LoadTextures (parse)");
 			}
-			Profiler.Stop("LoadTextures");
 		}
 
 		private static void LoadSounds(Table table, CFStorage storage)

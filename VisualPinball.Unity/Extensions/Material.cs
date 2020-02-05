@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Extensions
 
 		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, IAssetHandler assetHandler, StringBuilder debug = null)
 		{
-			Profiler.Start("Material.ToUnityMaterial()");
 			var unityMaterial = new UnityEngine.Material(GetShader()) {
 				name = vpxMaterial.Id
 			};
@@ -81,7 +80,6 @@ namespace VisualPinball.Unity.Extensions
 				);
 			}
 
-			Profiler.Stop("Material.ToUnityMaterial()");
 			return unityMaterial;
 		}
 

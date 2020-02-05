@@ -72,36 +72,29 @@ namespace VisualPinball.Unity.Importer
 		private void ImportTextures()
 		{
 			// import textures
-			Profiler.Start("TextureImporter");
 			var textureImporter = new TextureImporter(
 				_table.Textures.Values.Concat(Texture.LocalTextures).ToArray(),
 				_assetHandler
 			);
 			textureImporter.ImportTextures();
-			Profiler.Stop("TextureImporter");
 		}
 
 		private void ImportMaterials(Dictionary<string, PbrMaterial> materials)
 		{
 			// import materials
-			Profiler.Start("MaterialImporter");
 			var materialImporter = new MaterialImporter(
 				materials.Values.ToArray(),
 				_assetHandler
 			);
 			materialImporter.ImportMaterials();
-			Profiler.Stop("MaterialImporter");
 		}
 
 		private void ImportGameItems()
 		{
-			Profiler.Start("VpxImporter.ImportGameItems()");
 
 			// import game objects
 			ImportRenderables();
 			_assetHandler.OnMeshesImported(gameObject);
-
-			Profiler.Stop("VpxImporter.ImportGameItems()");
 		}
 
 		private void ImportGiLights()
@@ -116,7 +109,6 @@ namespace VisualPinball.Unity.Importer
 
 		private void ImportRenderables()
 		{
-			Profiler.Start("VpxImporter.ImportRenderables()");
 			foreach (var renderable in _renderObjects.Keys) {
 				var ro = _renderObjects[renderable];
 				if (!_parents.ContainsKey(ro.Parent)) {
@@ -126,7 +118,6 @@ namespace VisualPinball.Unity.Importer
 				}
 				ImportRenderObjects(renderable, ro, _parents[ro.Parent]);
 			}
-			Profiler.Stop("VpxImporter.ImportRenderables()");
 		}
 
 		private void ImportRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent)
@@ -163,9 +154,7 @@ namespace VisualPinball.Unity.Importer
 				return;
 			}
 
-			Profiler.Start("ToUnityMesh");
 			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-			Profiler.Stop("ToUnityMesh");
 			obj.SetActive(ro.IsVisible);
 
 			// apply mesh to game object
@@ -177,12 +166,10 @@ namespace VisualPinball.Unity.Importer
 			mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
 
 			// patch
-			Profiler.Start("Patch & Assets");
 			_patcher.ApplyPatches(item, ro, obj);
 
 			// add mesh to asset
 			_assetHandler.SaveMesh(mesh, item.Name);
-			Profiler.Stop("Patch & Assets");
 		}
 
 		private static void SetTransform(Transform tf, Matrix4x4 trs)
