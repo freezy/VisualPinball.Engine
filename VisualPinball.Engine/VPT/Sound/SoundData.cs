@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Sound
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
 				writer.Write(Encoding.ASCII.GetBytes("RIFF"));
-				writer.Write(Data.Length + 36); // 9411670
+				writer.Write(Data.Length + 36);
 				writer.Write(Encoding.ASCII.GetBytes("WAVE"));
 				writer.Write(Encoding.ASCII.GetBytes("fmt "));
 				writer.Write(16);

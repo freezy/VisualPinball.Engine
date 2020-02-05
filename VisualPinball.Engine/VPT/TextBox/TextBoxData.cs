@@ -15,38 +15,44 @@ namespace VisualPinball.Engine.VPT.TextBox
 {
 	public class TextBoxData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 9)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VER1")]
+		[BiffVertex("VER1", Pos = 1)]
 		public Vertex2D V1;
 
-		[BiffVertex("VER2")]
+		[BiffVertex("VER2", Pos = 2)]
 		public Vertex2D V2;
 
-		[BiffColor("CLRB")]
+		[BiffColor("CLRB", Pos = 3)]
 		public Color BackColor = new Color(0x000000f, ColorFormat.Bgr);
 
-		[BiffColor("CLRF")]
+		[BiffColor("CLRF", Pos = 4)]
 		public Color FontColor = new Color(0xfffffff, ColorFormat.Bgr);
 
-		[BiffFloat("INSC")]
+		[BiffFloat("INSC", Pos = 5)]
 		public float IntensityScale = 1.0f;
 
-		[BiffString("TEXT")]
+		[BiffString("TEXT", Pos = 6)]
 		public string Text = "0";
 
-		[BiffInt("ALGN")]
+		[BiffInt("ALGN", Pos = 10)]
 		public int Align = TextAlignment.TextAlignRight;
 
-		[BiffBool("TRNS")]
+		[BiffBool("TRNS", Pos = 11)]
 		public bool IsTransparent = false;
 
-		[BiffBool("IDMD")]
+		[BiffBool("IDMD", Pos = 12)]
 		public bool IsDmd = false;
 
-		[BiffFont("FONT")]
+		[BiffFont("FONT", Pos = 2000)]
 		public Font Font;
+
+		[BiffBool("TMON", Pos = 7)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 8)]
+		public int TimerInterval;
 
 		#region BIFF
 

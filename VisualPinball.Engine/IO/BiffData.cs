@@ -111,7 +111,9 @@ namespace VisualPinball.Engine.IO
 			var tag = ReadTag(reader);
 
 			try {
+				//Logger.Info("=== ITEM {0}", obj.StorageName);
 				while (tag != "ENDB") {
+					//Logger.Info("--- TAG {0}", tag);
 					if (attributes.ContainsKey(tag)) {
 						var attrs = attributes[tag];
 						var i = 0;

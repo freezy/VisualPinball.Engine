@@ -25,6 +25,7 @@ namespace VisualPinball.Engine.VPT
 		{
 			writer.Write(new byte[]{ 0x01, 0x0, 0x0 });
 			writer.Write((byte)(Italic ? 0x02 : 0x0));
+			writer.Write(Weight);
 			writer.Write(Size);
 			writer.Write((byte)Name.Length);
 			writer.Write(Encoding.ASCII.GetBytes(Name));

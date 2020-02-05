@@ -144,8 +144,10 @@
     <Compile Include="VPT\HitTarget\HitTarget.cs" />
     <Compile Include="VPT\HitTarget\HitTargetData.cs" />
     <Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs" />
+    <Compile Include="VPT\IEditable.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
+    <Compile Include="VPT\ITimer.cs" />
     <Compile Include="VPT\Kicker\Kicker.cs" />
     <Compile Include="VPT\Kicker\KickerData.cs" />
     <Compile Include="VPT\Kicker\KickerMeshGenerator.cs" />
