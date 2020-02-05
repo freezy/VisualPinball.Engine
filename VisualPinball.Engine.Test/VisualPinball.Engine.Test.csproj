@@ -225,6 +225,7 @@
     <Compile Include="VPT\Surface\SurfaceMeshTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
     <Compile Include="VPT\Table\TableMeshTests.cs" />
+    <Compile Include="VPT\Textbox\TextBoxDataTest.cs" />
     <Compile Include="VPT\TextureBitmapTests.cs" />
     <Compile Include="VPT\TextureDataTests.cs" />
     <Compile Include="VPT\MaterialTextureTests.cs" />
