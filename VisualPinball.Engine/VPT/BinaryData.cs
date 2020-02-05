@@ -37,6 +37,16 @@ namespace VisualPinball.Engine.VPT
 			Data = res.Data;
 		}
 
+		protected override bool SkipWrite(BiffAttribute attr)
+		{
+			switch (attr.Name) {
+				case "LOCK":
+				case "LAYR":
+					return true;
+			}
+			return false;
+		}
+
 		#region BIFF
 		static BinaryData()
 		{

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -6,282 +6,259 @@ namespace VisualPinball.Engine.IO
 {
 	public class LzwWriter
 	{
-		public const int BITS = 12;
-		public const int MAXBITS = BITS;
-		public const int MAXMAXCODE = 1 << BITS;
-		public const int HSIZE = 5003; // 80% occupancy
-		public const int GIFEOF = -1;
-		public const int MAXLEAF = 4000;
-		public const int PALETTESIZE = 256;
+		private const int Bits = 12;
+		private const int MaxBits = Bits;
+		private const int MaxMaxCode = 1 << Bits;
+		private const int HSize = 5003; // 80% occupancy
+		private const int GifEof = -1;
 
-		private BinaryWriter m_pistream;
-		private byte[] m_bits;
-		private int m_width, m_height;
-		private int m_pitch; // x-length of each scanline (divisible by 8, normally)
+		private readonly BinaryWriter _writer;
+		private readonly byte[] _bits;
+		private readonly int _width;
+		private readonly int _height;
+		private readonly int _pitch; // x-length of each scan line (divisible by 8, normally)
 
-		private int m_nbits;
-		private int m_maxcode;
+		private int _nBits;
+		private int _maxCode;
 
-		private int[] m_htab = new int[HSIZE];
-		private int[] m_codetab = new int[HSIZE];
+		private readonly int[] _hTab = new int[HSize];
+		private readonly int[] _codeTab = new int[HSize];
 
-		private int m_free_ent;
+		private int _freeEnt;
 
-		private int m_init_bits;
+		private int _initBits;
 
-		private int m_ClearCode;
-		private int m_EOFCode;
+		private int _clearCode;
+		private int _eofCode;
 
-		private int m_cur_accum;
-		private int m_cur_bits;
+		private int _curAccum;
+		private int _curBits;
 
-		private int m_a_count;
+		private int _aCount;
 
-		private byte[] m_accum = new byte[256];
+		private readonly byte[] _accum = new byte[256];
 
-		private int[] m_colortable = new int[256];
+		private int _iPixelCur;
+		private int _iXCur;
 
-		private static int[] m_masks = new int[] {
+		private bool _clearFlg;
+
+		private static readonly int[] Masks = {
 			0x0000, 0x0001, 0x0003, 0x0007, 0x000F,
 			0x001F, 0x003F, 0x007F, 0x00FF,
 			0x01FF, 0x03FF, 0x07FF, 0x0FFF,
 			0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF
 		};
 
-		private int m_iPixelCur;
-		private int m_iXCur;
-
-		private bool m_clear_flg;
-
-
-		public LzwWriter(BinaryWriter pistream, byte[] bits, int width, int height, int pitch)
+		public LzwWriter(BinaryWriter writer, byte[] bits, int width, int height, int pitch)
 		{
-			m_pistream = pistream;
-			m_bits = bits;
-			m_width = width;
-			m_height = height;
-			m_pitch = pitch;
+			_writer = writer;
+			_bits = bits;
+			_width = width;
+			_height = height;
+			_pitch = pitch;
 		}
 
-		private int Maxcode(int n_bits)
+		private static int MaxCode(int nBits)
 		{
-			return (1 << n_bits) - 1;
+			return (1 << nBits) - 1;
 		}
 
-		private void WriteSz(byte[] sz, int cbytes)
+		private void WriteSz(IEnumerable<byte> sz, int numBytes)
 		{
-			m_pistream.Write(sz.Take(cbytes).ToArray());
+			_writer.Write(sz.Take(numBytes).ToArray());
 		}
 
 		private void WriteByte(byte ch)
 		{
-			m_pistream.Write(ch);
+			_writer.Write(ch);
 		}
 
-		private void WriteWord(short word)
+		private int NextPixel()
 		{
-			m_pistream.Write(word);
-		}
-
-		private int bNextPixel()
-		{
-			if (m_iPixelCur == m_pitch * m_height) {
-				return GIFEOF;
+			if (_iPixelCur == _pitch * _height) {
+				return GifEof;
 			}
 
-			var ch = m_bits[m_iPixelCur];
-			++m_iPixelCur;
-			++m_iXCur;
-			if (m_iXCur == m_width) {
-				m_iPixelCur += (m_pitch - m_width);
-				m_iXCur = 0;
+			var ch = _bits[_iPixelCur];
+			++_iPixelCur;
+			++_iXCur;
+			if (_iXCur == _width) {
+				_iPixelCur += (_pitch - _width);
+				_iXCur = 0;
 			}
 			return ch;
 		}
 
-		public void CompressBits(int init_bits)
+		public void CompressBits(int initBits)
 		{
 			int c;
-			int ent;
-			int disp;
-			int hsize_reg;
-			int hshift;
 
 			// Used to be in write gif
-			m_iPixelCur = 0;
-			m_iXCur = 0;
+			_iPixelCur = 0;
+			_iXCur = 0;
 
-			m_clear_flg = false;
+			_clearFlg = false;
 
-			m_cur_accum = 0;
-			m_cur_bits = 0;
+			_curAccum = 0;
+			_curBits = 0;
 
-			m_a_count = 0;
-			////////////////////////////
+			_aCount = 0;
 
 			// Set up the globals:  g_init_bits - initial number of bits
 			// bits per pixel
-			m_init_bits = init_bits;
+			_initBits = initBits;
 
 			// Set up the necessary values
-			m_nbits = m_init_bits;
-			m_maxcode = Maxcode(m_nbits);
+			_nBits = _initBits;
+			_maxCode = MaxCode(_nBits);
 
-			m_ClearCode = 1 << (init_bits - 1);
-			m_EOFCode = m_ClearCode + 1;
-			m_free_ent = m_ClearCode + 2;
+			_clearCode = 1 << (initBits - 1);
+			_eofCode = _clearCode + 1;
+			_freeEnt = _clearCode + 2;
 
-			ent = bNextPixel();
+			var ent = NextPixel();
 
-			hshift = 0;
-			for (var fcode = HSIZE; fcode < 65536; fcode *= 2) {
-				++hshift;
+			var hShift = 0;
+			for (var fCode = HSize; fCode < 65536; fCode *= 2) {
+				++hShift;
 			}
 
-			hshift = 8 - hshift;	// set hash code range bound
+			hShift = 8 - hShift;                           // set hash code range bound
 
-			hsize_reg = HSIZE;
-			ClearHash(hsize_reg);	// clear hash table
+			const int hSizeReg = HSize;
+			ClearHash(hSizeReg);                           // clear hash table
 
-			Output(m_ClearCode);
+			Output(_clearCode);
 
-			while ((c = bNextPixel()) != GIFEOF)
+			while ((c = NextPixel()) != GifEof)
 			{
-				int fcode = (c << MAXBITS) + ent;
-				int i = (c << hshift) ^ ent;		// xor hashing
+				var fCode = (c << MaxBits) + ent;
+				var i = (c << hShift) ^ ent;           // xor hashing
 
-				if (m_codetab[i] != 0)
-				{	/* is first probed slot empty? */
-					if (m_htab[i] == fcode)
-					{
-						ent = m_codetab[i];
-						goto nextbyte;
+				if (_codeTab[i] != 0) {                    // is first probed slot empty?
+					if (_hTab[i] == fCode) {
+						ent = _codeTab[i];
+						goto nextByte;
 					}
-					if (i == 0)			/* secondary hash (after G. Knott) */
+
+					int disp;
+					if (i == 0) {                          // secondary hash (after G. Knott)
 						disp = 1;
-					else
-						disp = HSIZE - i;
+
+					} else {
+						disp = HSize - i;
+					}
+
 					while (true) {
 						i -= disp;
-						if (i < 0)
-							i += HSIZE;
-						if (m_codetab[i] == 0)
-							goto processbyte;			/* hit empty slot */
-						if (m_htab[i] == fcode)
-						{
-							ent = m_codetab[i];
-							goto nextbyte;
+						if (i < 0) {
+							i += HSize;
+						}
+
+						if (_codeTab[i] == 0) {            // hit empty slot
+							goto processByte;
+						}
+
+						if (_hTab[i] == fCode) {
+							ent = _codeTab[i];
+							goto nextByte;
 						}
 					}
 				}
 
-				processbyte:
-
+				processByte:
 					Output(ent);
 					ent = c;
-					if (m_free_ent < MAXMAXCODE)
-					{
-						m_codetab[i] = m_free_ent++;	// code -> hashtable
-						m_htab[i] = fcode;
-					}
-					else
+					if (_freeEnt < MaxMaxCode) {
+						_codeTab[i] = _freeEnt++;          // code -> hashtable
+						_hTab[i] = fCode;
+					} else {
 						ClearBlock();
+					}
 
-				nextbyte:
-
-				;
-
+				nextByte:
+					;
 			}
 			// Put out the final code.
 			Output(ent);
-			Output(m_EOFCode);
+			Output(_eofCode);
 		}
 
 		private void Output(int code)
 		{
-			m_cur_accum &= m_masks[m_cur_bits];
+			_curAccum &= Masks[_curBits];
 
-			if (m_cur_bits > 0)
-				m_cur_accum |= (code << m_cur_bits);
-			else
-				m_cur_accum = code;
+			if (_curBits > 0) {
+				_curAccum |= (code << _curBits);
 
-			m_cur_bits += m_nbits;
+			} else {
+				_curAccum = code;
+			}
 
-			while (m_cur_bits >= 8)
-			{
-				CharOut((byte)(m_cur_accum & 0xff));
-				m_cur_accum >>= 8;
-				m_cur_bits -= 8;
+			_curBits += _nBits;
+
+			while (_curBits >= 8) {
+				CharOut((byte)(_curAccum & 0xff));
+				_curAccum >>= 8;
+				_curBits -= 8;
 			}
 
 			// If the next entry is going to be too big for the code size,
 			// then increase it, if possible.
-			if (m_free_ent > m_maxcode || m_clear_flg)
-			{
-				if (m_clear_flg)
-				{
-					m_maxcode = Maxcode(m_nbits = m_init_bits);
-					m_clear_flg = false;
-				}
-				else
-				{
-					++m_nbits;
-					if (m_nbits == MAXBITS)
-						m_maxcode = MAXMAXCODE;
-					else
-						m_maxcode = Maxcode(m_nbits);
+			if (_freeEnt > _maxCode || _clearFlg) {
+				if (_clearFlg) {
+					_maxCode = MaxCode(_nBits = _initBits);
+					_clearFlg = false;
+
+				} else {
+					++_nBits;
+					_maxCode = _nBits == MaxBits ? MaxMaxCode : MaxCode(_nBits);
 				}
 			}
 
-			if (code == m_EOFCode)
-			{
+			if (code == _eofCode) {
 				// At EOF, write the rest of the buffer.
-				while (m_cur_bits > 0)
-				{
-					CharOut((byte)(m_cur_accum & 0xff));
-					m_cur_accum >>= 8;
-					m_cur_bits -= 8;
+				while (_curBits > 0) {
+					CharOut((byte)(_curAccum & 0xff));
+					_curAccum >>= 8;
+					_curBits -= 8;
 				}
-
 				FlushChar();
 			}
-
 		}
 
 		private void ClearBlock()
 		{
-			ClearHash(HSIZE);
-			m_free_ent = m_ClearCode + 2;
-			m_clear_flg = true;
+			ClearHash(HSize);
+			_freeEnt = _clearCode + 2;
+			_clearFlg = true;
 
-			Output(m_ClearCode);
+			Output(_clearCode);
 		}
 
-		private void ClearHash(int hsize)
+		private void ClearHash(int hSize)
 		{
-			for (int i = 0; i < HSIZE; ++i)
-			{
-				m_htab[i] = -1;
-				m_codetab[i] = 0;
+			for (var i = 0; i < HSize; ++i) {
+				_hTab[i] = -1;
+				_codeTab[i] = 0;
 			}
 		}
 
 		private void CharOut(byte c)
 		{
-			m_accum[m_a_count++] = c;
-			if (m_a_count >= 254)
+			_accum[_aCount++] = c;
+			if (_aCount >= 254) {
 				FlushChar();
-
+			}
 		}
 
 		private void FlushChar()
 		{
-			if (m_a_count > 0)
-			{
-				WriteByte((byte)m_a_count);
-				WriteSz(m_accum, m_a_count);
-				m_a_count = 0;
+			if (_aCount > 0) {
+				WriteByte((byte)_aCount);
+				WriteSz(_accum, _aCount);
+				_aCount = 0;
 			}
 		}
 	}

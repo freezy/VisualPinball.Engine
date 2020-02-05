@@ -39,6 +39,7 @@ namespace VisualPinball.Engine.VPT.Table
 				WriteGameItems(hashWriter);
 
 				// 4. the rest, which isn't hashed.
+				WriteImages();
 				WriteSounds();
 
 				// finally write hash
@@ -93,6 +94,13 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 3. Collections TODO
+		}
+
+		private void WriteImages()
+		{
+			foreach (var texture in _table.Textures.Values) {
+				texture.Data.WriteData(_gameStorage);
+			}
 		}
 
 		private void WriteSounds()
