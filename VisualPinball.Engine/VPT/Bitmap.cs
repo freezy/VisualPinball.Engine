@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.VPT
 
 		public void WriteCompressed(BinaryWriter writer)
 		{
-			var lzwWriter = new LzwWriter(writer, _data, Width * 4, Height, Pitch());
+			var lzwWriter = new LzwWriter(writer, ToggleRgbBgr(_data), Width * 4, Height, Pitch());
 			lzwWriter.CompressBits(8 + 1);
 		}
 

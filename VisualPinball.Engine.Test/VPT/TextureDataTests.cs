@@ -1,13 +1,7 @@
-using System;
 using System.IO;
-using System.Net;
-using System.Reflection;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT
 {
@@ -140,7 +134,16 @@ namespace VisualPinball.Engine.Test.VPT
 			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";
 			new TableWriter(_table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			Assert.Equal(_table.Textures["Image0"].Data.Binary.Data, writtenTable.Textures["Image0"].Data.Binary.Data);
+			Assert.Equal(_table.Textures["test_pattern_jpg"].Data.Binary.Data, writtenTable.Textures["test_pattern_jpg"].Data.Binary.Data);
+		}
+
+		[Fact]
+		public void ShouldWriteCorrectBitmap()
+		{
+			const string tmpFileName = "ShouldWriteCorrectBitmap.vpx";
+			new TableWriter(_table).WriteTable(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			Assert.Equal(_table.Textures["test_pattern_bmp"].Data.Bitmap.Bytes, writtenTable.Textures["test_pattern_bmp"].Data.Bitmap.Bytes);
 		}
 	}
 }
