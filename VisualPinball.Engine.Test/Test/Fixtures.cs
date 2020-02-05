@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.vpx";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.vpx";
 		public const string Rubber = @"..\..\VPT\Rubber\RubberTest.vpx";
+		public const string Sound = @"..\..\VPT\Sound\SoundTest.vpx";
 		public const string Spinner = @"..\..\VPT\Spinner\SpinnerTest.vpx";
 		public const string Surface = @"..\..\VPT\Surface\SurfaceTest.vpx";
 		public const string Table = @"..\..\VPT\Table\TableTest.vpx";
