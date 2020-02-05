@@ -6,6 +6,7 @@ using NLog;
 using OpenMcdf;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT.Sound;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -36,8 +37,7 @@ namespace VisualPinball.Engine.VPT.Table
 						LoadGameItems(table, gameStorage);
 					}
 					LoadTextures(table, gameStorage);
-
-					// todo sounds
+					LoadSounds(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
 					return table;
@@ -245,6 +245,24 @@ namespace VisualPinball.Engine.VPT.Table
 				Profiler.Stop("LoadTextures (parse)");
 			}
 			Profiler.Stop("LoadTextures");
+		}
+
+		private static void LoadSounds(Table table, CFStorage storage)
+		{
+			for (var i = 0; i < table.Data.NumSounds; i++) {
+				var soundName = $"Sound{i}";
+				storage.TryGetStream(soundName, out var soundStream);
+				if (soundStream == null) {
+					Logger.Warn("Could not find stream {0}, skipping.", soundName);
+					continue;
+				}
+				var soundData = soundStream.GetData();
+				using (var stream = new MemoryStream(soundData))
+				using (var reader = new BinaryReader(stream)) {
+					var sound = new Sound.Sound(reader, soundName);
+					table.Sounds[sound.Name.ToLower()] = sound;
+				}
+			}
 		}
 
 		private static void LoadTableInfo(Table table, CFStorage rootStorage, CFStorage gameStorage)

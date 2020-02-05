@@ -38,6 +38,9 @@ namespace VisualPinball.Engine.VPT.Table
 				// 3. game items
 				WriteGameItems(hashWriter);
 
+				// 4. the rest, which isn't hashed.
+				WriteSounds();
+
 				// finally write hash
 				_gameStorage.AddStream("MAC").SetData(hashWriter.Hash());
 
@@ -90,6 +93,13 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 3. Collections TODO
+		}
+
+		private void WriteSounds()
+		{
+			foreach (var sound in _table.Sounds.Values) {
+				sound.Data.WriteData(_gameStorage);
+			}
 		}
 
 		private static void WriteStream(CFStorage storage, string streamName, byte[] data, HashWriter hashWriter = null)

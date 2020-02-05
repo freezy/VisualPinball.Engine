@@ -218,6 +218,7 @@
     <Compile Include="VPT\Ramp\RampMeshTests.cs" />
     <Compile Include="VPT\Rubber\RubberDataTest.cs" />
     <Compile Include="VPT\Rubber\RubberMeshTest.cs" />
+    <Compile Include="VPT\Sound\SoundDataTests.cs" />
     <Compile Include="VPT\Spinner\SpinnerDataTests.cs" />
     <Compile Include="VPT\Spinner\SpinnerMeshTests.cs" />
     <Compile Include="VPT\Surface\SurfaceDataTests.cs" />
@@ -238,9 +239,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="VPT\Sound" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -20,6 +20,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
 
 		#region GameItems
 

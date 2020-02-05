@@ -39,6 +39,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public static byte[] Hash(byte[] src)
 		{
+			//File.WriteAllBytes(@"..\..\VPT\checksum.bin", src);
 			src = PaddingData(src);
 			src = AddCheckSum(src);
 			return Round(src);

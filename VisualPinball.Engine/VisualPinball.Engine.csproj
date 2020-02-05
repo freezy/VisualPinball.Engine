@@ -168,6 +168,7 @@
     <Compile Include="VPT\Rubber\Rubber.cs" />
     <Compile Include="VPT\Rubber\RubberData.cs" />
     <Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
+    <Compile Include="VPT\Sound\Sound.cs" />
     <Compile Include="VPT\Sound\SoundData.cs" />
     <Compile Include="VPT\Sound\WaveFormat.cs" />
     <Compile Include="VPT\Spinner\Spinner.cs" />
