@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -14,6 +15,9 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			_memoryStream = new MemoryStream();
 			_writer = new BinaryWriter(_memoryStream);
+
+			// header is always there.
+			Write(Encoding.ASCII.GetBytes("Visual Pinball"));
 		}
 
 		public void Write(byte[] data)
@@ -33,7 +37,12 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 	}
 
-	public static class Md2
+	/// <summary>
+	/// Visual Pinball uses MD2 to hash.
+	///
+	/// That's not something the stdlib supports, so let's implement it here!
+	/// </summary>
+	internal static class Md2
 	{
 		private const int BlockSize = 16;
 

@@ -101,16 +101,6 @@ namespace VisualPinball.Engine.Common
 			{"я", "ya"},
 		};
 
-		public static char RemoveDiacritics(this char c)
-		{
-			foreach (var entry in ForeignCharacters) {
-				if (entry.Key.IndexOf(c) != -1) {
-					return entry.Value[0];
-				}
-			}
-			return c;
-		}
-
 		public static string RemoveDiacritics(this string s)
 		{
 			var text = "";

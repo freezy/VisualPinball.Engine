@@ -1,7 +1,9 @@
-﻿using NLog;
+﻿using System.Diagnostics.CodeAnalysis;
+using NLog;
 
 namespace VisualPinball.Engine.Common
 {
+	[ExcludeFromCodeCoverage]
 	public static class Logging
 	{
 		public static void Setup()
