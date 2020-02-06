@@ -203,6 +203,7 @@
     <Compile Include="VPT\Bumper\BumperMeshTests.cs" />
     <Compile Include="VPT\Collection\CollectionDataTests.cs" />
     <Compile Include="VPT\DebugTests.cs" />
+    <Compile Include="VPT\Decal\DecalDataTest.cs" />
     <Compile Include="VPT\Flasher\FlasherDataTests.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshTests.cs" />
     <Compile Include="VPT\Flipper\FlipperDataTests.cs" />
