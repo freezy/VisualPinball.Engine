@@ -21,11 +21,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
+		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 
 		#region GameItems
 
 		public readonly Dictionary<string, Bumper.Bumper> Bumpers = new Dictionary<string, Bumper.Bumper>();
-		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 		public readonly Dictionary<string, Decal.Decal> Decals = new Dictionary<string, Decal.Decal>();
 		public readonly Dictionary<string, DispReel.DispReel> DispReels = new Dictionary<string, DispReel.DispReel>();
 		public readonly Dictionary<string, Flipper.Flipper> Flippers = new Dictionary<string, Flipper.Flipper>();
@@ -81,7 +81,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<ItemData> GameItems => new ItemData[] {}
 			.Concat(Bumpers.Values.Select(i => i.Data))
-			.Concat(Collections.Values.Select(i => i.Data))
 			.Concat(Decals.Values.Select(i => i.Data))
 			.Concat(DispReels.Values.Select(i => i.Data))
 			.Concat(Flippers.Values.Select(i => i.Data))
@@ -123,6 +122,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+		}
+
+		public void Save(string fileName)
+		{
+			new TableWriter(this).WriteTable(fileName);
 		}
 
 		public Material GetMaterial(string name)

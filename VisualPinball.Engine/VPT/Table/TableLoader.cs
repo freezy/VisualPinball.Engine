@@ -34,6 +34,7 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 					LoadTextures(table, gameStorage);
 					LoadSounds(table, gameStorage);
+					LoadCollections(table, gameStorage);
 					LoadTableMeta(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
@@ -227,6 +228,23 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
 					table.Textures[texture.Name.ToLower()] = texture;
+				}
+			}
+		}
+
+		private static void LoadCollections(Table table, CFStorage storage)
+		{
+			for (var i = 0; i < table.Data.NumCollections; i++) {
+				var collectionName = $"Collection{i}";
+				storage.TryGetStream(collectionName, out var collectionStream);
+				if (collectionStream == null) {
+					Logger.Warn("Could not find stream {0}, skipping.", collectionName);
+					continue;
+				}
+				using (var stream = new MemoryStream(collectionStream.GetData()))
+				using (var reader = new BinaryReader(stream)) {
+					var collection = new Collection.Collection(reader, collectionName);
+					table.Collections[collection.Name.ToLower()] = collection;
 				}
 			}
 		}

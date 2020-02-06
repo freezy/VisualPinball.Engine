@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -13,20 +14,30 @@ namespace VisualPinball.Engine.VPT.Collection
 {
 	public class CollectionData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 1)]
 		public override string Name { get; set; }
 
-		[BiffString("ITEM")]
-		public string ItemNames;
+		[BiffString("ITEM", IsWideString = true, TagAll = true, Pos = 2)]
+		public string[] ItemNames;
 
-		[BiffBool("EVNT")]
+		[BiffBool("EVNT", Pos = 3)]
 		public bool FireEvents = false;
 
-		[BiffBool("GREL")]
+		[BiffBool("GREL", Pos = 5)]
 		public bool GroupElements = true;
 
-		[BiffBool("SSNG")]
+		[BiffBool("SSNG", Pos = 4)]
 		public bool StopSingleEvents = false;
+
+		protected override bool SkipWrite(BiffAttribute attr)
+		{
+			switch (attr.Name) {
+				case "LOCK":
+				case "LAYR":
+					return true;
+			}
+			return false;
+		}
 
 		#region BIFF
 
@@ -42,7 +53,6 @@ namespace VisualPinball.Engine.VPT.Collection
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Collection);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

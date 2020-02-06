@@ -92,7 +92,11 @@ namespace VisualPinball.Engine.VPT.Table
 				writeable.WriteData(_gameStorage, hashWriter);
 			}
 
-			// 3. Collections TODO
+			// 3. Collections
+			var collections = _table.Collections.Values.ToArray();
+			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
+				collection.WriteData(_gameStorage, hashWriter);
+			}
 		}
 
 		private void WriteImages()
