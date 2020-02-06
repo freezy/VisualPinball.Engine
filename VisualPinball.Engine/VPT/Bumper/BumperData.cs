@@ -15,77 +15,85 @@ namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class BumperData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 17)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("RADI")]
+		[BiffFloat("RADI", Pos = 2)]
 		public float Radius = 45f;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 12)]
 		public string CapMaterial;
 
-		[BiffString("RIMA")]
+		[BiffString("RIMA", Pos = 15)]
 		public string RingMaterial;
 
-		[BiffString("BAMA")]
+		[BiffString("BAMA", Pos = 13)]
 		public string BaseMaterial;
 
-		[BiffString("SKMA")]
+		[BiffString("SKMA", Pos = 14)]
 		public string SocketMaterial;
 
-		[BiffFloat("THRS")]
+		[BiffFloat("THRS", Pos = 5)]
 		public float Threshold = 1.0f;
 
-		[BiffFloat("FORC")]
+		[BiffFloat("FORC", Pos = 6)]
 		public float Force;
 
-		[BiffFloat("BSCT")]
+		[BiffFloat("BSCT", Pos = 7)]
 		public float Scatter;
 
-		[BiffFloat("HISC")]
+		[BiffFloat("HISC", Pos = 8)]
 		public float HeightScale = 90.0f;
 
-		[BiffFloat("RISP")]
+		[BiffFloat("RISP", Pos = 9)]
 		public float RingSpeed = 0.5f;
 
-		[BiffFloat("ORIN")]
+		[BiffFloat("ORIN", Pos = 10)]
 		public float Orientation = 0.0f;
 
-		[BiffFloat("RDLI")]
+		[BiffFloat("RDLI", Pos = 11)]
 		public float RingDropOffset = 0.0f;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 16)]
 		public string Surface;
 
-		[BiffBool("BVIS")]
-		[BiffBool("CAVI")]
+		[BiffBool("BVIS", SkipWrite = true)]
+		[BiffBool("CAVI", Pos = 18)]
 		public bool IsCapVisible = true;
 
-		[BiffBool("BSVS")]
-		[BiffBool("BVIS")]
+		[BiffBool("BVIS", SkipWrite = true)]
+		[BiffBool("BSVS", Pos = 19)]
 		public bool IsBaseVisible = true;
 
-		[BiffBool("BSVS")]
-		[BiffBool("BVIS")]
-		[BiffBool("RIVS")]
+		[BiffBool("BSVS", SkipWrite = true)]
+		[BiffBool("BVIS", SkipWrite = true)]
+		[BiffBool("RIVS", Pos = 20)]
 		public bool IsRingVisible = true;
 
-		[BiffBool("BSVS")]
-		[BiffBool("BVIS")]
-		[BiffBool("SKVS")]
+		[BiffBool("BSVS", SkipWrite = true)]
+		[BiffBool("BVIS", SkipWrite = true)]
+		[BiffBool("SKVS", Pos = 21)]
 		public bool IsSocketVisible = true;
 
-		[BiffBool("HAHE")]
+		[BiffBool("HAHE", Pos = 22)]
 		public bool HitEvent = true;
 
-		[BiffBool("COLI")]
+		[BiffBool("COLI", Pos = 23)]
 		public bool IsCollidable = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 24)]
 		public bool IsReflectionEnabled = true;
+
+		[BiffBool("TMON", Pos = 3)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 4)]
+		public int TimerInterval;
+
+		protected override bool SkipHash() => true;
 
 		#region BIFF
 

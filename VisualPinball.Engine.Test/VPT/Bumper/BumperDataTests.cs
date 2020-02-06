@@ -1,6 +1,5 @@
-﻿using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
+﻿using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Bumper;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
@@ -12,7 +11,21 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			var data = table.Bumpers["Bumper1"].Data;
+			ValidateTableData(data);
+		}
 
+		[Fact]
+		public void ShouldWriteBumperData()
+		{
+			const string tmpFileName = "ShouldWriteBumperData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateTableData(writtenTable.Bumpers["Bumper1"].Data);
+		}
+
+		private static void ValidateTableData(BumperData data)
+		{
 			Assert.Equal("Material2", data.BaseMaterial);
 			Assert.Equal("Material1", data.CapMaterial);
 			Assert.Equal(500f, data.Center.X);
