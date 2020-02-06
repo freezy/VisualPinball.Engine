@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		public void ShouldReadFlasherData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
-			ValidateFlasher1(table.Flashers["Data"].Data);
+			ValidateFlasher(table.Flashers["Data"].Data);
 		}
 
 		[Fact]
@@ -21,10 +21,10 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateFlasher1(writtenTable.Flashers["Data"].Data);
+			ValidateFlasher(writtenTable.Flashers["Data"].Data);
 		}
 
-		private static void ValidateFlasher1(FlasherData data)
+		private static void ValidateFlasher(FlasherData data)
 		{
 			Assert.Equal(false, data.AddBlend);
 			Assert.Equal(69, data.Alpha);
