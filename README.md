@@ -1,70 +1,54 @@
 # Visual Pinball Engine for C#
 
-*Work in progress*
+*A library that implements world's favorite pinball simulator.*
+
+***Work in progress***
 
 ## Why?
 
 Today we have nice game engines like Unity or Godot that support C# out of the
-box. The goal of this library is to easily provide what Visual Pinball makes so
-great to other "current gen" engines, while keeping backwards-compatibility.
+box. The goal of VPE is to easily provide what Visual Pinball makes so great to
+other "current gen" engines, while keeping backwards-compatibility.
 
-In other words, lay the foundations of a Visual Pinball player that loads any
-table that Visual Pinball (or at least a recent version) plays.
+## What?
 
-Concretely, it should:
+Visual Pinball roughly consists of the following sub systems, which VPE will 
+fully support:
 
-- Read VPX files
-- Provide an API to extract geometry, textures and materials
-- Provide a hook for a game loop that runs the game
-- Provide an event API for geometry changes
+- File format, i.e. reading and writing `.vpx` files
+- A data API, i.e. editing properties of all the game items
+- Media handling, i.e. dealing with sounds and images 
+- A game loop, which includes:
+  - Rigid body physics, i.e. movement based on mass and gravity
+  - Collision detection
+  - Animations
+  - A transformation API, i.e. something that tells the renderer what to update
+- The scripting engine
 
-## Status Quo
+## How?
 
-- Table loader created
-- Table info, primitives, materials and textures are parsed
+The "core" of VPE (i.e. the `VisualPinball.Engine` project) is a pure C# port
+of the original Visual Pinball. It has no dependencies to any proprietary third
+parties, and provides everything but the rendering engine. It is free and open
+source.
 
-## Unity
+We're currently focusing on Unity as a game engine, but anything about Unity
+applies to Godot or other C#-based engines as well. C# allows [extending third
+party classes](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/extension-methods),
+which means we can ship another DLL that just by including in your application
+will add functionality to VPE.
 
-There's an included project that should make it easy to integrate with Unity.
-The goal is to bridge Unity's APIs with the ones the `VisualPinball.Engine`
-library provides. It currently consist of extension methods that add
-Unity-specific methods, as well as an importer.
+More concretely, we include a bridge library that allows you to render VPE in
+Unity. More on that [here](VisualPinball.Unity).
 
-The `VisualPinball.Unity` project comes with a target that copies all needed
-DLLs to your Unity project's asset folder. In order to activate it, set the
-`VPE_UNITY_SCRIPTS` environment variable and point it to the correct path.
-Apart from the dependencies, it will copy the the following DLLs:
+![Monster Bash in Unity](mb_unity_teaser.jpg)
 
-- `VisualPinball.Engine.dll` - The game engine agnostic main library
-- `VisualPinball.Unity.dll` - The Unity extensions
+<small>A render of Monster Bash in Unity, imported from a `.vpx` file.</small>
 
-There are two ways of importing a table. When importing runtime, create a new
-script, attach it to something, and do the import on start:
+## Current Status
 
-```cs
-using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Extensions;
-
-public class Init : MonoBehaviour
-{
-
-	// Start is called before the first frame update
-	void Start()
-	{
-		VpxImporter.ImportVpxRuntime(@"<path-to-vpx>");
-	}
-
-	// Update is called once per frame
-	void Update()
-	{
-	}
-}
-```
-
-We also provide an editor import function. When the Unity DLL is in your
-project, you'll have a *Visual Pinball* menu where you can import .vpx files.
-
+VPE is still under development, so there is nothing much to test. If you're a
+developer and you'd like to contribute, let us know, we have a Discord channel.
 
 ## License
 
