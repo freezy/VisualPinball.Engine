@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -14,50 +15,52 @@ namespace VisualPinball.Engine.VPT.Decal
 {
 	public class DecalData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 7)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("WDTH")]
+		[BiffFloat("WDTH", Pos = 2)]
 		public float Width = 100.0f;
 
-		[BiffFloat("HIGH")]
+		[BiffFloat("HIGH", Pos = 3)]
 		public float Height = 100.0f;
 
-		[BiffFloat("ROTA")]
+		[BiffFloat("ROTA", Pos = 4)]
 		public float Rotation = 0.0f;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 5)]
 		public string Image;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 6)]
 		public string Surface;
 
-		[BiffString("TEXT")]
+		[BiffString("TEXT", Pos = 8)]
 		public string Text;
 
-		[BiffInt("TYPE")]
+		[BiffInt("TYPE", Pos = 9)]
 		public int DecalType = VisualPinball.Engine.VPT.DecalType.DecalImage;
 
-		[BiffInt("SIZE")]
+		[BiffInt("SIZE", Pos = 12)]
 		public int SizingType = VisualPinball.Engine.VPT.SizingType.ManualSize;
 
-		[BiffColor("XXXX")]
+		[BiffColor("COLR", Pos = 11)]
 		public Color Color = new Color(0x000000, ColorFormat.Bgr);
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 10)]
 		public string Material;
 
-		[BiffBool("VERT")]
+		[BiffBool("VERT", Pos = 13)]
 		public bool VerticalText = false;
 
-		[BiffBool("BGLS")]
+		[BiffBool("BGLS", Pos = 14)]
 		public bool Backglass = false;
 
-		// [BiffString("FONT")]
-		// public string Font = "";
+		[BiffFont("FONT", Pos = 2000)]
+		public Font Font;
+
+		protected override bool SkipHash() => true;
 
 		#region BIFF
 

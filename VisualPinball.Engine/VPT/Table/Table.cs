@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Table
 		#region GameItems
 
 		public readonly Dictionary<string, Bumper.Bumper> Bumpers = new Dictionary<string, Bumper.Bumper>();
-		public readonly Dictionary<string, Decal.Decal> Decals = new Dictionary<string, Decal.Decal>();
+		public readonly List<Decal.Decal> Decals = new List<Decal.Decal>();
 		public readonly Dictionary<string, DispReel.DispReel> DispReels = new Dictionary<string, DispReel.DispReel>();
 		public readonly Dictionary<string, Flipper.Flipper> Flippers = new Dictionary<string, Flipper.Flipper>();
 		public readonly Dictionary<string, Gate.Gate> Gates = new Dictionary<string, Gate.Gate>();
@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<ItemData> GameItems => new ItemData[] {}
 			.Concat(Bumpers.Values.Select(i => i.Data))
-			.Concat(Decals.Values.Select(i => i.Data))
+			.Concat(Decals.Select(i => i.Data))
 			.Concat(DispReels.Values.Select(i => i.Data))
 			.Concat(Flippers.Values.Select(i => i.Data))
 			.Concat(Gates.Values.Select(i => i.Data))

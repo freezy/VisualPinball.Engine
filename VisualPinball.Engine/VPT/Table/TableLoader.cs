@@ -116,8 +116,7 @@ namespace VisualPinball.Engine.VPT.Table
 						break;
 					}
 					case ItemType.Decal: {
-						var item = new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName);
-						table.Decals[item.Name] = item;
+						table.Decals.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
 						break;
 					}
 					case ItemType.DispReel: {
