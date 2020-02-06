@@ -5,6 +5,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string Bumper = @"..\..\VPT\Bumper\BumperTest.vpx";
 		public const string Collection = @"..\..\VPT\Collection\CollectionTest.vpx";
 		public const string Decal = @"..\..\VPT\Decal\DecalTest.vpx";
+		public const string DispReel = @"..\..\VPT\DispReel\DispReelTest.vpx";
 		public const string Flasher = @"..\..\VPT\Flasher\FlasherTest.vpx";
 		public const string Flipper = @"..\..\VPT\Flipper\FlipperTest.vpx";
 		public const string Gate = @"..\..\VPT\Gate\GateTest.vpx";

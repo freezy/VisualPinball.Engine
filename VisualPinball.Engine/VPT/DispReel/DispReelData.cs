@@ -2,6 +2,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable ConvertToConstant.Global
 #endregion
 
 using System.Collections.Generic;
@@ -14,59 +15,71 @@ namespace VisualPinball.Engine.VPT.DispReel
 {
 	public class DispReelData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 9)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VER1")]
+		[BiffVertex("VER1", Pos = 1)]
 		public Vertex2D V1;
 
-		[BiffVertex("VER2")]
+		[BiffVertex("VER2", Pos = 2)]
 		public Vertex2D V2;
 
-		[BiffFloat("WDTH")]
+		[BiffFloat("WDTH", Pos = 10)]
 		public float Width = 30.0f;
 
-		[BiffFloat("HIGH")]
+		[BiffFloat("HIGH", Pos = 11)]
 		public float Height = 40.0f;
 
-		[BiffColor("CLRB")]
+		[BiffColor("CLRB", Pos = 3)]
 		public Color BackColor = new Color(0x404040f, ColorFormat.Bgr);
 
-		[BiffBool("TRNS")]
+		[BiffBool("TRNS", Pos = 6)]
 		public bool IsTransparent = false;
 
-		[BiffBool("VISI")]
+		[BiffBool("VISI", Pos = 18)]
 		public bool IsVisible = true;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 7)]
 		public string Image;
 
-		[BiffFloat("RCNT", AsInt = true)]
+		[BiffFloat("RCNT", AsInt = true, Pos = 12)]
 		public int ReelCount = 5;
 
-		[BiffFloat("RSPC")]
+		[BiffFloat("RSPC", Pos = 13)]
 		public float ReelSpacing = 4.0f;
 
-		[BiffFloat("MSTP", AsInt = true)]
+		[BiffFloat("MSTP", AsInt = true, Pos = 14)]
 		public int MotorSteps = 2;
 
-		[BiffString("SOUN")]
+		[BiffString("SOUN", Pos = 8)]
 		public string Sound;
 
-		[BiffBool("UGRD")]
+		[BiffBool("UGRD", Pos = 17)]
 		public bool UseImageGrid = false;
 
-		[BiffInt("GIPR")]
+		[BiffInt("GIPR", Pos = 19)]
 		public int ImagesPerGridRow = 1;
 
-		[BiffFloat("RANG", AsInt = true)]
+		[BiffFloat("RANG", AsInt = true, Pos = 15)]
 		public int DigitRange = 9;
 
-		[BiffInt("UPTM")]
+		[BiffInt("UPTM", Pos = 16)]
 		public int UpdateInterval = 50;
 
-		// [BiffString("FONT")]
-		// public string Font = "";
+		[BiffFont("FONT", SkipWrite = true)]
+		public Font Font;
+
+		[BiffBool("TMON", Pos = 4)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 5)]
+		public int TimerInterval;
+
+		public float BoxWidth => ReelCount * Width + ReelCount * ReelSpacing + ReelSpacing; // spacing also includes edges
+
+		public float BoxHeight => Height + ReelSpacing + ReelSpacing; // spacing also includes edges
+
+		protected override bool SkipHash() => true;
 
 		#region BIFF
 
