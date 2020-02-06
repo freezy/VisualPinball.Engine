@@ -27,8 +27,6 @@ namespace VisualPinball.Engine.VPT.Table
 				_cf = new CompoundFile();
 				_gameStorage = _cf.RootStorage.AddStorage("GameStg");
 
-				hashWriter.Write(Encoding.ASCII.GetBytes("Visual Pinball"));
-
 				// 1. version
 				WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
 
@@ -43,7 +41,7 @@ namespace VisualPinball.Engine.VPT.Table
 				WriteSounds();
 
 				// finally write hash
-				_gameStorage.AddStream("MAC").SetData(hashWriter.Hash());
+				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
 
 				_cf.Save(fileName);
 				_cf.Close();
@@ -52,8 +50,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private void WriteTableInfo(HashWriter hashWriter)
 		{
-			// order for the hashing is important here.
 			var tableInfo = _cf.RootStorage.AddStorage("TableInfo");
+
+			// order for the hashing is important here.
 			var knownTags = new[] {
 				"TableName", "AuthorName", "TableVersion", "ReleaseDate", "AuthorEmail",
 				"AuthorWebSite", "TableBlurb", "TableDescription", "TableRules", "Screenshot"

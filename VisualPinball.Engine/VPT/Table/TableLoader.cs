@@ -23,9 +23,8 @@ namespace VisualPinball.Engine.VPT.Table
 			try {
 				var gameStorage = cf.RootStorage.GetStorage("GameStg");
 				var gameData = gameStorage.GetStream("GameData");
-				var bytes = gameData.GetData();
 
-				using (var stream = new MemoryStream(bytes))
+				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
 					var table = new Table(reader);
 
@@ -35,6 +34,7 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 					LoadTextures(table, gameStorage);
 					LoadSounds(table, gameStorage);
+					LoadTableMeta(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
 					return table;

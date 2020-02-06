@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NLog;
 
 namespace VisualPinball.Engine.Common
 {
+	[ExcludeFromCodeCoverage]
 	public static class Profiler
 	{
 		private static readonly Dictionary<string, Profile> Profiles = new Dictionary<string, Profile>();
@@ -60,6 +62,7 @@ namespace VisualPinball.Engine.Common
 		}
 	}
 
+	[ExcludeFromCodeCoverage]
 	internal class ProfileSpan : IDisposable
 	{
 		public long ElapsedMilliseconds => _stopwatch.ElapsedMilliseconds;
@@ -80,6 +83,7 @@ namespace VisualPinball.Engine.Common
 		}
 	}
 
+	[ExcludeFromCodeCoverage]
 	internal class Profile
 	{
 		public long ElapsedMilliseconds => _stopwatch.ElapsedMilliseconds + _spanSum;

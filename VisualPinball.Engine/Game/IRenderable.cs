@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using VisualPinball.Engine.Math;
+﻿using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -28,12 +27,7 @@ namespace VisualPinball.Engine.Game
 		/// No additional transformation matrices must be applied if the object
 		/// is static.
 		/// </summary>
-		Global,
-
-		/// <summary>
-		/// Transforms all vertices so their origin is the center of the object.
-		/// </summary>
-		//Local
+		Global
 	}
 
 	public class RenderObjectGroup

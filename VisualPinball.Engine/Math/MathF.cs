@@ -1,4 +1,6 @@
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace VisualPinball.Engine.Math
 {
 	/// <summary>
@@ -6,6 +8,7 @@ namespace VisualPinball.Engine.Math
 	/// </summary>
 	///
 	/// <see href="https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Math/Mathf.cs">Original Source</see>
+	[ExcludeFromCodeCoverage]
 	public static class MathF
 	{
 
