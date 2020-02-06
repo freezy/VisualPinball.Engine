@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
@@ -7,11 +8,24 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 	public class FlipperDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadFlipperData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
-			var data = table.Flippers["FatFlipper"].Data;
+			ValidateFlipper(table.Flippers["FatFlipper"].Data);
+		}
 
+		[Fact]
+		public void ShouldWriteFlipperData()
+		{
+			const string tmpFileName = "ShouldWriteFlipperData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateFlipper(writtenTable.Flippers["FatFlipper"].Data);
+		}
+
+		private static void ValidateFlipper(FlipperData data)
+		{
 			Assert.Equal(30.0303f, data.BaseRadius);
 			Assert.Equal(269.287f, data.Center.X);
 			Assert.Equal(1301.21f, data.Center.Y);
