@@ -18,7 +18,7 @@ namespace VisualPinball.Engine.VPT
 			Weight = reader.ReadUInt16();
 			Size = reader.ReadUInt32();
 			var nameLen = (int)reader.ReadByte();
-			Name = Encoding.ASCII.GetString(reader.ReadBytes(nameLen));
+			Name = Encoding.Default.GetString(reader.ReadBytes(nameLen));
 		}
 
 		public void Write(BinaryWriter writer, HashWriter hashWriter)
@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT
 			writer.Write(Weight);
 			writer.Write(Size);
 			writer.Write((byte)Name.Length);
-			writer.Write(Encoding.ASCII.GetBytes(Name));
+			writer.Write(Encoding.Default.GetBytes(Name));
 		}
 	}
 }

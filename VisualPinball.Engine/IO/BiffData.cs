@@ -191,7 +191,7 @@ namespace VisualPinball.Engine.IO
 
 		protected static void WriteEnd(BinaryWriter writer, HashWriter hashWriter)
 		{
-			var endTag = Encoding.ASCII.GetBytes("ENDB");
+			var endTag = Encoding.Default.GetBytes("ENDB");
 			writer.Write(4);
 			writer.Write(endTag);
 			hashWriter?.Write(endTag);
@@ -226,7 +226,7 @@ namespace VisualPinball.Engine.IO
 
 		public void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData
 		{
-			var tag = Encoding.ASCII.GetBytes(Name);
+			var tag = Encoding.Default.GetBytes(Name);
 			if (Name.Length < 4) {
 				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
 			}

@@ -233,7 +233,7 @@ namespace VisualPinball.Engine.IO
 
 		protected void WriteStart(BinaryWriter writer, int dataLength, HashWriter hashWriter)
 		{
-			var tag = Encoding.ASCII.GetBytes(Name);
+			var tag = Encoding.Default.GetBytes(Name);
 			if (Name.Length < 4) {
 				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
 			}

@@ -25,10 +25,10 @@ namespace VisualPinball.Engine.VPT.Sound
 		public byte[] GetHeader() {
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				writer.Write(Encoding.ASCII.GetBytes("RIFF"));
+				writer.Write(Encoding.Default.GetBytes("RIFF"));
 				writer.Write(Data.Length + 36);
-				writer.Write(Encoding.ASCII.GetBytes("WAVE"));
-				writer.Write(Encoding.ASCII.GetBytes("fmt "));
+				writer.Write(Encoding.Default.GetBytes("WAVE"));
+				writer.Write(Encoding.Default.GetBytes("fmt "));
 				writer.Write(16);
 				writer.Write((short)Wfx.FormatTag);
 				writer.Write((short)Wfx.Channels);
@@ -36,7 +36,7 @@ namespace VisualPinball.Engine.VPT.Sound
 				writer.Write((int)(Wfx.SamplesPerSec * Wfx.BitsPerSample * Wfx.Channels / 8));
 				writer.Write((short)Wfx.BlockAlign);
 				writer.Write((short)Wfx.BitsPerSample);
-				writer.Write(Encoding.ASCII.GetBytes("data"));
+				writer.Write(Encoding.Default.GetBytes("data"));
 				writer.Write(Data.Length);
 				return stream.ToArray();
 			}
@@ -50,15 +50,15 @@ namespace VisualPinball.Engine.VPT.Sound
 				switch (i) {
 					case 0:
 						len = reader.ReadInt32();
-						Name = Encoding.ASCII.GetString(reader.ReadBytes(len));
+						Name = Encoding.Default.GetString(reader.ReadBytes(len));
 						break;
 					case 1:
 						len = reader.ReadInt32();
-						Path = Encoding.ASCII.GetString(reader.ReadBytes(len));
+						Path = Encoding.Default.GetString(reader.ReadBytes(len));
 						break;
 					case 2:
 						len = reader.ReadInt32();
-						InternalName = Encoding.ASCII.GetString(reader.ReadBytes(len));
+						InternalName = Encoding.Default.GetString(reader.ReadBytes(len));
 						break;
 					case 3: Wfx = new WaveFormat(reader); break;
 					case 4:
@@ -76,14 +76,14 @@ namespace VisualPinball.Engine.VPT.Sound
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(Encoding.ASCII.GetBytes(Name).Length);
-			writer.Write(Encoding.ASCII.GetBytes(Name));
+			writer.Write(Encoding.Default.GetBytes(Name).Length);
+			writer.Write(Encoding.Default.GetBytes(Name));
 
-			writer.Write(Encoding.ASCII.GetBytes(Path).Length);
-			writer.Write(Encoding.ASCII.GetBytes(Path));
+			writer.Write(Encoding.Default.GetBytes(Path).Length);
+			writer.Write(Encoding.Default.GetBytes(Path));
 
-			writer.Write(Encoding.ASCII.GetBytes(InternalName).Length);
-			writer.Write(Encoding.ASCII.GetBytes(InternalName));
+			writer.Write(Encoding.Default.GetBytes(InternalName).Length);
+			writer.Write(Encoding.Default.GetBytes(InternalName));
 
 			Wfx.Write(writer);
 
