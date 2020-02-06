@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 	public class CollectionDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadCollectionData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
 			var data = table.Collections["flippers"].Data;

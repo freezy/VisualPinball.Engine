@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 	public class BumperDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadBumperData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			var data = table.Bumpers["Bumper1"].Data;
@@ -48,6 +48,13 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			Assert.Equal("Material3", data.SocketMaterial);
 			Assert.Equal("", data.Surface);
 			Assert.Equal(1.00658f, data.Threshold);
+
+
+			Assert.Equal(100f, data.TimerInterval);
+			Assert.Equal(false, data.IsTimerEnabled);
+
+			Assert.Equal(0, data.EditorLayer);
+			Assert.Equal(false, data.IsLocked);
 		}
 	}
 }
