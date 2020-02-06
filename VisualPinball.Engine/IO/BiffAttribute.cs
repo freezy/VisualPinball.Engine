@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.IO
 	/// <see href="https://en.wikipedia.org/wiki/COM_Structured_Storage">COM Structured Storage</see>
 	/// <see href="https://docs.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/cd03cb5f-ca02-4934-a391-bb674cb8aa06">BIFF Format</see>
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-	public abstract class BiffAttribute : Attribute
+	public abstract class BiffAttribute : Attribute, ISortableBiffRecord
 	{
 		/// <summary>
 		/// Name of the BIFF record, usually four characters
@@ -91,6 +91,8 @@ namespace VisualPinball.Engine.IO
 		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
 
 		public abstract void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData;
+
+		public double Position => Pos;
 
 
 		/// <summary>
@@ -239,5 +241,14 @@ namespace VisualPinball.Engine.IO
 			writer.Write(tag);
 			hashWriter?.Write(tag); // only write tag
 		}
+	}
+
+	internal interface ISortableBiffRecord
+	{
+		double Position { get; }
+		string Name { get; }
+
+		void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData;
+
 	}
 }
