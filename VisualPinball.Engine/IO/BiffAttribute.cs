@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.IO
 		/// Some records like CODE have their actual length set after
 		/// the BIFF name. If that's the case set this field to `true`.
 		/// </summary>
-		public bool IsStreaming;
+		public bool LengthAfterTag;
 
 		/// <summary>
 		/// For arrays, this defines how many values should be read
@@ -165,7 +165,8 @@ namespace VisualPinball.Engine.IO
 								using (var separateDataWriter = new BinaryWriter(separateStream)) {
 									write(separateDataWriter, val);
 									var separateData = separateStream.ToArray();
-									WriteStart(writer, separateData.Length, hashWriter);
+									var separateLength = overrideLength?.Invoke(separateData.Length) ?? separateData.Length;
+									WriteStart(writer, separateLength, hashWriter);
 									writer.Write(separateData);
 									if (WriteHash(obj)) {
 										hashWriter?.Write(separateData);
@@ -190,7 +191,7 @@ namespace VisualPinball.Engine.IO
 				WriteStart(writer, length, WriteHash(obj) ? hashWriter : null);
 				writer.Write(data);
 				if (WriteHash(obj)) {
-					hashWriter?.Write(IsStreaming ? data.Skip(4).ToArray() : data);
+					hashWriter?.Write(LengthAfterTag ? data.Skip(4).ToArray() : data);
 				}
 			}
 		}

@@ -103,7 +103,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public bool IsReflectionEnabled = true;
 
 		[BiffDragPoint("DPNT")]
-		public DragPoint[] DragPoints;
+		public DragPointData[] DragPoints;
 
 		#region BIFF
 

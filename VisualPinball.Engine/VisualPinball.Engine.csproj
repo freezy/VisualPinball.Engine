@@ -111,6 +111,7 @@
     <Compile Include="Math\Color.cs" />
     <Compile Include="Math\Constants.cs" />
     <Compile Include="Math\DragPoint.cs" />
+    <Compile Include="Math\DragPointData.cs" />
     <Compile Include="Math\MathF.cs" />
     <Compile Include="Math\Matrix2D.cs" />
     <Compile Include="Math\Matrix3D.cs" />
@@ -144,10 +145,8 @@
     <Compile Include="VPT\HitTarget\HitTarget.cs" />
     <Compile Include="VPT\HitTarget\HitTargetData.cs" />
     <Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs" />
-    <Compile Include="VPT\IEditable.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
-    <Compile Include="VPT\ITimer.cs" />
     <Compile Include="VPT\Kicker\Kicker.cs" />
     <Compile Include="VPT\Kicker\KickerData.cs" />
     <Compile Include="VPT\Kicker\KickerMeshGenerator.cs" />

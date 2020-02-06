@@ -121,7 +121,7 @@ namespace VisualPinball.Engine.IO
 						foreach (var attr in attrs) {
 							// parse data on the first
 							if (i == 0) {
-								if (attr.IsStreaming) {
+								if (attr.LengthAfterTag) {
 									len = reader.ReadInt32();
 									attr.Parse(obj, reader, len);
 

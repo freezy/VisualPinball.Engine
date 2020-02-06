@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex2D[] RgvLocal;
 
-		public SplineVertex(DragPoint[] dragPoints, int thickness, int tableDetailLevel,
+		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel,
 			int accuracy, bool staticRendering = true)
 		{
 			var vertices = GetCentralCurve(dragPoints, tableDetailLevel, accuracy, staticRendering);
@@ -115,7 +115,7 @@ namespace VisualPinball.Engine.Math
 			VertexCount = numVertices + 1;
 		}
 
-		private static RenderVertex2D[] GetCentralCurve(DragPoint[] dragPoints, int tableDetailLevel, int acc,
+		private static RenderVertex2D[] GetCentralCurve(DragPointData[] dragPoints, int tableDetailLevel, int acc,
 			bool staticRendering = true)
 		{
 			float accuracy;

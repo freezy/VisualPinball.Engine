@@ -255,7 +255,7 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffInt("MASI", Pos = 104)]
 		public int NumMaterials;
 
-		[BiffString("CODE", IsStreaming = true, Pos = 114)]
+		[BiffString("CODE", LengthAfterTag = true, Pos = 114)]
 		public string Code;
 
 		[BiffFloat("ROTA", Index = BackglassIndex.Desktop, Pos = 5)]

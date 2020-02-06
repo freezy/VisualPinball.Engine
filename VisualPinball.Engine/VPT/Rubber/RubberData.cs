@@ -79,7 +79,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public bool OverwritePhysics = false;
 
 		[BiffDragPoint("DPNT")]
-		public DragPoint[] DragPoints;
+		public DragPointData[] DragPoints;
 
 		#region BIFF
 

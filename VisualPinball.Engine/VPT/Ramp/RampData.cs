@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public float DepthBias = 0f;
 
 		[BiffDragPoint("DPNT")]
-		public DragPoint[] DragPoints;
+		public DragPointData[] DragPoints;
 
 		[BiffFloat("ELAS")]
 		public float Elasticity;

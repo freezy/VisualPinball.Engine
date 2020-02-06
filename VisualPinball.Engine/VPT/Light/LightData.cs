@@ -94,7 +94,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public float BulbHaloHeight = 28f;
 
 		[BiffDragPoint("DPNT")]
-		public DragPoint[] DragPoints;
+		public DragPointData[] DragPoints;
 
 		#region BIFF
 
