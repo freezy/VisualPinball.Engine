@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.IO
 
 		public readonly string StorageName;
 		public readonly int StorageIndex;
-		private readonly Dictionary<string, byte[]> UnknownTags = new Dictionary<string, byte[]>();
+		private readonly List<UnknownBiffRecord> _unknownRecords = new List<UnknownBiffRecord>();
 
 		protected BiffData(string storageName)
 		{
@@ -109,6 +109,7 @@ namespace VisualPinball.Engine.IO
 			// initially read length and BIFF record name
 			var len = reader.ReadInt32();
 			var tag = ReadTag(reader);
+			var pos = 0d;
 
 			try {
 				//Logger.Info("=== ITEM {0}", obj.StorageName);
@@ -121,6 +122,7 @@ namespace VisualPinball.Engine.IO
 						foreach (var attr in attrs) {
 							// parse data on the first
 							if (i == 0) {
+								pos = attr.Pos;
 								if (attr.LengthAfterTag) {
 									len = reader.ReadInt32();
 									attr.Parse(obj, reader, len);
@@ -138,7 +140,8 @@ namespace VisualPinball.Engine.IO
 						}
 					} else {
 						Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
-						obj.UnknownTags.Add(tag, reader.ReadBytes(len - 4));
+						pos += 0.001;
+						obj._unknownRecords.Add(new UnknownBiffRecord(pos, tag, reader.ReadBytes(len - 4)));
 					}
 
 					// read next length and tag name for next record
@@ -156,17 +159,18 @@ namespace VisualPinball.Engine.IO
 
 		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
 		{
-			var attrs = attributes.Values.Select(a => a[0]).OrderBy(attr => attr.Pos);
-			foreach (var attr in attrs) {
+			// filter known records, join them with unknown records, and sort.
+			var records = attributes.Values
+				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
+				.Select(a => a[0] as ISortableBiffRecord)
+				.Concat(_unknownRecords)
+				.OrderBy(r => r.Position);
+			foreach (var record in records) {
 				try {
-					var skipWrite = attr.SkipWrite || SkipWrite(attr);
-					var skipHash = false; //attr.SkipHash;
-					if (!skipWrite) {
-						attr.Write(this, writer, !skipHash ? hashWriter : null);
-					}
+					record.Write(this, writer, hashWriter);
 
 				} catch (Exception e) {
-					throw new InvalidOperationException("Error writing [" + attr.GetType().Name + "] at \"" + attr.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
+					throw new InvalidOperationException("Error writing [" + record.GetType().Name + "] at \"" + record.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
 				}
 			}
 		}
@@ -204,6 +208,34 @@ namespace VisualPinball.Engine.IO
 		private static string ReadTag(BinaryReader reader)
 		{
 			return Encoding.UTF8.GetString(reader.ReadBytes(4).Where(b => b != 0x0).ToArray());
+		}
+	}
+
+	internal class UnknownBiffRecord : ISortableBiffRecord
+	{
+		public double Position { get; }
+		public string Name { get; }
+		private readonly byte[] _data;
+
+		public UnknownBiffRecord(double position, string name, byte[] data)
+		{
+			Position = position;
+			Name = name;
+			_data = data;
+		}
+
+		public void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData
+		{
+			var tag = Encoding.ASCII.GetBytes(Name);
+			if (Name.Length < 4) {
+				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
+			}
+			writer.Write(_data.Length + 4);
+			writer.Write(tag);
+			writer.Write(_data);
+
+			hashWriter?.Write(tag);
+			hashWriter?.Write(_data);
 		}
 	}
 }

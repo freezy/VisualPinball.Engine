@@ -2,11 +2,14 @@
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
-	public class FlipperDataTests
+	public class FlipperDataTests : BaseTests
 	{
+		public FlipperDataTests(ITestOutputHelper output) : base(output) { }
+
 		[Fact]
 		public void ShouldReadFlipperData()
 		{
@@ -56,6 +59,12 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			Assert.Equal("", data.Surface);
 			Assert.Equal(0.7532f, data.TorqueDamping);
 			Assert.Equal(6.209f, data.TorqueDampingAngle);
+
+			Assert.Equal(100f, data.TimerInterval);
+			Assert.Equal(false, data.IsTimerEnabled);
+
+			Assert.Equal(0, data.EditorLayer);
+			Assert.Equal(false, data.IsLocked);
 		}
 	}
 }

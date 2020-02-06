@@ -45,12 +45,12 @@ namespace VisualPinball.Engine.IO
 					bytes = LengthAfterTag ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
 				}
 			}
-			return Encoding.ASCII.GetString(bytes);
+			return Encoding.Default.GetString(bytes);
 		}
 
 		private void WriteString(BinaryWriter writer, string value)
 		{
-			var bytes = Encoding.ASCII.GetBytes(value);
+			var bytes = Encoding.Default.GetBytes(value);
 			if (IsWideString) {
 				bytes = bytes.SelectMany(b => new byte[] {b, 0x0}).ToArray();
 			}
