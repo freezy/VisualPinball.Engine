@@ -18,12 +18,12 @@ namespace VisualPinball.Engine.IO
 		{
 			var bytes = reader.ReadBytes(length);
 			var nullPos = Array.IndexOf(bytes, (byte)0x0);
-			return Encoding.ASCII.GetString(nullPos > -1 ? bytes.Take(nullPos).ToArray() : bytes);
+			return Encoding.Default.GetString(nullPos > -1 ? bytes.Take(nullPos).ToArray() : bytes);
 		}
 
 		public static byte[] GetNullTerminatedString(string value, int length)
 		{
-			var bytes = Encoding.ASCII.GetBytes(value);
+			var bytes = Encoding.Default.GetBytes(value);
 			if (bytes.Length == length) {
 				return bytes;
 
@@ -41,12 +41,12 @@ namespace VisualPinball.Engine.IO
 
 		public static string ParseWideString(IEnumerable<byte> data)
 		{
-			return Encoding.ASCII.GetString(data.Where((x, i) => i % 2 == 0).ToArray());
+			return Encoding.Default.GetString(data.Where((x, i) => i % 2 == 0).ToArray());
 		}
 
 		public static byte[] GetWideString(string value)
 		{
-			return Encoding.ASCII.GetBytes(value).SelectMany(b => new byte[] {b, 0x0}).ToArray();
+			return Encoding.Default.GetBytes(value).SelectMany(b => new byte[] {b, 0x0}).ToArray();
 		}
 	}
 }

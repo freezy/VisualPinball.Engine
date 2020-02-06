@@ -17,7 +17,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_writer = new BinaryWriter(_memoryStream);
 
 			// header is always there.
-			Write(Encoding.ASCII.GetBytes("Visual Pinball"));
+			Write(Encoding.Default.GetBytes("Visual Pinball"));
 		}
 
 		public void Write(byte[] data)
