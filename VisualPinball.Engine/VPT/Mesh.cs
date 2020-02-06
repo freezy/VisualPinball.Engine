@@ -162,6 +162,61 @@ namespace VisualPinball.Engine.VPT
 			return tri.ToArray();
 		}
 
+		public static void ClosestPointOnPolygon(RenderVertex3D[] rgv, Vertex2D pvin, bool fClosed, out Vertex2D pvOut, out int piSeg)
+		{
+			var count = rgv.Length;
+			var minDist = Constants.FloatMax;
+			piSeg = -1; // in case we are not next to the line
+			pvOut = new Vertex2D();
+			var loopCount = count;
+			if (!fClosed) {
+				--loopCount; // Don"t check segment running from the end point to the beginning point
+			}
+
+			// Go through line segment, calculate distance from point to the line
+			// then pick the shortest distance
+			for (var i = 0; i < loopCount; ++i) {
+				var p2 = i < count - 1 ? i + 1 : 0;
+
+				var rgvi = new RenderVertex3D();
+				rgvi.Set(rgv[i].X, rgv[i].Y, rgv[i].Z);
+				var rgvp2 = new RenderVertex3D();
+				rgvp2.Set(rgv[p2].X, rgv[p2].Y, rgv[p2].Z);
+				var a = rgvi.Y - rgvp2.Y;
+				var b = rgvp2.X - rgvi.X;
+				var c = -(a * rgvi.X + b * rgvi.Y);
+
+				var dist = MathF.Abs(a * pvin.X + b * pvin.Y + c) / MathF.Sqrt(a * a + b * b);
+
+				if (dist < minDist) {
+					// Assuming we got a segment that we are closet to, calculate the intersection
+					// of the line with the perpendicular line projected from the point,
+					// to find the closest point on the line
+					var d = -b;
+					var f = -(d * pvin.X + a * pvin.Y);
+
+					var det = a * a - b * d;
+					var invDet = det != 0.0f ? 1.0f / det : 0.0f;
+					var intersectX = (b * f - a * c) * invDet;
+					var intersectY = (c * d - a * f) * invDet;
+
+					// If the intersect point lies on the polygon segment
+					// (not out in space), then make this the closest known point
+					if (intersectX >= MathF.Min(rgvi.X, rgvp2.X) - 0.1 &&
+					    intersectX <= MathF.Max(rgvi.X, rgvp2.X) + 0.1 &&
+					    intersectY >= MathF.Min(rgvi.Y, rgvp2.Y) - 0.1 &&
+					    intersectY <= MathF.Max(rgvi.Y, rgvp2.Y) + 0.1) {
+						minDist = dist;
+						var seg = i;
+
+						pvOut.X = intersectX;
+						pvOut.Y = intersectY;
+						piSeg = seg;
+					}
+				}
+			}
+		}
+
 		private static bool AdvancePoint(IReadOnlyList<IRenderVertex> rgv, IReadOnlyList<int> poly, int a, int b, int c, int pre, int post)
 		{
 			var pv1 = rgv[a];
