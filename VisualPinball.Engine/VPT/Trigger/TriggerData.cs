@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		public override string Name { get; set; }
 
 		[BiffDragPoint("DPNT")]
-		public DragPoint[] DragPoints;
+		public DragPointData[] DragPoints;
 
 		[BiffVertex("VCEN")]
 		public Vertex2D Center;

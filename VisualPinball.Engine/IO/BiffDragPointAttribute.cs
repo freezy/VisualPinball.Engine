@@ -15,17 +15,17 @@ namespace VisualPinball.Engine.IO
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, DragPoint>(obj, writer, (w, v) => WriteDragpoint(w, v, hashWriter), hashWriter);
+			WriteValue<TItem, DragPointData>(obj, writer, (w, v) => WriteDragPoint(w, v, hashWriter), hashWriter, x => 0);
 		}
 
-		private static void WriteDragpoint(BinaryWriter writer, DragPoint value, HashWriter hashWriter)
+		private static void WriteDragPoint(BinaryWriter writer, BiffData value, HashWriter hashWriter)
 		{
 			value.Write(writer, hashWriter);
 		}
 
-		private static DragPoint ReadDragPoint(BinaryReader reader, int len)
+		private static DragPointData ReadDragPoint(BinaryReader reader, int len)
 		{
-			return new DragPoint(reader);
+			return new DragPointData(reader);
 		}
 	}
 }

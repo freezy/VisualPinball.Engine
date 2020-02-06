@@ -1,42 +1,11 @@
-#region ReSharper
-// ReSharper disable UnassignedField.Global
-// ReSharper disable StringLiteralTypo
-// ReSharper disable FieldCanBeMadeReadOnly.Global
-// ReSharper disable ConvertToConstant.Global
-// ReSharper disable CompareOfFloatsByEqualityOperator
-#endregion
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using VisualPinball.Engine.IO;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Math
 {
-	public class DragPoint : BiffData
+	static internal class DragPoint
 	{
-		[BiffVertex("VCEN")]
-		public Vertex3D Vertex;
-
-		[BiffFloat("POSZ")]
-		public float PosZ { set => Vertex.Z = value; }
-
-		[BiffBool("SMTH")]
-		public bool IsSmooth;
-
-		[BiffBool("SLNG")]
-		public bool IsSlingshot;
-
-		[BiffBool("ATEX")]
-		public bool HasAutoTexture;
-
-		[BiffFloat("TEXC")]
-		public float TextureCoord;
-
-		public float CalcHeight;
-
-		public static TVertex[] GetRgVertex<TVertex, TCatmullCurveFactory>(DragPoint[] dragPoints, bool loop = true, float accuracy = 4.0f) where TVertex : IRenderVertex, new() where TCatmullCurveFactory : ICatmullCurveFactory<TVertex>, new()
+		public static TVertex[] GetRgVertex<TVertex, TCatmullCurveFactory>(DragPointData[] dragPoints, bool loop = true, float accuracy = 4.0f) where TVertex : IRenderVertex, new() where TCatmullCurveFactory : ICatmullCurveFactory<TVertex>, new()
 		// 4 = maximum precision that we allow for
 		{
 			var vertices = new List<TVertex>();
@@ -92,7 +61,7 @@ namespace VisualPinball.Engine.Math
 			return vertices.ToArray();
 		}
 
-		public static float[] GetTextureCoords(DragPoint[] dragPoints, IRenderVertex[] vv)
+		public static float[] GetTextureCoords(DragPointData[] dragPoints, IRenderVertex[] vv)
 		{
 			var texPoints = new List<int>();
 			var renderPoints = new List<int>();
@@ -231,31 +200,6 @@ namespace VisualPinball.Engine.Math
 			var cross = vMid.Clone().Sub(v1).Cross(v2.Clone().Sub(v1));
 			var areaSq = cross.LengthSq();
 			return areaSq < accuracy;
-		}
-
-		#region Data
-		static DragPoint()
-		{
-			Init(typeof(DragPoint), Attributes);
-		}
-
-		public DragPoint(BinaryReader reader) : base(null)
-		{
-			Load(this, reader, Attributes);
-		}
-
-		public override void Write(BinaryWriter writer, HashWriter hashWriter)
-		{
-			Write(writer, Attributes, hashWriter);
-			WriteEnd(writer, hashWriter);
-		}
-
-		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
-		#endregion
-
-		public override string ToString()
-		{
-			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
 	}
 }

@@ -84,6 +84,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Decals.Select(i => i.Data))
 			.Concat(DispReels.Values.Select(i => i.Data))
 			.Concat(Flippers.Values.Select(i => i.Data))
+			.Concat(Flashers.Values.Select(i => i.Data))
 			.Concat(Gates.Values.Select(i => i.Data))
 			.Concat(HitTargets.Values.Select(i => i.Data))
 			.Concat(Kickers.Values.Select(i => i.Data))

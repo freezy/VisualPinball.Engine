@@ -16,64 +16,74 @@ namespace VisualPinball.Engine.VPT.Flasher
 {
 	public class FlasherData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 10)]
 		public override string Name { get; set; }
 
-		[BiffFloat("FHEI")]
+		[BiffFloat("FHEI", Pos = 1)]
 		public float Height = 50.0f;
 
-		[BiffFloat("FLAX")] public float PosX { set => Center.X = value; }
-		[BiffFloat("FLAY")] public float PosY { set => Center.Y = value; }
-
+		[BiffFloat("FLAX", Pos = 2)] public float PosX { set => Center.X = value; get => Center.X; }
+		[BiffFloat("FLAY", Pos = 3)] public float PosY { set => Center.Y = value; get => Center.Y; }
 		public Vertex2D Center = new Vertex2D();
 
-		[BiffFloat("FROX")]
+		[BiffFloat("FROX", Pos = 4)]
 		public float RotX = 0.0f;
 
-		[BiffFloat("FROY")]
+		[BiffFloat("FROY", Pos = 5)]
 		public float RotY = 0.0f;
 
-		[BiffFloat("FROZ")]
+		[BiffFloat("FROZ", Pos = 6)]
 		public float RotZ = 0.0f;
 
-		[BiffColor("COLR")]
+		[BiffColor("COLR", Pos = 7)]
 		public Color Color = new Color(0xfffffff, ColorFormat.Bgr);
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 11)]
 		public string ImageA;
 
-		[BiffString("IMAB")]
+		[BiffString("IMAB", Pos = 12)]
 		public string ImageB;
 
-		[BiffInt("FALP", Min = 0)]
+		[BiffInt("FALP", Min = 0, Pos = 13)]
 		public int Alpha = 100;
 
-		[BiffFloat("MOVA")]
+		[BiffFloat("MOVA", Pos = 14)]
 		public float ModulateVsAdd = 0.9f;
 
-		[BiffBool("FVIS")]
+		[BiffBool("FVIS", Pos = 15)]
 		public bool IsVisible = true;
 
-		[BiffBool("ADDB")]
+		[BiffBool("ADDB", Pos = 17)]
 		public bool AddBlend = false;
 
-		[BiffBool("IDMD")]
-		public bool IsDMD = false;
+		[BiffBool("IDMD", Pos = 18)]
+		public bool IsDmd = false;
 
-		[BiffBool("DSPT")]
+		[BiffBool("DSPT", Pos = 16)]
 		public bool DisplayTexture = false;
 
-		[BiffFloat("FLDB")]
+		[BiffFloat("FLDB", Pos = 19)]
 		public float DepthBias = 0.0f;
 
-		[BiffInt("ALGN")]
+		[BiffInt("ALGN", Pos = 20)]
 		public int ImageAlignment = VisualPinball.Engine.VPT.ImageAlignment.ImageAlignTopLeft;
 
-		[BiffInt("FILT")]
+		[BiffInt("FILT", Pos = 21)]
 		public int Filter = Filters.Filter_Overlay;
 
-		[BiffInt("FIAM")]
+		[BiffInt("FIAM", Pos = 22)]
 		public int FilterAmount = 100;
+
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
+		public DragPointData[] DragPoints;
+
+		[BiffBool("TMON", Pos = 8)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 9)]
+		public int TimerInterval;
+
+		protected override bool SkipHash() => true;
 
 		#region BIFF
 

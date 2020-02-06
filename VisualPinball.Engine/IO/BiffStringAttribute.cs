@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.IO
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, string>(obj, writer, WriteString, hashWriter, len => IsStreaming ? 0 : len);
+			WriteValue<TItem, string>(obj, writer, WriteString, hashWriter, len => LengthAfterTag ? 0 : len);
 		}
 
 		private string ReadString(BinaryReader reader, int len)
@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.IO
 					var explicitLength = reader.ReadInt32();
 					bytes = reader.ReadBytes(explicitLength).ToArray();
 				} else {
-					bytes = IsStreaming ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
+					bytes = LengthAfterTag ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
 				}
 			}
 			return Encoding.ASCII.GetString(bytes);

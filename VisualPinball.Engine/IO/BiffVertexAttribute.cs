@@ -8,6 +8,7 @@ namespace VisualPinball.Engine.IO
 	public class BiffVertexAttribute : BiffAttribute
 	{
 		public bool IsPadded = false;
+		public bool WriteAsVertex2D = false;
 
 		public BiffVertexAttribute(string name) : base(name) { }
 
@@ -58,9 +59,11 @@ namespace VisualPinball.Engine.IO
 		{
 			writer.Write(value.X);
 			writer.Write(value.Y);
-			writer.Write(value.Z);
-			if (IsPadded) {
-				writer.Write(0f);
+			if (!WriteAsVertex2D) {
+				writer.Write(value.Z);
+				if (IsPadded) {
+					writer.Write(0f);
+				}
 			}
 		}
 	}
