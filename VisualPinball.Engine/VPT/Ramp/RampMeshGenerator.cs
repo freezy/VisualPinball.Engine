@@ -605,7 +605,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return result;
 		}
 
-		private RenderVertex3D[] GetCentralCurve(Table.Table table, float acc = -1.0f)
+		public RenderVertex3D[] GetCentralCurve(Table.Table table, float acc = -1.0f)
 		{
 			float accuracy;
 
