@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class GateData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true, Pos = 17)]
+		[BiffString("NAME", IsWideString = true, Pos = 18)]
 		public override string Name { get; set; }
 
 		[BiffFloat("GAMA", Pos = 12)]
@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffFloat("GFRC", Pos = 14)]
 		public float Friction = 0.02f;
 
-		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate, Pos = 20)]
+		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate, Pos = 21)]
 		public int GateType = VisualPinball.Engine.VPT.GateType.GateWireW;
 
 		[BiffFloat("GGFC", Pos = 16)]
@@ -45,10 +45,10 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffBool("GCOL", Pos = 8)]
 		public bool IsCollidable = true;
 
-		[BiffBool("REEN", Pos = 19)]
+		[BiffBool("REEN", Pos = 20)]
 		public bool IsReflectionEnabled = true;
 
-		[BiffBool("GVSB")]
+		[BiffBool("GVSB", Pos = 17)]
 		public bool IsVisible = true;
 
 		[BiffFloat("LGTH", Pos = 2)]
@@ -66,7 +66,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffString("SURF", Pos = 10)]
 		public string Surface;
 
-		[BiffBool("TWWA", Pos = 18)]
+		[BiffBool("TWWA", Pos = 19)]
 		public bool TwoWay = false;
 
 		[BiffVertex("VCEN", Pos = 1)]

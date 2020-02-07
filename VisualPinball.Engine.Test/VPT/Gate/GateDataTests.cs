@@ -15,6 +15,16 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			ValidateGateData(table.Gates["Data"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteGateData()
+		{
+			const string tmpFileName = "ShouldWriteGateData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateGateData(writtenTable.Gates["Data"].Data);
+		}
+
 		private static void ValidateGateData(GateData data) {
 			Assert.Equal(90f, MathF.RadToDeg(data.AngleMax));
 			Assert.Equal(0f, MathF.RadToDeg(data.AngleMin));

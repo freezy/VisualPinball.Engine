@@ -15,6 +15,16 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 			ValidateSpinnerData(table.Spinners["Data"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteSpinnerData()
+		{
+			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateSpinnerData(writtenTable.Spinners["Data"].Data);
+		}
+
 		private static void ValidateSpinnerData(SpinnerData data)
 		{
 			Assert.Equal(50.698f, data.AngleMax);

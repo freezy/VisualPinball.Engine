@@ -14,6 +14,16 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 			ValidateHitTargetData(table.HitTargets["Data"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteHitTargetData()
+		{
+			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateHitTargetData(writtenTable.HitTargets["Data"].Data);
+		}
+
 		private static void ValidateHitTargetData(HitTargetData data)
 		{
 			Assert.Equal(0.651f, data.DepthBias);

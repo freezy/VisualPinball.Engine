@@ -13,6 +13,16 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			ValidateRubberData(table.Rubbers["Rubber1"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteRubberData()
+		{
+			const string tmpFileName = "ShouldWriteRubberData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateRubberData(writtenTable.Rubbers["Rubber1"].Data);
+		}
+
 		private static void ValidateRubberData(RubberData data)
 		{
 			Assert.Equal(3, data.DragPoints.Length);

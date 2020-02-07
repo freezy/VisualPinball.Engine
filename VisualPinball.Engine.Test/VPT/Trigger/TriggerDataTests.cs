@@ -14,6 +14,16 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 			ValidateTriggerData(table.Triggers["Data"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteTriggerData()
+		{
+			const string tmpFileName = "ShouldWriteTriggerData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateTriggerData(writtenTable.Triggers["Data"].Data);
+		}
+
 		private static void ValidateTriggerData(TriggerData data)
 		{
 			Assert.Equal(12.432f, data.AnimSpeed);

@@ -14,6 +14,16 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			ValidateRampData(table.Ramps["FlatL"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteRampData()
+		{
+			const string tmpFileName = "ShouldWriteRampData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateRampData(writtenTable.Ramps["FlatL"].Data);
+		}
+
 		private static void ValidateRampData(RampData data)
 		{
 			Assert.Equal(0.11254f, data.DepthBias);
