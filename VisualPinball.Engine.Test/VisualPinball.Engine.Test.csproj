@@ -217,6 +217,7 @@
     <Compile Include="VPT\LightSeq\LightSeqDataTests.cs" />
     <Compile Include="VPT\Light\LightDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
+    <Compile Include="VPT\Plunger\PlungerDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveMeshTests.cs" />
     <Compile Include="VPT\Ramp\RampDataTests.cs" />
