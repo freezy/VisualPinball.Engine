@@ -1,5 +1,4 @@
 ﻿using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Xunit;
 using Xunit.Abstractions;

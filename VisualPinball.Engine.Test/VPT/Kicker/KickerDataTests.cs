@@ -14,6 +14,16 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			ValidateKickerData(table.Kickers["Data"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteKickerData()
+		{
+			const string tmpFileName = "ShouldWriteKickerData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateKickerData(writtenTable.Kickers["Data"].Data);
+		}
+
 		private static void ValidateKickerData(KickerData data)
 		{
 			Assert.Equal(781.6662f, data.Center.X);

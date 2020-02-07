@@ -15,6 +15,16 @@ namespace VisualPinball.Engine.Test.VPT.Light
 			ValidateLightData(table.Lights["Light1"].Data);
 		}
 
+		[Fact]
+		public void ShouldWriteLightData()
+		{
+			const string tmpFileName = "ShouldWriteLightData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateLightData(writtenTable.Lights["Light1"].Data);
+		}
+
 		private static void ValidateLightData(LightData data)
 		{
 			Assert.Equal(126, data.BlinkInterval);

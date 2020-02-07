@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffFloat("PIDB", Pos = 20)]
 		public float DepthBias;
 
-		[BiffFloat("DILB", Pos = 28)]
+		[BiffFloat("DILB", Pos = 18)]
 		public float DisableLightingBelow;
 
 		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 17)]
@@ -84,10 +84,10 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffBool("HTEV", Pos = 10)]
 		public bool UseHitEvent = true;
 
-		[BiffVertex("VPOS", Pos = 1)]
+		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
 		public Vertex3D Position = new Vertex3D();
 
-		[BiffVertex("VSIZ", Pos = 2)]
+		[BiffVertex("VSIZ", IsPadded = true, Pos = 2)]
 		public Vertex3D Size = new Vertex3D(32, 32, 32);
 
 		[BiffBool("TMON", Pos = 23)]
