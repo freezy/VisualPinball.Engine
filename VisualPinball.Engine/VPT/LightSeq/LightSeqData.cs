@@ -23,8 +23,8 @@ namespace VisualPinball.Engine.VPT.LightSeq
 		[BiffVertex("VCEN", Index = 0, Pos = 1)]
 		public Vertex2D V = new Vertex2D();
 
-		[BiffVertex("CTRX", Index = 0, Pos = 3)]
-		[BiffVertex("CTRY", Index = 1, Pos = 4)]
+		[BiffFloat("CTRX", Pos = 3)] public float PosX { set => Center.X = value; get => Center.X; }
+		[BiffFloat("CTRY", Pos = 4)] public float PosY { set => Center.Y = value; get => Center.Y; }
 		public Vertex2D Center = new Vertex2D();
 
 		[BiffInt("UPTM", Pos = 5)]
@@ -38,6 +38,17 @@ namespace VisualPinball.Engine.VPT.LightSeq
 
 		[BiffInt("TMIN", Pos = 7)]
 		public int TimerInterval;
+
+		protected override bool SkipWrite(BiffAttribute attr)
+		{
+			// this is probably a bug in VP...
+			switch (attr.Name) {
+				case "LOCK":
+				case "LAYR":
+					return true;
+			}
+			return false;
+		}
 
 		#region BIFF
 

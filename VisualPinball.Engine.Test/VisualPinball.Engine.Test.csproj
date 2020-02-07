@@ -214,6 +214,7 @@
     <Compile Include="VPT\HitTarget\HitTargetDataTests.cs" />
     <Compile Include="VPT\Kicker\KickerDataTests.cs" />
     <Compile Include="VPT\Kicker\KickerMeshTests.cs" />
+    <Compile Include="VPT\LightSeq\LightSeqDataTests.cs" />
     <Compile Include="VPT\Light\LightDataTests.cs" />
     <Compile Include="VPT\MaterialDataTests.cs" />
     <Compile Include="VPT\Primitive\PrimitiveDataTests.cs" />
