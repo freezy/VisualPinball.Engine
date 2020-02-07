@@ -116,8 +116,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffInt("TMIN", Pos = 11)]
 		public int TimerInterval;
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static FlipperData()

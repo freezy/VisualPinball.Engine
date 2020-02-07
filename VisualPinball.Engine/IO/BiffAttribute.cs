@@ -65,11 +65,6 @@ namespace VisualPinball.Engine.IO
 		public bool SkipWrite = false;
 
 		/// <summary>
-		/// If true, don't read this tag when computing the table's checksum.
-		/// </summary>
-		//public bool SkipHash = false;
-
-		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }

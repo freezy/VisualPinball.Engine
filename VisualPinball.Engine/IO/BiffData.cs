@@ -50,7 +50,7 @@ namespace VisualPinball.Engine.IO
 		{
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				Write(writer, !SkipHash() ? hashWriter : null);
+				Write(writer, hashWriter);
 				return stream.ToArray();
 			}
 		}
@@ -176,15 +176,6 @@ namespace VisualPinball.Engine.IO
 		}
 
 		protected virtual bool SkipWrite(BiffAttribute attr)
-		{
-			return false;
-		}
-
-		/// <summary>
-		/// Override this if you want to skip hashing an entire data type.
-		/// </summary>
-		/// <returns>True if to skip, default false</returns>
-		protected virtual bool SkipHash()
 		{
 			return false;
 		}
