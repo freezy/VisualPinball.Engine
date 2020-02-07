@@ -15,47 +15,53 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class SpinnerData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 16)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("ROTA")]
+		[BiffFloat("ROTA", Pos = 2)]
 		public float Rotation = 0f;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 13)]
 		public string Material;
 
-		[BiffBool("SSUP")]
+		[BiffBool("SSUP", Pos = 12)]
 		public bool ShowBracket = true;
 
-		[BiffFloat("HIGH")]
+		[BiffFloat("HIGH", Pos = 5)]
 		public float Height = 60f;
 
-		[BiffFloat("LGTH")]
+		[BiffFloat("LGTH", Pos = 6)]
 		public float Length = 80f;
 
-		[BiffFloat("AFRC")]
+		[BiffFloat("AFRC", Pos = 7)]
 		public float Damping;
 
-		[BiffFloat("SMAX")]
+		[BiffFloat("SMAX", Pos = 8)]
 		public float AngleMax = 0f;
 
-		[BiffFloat("SMIN")]
+		[BiffFloat("SMIN", Pos = 9)]
 		public float AngleMin = 0f;
 
-		[BiffFloat("SELA")]
+		[BiffFloat("SELA", Pos = 10)]
 		public float Elasticity;
 
-		[BiffBool("SVIS")]
+		[BiffBool("SVIS", Pos = 11)]
 		public bool IsVisible = true;
 
-		[BiffString("IMGF")]
+		[BiffString("IMGF", Pos = 14)]
 		public string Image;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 15)]
 		public string Surface;
+
+		[BiffBool("TMON", Pos = 3)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 4)]
+		public int TimerInterval;
 
 		#region BIFF
 

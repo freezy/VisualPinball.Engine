@@ -16,44 +16,50 @@ namespace VisualPinball.Engine.VPT.Kicker
 {
 	public class KickerData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public override string Name { get; set; }
 
-		[BiffInt("TYPE")]
+		[BiffInt("TYPE", Pos = 9)]
 		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("RADI")]
+		[BiffFloat("RADI", Pos = 2)]
 		public float Radius = 25f;
 
-		[BiffFloat("KSCT")]
+		[BiffFloat("KSCT", Pos = 10)]
 		public float Scatter = 0.0f;
 
-		[BiffFloat("KHAC")]
+		[BiffFloat("KHAC", Pos = 11)]
 		public float HitAccuracy = 0.7f;
 
-		[BiffFloat("KHHI")]
+		[BiffFloat("KHHI", Pos = 12)]
 		public float HitHeight = 40.0f;
 
-		[BiffFloat("KORI")]
+		[BiffFloat("KORI", Pos = 13)]
 		public float Orientation = 0.0f;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 6)]
 		public string Surface;
 
-		[BiffBool("FATH")]
+		[BiffBool("FATH", Pos = 14)]
 		public bool FallThrough = false;
 
-		[BiffBool("EBLD")]
+		[BiffBool("EBLD", Pos = 7)]
 		public bool IsEnabled = true;
 
-		[BiffBool("LEMO")]
+		[BiffBool("LEMO", Pos = 15)]
 		public bool LegacyMode = false;
+
+		[BiffBool("TMON", Pos = 3)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 4)]
+		public int TimerInterval;
 
 		#region BIFF
 

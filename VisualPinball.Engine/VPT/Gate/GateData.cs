@@ -15,62 +15,68 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class GateData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 17)]
 		public override string Name { get; set; }
 
-		[BiffFloat("GAMA")]
+		[BiffFloat("GAMA", Pos = 12)]
 		public float AngleMax = MathF.PI / 2.0f;
 
-		[BiffFloat("GAMI")]
+		[BiffFloat("GAMI", Pos = 13)]
 		public float AngleMin = 0f;
 
-		[BiffFloat("AFRC")]
+		[BiffFloat("AFRC", Pos = 15)]
 		public float Damping = 0.985f;
 
-		[BiffFloat("ELAS")]
+		[BiffFloat("ELAS", Pos = 11)]
 		public float Elasticity = 0.3f;
 
-		[BiffFloat("GFRC")]
+		[BiffFloat("GFRC", Pos = 14)]
 		public float Friction = 0.02f;
 
-		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate)]
+		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate, Pos = 20)]
 		public int GateType = VisualPinball.Engine.VPT.GateType.GateWireW;
 
-		[BiffFloat("GGFC")]
+		[BiffFloat("GGFC", Pos = 16)]
 		public float GravityFactor = 0.25f;
 
-		[BiffFloat("HGTH")]
+		[BiffFloat("HGTH", Pos = 3)]
 		public float Height = 50f;
 
-		[BiffBool("GCOL")]
+		[BiffBool("GCOL", Pos = 8)]
 		public bool IsCollidable = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 19)]
 		public bool IsReflectionEnabled = true;
 
 		[BiffBool("GVSB")]
 		public bool IsVisible = true;
 
-		[BiffFloat("LGTH")]
+		[BiffFloat("LGTH", Pos = 2)]
 		public float Length = 100f;
 
-		[BiffFloat("ROTA")]
+		[BiffFloat("ROTA", Pos = 4)]
 		public float Rotation = -90f;
 
-		[BiffBool("GSUP")]
+		[BiffBool("GSUP", Pos = 7)]
 		public bool ShowBracket = true;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 10)]
 		public string Surface;
 
-		[BiffBool("TWWA")]
+		[BiffBool("TWWA", Pos = 18)]
 		public bool TwoWay = false;
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
+
+		[BiffBool("TMON", Pos = 6)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 9)]
+		public int TimerInterval;
 
 		#region BIFF
 

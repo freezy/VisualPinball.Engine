@@ -15,53 +15,59 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class TriggerData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 14)]
 		public override string Name { get; set; }
 
-		[BiffDragPoint("DPNT")]
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("RADI")]
+		[BiffFloat("RADI", Pos = 2)]
 		public float Radius = 25f;
 
-		[BiffFloat("ROTA")]
+		[BiffFloat("ROTA", Pos = 3)]
 		public float Rotation = 0f;
 
-		[BiffFloat("SCAX")]
+		[BiffFloat("SCAX", Pos = 5)]
 		public float ScaleX = 1f;
 
-		[BiffFloat("SCAY")]
+		[BiffFloat("SCAY", Pos = 6)]
 		public float ScaleY = 1f;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 10)]
 		public string Material;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 9)]
 		public string Surface;
 
-		[BiffBool("VSBL")]
+		[BiffBool("VSBL", Pos = 12)]
 		public bool IsVisible = true;
 
-		[BiffBool("EBLD")]
+		[BiffBool("EBLD", Pos = 11)]
 		public bool IsEnabled = true;
 
-		[BiffFloat("THOT")]
+		[BiffFloat("THOT", Pos = 13)]
 		public float HitHeight = 50f;
 
-		[BiffInt("SHAP")]
+		[BiffInt("SHAP", Pos = 15)]
 		public int Shape = TriggerShape.TriggerWireA;
 
-		[BiffFloat("ANSP")]
+		[BiffFloat("ANSP", Pos = 16)]
 		public float AnimSpeed = 1f;
 
-		[BiffFloat("WITI")]
+		[BiffFloat("WITI", Pos = 4)]
 		public float WireThickness = 0f;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 17)]
 		public bool IsReflectionEnabled = true;
+
+		[BiffBool("TMON", Pos = 7)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 8)]
+		public int TimerInterval;
 
 		#region BIFF
 

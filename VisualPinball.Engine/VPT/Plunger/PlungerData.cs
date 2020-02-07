@@ -14,95 +14,101 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 23)]
 		public override string Name { get; set; }
 
-		[BiffInt("TYPE")]
+		[BiffInt("TYPE", Pos = 8)]
 		public int Type = PlungerType.PlungerTypeModern;
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("WDTH")]
+		[BiffFloat("WDTH", Pos = 2)]
 		public float Width = 25f;
 
-		[BiffFloat("HIGH")]
+		[BiffFloat("HIGH", Pos = 3)]
 		public float Height = 20f;
 
-		[BiffFloat("ZADJ")]
+		[BiffFloat("ZADJ", Pos = 4)]
 		public float ZAdjust;
 
-		[BiffFloat("HPSL")]
+		[BiffFloat("HPSL", Pos = 5)]
 		public float Stroke;
 
-		[BiffFloat("SPDP")]
+		[BiffFloat("SPDP", Pos = 6)]
 		public float SpeedPull = 0.5f;
 
-		[BiffFloat("SPDF")]
+		[BiffFloat("SPDF", Pos = 7)]
 		public float SpeedFire = 80f;
 
-		[BiffFloat("MEST")]
+		[BiffFloat("MEST", Pos = 12)]
 		public float MechStrength = 85f;
 
-		[BiffFloat("MPRK")]
+		[BiffFloat("MPRK", Pos = 15)]
 		public float ParkPosition = 0.5f / 3.0f;
 
-		[BiffFloat("PSCV")]
+		[BiffFloat("PSCV", Pos = 16)]
 		public float ScatterVelocity = 0f;
 
-		[BiffFloat("MOMX")]
+		[BiffFloat("MOMX", Pos = 17)]
 		public float MomentumXfer = 1f;
 
-		[BiffBool("MECH")]
+		[BiffBool("MECH", Pos = 13)]
 		public bool MechPlunger = false;
 
-		[BiffBool("APLG")]
+		[BiffBool("APLG", Pos = 14)]
 		public bool AutoPlunger = false;
 
-		[BiffInt("ANFR")]
+		[BiffInt("ANFR", Pos = 9)]
 		public int AnimFrames;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 10)]
 		public string Material;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 11)]
 		public string Image;
 
-		[BiffBool("VSBL")]
+		[BiffBool("VSBL", Pos = 20)]
 		public bool IsVisible = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 21)]
 		public bool IsReflectionEnabled = true;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 22)]
 		public string Surface;
 
-		[BiffString("TIPS")]
+		[BiffString("TIPS", Pos = 24)]
 		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
 
-		[BiffFloat("RODD")]
+		[BiffFloat("RODD", Pos = 25)]
 		public float RodDiam = 0.6f;
 
-		[BiffFloat("RNGG")]
+		[BiffFloat("RNGG", Pos = 26)]
 		public float RingGap = 2.0f;
 
-		[BiffFloat("RNGD")]
+		[BiffFloat("RNGD", Pos = 27)]
 		public float RingDiam = 0.94f;
 
-		[BiffFloat("RNGW")]
+		[BiffFloat("RNGW", Pos = 28)]
 		public float RingWidth = 3.0f;
 
-		[BiffFloat("SPRD")]
+		[BiffFloat("SPRD", Pos = 29)]
 		public float SpringDiam = 0.77f;
 
-		[BiffFloat("SPRG")]
+		[BiffFloat("SPRG", Pos = 30)]
 		public float SpringGauge = 1.38f;
 
-		[BiffFloat("SPRL")]
+		[BiffFloat("SPRL", Pos = 31)]
 		public float SpringLoops = 8.0f;
 
-		[BiffFloat("SPRE")]
+		[BiffFloat("SPRE", Pos = 32)]
 		public float SpringEndLoops = 2.5f;
+
+		[BiffBool("TMON", Pos = 18)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 19)]
+		public int TimerInterval;
 
 		public Color Color = new Color(0x4c4c4cf, ColorFormat.Bgr);
 

@@ -14,14 +14,20 @@ namespace VisualPinball.Engine.VPT.Timer
 {
 	public class TimerData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 4)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffBool("BGLS")]
+		[BiffBool("BGLS", Pos = 5)]
 		public bool Backglass = false;
+
+		[BiffBool("TMON", Pos = 2)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 3)]
+		public int TimerInterval;
 
 		#region BIFF
 

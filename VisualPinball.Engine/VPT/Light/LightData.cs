@@ -15,86 +15,92 @@ namespace VisualPinball.Engine.VPT.Light
 {
 	public class LightData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 15)]
 		public override string Name { get; set; }
 
-		[BiffVertex("VCEN")]
+		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[BiffFloat("RADI")]
+		[BiffFloat("RADI", Pos = 2)]
 		public float Falloff = 50f;
 
-		[BiffFloat("FAPO")]
+		[BiffFloat("FAPO", Pos = 3)]
 		public float FalloffPower = 2f;
 
-		[BiffInt("STAT")]
+		[BiffInt("STAT", Pos = 4)]
 		public int State = LightStatus.LightStateOff;
 
-		[BiffColor("COLR")]
+		[BiffColor("COLR", Pos = 5)]
 		public Color Color = new Color(0xffff00, ColorFormat.Argb);
 
-		[BiffColor("COL2")]
+		[BiffColor("COL2", Pos = 6)]
 		public Color Color2 = new Color(0xffffff, ColorFormat.Argb);
 
-		[BiffString("IMG1")]
+		[BiffString("IMG1", Pos = 10)]
 		public string OffImage;
 
-		[BiffBool("SHAP")]
+		[BiffBool("SHAP", SkipWrite = true)]
 		public bool IsRoundLight = false;
 
-		[BiffString("BPAT")]
+		[BiffString("BPAT", Pos = 9)]
 		public string BlinkPattern = "0";
 
-		[BiffInt("BINT")]
+		[BiffInt("BINT", Pos = 11)]
 		public int BlinkInterval = 125;
 
-		[BiffFloat("BWTH")]
+		[BiffFloat("BWTH", Pos = 12)]
 		public float Intensity = 1f;
 
-		[BiffFloat("TRMS")]
+		[BiffFloat("TRMS", Pos = 13)]
 		public float TransmissionScale = 0f;
 
-		[BiffString("SURF")]
+		[BiffString("SURF", Pos = 14)]
 		public string Surface;
 
-		[BiffBool("BGLS")]
+		[BiffBool("BGLS", Pos = 16)]
 		public bool IsBackglass = false;
 
-		[BiffFloat("LIDB")]
+		[BiffFloat("LIDB", Pos = 17)]
 		public float DepthBias;
 
-		[BiffFloat("FASP")]
+		[BiffFloat("FASP", Pos = 18)]
 		public float FadeSpeedUp = 0.2f;
 
-		[BiffFloat("FASD")]
+		[BiffFloat("FASD", Pos = 19)]
 		public float FadeSpeedDown = 0.2f;
 
-		[BiffBool("BULT")]
+		[BiffBool("BULT", Pos = 20)]
 		public bool IsBulbLight = false;
 
-		[BiffBool("IMMO")]
+		[BiffBool("IMMO", Pos = 21)]
 		public bool IsImageMode = false;
 
-		[BiffBool("SHBM")]
+		[BiffBool("SHBM", Pos = 22)]
 		public bool ShowBulbMesh = false;
 
-		[BiffBool("STBM")]
+		[BiffBool("STBM", Pos = 22)]
 		public bool HasStaticBulbMesh = false;
 
-		[BiffBool("SHRB")]
+		[BiffBool("SHRB", Pos = 23)]
 		public bool ShowReflectionOnBall = true;
 
-		[BiffFloat("BMSC")]
+		[BiffFloat("BMSC", Pos = 24)]
 		public float MeshRadius = 20f;
 
-		[BiffFloat("BMVA")]
+		[BiffFloat("BMVA", Pos = 25)]
 		public float BulbModulateVsAdd = 0.9f;
 
-		[BiffFloat("BHHI")]
+		[BiffFloat("BHHI", Pos = 26)]
 		public float BulbHaloHeight = 28f;
 
-		[BiffDragPoint("DPNT")]
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;
+
+		[BiffBool("TMON", Pos = 7)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 8)]
+		public int TimerInterval;
 
 		#region BIFF
 
