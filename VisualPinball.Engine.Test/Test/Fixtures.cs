@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string HitTarget = @"..\..\VPT\HitTarget\HitTargetTest.vpx";
 		public const string Kicker = @"..\..\VPT\Kicker\KickerTest.vpx";
 		public const string Light = @"..\..\VPT\Light\LightTest.vpx";
+		public const string LightSeq = @"..\..\VPT\LightSeq\LightSeqTest.vpx";
 		public const string Material = @"..\..\VPT\MaterialTest.vpx";
 		public const string MaterialTexture = @"..\..\VPT\MaterialTextureTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
