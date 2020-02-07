@@ -8,11 +8,10 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 	public class PrimitiveDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadPrimitiveData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
-			var data = table.Primitives["Cube"].Data;
-			ValidateTableData(data);
+			ValidatePrimitiveData(table.Primitives["Cube"].Data);
 		}
 
 		[Fact]
@@ -22,10 +21,10 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.Primitives["Cube"].Data);
+			ValidatePrimitiveData(writtenTable.Primitives["Cube"].Data);
 		}
 
-		private static void ValidateTableData(PrimitiveData data)
+		private static void ValidatePrimitiveData(PrimitiveData data)
 		{
 			Assert.Equal(false, data.BackfacesEnabled);
 			Assert.Equal(0.6119f, data.CollisionReductionFactor);

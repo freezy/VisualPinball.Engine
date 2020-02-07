@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.Test.VPT.Sound
 	public class SoundDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadSoundData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Sound);
 			ValidateSoundData(table.Sounds["fx_bumper3"].Data);

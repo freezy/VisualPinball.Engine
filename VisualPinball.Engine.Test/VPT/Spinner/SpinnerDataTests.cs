@@ -1,6 +1,7 @@
 ﻿using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Spinner;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Spinner
@@ -8,11 +9,14 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 	public class SpinnerDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadSpinnerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
-			var data = table.Spinners["Data"].Data;
+			ValidateSpinnerData(table.Spinners["Data"].Data);
+		}
 
+		private static void ValidateSpinnerData(SpinnerData data)
+		{
 			Assert.Equal(50.698f, data.AngleMax);
 			Assert.Equal(-12.87f, data.AngleMin);
 			Assert.Equal(494f, data.Center.X);

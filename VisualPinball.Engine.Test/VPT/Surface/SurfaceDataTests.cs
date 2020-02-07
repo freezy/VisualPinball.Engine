@@ -1,4 +1,5 @@
 ﻿using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Surface;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
@@ -6,11 +7,14 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 	public class SurfaceDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadSurfaceData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
-			var data = table.Surfaces["TopInvisible"].Data;
+			ValidateSurfaceData(table.Surfaces["TopInvisible"].Data);
+		}
 
+		private static void ValidateSurfaceData(SurfaceData data)
+		{
 			Assert.Equal(0.6985f, data.DisableLightingBelow);
 			Assert.InRange(data.DisableLightingTop, 0.129f, 0.13f);
 			Assert.Equal(false, data.DisplayTexture); // editor only

@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.HitTarget;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.HitTarget
@@ -7,11 +8,14 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 	public class HitTargetDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadHitTargetData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
-			var data = table.HitTargets["Data"].Data;
+			ValidateHitTargetData(table.HitTargets["Data"].Data);
+		}
 
+		private static void ValidateHitTargetData(HitTargetData data)
+		{
 			Assert.Equal(0.651f, data.DepthBias);
 			Assert.Equal(0.1932f, data.DisableLightingBelow);
 			Assert.Equal(0.2f, data.DisableLightingTop);

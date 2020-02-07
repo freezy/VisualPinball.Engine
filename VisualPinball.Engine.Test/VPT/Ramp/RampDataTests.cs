@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Ramp;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
@@ -7,11 +8,14 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 	public class RampDataTests
 	{
 		[Fact]
-		public void ShouldLoadWallData()
+		public void ShouldReadRampData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
-			var data = table.Ramps["FlatL"].Data;
+			ValidateRampData(table.Ramps["FlatL"].Data);
+		}
 
+		private static void ValidateRampData(RampData data)
+		{
 			Assert.Equal(0.11254f, data.DepthBias);
 			Assert.Equal(3, data.DragPoints.Length);
 			Assert.Equal(0.2643f, data.Elasticity);

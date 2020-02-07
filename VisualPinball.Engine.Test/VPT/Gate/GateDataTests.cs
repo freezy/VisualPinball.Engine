@@ -1,6 +1,7 @@
 ﻿using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Gate;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Gate
@@ -8,11 +9,13 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 	public class GateDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadGateData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
-			var data = table.Gates["Data"].Data;
+			ValidateGateData(table.Gates["Data"].Data);
+		}
 
+		private static void ValidateGateData(GateData data) {
 			Assert.Equal(90f, MathF.RadToDeg(data.AngleMax));
 			Assert.Equal(0f, MathF.RadToDeg(data.AngleMin));
 			Assert.Equal(769f, data.Center.X);

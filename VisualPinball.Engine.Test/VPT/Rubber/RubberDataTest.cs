@@ -1,4 +1,5 @@
 ﻿using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Rubber;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Rubber
@@ -6,13 +7,14 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 	public class RubberDataTest
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadRubberData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
-			var data = table.Rubbers["Rubber1"].Data;
+			ValidateRubberData(table.Rubbers["Rubber1"].Data);
+		}
 
-			table.Rubbers["Rubber1"].GetRenderObjects(table);
-
+		private static void ValidateRubberData(RubberData data)
+		{
 			Assert.Equal(3, data.DragPoints.Length);
 			Assert.Equal(0.832f, data.Elasticity);
 			Assert.Equal(0.321f, data.ElasticityFalloff);

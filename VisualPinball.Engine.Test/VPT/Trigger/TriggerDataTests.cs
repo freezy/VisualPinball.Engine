@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Trigger;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Trigger
@@ -7,11 +8,14 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 	public class TriggerDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadTriggerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
-			var data = table.Triggers["Data"].Data;
+			ValidateTriggerData(table.Triggers["Data"].Data);
+		}
 
+		private static void ValidateTriggerData(TriggerData data)
+		{
 			Assert.Equal(12.432f, data.AnimSpeed);
 			Assert.Equal(542.732f, data.Center.X);
 			Assert.Equal(1875.182f, data.Center.Y);
