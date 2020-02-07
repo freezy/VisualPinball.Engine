@@ -13,11 +13,10 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 		public TextBoxDataTest(ITestOutputHelper output) : base(output) { }
 
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadTextBoxData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
-			var data = table.TextBoxes["TextBox001"].Data;
-			ValidateTableData(data);
+			ValidateTableData(table.TextBoxes["TextBox001"].Data);
 		}
 
 		[Fact]
@@ -30,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 			ValidateTableData(writtenTable.TextBoxes["TextBox001"].Data);
 		}
 
-		private void ValidateTableData(TextBoxData data)
+		private static void ValidateTableData(TextBoxData data)
 		{
 			Assert.Equal(TextAlignment.TextAlignCenter, data.Align);
 			Assert.Equal(0, data.BackColor.Red);

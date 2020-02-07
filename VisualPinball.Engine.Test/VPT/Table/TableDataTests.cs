@@ -13,14 +13,14 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		public TableDataTests(ITestOutputHelper output) : base(output) { }
 
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadTableData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
 			ValidateTableData(table.Data);
 		}
 
 		[Fact]
-		public void ShouldLoadCorrectTableInfo()
+		public void ShouldReadTableInfo()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
 
@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		}
 
 		[Fact]
-		public void ShouldWriteTable()
+		public void ShouldWriteTableData()
 		{
 			const string tmpFileName = "ShouldWriteTable.vpx";
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);

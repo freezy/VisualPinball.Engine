@@ -1,6 +1,7 @@
 ﻿using System;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Light;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Light
@@ -8,11 +9,14 @@ namespace VisualPinball.Engine.Test.VPT.Light
 	public class LightDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadLightData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
-			var data = table.Lights["Light1"].Data;
+			ValidateLightData(table.Lights["Light1"].Data);
+		}
 
+		private static void ValidateLightData(LightData data)
+		{
 			Assert.Equal(126, data.BlinkInterval);
 			Assert.Equal("10011", data.BlinkPattern);
 			Assert.Equal(28.298f, data.BulbHaloHeight);

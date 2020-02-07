@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Kicker;
 using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Kicker
@@ -7,11 +8,14 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 	public class KickerDataTests
 	{
 		[Fact]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadKickerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
-			var data = table.Kickers["Data"].Data;
+			ValidateKickerData(table.Kickers["Data"].Data);
+		}
 
+		private static void ValidateKickerData(KickerData data)
+		{
 			Assert.Equal(781.6662f, data.Center.X);
 			Assert.Equal(1585f, data.Center.Y);
 			Assert.Equal(true, data.FallThrough);
