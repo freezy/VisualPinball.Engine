@@ -89,7 +89,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 			// 2. game items
 			foreach (var writeable in _table.GameItems.OrderBy(gi => gi.StorageIndex)) {
-				writeable.WriteData(_gameStorage, hashWriter);
+				writeable.WriteData(_gameStorage);
 			}
 
 			// 3. Collections

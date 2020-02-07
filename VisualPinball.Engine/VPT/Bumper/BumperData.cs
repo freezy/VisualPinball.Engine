@@ -93,8 +93,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static BumperData()

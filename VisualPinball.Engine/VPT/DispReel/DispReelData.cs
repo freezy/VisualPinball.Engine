@@ -79,8 +79,6 @@ namespace VisualPinball.Engine.VPT.DispReel
 
 		public float BoxHeight => Height + ReelSpacing + ReelSpacing; // spacing also includes edges
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static DispReelData()

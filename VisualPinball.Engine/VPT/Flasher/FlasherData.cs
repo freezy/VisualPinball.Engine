@@ -83,8 +83,6 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffInt("TMIN", Pos = 9)]
 		public int TimerInterval;
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static FlasherData()

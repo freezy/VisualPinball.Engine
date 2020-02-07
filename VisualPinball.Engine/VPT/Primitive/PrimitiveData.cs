@@ -155,8 +155,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return false;
 		}
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static PrimitiveData()

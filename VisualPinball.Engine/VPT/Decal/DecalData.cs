@@ -60,8 +60,6 @@ namespace VisualPinball.Engine.VPT.Decal
 		[BiffFont("FONT", Pos = 2000)]
 		public Font Font;
 
-		protected override bool SkipHash() => true;
-
 		#region BIFF
 
 		static DecalData()
