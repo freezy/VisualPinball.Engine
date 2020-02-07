@@ -15,95 +15,101 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class SurfaceData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 16)]
 		public override string Name { get; set; }
 
-		[BiffBool("HTEV")]
+		[BiffBool("HTEV", Pos = 1)]
 		public bool HitEvent = false;
 
-		[BiffBool("DROP")]
+		[BiffBool("DROP", Pos = 2)]
 		public bool IsDroppable = false;
 
-		[BiffBool("FLIP")]
+		[BiffBool("FLIP", Pos = 3)]
 		public bool IsFlipbook = false;
 
-		[BiffBool("ISBS")]
+		[BiffBool("ISBS", Pos = 4)]
 		public bool IsBottomSolid = false;
 
-		[BiffBool("CLDW")]
+		[BiffBool("CLDW", Pos = 5)]
 		public bool IsCollidable = true;
 
-		[BiffFloat("THRS")]
+		[BiffFloat("THRS", Pos = 8)]
 		public float Threshold = 2.0f;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 9)]
 		public string Image;
 
-		[BiffString("SIMG")]
+		[BiffString("SIMG", Pos = 10)]
 		public string SideImage;
 
-		[BiffString("SIMA")]
+		[BiffString("SIMA", Pos = 11)]
 		public string SideMaterial;
 
-		[BiffString("TOMA")]
+		[BiffString("TOMA", Pos = 12)]
 		public string TopMaterial;
 
-		[BiffString("MAPH")]
+		[BiffString("MAPH", Pos = 29)]
 		public string PhysicsMaterial;
 
-		[BiffString("SLMA")]
+		[BiffString("SLMA", Pos = 13)]
 		public string SlingShotMaterial;
 
-		[BiffFloat("HTBT")]
+		[BiffFloat("HTBT", Pos = 14)]
 		public float HeightBottom = 0f;
 
-		[BiffFloat("HTTP")]
+		[BiffFloat("HTTP", Pos = 15)]
 		public float HeightTop = 50f;
 
-		[BiffBool("INNR")]
+		[BiffBool("INNR", SkipWrite = true)]
 		public bool Inner = true;
 
-		[BiffBool("DSPT")]
+		[BiffBool("DSPT", Pos = 17)]
 		public bool DisplayTexture = false;
 
-		[BiffFloat("SLGF")]
+		[BiffFloat("SLGF", Pos = 18)]
 		public float SlingshotForce = 80f;
 
-		[BiffFloat("SLTH")]
+		[BiffFloat("SLTH", Pos = 19)]
 		public float SlingshotThreshold = 0f;
 
-		[BiffBool("SLGA")]
+		[BiffBool("SLGA", Pos = 24)]
 		public bool SlingshotAnimation = true;
 
-		[BiffFloat("ELAS")]
+		[BiffFloat("ELAS", Pos = 20)]
 		public float Elasticity;
 
-		[BiffFloat("WFCT")]
+		[BiffFloat("WFCT", Pos = 21)]
 		public float Friction;
 
-		[BiffFloat("WSCT")]
+		[BiffFloat("WSCT", Pos = 22)]
 		public float Scatter;
 
-		[BiffBool("VSBL")]
+		[BiffBool("VSBL", Pos = 23)]
 		public bool IsTopBottomVisible = true;
 
-		[BiffBool("OVPH")]
+		[BiffBool("OVPH", Pos = 30)]
 		public bool OverwritePhysics = true;
 
-		[BiffFloat("DILI", QuantizedUnsignedBits = 8)]
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 26)]
 		public float DisableLightingTop;
 
-		[BiffFloat("DILB")]
+		[BiffFloat("DILB", Pos = 27)]
 		public float DisableLightingBelow;
 
-		[BiffBool("SVBL")]
+		[BiffBool("SVBL", Pos = 25)]
 		public bool IsSideVisible = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 28)]
 		public bool IsReflectionEnabled = true;
 
-		[BiffDragPoint("DPNT")]
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;
+
+		[BiffBool("TMON", Pos = 6)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 7)]
+		public int TimerInterval;
 
 		#region BIFF
 

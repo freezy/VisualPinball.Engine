@@ -15,92 +15,98 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class RampData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 9)]
 		public override string Name { get; set; }
 
-		[BiffFloat("RADB")]
+		[BiffFloat("RADB", Pos = 24)]
 		public float DepthBias = 0f;
 
-		[BiffDragPoint("DPNT")]
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;
 
-		[BiffFloat("ELAS")]
+		[BiffFloat("ELAS", Pos = 19)]
 		public float Elasticity;
 
-		[BiffFloat("RFCT")]
+		[BiffFloat("RFCT", Pos = 20)]
 		public float Friction;
 
-		[BiffBool("HTEV")]
+		[BiffBool("HTEV", Pos = 17)]
 		public bool HitEvent = false;
 
-		[BiffFloat("HTBT")]
+		[BiffFloat("HTBT", Pos = 1)]
 		public float HeightBottom = 0f;
 
-		[BiffFloat("HTTP")]
+		[BiffFloat("HTTP", Pos = 2)]
 		public float HeightTop = 50f;
 
-		[BiffInt("ALGN")]
+		[BiffInt("ALGN", Pos = 11)]
 		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
 
-		[BiffBool("IMGW")]
+		[BiffBool("IMGW", Pos = 12)]
 		public bool ImageWalls = true;
 
-		[BiffBool("CLDR")]
+		[BiffBool("CLDR", Pos = 22)]
 		public bool IsCollidable = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 28)]
 		public bool IsReflectionEnabled = true;
 
-		[BiffBool("RVIS")]
+		[BiffBool("RVIS", Pos = 23)]
 		public bool IsVisible = true;
 
-		[BiffFloat("WLHL")]
+		[BiffFloat("WLHL", Pos = 13)]
 		public float LeftWallHeight = 62f;
 
-		[BiffFloat("WVHL")]
+		[BiffFloat("WVHL", Pos = 15)]
 		public float LeftWallHeightVisible = 30f;
 
-		[BiffBool("OVPH")]
+		[BiffBool("OVPH", Pos = 30)]
 		public bool OverwritePhysics = true;
 
-		[BiffInt("TYPE")]
+		[BiffInt("TYPE", Pos = 8)]
 		public int RampType = VisualPinball.Engine.VPT.RampType.RampTypeFlat;
 
-		[BiffFloat("WLHR")]
+		[BiffFloat("WLHR", Pos = 14)]
 		public float RightWallHeight = 62f;
 
-		[BiffFloat("WVHR")]
+		[BiffFloat("WVHR", Pos = 16)]
 		public float RightWallHeightVisible = 30f;
 
-		[BiffFloat("RSCT")]
+		[BiffFloat("RSCT", Pos = 21)]
 		public float Scatter;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 10)]
 		public string Image;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
-		[BiffString("MAPH")]
+		[BiffString("MAPH", Pos = 29)]
 		public string PhysicsMaterial;
 
-		[BiffFloat("THRS")]
+		[BiffFloat("THRS", Pos = 18)]
 		public float Threshold;
 
-		[BiffFloat("WDBT")]
+		[BiffFloat("WDBT", Pos = 3)]
 		public float WidthBottom = 75f;
 
-		[BiffFloat("WDTP")]
+		[BiffFloat("WDTP", Pos = 4)]
 		public float WidthTop = 60f;
 
-		[BiffFloat("RADI")]
+		[BiffFloat("RADI", Pos = 25)]
 		public float WireDiameter = 8f;
 
-		[BiffFloat("RADX")]
+		[BiffFloat("RADX", Pos = 26)]
 		public float WireDistanceX = 38f;
 
-		[BiffFloat("RADY")]
+		[BiffFloat("RADY", Pos = 27)]
 		public float WireDistanceY = 88f;
+
+		[BiffBool("TMON", Pos = 6)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 7)]
+		public int TimerInterval;
 
 		#region BIFF
 

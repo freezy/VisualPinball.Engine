@@ -14,24 +14,30 @@ namespace VisualPinball.Engine.VPT.LightSeq
 {
 	public class LightSeqData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public override string Name { get; set; }
 
-		[BiffString("COLC", IsWideString = true)]
+		[BiffString("COLC", IsWideString = true, Pos = 2)]
 		public string Collection;
 
-		[BiffVertex("VCEN", Index = 0)]
+		[BiffVertex("VCEN", Index = 0, Pos = 1)]
 		public Vertex2D V = new Vertex2D();
 
-		[BiffVertex("CTRX", Index = 0)]
-		[BiffVertex("CTRY", Index = 1)]
+		[BiffVertex("CTRX", Index = 0, Pos = 3)]
+		[BiffVertex("CTRY", Index = 1, Pos = 4)]
 		public Vertex2D Center = new Vertex2D();
 
-		[BiffInt("UPTM")]
+		[BiffInt("UPTM", Pos = 5)]
 		public int UpdateInterval = 25;
 
-		[BiffBool("BGLS")]
+		[BiffBool("BGLS", Pos = 9)]
 		public bool Backglass = false;
+
+		[BiffBool("TMON", Pos = 6)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 7)]
+		public int TimerInterval;
 
 		#region BIFF
 

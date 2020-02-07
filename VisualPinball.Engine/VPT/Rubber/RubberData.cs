@@ -15,71 +15,78 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class RubberData : ItemData
 	{
-		[BiffString("NAME", IsWideString = true)]
+		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public override string Name { get; set; }
 
-		[BiffFloat("HTTP")]
+		[BiffFloat("HTTP", Pos = 1)]
 		public float Height = 25f;
 
-		[BiffFloat("HTHI")]
+		[BiffFloat("HTHI", Pos = 2)]
 		public float HitHeight = -1.0f;
 
-		[BiffInt("WDTP")]
+		[BiffInt("WDTP", Pos = 3)]
 		public int Thickness = 8;
 
-		[BiffBool("HTEV")]
+		[BiffBool("HTEV", Pos = 4)]
 		public bool HitEvent = false;
 
-		[BiffString("MATR")]
+		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
-		[BiffString("IMAG")]
+		[BiffString("IMAG", Pos = 9)]
 		public string Image;
 
-		[BiffFloat("ELAS")]
+		[BiffFloat("ELAS", Pos = 10)]
 		public float Elasticity;
 
-		[BiffFloat("ELFO")]
+		[BiffFloat("ELFO", Pos = 11)]
 		public float ElasticityFalloff;
 
-		[BiffFloat("RFCT")]
+		[BiffFloat("RFCT", Pos = 12)]
 		public float Friction;
 
-		[BiffFloat("RSCT")]
+		[BiffFloat("RSCT", Pos = 13)]
 		public float Scatter;
 
-		[BiffBool("CLDR")]
+		[BiffBool("CLDR", Pos = 14)]
 		public bool IsCollidable = true;
 
-		[BiffBool("RVIS")]
+		[BiffBool("RVIS", Pos = 15)]
 		public bool IsVisible = true;
 
-		[BiffBool("REEN")]
+		[BiffBool("REEN", Pos = 21)]
 		public bool IsReflectionEnabled = true;
 
-		[BiffBool("ESTR")]
+		[BiffBool("ESTR", Pos = 16)]
 		public bool StaticRendering = true;
 
-		[BiffBool("ESIE")]
+		[BiffBool("ESIE", Pos = 17)]
 		public bool ShowInEditor = true;
 
-		[BiffFloat("ROTX")]
+		[BiffFloat("ROTX", Pos = 18)]
 		public float RotX = 0f;
 
-		[BiffFloat("ROTY")]
+		[BiffFloat("ROTY", Pos = 19)]
 		public float RotY = 0f;
 
-		[BiffFloat("ROTZ")]
+		[BiffFloat("ROTZ", Pos = 20)]
 		public float RotZ = 0f;
 
-		[BiffString("MAPH")]
+		[BiffString("MAPH", Pos = 22)]
 		public string PhysicsMaterial;
 
-		[BiffBool("OVPH")]
+		[BiffBool("OVPH", Pos = 23)]
 		public bool OverwritePhysics = false;
 
-		[BiffDragPoint("DPNT")]
+		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;
+
+		[BiffBool("TMON", Pos = 6)]
+		public bool IsTimerEnabled;
+
+		[BiffInt("TMIN", Pos = 7)]
+		public int TimerInterval;
+
 
 		#region BIFF
 
