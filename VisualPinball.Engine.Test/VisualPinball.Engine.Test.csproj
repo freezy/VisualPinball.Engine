@@ -235,6 +235,7 @@
     <Compile Include="VPT\TextureBitmapTests.cs" />
     <Compile Include="VPT\TextureDataTests.cs" />
     <Compile Include="VPT\MaterialTextureTests.cs" />
+    <Compile Include="VPT\Timer\TimerDataTests.cs" />
     <Compile Include="VPT\Trigger\TriggerDataTests.cs" />
     <Compile Include="VPT\Trigger\TriggerMeshTests.cs" />
   </ItemGroup>

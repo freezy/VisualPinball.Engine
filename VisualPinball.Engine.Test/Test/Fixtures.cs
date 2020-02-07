@@ -27,6 +27,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string TableChecksum = @"..\..\VPT\Table\TableChecksumTest.vpx";
 		public const string TextBox = @"..\..\VPT\Textbox\TextboxTest.vpx";
 		public const string Texture = @"..\..\VPT\TextureTest.vpx";
+		public const string Timer = @"..\..\VPT\Timer\TimerTest.vpx";
 		public const string Trigger = @"..\..\VPT\Trigger\TriggerTest.vpx";
 	}
 
