@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public float MomentumXfer = 1f;
 
 		[BiffBool("MECH", Pos = 13)]
-		public bool MechPlunger = false;
+		public bool IsMechPlunger = false;
 
 		[BiffBool("APLG", Pos = 14)]
 		public bool AutoPlunger = false;

@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.Test.Test
 		public const string LightSeq = @"..\..\VPT\LightSeq\LightSeqTest.vpx";
 		public const string Material = @"..\..\VPT\MaterialTest.vpx";
 		public const string MaterialTexture = @"..\..\VPT\MaterialTextureTest.vpx";
+		public const string Plunger = @"..\..\VPT\Plunger\PlungerTest.vpx";
 		public const string Primitive = @"..\..\VPT\Primitive\PrimitiveTest.vpx";
 		public const string PrimitiveCompressed = @"..\..\VPT\Primitive\PrimitiveCompressed.vpx";
 		public const string Ramp = @"..\..\VPT\Ramp\RampTest.vpx";
