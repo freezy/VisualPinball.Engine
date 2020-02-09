@@ -11,7 +11,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	{
 		void HandleTextureData(Texture texture);
 		void ImportTextures(IEnumerable<Texture> textures);
-		Texture2D LoadTexture(Texture texture);
+		Texture2D LoadTexture(Texture texture, bool asNormalMap);
 		void SaveMaterial(PbrMaterial material, Material unityMaterial);
 		void OnMaterialsSaved(PbrMaterial[] materials);
 		Material LoadMaterial(PbrMaterial material);

@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Extensions
 			if (vpxMaterial.HasMap) {
 				unityMaterial.SetTexture(
 					MainTex,
-					assetHandler.LoadTexture(vpxMaterial.Map)
+					assetHandler.LoadTexture(vpxMaterial.Map, false)
 				);
 			}
 
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Extensions
 				unityMaterial.EnableKeyword("_NORMALMAP");
 				unityMaterial.SetTexture(
 					BumpMap,
-					assetHandler.LoadTexture(vpxMaterial.NormalMap)
+					assetHandler.LoadTexture(vpxMaterial.NormalMap, true)
 				);
 			}
 
