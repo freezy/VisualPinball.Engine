@@ -1,15 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
+﻿using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity.Components
 {
 	public abstract class ItemComponent<TItem, TData> : MonoBehaviour where TData : ItemData where TItem : Item<TData>, IRenderable
 	{

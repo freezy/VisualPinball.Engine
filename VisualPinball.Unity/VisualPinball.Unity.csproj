@@ -60,6 +60,7 @@
     <Compile Include="Components\VisualPinballFlipper.cs" />
     <Compile Include="Components\ItemComponent.cs" />
     <Compile Include="Components\VisualPinballTable.cs" />
+    <Compile Include="Editor\VpxExporter.cs" />
     <Compile Include="Extensions\Color.cs" />
     <Compile Include="Extensions\FlipperExtension.cs" />
     <Compile Include="Extensions\Light.cs" />

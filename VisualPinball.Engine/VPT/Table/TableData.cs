@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
-
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -433,6 +431,7 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 	}
 
+	[Serializable]
 	public class LightSource {
 		public Color Emission;
 		public Vertex3D Pos;
