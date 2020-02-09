@@ -14,6 +14,8 @@ materials correctly. You can either do a full import, meaning Unity will
 generate its own assets for an imported table, a quick import which only loads
 it into memory, or drag a `.vpx` file into Unity directly.
 
+![Monster Bash in Unity](mb_unity_teaser.jpg)
+
 It currently uses the built-in renderer, but will also be compatible with
 Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/index.html)
 

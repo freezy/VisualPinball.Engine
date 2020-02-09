@@ -1,4 +1,4 @@
-# Visual Pinball Engine for C#
+# Visual Pinball Engine
 
 *A library that implements world's favorite pinball simulator.*
 
@@ -40,10 +40,6 @@ will add functionality to VPE.
 
 More concretely, we include a bridge library that allows you to render VPE in
 Unity. More on that [here](VisualPinball.Unity).
-
-![Monster Bash in Unity](mb_unity_teaser.jpg)
-
-<small>A render of Monster Bash in Unity, imported from a `.vpx` file.</small>
 
 ## Current Status
 
