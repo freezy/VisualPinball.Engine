@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			AssetDatabase.ImportAsset(_textureFolder, ImportAssetOptions.ImportRecursive);
 		}
 
-		public Texture2D LoadTexture(Texture texture)
+		public Texture2D LoadTexture(Texture texture, bool asNormalMap)
 		{
 			return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
 		}
