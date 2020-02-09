@@ -23,7 +23,8 @@ Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.
 
 When you compile the solution, grab the produced DLLs of this project (all
 but the `Unity*` dependencies), and copy them to your Unity project's asset
-folder.
+folder. You can also point the `VPE_UNITY_SCRIPTS` environment variable to
+your Unity asset folder, and building the project will do this automatically.
 
 You'll then have a *Visual Pinball* menu in the Unity editor where you can 
 import `.vpx` files. You'll be also able to drag and drop `.vpx` files into 
