@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return new RenderObject(
 				name,
 				asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
-				new PbrMaterial(table.GetMaterial(_data.Material)),
+				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 				_data.IsVisible
 			);
 		}
