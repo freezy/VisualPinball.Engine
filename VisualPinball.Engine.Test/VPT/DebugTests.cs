@@ -1,6 +1,4 @@
-using System.IO;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT.Table;
 using Xunit;
 using Xunit.Abstractions;
 

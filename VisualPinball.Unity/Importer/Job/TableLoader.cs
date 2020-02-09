@@ -114,6 +114,7 @@ namespace VisualPinball.Unity.Importer.Job
 					}
 				}
 			}
+			table.SetupPlayfieldMesh();
 			job.Dispose();
 
 			return table;
