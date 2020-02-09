@@ -65,18 +65,25 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			// nothing to do
 		}
 
+		/// <summary>
+		/// When importing via disk, we set TextureImporter.textureType = TextureImporterType.NormalMap. We don't have
+		/// an importer when importing into memory, so we need to do that manually.
+		///
+		/// Basically, we need to re-map the UV values of the texture to DXT5nm which is what Unity uses for PC and
+		/// consoles platforms.
+		/// </summary>
+		/// <param name="map"></param>
+		/// <returns></returns>
 		private static Texture2D NormalMap(Texture2D map) {
 			var normalTexture = new Texture2D(map.width, map.height, TextureFormat.ARGB32, false, true);
-			var normalColor = new UnityEngine.Color();
-			for (var x = 0; x < map.width; x++) {
-				for (var y = 0; y < map.height; y++) {
-					normalColor.r = 1;
-					normalColor.g = map.GetPixel(x, y).g;
-					normalColor.b = 0;
-					normalColor.a = map.GetPixel(x, y).r;
-					normalTexture.SetPixel(x, y, normalColor);
-				}
+			var normalTexturePixels = map.GetPixels32();
+			foreach (var t in normalTexturePixels) {
+				var c = t;
+				c.a = c.r;
+				c.r = 1;
+				c.b = 0;
 			}
+			normalTexture.SetPixels32(normalTexturePixels);
 			normalTexture.Apply();
 			return normalTexture;
 		}
