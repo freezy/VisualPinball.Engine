@@ -1,5 +1,6 @@
-﻿using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Editor;
+﻿// ReSharper disable ClassNeverInstantiated.Global
+
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Components
 {

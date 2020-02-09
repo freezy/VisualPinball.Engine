@@ -1,8 +1,11 @@
-﻿// ReSharper disable CompareOfFloatsByEqualityOperator
+﻿#region ReSharper
+// ReSharper disable CompareOfFloatsByEqualityOperator
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable MemberCanBePrivate.Global
+#endregion
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Components
 {
@@ -10,36 +13,36 @@ namespace VisualPinball.Unity.Components
 	public class VisualPinballFlipper : ItemComponent<Flipper, FlipperData>
 	{
 		[Header("Flipper")]
-		public float baseRadius;
-		public float endRadius;
-		public float length;
-		public float height;
+		public float BaseRadius;
+		public float EndRadius;
+		public float Length;
+		public float Height;
 
 		[Header("Rubber")]
-		public float rubberHeight;
-		public float rubberThickness;
-		public float rubberWidth;
+		public float RubberHeight;
+		public float RubberThickness;
+		public float RubberWidth;
 
 		protected override void OnFieldsUpdated()
 		{
-			data.BaseRadius = baseRadius;
-			data.EndRadius = endRadius;
-			data.FlipperRadius = length;
-			data.Height = height;
-			data.RubberHeight = rubberHeight;
-			data.RubberThickness = rubberThickness;
-			data.RubberWidth = rubberWidth;
+			data.BaseRadius = BaseRadius;
+			data.EndRadius = EndRadius;
+			data.FlipperRadius = Length;
+			data.Height = Height;
+			data.RubberHeight = RubberHeight;
+			data.RubberThickness = RubberThickness;
+			data.RubberWidth = RubberWidth;
 		}
 
 		protected override void OnDataSet()
 		{
-			baseRadius = data.BaseRadius;
-			endRadius = data.EndRadius;
-			length = data.FlipperRadius;
-			height = data.Height;
-			rubberHeight = data.RubberHeight;
-			rubberThickness = data.RubberThickness;
-			rubberWidth = data.RubberWidth;
+			BaseRadius = data.BaseRadius;
+			EndRadius = data.EndRadius;
+			Length = data.FlipperRadius;
+			Height = data.Height;
+			RubberHeight = data.RubberHeight;
+			RubberThickness = data.RubberThickness;
+			RubberWidth = data.RubberWidth;
 		}
 
 		protected override Flipper GetItem(FlipperData d)
@@ -54,13 +57,13 @@ namespace VisualPinball.Unity.Components
 
 		protected override bool ShouldRebuildMesh()
 		{
-			return baseRadius != data.BaseRadius ||
-			       endRadius != data.EndRadius ||
-			       length != data.FlipperRadius ||
-			       height != data.Height ||
-			       rubberHeight != data.RubberHeight ||
-			       rubberThickness != data.RubberThickness ||
-			       rubberWidth != data.RubberWidth;
+			return BaseRadius != data.BaseRadius ||
+			       EndRadius != data.EndRadius ||
+			       Length != data.FlipperRadius ||
+			       Height != data.Height ||
+			       RubberHeight != data.RubberHeight ||
+			       RubberThickness != data.RubberThickness ||
+			       RubberWidth != data.RubberWidth;
 		}
 	}
 }

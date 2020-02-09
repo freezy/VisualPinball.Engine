@@ -2,7 +2,6 @@
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Components;
-using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Extensions
 {
