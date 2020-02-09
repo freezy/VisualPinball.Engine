@@ -149,7 +149,7 @@ namespace VisualPinball.Engine.VPT.Table
 			return Data.BgScaleZ?[Data.BgCurrentSet] ?? 1.0f;
 		}
 
-		internal void SetupPlayfieldMesh()
+		public void SetupPlayfieldMesh()
 		{
 			if (Primitives.ContainsKey("playfield_mesh")) {
 				_meshGenerator.SetFromPrimitive(this, Primitives["playfield_mesh"]);

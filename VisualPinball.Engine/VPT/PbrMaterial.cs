@@ -17,7 +17,7 @@ namespace VisualPinball.Engine.VPT
 		public bool HasNormalMap => NormalMap != null;
 		public BlendMode MapBlendMode => GetBlendMode();
 
-		public Color Color => _material?.BaseColor ?? new Color(0xff00ff, ColorFormat.Bgr);
+		public Color Color => _material?.BaseColor ?? new Color(0xffffff, ColorFormat.Bgr);
 		public bool IsMetal => _material?.IsMetal ?? false;
 		public bool IsOpacityActive => _material?.IsOpacityActive ?? false;
 		public float Opacity => MathF.Min(1, MathF.Max(0, _material?.Opacity ?? 1f));
