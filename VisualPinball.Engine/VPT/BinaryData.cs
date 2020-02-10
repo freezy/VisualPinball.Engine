@@ -4,6 +4,7 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -12,6 +13,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT
 {
+	[Serializable]
 	public class BinaryData : ItemData, IImageData
 	{
 		public byte[] Bytes => Data;
@@ -29,6 +31,7 @@ namespace VisualPinball.Engine.VPT
 		[BiffInt("SIZE", Pos = 4)]
 		public int Size;
 
+		[NonSerialized]
 		[BiffByte("DATA", Pos = 5)]
 		public byte[] Data;
 

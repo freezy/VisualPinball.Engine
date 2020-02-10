@@ -14,6 +14,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
+	[Serializable]
 	public class PrimitiveData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true, Pos = 15)]

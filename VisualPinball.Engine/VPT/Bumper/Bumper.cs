@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.Bumper
 	{
 		private readonly BumperMeshGenerator _meshGenerator;
 
-		public Bumper(BinaryReader reader, string itemName) : base(new BumperData(reader, itemName))
+		public Bumper(BumperData data) : base(data)
 		{
 			_meshGenerator = new BumperMeshGenerator(Data);
 		}
+
+		public Bumper(BinaryReader reader, string itemName) : this(new BumperData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

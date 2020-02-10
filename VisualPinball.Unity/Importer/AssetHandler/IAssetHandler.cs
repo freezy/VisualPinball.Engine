@@ -9,6 +9,9 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 {
 	public interface IAssetHandler
 	{
+		string TextureFolder { get; }
+		string SoundFolder { get; }
+
 		void HandleTextureData(Texture texture);
 		void ImportTextures(IEnumerable<Texture> textures);
 		Texture2D LoadTexture(Texture texture, bool asNormalMap);

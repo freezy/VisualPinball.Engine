@@ -123,7 +123,7 @@ namespace VisualPinball.Engine.Common
 
 		public static string ToNormalizedName(this string name)
 		{
-			return Regex.Replace(name.RemoveDiacritics(), @"[^\w\d]+", "_").Trim('_').ToLower();
+			return Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").Trim('_').ToLower();
 		}
 	}
 }

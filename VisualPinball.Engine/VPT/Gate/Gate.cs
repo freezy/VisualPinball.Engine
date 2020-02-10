@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.Gate
 	{
 		private readonly GateMeshGenerator _meshGenerator;
 
-		public Gate(BinaryReader reader, string itemName) : base(new GateData(reader, itemName))
+		public Gate(GateData data) : base(data)
 		{
 			_meshGenerator = new GateMeshGenerator(Data);
 		}
+
+		public Gate(BinaryReader reader, string itemName) : this(new GateData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

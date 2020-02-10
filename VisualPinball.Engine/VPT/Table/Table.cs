@@ -128,6 +128,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public void Save(string fileName)
 		{
 			new TableWriter(this).WriteTable(fileName);
+			Logger.Info("File successfully saved to {0}.", fileName);
 		}
 
 		public Material GetMaterial(string name)

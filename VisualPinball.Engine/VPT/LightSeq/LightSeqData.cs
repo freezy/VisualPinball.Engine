@@ -4,6 +4,7 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -12,6 +13,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.LightSeq
 {
+	[Serializable]
 	public class LightSeqData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true, Pos = 8)]

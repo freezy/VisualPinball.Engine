@@ -9,10 +9,12 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
 
-		public Spinner(BinaryReader reader, string itemName) : base(new SpinnerData(reader, itemName))
+		public Spinner(SpinnerData data) : base(data)
 		{
 			_meshGenerator = new SpinnerMeshGenerator(Data);
 		}
+
+		public Spinner(BinaryReader reader, string itemName) : this(new SpinnerData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

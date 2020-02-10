@@ -64,7 +64,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 2. write custom tag names
-			_table.CustomInfoTags.WriteData(_gameStorage, hashWriter);
+			_table.CustomInfoTags?.WriteData(_gameStorage, hashWriter);
 
 			// 3. write custom tags
 			foreach (var tag in _table.CustomInfoTags?.TagNames ?? Array.Empty<string>()) {

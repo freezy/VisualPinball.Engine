@@ -23,6 +23,8 @@ namespace VisualPinball.Unity.Components
 		public float RubberThickness;
 		public float RubberWidth;
 
+		protected override string[] Children => new []{"Base", "Rubber"};
+
 		protected override void OnFieldsUpdated()
 		{
 			data.BaseRadius = BaseRadius;
@@ -45,14 +47,9 @@ namespace VisualPinball.Unity.Components
 			RubberWidth = data.RubberWidth;
 		}
 
-		protected override Flipper GetItem(FlipperData d)
+		protected override Flipper GetItem()
 		{
-			return new Flipper(d);
-		}
-
-		protected override string[] GetChildren()
-		{
-			return new[] {"Base", "Rubber"};
+			return new Flipper(data);
 		}
 
 		protected override bool ShouldRebuildMesh()

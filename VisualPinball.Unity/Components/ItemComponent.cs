@@ -14,15 +14,16 @@ namespace VisualPinball.Unity.Components
 		//[HideInInspector]
 		protected TData data;
 
-		protected TItem Item => _item ?? (_item = GetItem(data));
+		public TItem Item => _item ?? (_item = GetItem());
 		private TItem _item;
 
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
 		public void SetData(TData d)
 		{
+			name = d.Name;
 			data = d;
-			_item = GetItem(d);
+			_item = GetItem();
 			OnDataSet();
 		}
 
@@ -39,7 +40,7 @@ namespace VisualPinball.Unity.Components
 			}
 
 			var rog = Item.GetRenderObjects(table, Origin.Original, false);
-			var children = GetChildren();
+			var children = Children;
 			if (children == null) {
 				UpdateMesh(Item.Name, gameObject, rog);
 			} else {
@@ -51,10 +52,6 @@ namespace VisualPinball.Unity.Components
 
 		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)
 		{
-			if (go == null) {
-				_logger.Warn("Could not find game object to update.");
-				return;
-			}
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
 			if (ro == null) {
 				_logger.Warn("Cannot find mesh {0} in {1} {2}.", childName, typeof(TItem).Name, data.Name);
@@ -81,12 +78,12 @@ namespace VisualPinball.Unity.Components
 			return false;
 		}
 
-		protected abstract TItem GetItem(TData data);
+		protected abstract string[] Children { get; }
+
+		protected abstract TItem GetItem();
 
 		protected abstract void OnDataSet();
 
 		protected abstract void OnFieldsUpdated();
-
-		protected abstract string[] GetChildren();
 	}
 }

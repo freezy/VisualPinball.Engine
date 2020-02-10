@@ -1,5 +1,6 @@
 // ReSharper disable UnassignedField.Global
 
+using System;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT
@@ -10,6 +11,7 @@ namespace VisualPinball.Engine.VPT
 	/// Every playfield item has its own data class. They can currently
 	/// only read data.
 	/// </summary>
+	[Serializable]
 	public abstract class ItemData : BiffData
 	{
 		public abstract string Name { get; set; }

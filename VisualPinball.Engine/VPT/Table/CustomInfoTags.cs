@@ -3,12 +3,14 @@
 // ReSharper disable StringLiteralTypo
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 
 namespace VisualPinball.Engine.VPT.Table
 {
+	[Serializable]
 	public class CustomInfoTags : BiffData
 	{
 		[BiffString("CUST", TagAll = true)]
@@ -20,7 +22,11 @@ namespace VisualPinball.Engine.VPT.Table
 			Init(typeof(CustomInfoTags), Attributes);
 		}
 
-		public CustomInfoTags(BinaryReader reader) : base("CustomInfoTags")
+		public CustomInfoTags() : base("CustomInfoTags")
+		{
+		}
+
+		public CustomInfoTags(BinaryReader reader) : this()
 		{
 			Load(this, reader, Attributes);
 		}

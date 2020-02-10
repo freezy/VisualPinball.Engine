@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using NetVips;
@@ -56,9 +57,11 @@ namespace VisualPinball.Engine.VPT
 
 		private TextureStats _stats;
 
-		public Texture(BinaryReader reader, string itemName) : base(new TextureData(reader, itemName)) { }
+		public Texture(TextureData data) : base(data) { }
 
-		private Texture(Resource res) : base(new TextureData(res)) { }
+		public Texture(BinaryReader reader, string itemName) : this(new TextureData(reader, itemName)) { }
+
+		private Texture(Resource res) : this(new TextureData(res)) { }
 
 		public void Analyze()
 		{

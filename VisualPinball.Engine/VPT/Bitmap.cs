@@ -12,20 +12,22 @@ namespace VisualPinball.Engine.VPT
 	///
 	/// See "BaseTexture" class in VP.
 	/// </summary>
+	[Serializable]
 	public class Bitmap : IImageData
 	{
 		public const int RGBA = 0;
 		public const int RGB_FP = 1;
 
-		public byte[] Bytes => _data;
+		public byte[] Bytes => Data;
 		public byte[] FileContent => GetHeader().Concat(GetBody()).ToArray();
 
-		public readonly int Width;
-		public readonly int Height;
-		public readonly int Format;
+		public int Width;
+		public int Height;
+		public int Format;
+		[NonSerialized]
+		public byte[] Data;
 
 		private int _compressedLen;
-		private readonly byte[] _data;
 
 		public Bitmap(BinaryReader reader, int width, int height, int format = RGBA)
 		{
@@ -38,14 +40,14 @@ namespace VisualPinball.Engine.VPT
 			var pitch = Pitch();
 
 			var lzw = new LzwReader(compressed, width * 4, height, pitch);
-			lzw.Decompress(out _data, out _compressedLen);
+			lzw.Decompress(out Data, out _compressedLen);
 
 			var lenDiff = remainingLen - _compressedLen;
 			reader.BaseStream.Seek(-lenDiff, SeekOrigin.Current);
 
 			// Assume our 32 bit color structure
 			// Find out if all alpha values are zero
-			var pch = _data;
+			var pch = Data;
 			var allAlphaZero = true;
 			for (var i = 0; i < height && allAlphaZero; i++) {
 				for (var l = 0; l < width; l++) {
@@ -66,12 +68,12 @@ namespace VisualPinball.Engine.VPT
 				}
 			}
 
-			_data = ToggleRgbBgr(_data);
+			Data = ToggleRgbBgr(Data);
 		}
 
 		public void WriteCompressed(BinaryWriter writer)
 		{
-			var lzwWriter = new LzwWriter(writer, ToggleRgbBgr(_data), Width * 4, Height, Pitch());
+			var lzwWriter = new LzwWriter(writer, ToggleRgbBgr(Data), Width * 4, Height, Pitch());
 			lzwWriter.CompressBits(8 + 1);
 		}
 
@@ -112,10 +114,10 @@ namespace VisualPinball.Engine.VPT
 		{
 			var timer = new Stopwatch();
 			timer.Stop();
-			var body = new byte[_data.Length];
-			var lineSize = _data.Length / Height;
+			var body = new byte[Data.Length];
+			var lineSize = Data.Length / Height;
 			for (var i = Height - 1; i >= 0; i--) {
-				Array.Copy(_data, i * lineSize, body, (Height - i - 1) * lineSize, lineSize);
+				Array.Copy(Data, i * lineSize, body, (Height - i - 1) * lineSize, lineSize);
 			}
 			timer.Stop();
 			Console.WriteLine("Re-ordered after {0}ms", timer.ElapsedMilliseconds);

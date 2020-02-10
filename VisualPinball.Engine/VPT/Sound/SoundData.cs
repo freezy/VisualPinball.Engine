@@ -1,9 +1,11 @@
+using System;
 using System.IO;
 using System.Text;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Sound
 {
+	[Serializable]
 	public class SoundData : ItemData
 	{
 		public override string Name { get; set; }

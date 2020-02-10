@@ -8,10 +8,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 	{
 		private readonly RampMeshGenerator _meshGenerator;
 
-		public Ramp(BinaryReader reader, string itemName) : base(new RampData(reader, itemName))
+		public Ramp(RampData data) : base(data)
 		{
 			_meshGenerator = new RampMeshGenerator(Data);
 		}
+
+		public Ramp(BinaryReader reader, string itemName) : this(new RampData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

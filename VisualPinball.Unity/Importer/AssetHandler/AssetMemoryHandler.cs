@@ -19,9 +19,11 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	/// <param name="texture"></param>
 	public class AssetMemoryHandler : IAssetHandler
 	{
+		public string TextureFolder => null;
+		public string SoundFolder => null;
+
 		protected readonly Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
 		protected readonly Dictionary<string, Material> Materials = new Dictionary<string, Material>();
-
 
 		public void HandleTextureData(Texture texture)
 		{

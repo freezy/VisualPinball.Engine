@@ -50,7 +50,7 @@ namespace VisualPinball.Engine.IO
 
 		private void WriteString(BinaryWriter writer, string value)
 		{
-			var bytes = Encoding.Default.GetBytes(value);
+			var bytes = Encoding.Default.GetBytes(value ?? "");
 			if (IsWideString) {
 				bytes = bytes.SelectMany(b => new byte[] {b, 0x0}).ToArray();
 			}

@@ -5,6 +5,7 @@
 // ReSharper disable ConvertToConstant.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -13,6 +14,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Spinner
 {
+	[Serializable]
 	public class SpinnerData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true, Pos = 16)]

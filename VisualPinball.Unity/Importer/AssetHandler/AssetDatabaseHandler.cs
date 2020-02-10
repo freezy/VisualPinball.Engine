@@ -27,8 +27,10 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 	/// </summary>
 	public class AssetDatabaseHandler : IAssetHandler
 	{
+		public string TextureFolder { get; }
+		public string SoundFolder => null;
+
 		private readonly string _materialFolder;
-		private readonly string _textureFolder;
 		private readonly string _tablePrefabPath;
 		private readonly VpxAsset _asset;
 
@@ -39,9 +41,9 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 			// setup paths
 			var tableFolder = $"Assets/{Path.GetFileNameWithoutExtension(tablePath)?.Trim()}";
 			_materialFolder = $"{tableFolder}/Materials";
-			_textureFolder = $"{tableFolder}/Textures";
+			TextureFolder = $"{tableFolder}/Textures";
 			_tablePrefabPath = $"{tableFolder}/{table.Name.ToNormalizedName()}.prefab";
-			CreateFolders(tableFolder, _materialFolder, _textureFolder);
+			CreateFolders(tableFolder, _materialFolder, TextureFolder);
 
 			// setup game asset to save
 			var tableDataPath = $"{tableFolder}/{table.Name.ToNormalizedName()}_data.asset";
@@ -52,7 +54,7 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 
 		public void HandleTextureData(Texture texture)
 		{
-			var path = texture.GetUnityFilename(_textureFolder);
+			var path = texture.GetUnityFilename(TextureFolder);
 			File.WriteAllBytes(path, texture.FileContent);
 		}
 
@@ -60,17 +62,17 @@ namespace VisualPinball.Unity.Importer.AssetHandler
 		{
 			// set filename -> texture map for OnPreprocessTexture()
 			foreach (var texture in textures) {
-				var path = texture.GetUnityFilename(_textureFolder);
+				var path = texture.GetUnityFilename(TextureFolder);
 				TexturePostProcessor.Textures[path] = texture;
 			}
 
 			// now the assets are written to disk, explicitly import them
-			AssetDatabase.ImportAsset(_textureFolder, ImportAssetOptions.ImportRecursive);
+			AssetDatabase.ImportAsset(TextureFolder, ImportAssetOptions.ImportRecursive);
 		}
 
 		public Texture2D LoadTexture(Texture texture, bool asNormalMap)
 		{
-			return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(_textureFolder));
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(texture.GetUnityFilename(TextureFolder));
 		}
 
 		public void SaveMaterial(PbrMaterial material, Material unityMaterial)

@@ -16,10 +16,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 	{
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 
-		public Primitive(BinaryReader reader, string itemName) : base(new PrimitiveData(reader, itemName))
+		public Primitive(PrimitiveData data) : base(data)
 		{
 			_meshGenerator = new PrimitiveMeshGenerator(Data);
 		}
+
+		public Primitive(BinaryReader reader, string itemName) : this(new PrimitiveData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent)
 		{

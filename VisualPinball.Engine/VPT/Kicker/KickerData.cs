@@ -6,6 +6,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -14,6 +15,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
+	[Serializable]
 	public class KickerData : ItemData
 	{
 		[BiffString("NAME", IsWideString = true, Pos = 8)]

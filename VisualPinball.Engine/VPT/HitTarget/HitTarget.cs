@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	{
 		private readonly HitTargetMeshGenerator _meshGenerator;
 
-		public HitTarget(BinaryReader reader, string itemName) : base(new HitTargetData(reader, itemName))
+		public HitTarget(HitTargetData data) : base(data)
 		{
 			_meshGenerator = new HitTargetMeshGenerator(Data);
 		}
+
+		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
