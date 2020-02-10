@@ -10,10 +10,12 @@ namespace VisualPinball.Engine.VPT.Light
 
 		private readonly LightMeshGenerator _meshGenerator;
 
-		public Light(BinaryReader reader, string itemName) : base(new LightData(reader, itemName))
+		public Light(LightData data) : base(data)
 		{
 			_meshGenerator = new LightMeshGenerator(Data);
 		}
+
+		public Light(BinaryReader reader, string itemName) : this(new LightData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{

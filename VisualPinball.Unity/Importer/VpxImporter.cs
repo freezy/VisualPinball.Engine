@@ -5,11 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Importer.AssetHandler;
 using VisualPinball.Unity.Importer.Job;
@@ -65,8 +75,18 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			// add table component
-			_table.AddComponent(go);
+			// add table component (plus other data)
+			var component = go.AddComponent<VisualPinballTable>();
+			component.SetData(table.Data);
+			foreach (var key in table.TableInfo.Keys) {
+				component.TableInfo[key] = table.TableInfo[key];
+			}
+			component.TextureFolder = assetHandler.TextureFolder;
+			component.Textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			component.CustomInfoTags = table.CustomInfoTags;
+			component.Collections = table.Collections.Values.Select(d => d.Data).ToArray();
+			component.Decals = table.Decals.Select(d => d.Data).ToArray();
+			component.DispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
 		}
 
 		private void ImportTextures()
@@ -104,6 +124,7 @@ namespace VisualPinball.Unity.Importer
 			foreach (var vpxLight in _table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
 				var unityLight = vpxLight.ToUnityPointLight();
 				unityLight.transform.parent = lightsObj.transform;
+				unityLight.AddComponent<VisualPinballLight>().SetData(vpxLight.Data);
 			}
 		}
 
@@ -141,9 +162,19 @@ namespace VisualPinball.Unity.Importer
 				SetTransform(obj.transform, rog.TransformationMatrix.ToUnityMatrix());
 			}
 
-			if (rog.Parent == "Flippers") {
-				Logger.Info("Adding flipper component!");
-				(item as Flipper).AddComponent(obj);
+			// add unity component
+			switch (item) {
+				case Bumper bumper: obj.AddComponent<VisualPinballBumper>().SetData(bumper.Data); break;
+				case Flipper flipper: obj.AddComponent<VisualPinballFlipper>().SetData(flipper.Data); break;
+				case Gate gate: obj.AddComponent<VisualPinballGate>().SetData(gate.Data); break;
+				case HitTarget hitTarget: obj.AddComponent<VisualPinballHitTarget>().SetData(hitTarget.Data); break;
+				case Kicker kicker: obj.AddComponent<VisualPinballKicker>().SetData(kicker.Data); break;
+				case Primitive primitive: obj.AddComponent<VisualPinballPrimitive>().SetData(primitive.Data); break;
+				case Ramp ramp: obj.AddComponent<VisualPinballRamp>().SetData(ramp.Data); break;
+				case Rubber rubber: obj.AddComponent<VisualPinballRubber>().SetData(rubber.Data); break;
+				case Spinner spinner: obj.AddComponent<VisualPinballSpinner>().SetData(spinner.Data); break;
+				case Surface surface: obj.AddComponent<VisualPinballSurface>().SetData(surface.Data); break;
+				case Trigger trigger: obj.AddComponent<VisualPinballTrigger>().SetData(trigger.Data); break;
 			}
 		}
 

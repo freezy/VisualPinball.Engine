@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 	{
 		private readonly RubberMeshGenerator _meshGenerator;
 
-		public Rubber(BinaryReader reader, string itemName) : base(new RubberData(reader, itemName))
+		public Rubber(RubberData data) : base(data)
 		{
 			_meshGenerator = new RubberMeshGenerator(Data);
 		}
+
+		public Rubber(BinaryReader reader, string itemName) : this(new RubberData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

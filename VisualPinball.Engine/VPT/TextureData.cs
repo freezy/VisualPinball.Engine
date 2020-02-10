@@ -13,6 +13,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT
 {
+	[Serializable]
 	public class TextureData : ItemData
 	{
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]

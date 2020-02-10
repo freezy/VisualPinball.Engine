@@ -7,10 +7,12 @@ namespace VisualPinball.Engine.VPT.Trigger
 	{
 		private readonly TriggerMeshGenerator _meshGenerator;
 
-		public Trigger(BinaryReader reader, string itemName) : base(new TriggerData(reader, itemName))
+		public Trigger(TriggerData data) : base(data)
 		{
 			_meshGenerator = new TriggerMeshGenerator(Data);
 		}
+
+		public Trigger(BinaryReader reader, string itemName) : this(new TriggerData(reader, itemName)) { }
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

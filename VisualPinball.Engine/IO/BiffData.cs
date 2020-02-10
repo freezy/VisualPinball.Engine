@@ -18,11 +18,12 @@ namespace VisualPinball.Engine.IO
 	/// This statically indexes all fields and properties tagged with the Biff
 	/// Attribute.
 	/// </summary>
+	[Serializable]
 	public abstract class BiffData
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public readonly string StorageName;
+		public string StorageName;
 		public readonly int StorageIndex;
 		private readonly List<UnknownBiffRecord> _unknownRecords = new List<UnknownBiffRecord>();
 

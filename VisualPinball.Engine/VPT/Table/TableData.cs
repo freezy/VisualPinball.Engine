@@ -153,12 +153,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public Color LightAmbient;
 
 		[BiffInt("LZDI", Pos = 76)]
-		public int Light0Emission {
+		private int Light0Emission {
 			set => Light[0].Emission = new Color(value, ColorFormat.Bgr);
 			get => Light[0].Emission.Bgr;
 		}
-
-		public readonly LightSource[] Light = { new LightSource() };
+		public LightSource[] Light = { new LightSource() };
 
 		[BiffFloat("LZHI", Pos = 77)]
 		public float LightHeight;
@@ -259,57 +258,57 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffFloat("ROTA", Index = BackglassIndex.Desktop, Pos = 5)]
 		[BiffFloat("ROTF", Index = BackglassIndex.Fullscreen, Pos = 16)]
 		[BiffFloat("ROFS", Index = BackglassIndex.FullSingleScreen, Pos = 26)]
-		public readonly float[] BgRotation = new float[3];
+		public float[] BgRotation = new float[3];
 
 		[BiffFloat("LAYB", Index = BackglassIndex.Desktop, Pos = 7)]
 		[BiffFloat("LAYF", Index = BackglassIndex.Fullscreen, Pos = 18)]
 		[BiffFloat("LAFS", Index = BackglassIndex.FullSingleScreen, Pos = 28)]
-		public readonly float[] BgLayback = new float[3];
+		public float[] BgLayback = new float[3];
 
 		[BiffFloat("INCL", Index = BackglassIndex.Desktop, Pos = 6)]
 		[BiffFloat("INCF", Index = BackglassIndex.Fullscreen, Pos = 17)]
 		[BiffFloat("INFS", Index = BackglassIndex.FullSingleScreen, Pos = 27)]
-		public readonly float[] BgInclination = new float[3];
+		public float[] BgInclination = new float[3];
 
 		[BiffFloat("FOVX", Index = BackglassIndex.Desktop, Pos = 8)]
 		[BiffFloat("FOVF", Index = BackglassIndex.Fullscreen, Pos = 19)]
 		[BiffFloat("FOFS", Index = BackglassIndex.FullSingleScreen, Pos = 29)]
-		public readonly float[] BgFov = new float[3];
+		public float[] BgFov = new float[3];
 
 		[BiffFloat("SCLX", Index = BackglassIndex.Desktop, Pos = 12)]
 		[BiffFloat("SCFX", Index = BackglassIndex.Fullscreen, Pos = 23)]
 		[BiffFloat("SCXS", Index = BackglassIndex.FullSingleScreen, Pos = 33)]
-		public readonly float[] BgScaleX = new float[3];
+		public float[] BgScaleX = new float[3];
 
 		[BiffFloat("SCLY", Index = BackglassIndex.Desktop, Pos = 13)]
 		[BiffFloat("SCFY", Index = BackglassIndex.Fullscreen, Pos = 24)]
 		[BiffFloat("SCYS", Index = BackglassIndex.FullSingleScreen, Pos = 34)]
-		public readonly float[] BgScaleY = new float[3];
+		public float[] BgScaleY = new float[3];
 
 		[BiffFloat("SCLZ", Index = BackglassIndex.Desktop, Pos = 14)]
 		[BiffFloat("SCFZ", Index = BackglassIndex.Fullscreen, Pos = 25)]
 		[BiffFloat("SCZS", Index = BackglassIndex.FullSingleScreen, Pos = 35)]
-		public readonly float[] BgScaleZ = new float[3];
+		public float[] BgScaleZ = new float[3];
 
 		[BiffFloat("XLTX", Index = BackglassIndex.Desktop, Pos = 9)]
 		[BiffFloat("XLFX", Index = BackglassIndex.Fullscreen, Pos = 20)]
 		[BiffFloat("XLXS", Index = BackglassIndex.FullSingleScreen, Pos = 30)]
-		public readonly float[] BgOffsetX = new float[3];
+		public float[] BgOffsetX = new float[3];
 
 		[BiffFloat("XLTY", Index = BackglassIndex.Desktop, Pos = 10)]
 		[BiffFloat("XLFY", Index = BackglassIndex.Fullscreen, Pos = 21)]
 		[BiffFloat("XLYS", Index = BackglassIndex.FullSingleScreen, Pos = 31)]
-		public readonly float[] BgOffsetY = new float[3];
+		public float[] BgOffsetY = new float[3];
 
 		[BiffFloat("XLTZ", Index = BackglassIndex.Desktop, Pos = 11)]
 		[BiffFloat("XLFZ", Index = BackglassIndex.Fullscreen, Pos = 22)]
 		[BiffFloat("XLZS", Index = BackglassIndex.FullSingleScreen, Pos = 32)]
-		public readonly float[] BgOffsetZ = new float[3];
+		public float[] BgOffsetZ = new float[3];
 
 		[BiffString("BIMG", Index = BackglassIndex.Desktop, Pos = 60)]
 		[BiffString("BIMF", Index = BackglassIndex.Fullscreen, Pos = 61)]
 		[BiffString("BIMS", Index = BackglassIndex.FullSingleScreen, Pos = 62)]
-		public readonly string[] BgImage = new string[3];
+		public string[] BgImage = new string[3];
 
 		[BiffMaterials("MATE", Pos = 105)]
 		[BiffMaterials("PHMA", IsPhysics = true, Pos = 106)]
@@ -335,7 +334,11 @@ namespace VisualPinball.Engine.VPT.Table
 			Init(typeof(TableData), Attributes);
 		}
 
-		public TableData(BinaryReader reader) : base ("GameData")
+		public TableData() : base("GameData")
+		{
+		}
+
+		public TableData(BinaryReader reader) : this()
 		{
 			Load(this, reader, Attributes);
 		}
