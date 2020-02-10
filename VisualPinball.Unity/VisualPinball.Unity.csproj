@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Components\VisualPinballFlipper.cs" />
     <Compile Include="Components\ItemComponent.cs" />
