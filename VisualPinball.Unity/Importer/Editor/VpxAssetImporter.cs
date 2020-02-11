@@ -9,7 +9,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Importer.AssetHandler;
 using VisualPinball.Unity.Importer.Job;
 using Logger = NLog.Logger;
-using Logging = VisualPinball.Unity.IO.Logging;
+using Logging = VisualPinball.Unity.Common.Logging;
 
 namespace VisualPinball.Unity.Importer.Editor
 {
@@ -20,7 +20,6 @@ namespace VisualPinball.Unity.Importer.Editor
 
 		public override void OnImportAsset(AssetImportContext ctx)
 		{
-			Logging.Setup();
 			Logger.Info("Importing VPX table at {0}...", ctx.assetPath);
 
 			// create root object
