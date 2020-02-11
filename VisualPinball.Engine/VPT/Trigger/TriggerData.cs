@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;

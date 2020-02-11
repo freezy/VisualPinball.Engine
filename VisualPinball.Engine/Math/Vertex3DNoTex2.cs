@@ -4,6 +4,7 @@ using System.IO;
 
 namespace VisualPinball.Engine.Math
 {
+	[Serializable]
 	public class Vertex3DNoTex2
 	{
 		public const int Size = 32;

@@ -14,6 +14,7 @@ namespace VisualPinball.Engine.VPT
 	/// The vertices also contain UVs and normals apart from the actual
 	/// coordinates.
 	/// </summary>
+	[Serializable]
 	public class Mesh
 	{
 		public string Name;

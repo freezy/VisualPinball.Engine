@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT
 		public override string GetName() => Name;
 
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

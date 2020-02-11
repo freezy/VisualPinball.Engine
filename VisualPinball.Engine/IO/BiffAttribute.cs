@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
@@ -23,10 +22,13 @@ namespace VisualPinball.Engine.IO
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
 	public abstract class BiffAttribute : Attribute, ISortableBiffRecord
 	{
+		public double GetPosition() => Pos;
+		public string GetName() => Name;
+
 		/// <summary>
 		/// Name of the BIFF record, usually four characters
 		/// </summary>
-		public string Name { get; }
+		public string Name;
 
 		/// <summary>
 		/// The attribute position when writing.
@@ -86,9 +88,6 @@ namespace VisualPinball.Engine.IO
 		public abstract void Parse<TItem>(TItem obj, BinaryReader reader, int len) where TItem : BiffData;
 
 		public abstract void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData;
-
-		public double Position => Pos;
-
 
 		/// <summary>
 		/// Parses the value given a stream of binary data from the VPX file.<p/>
@@ -238,10 +237,10 @@ namespace VisualPinball.Engine.IO
 		}
 	}
 
-	internal interface ISortableBiffRecord
+	public interface ISortableBiffRecord
 	{
-		double Position { get; }
-		string Name { get; }
+		double GetPosition();
+		string GetName();
 
 		void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData;
 

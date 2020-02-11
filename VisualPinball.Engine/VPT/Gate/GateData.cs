@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 18)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("GAMA", Pos = 12)]
 		public float AngleMax = MathF.PI / 2.0f;

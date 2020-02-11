@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.LightSeq
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffString("COLC", IsWideString = true, Pos = 2)]
 		public string Collection;

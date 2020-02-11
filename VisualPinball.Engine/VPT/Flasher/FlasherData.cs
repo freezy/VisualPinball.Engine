@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.VPT.Flasher
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 10)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("FHEI", Pos = 1)]
 		public float Height = 50.0f;

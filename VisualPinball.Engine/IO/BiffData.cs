@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.IO
 
 		public string StorageName;
 		public readonly int StorageIndex;
-		private readonly List<UnknownBiffRecord> _unknownRecords = new List<UnknownBiffRecord>();
+		public List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
 
 		protected BiffData(string storageName)
 		{
@@ -142,7 +142,7 @@ namespace VisualPinball.Engine.IO
 					} else {
 						Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
 						pos += 0.001;
-						obj._unknownRecords.Add(new UnknownBiffRecord(pos, tag, reader.ReadBytes(len - 4)));
+						obj.UnknownRecords.Add(new UnknownBiffRecord(pos, tag, reader.ReadBytes(len - 4)));
 					}
 
 					// read next length and tag name for next record
@@ -164,14 +164,14 @@ namespace VisualPinball.Engine.IO
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
 				.Select(a => a[0] as ISortableBiffRecord)
-				.Concat(_unknownRecords)
-				.OrderBy(r => r.Position);
+				.Concat(UnknownRecords)
+				.OrderBy(r => r.GetPosition());
 			foreach (var record in records) {
 				try {
 					record.Write(this, writer, hashWriter);
 
 				} catch (Exception e) {
-					throw new InvalidOperationException("Error writing [" + record.GetType().Name + "] at \"" + record.Name + "\" of " + GetType().Name + " " + StorageName + ".", e);
+					throw new InvalidOperationException("Error writing [" + record.GetType().Name + "] at \"" + record.GetName() + "\" of " + GetType().Name + " " + StorageName + ".", e);
 				}
 			}
 		}
@@ -203,17 +203,21 @@ namespace VisualPinball.Engine.IO
 		}
 	}
 
-	internal class UnknownBiffRecord : ISortableBiffRecord
+	[Serializable]
+	public class UnknownBiffRecord : ISortableBiffRecord
 	{
-		public double Position { get; }
-		public string Name { get; }
-		private readonly byte[] _data;
+		public double GetPosition() => Position;
+		public string GetName() => Name;
+
+		public double Position;
+		public string Name;
+		public byte[] Data;
 
 		public UnknownBiffRecord(double position, string name, byte[] data)
 		{
 			Position = position;
 			Name = name;
-			_data = data;
+			Data = data;
 		}
 
 		public void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter) where TItem : BiffData
@@ -222,12 +226,12 @@ namespace VisualPinball.Engine.IO
 			if (Name.Length < 4) {
 				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
 			}
-			writer.Write(_data.Length + 4);
+			writer.Write(Data.Length + 4);
 			writer.Write(tag);
-			writer.Write(_data);
+			writer.Write(Data);
 
 			hashWriter?.Write(tag);
-			hashWriter?.Write(_data);
+			hashWriter?.Write(Data);
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffBool("HTEV", Pos = 1)]
 		public bool HitEvent = false;
