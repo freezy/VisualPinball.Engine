@@ -110,11 +110,6 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Bumpers[item.Name] = item;
 						break;
 					}
-					case ItemType.Collection: {
-						var item = new VisualPinball.Engine.VPT.Collection.Collection(reader, itemName);
-						table.Collections[item.Name] = item;
-						break;
-					}
 					case ItemType.Decal: {
 						table.Decals.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
 						break;
