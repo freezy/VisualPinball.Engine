@@ -17,8 +17,10 @@ namespace VisualPinball.Engine.VPT.Bumper
 	[Serializable]
 	public class BumperData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", IsWideString = true, Pos = 17)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;

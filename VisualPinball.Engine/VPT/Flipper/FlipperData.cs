@@ -17,8 +17,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 	[Serializable]
 	public class FlipperData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffFloat("BASR", Pos = 2)]
 		public float BaseRadius = 21.5f;

@@ -17,8 +17,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 	[Serializable]
 	public class RampData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffFloat("RADB", Pos = 24)]
 		public float DepthBias = 0f;

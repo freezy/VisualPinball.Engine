@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -26,6 +27,7 @@ using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
 using Light = VisualPinball.Engine.VPT.Light.Light;
+using Logger = NLog.Logger;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Components
@@ -45,6 +47,8 @@ namespace VisualPinball.Unity.Components
 
 		protected override string[] Children => null;
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		protected override Table GetItem()
 		{
 			return new Table(data);
@@ -52,10 +56,12 @@ namespace VisualPinball.Unity.Components
 
 		public Table RecreateTable()
 		{
+			Logger.Info("Restoring table...");
 			// restore table data
 			var table = new Table(data);
 
 			// restore table info
+			Logger.Info("Restoring table info...");
 			foreach (var k in TableInfo.Keys) {
 				table.TableInfo[k] = TableInfo[k];
 			}
@@ -64,6 +70,7 @@ namespace VisualPinball.Unity.Components
 			table.CustomInfoTags = CustomInfoTags;
 
 			// restore game items with no game object
+			Logger.Info("Restoring collections...");
 			foreach (var d in Collections) {
 				table.Collections[data.Name] = new Collection(d);
 			}
@@ -73,6 +80,7 @@ namespace VisualPinball.Unity.Components
 			}
 
 			// restore game items
+			Logger.Info("Restoring game items...");
 			Restore<VisualPinballBumper, Bumper, BumperData>(table.Bumpers);
 			Restore<VisualPinballFlipper, Flipper, FlipperData>(table.Flippers);
 			Restore<VisualPinballGate, Gate, GateData>(table.Gates);
@@ -87,6 +95,7 @@ namespace VisualPinball.Unity.Components
 			Restore<VisualPinballTrigger, Trigger, TriggerData>(table.Triggers);
 
 			// restore textures
+			Logger.Info("Restoring textures...");
 			foreach (var textureData in Textures) {
 				var texture = new Texture(textureData);
 				if (textureData.Binary != null) {
@@ -99,6 +108,7 @@ namespace VisualPinball.Unity.Components
 				table.Textures[texture.Name] = texture;
 			}
 
+			Logger.Info("Table restored.");
 			return table;
 		}
 

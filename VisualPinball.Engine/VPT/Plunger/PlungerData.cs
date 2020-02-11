@@ -16,8 +16,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 	[Serializable]
 	public class PlungerData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", IsWideString = true, Pos = 23)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffInt("TYPE", Pos = 8)]
 		public int Type = PlungerType.PlungerTypeModern;

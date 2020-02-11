@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Components
 
 		public void SetData(TData d)
 		{
-			name = d.Name;
+			name = d.GetName();
 			data = d;
 			_item = GetItem();
 			OnDataSet();
@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Components
 			}
 			var table = transform.root.GetComponent<VisualPinballTable>().Table;
 			if (table == null) {
-				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.Name);
+				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
 				return;
 			}
 
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Components
 		{
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
 			if (ro == null) {
-				_logger.Warn("Cannot find mesh {0} in {1} {2}.", childName, typeof(TItem).Name, data.Name);
+				_logger.Warn("Cannot find mesh {0} in {1} {2}.", childName, typeof(TItem).Name, data.GetName());
 				return;
 			}
 			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
