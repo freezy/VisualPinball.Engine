@@ -17,8 +17,10 @@ namespace VisualPinball.Engine.VPT.TextBox
 	[Serializable]
 	public class TextBoxData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffVertex("VER1", Pos = 1)]
 		public Vertex2D V1;

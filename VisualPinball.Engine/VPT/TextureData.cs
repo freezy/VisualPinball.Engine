@@ -16,8 +16,10 @@ namespace VisualPinball.Engine.VPT
 	[Serializable]
 	public class TextureData : ItemData
 	{
+		public override string GetName() => Name;
+
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

@@ -151,7 +151,7 @@ namespace VisualPinball.Engine.IO
 				}
 			} catch (Exception e) {
 				if (obj is ItemData itemData) {
-					throw new Exception("Error parsing tag \"" + tag + "\" at \"" + itemData.Name + "\" (" + itemData.StorageName + ").", e);
+					throw new Exception("Error parsing tag \"" + tag + "\" at \"" + itemData.GetName() + "\" (" + itemData.StorageName + ").", e);
 				}
 				throw new Exception("Error parsing tag \"" + tag + "\".", e);
 			}
