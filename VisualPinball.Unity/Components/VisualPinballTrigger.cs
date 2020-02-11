@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballTrigger : ItemComponent<Trigger, TriggerData>
 	{
 		protected override string[] Children => null;
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Trigger GetItem()
 		{
 			return new Trigger(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

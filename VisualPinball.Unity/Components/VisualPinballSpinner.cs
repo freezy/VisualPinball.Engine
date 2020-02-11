@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballSpinner : ItemComponent<Spinner, SpinnerData>
 	{
 		protected override string[] Children => new [] { "Plate", "Bracket" };
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Spinner GetItem()
 		{
 			return new Spinner(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

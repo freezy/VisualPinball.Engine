@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballSurface : ItemComponent<Surface, SurfaceData>
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Surface GetItem()
 		{
 			return new Surface(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballGate : ItemComponent<Gate, GateData>
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Gate GetItem()
 		{
 			return new Gate(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }
