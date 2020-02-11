@@ -9,7 +9,7 @@ using VisualPinball.Unity.Importer.AssetHandler;
 using NLog;
 using VisualPinball.Engine.Common;
 using Logger = NLog.Logger;
-using Logging = VisualPinball.Unity.IO.Logging;
+using Logging = VisualPinball.Unity.Common.Logging;
 using TableLoader = VisualPinball.Unity.Importer.Job.TableLoader;
 
 namespace VisualPinball.Unity.Importer.Editor
@@ -43,9 +43,6 @@ namespace VisualPinball.Unity.Importer.Editor
 		/// <param name="saveLocally">If true, import the entire table as Unity asset</param>
 		private static void ImportVpxEditor(MenuCommand menuCommand, bool saveLocally)
 		{
-			// TODO that somewhere else
-			Logging.Setup();
-
 			// open file dialog
 			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
 			if (vpxPath.Length == 0) {
