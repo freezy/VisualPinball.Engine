@@ -11,9 +11,8 @@ namespace VisualPinball.Engine.Test.VPT
 		[Fact]
 		public void ShouldWriteChecksum()
 		{
-			var table = Engine.VPT.Table.Table.Load(@"C:\dev\vpweb\src\tables\blank-table.vpx");
+			var table = Engine.VPT.Table.Table.Load(@"..\..\VPT\blank-table.vpx");
 			table.Save( @"..\..\VPT\blank-table_written.vpx");
 		}
-
 	}
 }
