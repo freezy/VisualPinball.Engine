@@ -4,11 +4,13 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Light;
-using VisualPinball.Engine.VPT.Trigger;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballLight : ItemComponent<Light, LightData>
 	{
 		protected override string[] Children => null;
@@ -16,14 +18,6 @@ namespace VisualPinball.Unity.Components
 		protected override Light GetItem()
 		{
 			return new Light(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

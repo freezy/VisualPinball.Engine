@@ -75,18 +75,7 @@ namespace VisualPinball.Unity.Importer
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			// add table component (plus other data)
-			var component = go.AddComponent<VisualPinballTable>();
-			component.SetData(table.Data);
-			foreach (var key in table.TableInfo.Keys) {
-				component.TableInfo[key] = table.TableInfo[key];
-			}
-			component.TextureFolder = assetHandler.TextureFolder;
-			component.Textures = table.Textures.Values.Select(d => d.Data).ToArray();
-			component.CustomInfoTags = table.CustomInfoTags;
-			component.Collections = table.Collections.Values.Select(d => d.Data).ToArray();
-			component.Decals = table.Decals.Select(d => d.Data).ToArray();
-			component.DispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
+			MakeSerializable(go, table, assetHandler);
 		}
 
 		private void ImportTextures()
@@ -216,6 +205,22 @@ namespace VisualPinball.Unity.Importer
 				trs.GetColumn(2),
 				trs.GetColumn(1)
 			);
+		}
+
+		private static void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
+		{
+			// add table component (plus other data)
+			var component = go.AddComponent<VisualPinballTable>();
+			component.SetData(table.Data);
+			foreach (var key in table.TableInfo.Keys) {
+				component.tableInfo[key] = table.TableInfo[key];
+			}
+			component.textureFolder = assetHandler.TextureFolder;
+			component.textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			component.customInfoTags = table.CustomInfoTags;
+			component.collections = table.Collections.Values.Select(d => d.Data).ToArray();
+			component.decals = table.Decals.Select(d => d.Data).ToArray();
+			component.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
 		}
 	}
 }

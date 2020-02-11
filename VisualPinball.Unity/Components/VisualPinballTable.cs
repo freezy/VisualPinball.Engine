@@ -36,14 +36,14 @@ namespace VisualPinball.Unity.Components
 	{
 		public Table Table => Item;
 
-		[HideInInspector] public Dictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public TextureData[] Textures;
-		[HideInInspector] public CustomInfoTags CustomInfoTags;
-		[HideInInspector] public CollectionData[] Collections;
-		[HideInInspector] public DecalData[] Decals;
-		[HideInInspector] public DispReelData[] DispReels;
+		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
+		[HideInInspector] public TextureData[] textures;
+		[HideInInspector] public CustomInfoTags customInfoTags;
+		[HideInInspector] public CollectionData[] collections;
+		[HideInInspector] public DecalData[] decals;
+		[HideInInspector] public DispReelData[] dispReels;
 
-		[HideInInspector] public string TextureFolder;
+		[HideInInspector] public string textureFolder;
 
 		protected override string[] Children => null;
 
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Components
 
 		protected override Table GetItem()
 		{
-			return new Table(data);
+			return RecreateTable();
 		}
 
 		public Table RecreateTable()
@@ -62,20 +62,20 @@ namespace VisualPinball.Unity.Components
 
 			// restore table info
 			Logger.Info("Restoring table info...");
-			foreach (var k in TableInfo.Keys) {
-				table.TableInfo[k] = TableInfo[k];
+			foreach (var k in tableInfo.Keys) {
+				table.TableInfo[k] = tableInfo[k];
 			}
 
 			// restore custom info tags
-			table.CustomInfoTags = CustomInfoTags;
+			table.CustomInfoTags = customInfoTags;
 
 			// restore game items with no game object
 			Logger.Info("Restoring collections...");
-			foreach (var d in Collections) {
+			foreach (var d in collections) {
 				table.Collections[data.Name] = new Collection(d);
 			}
-			table.Decals.AddRange(Decals.Select(d => new Decal(d)));
-			foreach (var d in DispReels) {
+			table.Decals.AddRange(decals.Select(d => new Decal(d)));
+			foreach (var d in dispReels) {
 				table.DispReels[data.Name] = new DispReel(d);
 			}
 
@@ -96,13 +96,13 @@ namespace VisualPinball.Unity.Components
 
 			// restore textures
 			Logger.Info("Restoring textures...");
-			foreach (var textureData in Textures) {
+			foreach (var textureData in textures) {
 				var texture = new Texture(textureData);
 				if (textureData.Binary != null) {
-					textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(TextureFolder));
+					textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
 				}
 				if (textureData.Bitmap != null) {
-					textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(TextureFolder));
+					textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
 				}
 
 				table.Textures[texture.Name] = texture;
@@ -117,14 +117,6 @@ namespace VisualPinball.Unity.Components
 			foreach (var component in GetComponentsInChildren<TComp>()) {
 				dest[component.name] = component.Item;
 			}
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

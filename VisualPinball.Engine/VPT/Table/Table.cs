@@ -172,7 +172,12 @@ namespace VisualPinball.Engine.VPT.Table
 				return Data.TableHeight + Ramps[surfaceName].GetSurfaceHeight(x, y, this);
 			}
 
-			Logger.Warn($"[Table.getSurfaceHeight] Unknown surface {surfaceName}.");
+			Logger.Warn(
+				"[Table.getSurfaceHeight] Unknown surface {0}.\nAvailable surfaces: [ {1} ]\nAvailable ramps: [ {2} ]",
+				surfaceName,
+				string.Join(", ", Surfaces.Keys),
+				string.Join(", ", Ramps.Keys)
+			);
 			return Data.TableHeight;
 		}
 

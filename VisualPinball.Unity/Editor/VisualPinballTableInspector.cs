@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(VisualPinballTable))]
 	[CanEditMultipleObjects]
-	public class VisualPinballTableEditor : UnityEditor.Editor
+	public class VisualPinballTableInspector : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{

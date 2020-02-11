@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballBumper : ItemComponent<Bumper, BumperData>
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Bumper GetItem()
 		{
 			return new Bumper(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

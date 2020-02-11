@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballRubber : ItemComponent<Rubber, RubberData>
 	{
 		protected override string[] Children => null;
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override Rubber GetItem()
 		{
 			return new Rubber(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }

@@ -4,10 +4,12 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Components
 {
+	[ExecuteInEditMode]
 	public class VisualPinballHitTarget : ItemComponent<HitTarget, HitTargetData>
 	{
 		protected override string[] Children => null;
@@ -15,14 +17,6 @@ namespace VisualPinball.Unity.Components
 		protected override HitTarget GetItem()
 		{
 			return new HitTarget(data);
-		}
-
-		protected override void OnDataSet()
-		{
-		}
-
-		protected override void OnFieldsUpdated()
-		{
 		}
 	}
 }
