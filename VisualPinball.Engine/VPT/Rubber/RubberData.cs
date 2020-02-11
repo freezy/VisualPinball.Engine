@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("HTTP", Pos = 1)]
 		public float Height = 25f;

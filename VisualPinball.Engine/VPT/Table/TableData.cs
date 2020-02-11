@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("LEFT", Pos = 1)]
 		public float Left;

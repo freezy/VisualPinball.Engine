@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.DispReel
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VER1", Pos = 1)]
 		public Vertex2D V1;

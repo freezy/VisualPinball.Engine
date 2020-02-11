@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("BASR", Pos = 2)]
 		public float BaseRadius = 21.5f;

@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 6)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("PIDB", Pos = 20)]
 		public float DepthBias;

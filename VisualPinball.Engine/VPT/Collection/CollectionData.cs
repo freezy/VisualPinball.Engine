@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Collection
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 1)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffString("ITEM", IsWideString = true, TagAll = true, Pos = 2)]
 		public string[] ItemNames;

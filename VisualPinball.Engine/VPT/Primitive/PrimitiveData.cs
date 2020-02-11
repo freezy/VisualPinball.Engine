@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
 		public Vertex3D Position;
@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
-		public readonly Mesh Mesh = new Mesh();
+		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]
 		[BiffFloat("RTV1", Index = 1, Pos = 4)]

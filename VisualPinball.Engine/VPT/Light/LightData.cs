@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public override string GetName() => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
-		public string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;

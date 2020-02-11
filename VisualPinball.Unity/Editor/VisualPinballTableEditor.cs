@@ -24,7 +24,10 @@ namespace VisualPinball.Unity.Editor
 					"",
 					table.Name + ".vpx",
 					"vpx");
-				table.Save(path);
+
+				if (!string.IsNullOrEmpty(path)) {
+					table.Save(path);
+				}
 			}
 
 			//serializedObject.ApplyModifiedProperties();
