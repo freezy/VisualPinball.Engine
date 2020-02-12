@@ -1,6 +1,7 @@
 ﻿// ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,17 +13,23 @@ using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
+using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
+using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
@@ -42,6 +49,12 @@ namespace VisualPinball.Unity.Components
 		[HideInInspector] public CollectionData[] collections;
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
+		[HideInInspector] public FlasherData[] flashers;
+		[HideInInspector] public LightSeqData[] lightSeqs;
+		[HideInInspector] public PlungerData[] plungers;
+		[HideInInspector] public SoundData[] sounds;
+		[HideInInspector] public TextBoxData[] textBoxes;
+		[HideInInspector] public TimerData[] timers;
 
 		[HideInInspector] public string textureFolder;
 
@@ -69,15 +82,17 @@ namespace VisualPinball.Unity.Components
 			// restore custom info tags
 			table.CustomInfoTags = customInfoTags;
 
-			// restore game items with no game object
-			Logger.Info("Restoring collections...");
-			foreach (var d in collections) {
-				table.Collections[data.Name] = new Collection(d);
-			}
+			// restore game items with no game object (yet!)
+			table.Decals.Clear();
 			table.Decals.AddRange(decals.Select(d => new Decal(d)));
-			foreach (var d in dispReels) {
-				table.DispReels[data.Name] = new DispReel(d);
-			}
+			Restore(collections, table.Collections, d => new Collection(d));
+			Restore(dispReels, table.DispReels, d => new DispReel(d));
+			Restore(flashers, table.Flashers, d => new Flasher(d));
+			Restore(lightSeqs, table.LightSeqs, d => new LightSeq(d));
+			Restore(plungers, table.Plungers, d => new Plunger(d));
+			Restore(sounds, table.Sounds, d => new Sound(d));
+			Restore(textBoxes, table.TextBoxes, d => new TextBox(d));
+			Restore(timers, table.Timers, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
@@ -116,6 +131,13 @@ namespace VisualPinball.Unity.Components
 		{
 			foreach (var component in GetComponentsInChildren<TComp>()) {
 				dest[component.name] = component.Item;
+			}
+		}
+
+		private static void Restore<TItem, TData>(IEnumerable<TData> src, IDictionary<string, TItem> dest, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
+		{
+			foreach (var d in src) {
+				dest[d.GetName()] = create(d);
 			}
 		}
 	}

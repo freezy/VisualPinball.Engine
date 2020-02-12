@@ -218,9 +218,20 @@ namespace VisualPinball.Unity.Importer
 			component.textureFolder = assetHandler.TextureFolder;
 			component.textures = table.Textures.Values.Select(d => d.Data).ToArray();
 			component.customInfoTags = table.CustomInfoTags;
-			component.collections = table.Collections.Values.Select(d => d.Data).ToArray();
+			component.collections = table.Collections.Values.Select(c => c.Data).ToArray();
 			component.decals = table.Decals.Select(d => d.Data).ToArray();
 			component.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
+			component.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
+			component.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
+			component.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
+			component.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
+			component.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
+			component.timers = table.Timers.Values.Select(d => d.Data).ToArray();
+
+			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
+				string.Join(", ", table.Collections.Keys),
+				string.Join(", ", component.collections.Select(c => c.Name))
+			);
 		}
 	}
 }
