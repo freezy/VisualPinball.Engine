@@ -4,7 +4,11 @@ namespace VisualPinball.Engine.VPT.Timer
 {
 	public class Timer : Item<TimerData>
 	{
-		public Timer(BinaryReader reader, string itemName) : base(new TimerData(reader, itemName))
+		public Timer(TimerData data) : base(data)
+		{
+		}
+
+		public Timer(BinaryReader reader, string itemName) : this(new TimerData(reader, itemName))
 		{
 		}
 	}
