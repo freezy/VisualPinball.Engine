@@ -155,7 +155,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Color LightAmbient;
 
 		[BiffInt("LZDI", Pos = 76)]
-		private int Light0Emission {
+		public int Light0Emission {
 			set => Light[0].Emission = new Color(value, ColorFormat.Bgr);
 			get => Light[0].Emission.Bgr;
 		}
