@@ -8,11 +8,11 @@ namespace VisualPinball.Engine.Test.VPT
 	{
 		public DebugTests(ITestOutputHelper output) : base(output) { }
 
-		[Fact]
-		public void ShouldWriteChecksum()
-		{
-			var table = Engine.VPT.Table.Table.Load(@"..\..\VPT\blank-table.vpx");
-			table.Save( @"..\..\VPT\blank-table_written.vpx");
-		}
+		// [Fact]
+		// public void ShouldWriteChecksum()
+		// {
+		// 	var table = Engine.VPT.Table.Table.Load(@"..\..\VPT\blank-table.vpx");
+		// 	table.Save( @"..\..\VPT\blank-table_written.vpx");
+		// }
 	}
 }
