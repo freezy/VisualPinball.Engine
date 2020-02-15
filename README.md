@@ -2,7 +2,7 @@
 
 *A library that implements world's favorite pinball simulator.*
 
-***Work in progress***
+[![build](https://img.shields.io/appveyor/build/freezy/visualpinball-engine?style=flat-square)](https://ci.appveyor.com/project/freezy/visualpinball-engine)
 
 ## Why?
 
