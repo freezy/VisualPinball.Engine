@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Sound
@@ -21,9 +22,9 @@ namespace VisualPinball.Engine.VPT.Sound
 		public int Balance;
 		public int Fade;
 
-		public SoundData(BinaryReader reader, string storageName) : base(storageName)
+		public SoundData(BinaryReader reader, string storageName, int fileVersion) : base(storageName)
 		{
-			Load(reader);
+			Load(reader, fileVersion);
 		}
 
 		public byte[] GetHeader() {
@@ -46,9 +47,10 @@ namespace VisualPinball.Engine.VPT.Sound
 			}
 		}
 
-		private void Load(BinaryReader reader)
+		private void Load(BinaryReader reader, int fileVersion)
 		{
-			for (var i = 0; i < 10; i++)
+			var numValues = fileVersion < Constants.NewSoundFormatVersion ? 5 : 10;
+			for (var i = 0; i < numValues; i++)
 			{
 				int len;
 				switch (i) {

@@ -8,7 +8,7 @@ namespace VisualPinball.Engine.VPT.Sound
 		{
 		}
 
-		public Sound(BinaryReader reader, string itemName) : this(new SoundData(reader, itemName))
+		public Sound(BinaryReader reader, string itemName, int fileVersion) : this(new SoundData(reader, itemName, fileVersion))
 		{
 		}
 	}

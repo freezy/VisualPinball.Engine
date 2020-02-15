@@ -24,6 +24,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var gameStorage = cf.RootStorage.GetStorage("GameStg");
 				var gameData = gameStorage.GetStream("GameData");
 
+				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
 				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
 					var table = new Table(reader);
@@ -33,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Table
 						LoadGameItems(table, gameStorage);
 					}
 					LoadTextures(table, gameStorage);
-					LoadSounds(table, gameStorage);
+					LoadSounds(table, gameStorage, fileVersion);
 					LoadCollections(table, gameStorage);
 					LoadTableMeta(table, gameStorage);
 
@@ -243,7 +244,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadSounds(Table table, CFStorage storage)
+		private static void LoadSounds(Table table, CFStorage storage, int fileVersion)
 		{
 			for (var i = 0; i < table.Data.NumSounds; i++) {
 				var soundName = $"Sound{i}";
@@ -255,7 +256,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var soundData = soundStream.GetData();
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
-					var sound = new Sound.Sound(reader, soundName);
+					var sound = new Sound.Sound(reader, soundName, fileVersion);
 					table.Sounds[sound.Name.ToLower()] = sound;
 				}
 			}
