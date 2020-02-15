@@ -100,6 +100,7 @@
     <Compile Include="IO\BiffDragPointAttribute.cs" />
     <Compile Include="IO\BiffFloatAttribute.cs" />
     <Compile Include="IO\BiffFontAttribute.cs" />
+    <Compile Include="IO\BiffIgnoreAttribute.cs" />
     <Compile Include="IO\BiffIntAttribute.cs" />
     <Compile Include="IO\BiffStringAttribute.cs" />
     <Compile Include="IO\BiffUtil.cs" />

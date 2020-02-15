@@ -15,6 +15,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
+	[BiffIgnore("PNTS")]
 	public class SurfaceData : ItemData
 	{
 		public override string GetName() => Name;

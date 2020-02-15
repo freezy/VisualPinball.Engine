@@ -15,6 +15,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Light
 {
 	[Serializable]
+	[BiffIgnore("PNTS")]
 	public class LightData : ItemData
 	{
 		public override string GetName() => Name;

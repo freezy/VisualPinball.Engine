@@ -107,6 +107,9 @@ namespace VisualPinball.Engine.IO
 		/// <returns></returns>
 		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, List<BiffAttribute>> attributes) where T : BiffData
 		{
+
+			var ignoredTags = typeof(T).GetCustomAttributes<BiffIgnoreAttribute>().Select(a => a.Name).ToArray();
+
 			// initially read length and BIFF record name
 			var len = reader.ReadInt32();
 			var tag = ReadTag(reader);
@@ -139,6 +142,10 @@ namespace VisualPinball.Engine.IO
 							}
 							i++;
 						}
+
+					} else if (ignoredTags.Contains(tag)) {
+						reader.BaseStream.Seek(len - 4, SeekOrigin.Current);
+
 					} else {
 						Console.Error.WriteLine("[ItemData.Load] Unknown tag {0}", tag);
 						pos += 0.001;

@@ -15,6 +15,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Ramp
 {
 	[Serializable]
+	[BiffIgnore("PNTS")]
 	public class RampData : ItemData
 	{
 		public override string GetName() => Name;

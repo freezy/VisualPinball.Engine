@@ -15,6 +15,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Rubber
 {
 	[Serializable]
+	[BiffIgnore("PNTS")]
 	public class RubberData : ItemData
 	{
 		public override string GetName() => Name;

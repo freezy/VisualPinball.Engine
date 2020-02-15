@@ -112,15 +112,11 @@ namespace VisualPinball.Engine.VPT
 
 		private IEnumerable<byte> GetBody()
 		{
-			var timer = new Stopwatch();
-			timer.Stop();
 			var body = new byte[Data.Length];
 			var lineSize = Data.Length / Height;
 			for (var i = Height - 1; i >= 0; i--) {
 				Array.Copy(Data, i * lineSize, body, (Height - i - 1) * lineSize, lineSize);
 			}
-			timer.Stop();
-			Console.WriteLine("Re-ordered after {0}ms", timer.ElapsedMilliseconds);
 
 			return ToggleRgbBgr(body);
 		}

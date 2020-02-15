@@ -117,6 +117,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+		private static readonly List<BiffAttribute> IgnoredTags= new List<BiffAttribute>();
 
 		#endregion
 	}
