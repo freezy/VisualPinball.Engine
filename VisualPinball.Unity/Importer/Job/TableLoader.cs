@@ -8,18 +8,24 @@ using Unity.Jobs;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Decal;
+using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
+using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Importer.Job
@@ -49,6 +55,16 @@ namespace VisualPinball.Unity.Importer.Job
 						case ItemType.Bumper: {
 							var item = objHandle.Target as Bumper;
 							table.Bumpers[item.Name] = item;
+							break;
+						}
+						case ItemType.Decal: {
+							var item = objHandle.Target as Decal;
+							table.Decals.Add(item);
+							break;
+						}
+						case ItemType.DispReel: {
+							var item = objHandle.Target as DispReel;
+							table.DispReels[item.Name] = item;
 							break;
 						}
 						case ItemType.Flasher: {
@@ -81,6 +97,16 @@ namespace VisualPinball.Unity.Importer.Job
 							table.Lights[item.Name] = item;
 							break;
 						}
+						case ItemType.LightSeq: {
+							var item = objHandle.Target as LightSeq;
+							table.LightSeqs[item.Name] = item;
+							break;
+						}
+						case ItemType.Plunger: {
+							var item = objHandle.Target as Plunger;
+							table.Plungers[item.Name] = item;
+							break;
+						}
 						case ItemType.Primitive: {
 							var item = objHandle.Target as Primitive;
 							table.Primitives[item.Name] = item;
@@ -104,6 +130,16 @@ namespace VisualPinball.Unity.Importer.Job
 						case ItemType.Surface: {
 							var item = objHandle.Target as Surface;
 							table.Surfaces[item.Name] = item;
+							break;
+						}
+						case ItemType.Textbox: {
+							var item = objHandle.Target as TextBox;
+							table.TextBoxes[item.Name] = item;
+							break;
+						}
+						case ItemType.Timer: {
+							var item = objHandle.Target as Timer;
+							table.Timers[item.Name] = item;
 							break;
 						}
 						case ItemType.Trigger: {

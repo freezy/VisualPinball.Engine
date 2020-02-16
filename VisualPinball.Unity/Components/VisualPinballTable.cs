@@ -115,9 +115,11 @@ namespace VisualPinball.Unity.Components
 				var texture = new Texture(textureData);
 				if (textureData.Binary != null && textureData.Binary.Size > 0) {
 					textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+					textureData.Bitmap = null;
 
 				} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
 					textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+					textureData.Binary = null;
 				}
 
 				table.Textures[texture.Name] = texture;
@@ -129,7 +131,7 @@ namespace VisualPinball.Unity.Components
 
 		private void Restore<TComp, TItem, TData>(IDictionary<string, TItem> dest) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemComponent<TItem, TData>
 		{
-			foreach (var component in GetComponentsInChildren<TComp>()) {
+			foreach (var component in GetComponentsInChildren<TComp>(true)) {
 				dest[component.name] = component.Item;
 			}
 		}

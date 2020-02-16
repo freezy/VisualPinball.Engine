@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 			_transform = _flipper.gameObject.GetComponent<Transform>();
 
 			if (_flipper.data.Surface != null && _table.Surfaces.ContainsKey(_flipper.data.Surface)) {
-				_surface = tableComp.gameObject.GetComponentsInChildren<VisualPinballSurface>()
+				_surface = tableComp.gameObject.GetComponentsInChildren<VisualPinballSurface>(true)
 					.FirstOrDefault(s => s.name == _flipper.data.Surface);
 			}
 		}
