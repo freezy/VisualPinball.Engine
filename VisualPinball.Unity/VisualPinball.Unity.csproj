@@ -32,6 +32,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Unity|AnyCPU' ">
+    <OutputPath>$(VPE_UNITY_SCRIPTS)</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
@@ -126,4 +132,9 @@
     </ItemGroup>
     <Copy SourceFiles="@(BuildFiles)" DestinationFolder="$(VPE_UNITY_SCRIPTS)" SkipUnchangedFiles="true" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>del "$(TargetDir)MiniZ32.dll"
+del "$(TargetDir)UnityEditor.dll"
+del "$(TargetDir)UnityEngine.dll"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

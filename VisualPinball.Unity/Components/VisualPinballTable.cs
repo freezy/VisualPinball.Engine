@@ -113,10 +113,10 @@ namespace VisualPinball.Unity.Components
 			Logger.Info("Restoring textures...");
 			foreach (var textureData in textures) {
 				var texture = new Texture(textureData);
-				if (textureData.Binary != null) {
+				if (textureData.Binary != null && textureData.Binary.Size > 0) {
 					textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-				}
-				if (textureData.Bitmap != null) {
+
+				} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
 					textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
 				}
 
