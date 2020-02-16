@@ -1,9 +1,11 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
+using System;
 using System.IO;
 
 namespace VisualPinball.Engine.VPT.Sound
 {
+	[Serializable]
 	public class WaveFormat
 	{
 		/// <summary>
