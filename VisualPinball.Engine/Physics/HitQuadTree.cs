@@ -92,13 +92,13 @@ namespace VisualPinball.Engine.Physics
 			List<HitObject> vRemain = new List<HitObject>(); // hit objects which did not go to a quadrant
 
 			// TODO check if casting in C++ results in null if not the cast type
-			_unique = _hitObjects[0].e ? _hitObjects[0].Obj : null;
+			_unique = _hitObjects[0].E ? _hitObjects[0].Obj : null;
 
 			// sort items into appropriate child nodes
 			foreach (var pho in _hitObjects) {
 				int oct;
 
-				if ((pho.e ? pho.Obj : null) != _unique) {
+				if ((pho.E ? pho.Obj : null) != _unique) {
 					// are all objects in current node unique/belong to the same primitive?
 					_unique = null;
 				}

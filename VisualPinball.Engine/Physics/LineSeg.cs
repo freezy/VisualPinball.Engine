@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex2D V1;
 		public readonly Vertex2D V2;
-		protected Vertex2D Normal = new Vertex2D();
+		protected readonly Vertex2D Normal = new Vertex2D();
 		protected float Length;
 
 		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, string objType = null)

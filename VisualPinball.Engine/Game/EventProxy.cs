@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Ball;
 
@@ -13,7 +14,7 @@ namespace VisualPinball.Engine.Game
 
 		public bool SingleEvents = true;
 		public readonly EventProxy[] EventCollection;
-		public readonly int[] EventCollectionItemPos;
+		public readonly List<int> EventCollectionItemPos = new List<int>();
 
 		private readonly IPlayable Playable;
 

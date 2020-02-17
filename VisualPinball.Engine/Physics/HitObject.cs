@@ -20,12 +20,12 @@ namespace VisualPinball.Engine.Physics
 		/// Threshold for firing an event (usually (always??) normal dot
 		/// ball-velocity)
 		/// </summary>
-		public float Threshold = 0f;
-		public Rect3D HitBBox = new Rect3D();
+		public float Threshold = 0f;                                           // m_threshold
+		public Rect3D HitBBox = new Rect3D();                                  // m_hitBBox
 
 		public float Elasticity = 0.3f;                                        // m_elasticity
-		public float ElasticityFalloff;
-		public float Friction = 0.3f;
+		public float ElasticityFalloff;                                        // m_elasticityFalloff
+		public float Friction = 0.3f;                                          // m_friction
 
 		/// <summary>
 		/// Scatter in Radians
@@ -38,14 +38,14 @@ namespace VisualPinball.Engine.Physics
 		/// <summary>
 		/// FireEvents for m_obj?
 		/// </summary>
-		public bool Fe = false;
+		public bool FireEvents = false;                                        // m_fe
 
 		/// <summary>
 		/// currently only used to determine which HitTriangles/HitLines/HitPoints
 		/// are being part of the same Primitive element m_obj, to be able to early
 		/// out intersection traversal if primitive is flagged as not collidable
 		/// </summary>
-		public bool e = false;
+		public bool E = false;                                                 // m_e
 
 		public abstract void CalcHitBBox();
 
@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.Physics
 
 		public void FireHitEvent(Ball ball)
 		{
-			if (Obj != null && Fe && IsEnabled)
+			if (Obj != null && FireEvents && IsEnabled)
 			{
 				// is this the same place as last event? if same then ignore it
 				var posDiff = ball.Hit.EventPos.Clone().Sub(ball.State.Pos);
