@@ -5,10 +5,10 @@ namespace VisualPinball.Engine.VPT.Timer
 	public class TimerHit
 	{
 		public readonly EventProxy Events; // IFireEvents *m_pfe;
-		public int NextFire;
+		public uint NextFire;
 		public int Interval;
 
-		public TimerHit(EventProxy events, int nextFire, int interval)
+		public TimerHit(EventProxy events, uint nextFire, int interval)
 		{
 			Events = events;
 			NextFire = nextFire;

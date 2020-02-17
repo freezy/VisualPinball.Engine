@@ -7,6 +7,8 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class TableMeshGenerator
 	{
+		public bool HasMeshAsPlayfield => _playfield != null;
+
 		private readonly TableData _data;
 		private Primitive.Primitive _playfield;
 
@@ -17,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
 		{
-			return _playfield != null
+			return HasMeshAsPlayfield
 				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table")
 				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(table, asRightHanded));
 		}

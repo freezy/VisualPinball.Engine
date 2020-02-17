@@ -11,20 +11,29 @@ namespace VisualPinball.Engine.Physics
 		/// <summary>
 		/// Base object pointer.
 		///
-		/// Mainly used as IFireEvents, but also as HitTarget or Primitive or Trigger or Kicker or Gate.
+		/// Mainly used as IFireEvents, but also as HitTarget or Primitive or
+		/// Trigger or Kicker or Gate.
 		/// </summary>
-		public EventProxy Obj;
+		public EventProxy Obj;                                                 // m_obj
 
-		public float Threshold = 0f; // threshold for firing an event (usually (always??) normal dot ball-velocity)
+		/// <summary>
+		/// Threshold for firing an event (usually (always??) normal dot
+		/// ball-velocity)
+		/// </summary>
+		public float Threshold = 0f;
 		public Rect3D HitBBox = new Rect3D();
 
-		public float Elasticity = 0.3f;
-		public float ElasticityFalloff = 0f;
+		public float Elasticity = 0.3f;                                        // m_elasticity
+		public float ElasticityFalloff;
 		public float Friction = 0.3f;
-		public float Scatter = 0f; // in radians
+
+		/// <summary>
+		/// Scatter in Radians
+		/// </summary>
+		public float Scatter;                                                  // m_scatter
 
 		protected string ObjType = CollisionType.Null;
-		public bool IsEnabled = true;
+		public bool IsEnabled = true;                                          // m_enabled
 
 		/// <summary>
 		/// FireEvents for m_obj?

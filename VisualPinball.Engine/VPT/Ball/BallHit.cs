@@ -8,6 +8,9 @@ namespace VisualPinball.Engine.VPT.Ball
 {
 	public class BallHit : HitObject
 	{
+		/// <summary>
+		/// Collision information, may not be a actual hit if something else happens first
+		/// </summary>
 		public readonly CollisionEvent Coll;
 		public float RcHitRadiusSqr;
 		public EventProxy[] VpVolObjs;

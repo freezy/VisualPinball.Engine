@@ -13,74 +13,82 @@ namespace VisualPinball.Engine.Math
 	public static class PhysicsConstants
 	{
 		public const float HitShapeDetailLevel = 7.0f;
-		public const float ContactVel = 0.099f; // C_CONTACTVEL
+		public const float ContactVel = 0.099f;                                // C_CONTACTVEL
 
 		/// <summary>
 		/// Layer outside object which increases it's size for contact measurements. Used to determine clearances.
 		/// Setting this value during testing to 0.1 will insure clearance. After testing set the value to 0.005
 		/// Default 0.01
 		/// </summary>
-		public const float PhysTouch = 0.05f; // PHYS_TOUCH
+		public const float PhysTouch = 0.05f;                                  // PHYS_TOUCH
 
 		/// <summary>
 		/// usecs to go between each physics update
 		/// </summary>
-		public const int PhysicsStepTime = 1000; // PHYSICS_STEPTIME
+		public const int PhysicsStepTime = 1000;                               // PHYSICS_STEPTIME
 
 		/// <summary>
 		/// step time in seconds
 		/// </summary>
-		public const float PhysicsStepTimeS = PhysicsStepTime * 1e-6f; // PHYSICS_STEPTIME_S
+		public const float PhysicsStepTimeS = PhysicsStepTime * 1e-6f;         // PHYSICS_STEPTIME_S
 
 		/// <summary>
 		/// default physics rate: 1000Hz
 		/// </summary>
-		public const float DefaultStepTime = 10000f; // DEFAULT_STEPTIME
+		public const float DefaultStepTime = 10000f;                           // DEFAULT_STEPTIME
 
 		/// <summary>
 		/// default physics rate: 1000Hz
 		/// </summary>
-		public const float DefaultStepTimeS = 0.01f; // DEFAULT_STEPTIME_S
+		public const float DefaultStepTimeS = 0.01f;                           // DEFAULT_STEPTIME_S
 
 
-		public const float PhysFactor = PhysicsStepTimeS / DefaultStepTimeS; // PHYS_FACTOR
+		public const float PhysFactor = PhysicsStepTimeS / DefaultStepTimeS;   // PHYS_FACTOR
 
 
-		public const float LowNormVel = 0.0001f; // C_LOWNORMVEL
-		public const float Embedded = 0.0f; // C_EMBEDDED
-		public const float EmbedShot = 0.05f; // C_EMBEDSHOT
-		public const float DispGain = 0.9875f; // C_DISP_GAIN
-		public const float DispLimit = 5.0f; //  C_DISP_LIMIT
+		public const float LowNormVel = 0.0001f;                               // C_LOWNORMVEL
+		public const float Embedded = 0.0f;                                    // C_EMBEDDED
+		public const float EmbedShot = 0.05f;                                  // C_EMBEDSHOT
+		public const float DispGain = 0.9875f;                                 // C_DISP_GAIN
+		public const float DispLimit = 5.0f;                                   // C_DISP_LIMIT
 
 		/// <summary>
 		/// test near zero conditions in linear, well behaved, conditions
 		/// </summary>
-		public const float Precision = 0.01f; // C_PRECISION
+		public const float Precision = 0.01f;                                  // C_PRECISION
 
-		public const float EmbedVelLimit = 5.0f; // C_EMBEDVELLIMIT 5.f
+		public const float EmbedVelLimit = 5.0f;                               // C_EMBEDVELLIMIT
 
-		public const float DefaultTableMinSlope = 6.0f; // DEFAULT_TABLE_MIN_SLOPE
-		public const float DefaultTableMaxSlope = 6.0f; // DEFAULT_TABLE_MAX_SLOPE
-		public const float DefaultTableGravity = 0.97f; // DEFAULT_TABLE_GRAVITY
+		public const float DefaultTableMinSlope = 6.0f;                        // DEFAULT_TABLE_MIN_SLOPE
+		public const float DefaultTableMaxSlope = 6.0f;                        // DEFAULT_TABLE_MAX_SLOPE
+		public const float DefaultTableGravity = 0.97f;                        // DEFAULT_TABLE_GRAVITY
 
 		/// <summary>
 		/// trigger/kicker boundary crossing hysterisis
 		/// </summary>
-		public const float StaticTime = 0.005f; // STATICTIME 0
-		public const float StaticCnts = 10f; // STATICCNTS
+		public const float StaticTime = 0.005f;                                // STATICTIME
+		public const float StaticCnts = 10f;                                   // STATICCNTS
 
 		/// <summary>
 		/// amount of msecs to wait (at least) until same timer can be
 		/// triggered again (e.g. they can fall behind, if set to > 1, as
 		/// update cycle is 1000Hz)
 		/// </summary>
-		public const int MaxTimerMsecInterval = 1; // MAX_TIMER_MSEC_INTERVAL
+		public const int MaxTimerMsecInterval = 1;                             // MAX_TIMER_MSEC_INTERVAL
 
 		/// <summary>
 		/// Amount of msecs that all timers combined can take per frame (e.g.
 		/// they can fall behind, if set to < somelargevalue)
 		/// </summary>
-		public const int MaxTimersMsecOverall = 5; // MAX_TIMERS_MSEC_OVERALL
+		public const int MaxTimersMsecOverall = 5;                             // MAX_TIMERS_MSEC_OVERALL
+
+		/// <summary>
+		/// tolerance for line segment endpoint and point radii collisions
+		/// </summary>
+		public const float ToleranceEndPoints = 0.0f;                          // C_TOL_ENDPNTS
+		public const float ToleranceRadius =  0.005f;                          // C_TOL_RADIUS
+
+
 
 	}
 }

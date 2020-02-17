@@ -119,6 +119,10 @@ namespace VisualPinball.Engine.Math
 			return m;
 		}
 
+		/// <summary>
+		/// Returns a random number between 0f and 1f.
+		/// </summary>
+		/// <returns></returns>
 		public static float Random()
 		{
 			var random = new Random();
