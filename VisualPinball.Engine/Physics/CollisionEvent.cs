@@ -18,17 +18,17 @@ namespace VisualPinball.Engine.Physics
 		/// <summary>
 		/// Set to true if impact velocity is ~0
 		/// </summary>
-		public bool IsContact = false;
+		public bool IsContact;
 
 		/// <summary>
 		/// When the collision happens (relative to current physics state)
 		/// </summary>
-		public float HitTime = 0;
+		public float HitTime;
 
 		/// <summary>
 		/// Hit distance
 		/// </summary>
-		public float HitDistance = 0;
+		public float HitDistance;
 
 		/// <summary>
 		/// Additional collision information
@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Physics
 		/// <summary>
 		/// Only set if isContact is true
 		/// </summary>
-		public float HitOrgNormalVelocity = 0;
+		public float HitOrgNormalVelocity;
 
 		/// <summary>
 		/// Currently only one bit is used (hitmoment == 0 or not)
@@ -53,7 +53,9 @@ namespace VisualPinball.Engine.Physics
 		/// <summary>
 		/// UnHit signal/direction of hit/side of hit (spinner/gate)
 		/// </summary>
-		public bool HitFlag = false;
+		public bool HitFlag;
+
+		public bool HasHit => Obj != null;
 
 		public CollisionEvent(Ball ball)
 		{

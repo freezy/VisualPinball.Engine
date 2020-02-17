@@ -93,6 +93,7 @@
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Game\Event.cs" />
     <Compile Include="Game\EventProxy.cs" />
+    <Compile Include="Game\IBallCreationPosition.cs" />
     <Compile Include="Game\IHittable.cs" />
     <Compile Include="Game\IMovable.cs" />
     <Compile Include="Game\IPlayable.cs" />
@@ -132,11 +133,13 @@
     <Compile Include="Math\Vertex3DNoTex2.cs" />
     <Compile Include="Physics\CollisionEvent.cs" />
     <Compile Include="Physics\CollisionType.cs" />
+    <Compile Include="Physics\Hit3DPoly.cs" />
     <Compile Include="Physics\HitKd.cs" />
     <Compile Include="Physics\HitKdNode.cs" />
     <Compile Include="Physics\HitObject.cs" />
     <Compile Include="Physics\HitPlane.cs" />
     <Compile Include="Physics\HitQuadTree.cs" />
+    <Compile Include="Physics\LineSeg.cs" />
     <Compile Include="Physics\MoverObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\Ball.cs" />
@@ -207,6 +210,7 @@
     <Compile Include="VPT\Table\HashWriter.cs" />
     <Compile Include="VPT\Table\Table.cs" />
     <Compile Include="VPT\Table\TableData.cs" />
+    <Compile Include="VPT\Table\TableHitGenerator.cs" />
     <Compile Include="VPT\Table\TableLoader.cs" />
     <Compile Include="VPT\Table\TableMeshGenerator.cs" />
     <Compile Include="VPT\Table\TableWriter.cs" />

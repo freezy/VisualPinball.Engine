@@ -319,7 +319,17 @@ namespace VisualPinball.Engine.VPT.Table
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
 
+		public const float OverrideContactFriction = 0.075f;
+		public const float OverrideElasticity = 0.25f;
+		public const float OverrideElasticityFalloff = 0f;
+		public const float OverrideScatterAngle = 0f;
+
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+
+		public float GetFriction() => OverridePhysics ? OverrideContactFriction : Friction;
+		public float GetElasticity() => OverridePhysics ? OverrideElasticity : Elasticity;
+		public float GetElasticityFalloff() => OverridePhysics ? OverrideElasticityFalloff : ElasticityFalloff;
+		public float GetScatter() => OverridePhysics ? OverrideScatterAngle : Scatter;
 
 		protected override bool SkipWrite(BiffAttribute attr)
 		{

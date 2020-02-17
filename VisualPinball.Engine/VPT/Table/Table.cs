@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -17,6 +18,12 @@ namespace VisualPinball.Engine.VPT.Table
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
+
+		public float Width => Data.Right - Data.Left;
+		public float Height => Data.Bottom - Data.Top;
+		public float TableHeight => Data.TableHeight;
+
+		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
@@ -44,26 +51,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, TextBox.TextBox> TextBoxes = new Dictionary<string, TextBox.TextBox>();
 		public readonly Dictionary<string, Timer.Timer> Timers = new Dictionary<string, Timer.Timer>();
 		public readonly Dictionary<string, Trigger.Trigger> Triggers = new Dictionary<string, Trigger.Trigger>();
-
-		#endregion
-
-		#region Table Info
-		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
-		public string InfoAuthorName => TableInfo.ContainsKey("AuthorName") ? TableInfo["AuthorName"] : null;
-		public string InfoAuthorWebsite => TableInfo.ContainsKey("AuthorWebSite") ? TableInfo["AuthorWebSite"] : null;
-		public string InfoReleaseDate => TableInfo.ContainsKey("ReleaseDate") ? TableInfo["ReleaseDate"] : null;
-		public string InfoBlurb => TableInfo.ContainsKey("TableBlurb") ? TableInfo["TableBlurb"] : null;
-		public string InfoDescription => TableInfo.ContainsKey("TableDescription") ? TableInfo["TableDescription"] : null;
-		public string InfoName => TableInfo.ContainsKey("TableName") ? TableInfo["TableName"] : null;
-		public string InfoRules => TableInfo.ContainsKey("TableRules") ? TableInfo["TableRules"] : null;
-		public string InfoVersion => TableInfo.ContainsKey("TableVersion") ? TableInfo["TableVersion"] : null;
-		#endregion
-
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public float Width => Data.Right - Data.Left;
-		public float Height => Data.Bottom - Data.Top;
-		public float TableHeight => Data.TableHeight;
 
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
 			.Concat(Bumpers.Values)
@@ -103,7 +90,22 @@ namespace VisualPinball.Engine.VPT.Table
 		public IMovable[] Movables => new IMovable[0];
 		public IHittable[] Hittables => new IHittable[0];
 
+		#endregion
+
+		#region Table Info
+		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
+		public string InfoAuthorName => TableInfo.ContainsKey("AuthorName") ? TableInfo["AuthorName"] : null;
+		public string InfoAuthorWebsite => TableInfo.ContainsKey("AuthorWebSite") ? TableInfo["AuthorWebSite"] : null;
+		public string InfoReleaseDate => TableInfo.ContainsKey("ReleaseDate") ? TableInfo["ReleaseDate"] : null;
+		public string InfoBlurb => TableInfo.ContainsKey("TableBlurb") ? TableInfo["TableBlurb"] : null;
+		public string InfoDescription => TableInfo.ContainsKey("TableDescription") ? TableInfo["TableDescription"] : null;
+		public string InfoName => TableInfo.ContainsKey("TableName") ? TableInfo["TableName"] : null;
+		public string InfoRules => TableInfo.ContainsKey("TableRules") ? TableInfo["TableRules"] : null;
+		public string InfoVersion => TableInfo.ContainsKey("TableVersion") ? TableInfo["TableVersion"] : null;
+		#endregion
+
 		private readonly TableMeshGenerator _meshGenerator;
+		private readonly TableHitGenerator _hitGenerator;
 
 		/// <summary>
 		/// The API to load the table from a file.
@@ -119,6 +121,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Table(TableData data) : base(data)
 		{
 			_meshGenerator = new TableMeshGenerator(Data);
+			_hitGenerator = new TableHitGenerator(Data);
 		}
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }
@@ -127,6 +130,10 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		public IEnumerable<HitObject> GetHitShapes() => _hitGenerator.GenerateHitObjects();
+		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit();
+		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit();
 
 		public void Save(string fileName)
 		{
@@ -188,6 +195,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return 10; // TODO
 		}
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 	}
 }
 

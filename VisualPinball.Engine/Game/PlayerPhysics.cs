@@ -1,3 +1,8 @@
+#region ReSharper
+// ReSharper disable CommentTypo
+// ReSharper disable MemberCanBePrivate.Global
+#endregion
+
 using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Math;
@@ -10,56 +15,74 @@ namespace VisualPinball.Engine.Game
 {
 	public class PlayerPhysics
 	{
+		/// <summary>
+		/// The lower, the slower
+		/// </summary>
+		private const double SlowMotion = 1d;
 
-		public const double SloMo = 1d; // the lower, the slower
-		public readonly List<Ball> Balls = new List<Ball>();
-		public Vertex3D Gravity = new Vertex3D();
-		public long TimeMsec;
+		public readonly List<Ball> Balls = new List<Ball>();                             // m_vball
+		public readonly Vertex3D Gravity = new Vertex3D();                               // m_gravity
+		public uint TimeMsec;                                                            // m_time_msec
 
-		public bool RecordContacts;
-		public List<CollisionEvent> Contacts;
-		public Ball ActiveBall;
-		public Ball ActiveBallBC;
-		public bool SwapBallCollisionHandling;
-		public float LastPlungerHit = 0;
-		public bool BallControl = false;
-		public Vertex3D BcTarget;
+		/// <summary>
+		/// Flag for DoHitTest
+		/// </summary>
+		public bool RecordContacts;                                                      // m_recordContacts
+		public readonly List<CollisionEvent> Contacts = new List<CollisionEvent>();      // m_contacts
+		public Ball ActiveBall;                                                          // m_pactiveball
+
+		/// <summary>
+		/// Swaps the order of ball-ball collision handling around each physics
+		/// cycle (in regard to the RLC comment block in quadtree)
+		/// </summary>
+		public bool SwapBallCollisionHandling;                                           // m_swap_ball_collision_handling
+
+		/// <summary>
+		/// Pauses and unpauses the physics loop
+		/// </summary>
 		public bool IsPaused = false;
+		public readonly List<TimerOnOff> ChangedHitTimers = new List<TimerOnOff>();      // m_changed_vht
 
-		private readonly Table Table;
+		private readonly Table _table;
 
 		//TODO private readonly PinInput pinInput;
-		private List<MoverObject> Movers;
+		private List<MoverObject> _movers;                                               // m_vmover
 		//TODO private readonly FlipperMover flipperMovers[] = [];
 
-		private readonly List<HitObject> HitObjects = new List<HitObject>();
-		private readonly List<HitObject> HitObjectsDynamic;
-		private HitPlane HitPlayfield; // HitPlanes cannot be part of octree (infinite size)
-		private HitPlane HitTopGlass;
+		private readonly List<HitObject> _hitObjects = new List<HitObject>();            // m_vho
+		private readonly List<HitObject> _hitObjectsDynamic = new List<HitObject>();     // m_vho_dynamic
 
-		private bool MeshAsPlayfield = false;
-		private HitKd HitOcTreeDynamic = new HitKd();
-		private HitQuadTree HitOcTree = new HitQuadTree();
-		private List<TimerHit> HitTimers;
+		/// <summary>
+		/// HitPlanes cannot be part of octree (infinite size)
+		/// </summary>
+		private HitPlane _hitPlayfield;                                        // m_hitPlayfield
+		private HitPlane _hitTopGlass;                                         // m_hitTopGlass
 
-		private float MinPhysLoopTime = 0;
-		private float LastFlipTime = 0;
-		private float LastTimeUsec;
-		private float LastFrameDuration;
-		private float CFrames;
+		private readonly HitKd _hitOcTreeDynamic = new HitKd();                // m_hitoctree_dynamic
+		private readonly HitQuadTree _hitOcTree = new HitQuadTree();           // m_hitoctree
+		private readonly List<TimerHit> _hitTimers = new List<TimerHit>();     // m_vht
 
-		private float LastFpsTime;
-		private float Fps;
-		private float FpsAvg;
-		private float FpsCount;
-		private long CurPhysicsFrameTime;
-		private long NextPhysicsFrameTime;
-		private long StartTimeUsec;
-		private long PhysPeriod;
+		private long _lastTimeUsec;                                            // m_lastTime_usec
+		private uint _lastFrameDuration;                                       // m_lastFrameDuration
+		private uint _cFrames;                                                 // m_cframes
+		private uint _scriptPeriod;                                            // m_script_period
 
-		private Ball ActiveBallDebug;
-		public readonly List<TimerOnOff> ChangedHitTimers = new List<TimerOnOff>();
-		private uint ScriptPeriod;
+		private long _startTimeUsec;                                           // m_StartTime_usec
+
+		/// <summary>
+		/// Time when the last frame was drawn
+		/// </summary>
+		private long _curPhysicsFrameTime;                                     // m_curPhysicsFrameTime
+
+		/// <summary>
+		/// time at which the next physics update should be
+		/// </summary>
+		private long _nextPhysicsFrameTime;                                    // m_nextPhysicsFrameTime
+
+		private uint _lastFpsTime;                                             // m_lastfpstime
+		private float _fps;                                                    // m_fps
+		private float _fpsAvg;                                                 // m_fpsAvg
+		private uint _fpsCount;                                                // m_fpsCount
 
 		/// <summary>
 		/// Player physics are instantiated in the Player"s constructor.
@@ -67,7 +90,7 @@ namespace VisualPinball.Engine.Game
 		/// <param name="table"></param>
 		public PlayerPhysics(Table table)
 		{
-			this.Table = table;
+			_table = table;
 			//this.PinInput = pinInput;
 		}
 
@@ -76,42 +99,32 @@ namespace VisualPinball.Engine.Game
 		/// </summary>
 		public void Init()
 		{
-			var minSlope = this.Table.Data.OverridePhysics
-				? PhysicsConstants.DefaultTableMinSlope
-				: this.Table.Data.AngleTiltMin;
-			var maxSlope = this.Table.Data.OverridePhysics
-				? PhysicsConstants.DefaultTableMaxSlope
-				: this.Table.Data.AngleTiltMax;
-			var slope = minSlope + (maxSlope - minSlope) * this.Table.Data.GlobalDifficulty;
+			var minSlope = _table.Data.OverridePhysics ? PhysicsConstants.DefaultTableMinSlope : _table.Data.AngleTiltMin;
+			var maxSlope = _table.Data.OverridePhysics ? PhysicsConstants.DefaultTableMaxSlope : _table.Data.AngleTiltMax;
+			var slope = minSlope + (maxSlope - minSlope) * _table.Data.GlobalDifficulty;
 
-			this.Gravity.X = 0;
-			this.Gravity.Y = MathF.Sin(MathF.DegToRad(slope)) * (this.Table.Data.OverridePhysics
-				? PhysicsConstants.DefaultTableGravity
-				: this.Table.Data.Gravity);
-			this.Gravity.Z = -MathF.Cos(MathF.DegToRad(slope)) * (this.Table.Data.OverridePhysics
-				? PhysicsConstants.DefaultTableGravity
-				: this.Table.Data.Gravity);
+			Gravity.X = 0;
+			Gravity.Y = MathF.Sin(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
+			Gravity.Z = -MathF.Cos(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
 
 			// TODO [vpx-js added] init animation timers
 			// foreach (var animatable in this.Table.GetAnimatables()) {
 			//         animatable.GetAnimation().Init(this.TimeMsec);
 			// }
 
-			this.IndexTableElements();
-			this.InitOcTree(this.Table);
+			IndexTableElements();
+			InitOcTree(_table);
 		}
 
 		private void IndexTableElements()
 		{
 			// index movables
-			Movers = Table.Movables.Select(m => m.GetMover()).ToList();
+			_movers = _table.Movables.Select(m => m.GetMover()).ToList();
 
 			// index hittables
-			foreach (var hittable in this.Table.Hittables)
-			{
-				foreach (var hitObject in hittable.GetHitShapes())
-				{
-					this.HitObjects.Add(hitObject);
+			foreach (var hittable in _table.Hittables) {
+				foreach (var hitObject in hittable.GetHitShapes()) {
+					_hitObjects.Add(hitObject);
 					hitObject.CalcHitBBox();
 				}
 			}
@@ -121,9 +134,9 @@ namespace VisualPinball.Engine.Game
 			//         this.HitTimers.Push(...Scriptable.GetApi()._getTimers());
 			// }
 
-			// this.HitObjects.AddRange(Table.GetHitShapes()); // these are the table"s outer borders
-			// this.HitPlayfield = this.Table.GeneratePlayfieldHit();
-			// this.HitTopGlass = this.Table.GenerateGlassHit();
+			_hitObjects.AddRange(_table.GetHitShapes()); // these are the table's outer borders
+			_hitPlayfield = _table.GeneratePlayfieldHit();
+			_hitTopGlass = _table.GenerateGlassHit();
 
 			// TODO index flippers
 			//this.FlipperMovers.AddRange(Table.Flippers.Values.Select(f => f.GetMover()));
@@ -131,26 +144,27 @@ namespace VisualPinball.Engine.Game
 
 		private void InitOcTree(Table table)
 		{
-			foreach (var hitObject in this.HitObjects)
-			{
-				this.HitOcTree.AddElement(hitObject);
+			foreach (var hitObject in _hitObjects) {
+				_hitOcTree.AddElement(hitObject);
 			}
 
 			var tableBounds = table.Data.BoundingBox;
-			this.HitOcTree.Initialize(tableBounds);
+			_hitOcTree.Initialize(tableBounds);
 			// initialize hit structure for dynamic objects
-			this.HitOcTreeDynamic.FillFromVector(this.HitObjectsDynamic);
+			_hitOcTreeDynamic.FillFromVector(_hitObjectsDynamic);
 		}
 
 		public void PhysicsSimulateCycle(float dTime)
 		{
-			var staticCnts = PhysicsConstants.StaticCnts; // maximum number of static counts
+			// maximum number of static counts
+			var staticCnts = PhysicsConstants.StaticCnts;
 
-			// it"s okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
-			this.HitOcTreeDynamic.Update();
+			// it's okay to have this code outside of the inner loop, as the
+			// ball hitrects already include the maximum distance they can
+			// travel in that timespan
+			_hitOcTreeDynamic.Update();
 
-			while (dTime > 0)
-			{
+			while (dTime > 0) {
 				var hitTime = dTime;
 
 				// TODO find earliest time where a flipper collides with its stop
@@ -164,48 +178,53 @@ namespace VisualPinball.Engine.Game
 				// 	}
 				// }
 
-				this.RecordContacts = true;
-				this.Contacts.Clear();
+				RecordContacts = true;
+				Contacts.Clear();
 
-				foreach (var ball in this.Balls) {
+				foreach (var ball in Balls) {
 					var ballHit = ball.Hit;
 
+					// don't play with frozen balls
 					if (!ball.State.IsFrozen) {
-						// don"t play with frozen balls
 
-						ballHit.Coll.HitTime = hitTime; // search upto current hit time
+						// search upto current hit time
+						ballHit.Coll.HitTime = hitTime;
 						ballHit.Coll.Clear();
 
 						// always check for playfield and top glass
-						if (!this.MeshAsPlayfield) {
-							this.HitPlayfield.DoHitTest(ball, ball.Coll, this);
+						if (!_table.HasMeshAsPlayfield) {
+							_hitPlayfield.DoHitTest(ball, ball.Coll, this);
 						}
 
-						this.HitTopGlass.DoHitTest(ball, ball.Coll, this);
+						_hitTopGlass.DoHitTest(ball, ball.Coll, this);
 
 						// swap order of dynamic and static obj checks randomly
 						if (MathF.Random() < 0.5) {
-							this.HitOcTreeDynamic.HitTestBall(ball, ball.Coll, this); // dynamic objects
-							this.HitOcTree.HitTestBall(ball, ball.Coll, this); // find the hit objects and hit times
+							_hitOcTreeDynamic.HitTestBall(ball, ball.Coll, this); // dynamic objects
+							_hitOcTree.HitTestBall(ball, ball.Coll, this);        // find the hit objects and hit times
 
 						} else {
-							this.HitOcTree.HitTestBall(ball, ball.Coll, this); // find the hit objects and hit times
-							this.HitOcTreeDynamic.HitTestBall(ball, ball.Coll, this); // dynamic objects
+							_hitOcTree.HitTestBall(ball, ball.Coll, this);        // find the hit objects and hit times
+							_hitOcTreeDynamic.HitTestBall(ball, ball.Coll, this); // dynamic objects
 						}
 
-						var htz = ball.Coll.HitTime; // this ball"s hit time
+						// this ball's hit time
+						var htz = ball.Coll.HitTime;
 
 						if (htz < 0) {
 							// no negative time allowed
 							ball.Coll.Clear();
 						}
 
-						if (ball.Coll.Obj != null) {
-							///////////////////////////////////////////////////////////////////////////
+						if (ball.Coll.HasHit) {
+							// smaller hit time?
 							if (htz <= hitTime) {
-								hitTime = htz; // record actual event time
+								// record actual event time
+								hitTime = htz;
 
+								// less than static time interval
 								if (htz < PhysicsConstants.StaticTime) {
+
 									if (--staticCnts < 0) {
 										staticCnts = 0; // keep from wrapping
 										hitTime = PhysicsConstants.StaticTime;
@@ -216,38 +235,39 @@ namespace VisualPinball.Engine.Game
 					}
 				} // end loop over all balls
 
-				this.RecordContacts = false;
+				RecordContacts = false;
 
-				// hittime now set ... or full frame if no hit
+				// hit time now set... or full frame if no hit
 				// now update displacements to collide-contact or end of physics frame
-				// !!!!! 2) move objects to hittime
 
 				if (hitTime > PhysicsConstants.StaticTime) {
 					// allow more zeros next round
 					staticCnts = PhysicsConstants.StaticCnts;
 				}
 
-				foreach (var mover in this.Movers) {
+				foreach (var mover in _movers) {
+					// step 2: move the objects about according to velocities
+					// (spinner, gate, flipper, plunger, ball)
 					mover.UpdateDisplacements(hitTime);
 				}
 
-				// find balls that need to be collided and script"ed (generally there will be one, but more are possible)
-				for (var i = 0; i < this.Balls.Count; i++) {
-					var ball = this.Balls[i];
-					var pho = ball.Coll.Obj; // object that ball hit in trials
+				// find balls that need to be collided and scripted (generally
+				// there will be one, but more are possible)
+				for (var i = 0; i < Balls.Count; i++) {
+					var ball = Balls[i];
+					var hitObject = ball.Coll.Obj; // object that ball hit in trials
 
 					// find balls with hit objects and minimum time
-					if (pho != null && ball.Coll.HitTime <= hitTime) {
-						// now collision, contact and script reactions on active ball (object)+++++++++
+					if (hitObject != null && ball.Coll.HitTime <= hitTime) {
 
-						this.ActiveBall = ball; // For script that wants the ball doing the collision
-						pho.Collide(ball.Coll, this); // !!!!! 3) collision on active ball
-						ball.Coll.Clear(); // remove trial hit object pointer
+						// now collision, contact and script reactions on active ball (object)
+						ActiveBall = ball;                           // For script that wants the ball doing the collision
+						hitObject.Collide(ball.Coll, this);   // collision on active ball
+						ball.Coll.Clear();                           // remove trial hit object pointer
 
 						// Collide may have changed the velocity of the ball,
 						// and therefore the bounding box for the next hit cycle
-						if (this.Balls[i] != ball) {
-							// Ball still exists? may have been deleted from list
+						if (Balls[i] != ball) {                      // Ball still exists? may have been deleted from list
 
 							// collision script deleted the ball, back up one count
 							--i;
@@ -258,35 +278,34 @@ namespace VisualPinball.Engine.Game
 					}
 				}
 
-				/*
-				 * Now handle contacts.
-				 *
-				 * At this point UpdateDisplacements() was already called, so the state is different
-				 * from that at HitTest(). However, contacts have zero relative velocity, so
-				 * hopefully nothing catastrophic has happened in the meanwhile.
-				 *
-				 * Maybe a two-phase setup where we first process only contacts, then only collisions
-				 * could also work.
-				 */
-				if (MathF.Random() < 0.5) {
-					// swap order of contact handling randomly
-					// tslint:disable-next-line:prefer-for-of
-					foreach (var ce in this.Contacts) {
+				// Now handle contacts.
+				//
+				// At this point UpdateDisplacements() was already called, so the state is different
+				// from that at HitTest(). However, contacts have zero relative velocity, so
+				// hopefully nothing catastrophic has happened in the meanwhile.
+				//
+				// Maybe a two-phase setup where we first process only contacts, then only collisions
+				// could also work.
+				if (MathF.Random() < 0.5) {  // swap order of contact handling randomly
+					foreach (var ce in Contacts) {
 						ce.Obj.Contact(ce, hitTime, this);
 					}
 
 				} else {
-					for (var i = this.Contacts.Count - 1; i != -1; --i) {
-						this.Contacts[i].Obj.Contact(this.Contacts[i], hitTime, this);
+					for (var i = Contacts.Count - 1; i != -1; --i) {
+						Contacts[i].Obj.Contact(Contacts[i], hitTime, this);
 					}
 				}
 
-				this.Contacts.Clear();
+				Contacts.Clear();
 
-				// fixme ballspinhack
+				// TODO C_BALL_SPIN_HACK
 
+				// new delta .. i.e. time remaining
 				dTime -= hitTime;
-				this.SwapBallCollisionHandling = !this.SwapBallCollisionHandling; // swap order of ball-ball collisions
+
+				// swap order of ball-ball collisions
+				SwapBallCollisionHandling = !SwapBallCollisionHandling;
 			}
 		}
 
@@ -294,53 +313,51 @@ namespace VisualPinball.Engine.Game
 		{
 			var initialTimeUsec = NowUsec();
 
-			if (this.IsPaused) {
+			if (IsPaused) {
 				// Shift whole game forward in time
-				this.StartTimeUsec += initialTimeUsec - this.CurPhysicsFrameTime;
-				this.NextPhysicsFrameTime += initialTimeUsec - this.CurPhysicsFrameTime;
-				this.CurPhysicsFrameTime = initialTimeUsec; // 0 time frame
+				_startTimeUsec += initialTimeUsec - _curPhysicsFrameTime;
+				_nextPhysicsFrameTime += initialTimeUsec - _curPhysicsFrameTime;
+				_curPhysicsFrameTime = initialTimeUsec; // 0 time frame
 			}
 
 			//#ifdef FPS
-			this.LastFrameDuration = initialTimeUsec - this.LastTimeUsec;
-			if (this.LastFrameDuration > 1000000) {
-				this.LastFrameDuration = 0;
+			_lastFrameDuration = (uint)(initialTimeUsec - _lastTimeUsec);
+			if (_lastFrameDuration > 1000000) {
+				_lastFrameDuration = 0;
 			}
+			_lastTimeUsec = initialTimeUsec;
 
-			this.LastTimeUsec = initialTimeUsec;
-
-			this.CFrames++;
-			if (this.TimeMsec - this.LastFpsTime > 1000) {
-				this.Fps = this.CFrames * 1000.0f / (this.TimeMsec - this.LastFpsTime);
-				this.LastFpsTime = this.TimeMsec;
-				this.FpsAvg += this.Fps;
-				this.FpsCount++;
-				this.CFrames = 0;
+			_cFrames++;
+			if (TimeMsec - _lastFpsTime > 1000) {
+				_fps = (float)(_cFrames * 1000.0 / (TimeMsec - _lastFpsTime));
+				_lastFpsTime = TimeMsec;
+				_fpsAvg += _fps;
+				_fpsCount++;
+				_cFrames = 0;
 			}
 			//#endif
 
-			this.ScriptPeriod = 0;
-			var physIterations = 0;
+			_scriptPeriod = 0;
+			var physIterations = 0u;
 
 			// loop here until current (real) time matches the physics (simulated) time
-			while (this.CurPhysicsFrameTime < initialTimeUsec) {
+			while (_curPhysicsFrameTime < initialTimeUsec) {
 				// Get time in milliseconds for timers
-				this.TimeMsec = (this.CurPhysicsFrameTime - this.StartTimeUsec) / 1000;
+				TimeMsec = (uint)((_curPhysicsFrameTime - _startTimeUsec) / 1000);
 				physIterations++;
 
 				// Get the time until the next physics tick is done, and get the time
 				// until the next frame is done
 				// If the frame is the next thing to happen, update physics to that
 				// point next update acceleration, and continue loop
-				var physicsDiffTime = (float) ((NextPhysicsFrameTime - CurPhysicsFrameTime) *
-				                               (1.0 / PhysicsConstants.DefaultStepTime));
+				var physicsDiffTime = (float) ((_nextPhysicsFrameTime - _curPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
 				// one could also do this directly in the while loop condition instead (so that the while loop will really match with the current time), but that leads to some stuttering on some heavy frames
-				var curTimeUsec = this.NowUsec();
+				var curTimeUsec = NowUsec();
 
 				// TODO fix code below, breaks the test.
 				// hung in the physics loop over 200 milliseconds or the number of physics iterations to catch up on is high (i.E. very low/unplayable FPS)
-				// if ((this.Now() - initialTimeUsec > 200000) || (this.PhysIterations > ((this.Table.Data!.PhysicsMaxLoops == 0) || (this.Table.Data!.PhysicsMaxLoops == 0xFFFFFFFF) ? 0xFFFFFFFF : (this.Table.Data!.PhysicsMaxLoops * (10000 / PHYSICS_STEPTIME))))) {
+				// if (NowUsec() - initialTimeUsec > 200000) || (this.PhysIterations > (Table.Data.PhysicsMaxLoops == 0 || (this.Table.Data!.PhysicsMaxLoops == 0xFFFFFFFF) ? 0xFFFFFFFF : (this.Table.Data!.PhysicsMaxLoops * (10000 / PHYSICS_STEPTIME))))) {
 				//      // can not keep up to real time
 				//      this.CurPhysicsFrameTime  = initialTimeUsec;                             // skip physics forward ... slip-cycles -> "slowed" down physics
 				//      this.NextPhysicsFrameTime = initialTimeUsec + PHYSICS_STEPTIME;
@@ -351,69 +368,62 @@ namespace VisualPinball.Engine.Game
 				//this.PinInput.ProcessKeys();
 
 				// do the en/disable changes for the timers that piled up
-				foreach (var changedHitTimer in this.ChangedHitTimers) {
-					if (changedHitTimer.Enabled) {
+				foreach (var hitTimer in ChangedHitTimers) {
+					if (hitTimer.Enabled) {
 						// add the timer?
-						if (this.HitTimers.IndexOf(changedHitTimer.Timer) < 0) {
-							this.HitTimers.Add(changedHitTimer.Timer);
+						if (!_hitTimers.Contains(hitTimer.Timer)) {
+							_hitTimers.Add(hitTimer.Timer);
 						}
 
 					} else {
 						// delete the timer?
-						var idx = this.HitTimers.IndexOf(changedHitTimer.Timer);
-						if (idx >= 0) {
-							this.HitTimers.RemoveAt(idx);
+						if (_hitTimers.Contains(hitTimer.Timer)) {
+							_hitTimers.Remove(hitTimer.Timer);
 						}
 					}
 				}
+				ChangedHitTimers.Clear();
 
-				this.ChangedHitTimers.Clear();
+				var oldActiveBall = ActiveBall;
+				ActiveBall = null; // No ball is the active ball for timers/key events
 
-				var oldActiveBall = this.ActiveBall;
-				this.ActiveBall = null; // No ball is the active ball for timers/key events
+				// if overall script time per frame exceeded, skip
+				if (_scriptPeriod <= 1000 * PhysicsConstants.MaxTimersMsecOverall) {
 
-				if (this.ScriptPeriod <= 1000 * PhysicsConstants.MaxTimersMsecOverall) {
-					// if overall script time per frame exceeded, skip
-					var timeCur = (this.CurPhysicsFrameTime - this.StartTimeUsec) / 1000; // milliseconds
-
-					foreach (var pht in this.HitTimers) {
-						if ((pht.Interval >= 0 && pht.NextFire <= timeCur) || pht.Interval < 0) {
-							var curNextFire = pht.NextFire;
-							pht.Events.FireGroupEvent(Event.TimerEventsTimer);
+					var timeCur = (uint)((_curPhysicsFrameTime - _startTimeUsec) / 1000); // milliseconds
+					foreach (var hitTimer in _hitTimers) {
+						if (hitTimer.Interval >= 0 && hitTimer.NextFire <= timeCur || hitTimer.Interval < 0) {
+							var curNextFire = hitTimer.NextFire;
+							hitTimer.Events.FireGroupEvent(Event.TimerEventsTimer);
 							// Only add interval if the next fire time hasn't changed since the event was run.
-							if (curNextFire == pht.NextFire) {
-								pht.NextFire += pht.Interval;
+							if (curNextFire == hitTimer.NextFire) {
+								hitTimer.NextFire += (uint)hitTimer.Interval;
 							}
 						}
 					}
 
-					this.ScriptPeriod += (uint)(this.NowUsec() - curTimeUsec);
+					_scriptPeriod += (uint)(NowUsec() - curTimeUsec);
 				}
 
-				this.ActiveBall = oldActiveBall;
+				ActiveBall = oldActiveBall;
 
-				// emulator loop
-				// if (this.Emu) {
-				// 	var deltaTimeMs = physicsDiffTime * 10;
-				// 	this.Emu.EmuSimulateCycle(deltaTimeMs);
-				// }
+				// todo NudgeUpdate, MechPlungerUpdate
 
-				this.UpdateVelocities();
+				UpdateVelocities();
 
 				// primary physics loop
-				this.PhysicsSimulateCycle(physicsDiffTime); // main simulator call
+				PhysicsSimulateCycle(physicsDiffTime);                         // main simulator call
 
-				this.CurPhysicsFrameTime = this.NextPhysicsFrameTime; // new cycle, on physics frame boundary
-				this.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime; // advance physics position
+				_curPhysicsFrameTime = _nextPhysicsFrameTime;                  // new cycle, on physics frame boundary
+				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;     // advance physics position
 			} // end while (m_curPhysicsFrameTime < initial_time_usec)
 
-			this.PhysPeriod = (this.NowUsec() * 1000) - initialTimeUsec;
 			return physIterations;
 		}
 
 		public void UpdateVelocities()
 		{
-			foreach (var mover in this.Movers) {
+			foreach (var mover in _movers) {
 				// always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				mover.UpdateVelocities(this);
 			}
@@ -421,20 +431,20 @@ namespace VisualPinball.Engine.Game
 
 		public Ball CreateBall(IBallCreationPosition ballCreator, Player player, float radius = 25f, float mass = 1f)
 		{
-			var data = new BallData(radius, mass, this.Table.Data.DefaultBulbIntensityScaleOnBall);
+			var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
 			var ballId = Ball.IdCounter++;
-			var state = new BallState("Ball${ballId}", ballCreator.GetBallCreationPosition(this.Table));
+			var state = new BallState("Ball${ballId}", ballCreator.GetBallCreationPosition(_table));
 			state.Pos.Z += data.Radius;
 
-			var ball = new Ball(ballId, data, state, ballCreator.GetBallCreationVelocity(this.Table), player, this.Table);
+			var ball = new Ball(ballId, data, state, ballCreator.GetBallCreationVelocity(_table), player, _table);
 
 			ballCreator.OnBallCreated(this, ball);
 
-			this.Balls.Add(ball);
-			this.Movers.Add(ball.Mover); // balls are always added separately to this list!
+			Balls.Add(ball);
+			_movers.Add(ball.Mover); // balls are always added separately to this list!
 
-			this.HitObjectsDynamic.Add(ball.Hit);
-			this.HitOcTreeDynamic.FillFromVector(this.HitObjectsDynamic);
+			_hitObjectsDynamic.Add(ball.Hit);
+			_hitOcTreeDynamic.FillFromVector(_hitObjectsDynamic);
 
 			return ball;
 		}
@@ -445,63 +455,22 @@ namespace VisualPinball.Engine.Game
 				return;
 			}
 
-			bool activeBall;
-			if (this.ActiveBallBC == ball) {
-				activeBall = true;
-				this.ActiveBall = null;
-
-			} else {
-				activeBall = false;
-			}
-
-			bool debugBall;
-			if (this.ActiveBallDebug == ball) {
-				debugBall = true;
-				this.ActiveBallDebug = null;
-
-			} else {
-				debugBall = false;
-			}
-
-			if (this.ActiveBallBC == ball) {
-				this.ActiveBallBC = null;
-			}
-
-			this.Balls.Remove(ball);
-			this.Movers.Remove(ball.Mover);
-			this.HitObjectsDynamic.Remove(ball.Hit);
-			this.HitOcTreeDynamic.FillFromVector(this.HitObjectsDynamic);
-
-			//m_vballDelete.Push_back(pball);
-
-			if (debugBall && this.Balls.Count > 0) {
-				this.ActiveBallDebug = this.Balls[0];
-			}
-
-			if (activeBall && this.Balls.Count > 0) {
-				this.ActiveBall = this.Balls[0];
-			}
+			Balls.Remove(ball);
+			_movers.Remove(ball.Mover);
+			_hitObjectsDynamic.Remove(ball.Hit);
+			_hitOcTreeDynamic.FillFromVector(_hitObjectsDynamic);
 		}
 
-		private long NowUsec()
+		private static long NowUsec()
 		{
-			return (long)(Functions.NowUsec() * SloMo);
+			return (long)(Functions.NowUsec() * SlowMotion);
 		}
 
 		public void SetGravity(float slopeDeg, float strength)
 		{
-			this.Gravity.X = 0;
-			this.Gravity.Y = MathF.Sin(MathF.DegToRad(slopeDeg)) * strength;
-			this.Gravity.Z = -MathF.Cos(MathF.DegToRad(slopeDeg)) * strength;
+			Gravity.X = 0;
+			Gravity.Y = MathF.Sin(MathF.DegToRad(slopeDeg)) * strength;
+			Gravity.Z = -MathF.Cos(MathF.DegToRad(slopeDeg)) * strength;
 		}
-	}
-
-	public interface IBallCreationPosition {
-
-		Vertex3D GetBallCreationPosition(Table table);
-
-		Vertex3D GetBallCreationVelocity(Table table);
-
-		void OnBallCreated(PlayerPhysics physics, Ball ball);
 	}
 }

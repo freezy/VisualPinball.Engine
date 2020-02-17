@@ -21,8 +21,7 @@ namespace VisualPinball.Engine.VPT.Ball
 
 		public void UpdateDisplacements(float dTime)
 		{
-			if (!_state.IsFrozen)
-			{
+			if (!_state.IsFrozen) {
 				_state.Pos.Add(_hit.Vel.Clone().MultiplyScalar(dTime));
 				_hit.CalcHitBBox();
 
@@ -41,30 +40,14 @@ namespace VisualPinball.Engine.VPT.Ball
 
 		public void UpdateVelocities(PlayerPhysics physics)
 		{
-			if (!_state.IsFrozen)
-			{
-				if (physics.BallControl && _id == physics.ActiveBallBC.Id && physics.BcTarget != null)
-				{
-					_hit.Vel.X *= 0.5f; // Null out most of the X/Y velocity, want a little bit so the ball can sort of find its way out of obstacles.
-					_hit.Vel.Y *= 0.5f;
-
-					_hit.Vel.Add(new Vertex3D(
-						MathF.Max(-10.0f, MathF.Min(10.0f, (physics.BcTarget.X - _state.Pos.X) / 10.0f)),
-						MathF.Max(-10.0f, MathF.Min(10.0f, (physics.BcTarget.Y - _state.Pos.Y) / 10.0f)),
-						-2.0f
-					));
-				}
-				else
-				{
-					_hit.Vel.Add(physics.Gravity.MultiplyScalar(PhysicsConstants.PhysFactor));
-				}
+			if (!_state.IsFrozen) {
+				_hit.Vel.Add(physics.Gravity.MultiplyScalar(PhysicsConstants.PhysFactor));
 
 				// todo nudge
 				// _hit.Vel.X += player.NudgeX; // depends TODO on STEPTIME
 				// _hit.Vel.Y += player.NudgeY;
 				// _hit.Vel.Sub(player.TableVelDelta);
 			}
-
 			_hit.CalcHitBBox();
 		}
 	}
