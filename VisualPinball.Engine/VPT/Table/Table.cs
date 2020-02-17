@@ -100,6 +100,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Timers.Values.Select(i => i.Data))
 			.Concat(Triggers.Values.Select(i => i.Data));
 
+		public IMovable[] Movables => new IMovable[0];
+		public IHittable[] Hittables => new IHittable[0];
+
 		private readonly TableMeshGenerator _meshGenerator;
 
 		/// <summary>
