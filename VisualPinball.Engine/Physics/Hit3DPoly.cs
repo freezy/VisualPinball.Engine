@@ -64,7 +64,7 @@ namespace VisualPinball.Engine.Physics
 				ball.Hit.Collide3DWall(_normal, Elasticity, ElasticityFalloff, Friction, Scatter);
 
 				// manage item-specific logic
-				if (Obj != null && Fe && dot >= Threshold && Obj.OnCollision != null) {
+				if (Obj != null && FireEvents && dot >= Threshold && Obj.OnCollision != null) {
 					Obj.OnCollision(this, ball, dot);
 				}
 			}

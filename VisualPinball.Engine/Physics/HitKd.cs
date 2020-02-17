@@ -7,16 +7,16 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitKd
 	{
-		public List<int> OrgIdx; // m_org_idx
-		public int NumNodes;
-		public int[] tmp;
+		public List<int> OrgIdx;                                               // m_org_idx
+		public int NumNodes;                                                   // m_num_nodes
+		public int[] Indices;                                                  // tmp
 
-		private readonly HitKdNode _rootNode;
-		private HitKdNode[] _nodes;
-		private List<HitObject> _orgHitObjects; // m_org_vho
+		private readonly HitKdNode _rootNode;                                  // m_rootNode
+		private List<HitObject> _orgHitObjects;                                // m_org_vho
+		private HitKdNode[] _nodes;                                            // m_nodes
 
-		private int _numItems;
-		private int _maxItems;
+		private int _numItems;                                                 // m_num_items
+		private int _maxItems;                                                 // m_max_items
 
 		public HitKd()
 		{
@@ -32,8 +32,7 @@ namespace VisualPinball.Engine.Physics
 				_maxItems = _numItems;
 
 				OrgIdx = new List<int>(_numItems);
-
-				tmp = new int[_numItems];
+				Indices = new int[_numItems];
 				_nodes = new HitKdNode[(_numItems * 2 + 1) & ~1u];
 			}
 
@@ -68,7 +67,7 @@ namespace VisualPinball.Engine.Physics
 		// call when finalizing a tree (no dynamic changes planned on it)
 		public void Finalize()
 		{
-			tmp = null;
+			Indices = null;
 		}
 
 		public void HitTestBall(Ball ball, CollisionEvent collision, PlayerPhysics physics)

@@ -1,3 +1,5 @@
+// ReSharper disable CommentTypo
+
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
@@ -6,22 +8,29 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitKdNode
 	{
-		public Rect3D RectBounds = new Rect3D();
-		public int Start;
-		public int Items; // contains the 2 bits for axis (bits 30/31)
+		public Rect3D RectBounds = new Rect3D();                               // m_rectbounds
+		public int Start;                                                      // m_start
 
-		private HitKd HitOct; //!! meh, stupid
-		private HitKdNode[] Children; // if NULL, is a leaf; otherwise keeps the 2 children
+		/// <summary>
+		/// Contains the 2 bits for axis (bits 30/31)
+		/// </summary>
+		public int Items;                                                      // m_items
+
+		/// <summary>
+		/// If NULL, is a leaf; otherwise keeps the 2 children
+		/// </summary>
+		private HitKdNode[] _children;                                         // m_children
+		private HitKd _hitOct;                                                 // m_hitoct
 
 		public HitKdNode(HitKd hitOct)
 		{
-			HitOct = hitOct;
+			_hitOct = hitOct;
 		}
 
 		public void Reset(HitKd hitOct)
 		{
-			Children = null;
-			HitOct = hitOct;
+			_children = null;
+			_hitOct = hitOct;
 			Start = 0;
 			Items = 0;
 		}
@@ -32,50 +41,55 @@ namespace VisualPinball.Engine.Physics
 			var axis = Items >> 30;
 
 			for (var i = Start; i < Start + orgItems; i++) {
-				var pho = HitOct.GetItemAt(i);
+				var pho = _hitOct.GetItemAt(i);
 				if (ball.Hit != pho && pho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.RcHitRadiusSqr)) {
 					pho.DoHitTest(ball, coll, physics);
 				}
 			}
 
-			// TODO never executed (https://www.Vpforums.Org/index.Php?showtopic=42690)
-			if (Children != null) { // not a leaf
+			if (_children != null) {
+				switch (axis) {
+					// not a leaf
+					case 0: {
+						var vCenter = (RectBounds.Left + RectBounds.Right) * 0.5f;
+						if (ball.Hit.HitBBox.Left <= vCenter) {
+							_children[0].HitTestBall(ball, coll, physics);
+						}
 
-				// not a leaf
-				if (axis == 0) {
-					var vCenter = (RectBounds.Left + RectBounds.Right) * 0.5f;
-					if (ball.Hit.HitBBox.Left <= vCenter) {
-						Children[0].HitTestBall(ball, coll, physics);
+						if (ball.Hit.HitBBox.Right >= vCenter) {
+							_children[1].HitTestBall(ball, coll, physics);
+						}
+						break;
 					}
 
-					if (ball.Hit.HitBBox.Right >= vCenter) {
-						Children[1].HitTestBall(ball, coll, physics);
+					case 1: {
+						var vCenter = (RectBounds.Top + RectBounds.Bottom) * 0.5f;
+						if (ball.Hit.HitBBox.Top <= vCenter) {
+							_children[0].HitTestBall(ball, coll, physics);
+						}
+
+						if (ball.Hit.HitBBox.Bottom >= vCenter) {
+							_children[1].HitTestBall(ball, coll, physics);
+						}
+						break;
 					}
 
-				} else if (axis == 1) {
-					var vCenter = (RectBounds.Top + RectBounds.Bottom) * 0.5f;
-					if (ball.Hit.HitBBox.Top <= vCenter) {
-						Children[0].HitTestBall(ball, coll, physics);
-					}
+					default: {
+						var vCenter = (RectBounds.ZLow + RectBounds.ZHigh) * 0.5f;
+						if (ball.Hit.HitBBox.ZLow <= vCenter) {
+							_children[0].HitTestBall(ball, coll, physics);
+						}
 
-					if (ball.Hit.HitBBox.Bottom >= vCenter) {
-						Children[1].HitTestBall(ball, coll, physics);
-					}
-
-				} else {
-					var vCenter = (RectBounds.ZLow + RectBounds.ZHigh) * 0.5f;
-					if (ball.Hit.HitBBox.ZLow <= vCenter) {
-						Children[0].HitTestBall(ball, coll, physics);
-					}
-
-					if (ball.Hit.HitBBox.ZHigh >= vCenter) {
-						Children[1].HitTestBall(ball, coll, physics);
+						if (ball.Hit.HitBBox.ZHigh >= vCenter) {
+							_children[1].HitTestBall(ball, coll, physics);
+						}
+						break;
 					}
 				}
 			}
 		}
 
-		/* istanbul ignore never next executed below the "magic" check (https://www.Vpforums.Org/index.Php?showtopic=42690) */
+		/* istanbul ignore never next executed below the "magic" check (https://www.vpforums.org/index.php?showtopic=42690) */
 		public void CreateNextLevel(int level, int levelEmpty) {
 			var orgItems = Items & 0x3FFFFFFF;
 
@@ -114,14 +128,14 @@ namespace VisualPinball.Engine.Physics
 			//!! weight this with ratio of elements going to middle vs left&right! (avoids volume split that goes directly through object)
 
 			// create children, calc bboxes
-			Children = HitOct.AllocTwoNodes();
-			if (Children.Length == 0) {
+			_children = _hitOct.AllocTwoNodes();
+			if (_children.Length == 0) {
 				// ran out of nodes - abort
 				return;
 			}
 
-			Children[0].RectBounds = RectBounds;
-			Children[1].RectBounds = RectBounds;
+			_children[0].RectBounds = RectBounds;
+			_children[1].RectBounds = RectBounds;
 
 			var vCenter = new Vertex3D(
 				(RectBounds.Left + RectBounds.Right) * 0.5f,
@@ -129,75 +143,75 @@ namespace VisualPinball.Engine.Physics
 				(RectBounds.ZLow + RectBounds.ZHigh) * 0.5f
 			);
 			if (axis == 0) {
-				Children[0].RectBounds.Right = vCenter.X;
-				Children[1].RectBounds.Left = vCenter.X;
+				_children[0].RectBounds.Right = vCenter.X;
+				_children[1].RectBounds.Left = vCenter.X;
 
 			} else if (axis == 1) {
-				Children[0].RectBounds.Bottom = vCenter.Y;
-				Children[1].RectBounds.Top = vCenter.Y;
+				_children[0].RectBounds.Bottom = vCenter.Y;
+				_children[1].RectBounds.Top = vCenter.Y;
 
 			} else {
-				Children[0].RectBounds.ZHigh = vCenter.Z;
-				Children[1].RectBounds.ZLow = vCenter.Z;
+				_children[0].RectBounds.ZHigh = vCenter.Z;
+				_children[1].RectBounds.ZLow = vCenter.Z;
 			}
 
-			Children[0].HitOct = HitOct; //!! meh
-			Children[0].Items = 0;
-			Children[0].Children = null;
-			Children[1].HitOct = HitOct; //!! meh
-			Children[1].Items = 0;
-			Children[1].Children = null;
+			_children[0]._hitOct = _hitOct; //!! meh
+			_children[0].Items = 0;
+			_children[0]._children = null;
+			_children[1]._hitOct = _hitOct; //!! meh
+			_children[1].Items = 0;
+			_children[1]._children = null;
 
 			// determine amount of items that cross splitplane, or are passed on to the children
 			if (axis == 0) {
 				for (var i = Start; i < Start + orgItems; ++i) {
-					var pho = HitOct.GetItemAt(i);
+					var pho = _hitOct.GetItemAt(i);
 
 					if (pho.HitBBox.Right < vCenter.X) {
-						Children[0].Items++;
+						_children[0].Items++;
 
 					} else if (pho.HitBBox.Left > vCenter.X) {
-						Children[1].Items++;
+						_children[1].Items++;
 					}
 				}
 
 			} else if (axis == 1) {
 				for (var i = Start; i < Start + orgItems; ++i) {
-					var pho = HitOct.GetItemAt(i);
+					var pho = _hitOct.GetItemAt(i);
 
 					if (pho.HitBBox.Bottom < vCenter.Y) {
-						Children[0].Items++;
+						_children[0].Items++;
 
 					} else if (pho.HitBBox.Top > vCenter.Y) {
-						Children[1].Items++;
+						_children[1].Items++;
 					}
 				}
 
 			} else {
 				// axis == 2
 				for (var i = Start; i < Start + orgItems; ++i) {
-					var pho = HitOct.GetItemAt(i);
+					var pho = _hitOct.GetItemAt(i);
 
 					if (pho.HitBBox.ZHigh < vCenter.Z) {
-						Children[0].Items++;
+						_children[0].Items++;
 
 					} else if (pho.HitBBox.ZLow > vCenter.Z) {
-						Children[1].Items++;
+						_children[1].Items++;
 					}
 				}
 			}
 
 			// check if at least two nodes feature objects, otherwise don"t bother subdividing further
 			var countEmpty = 0;
-			if (Children[0].Items == 0) {
+			if (_children[0].Items == 0) {
 				countEmpty = 1;
 			}
 
-			if (Children[1].Items == 0) {
+			if (_children[1].Items == 0) {
 				++countEmpty;
 			}
 
-			if (orgItems - Children[0].Items - Children[1].Items == 0) {
+			if (orgItems - _children[0].Items - _children[1].Items == 0) {
 				++countEmpty;
 			}
 
@@ -210,33 +224,33 @@ namespace VisualPinball.Engine.Physics
 
 			if (levelEmpty > 8) {
 				// If 8 levels were all just subdividing the same objects without luck, exit & Free the nodes again (but at least empty space was cut off)
-				HitOct.NumNodes -= 2;
-				Children = null;
+				_hitOct.NumNodes -= 2;
+				_children = null;
 				return;
 			}
 
-			Children[0].Start = Start + orgItems - Children[0].Items - Children[1].Items;
-			Children[1].Start = Children[0].Start + Children[0].Items;
+			_children[0].Start = Start + orgItems - _children[0].Items - _children[1].Items;
+			_children[1].Start = _children[0].Start + _children[0].Items;
 
 			var items = 0;
-			Children[0].Items = 0;
-			Children[1].Items = 0;
+			_children[0].Items = 0;
+			_children[1].Items = 0;
 
 			switch (axis) {
 
 				// sort items that cross splitplane in-place, the others are sorted into a temporary
 				case 0: {
 					for (var i = Start; i < Start + orgItems; ++i) {
-						var pho = HitOct.GetItemAt(i);
+						var pho = _hitOct.GetItemAt(i);
 
 						if (pho.HitBBox.Right < vCenter.X) {
-							HitOct.tmp[Children[0].Start + Children[0].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[0].Start + _children[0].Items++] = _hitOct.OrgIdx[i];
 
 						} else if (pho.HitBBox.Left > vCenter.X) {
-							HitOct.tmp[Children[1].Start + Children[1].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[1].Start + _children[1].Items++] = _hitOct.OrgIdx[i];
 
 						} else {
-							HitOct.OrgIdx[Start + items++] = HitOct.OrgIdx[i];
+							_hitOct.OrgIdx[Start + items++] = _hitOct.OrgIdx[i];
 						}
 					}
 
@@ -245,16 +259,16 @@ namespace VisualPinball.Engine.Physics
 
 				case 1: {
 					for (var i = Start; i < Start + orgItems; ++i) {
-						var pho = HitOct.GetItemAt(i);
+						var pho = _hitOct.GetItemAt(i);
 
 						if (pho.HitBBox.Bottom < vCenter.Y) {
-							HitOct.tmp[Children[0].Start + Children[0].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[0].Start + _children[0].Items++] = _hitOct.OrgIdx[i];
 
 						} else if (pho.HitBBox.Top > vCenter.Y) {
-							HitOct.tmp[Children[1].Start + Children[1].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[1].Start + _children[1].Items++] = _hitOct.OrgIdx[i];
 
 						} else {
-							HitOct.OrgIdx[Start + items++] = HitOct.OrgIdx[i];
+							_hitOct.OrgIdx[Start + items++] = _hitOct.OrgIdx[i];
 						}
 					}
 
@@ -264,16 +278,16 @@ namespace VisualPinball.Engine.Physics
 				default: { // axis == 2
 
 					for (var i = Start; i < Start + orgItems; ++i) {
-						var pho = HitOct.GetItemAt(i);
+						var pho = _hitOct.GetItemAt(i);
 
 						if (pho.HitBBox.ZHigh < vCenter.Z) {
-							HitOct.tmp[Children[0].Start + Children[0].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[0].Start + _children[0].Items++] = _hitOct.OrgIdx[i];
 
 						} else if (pho.HitBBox.ZLow > vCenter.Z) {
-							HitOct.tmp[Children[1].Start + Children[1].Items++] = HitOct.OrgIdx[i];
+							_hitOct.Indices[_children[1].Start + _children[1].Items++] = _hitOct.OrgIdx[i];
 
 						} else {
-							HitOct.OrgIdx[Start + items++] = HitOct.OrgIdx[i];
+							_hitOct.OrgIdx[Start + items++] = _hitOct.OrgIdx[i];
 						}
 					}
 
@@ -290,18 +304,18 @@ namespace VisualPinball.Engine.Physics
 			Items = items | (axis << 30);
 
 			// copy temporary back //!! could omit this by doing everything inplace
-			for (var i = 0; i < Children[0].Items; i++) {
-				HitOct.OrgIdx[Children[0].Start + i] = HitOct.tmp[Children[0].Start + i];
+			for (var i = 0; i < _children[0].Items; i++) {
+				_hitOct.OrgIdx[_children[0].Start + i] = _hitOct.Indices[_children[0].Start + i];
 			}
 
-			for (var i = 0; i < Children[1].Items; i++) {
-				HitOct.OrgIdx[Children[1].Start + i] = HitOct.tmp[Children[1].Start + i];
+			for (var i = 0; i < _children[1].Items; i++) {
+				_hitOct.OrgIdx[_children[1].Start + i] = _hitOct.Indices[_children[1].Start + i];
 			}
 			//memcpy(&this.HitOct->m_org_idx[this.Children[0].Start], &this.HitOct->tmp[this.Children[0].Start], this.Children[0].Items*sizeof(unsigned int));
 			//memcpy(&this.HitOct->m_org_idx[this.Children[1].Start], &this.HitOct->tmp[this.Children[1].Start], this.Children[1].This.Items*sizeof(unsigned int));
 
-			Children[0].CreateNextLevel(level + 1, levelEmpty);
-			Children[1].CreateNextLevel(level + 1, levelEmpty);
+			_children[0].CreateNextLevel(level + 1, levelEmpty);
+			_children[1].CreateNextLevel(level + 1, levelEmpty);
 		}
 	}
 }
