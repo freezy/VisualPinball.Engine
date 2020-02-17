@@ -140,7 +140,7 @@
     <Compile Include="Physics\HitPlane.cs" />
     <Compile Include="Physics\HitQuadTree.cs" />
     <Compile Include="Physics\LineSeg.cs" />
-    <Compile Include="Physics\MoverObject.cs" />
+    <Compile Include="Physics\IMoverObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\Ball.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />

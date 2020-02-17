@@ -64,8 +64,26 @@ namespace VisualPinball.Engine.Physics
 				ball.Hit.Collide3DWall(_normal, Elasticity, ElasticityFalloff, Friction, Scatter);
 
 				// manage item-specific logic
-				if (Obj != null && FireEvents && dot >= Threshold && Obj.OnCollision != null) {
-					Obj.OnCollision(this, ball, dot);
+				if (Obj != null && FireEvents && dot >= Threshold) {
+					Obj.OnCollision?.Invoke(this, ball, dot);
+				}
+
+			} else { // trigger (probably unused code)
+				if (!ball.Hit.IsRealBall()) {
+					return;
+				}
+				var i = ball.Hit.VpVolObjs.IndexOf(Obj);                             // if -1 then not in objects volume set (i.e not already hit)
+				if (!coll.HitFlag == i < 0) { // Hit == NotAlreadyHit
+					var addPos = ball.Hit.Vel.Clone().MultiplyScalar(PhysicsConstants.StaticTime);
+					ball.State.Pos.Add(addPos);     // move ball slightly forward
+					if (i < 0) {
+						ball.Hit.VpVolObjs.Add(Obj);
+						Obj.FireGroupEvent(Event.HitEventsHit);
+
+					} else {
+						ball.Hit.VpVolObjs.RemoveAt(i);
+						Obj.FireGroupEvent(Event.HitEventsUnhit);
+					}
 				}
 			}
 		}

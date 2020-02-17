@@ -7,6 +7,7 @@ namespace VisualPinball.Engine.VPT.Ball
 {
 	public class BallData : ItemData
 	{
+		public readonly uint Id;
 		public float Radius;
 		public float Mass;
 		public float BulbIntensityScale;
@@ -19,12 +20,9 @@ namespace VisualPinball.Engine.VPT.Ball
 		public float PlayfieldReflectionStrength = 1.0f;
 		public bool ForceReflection = false;
 
-		public BallData() : this(25f, 1f, 1f)
+		public BallData(uint id, float radius, float mass, float bulbIntensityScale) : base(string.Empty)
 		{
-		}
-
-		public BallData(float radius, float mass, float bulbIntensityScale) : base(string.Empty)
-		{
+			Id = id;
 			Radius = radius;
 			Mass = mass;
 			BulbIntensityScale = bulbIntensityScale;

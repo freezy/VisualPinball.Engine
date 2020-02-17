@@ -1,3 +1,5 @@
+// ReSharper disable CommentTypo
+
 namespace VisualPinball.Engine.Math
 {
 	public static class Constants

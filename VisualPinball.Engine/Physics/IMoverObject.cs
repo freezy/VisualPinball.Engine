@@ -2,7 +2,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.Physics
 {
-	public interface MoverObject
+	public interface IMoverObject
 	{
 		void UpdateDisplacements(float dTime);
 

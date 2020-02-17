@@ -64,12 +64,6 @@ namespace VisualPinball.Engine.Physics
 			FillFromVector(_orgHitObjects);
 		}
 
-		// call when finalizing a tree (no dynamic changes planned on it)
-		public void Finalize()
-		{
-			Indices = null;
-		}
-
 		public void HitTestBall(Ball ball, CollisionEvent collision, PlayerPhysics physics)
 		{
 			_rootNode.HitTestBall(ball, collision, physics);
