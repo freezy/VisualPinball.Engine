@@ -4,17 +4,13 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Ball
 {
-	public class BallMover : MoverObject
+	public class BallMover : IMoverObject
 	{
-		private readonly int _id;
-		private readonly BallData _data;
 		private readonly BallState _state;
 		private readonly BallHit _hit;
 
-		public BallMover(int id, BallData data, BallState state, BallHit hit)
+		public BallMover(BallState state, BallHit hit)
 		{
-			_id = id;
-			_data = data;
 			_state = state;
 			_hit = hit;
 		}

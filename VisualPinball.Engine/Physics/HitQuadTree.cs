@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Physics
 			foreach (var vho in _hitObjects) {
 				if (ball.Hit != vho // ball can not hit itself
 				    && vho.HitBBox.IntersectRect(ball.Hit.HitBBox)
-				    && vho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.RcHitRadiusSqr))
+				    && vho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.HitRadiusSqr))
 				{
 					vho.DoHitTest(ball, coll, physics);
 				}

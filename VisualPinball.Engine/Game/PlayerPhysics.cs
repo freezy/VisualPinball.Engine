@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.Game
 		private readonly Table _table;
 
 		//TODO private readonly PinInput pinInput;
-		private List<MoverObject> _movers;                                               // m_vmover
+		private List<IMoverObject> _movers;                                              // m_vmover
 		//TODO private readonly FlipperMover flipperMovers[] = [];
 
 		private readonly List<HitObject> _hitObjects = new List<HitObject>();            // m_vho
@@ -431,12 +431,12 @@ namespace VisualPinball.Engine.Game
 
 		public Ball CreateBall(IBallCreationPosition ballCreator, Player player, float radius = 25f, float mass = 1f)
 		{
-			var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
 			var ballId = Ball.IdCounter++;
+			var data = new BallData(ballId, radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
 			var state = new BallState("Ball${ballId}", ballCreator.GetBallCreationPosition(_table));
 			state.Pos.Z += data.Radius;
 
-			var ball = new Ball(ballId, data, state, ballCreator.GetBallCreationVelocity(_table), player, _table);
+			var ball = new Ball(data, state, ballCreator.GetBallCreationVelocity(_table), player, _table);
 
 			ballCreator.OnBallCreated(this, ball);
 

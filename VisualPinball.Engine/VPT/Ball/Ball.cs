@@ -6,18 +6,22 @@ namespace VisualPinball.Engine.VPT.Ball
 {
 	public class Ball
 	{
-		public int Id;
-		public static int IdCounter = 0;
+		public uint Id => Data.Id;
 
-		public BallData Data;
-		public BallState State;
-		public BallHit Hit;
+		public readonly BallData Data;
+		public readonly BallState State;
+		public readonly BallHit Hit;
+
+		public static uint IdCounter = 0;
 
 		public CollisionEvent Coll => Hit.Coll;
 		public BallMover Mover => Hit.GetMoverObject();
 
-		public Ball(int id, BallData data, BallState state, Vertex3D initialVelocity, Player player, Table.Table table)
+		public Ball(BallData data, BallState state, Vertex3D initialVelocity, Player player, Table.Table table)
 		{
+			Data = data;
+			State = state;
+			Hit = new BallHit(this, data, state, initialVelocity, table.Data);
 		}
 	}
 }

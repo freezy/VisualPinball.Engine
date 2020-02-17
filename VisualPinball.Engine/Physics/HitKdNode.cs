@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Physics
 
 			for (var i = Start; i < Start + orgItems; i++) {
 				var pho = _hitOct.GetItemAt(i);
-				if (ball.Hit != pho && pho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.RcHitRadiusSqr)) {
+				if (ball.Hit != pho && pho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.HitRadiusSqr)) {
 					pho.DoHitTest(ball, coll, physics);
 				}
 			}
