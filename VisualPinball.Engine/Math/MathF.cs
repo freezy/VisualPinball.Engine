@@ -1,4 +1,5 @@
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace VisualPinball.Engine.Math
@@ -116,6 +117,12 @@ namespace VisualPinball.Engine.Math
 			}
 
 			return m;
+		}
+
+		public static float Random()
+		{
+			var random = new Random();
+			return (float) random.NextDouble();
 		}
 	}
 }

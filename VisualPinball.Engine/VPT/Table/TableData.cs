@@ -319,6 +319,8 @@ namespace VisualPinball.Engine.VPT.Table
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
 
+		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+
 		protected override bool SkipWrite(BiffAttribute attr)
 		{
 			switch (attr.Name) {
