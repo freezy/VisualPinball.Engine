@@ -209,6 +209,7 @@
     <Compile Include="VPT\Flasher\FlasherDataTests.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshTests.cs" />
     <Compile Include="VPT\Flipper\FlipperDataTests.cs" />
+    <Compile Include="VPT\Flipper\FlipperPhysicsTests.cs" />
     <Compile Include="VPT\Gate\GateDataTests.cs" />
     <Compile Include="VPT\Gate\GateMeshTests.cs" />
     <Compile Include="VPT\HitTarget\HitTargetMeshTests.cs" />
