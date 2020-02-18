@@ -209,6 +209,7 @@
     <Compile Include="VPT\Table\CustomInfoTags.cs" />
     <Compile Include="VPT\Table\HashWriter.cs" />
     <Compile Include="VPT\Table\Table.cs" />
+    <Compile Include="VPT\Table\TableBuilder.cs" />
     <Compile Include="VPT\Table\TableData.cs" />
     <Compile Include="VPT\Table\TableHitGenerator.cs" />
     <Compile Include="VPT\Table\TableLoader.cs" />

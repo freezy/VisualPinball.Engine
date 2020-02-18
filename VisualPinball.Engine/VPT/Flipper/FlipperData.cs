@@ -128,7 +128,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 			Init(typeof(FlipperData), Attributes);
 		}
 
-		public FlipperData(BinaryReader reader, string storageName) : base(storageName)
+		public FlipperData(string storageName) : base(storageName)
+		{
+		}
+
+		public FlipperData(BinaryReader reader, string storageName) : this(storageName)
 		{
 			Load(this, reader, Attributes);
 		}

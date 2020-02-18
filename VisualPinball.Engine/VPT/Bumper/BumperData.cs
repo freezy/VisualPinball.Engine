@@ -104,7 +104,11 @@ namespace VisualPinball.Engine.VPT.Bumper
 			Init(typeof(BumperData), Attributes);
 		}
 
-		public BumperData(BinaryReader reader, string storageName) : base(storageName)
+		public BumperData(string storageName) : base(storageName)
+		{
+		}
+
+		public BumperData(BinaryReader reader, string storageName) : this(storageName)
 		{
 			Load(this, reader, Attributes);
 		}

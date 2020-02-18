@@ -311,8 +311,11 @@ namespace VisualPinball.Engine.Game
 
 		public float UpdatePhysics()
 		{
-			var initialTimeUsec = NowUsec();
+			return UpdatePhysics(NowUsec());
+		}
 
+		public float UpdatePhysics(long initialTimeUsec)
+		{
 			if (IsPaused) {
 				// Shift whole game forward in time
 				_startTimeUsec += initialTimeUsec - _curPhysicsFrameTime;
