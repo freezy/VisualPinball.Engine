@@ -36,8 +36,8 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffBool("EFSS", Pos = 15)]
 		public bool BgEnableFss;
 
-		[BiffBool("ORRP", Pos = 36)]
-		public bool OverridePhysics;
+		[BiffInt("ORRP", Pos = 36)]
+		public int OverridePhysics;
 
 		[BiffBool("ORPF", Pos = 37)]
 		public bool OverridePhysicsFlipper;
@@ -326,10 +326,10 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 
-		public float GetFriction() => OverridePhysics ? OverrideContactFriction : Friction;
-		public float GetElasticity() => OverridePhysics ? OverrideElasticity : Elasticity;
-		public float GetElasticityFalloff() => OverridePhysics ? OverrideElasticityFalloff : ElasticityFalloff;
-		public float GetScatter() => OverridePhysics ? OverrideScatterAngle : Scatter;
+		public float GetFriction() => OverridePhysics != 0 ? OverrideContactFriction : Friction;
+		public float GetElasticity() => OverridePhysics != 0 ? OverrideElasticity : Elasticity;
+		public float GetElasticityFalloff() => OverridePhysics != 0 ? OverrideElasticityFalloff : ElasticityFalloff;
+		public float GetScatter() => OverridePhysics != 0 ? OverrideScatterAngle : Scatter;
 
 		protected override bool SkipWrite(BiffAttribute attr)
 		{

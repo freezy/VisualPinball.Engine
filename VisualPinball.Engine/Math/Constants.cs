@@ -90,6 +90,11 @@ namespace VisualPinball.Engine.Math
 		public const float ToleranceEndPoints = 0.0f;                          // C_TOL_ENDPNTS
 		public const float ToleranceRadius =  0.005f;                          // C_TOL_RADIUS
 
+		/// <summary>
+		/// Precision level and cycles for interative calculations // acceptable contact time ... near zero time
+		/// </summary>
+		public const int Internations = 20;                                    // C_INTERATIONS
+
 
 
 	}
