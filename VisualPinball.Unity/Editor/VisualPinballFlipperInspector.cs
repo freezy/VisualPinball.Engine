@@ -90,6 +90,10 @@ namespace VisualPinball.Unity.Editor
 				_flipper.data.TorqueDampingAngle = EditorGUILayout.FloatField("EOS Torque Angle", _flipper.data.TorqueDampingAngle);
 				EditorGUI.indentLevel--;
 			}
+
+			if (GUILayout.Button("Flip Up")) {
+
+			}
 		}
 	}
 }
