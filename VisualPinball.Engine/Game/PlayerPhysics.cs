@@ -99,13 +99,13 @@ namespace VisualPinball.Engine.Game
 		/// </summary>
 		public void Init()
 		{
-			var minSlope = _table.Data.OverridePhysics ? PhysicsConstants.DefaultTableMinSlope : _table.Data.AngleTiltMin;
-			var maxSlope = _table.Data.OverridePhysics ? PhysicsConstants.DefaultTableMaxSlope : _table.Data.AngleTiltMax;
+			var minSlope = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableMinSlope : _table.Data.AngleTiltMin;
+			var maxSlope = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableMaxSlope : _table.Data.AngleTiltMax;
 			var slope = minSlope + (maxSlope - minSlope) * _table.Data.GlobalDifficulty;
 
 			Gravity.X = 0;
-			Gravity.Y = MathF.Sin(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
-			Gravity.Z = -MathF.Cos(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
+			Gravity.Y = MathF.Sin(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
+			Gravity.Z = -MathF.Cos(MathF.DegToRad(slope)) * (_table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity);
 
 			// TODO [vpx-js added] init animation timers
 			// foreach (var animatable in this.Table.GetAnimatables()) {

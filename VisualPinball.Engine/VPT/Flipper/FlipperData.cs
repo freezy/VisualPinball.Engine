@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
@@ -121,6 +122,77 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffInt("TMIN", Pos = 11)]
 		public int TimerInterval;
 
+		public float OverrideMass;
+		public float OverrideStrength;
+		public float OverrideElasticity;
+		public float OverrideElasticityFalloff;
+		public float OverrideFriction;
+		public float OverrideReturnStrength;
+		public float OverrideCoilRampUp;
+		public float OverrideTorqueDamping;
+		public float OverrideTorqueDampingAngle;
+		public float OverrideScatterAngle;
+
+		public void UpdatePhysicsSettings(Table.Table table)
+		{
+			if (DoOverridePhysics(table)) {
+				var registry = Registry.Instance;
+
+				var idx = OverridePhysics != 0 ? OverridePhysics - 1 : table.Data.OverridePhysics - 1;
+
+				OverrideMass = registry.Get<float>("Player", $"FlipperPhysicsMass${idx}", 1);
+				if (OverrideMass < 0.0) {
+					OverrideMass = Mass;
+				}
+
+				OverrideStrength = registry.Get<float>("Player", $"FlipperPhysicsStrength${idx}", 2200);
+				if (OverrideStrength < 0.0) {
+					OverrideStrength = Strength;
+				}
+
+				OverrideElasticity = registry.Get<float>("Player", $"FlipperPhysicsElasticity${idx}", 0.8f);
+				if (OverrideElasticity < 0.0) {
+					OverrideElasticity = Elasticity;
+				}
+
+				OverrideScatterAngle = registry.Get<float>("Player", $"FlipperPhysicsScatter${idx}", 0);
+				if (OverrideScatterAngle < 0.0) {
+					OverrideScatterAngle = Scatter;
+				}
+
+				OverrideReturnStrength = registry.Get<float>("Player", $"FlipperPhysicsReturnStrength${idx}", 0.058f);
+				if (OverrideReturnStrength < 0.0) {
+					OverrideReturnStrength = Return;
+				}
+
+				OverrideElasticityFalloff =
+					registry.Get<float>("Player", $"FlipperPhysicsElasticityFalloff${idx}", 0.43f);
+				if (OverrideElasticityFalloff < 0.0) {
+					OverrideElasticityFalloff = ElasticityFalloff;
+				}
+
+				OverrideFriction = registry.Get<float>("Player", $"FlipperPhysicsFriction${idx}", 0.6f);
+				if (OverrideFriction < 0.0) {
+					OverrideFriction = Friction;
+				}
+
+				OverrideCoilRampUp = registry.Get<float>("Player", $"FlipperPhysicsCoilRampUp${idx}", 3.0f);
+				if (OverrideCoilRampUp < 0.0) {
+					OverrideCoilRampUp = RampUp;
+				}
+
+				OverrideTorqueDamping = registry.Get<float>("Player", $"FlipperPhysicsEOSTorque${idx}", 0.75f);
+				if (OverrideTorqueDamping < 0.0) {
+					OverrideTorqueDamping = TorqueDamping;
+				}
+
+				OverrideTorqueDampingAngle = registry.Get<float>("Player", $"FlipperPhysicsEOSTorqueAngle${idx}", 6.0f);
+				if (OverrideTorqueDampingAngle < 0.0) {
+					OverrideTorqueDampingAngle = TorqueDampingAngle;
+				}
+			}
+		}
+
 		#region BIFF
 
 		static FlipperData()
@@ -147,5 +219,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
 		#endregion
+
+		public bool DoOverridePhysics(Table.Table table) => OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0;
 	}
 }

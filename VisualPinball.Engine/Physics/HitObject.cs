@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.Physics
 		/// <param name="coll"></param>
 		/// <param name="dTime"></param>
 		/// <param name="physics"></param>
-		public void Contact(CollisionEvent coll, float dTime, PlayerPhysics physics)
+		public virtual void Contact(CollisionEvent coll, float dTime, PlayerPhysics physics)
 		{
 			coll.Ball.Hit.HandleStaticContact(coll, Friction, dTime, physics);
 		}

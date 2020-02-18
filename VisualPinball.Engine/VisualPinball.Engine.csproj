@@ -90,6 +90,7 @@
   <ItemGroup>
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\Profiler.cs" />
+    <Compile Include="Common\Registry.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Game\Event.cs" />
     <Compile Include="Game\EventProxy.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Physics\CollisionEvent.cs" />
     <Compile Include="Physics\CollisionType.cs" />
     <Compile Include="Physics\Hit3DPoly.cs" />
+    <Compile Include="Physics\HitCircle.cs" />
     <Compile Include="Physics\HitKd.cs" />
     <Compile Include="Physics\HitKdNode.cs" />
     <Compile Include="Physics\HitObject.cs" />
@@ -163,7 +165,10 @@
     <Compile Include="VPT\Flasher\FlasherData.cs" />
     <Compile Include="VPT\Flipper\Flipper.cs" />
     <Compile Include="VPT\Flipper\FlipperData.cs" />
+    <Compile Include="VPT\Flipper\FlipperHit.cs" />
     <Compile Include="VPT\Flipper\FlipperMeshGenerator.cs" />
+    <Compile Include="VPT\Flipper\FlipperMover.cs" />
+    <Compile Include="VPT\Flipper\FlipperState.cs" />
     <Compile Include="VPT\Font.cs" />
     <Compile Include="VPT\Gate\Gate.cs" />
     <Compile Include="VPT\Gate\GateData.cs" />
@@ -173,6 +178,7 @@
     <Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs" />
     <Compile Include="VPT\Item.cs" />
     <Compile Include="VPT\ItemData.cs" />
+    <Compile Include="VPT\ItemState.cs" />
     <Compile Include="VPT\Kicker\Kicker.cs" />
     <Compile Include="VPT\Kicker\KickerData.cs" />
     <Compile Include="VPT\Kicker\KickerMeshGenerator.cs" />

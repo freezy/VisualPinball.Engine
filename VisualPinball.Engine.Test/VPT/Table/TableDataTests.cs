@@ -153,7 +153,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			Assert.Equal(1, data.NumMaterials);
 			Assert.Equal(0, data.NumSounds);
 			Assert.Equal(1, data.NumTextures);
-			Assert.Equal(true, data.OverridePhysics);
+			Assert.Equal(1, data.OverridePhysics);
 			Assert.Equal(true, data.OverridePhysicsFlipper);
 			Assert.Equal(true, data.OverwriteGlobalDayNight);
 			Assert.Equal(true, data.OverwriteGlobalDetailLevel);
