@@ -40,5 +40,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_hit.GetMoverObject().EnableRotateEvent = 1;
 			_hit.GetMoverObject().SetSolenoidState(true);
 		}
+
+		// todo move to api
+		public void RotateToStart() {
+			_hit.GetMoverObject().EnableRotateEvent = -1;
+			_hit.GetMoverObject().SetSolenoidState(false);
+		}
 	}
 }

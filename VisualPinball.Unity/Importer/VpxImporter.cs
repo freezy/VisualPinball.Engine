@@ -21,6 +21,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Importer.AssetHandler;
 using VisualPinball.Unity.Importer.Job;
 using Logger = NLog.Logger;
@@ -76,6 +77,9 @@ namespace VisualPinball.Unity.Importer
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
 			MakeSerializable(go, table, assetHandler);
+
+			// finally, add the player script
+			go.AddComponent<TablePlayer>();
 		}
 
 		private void ImportTextures()

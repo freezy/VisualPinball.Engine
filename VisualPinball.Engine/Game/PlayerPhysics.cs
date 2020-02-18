@@ -309,9 +309,9 @@ namespace VisualPinball.Engine.Game
 			}
 		}
 
-		public float UpdatePhysics()
+		public void UpdatePhysics()
 		{
-			return UpdatePhysics(NowUsec());
+			UpdatePhysics(NowUsec());
 		}
 
 		public float UpdatePhysics(long initialTimeUsec)

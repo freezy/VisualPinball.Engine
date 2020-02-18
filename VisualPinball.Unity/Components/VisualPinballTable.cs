@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Components
 			return RecreateTable();
 		}
 
-		public Table RecreateTable()
+		public Table CreateTable()
 		{
 			Logger.Info("Restoring table...");
 			// restore table data
@@ -90,7 +90,6 @@ namespace VisualPinball.Unity.Components
 			Restore(flashers, table.Flashers, d => new Flasher(d));
 			Restore(lightSeqs, table.LightSeqs, d => new LightSeq(d));
 			Restore(plungers, table.Plungers, d => new Plunger(d));
-			Restore(sounds, table.Sounds, d => new Sound(d));
 			Restore(textBoxes, table.TextBoxes, d => new TextBox(d));
 			Restore(timers, table.Timers, d => new Timer(d));
 
@@ -108,6 +107,15 @@ namespace VisualPinball.Unity.Components
 			Restore<VisualPinballSpinner, Spinner, SpinnerData>(table.Spinners);
 			Restore<VisualPinballSurface, Surface, SurfaceData>(table.Surfaces);
 			Restore<VisualPinballTrigger, Trigger, TriggerData>(table.Triggers);
+
+			return table;
+		}
+
+		public Table RecreateTable()
+		{
+			var table = CreateTable();
+
+			Restore(sounds, table.Sounds, d => new Sound(d));
 
 			// restore textures
 			Logger.Info("Restoring textures...");

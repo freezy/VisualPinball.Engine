@@ -25,8 +25,6 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private VisualPinballSurface _surface;
 
-
-
 		private void OnEnable()
 		{
 			_flipper = (VisualPinballFlipper) target;
