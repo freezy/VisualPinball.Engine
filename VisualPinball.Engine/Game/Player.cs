@@ -37,6 +37,8 @@ namespace VisualPinball.Engine.Game
 			}
 		}
 
+		public void UpdatePhysics() => _physics.UpdatePhysics();
+
 		private void SetupTableElements()
 		{
 			foreach (var playable in _table.Playables) {
