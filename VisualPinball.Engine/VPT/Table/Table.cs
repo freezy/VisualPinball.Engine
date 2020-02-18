@@ -87,8 +87,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Timers.Values.Select(i => i.Data))
 			.Concat(Triggers.Values.Select(i => i.Data));
 
-		public IMovable[] Movables => new IMovable[0];
-		public IHittable[] Hittables => new IHittable[0];
+		public IEnumerable<IMovable> Movables => new IMovable[0];
+		public IEnumerable<IHittable> Hittables => new IHittable[0];
+		public IEnumerable<IPlayable> Playables => new IPlayable[0];
 
 		#endregion
 
