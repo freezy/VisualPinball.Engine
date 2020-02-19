@@ -32,6 +32,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		}
 
 		public IMoverObject GetMover() => _hit.GetMoverObject();
+		public FlipperMover FlipperMover => _hit.GetMoverObject();
+
 		public bool IsCollidable => true;
 		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
 
