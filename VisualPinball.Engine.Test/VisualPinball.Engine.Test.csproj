@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentAssertions, Version=5.10.2.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a">
+      <HintPath>..\packages\FluentAssertions.5.10.2\lib\net47\FluentAssertions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="JeremyAnsel.Media.WavefrontObj, Version=2.0.6.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\JeremyAnsel.Media.WavefrontObj.2.0.6\lib\net40\JeremyAnsel.Media.WavefrontObj.dll</HintPath>
       <Private>True</Private>
