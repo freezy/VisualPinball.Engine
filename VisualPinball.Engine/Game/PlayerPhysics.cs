@@ -8,6 +8,7 @@ using System.Linq;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Ball;
+using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Timer;
 
@@ -47,7 +48,7 @@ namespace VisualPinball.Engine.Game
 
 		//TODO private readonly PinInput pinInput;
 		private List<IMoverObject> _movers;                                              // m_vmover
-		//TODO private readonly FlipperMover flipperMovers[] = [];
+		private FlipperMover[] _flipperMovers;
 
 		private readonly List<HitObject> _hitObjects = new List<HitObject>();            // m_vho
 		private readonly List<HitObject> _hitObjectsDynamic = new List<HitObject>();     // m_vho_dynamic
@@ -138,8 +139,8 @@ namespace VisualPinball.Engine.Game
 			_hitPlayfield = _table.GeneratePlayfieldHit();
 			_hitTopGlass = _table.GenerateGlassHit();
 
-			// TODO index flippers
-			//this.FlipperMovers.AddRange(Table.Flippers.Values.Select(f => f.GetMover()));
+			// index flippers
+			_flipperMovers = _table.Flippers.Values.Select(f => f.FlipperMover).ToArray();
 		}
 
 		private void InitOcTree(Table table)
@@ -167,16 +168,14 @@ namespace VisualPinball.Engine.Game
 			while (dTime > 0) {
 				var hitTime = dTime;
 
-				// TODO find earliest time where a flipper collides with its stop
-				// foreach (var flipperMover in this.FlipperMovers)
-				// {
-				// 	var flipperHitTime = flipperMover.GetHitTime();
-				// 	if (flipperHitTime > 0 && flipperHitTime < hitTime)
-				// 	{
-				// 		//!! >= 0.F causes infinite loop
-				// 		hitTime = flipperHitTime;
-				// 	}
-				// }
+				// find earliest time where a flipper collides with its stop
+				foreach (var flipperMover in _flipperMovers) {
+					var flipperHitTime = flipperMover.GetHitTime();
+					if (flipperHitTime > 0 && flipperHitTime < hitTime) {
+						//!! >= 0.F causes infinite loop
+						hitTime = flipperHitTime;
+					}
+				}
 
 				RecordContacts = true;
 				Contacts.Clear();
