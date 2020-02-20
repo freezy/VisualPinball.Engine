@@ -28,28 +28,38 @@ namespace VisualPinball.Unity.Game
 
 		private void Update()
 		{
-			if (Input.GetKeyDown("left shift")) {
-				_table.Flippers["LeftFlipper"].RotateToEnd();
-			}
-			if (Input.GetKeyUp("left shift")) {
-				_table.Flippers["LeftFlipper"].RotateToStart();
+			// all of this is hacky and only serves as proof of concept.
+			// flippers will obviously be handled via script later.
+			if (_table.Flippers.ContainsKey("LeftFlipper")) {
+				if (Input.GetKeyDown("left shift")) {
+					_table.Flippers["LeftFlipper"].RotateToEnd();
+				}
+				if (Input.GetKeyUp("left shift")) {
+					_table.Flippers["LeftFlipper"].RotateToStart();
+				}
 			}
 
-			if (Input.GetKeyDown("right shift")) {
-				_table.Flippers["RightFlipper"].RotateToEnd();
-			}
-			if (Input.GetKeyUp("right shift")) {
-				_table.Flippers["RightFlipper"].RotateToStart();
+			if (_table.Flippers.ContainsKey("RightFlipper")) {
+				if (Input.GetKeyDown("right shift")) {
+					_table.Flippers["RightFlipper"].RotateToEnd();
+				}
+				if (Input.GetKeyUp("right shift")) {
+					_table.Flippers["RightFlipper"].RotateToStart();
+				}
 			}
 
 			_player.UpdatePhysics();
 
-			var rotL = _leftFlipper.transform.localRotation.eulerAngles;
-			var rotR = _rightFlipper.transform.localRotation.eulerAngles;
-			rotL.z = MathF.RadToDeg(_table.Flippers["LeftFlipper"].State.Angle);
-			rotR.z = MathF.RadToDeg(_table.Flippers["RightFlipper"].State.Angle);
-			_leftFlipper.transform.localRotation = Quaternion.Euler(rotL);
-			_rightFlipper.transform.localRotation = Quaternion.Euler(rotR);
+			if (_table.Flippers.ContainsKey("LeftFlipper")) {
+				var rotL = _leftFlipper.transform.localRotation.eulerAngles;
+				rotL.z = MathF.RadToDeg(_table.Flippers["LeftFlipper"].State.Angle);
+				_leftFlipper.transform.localRotation = Quaternion.Euler(rotL);
+			}
+			if (_table.Flippers.ContainsKey("RightFlipper")) {
+				var rotR = _rightFlipper.transform.localRotation.eulerAngles;
+				rotR.z = MathF.RadToDeg(_table.Flippers["RightFlipper"].State.Angle);
+				_rightFlipper.transform.localRotation = Quaternion.Euler(rotR);
+			}
 		}
 	}
 }
