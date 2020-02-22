@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitKd
 	{
-		public List<int> OrgIdx;                                               // m_org_idx
+		public int[] OrgIdx;                                                   // m_org_idx
 		public int NumNodes;                                                   // m_num_nodes
 		public int[] Indices;                                                  // tmp
 
@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.Physics
 			if (_numItems > _maxItems) {
 				_maxItems = _numItems;
 
-				OrgIdx = new List<int>(_numItems);
+				OrgIdx = new int[_numItems];
 				Indices = new int[_numItems];
 				_nodes = new HitKdNode[(_numItems * 2 + 1) & ~1u];
 			}

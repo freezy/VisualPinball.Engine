@@ -313,7 +313,7 @@ namespace VisualPinball.Engine.Game
 			UpdatePhysics(NowUsec());
 		}
 
-		public float UpdatePhysics(long initialTimeUsec)
+		public void UpdatePhysics(long initialTimeUsec)
 		{
 			if (IsPaused) {
 				// Shift whole game forward in time
@@ -419,8 +419,6 @@ namespace VisualPinball.Engine.Game
 				_curPhysicsFrameTime = _nextPhysicsFrameTime;                  // new cycle, on physics frame boundary
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;     // advance physics position
 			} // end while (m_curPhysicsFrameTime < initial_time_usec)
-
-			return physIterations;
 		}
 
 		public void UpdateVelocities()
