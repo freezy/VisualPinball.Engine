@@ -61,35 +61,73 @@ namespace VisualPinball.Engine.VPT.Flipper
 			fullMatrix.RotateZMatrix(MathF.DegToRad(180.0f));
 
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			const float baseScale = 10.0f;
-			const float tipScale = 10.0f;
+
 			var baseRadius = _data.BaseRadius - _data.RubberThickness;
 			var endRadius = _data.EndRadius - _data.RubberThickness;
 
+			// calc angle needed to fix P0 location
+			double sinAngle = (baseRadius - endRadius) / _data.FlipperRadius;
+			if (sinAngle > 1.0) sinAngle = 1.0;
+			if (sinAngle < -1.0) sinAngle = -1.0;
+			double fixAngle = System.Math.Asin(sinAngle);
+			double fixAngleScale = fixAngle / (System.Math.PI * 0.5); // scale (in relation to 90 deg.)
+																	  // fixAngleScale = 0.0; // note: if you force fixAngleScale = 0.0 then all will look as old version
+
+			// lambda used to apply fix
+			Action<Vertex3DNoTex2, Vertex2D, double, float, Vertex2D> ApplyFix = (Vertex3DNoTex2 vert, Vertex2D center, double midAngle, float radius, Vertex2D newCenter) => {
+				double vAngle = System.Math.Atan2(vert.Y - center.Y, vert.X - center.X);
+				double nAngle = System.Math.Atan2(vert.Ny, vert.Nx);
+
+				// we want have angles with same sign as midAngle, fix it:
+				if (midAngle < 0.0)
+				{
+					if (vAngle > 0.0)
+						vAngle -= System.Math.PI * 2.0;
+					if (nAngle > 0.0)
+						nAngle -= System.Math.PI * 2.0;
+				}
+				else
+				{
+					if (vAngle < 0.0)
+						vAngle += System.Math.PI * 2.0;
+					if (nAngle < 0.0)
+						nAngle += System.Math.PI * 2.0;
+				}
+
+				nAngle -= (vAngle - midAngle) * fixAngleScale * System.Math.Sign(midAngle);
+				vAngle -= (vAngle - midAngle) * fixAngleScale * System.Math.Sign(midAngle);
+				float nL = new Vertex2D(vert.Nx, vert.Ny).Length();
+
+				vert.X = (float)System.Math.Cos(vAngle) * radius + newCenter.X;
+				vert.Y = (float)System.Math.Sin(vAngle) * radius + newCenter.Y;
+				vert.Nx = (float)System.Math.Cos(nAngle) * nL;
+				vert.Ny = (float)System.Math.Sin(nAngle) * nL;
+			};
+
 			// base and tip
 			var baseMesh = FlipperBaseMesh.Clone("Base");
-			for (var t = 0; t < 13; t++) {
-				foreach (var v in baseMesh.Vertices) {
-					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
-						v.X *= baseRadius * baseScale;
-						v.Y *= baseRadius * baseScale;
+			for (var t = 0; t < 13; t++)
+			{
+				foreach (var v in baseMesh.Vertices)
+				{
+					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
+					{
+						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius, new Vertex2D(0, 0));
 					}
 
-					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
-						v.X *= endRadius * tipScale;
-						v.Y *= endRadius * tipScale;
-						v.Y += _data.FlipperRadius - endRadius * 7.9f;
+					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
+					{
+						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 
-					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
-						v.X *= baseRadius * baseScale;
-						v.Y *= baseRadius * baseScale;
+					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
+					{
+						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius, new Vertex2D(0, 0));
 					}
 
-					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
-						v.X *= endRadius * tipScale;
-						v.Y *= endRadius * tipScale;
-						v.Y += _data.FlipperRadius - endRadius * 7.9f;
+					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
+					{
+						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 				}
 			}
@@ -98,32 +136,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 			meshes["Base"] = baseMesh;
 
 			// rubber
-			if (_data.RubberThickness > 0.0) {
-				const float rubberBaseScale = 10.0f;
-				const float rubberTipScale = 10.0f;
+			if (_data.RubberThickness > 0.0)
+			{
 				var rubberMesh = FlipperBaseMesh.Clone("Rubber");
-				for (var t = 0; t < 13; t++) {
-					foreach (var v in rubberMesh.Vertices) {
-						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
-							v.X = v.X * _data.BaseRadius * rubberBaseScale;
-							v.Y = v.Y * _data.BaseRadius * rubberBaseScale;
+				for (var t = 0; t < 13; t++)
+				{
+					foreach (var v in rubberMesh.Vertices)
+					{
+						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
+						{
+							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
 						}
 
-						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
-							v.X = v.X * _data.EndRadius * rubberTipScale;
-							v.Y = v.Y * _data.EndRadius * rubberTipScale;
-							v.Y = v.Y + _data.FlipperRadius - _data.EndRadius * 7.9f;
+						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
+						{
+							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
 						}
 
-						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
-							v.X = v.X * _data.BaseRadius * rubberBaseScale;
-							v.Y = v.Y * _data.BaseRadius * rubberBaseScale;
+						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
+						{
+							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
 						}
 
-						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
-							v.X = v.X * _data.EndRadius * rubberTipScale;
-							v.Y = v.Y * _data.EndRadius * rubberTipScale;
-							v.Y = v.Y + _data.FlipperRadius - _data.EndRadius * 7.9f;
+						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
+						{
+							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
 						}
 					}
 				}
