@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Ball
 		public void UpdateVelocities(PlayerPhysics physics)
 		{
 			if (!_state.IsFrozen) {
-				_hit.Vel.Add(physics.Gravity.MultiplyScalar(PhysicsConstants.PhysFactor));
+				_hit.Vel.Add(physics.Gravity.Clone().MultiplyScalar(PhysicsConstants.PhysFactor));
 
 				// todo nudge
 				// _hit.Vel.X += player.NudgeX; // depends TODO on STEPTIME

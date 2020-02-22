@@ -1,4 +1,5 @@
 using System;
+using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Game
@@ -38,6 +39,12 @@ namespace VisualPinball.Engine.Game
 		}
 
 		public void UpdatePhysics() => _physics.UpdatePhysics();
+		public void UpdatePhysics(float dTime) => _physics.UpdatePhysics((long)(dTime * 1000));
+
+		public Ball CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1)
+		{
+			return _physics.CreateBall(ballCreator, this, radius, mass);
+		}
 
 		private void SetupTableElements()
 		{
