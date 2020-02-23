@@ -38,8 +38,8 @@ namespace VisualPinball.Engine.Math
 	{
 		IRenderVertex Set(Vertex3D v);
 
-		float X { get; }
-		float Y { get; }
+		float GetX();
+		float GetY();
 
 		bool Smooth { get; set; }
 		bool IsSlingshot { get; set; }

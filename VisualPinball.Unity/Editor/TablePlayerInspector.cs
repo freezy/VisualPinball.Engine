@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			_tablePlayer.ballMaterial = (Material)EditorGUILayout.ObjectField("Ball Material", _tablePlayer.ballMaterial, typeof(Material), false);
+
 			if (GUILayout.Button("Spawn Ball")) {
 				_tablePlayer.Player?.CreateBall(new TestBallCreator(600f, 200f, 0));
 			}

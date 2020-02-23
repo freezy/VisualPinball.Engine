@@ -241,20 +241,20 @@ namespace VisualPinball.Engine.VPT
 			// intersect the polygon anywhere
 
 			// sort our static line segment
-			var minX = MathF.Min(pv1.X, pv3.X);
-			var maxX = MathF.Max(pv1.X, pv3.X);
-			var minY = MathF.Min(pv1.Y, pv3.Y);
-			var maxY = MathF.Max(pv1.Y, pv3.Y);
+			var minX = MathF.Min(pv1.GetX(), pv3.GetX());
+			var maxX = MathF.Max(pv1.GetX(), pv3.GetX());
+			var minY = MathF.Min(pv1.GetY(), pv3.GetY());
+			var maxY = MathF.Max(pv1.GetY(), pv3.GetY());
 
 			for (var i = 0; i < poly.Count; ++i) {
 				var pvCross1 = rgv[poly[i]];
 				var pvCross2 = rgv[poly[i < poly.Count - 1 ? i + 1 : 0]];
 
 				if (pvCross1 != pv1 && pvCross2 != pv1 && pvCross1 != pv3 && pvCross2 != pv3 &&
-				    (pvCross1.Y >= minY || pvCross2.Y >= minY) &&
-				    (pvCross1.Y <= maxY || pvCross2.Y <= maxY) &&
-				    (pvCross1.X >= minX || pvCross2.X >= minX) &&
-				    (pvCross1.X <= maxX || pvCross2.Y <= maxX) &&
+				    (pvCross1.GetY() >= minY || pvCross2.GetY() >= minY) &&
+				    (pvCross1.GetY() <= maxY || pvCross2.GetY() <= maxY) &&
+				    (pvCross1.GetX() >= minX || pvCross2.GetX() >= minX) &&
+				    (pvCross1.GetX() <= maxX || pvCross2.GetX() <= maxX) &&
 				    LinesIntersect(pv1, pv3, pvCross1, pvCross2)) {
 
 					return false;
@@ -266,19 +266,19 @@ namespace VisualPinball.Engine.VPT
 
 		private static float GetDot(IRenderVertex pvEnd1, IRenderVertex pvJoint, IRenderVertex pvEnd2)
 		{
-			return (pvJoint.X - pvEnd1.X) * (pvJoint.Y - pvEnd2.Y) - (pvJoint.Y - pvEnd1.Y) * (pvJoint.X - pvEnd2.X);
+			return (pvJoint.GetX() - pvEnd1.GetX()) * (pvJoint.GetY() - pvEnd2.GetY()) - (pvJoint.GetY() - pvEnd1.GetY()) * (pvJoint.GetX() - pvEnd2.GetX());
 		}
 
 		private static bool LinesIntersect(IRenderVertex start1, IRenderVertex start2, IRenderVertex end1, IRenderVertex end2) {
 
-			var x1 = start1.X;
-			var y1 = start1.Y;
-			var x2 = start2.X;
-			var y2 = start2.Y;
-			var x3 = end1.X;
-			var y3 = end1.Y;
-			var x4 = end2.X;
-			var y4 = end2.Y;
+			var x1 = start1.GetX();
+			var y1 = start1.GetY();
+			var x2 = start2.GetX();
+			var y2 = start2.GetY();
+			var x3 = end1.GetX();
+			var y3 = end1.GetY();
+			var x4 = end2.GetX();
+			var y4 = end2.GetY();
 
 			var d123 = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
 

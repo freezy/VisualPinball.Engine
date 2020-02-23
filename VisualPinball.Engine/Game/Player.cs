@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
@@ -6,6 +8,10 @@ namespace VisualPinball.Engine.Game
 {
 	public class Player
 	{
+		public IEnumerable<Ball> Balls => _physics.Balls.ToArray();
+		public event EventHandler<BallCreationArgs> BallCreated;
+		public event EventHandler<BallDestructionArgs> BallDestroyed;
+
 		private readonly Table _table;
 		private readonly PlayerPhysics _physics;
 		private bool _isInitialized;
@@ -43,7 +49,9 @@ namespace VisualPinball.Engine.Game
 
 		public Ball CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1)
 		{
-			return _physics.CreateBall(ballCreator, this, radius, mass);
+			var ball = _physics.CreateBall(ballCreator, this, radius, mass);
+			BallCreated?.Invoke(this, new BallCreationArgs(ball.Name, ball.State.Pos, radius));
+			return ball;
 		}
 
 		private void SetupTableElements()
@@ -52,5 +60,24 @@ namespace VisualPinball.Engine.Game
 				playable.SetupPlayer(this, _table);
 			}
 		}
+	}
+
+	public class BallCreationArgs : EventArgs
+	{
+		public string Name { get; }
+		public Vertex3D Position { get; }
+		public float Radius { get; }
+
+		public BallCreationArgs(string name, Vertex3D position, float radius)
+		{
+			Name = name;
+			Position = position;
+			Radius = radius;
+		}
+	}
+
+	public class BallDestructionArgs : EventArgs
+	{
+
 	}
 }
