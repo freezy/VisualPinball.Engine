@@ -25,13 +25,14 @@ namespace VisualPinball.Engine.VPT
 		protected ItemData(string storageName) : base(storageName) { }
 	}
 
-	public interface IPhysicalData {
-		float Elasticity { get; set; }
-		float ElasticityFalloff { get; set; }
-		float Friction { get; set; }
-		float Scatter { get; set; }
-		bool OverwritePhysics { get; set; }
-		bool IsCollidable { get; set; }
-		string PhysicsMaterial { get; set; }
+	public interface IPhysicalData
+	{
+		float GetElasticity();
+		float GetElasticityFalloff();
+		float GetFriction();
+		float GetScatter();
+		bool GetOverwritePhysics();
+		bool GetIsCollidable();
+		string GetPhysicsMaterial();
 	}
 }

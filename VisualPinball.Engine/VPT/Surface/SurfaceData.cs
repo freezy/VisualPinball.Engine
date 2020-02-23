@@ -16,7 +16,7 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
 	[BiffIgnore("PNTS")]
-	public class SurfaceData : ItemData
+	public class SurfaceData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
 
@@ -115,6 +115,19 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		[BiffInt("TMIN", Pos = 7)]
 		public int TimerInterval;
+
+
+		// IPhysicalData
+		public float GetElasticity() => Elasticity;
+		public float GetElasticityFalloff() => 0;
+		public float GetFriction() => Friction;
+		public float GetScatter() => Scatter;
+		public bool GetOverwritePhysics() => OverwritePhysics;
+		public bool GetIsCollidable() => IsCollidable;
+		public string GetPhysicsMaterial() => PhysicsMaterial;
+
+		// non-persisted
+		public bool IsDisabled;
 
 		#region BIFF
 

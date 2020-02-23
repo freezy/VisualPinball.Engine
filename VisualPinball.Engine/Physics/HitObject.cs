@@ -174,19 +174,19 @@ namespace VisualPinball.Engine.Physics
 
 		public void ApplyPhysics(IPhysicalData data, Table table)
 		{
-			var mat = table.GetMaterial(data.PhysicsMaterial);
-			if (mat != null && !data.OverwritePhysics) {
+			var mat = table.GetMaterial(data.GetPhysicsMaterial());
+			if (mat != null && !data.GetOverwritePhysics()) {
 				SetElasticity(mat.Elasticity, mat.ElasticityFalloff);
 				SetFriction(mat.Friction);
 				SetScatter(MathF.DegToRad(mat.ScatterAngle));
 
 			} else {
-				SetElasticity(data.Elasticity, data.ElasticityFalloff);
-				SetFriction(data.Friction);
-				SetScatter(MathF.DegToRad(data.Scatter));
+				SetElasticity(data.GetElasticity(), data.GetElasticityFalloff());
+				SetFriction(data.GetFriction());
+				SetScatter(MathF.DegToRad(data.GetScatter()));
 			}
 
-			SetEnabled(data.IsCollidable);
+			SetEnabled(data.GetIsCollidable());
 		}
 	}
 }
