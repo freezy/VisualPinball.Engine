@@ -113,6 +113,7 @@
     <Compile Include="Components\VisualPinballSurface.cs" />
     <Compile Include="Components\VisualPinballTable.cs" />
     <Compile Include="Components\VisualPinballTrigger.cs" />
+    <Compile Include="Editor\TablePlayerInspector.cs" />
     <Compile Include="Editor\VisualPinballFlipperInspector.cs" />
     <Compile Include="Editor\VisualPinballTableInspector.cs" />
     <Compile Include="Extensions\Color.cs" />
