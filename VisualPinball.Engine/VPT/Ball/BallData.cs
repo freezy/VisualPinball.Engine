@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Ball
 
 		public override string GetName()
 		{
-			throw new NotImplementedException();
+			return $"Ball{Id}";
 		}
 	}
 }

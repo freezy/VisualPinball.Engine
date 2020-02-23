@@ -1,12 +1,14 @@
+using System;
 using System.IO;
 
 namespace VisualPinball.Engine.Math
 {
+	[Serializable]
 	public class Vertex3D : Vertex2D
 	{
 		public static readonly Vertex3D One = new Vertex3D(1.0f, 1.0f, 1.0f);
 
-		public float Z { get; set; }
+		public float Z;
 
 		public Vertex3D()
 		{

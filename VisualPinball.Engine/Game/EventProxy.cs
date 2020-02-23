@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.Game
 		public float CurrentHitThreshold = 0;
 
 		public bool SingleEvents = true;
-		public readonly EventProxy[] EventCollection;
+		public readonly EventProxy[] EventCollection = new EventProxy[0];
 		public readonly List<int> EventCollectionItemPos = new List<int>();
 
 		private readonly IPlayable Playable;

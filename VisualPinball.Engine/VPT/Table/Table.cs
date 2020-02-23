@@ -91,10 +91,12 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Flippers.Values);
 
 		public IEnumerable<IHittable> Hittables => new IHittable[0]
-			.Concat(Flippers.Values);
+			.Concat(Flippers.Values)
+			.Concat(Surfaces.Values);
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
-			.Concat(Flippers.Values);
+			.Concat(Flippers.Values)
+			.Concat(Surfaces.Values);
 
 		#endregion
 

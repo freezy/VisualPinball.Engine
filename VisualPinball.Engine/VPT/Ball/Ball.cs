@@ -7,6 +7,7 @@ namespace VisualPinball.Engine.VPT.Ball
 	public class Ball
 	{
 		public uint Id => Data.Id;
+		public string Name => Data.GetName();
 
 		public readonly BallData Data;
 		public readonly BallState State;

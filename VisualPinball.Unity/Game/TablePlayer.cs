@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Components;
+using Math = VisualPinball.Unity.Extensions.Math;
 
 namespace VisualPinball.Unity.Game
 {
@@ -12,8 +14,13 @@ namespace VisualPinball.Unity.Game
 		public Table Table { get; private set; }
 		public Player Player { get; private set; }
 
+		public Material ballMaterial;
+
+		private GameObject _ballGroup;
+
 		private Transform _leftFlipper;
 		private Transform _rightFlipper;
+		private Dictionary<string, GameObject> _balls = new Dictionary<string,GameObject>();
 
 		private void Start()
 		{
@@ -21,8 +28,32 @@ namespace VisualPinball.Unity.Game
 			Table = tableComponent.CreateTable();
 			Player = new Player(Table).Init();
 
-			_leftFlipper  = transform.Find("Flippers/LeftFlipper");
-			_rightFlipper  = transform.Find("Flippers/RightFlipper");
+			Player.BallCreated += OnBallCreated;
+
+			// create ball parent
+			_ballGroup = new GameObject("Balls");
+			_ballGroup.transform.parent = transform;
+			_ballGroup.transform.localPosition = Vector3.zero;
+			_ballGroup.transform.localRotation = Quaternion.identity;
+			_ballGroup.transform.localScale = Vector3.one;
+
+			_leftFlipper = transform.Find("Flippers/LeftFlipper");
+			_rightFlipper = transform.Find("Flippers/RightFlipper");
+		}
+
+		private void OnBallCreated(object sender, BallCreationArgs e)
+		{
+			var ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+			ball.name = e.Name;
+			ball.transform.parent = _ballGroup.transform;
+			ball.transform.localScale = new Vector3(e.Radius, e.Radius, e.Radius);
+			ball.transform.localPosition = new Vector3(e.Position.X, e.Position.Y, e.Position.Z);
+
+			if (ballMaterial != null) {
+				ball.GetComponent<Renderer>().material = ballMaterial;
+			}
+
+			_balls[ball.name] = ball;
 		}
 
 		private void Update()
@@ -35,6 +66,23 @@ namespace VisualPinball.Unity.Game
 				}
 				if (Input.GetKeyUp("left shift")) {
 					Table.Flippers["LeftFlipper"].RotateToStart();
+				}
+			}
+
+			foreach (var ball in Player.Balls) {
+				if (_balls.ContainsKey(ball.Name)) {
+					var b = _balls[ball.Name];
+					var m = new Matrix4x4(
+						new Vector4(ball.State.Orientation.Matrix[0][0], ball.State.Orientation.Matrix[1][0], ball.State.Orientation.Matrix[2][0], 0.0f),
+						new Vector4(ball.State.Orientation.Matrix[0][1], ball.State.Orientation.Matrix[1][1], ball.State.Orientation.Matrix[2][1], 0.0f),
+						new Vector4(ball.State.Orientation.Matrix[0][2], ball.State.Orientation.Matrix[1][2], ball.State.Orientation.Matrix[2][2], 0.0f),
+						new Vector4(0, 0, 0, 1)
+					);
+					b.transform.localPosition = Math.ToUnityVector3(ball.State.Pos);
+					b.transform.localRotation = Quaternion.LookRotation(
+						new Vector3(m.m02, m.m12, m.m22),
+						new Vector3(m.m01, m.m11, m.m21)
+					);
 				}
 			}
 

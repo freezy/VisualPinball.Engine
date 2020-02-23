@@ -6,8 +6,11 @@ namespace VisualPinball.Engine.Math
 	[Serializable]
 	public class Vertex2D
 	{
-		public float X { get; set; }
-		public float Y { get; set; }
+		public float X;
+		public float Y;
+
+		public float GetX() => X;
+		public float GetY() => Y;
 
 		public Vertex2D() : this(0.0f, 0.0f) { }
 

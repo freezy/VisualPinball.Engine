@@ -6,6 +6,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
@@ -13,6 +14,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Math
 {
+	[Serializable]
 	public class DragPointData : BiffData
 	{
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
