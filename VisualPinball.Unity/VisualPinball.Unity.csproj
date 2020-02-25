@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Unity|AnyCPU' ">
-    <OutputPath>$(VPE_UNITY_SCRIPTS)</OutputPath>
+    <OutputPath>C:\dev\VisualPinball.DOTS.Test\Assets\Scenes\Scripts</OutputPath>
     <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
@@ -116,7 +116,9 @@
     <Compile Include="Extensions\Math.cs" />
     <Compile Include="Extensions\Matrix3D.cs" />
     <Compile Include="Extensions\Mesh.cs" />
+    <Compile Include="Extensions\RenderObjectExtensions.cs" />
     <Compile Include="Extensions\SurfaceExtensions.cs" />
+    <Compile Include="Extensions\TableExtensions.cs" />
     <Compile Include="Extensions\Texture.cs" />
     <Compile Include="Game\TablePlayer.cs" />
     <Compile Include="Importer\AssetHandler\AssetDatabaseHandler.cs" />

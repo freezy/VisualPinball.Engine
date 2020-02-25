@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Surface;
 
