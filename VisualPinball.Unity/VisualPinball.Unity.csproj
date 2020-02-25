@@ -111,6 +111,7 @@
     <Compile Include="Editor\VisualPinballFlipperInspector.cs" />
     <Compile Include="Editor\VisualPinballTableInspector.cs" />
     <Compile Include="Extensions\Color.cs" />
+    <Compile Include="Extensions\FlipperExtensions.cs" />
     <Compile Include="Extensions\Light.cs" />
     <Compile Include="Extensions\Material.cs" />
     <Compile Include="Extensions\Math.cs" />

@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Math;
+﻿using System.Linq;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -39,6 +40,8 @@ namespace VisualPinball.Engine.Game
 
 		public bool HasOnlyChild => RenderObjects.Length == 1;
 		public bool HasChildren => RenderObjects.Length > 0;
+
+		public RenderObject Get(string name) => RenderObjects.First(ro => ro.Name == name);
 
 		public RenderObjectGroup(string name, string parent)
 		{

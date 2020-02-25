@@ -10,7 +10,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class FlipperMeshGenerator : MeshGenerator
 	{
-		private static readonly Mesh FlipperBaseMesh = new Mesh("Base", FlipperBase.Vertices, FlipperBase.Indices);
+		public const string BaseName = "Base";
+		public const string RubberName = "Rubber";
+
+		private static readonly Mesh FlipperBaseMesh = new Mesh(BaseName, FlipperBase.Vertices, FlipperBase.Indices);
 
 		private readonly FlipperData _data;
 
@@ -30,17 +33,17 @@ namespace VisualPinball.Engine.VPT.Flipper
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
-					"Base",
-					meshes["Base"].Transform(preVertexMatrix, preNormalsMatrix),
+					BaseName,
+					meshes[BaseName].Transform(preVertexMatrix, preNormalsMatrix),
 					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 					_data.IsVisible
 				)
 			};
 
-			if (meshes.ContainsKey("Rubber")) {
+			if (meshes.ContainsKey(RubberName)) {
 				renderObjects.Add(new RenderObject(
-					name: "Rubber",
-					mesh: meshes["Rubber"].Transform(preVertexMatrix, preNormalsMatrix),
+					name: RubberName,
+					mesh: meshes[RubberName].Transform(preVertexMatrix, preNormalsMatrix),
 					material: new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
 					isVisible: _data.IsVisible
 				));
@@ -105,7 +108,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			};
 
 			// base and tip
-			var baseMesh = FlipperBaseMesh.Clone("Base");
+			var baseMesh = FlipperBaseMesh.Clone(BaseName);
 			for (var t = 0; t < 13; t++)
 			{
 				foreach (var v in baseMesh.Vertices)
@@ -133,12 +136,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 			}
 
 			baseMesh.Transform(fullMatrix, null, z => z * _data.Height * table.GetScaleZ() + height);
-			meshes["Base"] = baseMesh;
+			meshes[BaseName] = baseMesh;
 
 			// rubber
 			if (_data.RubberThickness > 0.0)
 			{
-				var rubberMesh = FlipperBaseMesh.Clone("Rubber");
+				var rubberMesh = FlipperBaseMesh.Clone(RubberName);
 				for (var t = 0; t < 13; t++)
 				{
 					foreach (var v in rubberMesh.Vertices)
@@ -167,7 +170,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 				rubberMesh.Transform(fullMatrix, null,
 					z => z * _data.RubberWidth * table.GetScaleZ() + (height + _data.RubberHeight));
-				meshes["Rubber"] = rubberMesh;
+				meshes[RubberName] = rubberMesh;
 			}
 
 			return meshes;

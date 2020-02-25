@@ -158,7 +158,7 @@ namespace VisualPinball.Unity.Importer
 			// add unity component
 			switch (item) {
 				case Bumper bumper: obj.AddComponent<VisualPinballBumper>().SetData(bumper.Data); break;
-				case Flipper flipper: obj.AddComponent<VisualPinballFlipper>().SetData(flipper.Data); break;
+				case Flipper flipper: flipper.SetupGameObject(obj, rog); break;
 				case Gate gate: obj.AddComponent<VisualPinballGate>().SetData(gate.Data); break;
 				case HitTarget hitTarget: obj.AddComponent<VisualPinballHitTarget>().SetData(hitTarget.Data); break;
 				case Kicker kicker: obj.AddComponent<VisualPinballKicker>().SetData(kicker.Data); break;
