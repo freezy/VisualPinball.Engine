@@ -1,0 +1,50 @@
+using System;
+using Unity.Physics.Authoring;
+using UnityEngine;
+using VisualPinball.Engine.Game;
+
+namespace VisualPinball.Unity.Extensions
+{
+	public static class RenderObjectExtensions
+	{
+		public static void AddPhysicsBody(this RenderObjectGroup rog, GameObject obj)
+		{
+			Add(rog, obj, PhysicsBody);
+		}
+
+		public static void AddPhysicsShape(this RenderObjectGroup rog, GameObject obj)
+		{
+			Add(rog, obj, PhysicsShape);
+		}
+
+		private static void Add(RenderObjectGroup rog, GameObject go, Action<RenderObject, GameObject> add)
+		{
+			if (rog.HasChildren) {
+				foreach (var ro in rog.RenderObjects) {
+					var child = go.transform.Find(ro.Name);
+					if (child != null) {
+						add(ro, child.gameObject);
+					}
+				}
+			}
+
+			if (rog.HasOnlyChild) {
+				add(rog.RenderObjects[0], go);
+			}
+		}
+
+		private static void PhysicsShape(RenderObject ro, GameObject go)
+		{
+			var mesh = go.GetComponent<MeshFilter>();
+			var shape = go.AddComponent<PhysicsShapeAuthoring>();
+			shape.Friction = new PhysicsMaterialCoefficient {Value = 0};
+			shape.SetMesh(mesh.sharedMesh);
+		}
+
+		private static void PhysicsBody(RenderObject ro, GameObject go)
+		{
+			var body = go.AddComponent<PhysicsBodyAuthoring>();
+			body.MotionType = BodyMotionType.Kinematic;
+		}
+	}
+}
