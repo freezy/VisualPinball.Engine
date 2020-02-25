@@ -10,6 +10,7 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity.Components
 {
 	[ExecuteInEditMode]
+	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class VisualPinballFlipper : ItemComponent<Flipper, FlipperData>
 	{
 		protected override string[] Children => new []{"Base", "Rubber"};

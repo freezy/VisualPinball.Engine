@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -166,9 +167,12 @@ namespace VisualPinball.Unity.Importer
 				case Ramp ramp: obj.AddComponent<VisualPinballRamp>().SetData(ramp.Data); break;
 				case Rubber rubber: obj.AddComponent<VisualPinballRubber>().SetData(rubber.Data); break;
 				case Spinner spinner: obj.AddComponent<VisualPinballSpinner>().SetData(spinner.Data); break;
-				case Surface surface: obj.AddComponent<VisualPinballSurface>().SetData(surface.Data); break;
+				case Surface surface: surface.OnGameObject(obj, _table); break;
 				case Trigger trigger: obj.AddComponent<VisualPinballTrigger>().SetData(trigger.Data); break;
 			}
+
+			// add physics component
+			//GameObjectConversionUtility.ConvertGameObjectHierarchy(obj, GameObjectConversionSettings.);
 		}
 
 		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)
