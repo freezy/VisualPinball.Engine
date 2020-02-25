@@ -133,9 +133,16 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public float OverrideTorqueDampingAngle;
 		public float OverrideScatterAngle;
 
+		public float GetReturnRatio(TableData tableData) => DoOverridePhysics(tableData) ? OverrideReturnStrength : Return;
+		public float GetStrength(TableData tableData) => DoOverridePhysics(tableData) ? OverrideStrength : Strength;
+		public float GetTorqueDampingAngle(TableData tableData) => DoOverridePhysics(tableData) ? OverrideTorqueDampingAngle : TorqueDampingAngle;
+		public float GetFlipperMass(TableData tableData) => DoOverridePhysics(tableData) ? OverrideMass : Mass;
+		public float GetTorqueDamping(TableData tableData) => DoOverridePhysics(tableData) ? OverrideTorqueDamping : TorqueDamping;
+		public float GetRampUpSpeed(TableData tableData) => DoOverridePhysics(tableData) ? OverrideCoilRampUp : RampUp;
+
 		public void UpdatePhysicsSettings(Table.Table table)
 		{
-			if (DoOverridePhysics(table)) {
+			if (DoOverridePhysics(table.Data)) {
 				var registry = Registry.Instance;
 
 				var idx = OverridePhysics != 0 ? OverridePhysics - 1 : table.Data.OverridePhysics - 1;
@@ -220,6 +227,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		#endregion
 
-		public bool DoOverridePhysics(Table.Table table) => OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0;
+		public bool DoOverridePhysics(TableData tableData) => OverridePhysics != 0 || tableData.OverridePhysicsFlipper && tableData.OverridePhysics != 0;
 	}
 }
