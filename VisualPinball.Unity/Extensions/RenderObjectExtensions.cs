@@ -7,14 +7,22 @@ namespace VisualPinball.Unity.Extensions
 {
 	public static class RenderObjectExtensions
 	{
-		public static void AddPhysicsBody(this RenderObjectGroup rog, GameObject obj)
+		public static void AddPhysicsBody(this RenderObjectGroup rog, GameObject go)
 		{
-			Add(rog, obj, PhysicsBody);
+			Add(rog, go, PhysicsBody);
 		}
 
-		public static void AddPhysicsShape(this RenderObjectGroup rog, GameObject obj)
+		public static void AddPhysicsShape(this RenderObjectGroup rog, GameObject go)
 		{
-			Add(rog, obj, PhysicsShape);
+			Add(rog, go, PhysicsShape);
+		}
+
+		public static void AddPhysicsShape(this RenderObject ro, GameObject go)
+		{
+			var child = go.transform.Find(ro.Name);
+			if (child != null) {
+				PhysicsShape(ro, child.gameObject);
+			}
 		}
 
 		private static void Add(RenderObjectGroup rog, GameObject go, Action<RenderObject, GameObject> add)

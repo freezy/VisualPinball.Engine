@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.Extensions
 		{
 			obj.AddComponent<VisualPinballSurface>().SetData(surface.Data);
 			obj.AddComponent<ConvertToEntity>();
-			rog.AddPhysicsBody(obj);
+			//rog.AddPhysicsBody(obj);
 			rog.AddPhysicsShape(obj);
 		}
 	}
