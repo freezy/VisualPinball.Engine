@@ -237,6 +237,7 @@
     <Compile Include="VPT\Spinner\SpinnerMeshTests.cs" />
     <Compile Include="VPT\Surface\SurfaceDataTests.cs" />
     <Compile Include="VPT\Surface\SurfaceMeshTests.cs" />
+    <Compile Include="VPT\Surface\SurfacePhysicsTests.cs" />
     <Compile Include="VPT\Table\TableDataTests.cs" />
     <Compile Include="VPT\Table\TableMeshTests.cs" />
     <Compile Include="VPT\Textbox\TextBoxDataTest.cs" />
