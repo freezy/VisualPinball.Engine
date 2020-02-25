@@ -53,14 +53,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 		/// </summary>
 		private bool _solState; // m_solState
 
-		public float GetReturnRatio() => DoOverridePhysics() ? _data.OverrideReturnStrength : _data.Return;
-		public float GetStrength() => DoOverridePhysics() ? _data.OverrideStrength : _data.Strength;
-		public float GetTorqueDampingAngle() => DoOverridePhysics() ? _data.OverrideTorqueDampingAngle : _data.TorqueDampingAngle;
-		public float GetFlipperMass() => DoOverridePhysics() ? _data.OverrideMass : _data.Mass;
-		public float GetTorqueDamping() => DoOverridePhysics() ? _data.OverrideTorqueDamping : _data.TorqueDamping;
-		public float GetRampUpSpeed() => DoOverridePhysics() ? _data.OverrideCoilRampUp : _data.RampUp;
-
-
 		public FlipperMover(FlipperData data, FlipperState state, EventProxy events, Table.Table table)
 		{
 			_data = data;
@@ -104,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			var ratio = (baseRadius - EndRadius) / FlipperRadius;
 
 			// model inertia of flipper as that of rod of length flipr around its end
-			var mass = GetFlipperMass();
+			var mass = _data.GetFlipperMass(_tableData);
 			Inertia = (float) (1.0 / 3.0) * mass * (FlipperRadius * FlipperRadius);
 
 			LastHitFace = false; // used to optimize hit face search order
@@ -169,31 +161,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public void UpdateVelocities(PlayerPhysics physics)
 		{
-			var desiredTorque = GetStrength();
+			var desiredTorque = _data.GetStrength(_tableData);
 			if (!_solState) {
 				// this.True solState = button pressed, false = released
-				desiredTorque *= -GetReturnRatio();
+				desiredTorque *= -_data.GetReturnRatio(_tableData);
 			}
 
 			// hold coil is weaker
-			var eosAngle = MathF.DegToRad(GetTorqueDampingAngle());
+			var eosAngle = MathF.DegToRad(_data.GetTorqueDampingAngle(_tableData));
 			if (MathF.Abs(_state.Angle - AngleEnd) < eosAngle) {
 				// fade in/out damping, depending on angle to end
 				var lerp = MathF.Sqrt(MathF.Sqrt(MathF.Abs(_state.Angle - AngleEnd) / eosAngle));
-				desiredTorque *= lerp + GetTorqueDamping() * (1 - lerp);
+				desiredTorque *= lerp + _data.GetTorqueDamping(_tableData) * (1 - lerp);
 			}
 
 			if (!_direction) {
 				desiredTorque = -desiredTorque;
 			}
 
-			var torqueRampUpSpeed = GetRampUpSpeed();
+			var torqueRampUpSpeed = _data.GetRampUpSpeed(_tableData);
 			if (torqueRampUpSpeed <= 0) {
 				// set very high for instant coil response
 				torqueRampUpSpeed = 1e6f;
 
 			} else {
-				torqueRampUpSpeed = MathF.Min(GetStrength() / torqueRampUpSpeed, 1e6f);
+				torqueRampUpSpeed = MathF.Min(_data.GetStrength(_tableData) / torqueRampUpSpeed, 1e6f);
 			}
 
 			// update current torque linearly towards desired torque
@@ -322,9 +314,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 			//!! also change if wiring of moment of inertia happens (see ctor)
 			Inertia = (float) (1.0 / 3.0) * m * (FlipperRadius * FlipperRadius);
 		}
-
-		private bool DoOverridePhysics() => _data.OverridePhysics != 0 || _tableData.OverridePhysicsFlipper && _tableData.OverridePhysics != 0;
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 	}
 }
