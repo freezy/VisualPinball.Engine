@@ -8,6 +8,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Flipper;
 
 namespace VisualPinball.Unity.Components
@@ -25,6 +26,7 @@ namespace VisualPinball.Unity.Components
 
 		public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
 		{
+			var tp = transform.GetComponentInParent<TablePlayer>().FlipperEntities[data.Name] = entity;
 			var d = GetMaterialData();
 			manager.AddComponentData(entity, d);
 			manager.AddComponentData(entity, GetMovementData(d));

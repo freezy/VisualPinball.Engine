@@ -141,6 +141,7 @@
     <Compile Include="Physics\Flipper\FlipperMaterialData.cs" />
     <Compile Include="Physics\Flipper\FlipperMovementData.cs" />
     <Compile Include="Physics\Flipper\FlipperDisplacementSystem.cs" />
+    <Compile Include="Physics\Flipper\FlipperRotateSystem.cs" />
     <Compile Include="Physics\Flipper\FlipperVelocityData.cs" />
     <Compile Include="Physics\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="Physics\Flipper\SolenoidStateData.cs" />
