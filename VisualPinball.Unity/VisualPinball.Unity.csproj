@@ -60,7 +60,7 @@
       <HintPath>Assemblies\Unity.Entities.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\VisualPinball.Unity3D\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+      <HintPath>Assemblies\Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Physics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>Assemblies\Unity.Physics.dll</HintPath>
@@ -72,7 +72,7 @@
       <HintPath>Assemblies\Unity.Physics.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Transforms, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\VisualPinball.DOTS.Test\Library\ScriptAssemblies\Unity.Transforms.dll</HintPath>
+      <HintPath>Assemblies\Unity.Transforms.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>Assemblies\UnityEditor.dll</HintPath>
