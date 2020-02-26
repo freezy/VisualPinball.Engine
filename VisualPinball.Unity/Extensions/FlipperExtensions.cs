@@ -13,7 +13,9 @@ namespace VisualPinball.Unity.Extensions
 		{
 			obj.AddComponent<VisualPinballFlipper>().SetData(flipper.Data);
 			obj.AddComponent<ConvertToEntity>();
-			rog.Get(FlipperMeshGenerator.RubberName).AddPhysicsShape(obj);
+			//rog.AddPhysicsShape(obj);
+			//rog.Get(FlipperMeshGenerator.RubberName).AddPhysicsShape(obj);
+			rog.Get(FlipperMeshGenerator.RubberName).AddPhysicsShapeToParent(obj);
 		}
 	}
 }

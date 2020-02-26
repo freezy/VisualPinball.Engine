@@ -53,7 +53,10 @@ namespace VisualPinball.Unity.Components
 		private void Awake()
 		{
 			var rootObj = gameObject.transform.GetComponentInParent<VisualPinballTable>();
-			_tableData = rootObj.data;
+			// can be null in editor, shouldn't be at runtime.
+			if (rootObj != null) {
+				_tableData = rootObj.data;
+			}
 		}
 
 		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)

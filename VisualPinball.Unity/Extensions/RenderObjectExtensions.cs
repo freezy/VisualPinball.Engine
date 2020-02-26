@@ -25,6 +25,17 @@ namespace VisualPinball.Unity.Extensions
 			}
 		}
 
+		public static void AddPhysicsShapeToParent(this RenderObject ro, GameObject go)
+		{
+			var child = go.transform.Find(ro.Name);
+			if (child != null) {
+				var mesh = child.GetComponent<MeshFilter>();
+				var shape = go.AddComponent<PhysicsShapeAuthoring>();
+				shape.Friction = new PhysicsMaterialCoefficient {Value = 0};
+				shape.SetMesh(mesh.sharedMesh);
+			}
+		}
+
 		private static void Add(RenderObjectGroup rog, GameObject go, Action<RenderObject, GameObject> add)
 		{
 			if (rog.HasChildren) {
