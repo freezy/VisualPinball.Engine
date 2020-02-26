@@ -2,6 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Components;
 
 namespace VisualPinball.Unity.Extensions
