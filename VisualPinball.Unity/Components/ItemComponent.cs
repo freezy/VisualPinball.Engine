@@ -3,6 +3,7 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using Logger = NLog.Logger;
 
@@ -14,6 +15,8 @@ namespace VisualPinball.Unity.Components
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
+
+		protected TableData _tableData;
 		private TItem _item;
 
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -45,6 +48,12 @@ namespace VisualPinball.Unity.Components
 					UpdateMesh(child, transform.Find(child).gameObject, rog);
 				}
 			}
+		}
+
+		private void Awake()
+		{
+			var rootObj = gameObject.transform.GetComponentInParent<VisualPinballTable>();
+			_tableData = rootObj.data;
 		}
 
 		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)

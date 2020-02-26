@@ -212,7 +212,7 @@ namespace VisualPinball.Unity.Importer
 			);
 		}
 
-		private static void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
+		private void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
 		{
 			// add table component (plus other data)
 			var component = go.AddComponent<VisualPinballTable>();

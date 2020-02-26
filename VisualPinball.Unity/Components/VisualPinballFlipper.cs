@@ -8,7 +8,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Physics.Flipper;
 
 namespace VisualPinball.Unity.Components
@@ -17,19 +16,23 @@ namespace VisualPinball.Unity.Components
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class VisualPinballFlipper : ItemComponent<Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new []{"Base", "Rubber"};
+		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
 		protected override Flipper GetItem()
 		{
 			return new Flipper(data);
 		}
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
 		{
-
+			var d = GetMaterialData();
+			manager.AddComponentData(entity, d);
+			manager.AddComponentData(entity, GetMovementData(d));
+			manager.AddComponentData(entity, GetVelocityData(d));
+			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 		}
 
-		public void AddMovementData(Table table)
+		private FlipperMaterialData GetMaterialData()
 		{
 			float flipperRadius;
 			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
@@ -50,41 +53,40 @@ namespace VisualPinball.Unity.Components
 				angleEnd += 0.0001f;
 			}
 
-			var direction = angleEnd >= angleStart;
-			var angle = angleStart;
-
 			// model inertia of flipper as that of rod of length flipr around its end
-			var mass = data.GetFlipperMass(table.Data);
+			var mass = data.GetFlipperMass(_tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
-			var materialData = new FlipperMaterialData {
+			return new FlipperMaterialData {
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = data.GetStrength(table.Data),
-				ReturnRatio = data.GetReturnRatio(table.Data),
-				TorqueDamping = data.GetTorqueDamping(table.Data),
-				TorqueDampingAngle = data.GetTorqueDampingAngle(table.Data),
-				RampUpSpeed = data.GetRampUpSpeed(table.Data)
+				Strength = data.GetStrength(_tableData),
+				ReturnRatio = data.GetReturnRatio(_tableData),
+				TorqueDamping = data.GetTorqueDamping(_tableData),
+				TorqueDampingAngle = data.GetTorqueDampingAngle(_tableData),
+				RampUpSpeed = data.GetRampUpSpeed(_tableData)
 			};
+		}
 
-			var movementData = new FlipperMovementData {
-				Angle = angle,
+		private static FlipperMovementData GetMovementData(FlipperMaterialData d)
+		{
+			return new FlipperMovementData {
+				Angle = d.AngleStart,
 				AngleSpeed = 0f,
 				AngularMomentum = 0f,
 				EnableRotateEvent = 0
 			};
+		}
 
-			var velocityData = new FlipperVelocityData {
+		private static FlipperVelocityData GetVelocityData(FlipperMaterialData d)
+		{
+			return new FlipperVelocityData {
 				AngularAcceleration = 0f,
 				ContactTorque = 0f,
 				CurrentTorque = 0f,
-				Direction = direction,
+				Direction = d.AngleEnd >= d.AngleStart,
 				IsInContact = false
-			};
-
-			var solenoidData = new SolenoidStateData {
-				Value = false
 			};
 		}
 	}

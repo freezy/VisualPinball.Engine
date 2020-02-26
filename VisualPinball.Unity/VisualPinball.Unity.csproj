@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Unity|AnyCPU' ">
-    <OutputPath>C:\dev\VisualPinball.DOTS.Test\Assets\Scenes\Scripts</OutputPath>
+    <OutputPath>$(VPE_UNITY_SCRIPTS)</OutputPath>
     <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
