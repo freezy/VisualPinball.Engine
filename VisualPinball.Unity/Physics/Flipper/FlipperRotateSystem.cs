@@ -11,18 +11,11 @@ namespace VisualPinball.Unity.Physics.Flipper
 	public class FlipperRotateSystem : JobComponentSystem
 	{
 		//[BurstCompile]
-		struct MoveForwardRotation : IJobForEach<Rotation, FlipperMovementData, LocalToWorld>
+		struct MoveForwardRotation : IJobForEach<Rotation, FlipperMovementData>
 		{
-			public void Execute(ref Rotation rot, [ReadOnly] ref FlipperMovementData movement, [ReadOnly] ref LocalToWorld ltw)
+			public void Execute(ref Rotation rot, [ReadOnly] ref FlipperMovementData movement)
 			{
-				var e = rot.Value.ToEuler();
-
-				// nothing applied:
-				// left flipper parent: -0.374 / 0.655 / 0.569 / 0.325
-				//                base:  0     / 0     / 0     / 1
-				//              rubber: -0.374 / 0.655 / 0.569 / 0.325
-
-				rot.Value = quaternion.EulerXYZ(e.x, e.y, movement.Angle);
+				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 			}
 		}
 
