@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
@@ -8,5 +9,6 @@ namespace VisualPinball.Unity.Physics.Flipper
 		public float AngleSpeed;
 		public float AngularMomentum;
 		public sbyte EnableRotateEvent;
+		public quaternion BaseRotation;
 	}
 }

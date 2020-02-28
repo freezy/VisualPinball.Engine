@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Components
 			var tp = transform.GetComponentInParent<TablePlayer>().FlipperEntities[data.Name] = entity;
 			var d = GetMaterialData();
 			manager.AddComponentData(entity, d);
-			manager.AddComponentData(entity, GetMovementData(d));
+			manager.AddComponentData(entity, GetMovementData(d, math.normalize(math.mul(math.normalize(transform.rotation), quaternion.EulerXYZ(0, 0, -d.AngleStart))))); // store flipper base rotation without starting angle
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 		}
@@ -71,13 +71,14 @@ namespace VisualPinball.Unity.Components
 			};
 		}
 
-		private static FlipperMovementData GetMovementData(FlipperMaterialData d)
+		private static FlipperMovementData GetMovementData(FlipperMaterialData d, quaternion baseRotation)
 		{
 			return new FlipperMovementData {
 				Angle = d.AngleStart,
 				AngleSpeed = 0f,
 				AngularMomentum = 0f,
-				EnableRotateEvent = 0
+				EnableRotateEvent = 0,
+				BaseRotation = baseRotation
 			};
 		}
 
