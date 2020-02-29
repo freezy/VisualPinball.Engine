@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Components
 			var tp = transform.GetComponentInParent<TablePlayer>().FlipperEntities[data.Name] = entity;
 			var d = GetMaterialData();
 			manager.AddComponentData(entity, d);
-			manager.AddComponentData(entity, GetMovementData(d, math.normalize(math.mul(math.normalize(transform.rotation), quaternion.EulerXYZ(0, 0, -d.AngleStart))))); // store flipper base rotation without starting angle
+			manager.AddComponentData(entity, GetMovementData(d));
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 		}
@@ -39,14 +39,14 @@ namespace VisualPinball.Unity.Components
 			float flipperRadius;
 			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
 				flipperRadius = data.FlipperRadiusMax - (data.FlipperRadiusMax - data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
-				flipperRadius = math.max(data.FlipperRadius, data.BaseRadius - data.EndRadius + 0.05f);
+				flipperRadius = math.max(flipperRadius, data.BaseRadius - data.EndRadius + 0.05f);
 
 			} else {
 				flipperRadius = data.FlipperRadiusMax;
 			}
 
 			var endRadius = math.max(data.EndRadius, 0.01f); // radius of flipper end
-			flipperRadius = math.max(data.FlipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
+			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
 			var angleStart = math.radians(data.StartAngle);
 			var angleEnd = math.radians(data.EndAngle);
 
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Components
 				angleEnd += 0.0001f;
 			}
 
-			// model inertia of flipper as that of rod of length flipr around its end
+			// model inertia of flipper as that of rod of length flipper around its end
 			var mass = data.GetFlipperMass(_tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
@@ -71,8 +71,13 @@ namespace VisualPinball.Unity.Components
 			};
 		}
 
-		private static FlipperMovementData GetMovementData(FlipperMaterialData d, quaternion baseRotation)
+		private FlipperMovementData GetMovementData(FlipperMaterialData d)
 		{
+			// store flipper base rotation without starting angle
+			var baseRotation = math.normalize(math.mul(
+				math.normalize(transform.rotation),
+				quaternion.EulerXYZ(0, 0, -d.AngleStart)
+			));
 			return new FlipperMovementData {
 				Angle = d.AngleStart,
 				AngleSpeed = 0f,
