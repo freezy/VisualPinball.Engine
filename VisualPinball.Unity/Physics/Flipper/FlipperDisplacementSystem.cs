@@ -2,19 +2,23 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics.Systems;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
+	[UpdateBefore(typeof(BuildPhysicsWorld))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
 
 		//[BurstCompile]
 		private struct FlipperDisplacement : IJobForEach<FlipperMovementData, FlipperMaterialData>
 		{
-			public float dTime;
+			public float DTime;
 
 			public void Execute(ref FlipperMovementData state, [ReadOnly] ref FlipperMaterialData data)
 			{
+				var dTime = DTime * PhysicsConstants.DefaultStepTime / PhysicsConstants.PhysicsStepTime;
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
@@ -67,7 +71,7 @@ namespace VisualPinball.Unity.Physics.Flipper
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var flipperDisplacementJob = new FlipperDisplacement {
-				dTime = Time.DeltaTime
+				DTime = Time.DeltaTime
 			};
 			return flipperDisplacementJob.Schedule(this, inputDeps);
 		}
