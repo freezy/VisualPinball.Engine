@@ -2,12 +2,12 @@
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics.Systems;
 using Unity.Transforms;
-using UnityEngine;
-using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
+	[UpdateAfter(typeof(ExportPhysicsWorld))]
 	public class FlipperRotateSystem : JobComponentSystem
 	{
 		//[BurstCompile]
