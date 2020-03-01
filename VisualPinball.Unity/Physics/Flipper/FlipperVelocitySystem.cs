@@ -4,6 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics.Systems;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
@@ -14,12 +15,30 @@ namespace VisualPinball.Unity.Physics.Flipper
 		private struct FlipperVelocity : IJobForEach<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
 		{
 			public float DTime;
+			public double ElapsedTime;
 
 			public void Execute(ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
 			{
-				var dTime = (int) (DTime * 1000000);
-				var curPhysicsFrameTime = 0;
-				while (curPhysicsFrameTime <= dTime) {
+				var initialTimeUsec = (long) (ElapsedTime * 1000000) - mState.MissedTime;
+				var curPhysicsFrameTime = (long) (initialTimeUsec - DTime * 1000000);
+				var nextPhysicsFrameTime = curPhysicsFrameTime + PhysicsConstants.PhysicsStepTime;
+				var moving = mState.AngleSpeed != 0;
+				var jobStart = true;
+				var angleMin = math.min(data.AngleStart, data.AngleEnd);
+				var angleMax = math.max(data.AngleStart, data.AngleEnd);
+				while (curPhysicsFrameTime < initialTimeUsec) {
+
+					// todo remove debug log
+					if (mState.AngleSpeed != 0) {
+						if (!moving) {
+							mState.DebugRelTimeDelta = curPhysicsFrameTime;
+							moving = true;
+						}
+						var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta;
+						var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "0";
+						TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js}");
+						jobStart = false;
+					}
 
 					var desiredTorque = data.Strength;
 					if (!solenoid.Value) {
@@ -61,8 +80,6 @@ namespace VisualPinball.Unity.Physics.Flipper
 					var torque = vState.CurrentTorque;
 					vState.IsInContact = false;
 					if (math.abs(mState.AngleSpeed) <= 1e-2) {
-						var angleMin = math.min(data.AngleStart, data.AngleEnd);
-						var angleMax = math.max(data.AngleStart, data.AngleEnd);
 
 						if (mState.Angle >= angleMax - 1e-2 && torque > 0) {
 							mState.Angle = angleMax;
@@ -84,15 +101,58 @@ namespace VisualPinball.Unity.Physics.Flipper
 					mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 					vState.AngularAcceleration = torque / data.Inertia;
 
-					curPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+
+					var physicsDiffTime = (float) ((nextPhysicsFrameTime - curPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
+					mState.Angle += mState.AngleSpeed * physicsDiffTime; // move flipper angle
+
+					if (mState.Angle > angleMax) {
+						mState.Angle = angleMax;
+					}
+
+					if (mState.Angle < angleMin) {
+						mState.Angle = angleMin;
+					}
+
+					if (math.abs(mState.AngleSpeed) < 0.0005f) {
+						// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
+						curPhysicsFrameTime = nextPhysicsFrameTime;
+						nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+						continue;
+					}
+
+					var isResting = false;
+
+					if (mState.Angle >= angleMax) {
+						// hit stop?
+						if (mState.AngleSpeed > 0) {
+							isResting = true;
+						}
+
+					} else if (mState.Angle <= angleMin) {
+						if (mState.AngleSpeed < 0) {
+							isResting = true;
+						}
+					}
+
+					if (isResting) {
+						mState.AngularMomentum *= -0.3f; // make configurable?
+						mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
+						mState.EnableRotateEvent = 0;
+					}
+
+					curPhysicsFrameTime = nextPhysicsFrameTime;                   // new cycle, on physics frame boundary
+					nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;     // advance physics position
 				}
+
+				mState.MissedTime = initialTimeUsec - curPhysicsFrameTime;
 			}
 		}
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var flipperVelocityJob = new FlipperVelocity {
-				DTime = Time.DeltaTime
+				DTime = Time.DeltaTime,
+				ElapsedTime = Time.ElapsedTime
 			};
 			return flipperVelocityJob.Schedule(this, inputDeps);
 		}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -13,6 +14,7 @@ namespace VisualPinball.Unity.Game
 	public class TablePlayer : MonoBehaviour
 	{
 		public readonly Dictionary<string, Entity> FlipperEntities = new Dictionary<string, Entity>();
+		public static StreamWriter DebugLog;
 
 		private Table _table;
 		private Player _player;
@@ -27,6 +29,7 @@ namespace VisualPinball.Unity.Game
 			_player = new Player(_table).Init();
 
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			DebugLog = File.CreateText("flipper.log");
 		}
 
 		private void Update()
@@ -45,19 +48,11 @@ namespace VisualPinball.Unity.Game
 			if (Input.GetKeyUp("right shift") && FlipperEntities.ContainsKey("RightFlipper")) {
 				_manager.SetComponentData(FlipperEntities["RightFlipper"], new SolenoidStateData { Value = false });
 			}
-		//
-		// 	//_player.UpdatePhysics();
-		//
-		// 	if (_table.Flippers.ContainsKey("LeftFlipper")) {
-		// 		var rotL = _leftFlipper.transform.localRotation.eulerAngles;
-		// 		rotL.z = MathF.RadToDeg(_table.Flippers["LeftFlipper"].State.Angle);
-		// 		_leftFlipper.transform.localRotation = Quaternion.Euler(rotL);
-		// 	}
-		// 	if (_table.Flippers.ContainsKey("RightFlipper")) {
-		// 		var rotR = _rightFlipper.transform.localRotation.eulerAngles;
-		// 		rotR.z = MathF.RadToDeg(_table.Flippers["RightFlipper"].State.Angle);
-		// 		_rightFlipper.transform.localRotation = Quaternion.Euler(rotR);
-		// 	}
+		}
+
+		private void OnDestroy()
+		{
+			DebugLog.Dispose();
 		}
 	}
 }

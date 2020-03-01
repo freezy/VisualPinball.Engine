@@ -45,7 +45,6 @@ namespace VisualPinball.Unity.Components
 				flipperRadius = data.FlipperRadiusMax;
 			}
 
-			var endRadius = math.max(data.EndRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
 			var angleStart = math.radians(data.StartAngle);
 			var angleEnd = math.radians(data.EndAngle);
