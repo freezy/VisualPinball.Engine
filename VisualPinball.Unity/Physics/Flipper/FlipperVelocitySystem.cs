@@ -34,9 +34,10 @@ namespace VisualPinball.Unity.Physics.Flipper
 							mState.DebugRelTimeDelta = curPhysicsFrameTime;
 							moving = true;
 						}
-						var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta;
-						var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "0";
-						TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js}");
+						var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta + 1000;
+						var mt = jobStart ? mState.MissedTime.ToString() : "";
+						var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "";
+						TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js},{mt}");
 						jobStart = false;
 					}
 
@@ -144,7 +145,7 @@ namespace VisualPinball.Unity.Physics.Flipper
 					nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;     // advance physics position
 				}
 
-				mState.MissedTime = initialTimeUsec - curPhysicsFrameTime;
+				mState.MissedTime = curPhysicsFrameTime - initialTimeUsec;
 			}
 		}
 
