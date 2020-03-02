@@ -1,8 +1,9 @@
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Game;
 
@@ -19,13 +20,18 @@ namespace VisualPinball.Unity.Physics.Flipper
 
 			public void Execute(ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
 			{
-				var initialTimeUsec = (long) (ElapsedTime * 1000000) - mState.MissedTime;
-				var curPhysicsFrameTime = (long) (initialTimeUsec - DTime * 1000000);
+				var initialTimeUsec = (long) (ElapsedTime * 1000000);
+				var curPhysicsFrameTime = mState.CurrentPhysicsTime == 0
+					? (long) (initialTimeUsec - DTime * 1000000)
+					: mState.CurrentPhysicsTime;
 				var nextPhysicsFrameTime = curPhysicsFrameTime + PhysicsConstants.PhysicsStepTime;
 				var moving = mState.AngleSpeed != 0;
 				var jobStart = true;
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
+
+				TablePlayer.DebugLog.WriteLine($"-- initial: {initialTimeUsec}, cur: {curPhysicsFrameTime}, cur-last: {mState.CurrentPhysicsTime}, elapsed: {(long)(ElapsedTime * 1000000)}, dt: {(long)(DTime * 1000000)}");
+
 				while (curPhysicsFrameTime < initialTimeUsec) {
 
 					// todo remove debug log
@@ -35,11 +41,13 @@ namespace VisualPinball.Unity.Physics.Flipper
 							moving = true;
 						}
 						var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta + 1000;
-						var mt = jobStart ? mState.MissedTime.ToString() : "";
+						var mt = jobStart ? mState.CurrentPhysicsTime.ToString() : "";
 						var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "";
 						TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js},{mt}");
 						jobStart = false;
 					}
+
+					#region UpdateVelocities
 
 					var desiredTorque = data.Strength;
 					if (!solenoid.Value) {
@@ -51,7 +59,7 @@ namespace VisualPinball.Unity.Physics.Flipper
 					var eosAngle = math.radians(data.TorqueDampingAngle);
 					if (math.abs(mState.Angle - data.AngleEnd) < eosAngle) {
 						// fade in/out damping, depending on angle to end
-						var lerp = math.sqrt(math.sqrt(math.abs(mState.Angle - data.AngleEnd) / eosAngle));
+						var lerp = math.pow(math.abs(mState.Angle - data.AngleEnd) / eosAngle, 4);
 						desiredTorque *= lerp + data.TorqueDamping * (1 - lerp);
 					}
 
@@ -86,15 +94,15 @@ namespace VisualPinball.Unity.Physics.Flipper
 							mState.Angle = angleMax;
 							vState.IsInContact = true;
 							vState.ContactTorque = torque;
-							mState.AngularMomentum = 0;
-							torque = 0;
+							mState.AngularMomentum = 0f;
+							torque = 0f;
 
 						} else if (mState.Angle <= angleMin + 1e-2 && torque < 0) {
 							mState.Angle = angleMin;
 							vState.IsInContact = true;
 							vState.ContactTorque = torque;
-							mState.AngularMomentum = 0;
-							torque = 0;
+							mState.AngularMomentum = 0f;
+							torque = 0f;
 						}
 					}
 
@@ -102,8 +110,11 @@ namespace VisualPinball.Unity.Physics.Flipper
 					mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 					vState.AngularAcceleration = torque / data.Inertia;
 
+					#endregion
 
-					var physicsDiffTime = (float) ((nextPhysicsFrameTime - curPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
+					#region Displacement
+
+					var physicsDiffTime = (float)((nextPhysicsFrameTime - curPhysicsFrameTime)*(1.0 / 10000));
 					mState.Angle += mState.AngleSpeed * physicsDiffTime; // move flipper angle
 
 					if (mState.Angle > angleMax) {
@@ -121,31 +132,33 @@ namespace VisualPinball.Unity.Physics.Flipper
 						continue;
 					}
 
-					var isResting = false;
+					var comeToStop = false;
 
-					if (mState.Angle >= angleMax) {
+					if (mState.Angle == angleMax) {
 						// hit stop?
 						if (mState.AngleSpeed > 0) {
-							isResting = true;
+							comeToStop = true;
 						}
 
-					} else if (mState.Angle <= angleMin) {
+					} else if (mState.Angle == angleMin) {
 						if (mState.AngleSpeed < 0) {
-							isResting = true;
+							comeToStop = true;
 						}
 					}
 
-					if (isResting) {
+					if (comeToStop) {
 						mState.AngularMomentum *= -0.3f; // make configurable?
 						mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 						mState.EnableRotateEvent = 0;
 					}
 
+					#endregion
+
 					curPhysicsFrameTime = nextPhysicsFrameTime;                   // new cycle, on physics frame boundary
 					nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;     // advance physics position
 				}
 
-				mState.MissedTime = curPhysicsFrameTime - initialTimeUsec;
+				mState.CurrentPhysicsTime = curPhysicsFrameTime;
 			}
 		}
 
