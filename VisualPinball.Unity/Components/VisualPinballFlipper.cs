@@ -82,7 +82,8 @@ namespace VisualPinball.Unity.Components
 				AngleSpeed = 0f,
 				AngularMomentum = 0f,
 				EnableRotateEvent = 0,
-				BaseRotation = baseRotation
+				BaseRotation = baseRotation,
+				MissedTime = 0,
 			};
 		}
 
