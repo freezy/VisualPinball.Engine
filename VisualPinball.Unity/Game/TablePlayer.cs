@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Game
 	public class TablePlayer : MonoBehaviour
 	{
 		public readonly Dictionary<string, Entity> FlipperEntities = new Dictionary<string, Entity>();
-		public static StreamWriter DebugLog;
+		//public static StreamWriter DebugLog;
 
 		private Table _table;
 		private Player _player;
@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Game
 			_player = new Player(_table).Init();
 
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			DebugLog = File.CreateText("flipper.log");
+			//DebugLog = File.CreateText("flipper.log");
 		}
 
 		private void Update()
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.Game
 
 		private void OnDestroy()
 		{
-			DebugLog.Dispose();
+			//DebugLog.Dispose();
 		}
 	}
 }
