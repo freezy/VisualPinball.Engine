@@ -30,22 +30,22 @@ namespace VisualPinball.Unity.Physics.Flipper
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
 
-				TablePlayer.DebugLog.WriteLine($"-- initial: {initialTimeUsec}, cur: {curPhysicsFrameTime}, cur-last: {mState.CurrentPhysicsTime}, elapsed: {(long)(ElapsedTime * 1000000)}, dt: {(long)(DTime * 1000000)}");
+				//TablePlayer.DebugLog.WriteLine($"-- initial: {initialTimeUsec}, cur: {curPhysicsFrameTime}, cur-last: {mState.CurrentPhysicsTime}, elapsed: {(long)(ElapsedTime * 1000000)}, dt: {(long)(DTime * 1000000)}");
 
 				while (curPhysicsFrameTime < initialTimeUsec) {
 
 					// todo remove debug log
-					if (mState.AngleSpeed != 0) {
-						if (!moving) {
-							mState.DebugRelTimeDelta = curPhysicsFrameTime;
-							moving = true;
-						}
-						var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta + 1000;
-						var mt = jobStart ? mState.CurrentPhysicsTime.ToString() : "";
-						var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "";
-						TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js},{mt}");
-						jobStart = false;
-					}
+					// if (mState.AngleSpeed != 0) {
+					// 	if (!moving) {
+					// 		mState.DebugRelTimeDelta = curPhysicsFrameTime;
+					// 		moving = true;
+					// 	}
+					// 	var relTime = curPhysicsFrameTime - mState.DebugRelTimeDelta + 1000;
+					// 	var mt = jobStart ? mState.CurrentPhysicsTime.ToString() : "";
+					// 	var js = jobStart ? ((int)(DTime * 1000000)).ToString() : "";
+					// 	TablePlayer.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed},{js},{mt}");
+					// 	jobStart = false;
+					// }
 
 					#region UpdateVelocities
 
