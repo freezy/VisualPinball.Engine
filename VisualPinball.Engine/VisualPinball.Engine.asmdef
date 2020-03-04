@@ -1,0 +1,9 @@
+{
+  "name": "VisualPinball.Engine",
+  "references": [
+  	"VisualPinball.Resources"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": true
+}
