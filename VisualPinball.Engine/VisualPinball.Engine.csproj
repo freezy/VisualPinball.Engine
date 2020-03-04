@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" />
+  <Import Project="..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props" Condition="Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -19,7 +19,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>.build\Debug\</OutputPath>
+    <BaseIntermediateOutputPath >.build\obj\</BaseIntermediateOutputPath >
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +29,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>.build\Release\</OutputPath>
+    <BaseIntermediateOutputPath >.build\obj\</BaseIntermediateOutputPath >
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -36,33 +38,33 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="MiniZ.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\MiniZ.Net.1.0.0\lib\MiniZ.Net.dll</HintPath>
+      <HintPath>..\.packages\MiniZ.Net.1.0.0\lib\MiniZ.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
+      <HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-      <HintPath>..\packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\.packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenMcdf, Version=2.2.1.4, Culture=neutral, PublicKeyToken=fdbb1629d7c00800">
-      <HintPath>..\packages\OpenMcdf.2.2.1.4\lib\net40\OpenMcdf.dll</HintPath>
+      <HintPath>..\.packages\OpenMcdf.2.2.1.4\lib\net40\OpenMcdf.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SixLabors.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\SixLabors.Core.1.0.0-beta0008\lib\netstandard2.0\SixLabors.Core.dll</HintPath>
+      <HintPath>..\.packages\SixLabors.Core.1.0.0-beta0008\lib\netstandard2.0\SixLabors.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SixLabors.ImageSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\SixLabors.ImageSharp.1.0.0-beta0007\lib\netstandard2.0\SixLabors.ImageSharp.dll</HintPath>
+      <HintPath>..\.packages\SixLabors.ImageSharp.1.0.0-beta0007\lib\netstandard2.0\SixLabors.ImageSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+      <HintPath>..\.packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Configuration" />
@@ -70,16 +72,16 @@
     <Reference Include="System.Data" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>..\packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
+      <HintPath>..\.packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <HintPath>..\.packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <HintPath>..\.packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
@@ -247,13 +249,13 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
-    <Error Condition="!Exists('..\packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))" />
-    <Error Condition="!Exists('..\packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets'))" />
+    <Error Condition="!Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
+    <Error Condition="!Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))" />
+    <Error Condition="!Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets'))" />
   </Target>
-  <Import Project="..\packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" />
-  <Import Project="..\packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets" Condition="Exists('..\packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <Import Project="..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" />
+  <Import Project="..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets" Condition="Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 		 Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">
 	</Target>
