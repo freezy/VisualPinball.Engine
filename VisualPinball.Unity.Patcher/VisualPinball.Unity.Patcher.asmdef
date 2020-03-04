@@ -1,0 +1,8 @@
+{
+  "name": "VisualPinball.Unity.Patcher",
+  "references": [
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false
+}
