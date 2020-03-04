@@ -1,8 +1,7 @@
 {
   "name": "VisualPinball.Unity",
   "references": [
-  	"VisualPinball.Engine",
-  	"VisualPinball.Unity.Patcher"
+  	"VisualPinball.Engine"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

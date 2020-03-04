@@ -5,7 +5,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
