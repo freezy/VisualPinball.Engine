@@ -31,6 +31,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 **/.build/**
+.packages
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -225,7 +226,6 @@ _pkginfo.txt
 # Others
 ClientBin/
 ~$*
-*~
 *.dbmdl
 *.dbproj.schemaview
 *.jfm
