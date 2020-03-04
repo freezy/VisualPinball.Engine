@@ -260,7 +260,7 @@
 	  -->
 	<Target Name="AfterBuild">
 		<ItemGroup>
-			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)MiniZ32.dll" />
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)MiniZ32.dll;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Scripts" SkipUnchangedFiles="true" />
 	</Target>
