@@ -1,0 +1,38 @@
+{
+	"name": "VisualPinball.Unity.Editor",
+	"references": [
+		"Unity.Entities",
+		"Unity.Entities.Hybrid",
+		"Unity.Mathematics",
+		"Unity.Physics",
+		"Unity.Physics.Hybrid",
+		"Unity.Transforms",
+		"VisualPinball.Engine",
+		"VisualPinball.Unity",
+		"VisualPinball.Unity.Patcher"
+	],
+	"includePlatforms": [],
+	"excludePlatforms": [
+		"Android",
+		"iOS",
+		"LinuxStandalone64",
+		"Lumin",
+		"macOSStandalone",
+		"PS4",
+		"Stadia",
+		"Switch",
+		"tvOS",
+		"WSA",
+		"WebGL",
+		"WindowsStandalone32",
+		"WindowsStandalone64",
+		"XboxOne"
+	],
+	"allowUnsafeCode": true,
+	"overrideReferences": false,
+	"precompiledReferences": [],
+	"autoReferenced": true,
+	"defineConstraints": [],
+	"versionDefines": [],
+	"noEngineReferences": false
+}

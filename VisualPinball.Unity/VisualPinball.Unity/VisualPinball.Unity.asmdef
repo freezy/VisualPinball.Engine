@@ -1,0 +1,16 @@
+{
+	"name": "VisualPinball.Unity",
+	"references": [
+		"Unity.Entities",
+		"Unity.Entities.Hybrid",
+		"Unity.Mathematics",
+		"Unity.Physics",
+		"Unity.Physics.Hybrid",
+		"Unity.Transforms",
+		"VisualPinball.Engine",
+		"VisualPinball.Unity.Patcher"
+	],
+	"includePlatforms": [],
+	"excludePlatforms": [],
+	"allowUnsafeCode": true
+}
