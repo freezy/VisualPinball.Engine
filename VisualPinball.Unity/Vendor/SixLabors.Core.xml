@@ -1,0 +1,2322 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SixLabors.Core</name>
+    </assembly>
+    <members>
+        <member name="T:SixLabors.Constants">
+            <summary>
+            Common constants used throughout the project.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Constants.Epsilon">
+            <summary>
+            The epsilon for comparing floating point numbers.
+            </summary>
+        </member>
+        <member name="T:SixLabors.GeometryUtilities">
+            <summary>
+            Utility class for common geometric functions.
+            </summary>
+        </member>
+        <member name="M:SixLabors.GeometryUtilities.DegreeToRadian(System.Single)">
+            <summary>
+            Converts a degree (360-periodic) angle to a radian (2*Pi-periodic) angle.
+            </summary>
+            <param name="degree">The angle in degrees.</param>
+            <returns>
+            The <see cref="T:System.Single"/> representing the degree as radians.
+            </returns>
+        </member>
+        <member name="M:SixLabors.GeometryUtilities.RadianToDegree(System.Single)">
+            <summary>
+            Converts a radian (2*Pi-periodic) angle to a degree (360-periodic) angle.
+            </summary>
+            <param name="radian">The angle in radians.</param>
+            <returns>
+            The <see cref="T:System.Single"/> representing the degree as radians.
+            </returns>
+        </member>
+        <member name="T:SixLabors.Memory.AllocationOptions">
+            <summary>
+            Options for allocating buffers.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.AllocationOptions.None">
+            <summary>
+            Indicates that the buffer should just be allocated.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.AllocationOptions.Clean">
+            <summary>
+            Indicates that the allocated buffer should be cleaned following allocation.
+            </summary>
+        </member>
+        <member name="T:SixLabors.Memory.ArrayPoolMemoryAllocator">
+            <summary>
+            Contains <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1"/> and <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator.ManagedByteBuffer"/>.
+            </summary>
+            <summary>
+            Contains common factory methods and configuration constants.
+            </summary>
+            <summary>
+            Implements <see cref="T:SixLabors.Memory.MemoryAllocator"/> by allocating memory from <see cref="T:System.Buffers.ArrayPool`1"/>.
+            </summary>
+        </member>
+        <member name="T:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1">
+            <summary>
+            The buffer implementation of <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/>.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1.length">
+            <summary>
+            The length of the buffer.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1.sourcePoolReference">
+            <summary>
+            A weak reference to the source pool.
+            </summary>
+            <remarks>
+            By using a weak reference here, we are making sure that array pools and their retained arrays are always GC-ed
+            after a call to <see cref="M:SixLabors.Memory.ArrayPoolMemoryAllocator.ReleaseRetainedResources"/>, regardless of having buffer instances still being in use.
+            </remarks>
+        </member>
+        <member name="P:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1.Data">
+            <summary>
+            Gets the buffer as a byte array.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1.GetSpan">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.Buffer`1.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="T:SixLabors.Memory.ArrayPoolMemoryAllocator.ManagedByteBuffer">
+            <summary>
+            The <see cref="T:SixLabors.Memory.IManagedByteBuffer"/> implementation of <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Memory.ArrayPoolMemoryAllocator.ManagedByteBuffer.Array">
+            <inheritdoc />
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.DefaultMaxPooledBufferSizeInBytes">
+            <summary>
+            The default value for: maximum size of pooled arrays in bytes.
+            Currently set to 24MB, which is equivalent to 8 megapixels of raw RGBA32 data.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.DefaultBufferSelectorThresholdInBytes">
+            <summary>
+            The value for: The threshold to pool arrays in <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool"/> which has less buckets for memory safety.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.DefaultLargePoolBucketCount">
+            <summary>
+            The default bucket count for <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool"/>.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.DefaultNormalPoolBucketCount">
+            <summary>
+            The default bucket count for <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.normalArrayPool"/>.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.CreateDefault">
+            <summary>
+            This is the default. Should be good for most use cases.
+            </summary>
+            <returns>The memory manager.</returns>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.CreateWithMinimalPooling">
+            <summary>
+            For environments with very limited memory capabilities, only small buffers like image rows are pooled.
+            </summary>
+            <returns>The memory manager.</returns>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.CreateWithModeratePooling">
+            <summary>
+            For environments with limited memory capabilities, only small array requests are pooled, which can result in reduced throughput.
+            </summary>
+            <returns>The memory manager.</returns>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.CreateWithAggressivePooling">
+            <summary>
+            For environments where memory capabilities are not an issue, the maximum amount of array requests are pooled which results in optimal throughput.
+            </summary>
+            <returns>The memory manager.</returns>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.normalArrayPool">
+            <summary>
+            The <see cref="T:System.Buffers.ArrayPool`1"/> for small-to-medium buffers which is not kept clean.
+            </summary>
+        </member>
+        <member name="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool">
+            <summary>
+            The <see cref="T:System.Buffers.ArrayPool`1"/> for huge buffers, which is not kept clean.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/> class.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/> class.
+            </summary>
+            <param name="maxPoolSizeInBytes">The maximum size of pooled arrays. Arrays over the thershold are gonna be always allocated.</param>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/> class.
+            </summary>
+            <param name="maxPoolSizeInBytes">The maximum size of pooled arrays. Arrays over the thershold are gonna be always allocated.</param>
+            <param name="poolSelectorThresholdInBytes">Arrays over this threshold will be pooled in <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool"/> which has less buckets for memory safety.</param>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.ArrayPoolMemoryAllocator"/> class.
+            </summary>
+            <param name="maxPoolSizeInBytes">The maximum size of pooled arrays. Arrays over the thershold are gonna be always allocated.</param>
+            <param name="poolSelectorThresholdInBytes">The threshold to pool arrays in <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool"/> which has less buckets for memory safety.</param>
+            <param name="maxArraysPerBucketLargePool">Max arrays per bucket for the large array pool.</param>
+            <param name="maxArraysPerBucketNormalPool">Max arrays per bucket for the normal array pool.</param>
+        </member>
+        <member name="P:SixLabors.Memory.ArrayPoolMemoryAllocator.MaxPoolSizeInBytes">
+            <summary>
+            Gets the maximum size of pooled arrays in bytes.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Memory.ArrayPoolMemoryAllocator.PoolSelectorThresholdInBytes">
+            <summary>
+            Gets the threshold to pool arrays in <see cref="F:SixLabors.Memory.ArrayPoolMemoryAllocator.largeArrayPool"/> which has less buckets for memory safety.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.ReleaseRetainedResources">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.Allocate``1(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.ArrayPoolMemoryAllocator.AllocateManagedByteBuffer(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:SixLabors.Memory.IManagedByteBuffer">
+            <summary>
+            Represents a byte buffer backed by a managed array. Useful for interop with classic .NET API-s.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Memory.IManagedByteBuffer.Array">
+            <summary>
+            Gets the managed array backing this buffer instance.
+            </summary>
+        </member>
+        <member name="T:SixLabors.Memory.Internals.BasicArrayBuffer`1">
+            <summary>
+            Wraps an array as an <see cref="T:SixLabors.Memory.IManagedByteBuffer"/> instance.
+            </summary>
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicArrayBuffer`1.#ctor(`0[],System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.Internals.BasicArrayBuffer`1"/> class.
+            </summary>
+            <param name="array">The array.</param>
+            <param name="length">The length of the buffer.</param>
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicArrayBuffer`1.#ctor(`0[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.Internals.BasicArrayBuffer`1"/> class.
+            </summary>
+            <param name="array">The array.</param>
+        </member>
+        <member name="P:SixLabors.Memory.Internals.BasicArrayBuffer`1.Array">
+            <summary>
+            Gets the array.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Memory.Internals.BasicArrayBuffer`1.Length">
+            <summary>
+            Gets the length.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicArrayBuffer`1.GetSpan">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicArrayBuffer`1.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicArrayBuffer`1.GetPinnableObject">
+            <inheritdoc />
+        </member>
+        <member name="T:SixLabors.Memory.Internals.BasicByteBuffer">
+            <summary>
+            Provides an <see cref="T:SixLabors.Memory.IManagedByteBuffer"/> based on <see cref="T:SixLabors.Memory.Internals.BasicArrayBuffer`1"/>.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.Internals.BasicByteBuffer.#ctor(System.Byte[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Memory.Internals.BasicByteBuffer"/> class.
+            </summary>
+            <param name="array">The byte array.</param>
+        </member>
+        <member name="T:SixLabors.Memory.Internals.ManagedBufferBase`1">
+            <summary>
+            Provides a base class for <see cref="T:System.Buffers.IMemoryOwner`1"/> implementations by implementing pinning logic for <see cref="T:System.Buffers.MemoryManager`1"/> adaption.
+            </summary>
+            <typeparam name="T">The element type.</typeparam>
+        </member>
+        <member name="M:SixLabors.Memory.Internals.ManagedBufferBase`1.Pin(System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.Internals.ManagedBufferBase`1.Unpin">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.Internals.ManagedBufferBase`1.GetPinnableObject">
+            <summary>
+            Gets the object that should be pinned.
+            </summary>
+            <returns>The pinnable <see cref="T:System.Object"/>.</returns>
+        </member>
+        <member name="T:SixLabors.Memory.MemoryAllocator">
+            <summary>
+            Memory managers are used to allocate memory for image processing operations.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.MemoryAllocator.Allocate``1(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <summary>
+            Allocates an <see cref="T:System.Buffers.IMemoryOwner`1" />, holding a <see cref="T:System.Memory`1"/> of length <paramref name="length"/>.
+            </summary>
+            <typeparam name="T">Type of the data stored in the buffer.</typeparam>
+            <param name="length">Size of the buffer to allocate.</param>
+            <param name="options">The allocation options.</param>
+            <returns>A buffer of values of type <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Memory.MemoryAllocator.AllocateManagedByteBuffer(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <summary>
+            Allocates an <see cref="T:SixLabors.Memory.IManagedByteBuffer"/>.
+            </summary>
+            <param name="length">The requested buffer length.</param>
+            <param name="options">The allocation options.</param>
+            <returns>The <see cref="T:SixLabors.Memory.IManagedByteBuffer"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Memory.MemoryAllocator.ReleaseRetainedResources">
+            <summary>
+            Releases all retained resources not being in use.
+            Eg: by resetting array pools and letting GC to free the arrays.
+            </summary>
+        </member>
+        <member name="T:SixLabors.Memory.SimpleGcMemoryAllocator">
+            <summary>
+            Implements <see cref="T:SixLabors.Memory.MemoryAllocator"/> by newing up arrays by the GC on every allocation requests.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Memory.SimpleGcMemoryAllocator.Allocate``1(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:SixLabors.Memory.SimpleGcMemoryAllocator.AllocateManagedByteBuffer(System.Int32,SixLabors.Memory.AllocationOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:SixLabors.Primitives.Matrix3x2Extensions">
+            <summary>
+            Extension methods for the <see cref="T:System.Numerics.Matrix3x2"/> struct.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateTranslation(SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a translation matrix from the given vector.
+            </summary>
+            <param name="position">The translation position.</param>
+            <returns>A translation matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateScale(System.Single,System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a scale matrix that is offset by a given center point.
+            </summary>
+            <param name="xScale">Value to scale by on the X-axis.</param>
+            <param name="yScale">Value to scale by on the Y-axis.</param>
+            <param name="centerPoint">The center point.</param>
+            <returns>A scaling matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateScale(SixLabors.Primitives.SizeF)">
+            <summary>
+            Creates a scale matrix from the given vector scale.
+            </summary>
+            <param name="scales">The scale to use.</param>
+            <returns>A scaling matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateScale(SixLabors.Primitives.SizeF,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a scale matrix from the given vector scale with an offset from the given center point.
+            </summary>
+            <param name="scales">The scale to use.</param>
+            <param name="centerPoint">The center offset.</param>
+            <returns>A scaling matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateScale(System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a scale matrix that scales uniformly with the given scale with an offset from the given center.
+            </summary>
+            <param name="scale">The uniform scale to use.</param>
+            <param name="centerPoint">The center offset.</param>
+            <returns>A scaling matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateSkewDegrees(System.Single,System.Single)">
+            <summary>
+            Creates a skew matrix from the given angles in degrees.
+            </summary>
+            <param name="degreesX">The X angle, in degrees.</param>
+            <param name="degreesY">The Y angle, in degrees.</param>
+            <returns>A skew matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateSkew(System.Single,System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a skew matrix from the given angles in radians and a center point.
+            </summary>
+            <param name="radiansX">The X angle, in radians.</param>
+            <param name="radiansY">The Y angle, in radians.</param>
+            <param name="centerPoint">The center point.</param>
+            <returns>A skew matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateSkewDegrees(System.Single,System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a skew matrix from the given angles in degrees and a center point.
+            </summary>
+            <param name="degreesX">The X angle, in degrees.</param>
+            <param name="degreesY">The Y angle, in degrees.</param>
+            <param name="centerPoint">The center point.</param>
+            <returns>A skew matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateRotationDegrees(System.Single)">
+            <summary>
+            Creates a rotation matrix using the given rotation in degrees.
+            </summary>
+            <param name="degrees">The amount of rotation, in degrees.</param>
+            <returns>A rotation matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateRotation(System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a rotation matrix using the given rotation in radians and a center point.
+            </summary>
+            <param name="radians">The amount of rotation, in radians.</param>
+            <param name="centerPoint">The center point.</param>
+            <returns>A rotation matrix.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Matrix3x2Extensions.CreateRotationDegrees(System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Creates a rotation matrix using the given rotation in degrees and a center point.
+            </summary>
+            <param name="degrees">The amount of rotation, in degrees.</param>
+            <param name="centerPoint">The center point.</param>
+            <returns>A rotation matrix.</returns>
+        </member>
+        <member name="T:SixLabors.Primitives.Point">
+            <summary>
+            Represents an ordered pair of integer x- and y-coordinates that defines a point in
+            a two-dimensional plane.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.Point.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.Point"/> that has X and Y values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Point"/> struct.
+            </summary>
+            <param name="value">The horizontal and vertical position of the point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Point"/> struct.
+            </summary>
+            <param name="x">The horizontal position of the point.</param>
+            <param name="y">The vertical position of the point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.#ctor(SixLabors.Primitives.Size)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Point"/> struct from the given <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="P:SixLabors.Primitives.Point.X">
+            <summary>
+            Gets or sets the x-coordinate of this <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Point.Y">
+            <summary>
+            Gets or sets the y-coordinate of this <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Point.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.Point"/> is empty.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Implicit(SixLabors.Primitives.Point)~SixLabors.Primitives.PointF">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.PointF"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Implicit(SixLabors.Primitives.Point)~System.Numerics.Vector2">
+            <summary>
+            Creates a <see cref="T:System.Numerics.Vector2"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Explicit(SixLabors.Primitives.Point)~SixLabors.Primitives.Size">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.Size"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_UnaryNegation(SixLabors.Primitives.Point)">
+            <summary>
+            Negates the given point by multiplying all values by -1.
+            </summary>
+            <param name="value">The source point.</param>
+            <returns>The negated point.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Addition(SixLabors.Primitives.Point,SixLabors.Primitives.Size)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.Point"/> by a given <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.Point"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Subtraction(SixLabors.Primitives.Point,SixLabors.Primitives.Size)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.Point"/> by the negative of a given <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Multiply(System.Int32,SixLabors.Primitives.Point)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Point"/> by a <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="left">Multiplier of type <see cref="T:System.Int32"/>.</param>
+            <param name="right">Multiplicand of type <see cref="T:SixLabors.Primitives.Point"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Multiply(SixLabors.Primitives.Point,System.Int32)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Point"/> by a <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="left">Multiplicand of type <see cref="T:SixLabors.Primitives.Point"/>.</param>
+            <param name="right">Multiplier of type <see cref="T:System.Int32"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Division(SixLabors.Primitives.Point,System.Int32)">
+            <summary>
+            Divides <see cref="T:SixLabors.Primitives.Point"/> by a <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="left">Dividend of type <see cref="T:SixLabors.Primitives.Point"/>.</param>
+            <param name="right">Divisor of type <see cref="T:System.Int32"/>.</param>
+            <returns>Result of type <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Equality(SixLabors.Primitives.Point,SixLabors.Primitives.Point)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Point"/> objects for equality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.Point"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.Point"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.op_Inequality(SixLabors.Primitives.Point,SixLabors.Primitives.Point)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Point"/> objects for inequality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.Point"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.Point"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Add(SixLabors.Primitives.Point,SixLabors.Primitives.Size)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.Point"/> by the negative of a given <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Multiply(SixLabors.Primitives.Point,System.Int32)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.Point"/> by the negative of a given value.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="value">The value on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Subtract(SixLabors.Primitives.Point,SixLabors.Primitives.Size)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.Point"/> by the negative of a given <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Ceiling(SixLabors.Primitives.PointF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.PointF"/> to a <see cref="T:SixLabors.Primitives.Point"/> by performing a ceiling operation on all the coordinates.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Round(SixLabors.Primitives.PointF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.PointF"/> to a <see cref="T:SixLabors.Primitives.Point"/> by performing a round operation on all the coordinates.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Round(System.Numerics.Vector2)">
+            <summary>
+            Converts a <see cref="T:System.Numerics.Vector2"/> to a <see cref="T:SixLabors.Primitives.Point"/> by performing a round operation on all the coordinates.
+            </summary>
+            <param name="vector">The vector.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Truncate(SixLabors.Primitives.PointF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.PointF"/> to a <see cref="T:SixLabors.Primitives.Point"/> by performing a truncate operation on all the coordinates.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Transform(SixLabors.Primitives.Point,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a point by a specified 3x2 matrix.
+            </summary>
+            <param name="point">The point to transform.</param>
+            <param name="matrix">The transformation matrix used.</param>
+            <returns>The transformed <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Deconstruct(System.Int32@,System.Int32@)">
+            <summary>
+            Deconstructs this point into two integers.
+            </summary>
+            <param name="x">The out value for X.</param>
+            <param name="y">The out value for Y.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Offset(System.Int32,System.Int32)">
+            <summary>
+            Translates this <see cref="T:SixLabors.Primitives.Point"/> by the specified amount.
+            </summary>
+            <param name="dx">The amount to offset the x-coordinate.</param>
+            <param name="dy">The amount to offset the y-coordinate.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Offset(SixLabors.Primitives.Point)">
+            <summary>
+            Translates this <see cref="T:SixLabors.Primitives.Point"/> by the specified amount.
+            </summary>
+            <param name="point">The <see cref="T:SixLabors.Primitives.Point"/> used offset this <see cref="T:SixLabors.Primitives.Point"/>.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Point.Equals(SixLabors.Primitives.Point)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SixLabors.Primitives.PointF">
+            <summary>
+            Represents an ordered pair of single precision floating point x- and y-coordinates that defines a point in
+            a two-dimensional plane.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.PointF.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.PointF"/> that has X and Y values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.#ctor(System.Single,System.Single)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.PointF"/> struct.
+            </summary>
+            <param name="x">The horizontal position of the point.</param>
+            <param name="y">The vertical position of the point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.#ctor(SixLabors.Primitives.SizeF)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.PointF"/> struct from the given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="P:SixLabors.Primitives.PointF.X">
+            <summary>
+            Gets or sets the x-coordinate of this <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.PointF.Y">
+            <summary>
+            Gets or sets the y-coordinate of this <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.PointF.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.PointF"/> is empty.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Implicit(System.Numerics.Vector2)~SixLabors.Primitives.PointF">
+            <summary>
+            Creates a <see cref="T:System.Numerics.Vector2"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="vector">The vector.</param>
+            <returns>
+            The <see cref="T:System.Numerics.Vector2"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Implicit(SixLabors.Primitives.PointF)~System.Numerics.Vector2">
+            <summary>
+            Creates a <see cref="T:System.Numerics.Vector2"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>
+            The <see cref="T:System.Numerics.Vector2"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Explicit(SixLabors.Primitives.PointF)~SixLabors.Primitives.Point">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.Point"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.PointF"/> by truncating each of the coordinates.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.Point"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_UnaryNegation(SixLabors.Primitives.PointF)">
+            <summary>
+            Negates the given point by multiplying all values by -1.
+            </summary>
+            <param name="value">The source point.</param>
+            <returns>The negated point.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Addition(SixLabors.Primitives.PointF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by a given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.PointF"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Subtraction(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the negative of a given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Addition(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by a given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.PointF"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Subtraction(SixLabors.Primitives.PointF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the negative of a given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Multiply(System.Single,SixLabors.Primitives.PointF)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.PointF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <param name="right">Multiplicand of type <see cref="T:SixLabors.Primitives.SizeF"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Multiply(SixLabors.Primitives.PointF,System.Single)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.PointF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplicand of type <see cref="T:SixLabors.Primitives.PointF"/>.</param>
+            <param name="right">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Division(SixLabors.Primitives.PointF,System.Single)">
+            <summary>
+            Divides <see cref="T:SixLabors.Primitives.PointF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Dividend of type <see cref="T:SixLabors.Primitives.PointF"/>.</param>
+            <param name="right">Divisor of type <see cref="T:System.Int32"/>.</param>
+            <returns>Result of type <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Equality(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.PointF"/> objects for equality.
+            </summary>
+            <param name="left">
+            The <see cref="T:SixLabors.Primitives.PointF"/> on the left side of the operand.
+            </param>
+            <param name="right">
+            The <see cref="T:SixLabors.Primitives.PointF"/> on the right side of the operand.
+            </param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.op_Inequality(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.PointF"/> objects for inequality.
+            </summary>
+            <param name="left">
+            The <see cref="T:SixLabors.Primitives.PointF"/> on the left side of the operand.
+            </param>
+            <param name="right">
+            The <see cref="T:SixLabors.Primitives.PointF"/> on the right side of the operand.
+            </param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Add(SixLabors.Primitives.PointF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Add(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the given <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="pointb">The point on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Subtract(SixLabors.Primitives.PointF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the negative of a given <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="size">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Subtract(SixLabors.Primitives.PointF,SixLabors.Primitives.PointF)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the negative of a given <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="pointb">The point on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Multiply(SixLabors.Primitives.PointF,System.Single)">
+            <summary>
+            Translates a <see cref="T:SixLabors.Primitives.PointF"/> by the multiplying the X and Y by the given value.
+            </summary>
+            <param name="point">The point on the left hand of the operand.</param>
+            <param name="right">The value on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Transform(SixLabors.Primitives.PointF,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a point by a specified 3x2 matrix.
+            </summary>
+            <param name="point">The point to transform.</param>
+            <param name="matrix">The transformation matrix used.</param>
+            <returns>The transformed <see cref="T:SixLabors.Primitives.PointF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Deconstruct(System.Single@,System.Single@)">
+            <summary>
+            Deconstructs this point into two floats.
+            </summary>
+            <param name="x">The out value for X.</param>
+            <param name="y">The out value for Y.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Offset(System.Single,System.Single)">
+            <summary>
+            Translates this <see cref="T:SixLabors.Primitives.PointF"/> by the specified amount.
+            </summary>
+            <param name="dx">The amount to offset the x-coordinate.</param>
+            <param name="dy">The amount to offset the y-coordinate.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Offset(SixLabors.Primitives.PointF)">
+            <summary>
+            Translates this <see cref="T:SixLabors.Primitives.PointF"/> by the specified amount.
+            </summary>
+            <param name="point">The <see cref="T:SixLabors.Primitives.PointF"/> used offset this <see cref="T:SixLabors.Primitives.PointF"/>.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.PointF.Equals(SixLabors.Primitives.PointF)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SixLabors.Primitives.Rectangle">
+            <summary>
+            Stores a set of four integers that represent the location and size of a rectangle.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.Rectangle.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.Rectangle"/> that has X, Y, Width, and Height values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Rectangle"/> struct.
+            </summary>
+            <param name="x">The horizontal position of the rectangle.</param>
+            <param name="y">The vertical position of the rectangle.</param>
+            <param name="width">The width of the rectangle.</param>
+            <param name="height">The height of the rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.#ctor(SixLabors.Primitives.Point,SixLabors.Primitives.Size)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Rectangle"/> struct.
+            </summary>
+            <param name="point">
+            The <see cref="T:SixLabors.Primitives.Point"/> which specifies the rectangles point in a two-dimensional plane.
+            </param>
+            <param name="size">
+            The <see cref="P:SixLabors.Primitives.Rectangle.Size"/> which specifies the rectangles height and width.
+            </param>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.X">
+            <summary>
+            Gets or sets the x-coordinate of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Y">
+            <summary>
+            Gets or sets the y-coordinate of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Width">
+            <summary>
+            Gets or sets the width of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Height">
+            <summary>
+            Gets or sets the height of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Location">
+            <summary>
+            Gets or sets the coordinates of the upper-left corner of the rectangular region represented by this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Size">
+            <summary>
+            Gets or sets the size of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.Rectangle"/> is empty.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Top">
+            <summary>
+            Gets the y-coordinate of the top edge of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Right">
+            <summary>
+            Gets the x-coordinate of the right edge of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Bottom">
+            <summary>
+            Gets the y-coordinate of the bottom edge of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Rectangle.Left">
+            <summary>
+            Gets the x-coordinate of the left edge of this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.op_Implicit(SixLabors.Primitives.Rectangle)~SixLabors.Primitives.RectangleF">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.RectangleF"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.op_Implicit(SixLabors.Primitives.Rectangle)~System.Numerics.Vector4">
+            <summary>
+            Creates a <see cref="T:System.Numerics.Vector4"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.op_Equality(SixLabors.Primitives.Rectangle,SixLabors.Primitives.Rectangle)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Rectangle"/> objects for equality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.Rectangle"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.Rectangle"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.op_Inequality(SixLabors.Primitives.Rectangle,SixLabors.Primitives.Rectangle)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Rectangle"/> objects for inequality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.Rectangle"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.Rectangle"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.FromLTRB(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Creates a new <see cref="T:SixLabors.Primitives.Rectangle"/> with the specified location and size. </summary>
+            <param name="left">The left coordinate of the rectangle.</param>
+            <param name="top">The top coordinate of the rectangle.</param>
+            <param name="right">The right coordinate of the rectangle.</param>
+            <param name="bottom">The bottom coordinate of the rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Center(SixLabors.Primitives.Rectangle)">
+            <summary>
+            Returns the center point of the given <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Intersect(SixLabors.Primitives.Rectangle,SixLabors.Primitives.Rectangle)">
+            <summary>
+            Creates a rectangle that represents the intersection between <paramref name="a"/> and
+            <paramref name="b"/>. If there is no intersection, an empty rectangle is returned.
+            </summary>
+            <param name="a">The first rectangle.</param>
+            <param name="b">The second rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Inflate(SixLabors.Primitives.Rectangle,System.Int32,System.Int32)">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.Rectangle"/> that is inflated by the specified amount.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <param name="x">The amount to inflate the width by.</param>
+            <param name="y">The amount to inflate the height by.</param>
+            <returns>A new <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Ceiling(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.RectangleF"/> to a <see cref="T:SixLabors.Primitives.Rectangle"/> by performing a ceiling operation on all the coordinates.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Transform(SixLabors.Primitives.Rectangle,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a rectangle by the given matrix.
+            </summary>
+            <param name="rectangle">The source rectangle.</param>
+            <param name="matrix">The transformation matrix.</param>
+            <returns>A transformed rectangle.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Truncate(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.RectangleF"/> to a <see cref="T:SixLabors.Primitives.Rectangle"/> by performing a truncate operation on all the coordinates.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Round(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.RectangleF"/> to a <see cref="T:SixLabors.Primitives.Rectangle"/> by performing a round operation on all the coordinates.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Union(SixLabors.Primitives.Rectangle,SixLabors.Primitives.Rectangle)">
+            <summary>
+            Creates a rectangle that represents the union between <paramref name="a"/> and <paramref name="b"/>.
+            </summary>
+            <param name="a">The first rectangle.</param>
+            <param name="b">The second rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Rectangle"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Deconstruct(System.Int32@,System.Int32@,System.Int32@,System.Int32@)">
+            <summary>
+            Deconstructs this rectangle into four integers.
+            </summary>
+            <param name="x">The out value for X.</param>
+            <param name="y">The out value for Y.</param>
+            <param name="width">The out value for the width.</param>
+            <param name="height">The out value for the height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Intersect(SixLabors.Primitives.Rectangle)">
+            <summary>
+            Creates a Rectangle that represents the intersection between this Rectangle and the <paramref name="rectangle"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Inflate(System.Int32,System.Int32)">
+            <summary>
+            Inflates this <see cref="T:SixLabors.Primitives.Rectangle"/> by the specified amount.
+            </summary>
+            <param name="width">The width.</param>
+            <param name="height">The height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Inflate(SixLabors.Primitives.Size)">
+            <summary>
+            Inflates this <see cref="T:SixLabors.Primitives.Rectangle"/> by the specified amount.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Contains(System.Int32,System.Int32)">
+            <summary>
+            Determines if the specfied point is contained within the rectangular region defined by
+            this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+            <param name="x">The x-coordinate of the given point.</param>
+            <param name="y">The y-coordinate of the given point.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Contains(SixLabors.Primitives.Point)">
+            <summary>
+            Determines if the specified point is contained within the rectangular region defined by this <see cref="T:SixLabors.Primitives.Rectangle"/> .
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Contains(SixLabors.Primitives.Rectangle)">
+            <summary>
+            Determines if the rectangular region represented by <paramref name="rectangle"/> is entirely contained
+            within the rectangular region represented by this <see cref="T:SixLabors.Primitives.Rectangle"/> .
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.IntersectsWith(SixLabors.Primitives.Rectangle)">
+            <summary>
+            Determines if the specfied <see cref="T:SixLabors.Primitives.Rectangle"/> intersects the rectangular region defined by
+            this <see cref="T:SixLabors.Primitives.Rectangle"/>.
+            </summary>
+            <param name="rectangle">The other Rectange. </param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Offset(SixLabors.Primitives.Point)">
+            <summary>
+            Adjusts the location of this rectangle by the specified amount.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Offset(System.Int32,System.Int32)">
+            <summary>
+            Adjusts the location of this rectangle by the specified amount.
+            </summary>
+            <param name="dx">The amount to offset the x-coordinate.</param>
+            <param name="dy">The amount to offset the y-coordinate.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Rectangle.Equals(SixLabors.Primitives.Rectangle)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SixLabors.Primitives.RectangleF">
+            <summary>
+            Stores a set of four single precision floating points that represent the location and size of a rectangle.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.RectangleF.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.RectangleF"/> that has X, Y, Width, and Height values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.#ctor(System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.RectangleF"/> struct.
+            </summary>
+            <param name="x">The horizontal position of the rectangle.</param>
+            <param name="y">The vertical position of the rectangle.</param>
+            <param name="width">The width of the rectangle.</param>
+            <param name="height">The height of the rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.#ctor(SixLabors.Primitives.PointF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.RectangleF"/> struct.
+            </summary>
+            <param name="point">
+            The <see cref="T:SixLabors.Primitives.Point"/> which specifies the rectangles point in a two-dimensional plane.
+            </param>
+            <param name="size">
+            The <see cref="P:SixLabors.Primitives.RectangleF.Size"/> which specifies the rectangles height and width.
+            </param>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.X">
+            <summary>
+            Gets or sets the x-coordinate of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Y">
+            <summary>
+            Gets or sets the y-coordinate of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Width">
+            <summary>
+            Gets or sets the width of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Height">
+            <summary>
+            Gets or sets the height of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Location">
+            <summary>
+            Gets or sets the coordinates of the upper-left corner of the rectangular region represented by this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Size">
+            <summary>
+            Gets or sets the size of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.RectangleF"/> is empty.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Top">
+            <summary>
+            Gets the y-coordinate of the top edge of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Right">
+            <summary>
+            Gets the x-coordinate of the right edge of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Bottom">
+            <summary>
+            Gets the y-coordinate of the bottom edge of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.RectangleF.Left">
+            <summary>
+            Gets the x-coordinate of the left edge of this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.op_Explicit(SixLabors.Primitives.RectangleF)~SixLabors.Primitives.Rectangle">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.Rectangle"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.RectangleF"/> by truncating each coordinate.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.op_Equality(SixLabors.Primitives.RectangleF,SixLabors.Primitives.RectangleF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.RectangleF"/> objects for equality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.RectangleF"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.RectangleF"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.op_Inequality(SixLabors.Primitives.RectangleF,SixLabors.Primitives.RectangleF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.RectangleF"/> objects for inequality.
+            </summary>
+            <param name="left">The <see cref="T:SixLabors.Primitives.RectangleF"/> on the left side of the operand.</param>
+            <param name="right">The <see cref="T:SixLabors.Primitives.RectangleF"/> on the right side of the operand.</param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.FromLTRB(System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            Creates a new <see cref="T:SixLabors.Primitives.RectangleF"/> with the specified location and size. </summary>
+            <param name="left">The left coordinate of the rectangle.</param>
+            <param name="top">The top coordinate of the rectangle.</param>
+            <param name="right">The right coordinate of the rectangle.</param>
+            <param name="bottom">The bottom coordinate of the rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.RectangleF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Center(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Returns the center point of the given <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Point"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Intersect(SixLabors.Primitives.RectangleF,SixLabors.Primitives.RectangleF)">
+            <summary>
+            Creates a rectangle that represents the intersection between <paramref name="a"/> and
+            <paramref name="b"/>. If there is no intersection, an empty rectangle is returned.
+            </summary>
+            <param name="a">The first rectangle.</param>
+            <param name="b">The second rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.RectangleF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Inflate(SixLabors.Primitives.RectangleF,System.Single,System.Single)">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.RectangleF"/> that is inflated by the specified amount.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <param name="x">The amount to inflate the width by.</param>
+            <param name="y">The amount to inflate the height by.</param>
+            <returns>A new <see cref="T:SixLabors.Primitives.RectangleF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Transform(SixLabors.Primitives.RectangleF,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a rectangle by the given matrix.
+            </summary>
+            <param name="rectangle">The source rectangle.</param>
+            <param name="matrix">The transformation matrix.</param>
+            <returns>A transformed <see cref="T:SixLabors.Primitives.RectangleF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Union(SixLabors.Primitives.RectangleF,SixLabors.Primitives.RectangleF)">
+            <summary>
+            Creates a rectangle that represents the union between <paramref name="a"/> and <paramref name="b"/>.
+            </summary>
+            <param name="a">The first rectangle.</param>
+            <param name="b">The second rectangle.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.RectangleF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Deconstruct(System.Single@,System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Deconstructs this rectangle into four floats.
+            </summary>
+            <param name="x">The out value for X.</param>
+            <param name="y">The out value for Y.</param>
+            <param name="width">The out value for the width.</param>
+            <param name="height">The out value for the height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Intersect(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Creates a RectangleF that represents the intersection between this RectangleF and the <paramref name="rectangle"/>.
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Inflate(System.Single,System.Single)">
+            <summary>
+            Inflates this <see cref="T:SixLabors.Primitives.RectangleF"/> by the specified amount.
+            </summary>
+            <param name="width">The width.</param>
+            <param name="height">The height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Inflate(SixLabors.Primitives.SizeF)">
+            <summary>
+            Inflates this <see cref="T:SixLabors.Primitives.RectangleF"/> by the specified amount.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Contains(System.Single,System.Single)">
+            <summary>
+            Determines if the specfied point is contained within the rectangular region defined by
+            this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+            <param name="x">The x-coordinate of the given point.</param>
+            <param name="y">The y-coordinate of the given point.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Contains(SixLabors.Primitives.PointF)">
+            <summary>
+            Determines if the specified point is contained within the rectangular region defined by this <see cref="T:SixLabors.Primitives.RectangleF"/> .
+            </summary>
+            <param name="point">The point.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Contains(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Determines if the rectangular region represented by <paramref name="rectangle"/> is entirely contained
+            within the rectangular region represented by this <see cref="T:SixLabors.Primitives.RectangleF"/> .
+            </summary>
+            <param name="rectangle">The rectangle.</param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.IntersectsWith(SixLabors.Primitives.RectangleF)">
+            <summary>
+            Determines if the specfied <see cref="T:SixLabors.Primitives.RectangleF"/> intersects the rectangular region defined by
+            this <see cref="T:SixLabors.Primitives.RectangleF"/>.
+            </summary>
+            <param name="rectangle">The other Rectange. </param>
+            <returns>The <see cref="T:System.Boolean"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Offset(SixLabors.Primitives.PointF)">
+            <summary>
+            Adjusts the location of this rectangle by the specified amount.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Offset(System.Single,System.Single)">
+            <summary>
+            Adjusts the location of this rectangle by the specified amount.
+            </summary>
+            <param name="dx">The amount to offset the x-coordinate.</param>
+            <param name="dy">The amount to offset the y-coordinate.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.RectangleF.Equals(SixLabors.Primitives.RectangleF)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SixLabors.Primitives.Size">
+            <summary>
+            Stores an ordered pair of integers, which specify a height and width.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.Size.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.Size"/> that has Width and Height values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Size"/> struct.
+            </summary>
+            <param name="value">The width and height of the size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Size"/> struct.
+            </summary>
+            <param name="width">The width of the size.</param>
+            <param name="height">The height of the size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.#ctor(SixLabors.Primitives.Size)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Size"/> struct.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.#ctor(SixLabors.Primitives.Point)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.Size"/> struct from the given <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="P:SixLabors.Primitives.Size.Width">
+            <summary>
+            Gets or sets the width of this <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Size.Height">
+            <summary>
+            Gets or sets the height of this <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.Size.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.Size"/> is empty.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Implicit(SixLabors.Primitives.Size)~SixLabors.Primitives.SizeF">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.SizeF"/> with the dimensions of the specified <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="size">The point.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Explicit(SixLabors.Primitives.Size)~SixLabors.Primitives.Point">
+            <summary>
+            Converts the given <see cref="T:SixLabors.Primitives.Size"/> into a <see cref="T:SixLabors.Primitives.Point"/>.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Addition(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Computes the sum of adding two sizes.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.Size"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Subtraction(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Computes the difference left by subtracting one size from another.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.Size"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Multiply(System.Int32,SixLabors.Primitives.Size)">
+            <summary>
+            Multiplies a <see cref="T:SixLabors.Primitives.Size"/> by an <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="left">Multiplier of type <see cref="T:System.Int32"/>.</param>
+            <param name="right">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Multiply(SixLabors.Primitives.Size,System.Int32)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Size"/> by an <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="left">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="right">Multiplier of type <see cref="T:System.Int32"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Division(SixLabors.Primitives.Size,System.Int32)">
+            <summary>
+            Divides <see cref="T:SixLabors.Primitives.Size"/> by an <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="left">Dividend of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="right">Divisor of type <see cref="T:System.Int32"/>.</param>
+            <returns>Result of type <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Multiply(System.Single,SixLabors.Primitives.Size)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Size"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <param name="right">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Multiply(SixLabors.Primitives.Size,System.Single)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Size"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="right">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Division(SixLabors.Primitives.Size,System.Single)">
+            <summary>
+            Divides <see cref="T:SixLabors.Primitives.Size"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Dividend of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="right">Divisor of type <see cref="T:System.Int32"/>.</param>
+            <returns>Result of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Equality(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Size"/> objects for equality.
+            </summary>
+            <param name="left">
+            The <see cref="T:SixLabors.Primitives.Size"/> on the left side of the operand.
+            </param>
+            <param name="right">
+            The <see cref="T:SixLabors.Primitives.Size"/> on the right side of the operand.
+            </param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.op_Inequality(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.Size"/> objects for inequality.
+            </summary>
+            <param name="left">
+            The <see cref="T:SixLabors.Primitives.Size"/> on the left side of the operand.
+            </param>
+            <param name="right">
+            The <see cref="T:SixLabors.Primitives.Size"/> on the right side of the operand.
+            </param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Add(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Performs vector addition of two <see cref="T:SixLabors.Primitives.Size"/> objects.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Subtract(SixLabors.Primitives.Size,SixLabors.Primitives.Size)">
+            <summary>
+            Contracts a <see cref="T:SixLabors.Primitives.Size"/> by another <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Ceiling(SixLabors.Primitives.SizeF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.SizeF"/> to a <see cref="T:SixLabors.Primitives.Size"/> by performing a ceiling operation on all the dimensions.
+            </summary>
+            <param name="size">The size.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Round(SixLabors.Primitives.SizeF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.SizeF"/> to a <see cref="T:SixLabors.Primitives.Size"/> by performing a round operation on all the dimensions.
+            </summary>
+            <param name="size">The size.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Transform(SixLabors.Primitives.Size,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a size by the given matrix.
+            </summary>
+            <param name="size">The source size.</param>
+            <param name="matrix">The transformation matrix.</param>
+            <returns>A transformed size.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Truncate(SixLabors.Primitives.SizeF)">
+            <summary>
+            Converts a <see cref="T:SixLabors.Primitives.SizeF"/> to a <see cref="T:SixLabors.Primitives.Size"/> by performing a round operation on all the dimensions.
+            </summary>
+            <param name="size">The size.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Deconstruct(System.Int32@,System.Int32@)">
+            <summary>
+            Deconstructs this size into two integers.
+            </summary>
+            <param name="width">The out value for the width.</param>
+            <param name="height">The out value for the height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Equals(SixLabors.Primitives.Size)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Multiply(SixLabors.Primitives.Size,System.Int32)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Size"/> by an <see cref="T:System.Int32"/> producing <see cref="T:SixLabors.Primitives.Size"/>.
+            </summary>
+            <param name="size">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="multiplier">Multiplier of type <see cref="T:System.Int32"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.Size"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.Size.Multiply(SixLabors.Primitives.Size,System.Single)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.Size"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="size">Multiplicand of type <see cref="T:SixLabors.Primitives.Size"/>.</param>
+            <param name="multiplier">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <returns>Product of type SizeF.</returns>
+        </member>
+        <member name="T:SixLabors.Primitives.SizeF">
+            <summary>
+            Stores an ordered pair of single precision floating points, which specify a height and width.
+            </summary>
+            <remarks>
+            This struct is fully mutable. This is done (against the guidelines) for the sake of performance,
+            as it avoids the need to create new values for modification operations.
+            </remarks>
+        </member>
+        <member name="F:SixLabors.Primitives.SizeF.Empty">
+            <summary>
+            Represents a <see cref="T:SixLabors.Primitives.SizeF"/> that has Width and Height values set to zero.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.#ctor(System.Single,System.Single)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.SizeF"/> struct.
+            </summary>
+            <param name="width">The width of the size.</param>
+            <param name="height">The height of the size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.#ctor(SixLabors.Primitives.SizeF)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.SizeF"/> struct.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.#ctor(SixLabors.Primitives.PointF)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SixLabors.Primitives.SizeF"/> struct from the given <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="point">The point.</param>
+        </member>
+        <member name="P:SixLabors.Primitives.SizeF.Width">
+            <summary>
+            Gets or sets the width of this <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.SizeF.Height">
+            <summary>
+            Gets or sets the height of this <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+        </member>
+        <member name="P:SixLabors.Primitives.SizeF.IsEmpty">
+            <summary>
+            Gets a value indicating whether this <see cref="T:SixLabors.Primitives.SizeF"/> is empty.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Implicit(SixLabors.Primitives.SizeF)~System.Numerics.Vector2">
+            <summary>
+            Creates a <see cref="T:System.Numerics.Vector2"/> with the coordinates of the specified <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="point">The point.</param>
+            <returns>
+            The <see cref="T:System.Numerics.Vector2"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Explicit(SixLabors.Primitives.SizeF)~SixLabors.Primitives.Size">
+            <summary>
+            Creates a <see cref="T:SixLabors.Primitives.Size"/> with the dimensions of the specified <see cref="T:SixLabors.Primitives.SizeF"/> by truncating each of the dimensions.
+            </summary>
+            <param name="size">The size.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.Size"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Explicit(SixLabors.Primitives.SizeF)~SixLabors.Primitives.PointF">
+            <summary>
+            Converts the given <see cref="T:SixLabors.Primitives.SizeF"/> into a <see cref="T:SixLabors.Primitives.PointF"/>.
+            </summary>
+            <param name="size">The size.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Addition(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Computes the sum of adding two sizes.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Subtraction(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Computes the difference left by subtracting one size from another.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            The <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Multiply(System.Single,SixLabors.Primitives.SizeF)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.SizeF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <param name="right">Multiplicand of type <see cref="T:SixLabors.Primitives.SizeF"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Multiply(SixLabors.Primitives.SizeF,System.Single)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.SizeF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Multiplicand of type <see cref="T:SixLabors.Primitives.SizeF"/>.</param>
+            <param name="right">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <returns>Product of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Division(SixLabors.Primitives.SizeF,System.Single)">
+            <summary>
+            Divides <see cref="T:SixLabors.Primitives.SizeF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">Dividend of type <see cref="T:SixLabors.Primitives.SizeF"/>.</param>
+            <param name="right">Divisor of type <see cref="T:System.Int32"/>.</param>
+            <returns>Result of type <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Equality(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.SizeF"/> objects for equality.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            True if the current left is equal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.op_Inequality(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Compares two <see cref="T:SixLabors.Primitives.SizeF"/> objects for inequality.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>
+            True if the current left is unequal to the <paramref name="right"/> parameter; otherwise, false.
+            </returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Add(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Performs vector addition of two <see cref="T:SixLabors.Primitives.SizeF"/> objects.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Subtract(SixLabors.Primitives.SizeF,SixLabors.Primitives.SizeF)">
+            <summary>
+            Contracts a <see cref="T:SixLabors.Primitives.SizeF"/> by another <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="left">The size on the left hand of the operand.</param>
+            <param name="right">The size on the right hand of the operand.</param>
+            <returns>The <see cref="T:SixLabors.Primitives.SizeF"/>.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Transform(SixLabors.Primitives.SizeF,System.Numerics.Matrix3x2)">
+            <summary>
+            Transforms a size by the given matrix.
+            </summary>
+            <param name="size">The source size.</param>
+            <param name="matrix">The transformation matrix.</param>
+            <returns>A transformed size.</returns>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Deconstruct(System.Single@,System.Single@)">
+            <summary>
+            Deconstructs this size into two floats.
+            </summary>
+            <param name="width">The out value for the width.</param>
+            <param name="height">The out value for the height.</param>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Equals(SixLabors.Primitives.SizeF)">
+            <inheritdoc/>
+        </member>
+        <member name="M:SixLabors.Primitives.SizeF.Multiply(SixLabors.Primitives.SizeF,System.Single)">
+            <summary>
+            Multiplies <see cref="T:SixLabors.Primitives.SizeF"/> by a <see cref="T:System.Single"/> producing <see cref="T:SixLabors.Primitives.SizeF"/>.
+            </summary>
+            <param name="size">Multiplicand of type <see cref="T:SixLabors.Primitives.SizeF"/>.</param>
+            <param name="multiplier">Multiplier of type <see cref="T:System.Single"/>.</param>
+            <returns>Product of type SizeF.</returns>
+        </member>
+        <member name="T:SixLabors.DebugGuard">
+            <summary>
+            Provides methods to protect against invalid parameters for a DEBUG build.
+            </summary>
+        </member>
+        <member name="M:SixLabors.DebugGuard.NotNull``1(``0,System.String)">
+            <summary>
+            Ensures that the value is not null.
+            </summary>
+            <param name="value">The target object, which cannot be null.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value"/> is null.</exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.NotNullOrWhiteSpace(System.String,System.String)">
+            <summary>
+            Ensures that the target value is not null, empty, or whitespace.
+            </summary>
+            <param name="value">The target string, which should be checked against being null or empty.</param>
+            <param name="parameterName">Name of the parameter.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value"/> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="value"/> is empty or contains only blanks.</exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeLessThan``1(``0,``0,System.String)">
+            <summary>
+            Ensures that the specified value is less than a maximum value.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeLessThanOrEqualTo``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is less than or equal to a maximum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeGreaterThan``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than a minimum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeGreaterThanOrEqualTo``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than or equal to a minimum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeBetweenOrEqualTo``1(``0,``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than or equal to a minimum value and less than
+            or equal to a maximum value and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value of greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.IsTrue(System.Boolean,System.String,System.String)">
+            <summary>
+            Verifies, that the method parameter with specified target value is true
+            and throws an exception if it is found to be so.
+            </summary>
+            <param name="target">The target value, which cannot be false.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <param name="message">The error message, if any to add to the exception.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="target"/> is false.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.IsFalse(System.Boolean,System.String,System.String)">
+            <summary>
+            Verifies, that the method parameter with specified target value is false
+            and throws an exception if it is found to be so.
+            </summary>
+            <param name="target">The target value, which cannot be true.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <param name="message">The error message, if any to add to the exception.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="target"/> is true.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeSizedAtLeast``1(System.ReadOnlySpan{``0},System.Int32,System.String)">
+            <summary>
+            Verifies, that the `source` span has the length of 'minLength', or longer.
+            </summary>
+            <typeparam name="T">The element type of the spans.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="minLength">The minimum length.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="source"/> has less than <paramref name="minLength"/> items.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.MustBeSizedAtLeast``1(System.Span{``0},System.Int32,System.String)">
+            <summary>
+            Verifies, that the `source` span has the length of 'minLength', or longer.
+            </summary>
+            <typeparam name="T">The element type of the spans.</typeparam>
+            <param name="source">The target span.</param>
+            <param name="minLength">The minimum length.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="source"/> has less than <paramref name="minLength"/> items.
+            </exception>
+        </member>
+        <member name="M:SixLabors.DebugGuard.DestinationShouldNotBeTooShort``2(System.ReadOnlySpan{``0},System.Span{``1},System.String)">
+            <summary>
+            Verifies that the 'destination' span is not shorter than 'source'.
+            </summary>
+            <typeparam name="TSource">The source element type.</typeparam>
+            <typeparam name="TDest">The destination element type.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="destination">The destination span.</param>
+            <param name="destinationParamName">The name of the argument for 'destination'.</param>
+        </member>
+        <member name="M:SixLabors.DebugGuard.DestinationShouldNotBeTooShort``2(System.Span{``0},System.Span{``1},System.String)">
+            <summary>
+            Verifies that the 'destination' span is not shorter than 'source'.
+            </summary>
+            <typeparam name="TSource">The source element type.</typeparam>
+            <typeparam name="TDest">The destination element type.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="destination">The destination span.</param>
+            <param name="destinationParamName">The name of the argument for 'destination'.</param>
+        </member>
+        <member name="T:SixLabors.Guard">
+            <summary>
+            Provides methods to protect against invalid parameters.
+            </summary>
+        </member>
+        <member name="M:SixLabors.Guard.NotNull``1(``0,System.String)">
+            <summary>
+            Ensures that the value is not null.
+            </summary>
+            <param name="value">The target object, which cannot be null.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value"/> is null.</exception>
+        </member>
+        <member name="M:SixLabors.Guard.NotNullOrWhiteSpace(System.String,System.String)">
+            <summary>
+            Ensures that the target value is not null, empty, or whitespace.
+            </summary>
+            <param name="value">The target string, which should be checked against being null or empty.</param>
+            <param name="parameterName">Name of the parameter.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value"/> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="value"/> is empty or contains only blanks.</exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeLessThan``1(``0,``0,System.String)">
+            <summary>
+            Ensures that the specified value is less than a maximum value.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeLessThanOrEqualTo``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is less than or equal to a maximum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeGreaterThan``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than a minimum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeGreaterThanOrEqualTo``1(``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than or equal to a minimum value
+            and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeBetweenOrEqualTo``1(``0,``0,``0,System.String)">
+            <summary>
+            Verifies that the specified value is greater than or equal to a minimum value and less than
+            or equal to a maximum value and throws an exception if it is not.
+            </summary>
+            <param name="value">The target value, which should be validated.</param>
+            <param name="min">The minimum value.</param>
+            <param name="max">The maximum value.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <typeparam name="TValue">The type of the value.</typeparam>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="value"/> is less than the minimum value of greater than the maximum value.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.IsTrue(System.Boolean,System.String,System.String)">
+            <summary>
+            Verifies, that the method parameter with specified target value is true
+            and throws an exception if it is found to be so.
+            </summary>
+            <param name="target">The target value, which cannot be false.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <param name="message">The error message, if any to add to the exception.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="target"/> is false.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.IsFalse(System.Boolean,System.String,System.String)">
+            <summary>
+            Verifies, that the method parameter with specified target value is false
+            and throws an exception if it is found to be so.
+            </summary>
+            <param name="target">The target value, which cannot be true.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <param name="message">The error message, if any to add to the exception.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="target"/> is true.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeSizedAtLeast``1(System.ReadOnlySpan{``0},System.Int32,System.String)">
+            <summary>
+            Verifies, that the `source` span has the length of 'minLength', or longer.
+            </summary>
+            <typeparam name="T">The element type of the spans.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="minLength">The minimum length.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="source"/> has less than <paramref name="minLength"/> items.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.MustBeSizedAtLeast``1(System.Span{``0},System.Int32,System.String)">
+            <summary>
+            Verifies, that the `source` span has the length of 'minLength', or longer.
+            </summary>
+            <typeparam name="T">The element type of the spans.</typeparam>
+            <param name="source">The target span.</param>
+            <param name="minLength">The minimum length.</param>
+            <param name="parameterName">The name of the parameter that is to be checked.</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="source"/> has less than <paramref name="minLength"/> items.
+            </exception>
+        </member>
+        <member name="M:SixLabors.Guard.DestinationShouldNotBeTooShort``2(System.ReadOnlySpan{``0},System.Span{``1},System.String)">
+            <summary>
+            Verifies that the 'destination' span is not shorter than 'source'.
+            </summary>
+            <typeparam name="TSource">The source element type.</typeparam>
+            <typeparam name="TDest">The destination element type.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="destination">The destination span.</param>
+            <param name="destinationParamName">The name of the argument for 'destination'.</param>
+        </member>
+        <member name="M:SixLabors.Guard.DestinationShouldNotBeTooShort``2(System.Span{``0},System.Span{``1},System.String)">
+            <summary>
+            Verifies that the 'destination' span is not shorter than 'source'.
+            </summary>
+            <typeparam name="TSource">The source element type.</typeparam>
+            <typeparam name="TDest">The destination element type.</typeparam>
+            <param name="source">The source span.</param>
+            <param name="destination">The destination span.</param>
+            <param name="destinationParamName">The name of the argument for 'destination'.</param>
+        </member>
+        <member name="T:System.MathF">
+            <summary>
+            Provides single-precision floating point constants and static methods for trigonometric, logarithmic, and other common mathematical functions.
+            </summary>
+            <remarks>MathF emulation on platforms that don't support it natively.</remarks>
+        </member>
+        <member name="F:System.MathF.PI">
+            <summary>
+            Represents the ratio of the circumference of a circle to its diameter, specified by the constant, π.
+            </summary>
+        </member>
+        <member name="M:System.MathF.Abs(System.Single)">
+            <summary>
+            Returns the absolute value of a single-precision floating-point number.
+            </summary>
+            <param name="f">
+            A number that is greater than or equal to <see cref="F:System.Single.MinValue" />, but less than or equal to <see cref="F:System.Single.MaxValue" />.
+            </param>
+            <returns>
+            A single-precision floating-point number, x, such that 0 ≤ x ≤<see cref="F:System.Single.MaxValue" />.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Atan2(System.Single,System.Single)">
+            <summary>
+            Returns the angle whose tangent is the quotient of two specified numbers.
+            </summary>
+            <param name="y">The y coordinate of a point.</param>
+            <param name="x">The x coordinate of a point.</param>
+            <returns>
+            An angle, θ, measured in radians, such that -π≤θ≤π, and tan(θ) = y / x, where
+            (x, y) is a point in the Cartesian plane. Observe the following: For (x, y) in
+            quadrant 1, 0 &lt; θ &lt; π/2.For (x, y) in quadrant 2, π/2 &lt; θ≤π.For (x, y) in quadrant
+            3, -π &lt; θ &lt; -π/2.For (x, y) in quadrant 4, -π/2 &lt; θ &lt; 0.For points on the boundaries
+            of the quadrants, the return value is the following:If y is 0 and x is not negative,
+            θ = 0.If y is 0 and x is negative, θ = π.If y is positive and x is 0, θ = π/2.If
+            y is negative and x is 0, θ = -π/2.If y is 0 and x is 0, θ = 0. If x or y is
+            <see cref="F:System.Single.NaN"/>, or if x and y are either <see cref="F:System.Single.PositiveInfinity"/> or
+            <see cref="F:System.Single.NegativeInfinity"/>, the method returns <see cref="F:System.Single.NaN"/>.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Ceiling(System.Single)">
+            <summary>
+            Returns the smallest integral value that is greater than or equal to the specified single-precision floating-point number.
+            </summary>
+            <param name="f">A single-precision floating-point number.</param>
+            <returns>
+            The smallest integral value that is greater than or equal to <paramref name="f" />.
+            If <paramref name="f" /> is equal to <see cref="F:System.Single.NaN" />, <see cref="F:System.Single.NegativeInfinity" />,
+            or <see cref="F:System.Single.PositiveInfinity" />, that value is returned.
+            Note that this method returns a <see cref="T:System.Single" /> instead of an integral type.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Cos(System.Single)">
+            <summary>
+            Returns the cosine of the specified angle.
+            </summary>
+            <param name="f">An angle, measured in radians.</param>
+            <returns>
+            The cosine of <paramref name="f"/>. If <paramref name="f"/> is equal to <see cref="F:System.Float.NaN"/>, <see cref="F:System.Float.NegativeInfinity"/>,
+            or <see cref="F:System.Float.PositiveInfinity"/>, this method returns <see cref="F:System.Float.NaN"/>.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Exp(System.Single)">
+            <summary>
+            Returns e raised to the specified power.
+            </summary>
+            <param name="f">A number specifying a power.</param>
+            <returns>
+            The number e raised to the power <paramref name="f" />.
+            If <paramref name="f" /> equals <see cref="F:System.Single.NaN" /> or <see cref="F:System.Single.PositiveInfinity" />, that value is returned.
+            If <paramref name="f" /> equals <see cref="F:System.Single.NegativeInfinity" />, 0 is returned.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Floor(System.Single)">
+            <summary>
+            Returns the largest integer less than or equal to the specified single-precision floating-point number.
+            </summary>
+            <param name="f">A single-precision floating-point number. </param>
+            <returns>
+            The largest integer less than or equal to <paramref name="f" />.
+            If <paramref name="f" /> is equal to <see cref="F:System.Single.NaN" />, <see cref="F:System.Single.NegativeInfinity" />,
+            or <see cref="F:System.Single.PositiveInfinity" />, that value is returned.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Max(System.Single,System.Single)">
+            <summary>
+            Returns the larger of two single-precision floating-point numbers.
+            </summary>
+            <param name="val1">The first of two single-precision floating-point numbers to compare. </param>
+            <param name="val2">The second of two single-precision floating-point numbers to compare. </param>
+            <returns>
+            Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is larger.
+            If <paramref name="val1" />, or <paramref name="val2" />, or both <paramref name="val1" /> and <paramref name="val2" /> are
+            equal to <see cref="F:System.Single.NaN" />, <see cref="F:System.Single.NaN" /> is returned.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Min(System.Single,System.Single)">
+            <summary>
+            Returns the smaller of two single-precision floating-point numbers.
+            </summary>
+            <param name="val1">The first of two single-precision floating-point numbers to compare. </param>
+            <param name="val2">The second of two single-precision floating-point numbers to compare. </param>
+            <returns>
+            Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is smaller.
+            If <paramref name="val1" />, <paramref name="val2" />, or both <paramref name="val1" /> and <paramref name="val2" /> are equal
+            to <see cref="F:System.Single.NaN" />, <see cref="F:System.Single.NaN" /> is returned.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Pow(System.Single,System.Single)">
+            <summary>
+            Returns a specified number raised to the specified power.
+            </summary>
+            <param name="x">A single-precision floating-point number to be raised to a power. </param>
+            <param name="y">A single-precision floating-point number that specifies a power. </param>
+            <returns>The number <paramref name="x" /> raised to the power <paramref name="y" />.</returns>
+        </member>
+        <member name="M:System.MathF.Round(System.Single)">
+            <summary>
+            Rounds a single-precision floating-point value to the nearest integral value.
+            </summary>
+            <param name="f">A single-precision floating-point number to be rounded.</param>
+            <returns>
+            The integer nearest <paramref name="f" />.
+            If the fractional component of <paramref name="f" /> is halfway between two integers, one of which is even and the other odd, then the even number is returned.
+            Note that this method returns a <see cref="T:System.Single" /> instead of an integral type.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Round(System.Single,System.MidpointRounding)">
+            <summary>
+            Rounds a single-precision floating-point value to the nearest integer.
+            A parameter specifies how to round the value if it is midway between two numbers.
+            </summary>
+            <param name="f">A single-precision floating-point number to be rounded. </param>
+            <param name="mode">Specification for how to round <paramref name="f" /> if it is midway between two other numbers.</param>
+            <returns>
+            The integer nearest <paramref name="f" />. If <paramref name="f" /> is halfway between two integers, one of which is even
+            and the other odd, then <paramref name="mode" /> determines which of the two is returned.
+            Note that this method returns a <see cref="T:System.Single" /> instead of an integral type.
+            </returns>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="mode" /> is not a valid value of <see cref="T:System.MidpointRounding" />.</exception>
+        </member>
+        <member name="M:System.MathF.Sin(System.Single)">
+            <summary>
+            Returns the sine of the specified angle.
+            </summary>
+            <param name="f">An angle, measured in radians.</param>
+            <returns>
+            The sine of <paramref name="f" />.
+            If <paramref name="f" /> is equal to <see cref="F:System.Single.NaN" />, <see cref="F:System.Single.NegativeInfinity" />,
+            or <see cref="F:System.Single.PositiveInfinity" />, this method returns <see cref="F:System.Single.NaN" />.
+            </returns>
+        </member>
+        <member name="M:System.MathF.Sqrt(System.Single)">
+            <summary>
+            Returns the square root of a specified number.
+            </summary>
+            <param name="f">The number whose square root is to be found.</param>
+            <returns>
+            One of the values in the following table.
+            <paramref name="f" /> parameter Return value Zero or positive The positive square root of <paramref name="f" />.
+            Negative <see cref="F:System.Single.NaN" />Equals <see cref="F:System.Single.NaN" />
+            <see cref="F:System.Single.NaN" />Equals <see cref="F:System.Single.PositiveInfinity" />
+            <see cref="F:System.Single.PositiveInfinity" />.
+            </returns>
+        </member>
+    </members>
+</doc>
