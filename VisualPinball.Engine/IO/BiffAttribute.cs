@@ -147,7 +147,7 @@ namespace VisualPinball.Engine.IO
 			using (var stream = new MemoryStream())
 			using (var dataWriter = new BinaryWriter(stream)) {
 				if (Type == typeof(TField)) {
-					write(dataWriter, value);
+					write(dataWriter, (TField)value);
 
 				} else if (Type == typeof(TField[])) {
 					var arr = value as TField[];
@@ -199,7 +199,7 @@ namespace VisualPinball.Engine.IO
 		///
 		/// <param name="obj">Object instance that is being read</param>
 		/// <param name="value">Value to be set the field or property this Attribute was attached to</param>
-		public void SetValue(object obj, dynamic value)
+		public void SetValue(object obj, object value)
 		{
 			if (Property != null && Property.CanWrite) {
 				Property.SetValue(obj, value);
@@ -216,7 +216,7 @@ namespace VisualPinball.Engine.IO
 		///
 		/// <param name="obj">Object instance that is being read</param>
 		/// <returns></returns>
-		public dynamic GetValue(object obj)
+		public object GetValue(object obj)
 		{
 			if (Property != null && Property.CanRead) {
 				return Property.GetValue(obj);
