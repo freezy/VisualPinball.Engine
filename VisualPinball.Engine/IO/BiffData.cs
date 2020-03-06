@@ -122,7 +122,7 @@ namespace VisualPinball.Engine.IO
 					if (attributes.ContainsKey(tag)) {
 						var attrs = attributes[tag];
 						var i = 0;
-						dynamic val = null;
+						object val = null;
 						foreach (var attr in attrs) {
 							// parse data on the first
 							if (i == 0) {
