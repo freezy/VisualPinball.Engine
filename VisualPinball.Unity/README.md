@@ -21,10 +21,13 @@ Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.
 
 ### Usage
 
-When you compile the solution, grab the produced DLLs of this project (all
-but the `Unity*` dependencies), and copy them to your Unity project's asset
-folder. You can also point the `VPE_UNITY_SCRIPTS` environment variable to
-your Unity asset folder, and building the project will do this automatically.
+This repository acts as a Unity Package. That means you can import it into
+your Unity project as a package. In order to do that:
+
+1. Open Package Manager (*Window / Package Manager*)
+2. Click on the "plus" button on the top left
+3. Choose *Add package from disk*
+4. Navigate where you cloned this repo and select `package.json`
 
 You'll then have a *Visual Pinball* menu in the Unity editor where you can 
 import `.vpx` files. You'll be also able to drag and drop `.vpx` files into 

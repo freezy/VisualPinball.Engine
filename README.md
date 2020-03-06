@@ -47,6 +47,8 @@ Unity. More on that [here](VisualPinball.Unity).
 VPE is still under development, so there is nothing much to test. If you're a
 developer and you'd like to contribute, let us know, we have a Discord channel.
 
+There are a few videos in the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651), where you can discuss as well.
+
 ## License
 
 GPLv2, see [LICENSE](LICENSE).
