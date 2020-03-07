@@ -26,12 +26,14 @@ namespace VisualPinball.Unity.Components
 
 		public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
 		{
-			var tp = transform.GetComponentInParent<TablePlayer>().FlipperEntities[data.Name] = entity;
 			var d = GetMaterialData();
 			manager.AddComponentData(entity, d);
 			manager.AddComponentData(entity, GetMovementData(d));
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
+
+			// update table api
+			transform.GetComponentInParent<TablePlayer>().TableApi._flippers[Item.Name] = new FlipperApi(Item, entity);
 		}
 
 		private FlipperMaterialData GetMaterialData()
