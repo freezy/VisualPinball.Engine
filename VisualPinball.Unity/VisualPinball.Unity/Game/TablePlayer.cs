@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -22,12 +23,18 @@ namespace VisualPinball.Unity.Game
 			_table = tableComponent.CreateTable();
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
+			//DebugLog = File.CreateText("flipper.log");
+		}
+
+		private void Start()
+		{
 			var tableScripts = GetComponents<VisualPinballScript>();
 			foreach (var tableScript in tableScripts) {
 				tableScript.OnAwake(TableApi);
 			}
 
-			//DebugLog = File.CreateText("flipper.log");
+			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperVelocitySystem>().OnRotated +=
+				(sender, e) => TableApi.Flipper(e.EntityIndex)?.HandleEvent(e);
 		}
 
 		private void Update()

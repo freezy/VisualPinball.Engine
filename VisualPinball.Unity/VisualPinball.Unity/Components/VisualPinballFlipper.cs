@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Components
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			// update table api
-			transform.GetComponentInParent<TablePlayer>().TableApi._flippers[Item.Name] = new FlipperApi(Item, entity);
+			transform.GetComponentInParent<TablePlayer>().TableApi.Flippers[Item.Name] = new FlipperApi(Item, entity);
 		}
 
 		private FlipperMaterialData GetMaterialData()

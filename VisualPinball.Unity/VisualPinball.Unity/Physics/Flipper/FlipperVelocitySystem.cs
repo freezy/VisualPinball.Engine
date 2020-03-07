@@ -1,23 +1,40 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using System;
+using System.Net.Configuration;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Physics.Flipper
 {
+	public struct FlipperRotatedEvent
+	{
+		public bool Direction;
+		public float AngleSpeed;
+		public int EntityIndex;
+	}
+
 	[UpdateBefore(typeof(FlipperDisplacementSystem))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
+
+		// https://www.youtube.com/watch?v=fkJ-7pqnRGo
+		public event EventHandler<FlipperRotatedEvent> OnRotated;
+
+		private NativeQueue<FlipperRotatedEvent> _eventQueue;
+
 		//[BurstCompile]
-		private struct FlipperVelocity : IJobForEach<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
+		private struct FlipperVelocity : IJobForEachWithEntity<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
 		{
 			public float DTime;
 			public double ElapsedTime;
+			public NativeQueue<FlipperRotatedEvent>.ParallelWriter EventQueue;
 
-			public void Execute(ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
+			public void Execute(Entity entity, int index, ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
 			{
 				var initialTimeUsec = (long) (ElapsedTime * 1000000);
 				var curPhysicsFrameTime = mState.CurrentPhysicsTime == 0
@@ -148,6 +165,16 @@ namespace VisualPinball.Unity.Physics.Flipper
 					if (comeToStop) {
 						mState.AngularMomentum *= -0.3f; // make configurable?
 						mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
+
+						var eventAngleSpeed = math.abs(math.degrees(mState.AngleSpeed));
+						if (mState.EnableRotateEvent > 0) {
+							// eos
+							EventQueue.Enqueue(new FlipperRotatedEvent { AngleSpeed = eventAngleSpeed, Direction = false, EntityIndex = entity.Index});
+
+						} else if (mState.EnableRotateEvent < 0) {
+							// bos
+							EventQueue.Enqueue(new FlipperRotatedEvent { AngleSpeed = eventAngleSpeed, Direction = true, EntityIndex = entity.Index });
+						}
 						mState.EnableRotateEvent = 0;
 					}
 
@@ -161,13 +188,32 @@ namespace VisualPinball.Unity.Physics.Flipper
 			}
 		}
 
+		protected override void OnCreate()
+		{
+			_eventQueue = new NativeQueue<FlipperRotatedEvent>(Allocator.Persistent);
+		}
+
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var flipperVelocityJob = new FlipperVelocity {
 				DTime = Time.DeltaTime,
-				ElapsedTime = Time.ElapsedTime
+				ElapsedTime = Time.ElapsedTime,
+				EventQueue = _eventQueue.AsParallelWriter()
 			};
-			return flipperVelocityJob.Schedule(this, inputDeps);
+
+			var deps = flipperVelocityJob.Schedule(this, inputDeps);
+			deps.Complete();
+
+			while (_eventQueue.TryDequeue(out var flipperRotatedEvent)) {
+				OnRotated?.Invoke(this, flipperRotatedEvent);
+			}
+
+			return deps;
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 	}
 }
