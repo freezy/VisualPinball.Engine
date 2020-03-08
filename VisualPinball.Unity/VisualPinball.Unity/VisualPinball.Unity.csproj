@@ -70,9 +70,6 @@
     <Reference Include="Unity.Transforms, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\UnityEditor.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
     </Reference>

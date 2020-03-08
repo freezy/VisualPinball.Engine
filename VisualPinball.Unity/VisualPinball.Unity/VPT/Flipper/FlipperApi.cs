@@ -6,7 +6,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public class FlipperApi : IApiInitialize
+	public class FlipperApi : IApiInitializable
 	{
 		public event EventHandler Collide;
 		public event EventHandler Hit;
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			}
 		}
 
-		void IApiInitialize.Init()
+		void IApiInitializable.Init()
 		{
 			Init?.Invoke(this, EventArgs.Empty);
 		}

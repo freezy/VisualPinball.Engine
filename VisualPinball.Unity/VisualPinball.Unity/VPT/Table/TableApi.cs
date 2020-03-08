@@ -15,5 +15,9 @@ namespace VisualPinball.Unity.VPT.Table
 
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
 
+		internal IEnumerable<IApiInitializable> Initializables => new IApiInitializable[0]
+			.Concat(Flippers.Values)
+			.ToArray();
+
 	}
 }

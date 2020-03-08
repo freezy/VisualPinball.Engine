@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity.Entities;
+﻿using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.VPT.Flipper;
@@ -28,19 +26,25 @@ namespace VisualPinball.Unity.Game
 
 		private void Start()
 		{
+			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
 			foreach (var tableScript in tableScripts) {
 				tableScript.OnAwake(TableApi);
 			}
 
+			// trigger init events now
+			foreach (var i in TableApi.Initializables) {
+				i.Init();
+			}
+
+			// link events from systems
 			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperVelocitySystem>().OnRotated +=
 				(sender, e) => TableApi.Flipper(e.EntityIndex)?.HandleEvent(e);
 		}
 
 		private void Update()
 		{
-			// all of this is hacky and only serves as proof of concept.
-			// flippers will obviously be handled via script later.
+			// flippers will be handled via script later, but until scripting works, do it here.
 			if (Input.GetKeyDown("left shift")) {
 				TableApi.Flipper("LeftFlipper")?.RotateToEnd();
 			}
