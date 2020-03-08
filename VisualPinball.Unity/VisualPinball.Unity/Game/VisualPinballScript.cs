@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Api;
 
 namespace VisualPinball.Unity.Game
 {

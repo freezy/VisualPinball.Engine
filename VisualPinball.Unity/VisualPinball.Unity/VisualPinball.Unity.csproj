@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>VisualPinball.Unity</RootNamespace>
+    <AssemblyName>VisualPinball.Unity</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <LangVersion>7.1</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>.build\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>.build\Release\</OutputPath>
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
+      <HintPath>..\..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Entities.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Physics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Physics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Physics.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Physics.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Transforms, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\UnityEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Api\FlipperApi.cs" />
+    <Compile Include="Api\TableApi.cs" />
+    <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\SerializableDictionary.cs" />
+    <Compile Include="Common\UnityTarget.cs" />
+    <Compile Include="Components\VisualPinballBumper.cs" />
+    <Compile Include="Components\VisualPinballFlipper.cs" />
+    <Compile Include="Components\ItemComponent.cs" />
+    <Compile Include="Components\VisualPinballGate.cs" />
+    <Compile Include="Components\VisualPinballHitTarget.cs" />
+    <Compile Include="Components\VisualPinballKicker.cs" />
+    <Compile Include="Components\VisualPinballLight.cs" />
+    <Compile Include="Components\VisualPinballPrimitive.cs" />
+    <Compile Include="Components\VisualPinballRamp.cs" />
+    <Compile Include="Components\VisualPinballRubber.cs" />
+    <Compile Include="Components\VisualPinballSpinner.cs" />
+    <Compile Include="Components\VisualPinballSurface.cs" />
+    <Compile Include="Components\VisualPinballTable.cs" />
+    <Compile Include="Components\VisualPinballTrigger.cs" />
+    <Compile Include="Extensions\Color.cs" />
+    <Compile Include="Extensions\FlipperExtensions.cs" />
+    <Compile Include="Extensions\Light.cs" />
+    <Compile Include="Extensions\Material.cs" />
+    <Compile Include="Extensions\Math.cs" />
+    <Compile Include="Extensions\Matrix3D.cs" />
+    <Compile Include="Extensions\Mesh.cs" />
+    <Compile Include="Extensions\RenderObjectExtensions.cs" />
+    <Compile Include="Extensions\SurfaceExtensions.cs" />
+    <Compile Include="Extensions\TableExtensions.cs" />
+    <Compile Include="Extensions\Texture.cs" />
+    <Compile Include="Game\TablePlayer.cs" />
+    <Compile Include="Game\VisualPinballScript.cs" />
+    <Compile Include="Import\AssetHandler\AssetMemoryHandler.cs" />
+    <Compile Include="Import\AssetHandler\IAssetHandler.cs" />
+    <Compile Include="Import\Job\MaterialImporter.cs" />
+    <Compile Include="Import\Job\TableLoader.cs" />
+    <Compile Include="Import\Job\TextureImporter.cs" />
+    <Compile Include="Import\MemHelper.cs" />
+    <Compile Include="Import\ScaleNormalizer.cs" />
+    <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\Flipper\FlipperMaterialData.cs" />
+    <Compile Include="Physics\Flipper\FlipperMovementData.cs" />
+    <Compile Include="Physics\Flipper\FlipperDisplacementSystem.cs" />
+    <Compile Include="Physics\Flipper\FlipperRotateSystem.cs" />
+    <Compile Include="Physics\Flipper\FlipperVelocityData.cs" />
+    <Compile Include="Physics\Flipper\FlipperVelocitySystem.cs" />
+    <Compile Include="Physics\Flipper\SolenoidStateData.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
+      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
+      <Name>VisualPinball.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj">
+      <Project>{040d1234-942b-47fe-9a55-841e25a6305d}</Project>
+      <Name>VisualPinball.Unity.Patcher</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+		 Other similar extension points exist, see Microsoft.Common.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+</Project>

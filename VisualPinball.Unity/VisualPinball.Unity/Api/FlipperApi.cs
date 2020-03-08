@@ -1,8 +1,9 @@
 ﻿using System;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Physics.Flipper;
 
-namespace VisualPinball.Engine.VPT.Flipper
+namespace VisualPinball.Unity.Api
 {
 	public class FlipperApi
 	{
@@ -14,6 +15,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public event EventHandler Timer;
 
 		internal readonly Entity Entity;
+
 		private readonly Flipper _flipper;
 		private readonly EntityManager _manager = World.DefaultGameObjectInjectionWorld.EntityManager;
 

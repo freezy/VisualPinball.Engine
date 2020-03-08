@@ -8,6 +8,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Api;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Flipper;
 

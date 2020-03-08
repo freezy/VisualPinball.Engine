@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Api;
 using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Physics.Flipper;
 

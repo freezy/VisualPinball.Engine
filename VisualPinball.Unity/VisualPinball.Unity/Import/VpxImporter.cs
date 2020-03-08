@@ -22,7 +22,6 @@ using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Import.Job;
 using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
