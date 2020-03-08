@@ -1,17 +1,20 @@
-﻿using System;
+﻿// ReSharper disable EventNeverSubscribedTo.Global
+#pragma warning disable 67
+
+using System;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Physics.Flipper;
 
 namespace VisualPinball.Unity.Api
 {
-	public class FlipperApi
+	public class FlipperApi : IApiInitialize
 	{
 		public event EventHandler Collide;
 		public event EventHandler Hit;
 		public event EventHandler Init;
-		public event EventHandler<RotationEventArgs> LimitBOS;
-		public event EventHandler<RotationEventArgs> LimitEOS;
+		public event EventHandler<RotationEventArgs> LimitBos;
+		public event EventHandler<RotationEventArgs> LimitEos;
 		public event EventHandler Timer;
 
 		internal readonly Entity Entity;
@@ -23,8 +26,6 @@ namespace VisualPinball.Unity.Api
 		{
 			_flipper = flipper;
 			Entity = entity;
-
-			Init?.Invoke(this, EventArgs.Empty);
 		}
 
 		public void RotateToEnd()
@@ -46,10 +47,15 @@ namespace VisualPinball.Unity.Api
 		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)
 		{
 			if (rotatedEvent.Direction) {
-				LimitBOS?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
 			} else {
-				LimitEOS?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
 			}
+		}
+
+		void IApiInitialize.Init()
+		{
+			Init?.Invoke(this, EventArgs.Empty);
 		}
 	}
 

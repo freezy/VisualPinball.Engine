@@ -4,7 +4,7 @@ using NLog.Targets;
 using UnityEngine;
 using ILogger = UnityEngine.ILogger;
 
-namespace VisualPinball.Unity.IO
+namespace VisualPinball.Unity.Common
 {
 	[Target("Unity")]
 	public class UnityTarget : TargetWithLayout

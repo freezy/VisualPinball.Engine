@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\FlipperApi.cs" />
+    <Compile Include="Api\IApi.cs" />
     <Compile Include="Api\TableApi.cs" />
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\SerializableDictionary.cs" />
