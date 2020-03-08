@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Api;
-using VisualPinball.Unity.Components;
-using VisualPinball.Unity.Physics.Flipper;
+using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Game
 {
@@ -20,7 +19,7 @@ namespace VisualPinball.Unity.Game
 
 		private void Awake()
 		{
-			var tableComponent = gameObject.GetComponent<VisualPinballTable>();
+			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
 

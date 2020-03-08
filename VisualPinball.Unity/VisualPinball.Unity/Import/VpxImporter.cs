@@ -19,11 +19,23 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Components;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Import.Job;
+using VisualPinball.Unity.VPT.Bumper;
+using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.HitTarget;
+using VisualPinball.Unity.VPT.Kicker;
+using VisualPinball.Unity.VPT.Light;
+using VisualPinball.Unity.VPT.Primitive;
+using VisualPinball.Unity.VPT.Ramp;
+using VisualPinball.Unity.VPT.Rubber;
+using VisualPinball.Unity.VPT.Spinner;
+using VisualPinball.Unity.VPT.Surface;
+using VisualPinball.Unity.VPT.Table;
+using VisualPinball.Unity.VPT.Trigger;
 using Logger = NLog.Logger;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
@@ -117,7 +129,7 @@ namespace VisualPinball.Unity.Import
 			foreach (var vpxLight in _table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
 				var unityLight = vpxLight.ToUnityPointLight();
 				unityLight.transform.parent = lightsObj.transform;
-				unityLight.AddComponent<VisualPinballLight>().SetData(vpxLight.Data);
+				unityLight.AddComponent<LightBehavior>().SetData(vpxLight.Data);
 			}
 		}
 
@@ -157,18 +169,18 @@ namespace VisualPinball.Unity.Import
 
 			// add unity component
 			switch (item) {
-				case Bumper bumper: obj.AddComponent<VisualPinballBumper>().SetData(bumper.Data); break;
+				case Bumper bumper: obj.AddComponent<BumperBehavior>().SetData(bumper.Data); break;
 				case Flipper flipper: flipper.SetupGameObject(obj, rog); break;
-				case Gate gate: obj.AddComponent<VisualPinballGate>().SetData(gate.Data); break;
-				case HitTarget hitTarget: obj.AddComponent<VisualPinballHitTarget>().SetData(hitTarget.Data); break;
-				case Kicker kicker: obj.AddComponent<VisualPinballKicker>().SetData(kicker.Data); break;
-				case Primitive primitive: obj.AddComponent<VisualPinballPrimitive>().SetData(primitive.Data); break;
-				case Ramp ramp: obj.AddComponent<VisualPinballRamp>().SetData(ramp.Data); break;
-				case Rubber rubber: obj.AddComponent<VisualPinballRubber>().SetData(rubber.Data); break;
-				case Spinner spinner: obj.AddComponent<VisualPinballSpinner>().SetData(spinner.Data); break;
+				case Gate gate: obj.AddComponent<GateBehavior>().SetData(gate.Data); break;
+				case HitTarget hitTarget: obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
+				case Kicker kicker: obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
+				case Primitive primitive: obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
+				case Ramp ramp: obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
+				case Rubber rubber: obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
+				case Spinner spinner: obj.AddComponent<SpinnerBehavior>().SetData(spinner.Data); break;
 				case Surface surface: surface.SetupGameObject(obj, rog); break;
 				case Table table: table.SetupGameObject(obj, rog); break;
-				case Trigger trigger: obj.AddComponent<VisualPinballTrigger>().SetData(trigger.Data); break;
+				case Trigger trigger: obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
 			}
 		}
 
@@ -215,7 +227,7 @@ namespace VisualPinball.Unity.Import
 		private void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
 		{
 			// add table component (plus other data)
-			var component = go.AddComponent<VisualPinballTable>();
+			var component = go.AddComponent<TableBehavior>();
 			component.SetData(table.Data);
 			foreach (var key in table.TableInfo.Keys) {
 				component.tableInfo[key] = table.TableInfo[key];

@@ -62,8 +62,8 @@
     <Compile Include="Import\AssetHandler\AssetUtility.cs" />
     <Compile Include="Import\VpxAssetImporter.cs" />
     <Compile Include="Import\VpxMenuImporter.cs" />
-    <Compile Include="Inspectors\VisualPinballFlipperInspector.cs" />
-    <Compile Include="Inspectors\VisualPinballTableInspector.cs" />
+    <Compile Include="Inspectors\FlipperInspector.cs" />
+    <Compile Include="Inspectors\TableInspector.cs" />
     <Compile Include="Logging.cs" />
   </ItemGroup>
   <ItemGroup>
