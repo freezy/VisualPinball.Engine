@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2048
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "VisualPinball.Engine\VisualPinball.Engine.csproj", "{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "..\VisualPinball.Engine\VisualPinball.Engine.csproj", "{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{9902C758-AB1F-4A15-9F77-51FB08642EF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{9902C758-AB1F-4A15-9F77-51FB08642EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "VisualPinball.Resources\VisualPinball.Resources.csproj", "{F7C27E2C-8931-46F3-968E-F1103E975074}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "..\VisualPinball.Resources\VisualPinball.Resources.csproj", "{F7C27E2C-8931-46F3-968E-F1103E975074}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity", "VisualPinball.Unity\VisualPinball.Unity\VisualPinball.Unity.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity", "VisualPinball.Unity\VisualPinball.Unity.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity\VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
