@@ -1,6 +1,5 @@
 ﻿using NLog;
 using UnityEngine;
-using VisualPinball.Unity.IO;
 
 namespace VisualPinball.Unity.Common
 {

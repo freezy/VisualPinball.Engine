@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>VisualPinball.Unity.Editor</RootNamespace>
+    <AssemblyName>VisualPinball.Unity.Editor</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <LangVersion>7.1</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>.build\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>.build\Release\</OutputPath>
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
+      <HintPath>..\..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\UnityEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
+    </Reference>    
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Import\AssetHandler\AssetDatabaseHandler.cs" />
+    <Compile Include="Import\AssetHandler\AssetImportHandler.cs" />
+    <Compile Include="Import\AssetHandler\AssetUtility.cs" />
+    <Compile Include="Import\VpxAssetImporter.cs" />
+    <Compile Include="Import\VpxMenuImporter.cs" />
+    <Compile Include="Inspectors\FlipperInspector.cs" />
+    <Compile Include="Inspectors\TableInspector.cs" />
+    <Compile Include="Logging.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
+      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
+      <Name>VisualPinball.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj">
+      <Project>{89dc7792-2ac2-4a69-8605-d3a14cc7b6b0}</Project>
+      <Name>VisualPinball.Unity</Name>
+    </ProjectReference>
+  </ItemGroup>
+ 
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+		 Other similar extension points exist, see Microsoft.Common.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+</Project>

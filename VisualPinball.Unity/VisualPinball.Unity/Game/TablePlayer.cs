@@ -1,52 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Unity.Entities;
+﻿using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Components;
-using VisualPinball.Unity.Physics.Flipper;
+using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Game
 {
 	public class TablePlayer : MonoBehaviour
 	{
-		public readonly Dictionary<string, Entity> FlipperEntities = new Dictionary<string, Entity>();
+		public readonly TableApi TableApi = new TableApi();
+
 		//public static StreamWriter DebugLog;
 
 		private Table _table;
-		private Player _player;
-
 		private EntityManager _manager;
-
 
 		private void Awake()
 		{
-			var tableComponent = gameObject.GetComponent<VisualPinballTable>();
+			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
-			_player = new Player(_table).Init();
-
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
 			//DebugLog = File.CreateText("flipper.log");
+		}
+
+		private void Start()
+		{
+			// bootstrap table script(s)
+			var tableScripts = GetComponents<VisualPinballScript>();
+			foreach (var tableScript in tableScripts) {
+				tableScript.OnAwake(TableApi);
+			}
+
+			// trigger init events now
+			foreach (var i in TableApi.Initializables) {
+				i.Init();
+			}
+
+			// link events from systems
+			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperVelocitySystem>().OnRotated +=
+				(sender, e) => TableApi.Flipper(e.EntityIndex)?.HandleEvent(e);
 		}
 
 		private void Update()
 		{
-			// all of this is hacky and only serves as proof of concept.
-			// flippers will obviously be handled via script later.
-			if (Input.GetKeyDown("left shift") && FlipperEntities.ContainsKey("LeftFlipper")) {
-				_manager.SetComponentData(FlipperEntities["LeftFlipper"], new SolenoidStateData { Value = true });
+			// flippers will be handled via script later, but until scripting works, do it here.
+			if (Input.GetKeyDown("left shift")) {
+				TableApi.Flipper("LeftFlipper")?.RotateToEnd();
 			}
-			if (Input.GetKeyUp("left shift") && FlipperEntities.ContainsKey("LeftFlipper")) {
-				_manager.SetComponentData(FlipperEntities["LeftFlipper"], new SolenoidStateData { Value = false });
+			if (Input.GetKeyUp("left shift")) {
+				TableApi.Flipper("LeftFlipper")?.RotateToStart();
 			}
-			if (Input.GetKeyDown("right shift") && FlipperEntities.ContainsKey("RightFlipper")) {
-				_manager.SetComponentData(FlipperEntities["RightFlipper"], new SolenoidStateData { Value = true });
+			if (Input.GetKeyDown("right shift")) {
+				TableApi.Flipper("RightFlipper")?.RotateToEnd();
 			}
-			if (Input.GetKeyUp("right shift") && FlipperEntities.ContainsKey("RightFlipper")) {
-				_manager.SetComponentData(FlipperEntities["RightFlipper"], new SolenoidStateData { Value = false });
+			if (Input.GetKeyUp("right shift")) {
+				TableApi.Flipper("RightFlipper")?.RotateToStart();
 			}
 		}
 

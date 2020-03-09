@@ -776,22 +776,12 @@
         </member>
         <member name="M:NLog.Common.ConversionHelpers.TryParseEnum``1(System.String,``0@,``0)">
             <summary>
-            Converts input string value into <see cref="T:System.Enum"/>
+            Converts input string value into <see cref="T:System.Enum"/>. Parsing is case-insensitive.
             </summary>
             <param name="inputValue">Input value</param>
             <param name="resultValue">Output value</param>
             <param name="defaultValue">Default value</param>
             <returns>Returns failure if the input value could not be parsed</returns>
-        </member>
-        <member name="M:NLog.Common.ConversionHelpers.TryParse``1(System.String,``0@)">
-            <summary>
-            Converts the string representation of the name or numeric value of one or more enumerated constants to an equivalent enumerated object. A parameter specifies whether the operation is case-sensitive. The return value indicates whether the conversion succeeded.
-            </summary>
-            <typeparam name="TEnum">The enumeration type to which to convert value.</typeparam>
-            <param name="value">The string representation of the enumeration name or underlying value to convert.</param>
-            <param name="result">When this method returns, result contains an object of type TEnum whose value is represented by value if the parse operation succeeds. If the parse operation fails, result contains the default value of the underlying type of TEnum. Note that this value need not be a member of the TEnum enumeration. This parameter is passed uninitialized.</param>
-            <returns><c>true</c> if the value parameter was converted successfully; otherwise, <c>false</c>.</returns>
-            <remarks>Wrapper because Enum.TryParse is not present in .net 3.5</remarks>
         </member>
         <member name="M:NLog.Common.ConversionHelpers.TryParse``1(System.String,System.Boolean,``0@)">
             <summary>
@@ -1334,6 +1324,12 @@
             Gets or sets the text writer that will receive internal logs.
             </summary>
         </member>
+        <member name="E:NLog.Common.InternalLogger.LogMessageReceived">
+            <summary>
+            Event written to the internal log.
+            Please note that the event is not triggered when then event hasn't the minimal log level set by <see cref="P:NLog.Common.InternalLogger.LogLevel"/> 
+            </summary>
+        </member>
         <member name="P:NLog.Common.InternalLogger.IncludeTimestamp">
             <summary>
             Gets or sets a value indicating whether timestamp should be included in internal log output.
@@ -1401,6 +1397,15 @@
             <param name="level">level</param>
             <param name="message">message</param>
             <param name="args">optional args for <paramref name="message"/></param>
+        </member>
+        <member name="M:NLog.Common.InternalLogger.CreateLogLine(System.Exception,NLog.LogLevel,System.String)">
+            <summary>
+            Create log line with timestamp, exception message etc (if configured)
+            </summary>
+            <param name="ex"></param>
+            <param name="level"></param>
+            <param name="fullMessage"></param>
+            <returns></returns>
         </member>
         <member name="M:NLog.Common.InternalLogger.IsSeriousException(System.Exception)">
             <summary>
@@ -1479,6 +1484,29 @@
             Logs the assembly version and file version of the given Assembly.
             </summary>
             <param name="assembly">The assembly to log.</param>
+        </member>
+        <member name="T:NLog.Common.InternalLoggerMessageEventArgs">
+            <summary>
+            Written to the internal logger
+            </summary>
+        </member>
+        <member name="P:NLog.Common.InternalLoggerMessageEventArgs.Message">
+            <summary>
+            The rendered message
+            </summary>
+        </member>
+        <member name="P:NLog.Common.InternalLoggerMessageEventArgs.Level">
+            <summary>
+            The loglevel
+            </summary>
+        </member>
+        <member name="P:NLog.Common.InternalLoggerMessageEventArgs.Exception">
+            <summary>
+            Optional, the exception
+            </summary>
+        </member>
+        <member name="M:NLog.Common.InternalLoggerMessageEventArgs.#ctor(System.String,NLog.LogLevel,System.Exception)">
+            <inheritdoc />
         </member>
         <member name="T:NLog.Common.LogEventInfoBuffer">
             <summary>
@@ -1753,24 +1781,19 @@
             Condition method invocation expression (represented by <b>method(p1,p2,p3)</b> syntax).
             </summary>
         </member>
-        <member name="M:NLog.Conditions.ConditionMethodExpression.#ctor(System.String,System.Reflection.MethodInfo,System.Collections.Generic.IEnumerable{NLog.Conditions.ConditionExpression})">
+        <member name="M:NLog.Conditions.ConditionMethodExpression.#ctor(System.String,System.Reflection.MethodInfo,NLog.Internal.ReflectionHelpers.LateBoundMethod,System.Collections.Generic.IEnumerable{NLog.Conditions.ConditionExpression})">
             <summary>
             Initializes a new instance of the <see cref="T:NLog.Conditions.ConditionMethodExpression" /> class.
             </summary>
             <param name="conditionMethodName">Name of the condition method.</param>
             <param name="methodInfo"><see cref="P:NLog.Conditions.ConditionMethodExpression.MethodInfo"/> of the condition method.</param>
+            <param name="lateBoundMethod">Precompiled delegate of the condition method.</param>
             <param name="methodParameters">The method parameters.</param>
         </member>
         <member name="P:NLog.Conditions.ConditionMethodExpression.MethodInfo">
             <summary>
             Gets the method info.
             </summary>
-        </member>
-        <member name="P:NLog.Conditions.ConditionMethodExpression.MethodParameters">
-            <summary>
-            Gets the method parameters.
-            </summary>
-            <value>The method parameters.</value>
         </member>
         <member name="M:NLog.Conditions.ConditionMethodExpression.ToString">
             <summary>
@@ -2446,6 +2469,11 @@
             Gets or sets the string serializer to use with <see cref="P:NLog.LogEventInfo.MessageTemplateParameters"/>
             </summary>
         </member>
+        <member name="P:NLog.Config.ConfigurationItemFactory.ObjectTypeTransformer">
+            <summary>
+            Gets or sets the custom object-type transformation for use in <see cref="T:NLog.Layouts.JsonLayout"/>, <see cref="T:NLog.Layouts.XmlLayout"/> or <see cref="T:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper"/>
+            </summary>
+        </member>
         <member name="P:NLog.Config.ConfigurationItemFactory.PropertyTypeConverter">
             <summary>
             Gets or sets the parameter converter to use with <see cref="T:NLog.Targets.DatabaseTarget"/>, <see cref="T:NLog.Targets.WebServiceTarget"/> or <see cref="T:NLog.Targets.TargetWithContext"/>
@@ -2470,6 +2498,12 @@
         <member name="P:NLog.Config.ConfigurationItemFactory.ConditionMethods">
             <summary>
             Gets the condition method factory.
+            </summary>
+            <value>The condition method factory.</value>
+        </member>
+        <member name="P:NLog.Config.ConfigurationItemFactory.ConditionMethodDelegates">
+            <summary>
+            Gets the condition method factory (precompiled)
             </summary>
             <value>The condition method factory.</value>
         </member>
@@ -2924,6 +2958,46 @@
             <param name="formatProvider">Culture to use when parsing</param>
             <returns>Output value with wanted type</returns>
         </member>
+        <member name="T:NLog.Config.ISetupBuilder">
+            <summary>
+            Interface for fluent setup of LogFactory options
+            </summary>
+        </member>
+        <member name="P:NLog.Config.ISetupBuilder.LogFactory">
+            <summary>
+            LogFactory under configuration
+            </summary>
+        </member>
+        <member name="T:NLog.Config.ISetupExtensionsBuilder">
+            <summary>
+            Interface for fluent setup of LogFactory options for extension loading
+            </summary>
+        </member>
+        <member name="P:NLog.Config.ISetupExtensionsBuilder.LogFactory">
+            <summary>
+            LogFactory under configuration
+            </summary>
+        </member>
+        <member name="T:NLog.Config.ISetupInternalLoggerBuilder">
+            <summary>
+            Interface for fluent setup of LogFactory options for enabling NLog <see cref="T:NLog.Common.InternalLogger"/>
+            </summary>
+        </member>
+        <member name="P:NLog.Config.ISetupInternalLoggerBuilder.LogFactory">
+            <summary>
+            LogFactory under configuration
+            </summary>
+        </member>
+        <member name="T:NLog.Config.ISetupSerializationBuilder">
+            <summary>
+            Interface for fluent setup of LogFactory options for logevent serialization
+            </summary>
+        </member>
+        <member name="P:NLog.Config.ISetupSerializationBuilder.LogFactory">
+            <summary>
+            LogFactory under configuration
+            </summary>
+        </member>
         <member name="T:NLog.Config.LoggerNameMatcher">
             <summary>
             Encapsulates <see cref="P:NLog.Config.LoggingRule.LoggerNamePattern"/> and the logic to match the actual logger name
@@ -3278,12 +3352,6 @@
             recorded.
             </remarks>
         </member>
-        <member name="M:NLog.Config.LoggingConfiguration.FlushAllTargets(NLog.Common.AsyncContinuation)">
-            <summary>
-            Flushes any pending log messages on all appenders.
-            </summary>
-            <param name="asyncContinuation">The asynchronous continuation.</param>
-        </member>
         <member name="M:NLog.Config.LoggingConfiguration.ValidateConfig">
             <summary>
             Validates the configuration.
@@ -3627,52 +3695,63 @@
             Default filtering with static level config
             </summary>
         </member>
-        <member name="T:NLog.Config.MethodFactory`2">
+        <member name="T:NLog.Config.MethodFactory">
             <summary>
             Factory for locating methods.
             </summary>
-            <typeparam name="TClassAttributeType">The type of the class marker attribute.</typeparam>
-            <typeparam name="TMethodAttributeType">The type of the method marker attribute.</typeparam>
         </member>
-        <member name="P:NLog.Config.MethodFactory`2.AllRegisteredItems">
+        <member name="M:NLog.Config.MethodFactory.#ctor(System.Func{System.Type,System.Collections.Generic.IList{System.Collections.Generic.KeyValuePair{System.String,System.Reflection.MethodInfo}}})">
             <summary>
-            Gets a collection of all registered items in the factory.
+            Initializes a new instance of the <see cref="T:NLog.Config.MethodFactory"/> class.
             </summary>
-            <returns>
-            Sequence of key/value pairs where each key represents the name
-            of the item and value is the <see cref="T:System.Reflection.MethodInfo"/> of
-            the item.
-            </returns>
+            <param name="methodExtractor">Helper method to extract relevant methods from type</param>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.ScanTypes(System.Type[],System.String)">
+        <member name="M:NLog.Config.MethodFactory.ScanTypes(System.Type[],System.String)">
             <summary>
-            Scans the assembly for classes marked with <typeparamref name="TClassAttributeType"/>
-            and methods marked with <typeparamref name="TMethodAttributeType"/> and adds them 
+            Scans the assembly for classes marked with expected class <see cref="T:System.Attribute"/>
+            and methods marked with expected <see cref="T:NLog.Config.NameBaseAttribute"/> and adds them 
             to the factory.
             </summary>
             <param name="types">The types to scan.</param>
             <param name="prefix">The prefix to use for names.</param>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.RegisterType(System.Type,System.String)">
+        <member name="M:NLog.Config.MethodFactory.RegisterType(System.Type,System.String)">
             <summary>
             Registers the type.
             </summary>
             <param name="type">The type to register.</param>
             <param name="itemNamePrefix">The item name prefix.</param>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.Clear">
+        <member name="M:NLog.Config.MethodFactory.ExtractClassMethods``2(System.Type)">
+            <summary>
+            Scans a type for relevant methods with their symbolic names
+            </summary>
+            <typeparam name="TClassAttributeType">Include types that are marked with this attribute</typeparam>
+            <typeparam name="TMethodAttributeType">Include methods that are marked with this attribute</typeparam>
+            <param name="type">Class Type to scan</param>
+            <returns>Collection of methods with their symbolic names</returns>
+        </member>
+        <member name="M:NLog.Config.MethodFactory.Clear">
             <summary>
             Clears contents of the factory.
             </summary>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.RegisterDefinition(System.String,System.Reflection.MethodInfo)">
+        <member name="M:NLog.Config.MethodFactory.RegisterDefinition(System.String,System.Reflection.MethodInfo)">
             <summary>
             Registers the definition of a single method.
             </summary>
             <param name="itemName">The method name.</param>
             <param name="itemDefinition">The method info.</param>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.TryCreateInstance(System.String,System.Reflection.MethodInfo@)">
+        <member name="M:NLog.Config.MethodFactory.RegisterDefinition(System.String,System.Reflection.MethodInfo,NLog.Internal.ReflectionHelpers.LateBoundMethod)">
+            <summary>
+            Registers the definition of a single method.
+            </summary>
+            <param name="itemName">The method name.</param>
+            <param name="itemDefinition">The method info.</param>
+            <param name="lateBoundMethod">The precompiled method delegate.</param>
+        </member>
+        <member name="M:NLog.Config.MethodFactory.TryCreateInstance(System.String,System.Reflection.MethodInfo@)">
             <summary>
             Tries to retrieve method by name.
             </summary>
@@ -3680,14 +3759,29 @@
             <param name="result">The result.</param>
             <returns>A value of <c>true</c> if the method was found, <c>false</c> otherwise.</returns>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.CreateInstance(System.String)">
+        <member name="M:NLog.Config.MethodFactory.TryCreateInstance(System.String,NLog.Internal.ReflectionHelpers.LateBoundMethod@)">
+            <summary>
+            Tries to retrieve method-delegate by name.
+            </summary>
+            <param name="itemName">The method name.</param>
+            <param name="result">The result.</param>
+            <returns>A value of <c>true</c> if the method was found, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:NLog.Config.MethodFactory.NLog#Config#INamedItemFactory{System#Reflection#MethodInfo,System#Reflection#MethodInfo}#CreateInstance(System.String)">
             <summary>
             Retrieves method by name.
             </summary>
             <param name="itemName">Method name.</param>
             <returns>MethodInfo object.</returns>
         </member>
-        <member name="M:NLog.Config.MethodFactory`2.TryGetDefinition(System.String,System.Reflection.MethodInfo@)">
+        <member name="M:NLog.Config.MethodFactory.CreateInstance(System.String)">
+            <summary>
+            Retrieves method by name.
+            </summary>
+            <param name="itemName">Method name.</param>
+            <returns>Method delegate object.</returns>
+        </member>
+        <member name="M:NLog.Config.MethodFactory.TryGetDefinition(System.String,System.Reflection.MethodInfo@)">
             <summary>
             Tries to get method definition.
             </summary>
@@ -3973,13 +4067,6 @@
             </summary>
             <param name="reader">XML reader to read from.</param>
         </member>
-        <member name="M:NLog.Config.XmlLoggingConfiguration.CreateFileReader(System.String)">
-            <summary>
-            Create XML reader for (xml config) file.
-            </summary>
-            <param name="fileName">filepath</param>
-            <returns>reader or <c>null</c> if filename is empty.</returns>
-        </member>
         <member name="M:NLog.Config.XmlLoggingConfiguration.#ctor(System.Xml.XmlReader,System.String)">
             <summary>
             Initializes a new instance of the <see cref="T:NLog.Config.XmlLoggingConfiguration" /> class.
@@ -4073,6 +4160,13 @@
             <summary>
             Clear the candidate file paths and return to the defaults.
             </summary>
+        </member>
+        <member name="M:NLog.Config.XmlLoggingConfiguration.CreateFileReader(System.String)">
+            <summary>
+            Create XML reader for (xml config) file.
+            </summary>
+            <param name="fileName">filepath</param>
+            <returns>reader or <c>null</c> if filename is empty.</returns>
         </member>
         <member name="M:NLog.Config.XmlLoggingConfiguration.Initialize(System.Xml.XmlReader,System.String,System.Boolean)">
             <summary>
@@ -8602,6 +8696,78 @@
             Should manual simple detection of file deletion be enabled?
             </summary>
         </member>
+        <member name="P:NLog.Internal.FileAppenders.IFileAppenderCache.CreateFileParameters">
+            <summary>
+            Gets the parameters which will be used for creating a file.
+            </summary>
+        </member>
+        <member name="P:NLog.Internal.FileAppenders.IFileAppenderCache.Factory">
+            <summary>
+            Gets the file appender factory used by all the appenders in this list.
+            </summary>
+        </member>
+        <member name="P:NLog.Internal.FileAppenders.IFileAppenderCache.Size">
+            <summary>
+            Gets the number of appenders which the list can hold.
+            </summary>
+        </member>
+        <member name="E:NLog.Internal.FileAppenders.IFileAppenderCache.CheckCloseAppenders">
+            <summary>
+            Subscribe to background monitoring of active file appenders
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.AllocateAppender(System.String)">
+            <summary>
+            It allocates the first slot in the list when the file name does not already in the list and clean up any
+            unused slots.
+            </summary>
+            <param name="fileName">File name associated with a single appender.</param>
+            <returns>The allocated appender.</returns>
+            <exception cref="T:System.NullReferenceException">
+            Thrown when <see cref="M:AllocateAppender"/> is called on an <c>Empty</c><see cref="T:NLog.Internal.FileAppenders.FileAppenderCache"/> instance.
+            </exception>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.CloseAppenders(System.String)">
+            <summary>
+            Close all the allocated appenders. 
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.CloseAppenders(System.DateTime)">
+            <summary>
+            Close the allocated appenders initialized before the supplied time.
+            </summary>
+            <param name="expireTime">The time which prior the appenders considered expired</param>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.FlushAppenders">
+            <summary>
+            Flush all the allocated appenders. 
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.GetFileLastWriteTimeUtc(System.String)">
+            <summary>
+            File Archive Logic uses the File-Creation-TimeStamp to detect if time to archive, and the File-LastWrite-Timestamp to name the archive-file.
+            </summary>
+            <remarks>
+            NLog always closes all relevant appenders during archive operation, so no need to lookup file-appender
+            </remarks>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.InvalidateAppender(System.String)">
+            <summary>
+            Closes the specified appender and removes it from the list. 
+            </summary>
+            <param name="filePath">File name of the appender to be closed.</param>
+            <returns>File Appender that matched the filePath (null if none found)</returns>
+        </member>
+        <member name="P:NLog.Internal.FileAppenders.IFileAppenderCache.ArchiveFilePatternToWatch">
+            <summary>
+            The archive file path pattern that is used to detect when archiving occurs.
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.FileAppenders.IFileAppenderCache.InvalidateAppendersForArchivedFiles">
+            <summary>
+            Invalidates appenders for all files that were archived.
+            </summary>
+        </member>
         <member name="T:NLog.Internal.FileAppenders.IFileAppenderFactory">
             <summary>
             Interface implemented by all factories capable of creating file appenders.
@@ -8879,52 +9045,6 @@
             <returns>
             Instance of <see cref="T:NLog.Internal.FileAppenders.BaseFileAppender"/> which can be used to write to the file.
             </returns>
-        </member>
-        <member name="T:NLog.Internal.FileCharacteristics">
-            <summary>
-            An immutable object that stores basic file info.
-            </summary>
-        </member>
-        <member name="M:NLog.Internal.FileCharacteristics.#ctor(System.DateTime,System.DateTime,System.Int64)">
-            <summary>
-            Constructs a FileCharacteristics object.
-            </summary>
-            <param name="creationTimeUtc">The time the file was created in UTC.</param>
-            <param name="lastWriteTimeUtc">The time the file was last written to in UTC.</param>
-            <param name="fileLength">The size of the file in bytes.</param>
-        </member>
-        <member name="P:NLog.Internal.FileCharacteristics.CreationTimeUtc">
-            <summary>
-            The time the file was created in UTC.
-            </summary>
-        </member>
-        <member name="P:NLog.Internal.FileCharacteristics.LastWriteTimeUtc">
-            <summary>
-            The time the file was last written to in UTC.
-            </summary>
-        </member>
-        <member name="P:NLog.Internal.FileCharacteristics.FileLength">
-            <summary>
-            The size of the file in bytes.
-            </summary>
-        </member>
-        <member name="T:NLog.Internal.FileCharacteristicsHelper">
-            <summary>
-            Optimized routines to get the basic file characteristics of the specified file.
-            </summary>
-        </member>
-        <member name="M:NLog.Internal.FileCharacteristicsHelper.CreateHelper(System.Boolean)">
-            <summary>
-            Initializes static members of the FileCharacteristicsHelper class.
-            </summary>
-        </member>
-        <member name="M:NLog.Internal.FileCharacteristicsHelper.GetFileCharacteristics(System.String,System.IO.FileStream)">
-            <summary>
-            Gets the information about a file.
-            </summary>
-            <param name="fileName">Name of the file.</param>
-            <param name="fileStream">The file stream.</param>
-            <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
         </member>
         <member name="T:NLog.Internal.FilePathLayout">
             <summary>
@@ -9712,19 +9832,6 @@
             Will creating a mutex succeed runtime?
             </summary>
         </member>
-        <member name="T:NLog.Internal.PortableFileCharacteristicsHelper">
-            <summary>
-            Portable implementation of <see cref="T:NLog.Internal.FileCharacteristicsHelper"/>.
-            </summary>
-        </member>
-        <member name="M:NLog.Internal.PortableFileCharacteristicsHelper.GetFileCharacteristics(System.String,System.IO.FileStream)">
-            <summary>
-            Gets the information about a file.
-            </summary>
-            <param name="fileName">Name of the file.</param>
-            <param name="fileStream">The file stream.</param>
-            <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
-        </member>
         <member name="T:NLog.Internal.PortableProcessIDHelper">
             <summary>
             Portable implementation of <see cref="T:NLog.Internal.ProcessIDHelper"/>.
@@ -10409,6 +10516,11 @@
             <param name="builder"></param>
             <param name="value">value to append</param>
         </member>
+        <member name="M:NLog.Internal.StringBuilderExt.AppendXmlDateTimeRoundTrip(System.Text.StringBuilder,System.DateTime)">
+            <summary>
+            Convert DateTime into UTC and format to yyyy-MM-ddTHH:mm:ss.fffffffZ - ISO 6801 date (Round-Trip-Time)
+            </summary>
+        </member>
         <member name="M:NLog.Internal.StringBuilderExt.ClearBuilder(System.Text.StringBuilder)">
             <summary>
             Clears the provider StringBuilder
@@ -10736,19 +10848,6 @@
             <param name="ch"></param>
             <returns></returns>
         </member>
-        <member name="T:NLog.Internal.Win32FileCharacteristicsHelper">
-            <summary>
-            Win32-optimized implementation of <see cref="T:NLog.Internal.FileCharacteristicsHelper"/>.
-            </summary>
-        </member>
-        <member name="M:NLog.Internal.Win32FileCharacteristicsHelper.GetFileCharacteristics(System.String,System.IO.FileStream)">
-            <summary>
-            Gets the information about a file.
-            </summary>
-            <param name="fileName">Name of the file.</param>
-            <param name="fileStream">The file stream.</param>
-            <returns>The file characteristics, if the file information was retrieved successfully, otherwise null.</returns>
-        </member>
         <member name="T:NLog.Internal.Win32ProcessIDHelper">
             <summary>
             Win32-optimized implementation of <see cref="T:NLog.Internal.ProcessIDHelper"/>.
@@ -10881,6 +10980,19 @@
             <param name="writer"></param>
             <param name="text"></param>
         </member>
+        <member name="T:NLog.IObjectTypeTransformer">
+            <summary>
+            Interface for handling object transformation
+            </summary>
+        </member>
+        <member name="M:NLog.IObjectTypeTransformer.TryTransformObject(System.Object)">
+            <summary>
+            Takes a dangerous (or massive) object and converts into a safe (or reduced) object
+            </summary>
+            <returns>
+            Null if unknown object, or object cannot be handled
+            </returns>
+        </member>
         <member name="T:NLog.ISuppress">
             <summary>
             Provides an interface to execute System.Actions without surfacing any exceptions raised for that action.
@@ -10989,6 +11101,7 @@
             
              A value is empty when null or in case of a string, null or empty string.
              </summary>
+             <docgen category='Rendering Options' order='10' />
         </member>
         <member name="P:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.Exclude">
             <summary>
@@ -11221,6 +11334,7 @@
             <summary>
             Fallback to the base dir of current process, when AppDomain.BaseDirectory is Temp-Path (.NET Core 3 - Single File Publish)
             </summary>
+            <docgen category='Rendering Options' order='10' />
         </member>
         <member name="M:NLog.LayoutRenderers.BaseDirLayoutRenderer.#ctor">
             <summary>
@@ -11467,6 +11581,17 @@
             <inheritdoc />
         </member>
         <member name="M:NLog.LayoutRenderers.DbNullLayoutRenderer.NLog#Internal#IRawValue#TryGetRawValue(NLog.LogEventInfo,System.Object@)">
+            <inheritdoc />
+        </member>
+        <member name="T:NLog.LayoutRenderers.DirectorySeparatorLayoutRenderer">
+            <summary>
+            The OS dependent directory separator
+            </summary>
+        </member>
+        <member name="M:NLog.LayoutRenderers.DirectorySeparatorLayoutRenderer.Append(System.Text.StringBuilder,NLog.LogEventInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:NLog.LayoutRenderers.DirectorySeparatorLayoutRenderer.TryGetRawValue(NLog.LogEventInfo,System.Object@)">
             <inheritdoc />
         </member>
         <member name="T:NLog.LayoutRenderers.EnvironmentLayoutRenderer">
@@ -11740,12 +11865,10 @@
             <param name="sb">The <see cref="T:System.Text.StringBuilder"/> to append the rendered data to.</param>
             <param name="ex">The Exception whose properties should be appended.</param>
         </member>
-        <member name="M:NLog.LayoutRenderers.ExceptionLayoutRenderer.CompileFormat(System.String)">
+        <member name="M:NLog.LayoutRenderers.ExceptionLayoutRenderer.CompileFormat(System.String,System.String)">
             <summary>
             Split the string and then compile into list of Rendering formats.
             </summary>
-            <param name="formatSpecifier"></param>
-            <returns></returns>
         </member>
         <member name="T:NLog.LayoutRenderers.FileContentsLayoutRenderer">
             <summary>
@@ -11784,7 +11907,7 @@
         </member>
         <member name="M:NLog.LayoutRenderers.FuncLayoutRenderer.#ctor(System.String,System.Func{NLog.LogEventInfo,NLog.Config.LoggingConfiguration,System.Object})">
             <summary>
-            Create a new.
+            Initializes a new instance of the <see cref="T:NLog.LayoutRenderers.FuncLayoutRenderer"/> class.
             </summary>
             <param name="layoutRendererName">Name without ${}.</param>
             <param name="renderMethod">Method that renders the layout.</param>
@@ -11799,8 +11922,41 @@
             Method that renders the layout. 
             </summary>
         </member>
+        <member name="P:NLog.LayoutRenderers.FuncLayoutRenderer.Format">
+            <summary>
+            Format string for conversion from object to string.
+            </summary>
+            <docgen category='Rendering Options' order='50' />
+        </member>
         <member name="M:NLog.LayoutRenderers.FuncLayoutRenderer.Append(System.Text.StringBuilder,NLog.LogEventInfo)">
             <inheritdoc />
+        </member>
+        <member name="M:NLog.LayoutRenderers.FuncLayoutRenderer.NLog#Internal#IStringValueRenderer#GetFormattedString(NLog.LogEventInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="T:NLog.LayoutRenderers.FuncThreadAgnosticLayoutRenderer">
+            <summary>
+            A layout renderer which could have different behavior per instance by using a <see cref="T:System.Func`1"/>.
+            </summary>
+        </member>
+        <member name="M:NLog.LayoutRenderers.FuncThreadAgnosticLayoutRenderer.#ctor(System.String,System.Func{NLog.LogEventInfo,NLog.Config.LoggingConfiguration,System.Object})">
+            <summary>
+            Initializes a new instance of the <see cref="T:NLog.LayoutRenderers.FuncThreadAgnosticLayoutRenderer"/> class.
+            </summary>
+            <param name="layoutRendererName">Name without ${}.</param>
+            <param name="renderMethod">Method that renders the layout.</param>
+        </member>
+        <member name="T:NLog.LayoutRenderers.FuncThreadSafeLayoutRenderer">
+            <summary>
+            A layout renderer which could have different behavior per instance by using a <see cref="T:System.Func`1"/>.
+            </summary>
+        </member>
+        <member name="M:NLog.LayoutRenderers.FuncThreadSafeLayoutRenderer.#ctor(System.String,System.Func{NLog.LogEventInfo,NLog.Config.LoggingConfiguration,System.Object})">
+            <summary>
+            Initializes a new instance of the <see cref="T:NLog.LayoutRenderers.FuncThreadSafeLayoutRenderer"/> class.
+            </summary>
+            <param name="layoutRendererName">Name without ${}.</param>
+            <param name="renderMethod">Method that renders the layout.</param>
         </member>
         <member name="T:NLog.LayoutRenderers.GarbageCollectorInfoLayoutRenderer">
             <summary>
@@ -12138,7 +12294,7 @@
         </member>
         <member name="F:NLog.LayoutRenderers.LevelFormat.Name">
             <summary>
-            Render the full level name.
+            Render the LogLevel standard name.
             </summary>
         </member>
         <member name="F:NLog.LayoutRenderers.LevelFormat.FirstCharacter">
@@ -12149,6 +12305,11 @@
         <member name="F:NLog.LayoutRenderers.LevelFormat.Ordinal">
             <summary>
             Render the ordinal (aka number) for the level.
+            </summary>
+        </member>
+        <member name="F:NLog.LayoutRenderers.LevelFormat.FullName">
+            <summary>
+            Render the LogLevel full name, expanding Warn / Info abbreviations
             </summary>
         </member>
         <member name="T:NLog.LayoutRenderers.LevelLayoutRenderer">
@@ -12217,6 +12378,7 @@
             <summary>
             Get or set whether to prioritize IPv6 or IPv4 (default)
             </summary>
+            <docgen category='Rendering Options' order='10' />
         </member>
         <member name="M:NLog.LayoutRenderers.LocalIpAddressLayoutRenderer.#ctor">
             <inheritdoc />
@@ -13512,6 +13674,7 @@
             <summary>
             Should forward slashes be escaped? If true, / will be converted to \/ 
             </summary>
+            <docgen category="Transformation Options" order="10"/>
         </member>
         <member name="M:NLog.LayoutRenderers.Wrappers.JsonEncodeLayoutRendererWrapper.RenderInnerAndTransform(NLog.LogEventInfo,System.Text.StringBuilder,System.Int32)">
             <inheritdoc/>
@@ -13537,6 +13700,7 @@
             <example>
             ${message:truncate=80}
             </example>
+            <docgen category="Transformation Options" order="10"/>
         </member>
         <member name="M:NLog.LayoutRenderers.Wrappers.LeftLayoutRendererWrapper.RenderInnerAndTransform(NLog.LogEventInfo,System.Text.StringBuilder,System.Int32)">
             <inheritdoc/>
@@ -13603,24 +13767,25 @@
             
              Shortcut for <see cref="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.ObjectPath"/>
              </summary>
+             <docgen category="Transformation Options" order="10"/>
         </member>
         <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.ObjectPath">
             <summary>
             Gets or sets the object-property-navigation-path for lookup of nested property
             </summary>
-            <docgen category='Rendering Options' order='20' />
+            <docgen category="Transformation Options" order="10"/>
         </member>
         <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Format">
             <summary>
             Format string for conversion from object to string.
             </summary>
-            <docgen category='Rendering Options' order='50' />
+            <docgen category="Transformation Options" order="100"/>
         </member>
         <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Culture">
             <summary>
             Gets or sets the culture used for rendering. 
             </summary>
-            <docgen category='Rendering Options' order='100' />
+            <docgen category="Transformation Options" order="100"/>
         </member>
         <member name="M:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Transform(System.String)">
             <inheritdoc />
@@ -14511,6 +14676,7 @@
             <summary>
             Should forward slashes be escaped? If true, / will be converted to \/ 
             </summary>
+            <docgen category='JSON Attribute Options' order='100' />
         </member>
         <member name="P:NLog.Layouts.JsonAttribute.IncludeEmptyValue">
             <summary>
@@ -14532,60 +14698,61 @@
             <summary>
             Gets the array of attributes' configurations.
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.SuppressSpaces">
             <summary>
             Gets or sets the option to suppress the extra spaces in the output json
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Formating' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.RenderEmptyObject">
             <summary>
             Gets or sets the option to render the empty object value {}
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Formating' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.IncludeGdc">
             <summary>
             Gets or sets a value indicating whether to include contents of the <see cref="T:NLog.GlobalDiagnosticsContext"/> dictionary.
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.IncludeMdc">
             <summary>
             Gets or sets a value indicating whether to include contents of the <see cref="T:NLog.MappedDiagnosticsContext"/> dictionary.
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.IncludeMdlc">
             <summary>
             Gets or sets a value indicating whether to include contents of the <see cref="T:NLog.MappedDiagnosticsLogicalContext"/> dictionary.
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.IncludeAllProperties">
             <summary>
             Gets or sets the option to include all properties from the log event (as JSON)
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.ExcludeProperties">
             <summary>
             List of property names to exclude when <see cref="P:NLog.Layouts.JsonLayout.IncludeAllProperties"/> is true
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.MaxRecursionLimit">
             <summary>
             How far should the JSON serializer follow object references before backing off
             </summary>
-            <docgen category='JSON Options' order='10' />
+            <docgen category='JSON Output' order='10' />
         </member>
         <member name="P:NLog.Layouts.JsonLayout.EscapeForwardSlash">
             <summary>
             Should forward slashes be escaped? If true, / will be converted to \/ 
             </summary>
+            <docgen category='JSON Formating' order='10' />
         </member>
         <member name="M:NLog.Layouts.JsonLayout.InitializeLayout">
             <summary>
@@ -14660,7 +14827,7 @@
             Implicitly converts the specified string to a <see cref="T:NLog.Layouts.SimpleLayout"/>.
             </summary>
             <param name="layoutText">The layout string.</param>
-            <returns>Instance of <see cref="T:NLog.Layouts.SimpleLayout"/>.</returns>
+            <returns>Instance of <see cref="T:NLog.Layouts.SimpleLayout"/>.</returns>'
         </member>
         <member name="M:NLog.Layouts.Layout.FromString(System.String,NLog.Config.ConfigurationItemFactory)">
             <summary>
@@ -14668,6 +14835,22 @@
             </summary>
             <param name="layoutText">The layout string.</param>
             <param name="configurationItemFactory">The NLog factories to use when resolving layout renderers.</param>
+            <returns>Instance of <see cref="T:NLog.Layouts.SimpleLayout"/>.</returns>
+        </member>
+        <member name="M:NLog.Layouts.Layout.FromString(System.String,System.Boolean)">
+            <summary>
+            Implicitly converts the specified string to a <see cref="T:NLog.Layouts.SimpleLayout"/>.
+            </summary>
+            <param name="layoutText">The layout string.</param>
+            <param name="throwConfigExceptions">Whether <see cref="T:NLog.NLogConfigurationException"/> should be thrown on parse errors (false = replace unrecognized tokens with a space).</param>
+            <returns>Instance of <see cref="T:NLog.Layouts.SimpleLayout"/>.</returns>
+        </member>
+        <member name="M:NLog.Layouts.Layout.FromMethod(System.Func{NLog.LogEventInfo,System.Object},NLog.Layouts.LayoutRenderOptions)">
+            <summary>
+            Create a <see cref="T:NLog.Layouts.SimpleLayout"/> from a lambda method.
+            </summary>
+            <param name="layoutMethod">Method that renders the layout.</param>
+            <param name="options">Tell if method is safe for concurrent threading.</param>
             <returns>Instance of <see cref="T:NLog.Layouts.SimpleLayout"/>.</returns>
         </member>
         <member name="M:NLog.Layouts.Layout.Precalculate(NLog.LogEventInfo)">
@@ -14806,6 +14989,26 @@
             </summary>
             <param name="literalBuf"></param>
             <param name="result"></param>
+        </member>
+        <member name="T:NLog.Layouts.LayoutRenderOptions">
+            <summary>
+            Options available for <see cref="M:NLog.Layouts.Layout.FromMethod(System.Func{NLog.LogEventInfo,System.Object},NLog.Layouts.LayoutRenderOptions)"/>
+            </summary>
+        </member>
+        <member name="F:NLog.Layouts.LayoutRenderOptions.None">
+            <summary>
+            Default options
+            </summary>
+        </member>
+        <member name="F:NLog.Layouts.LayoutRenderOptions.ThreadSafe">
+            <summary>
+            Layout renderer method can handle concurrent threads
+            </summary>
+        </member>
+        <member name="F:NLog.Layouts.LayoutRenderOptions.ThreadAgnostic">
+            <summary>
+            Layout renderer method is agnostic to current thread context. This means it will render the same result indepdent of thread-context.
+            </summary>
         </member>
         <member name="T:NLog.Layouts.LayoutWithHeaderAndFooter">
             <summary>
@@ -14951,6 +15154,14 @@
             </summary>
             <param name="txt">The layout string to parse.</param>
             <param name="configurationItemFactory">The NLog factories to use when creating references to layout renderers.</param>
+        </member>
+        <member name="M:NLog.Layouts.SimpleLayout.#ctor(System.String,NLog.Config.ConfigurationItemFactory,System.Nullable{System.Boolean})">
+            <summary>
+            Initializes a new instance of the <see cref="T:NLog.Layouts.SimpleLayout"/> class.
+            </summary>
+            <param name="txt">The layout string to parse.</param>
+            <param name="configurationItemFactory">The NLog factories to use when creating references to layout renderers.</param>
+            <param name="throwConfigExceptions">Whether <see cref="T:NLog.NLogConfigurationException"/> should be thrown on parse errors.</param>
         </member>
         <member name="P:NLog.Layouts.SimpleLayout.OriginalText">
             <summary>
@@ -15114,16 +15325,19 @@
             <summary>
             Name of the element
             </summary>
+            <docgen category='Element Options' order='10' />
         </member>
         <member name="P:NLog.Layouts.XmlElement.Value">
             <summary>
             Value inside the element
             </summary>
+            <docgen category='Element Options' order='10' />
         </member>
         <member name="P:NLog.Layouts.XmlElement.Encode">
             <summary>
             Determines whether or not this attribute will be Xml encoded.
             </summary>
+            <docgen category='Element Options' order='10' />
         </member>
         <member name="T:NLog.Layouts.XmlElementBase">
             <summary>
@@ -15749,6 +15963,16 @@
             unmanaged resources.
             </summary>
         </member>
+        <member name="M:NLog.LogFactory.Setup">
+            <summary>
+            Begins configuration of the LogFactory options using fluent interface
+            </summary>
+        </member>
+        <member name="M:NLog.LogFactory.Setup(System.Action{NLog.Config.ISetupBuilder})">
+            <summary>
+            Begins configuration of the LogFactory options using fluent interface
+            </summary>
+        </member>
         <member name="M:NLog.LogFactory.CreateNullLogger">
             <summary>
             Creates a logger that discards all log messages.
@@ -15861,6 +16085,15 @@
             </summary>
             <param name="asyncContinuation">The asynchronous continuation.</param>
             <param name="timeout">Maximum time to allow for the flush. Any messages after that time will be discarded.</param>
+        </member>
+        <member name="M:NLog.LogFactory.FlushAllTargetsAsync(NLog.Config.LoggingConfiguration,NLog.Common.AsyncContinuation,System.Nullable{System.TimeSpan})">
+            <summary>
+            Flushes any pending log messages on all appenders.
+            </summary>
+            <param name="loggingConfiguration">Config containing Targets to Flush</param>
+            <param name="asyncContinuation">Flush completed notification (success / timeout)</param>
+            <param name="asyncTimeout">Optional timeout that guarantees that completed notication is called.</param>
+            <returns></returns>
         </member>
         <member name="M:NLog.LogFactory.DisableLogging">
             <summary>
@@ -19781,6 +20014,16 @@
             <see cref="P:NLog.LogFactory.Configuration" />
             </summary>
         </member>
+        <member name="M:NLog.LogManager.Setup">
+            <summary>
+            Begins configuration of the LogFactory options using fluent interface
+            </summary>
+        </member>
+        <member name="M:NLog.LogManager.Setup(System.Action{NLog.Config.ISetupBuilder})">
+            <summary>
+            Begins configuration of the LogFactory options using fluent interface
+            </summary>
+        </member>
         <member name="M:NLog.LogManager.LoadConfiguration(System.String)">
             <summary>
             Loads logging configuration from file (Currently only XML configuration files supported)
@@ -22054,6 +22297,176 @@
             </summary>
             <param name="factory">The factory class to be used for the creation of this logger.</param>
         </member>
+        <member name="T:NLog.SetupBuilderExtensions">
+            <summary>
+            Extension methods to setup LogFactory options
+            </summary>
+        </member>
+        <member name="M:NLog.SetupBuilderExtensions.SetupExtensions(NLog.Config.ISetupBuilder,System.Action{NLog.Config.ISetupExtensionsBuilder})">
+            <summary>
+            Configures loading of NLog extensions for Targets and LayoutRenderers
+            </summary>
+        </member>
+        <member name="M:NLog.SetupBuilderExtensions.SetupInternalLogger(NLog.Config.ISetupBuilder,System.Action{NLog.Config.ISetupInternalLoggerBuilder})">
+            <summary>
+            Configures the output of NLog <see cref="T:NLog.Common.InternalLogger"/> for diagnostics / troubleshooting
+            </summary>
+        </member>
+        <member name="M:NLog.SetupBuilderExtensions.SetupSerialization(NLog.Config.ISetupBuilder,System.Action{NLog.Config.ISetupSerializationBuilder})">
+            <summary>
+            Configures serialization and transformation of LogEvents
+            </summary>
+        </member>
+        <member name="T:NLog.SetupExtensionsBuilderExtensions">
+            <summary>
+            Extension methods to setup NLog extensions, so they are known when loading NLog LoggingConfiguration
+            </summary>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.AutoLoadAssemblies(NLog.Config.ISetupExtensionsBuilder,System.Boolean)">
+            <summary>
+            Enable/disables autoloading of NLog extensions by scanning and loading available assemblies
+            </summary>
+            <remarks>
+            Enabled by default, and gives a huge performance hit during startup. Recommended to disable this when running in the cloud.
+            </remarks>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterAssembly(NLog.Config.ISetupExtensionsBuilder,System.Reflection.Assembly)">
+            <summary>
+            Registers NLog extensions from the assembly.
+            </summary>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterAssembly(NLog.Config.ISetupExtensionsBuilder,System.String)">
+            <summary>
+            Registers NLog extensions from the assembly type name
+            </summary>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterTarget``1(NLog.Config.ISetupExtensionsBuilder,System.String)">
+            <summary>
+            Register a custom Target.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <typeparam name="T"> Type of the Target.</typeparam>
+            <param name="name"> Name of the Target.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterTarget(NLog.Config.ISetupExtensionsBuilder,System.String,System.Type)">
+            <summary>
+            Register a custom Target.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="targetType"> Type of the Target.</param>
+            <param name="name"> Name of the Target.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterLayoutRenderer``1(NLog.Config.ISetupExtensionsBuilder,System.String)">
+            <summary>
+            Register a custom layout renderer.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <typeparam name="T"> Type of the layout renderer.</typeparam>
+            <param name="name"> Name of the layout renderer - without ${}.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterLayoutRenderer(NLog.Config.ISetupExtensionsBuilder,System.String,System.Type)">
+            <summary>
+            Register a custom layout renderer.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="layoutRendererType"> Type of the layout renderer.</param>
+            <param name="name"> Name of the layout renderer - without ${}.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterLayoutRenderer(NLog.Config.ISetupExtensionsBuilder,System.String,System.Func{NLog.LogEventInfo,System.Object})">
+            <summary>
+            Register a custom layout renderer with a callback function <paramref name="layoutMethod"/>. The callback receives the logEvent.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="name">Name of the layout renderer - without ${}.</param>
+            <param name="layoutMethod">Callback that returns the value for the layout renderer.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterLayoutRenderer(NLog.Config.ISetupExtensionsBuilder,System.String,System.Func{NLog.LogEventInfo,NLog.Config.LoggingConfiguration,System.Object})">
+            <summary>
+            Register a custom layout renderer with a callback function <paramref name="layoutMethod"/>. The callback receives the logEvent and the current configuration.
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="name">Name of the layout renderer - without ${}.</param>
+            <param name="layoutMethod">Callback that returns the value for the layout renderer.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterConditionMethod(NLog.Config.ISetupExtensionsBuilder,System.String,System.Reflection.MethodInfo)">
+            <summary>
+            Register a custom condition method, that can use in condition filters
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="name">Name of the condition filter method</param>
+            <param name="conditionMethod">MethodInfo extracted by reflection - typeof(MyClass).GetMethod("MyFunc", BindingFlags.Static).</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterConditionMethod(NLog.Config.ISetupExtensionsBuilder,System.String,System.Func{NLog.LogEventInfo,System.Object})">
+            <summary>
+            Register a custom condition method, that can use in condition filters
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="name">Name of the condition filter method</param>
+            <param name="conditionMethod">Lambda method.</param>
+        </member>
+        <member name="M:NLog.SetupExtensionsBuilderExtensions.RegisterConditionMethod(NLog.Config.ISetupExtensionsBuilder,System.String,System.Func{System.Object})">
+            <summary>
+            Register a custom condition method, that can use in condition filters
+            </summary>
+            <param name="setupBuilder">Fluent interface parameter.</param>
+            <param name="name">Name of the condition filter method</param>
+            <param name="conditionMethod">Lambda method.</param>
+        </member>
+        <member name="T:NLog.SetupInternalLoggerBuilderExtensions">
+            <summary>
+            Extension methods to setup NLog <see cref="T:NLog.Common.InternalLogger"/> options
+            </summary>
+        </member>
+        <member name="M:NLog.SetupInternalLoggerBuilderExtensions.SetMinimumLogLevel(NLog.Config.ISetupInternalLoggerBuilder,NLog.LogLevel)">
+            <summary>
+            Configures <see cref="P:NLog.Common.InternalLogger.LogLevel"/>
+            </summary>
+        </member>
+        <member name="M:NLog.SetupInternalLoggerBuilderExtensions.LogToFile(NLog.Config.ISetupInternalLoggerBuilder,System.String)">
+            <summary>
+            Configures <see cref="P:NLog.Common.InternalLogger.LogFile"/>
+            </summary>
+        </member>
+        <member name="M:NLog.SetupInternalLoggerBuilderExtensions.LogToConsole(NLog.Config.ISetupInternalLoggerBuilder,System.Boolean)">
+            <summary>
+            Configures <see cref="P:NLog.Common.InternalLogger.LogToConsole"/>
+            </summary>
+        </member>
+        <member name="M:NLog.SetupInternalLoggerBuilderExtensions.LogToTrace(NLog.Config.ISetupInternalLoggerBuilder,System.Boolean)">
+            <summary>
+            Configures <see cref="P:NLog.Common.InternalLogger.LogToTrace"/>
+            </summary>
+        </member>
+        <member name="M:NLog.SetupInternalLoggerBuilderExtensions.LogToWriter(NLog.Config.ISetupInternalLoggerBuilder,System.IO.TextWriter)">
+            <summary>
+            Configures <see cref="P:NLog.Common.InternalLogger.LogWriter"/>
+            </summary>
+        </member>
+        <member name="T:NLog.SetupSerializationBuilderExtensions">
+            <summary>
+            Extension methods to setup NLog extensions, so they are known when loading NLog LoggingConfiguration
+            </summary>
+        </member>
+        <member name="M:NLog.SetupSerializationBuilderExtensions.RegisterJsonConverter(NLog.Config.ISetupSerializationBuilder,NLog.IJsonConverter)">
+            <summary>
+            Overrides the active <see cref="T:NLog.IJsonConverter"/> with a new custom implementation
+            </summary>
+        </member>
+        <member name="M:NLog.SetupSerializationBuilderExtensions.RegisterValueFormatter(NLog.Config.ISetupSerializationBuilder,NLog.IValueFormatter)">
+            <summary>
+            Overrides the active <see cref="T:NLog.IValueFormatter"/> with a new custom implementation
+            </summary>
+        </member>
+        <member name="M:NLog.SetupSerializationBuilderExtensions.RegisterObjectTransformation``1(NLog.Config.ISetupSerializationBuilder,System.Func{``0,System.Object})">
+            <summary>
+            Registers object Type transformation from dangerous (massive) object to safe (reduced) object
+            </summary>
+        </member>
+        <member name="M:NLog.SetupSerializationBuilderExtensions.RegisterObjectTransformation(NLog.Config.ISetupSerializationBuilder,System.Type,System.Func{System.Object,System.Object})">
+            <summary>
+            Registers object Type transformation from dangerous (massive) object to safe (reduced) object
+            </summary>
+        </member>
         <member name="T:NLog.Targets.ArchiveNumberingMode">
             <summary>
             Specifies the way archive numbering is performed.
@@ -22438,6 +22851,7 @@
             <remarks>
             Normally not required as standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = true, but not when pipe to file
             </remarks>
+            <docgen category='Console Options' order='11' />
         </member>
         <member name="P:NLog.Targets.ColoredConsoleTarget.EnableAnsiOutput">
             <summary>
@@ -22695,11 +23109,13 @@
             <remarks>
             Normally not required as standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = true, but not when pipe to file
             </remarks>
+            <docgen category='Console Options' order='10' />
         </member>
         <member name="P:NLog.Targets.ConsoleTarget.WriteBuffer">
             <summary>
             Gets or sets whether to enable batch writing using char[]-buffers, instead of using <see cref="M:System.Console.WriteLine"/>
             </summary>
+            <docgen category='Console Options' order='10' />
         </member>
         <member name="M:NLog.Targets.ConsoleTarget.#ctor">
             <summary>
@@ -23122,6 +23538,12 @@
             </summary>
             <docgen category='SQL Statement' order='14' />
         </member>
+        <member name="P:NLog.Targets.DatabaseTarget.IsolationLevel">
+            <summary>
+            Configures isolated transaction batch writing. If supported by the database, then it will improve insert performance.
+            </summary>
+            <docgen category='Performance Tuning Options' order='10' />
+        </member>
         <member name="M:NLog.Targets.DatabaseTarget.Install(NLog.Config.InstallationContext)">
             <summary>
             Performs installation which requires administrative permissions.
@@ -23185,7 +23607,7 @@
             </summary>
             <param name="logEvents">Logging events to be written out.</param>
         </member>
-        <member name="M:NLog.Targets.DatabaseTarget.WriteEventToDatabase(NLog.LogEventInfo,System.String)">
+        <member name="M:NLog.Targets.DatabaseTarget.ExecuteDbCommandWithParameters(NLog.LogEventInfo,System.Data.IDbTransaction)">
             <summary>
             Write logEvent to database
             </summary>
@@ -23614,12 +24036,6 @@
             <returns><c>null</c> when not <see cref="P:NLog.Layouts.SimpleLayout.IsFixedText"/></returns>
             <remarks>Internal for unit tests</remarks>
         </member>
-        <member name="M:NLog.Targets.EventLogTarget.GetEventLog(NLog.LogEventInfo)">
-            <summary>
-            Gets the <see cref="T:NLog.Targets.EventLogTarget.IEventLogWrapper"/> to write to.
-            </summary>
-            <param name="logEvent">Event if the source needs to be rendered.</param>
-        </member>
         <member name="M:NLog.Targets.EventLogTarget.CreateEventSourceIfNeeded(System.String,System.Boolean)">
             <summary>
             (re-)create an event source, if it isn't there. Works only with fixed source names.
@@ -23749,7 +24165,7 @@
             Discard of the message. It will not be written to the Event Log.
             </summary>
         </member>
-        <member name="M:NLog.Targets.FileArchiveModes.FileArchiveModeBase.AttemptCleanupOnInitializeFile(System.String,System.Int32)">
+        <member name="M:NLog.Targets.FileArchiveModes.FileArchiveModeBase.AttemptCleanupOnInitializeFile(System.String,System.Int32,System.Int32)">
             <summary>
             Check if cleanup should be performed on initialize new file
             
@@ -23757,6 +24173,7 @@
             </summary>
             <param name="archiveFilePath">Base archive file pattern</param>
             <param name="maxArchiveFiles">Maximum number of archive files that should be kept</param>
+            <param name="maxArchiveDays">Maximum days of archive files that should be kept</param>
             <returns>True, when archive cleanup is needed</returns>
         </member>
         <member name="F:NLog.Targets.FileArchiveModes.FileArchiveModeBase.FileNameTemplate.PatternStartCharacters">
@@ -23799,20 +24216,20 @@
         <member name="T:NLog.Targets.FileArchiveModes.FileArchiveModeDate">
             <summary>
             Archives the log-files using a date style numbering. Archives will be stamped with the
-            prior period (Year, Month, Day, Hour, Minute) datetime. When the number of archive files exceed <see
-            cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
+            prior period (Year, Month, Day, Hour, Minute) datetime.
+            
+            When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
+            When the age of archive files exceed <see cref="P:MaxArchiveDays"/> the obsolete archives are deleted.
             </summary>
         </member>
         <member name="T:NLog.Targets.FileArchiveModes.FileArchiveModeDateAndSequence">
             <summary>
-            <para>
             Archives the log-files using a date and sequence style numbering. Archives will be stamped
             with the prior period (Year, Month, Day) datetime. The most recent archive has the highest number (in
             combination with the date).
-            </para>
-            <para>
+            
             When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
-            </para>
+            When the age of archive files exceed <see cref="P:MaxArchiveDays"/> the obsolete archives are deleted.
             </summary>
         </member>
         <member name="M:NLog.Targets.FileArchiveModes.FileArchiveModeDateAndSequence.TryParseDateAndSequence(System.String,System.String,NLog.Targets.FileArchiveModes.FileArchiveModeBase.FileNameTemplate,System.DateTime@,System.Int32@)">
@@ -23835,8 +24252,10 @@
                 Base Filename     trace.log
                 Next Filename     trace.0.log
             
-            The most recent archive has the highest number. When the number of archive files
-            exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
+            The most recent archive has the highest number. 
+            
+            When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
+            When the age of archive files exceed <see cref="P:MaxArchiveDays"/> the obsolete archives are deleted.
             </summary>
         </member>
         <member name="T:NLog.Targets.FileArchiveModes.FileArchiveModeDynamicTemplate">
@@ -23859,17 +24278,12 @@
              <param name="fileName">File name to be checked.</param>
              <returns><see langword="true"/> when the pattern is found; <see langword="false"/> otherwise.</returns>
         </member>
-        <member name="M:NLog.Targets.FileArchiveModes.FileArchiveModeFactory.ShouldDeleteOldArchives(System.Int32)">
-            <summary>
-            Determine if old archive files should be deleted.
-            </summary>
-            <param name="maxArchiveFiles">Maximum number of archive files that should be kept</param>
-            <returns><see langword="true"/> when old archives should be deleted; <see langword="false"/> otherwise.</returns>
-        </member>
         <member name="T:NLog.Targets.FileArchiveModes.FileArchiveModeRolling">
             <summary>
             Archives the log-files using a rolling style numbering (the most recent is always #0 then
-            #1, ..., #N. When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives
+            #1, ..., #N. 
+            
+            When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives
             are deleted.
             </summary>
         </member>
@@ -23883,9 +24297,10 @@
         </member>
         <member name="T:NLog.Targets.FileArchiveModes.FileArchiveModeSequence">
             <summary>
-            Archives the log-files using a sequence style numbering. The most recent archive has the
-            highest number. When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete
-            archives are deleted.
+            Archives the log-files using a sequence style numbering. The most recent archive has the highest number.
+            
+            When the number of archive files exceed <see cref="P:MaxArchiveFiles"/> the obsolete archives are deleted.
+            When the age of archive files exceed <see cref="P:MaxArchiveDays"/> the obsolete archives are deleted.
             </summary>
         </member>
         <member name="T:NLog.Targets.FileArchivePeriod">
@@ -24021,6 +24436,11 @@
         <member name="F:NLog.Targets.FileTarget._maxArchiveFiles">
             <summary>
             The maximum number of archive files that should be kept.
+            </summary>
+        </member>
+        <member name="F:NLog.Targets.FileTarget._maxArchiveDays">
+            <summary>
+            The maximum days of archive files that should be kept.
             </summary>
         </member>
         <member name="F:NLog.Targets.FileTarget._fullFileName">
@@ -24267,6 +24687,17 @@
             </remarks>
             <docgen category='Output Options' order='10' />
         </member>
+        <member name="P:NLog.Targets.FileTarget.ArchiveOldFileOnStartupAboveSize">
+            <summary>
+            Gets or sets a value of the file size threshold to archive old log file on startup.
+            </summary>
+            <remarks>
+            This option won't work if <see cref="P:NLog.Targets.FileTarget.ArchiveOldFileOnStartup"/> is set to <c>false</c>
+            Default value is 0 which means that the file is archived as soon as archival on
+            startup is enabled.
+            </remarks>
+            <docgen category='Output Options' order='10' />
+        </member>
         <member name="P:NLog.Targets.FileTarget.ArchiveDateFormat">
             <summary>
             Gets or sets a value specifying the date format to use when archiving files.
@@ -24329,6 +24760,12 @@
         <member name="P:NLog.Targets.FileTarget.MaxArchiveFiles">
             <summary>
             Gets or sets the maximum number of archive files that should be kept.
+            </summary>
+            <docgen category='Archival Options' order='10' />
+        </member>
+        <member name="P:NLog.Targets.FileTarget.MaxArchiveDays">
+            <summary>
+            Gets or sets the maximum days of archive files that should be kept.
             </summary>
             <docgen category='Archival Options' order='10' />
         </member>
@@ -24662,6 +25099,14 @@
             </summary>
             <param name="fileName">The file path to write to.</param>
         </member>
+        <member name="M:NLog.Targets.FileTarget.ShouldArchiveOldFileOnStartup(System.String)">
+            <summary>
+            Decision logic whether to archive logfile on startup.
+            <see cref="P:NLog.Targets.FileTarget.ArchiveOldFileOnStartup"/> and <see cref="P:NLog.Targets.FileTarget.ArchiveOldFileOnStartupAboveSize"/> properties.
+            </summary>
+            <param name="fileName">File name to be written.</param>
+            <returns>Decision whether to archive or not.</returns>
+        </member>
         <member name="M:NLog.Targets.FileTarget.ProcessOnStartup(System.String,NLog.LogEventInfo)">
             <summary>
             Invokes the archiving and clean up of older archive file based on the values of
@@ -24771,12 +25216,13 @@
             Default row highlight rules for the console printer
             </summary>
         </member>
-        <member name="M:NLog.Targets.IFileArchiveMode.AttemptCleanupOnInitializeFile(System.String,System.Int32)">
+        <member name="M:NLog.Targets.IFileArchiveMode.AttemptCleanupOnInitializeFile(System.String,System.Int32,System.Int32)">
             <summary>
             Check if cleanup should be performed on initialize new file
             </summary>
             <param name="archiveFilePath">Base archive file pattern</param>
             <param name="maxArchiveFiles">Maximum number of archive files that should be kept</param>
+            <param name="maxArchiveDays">Maximum days of archive files that should be kept</param>
             <returns>True, when archive cleanup is needed</returns>
         </member>
         <member name="M:NLog.Targets.IFileArchiveMode.GenerateFileNameMask(System.String)">
@@ -24802,14 +25248,14 @@
             <param name="existingArchiveFiles">Existing files in the same archive</param>
             <returns></returns>
         </member>
-        <member name="M:NLog.Targets.IFileArchiveMode.CheckArchiveCleanup(System.String,System.Collections.Generic.List{NLog.Targets.DateAndSequenceArchive},System.Int32)">
+        <member name="M:NLog.Targets.IFileArchiveMode.CheckArchiveCleanup(System.String,System.Collections.Generic.List{NLog.Targets.DateAndSequenceArchive},System.Int32,System.Int32)">
             <summary>
             Return all files that should be removed from the provided archive.
             </summary>
             <param name="archiveFilePath">Base archive file pattern</param>
             <param name="existingArchiveFiles">Existing files in the same archive</param>
             <param name="maxArchiveFiles">Maximum number of archive files that should be kept</param>
-            <returns></returns>
+            <param name="maxArchiveDays">Maximum days of archive files that should be kept</param>
         </member>
         <member name="T:NLog.Targets.IFileCompressor">
             <summary>
@@ -25807,6 +26253,7 @@
             <summary>
             The number of seconds a connection will remain idle before the first keep-alive probe is sent
             </summary>
+            <docgen category='Connection Options' order='10' />
         </member>
         <member name="M:NLog.Targets.NetworkTarget.FlushAsync(NLog.Common.AsyncContinuation)">
             <summary>
@@ -26890,7 +27337,16 @@
             <summary>
             Always use <see cref="M:System.Diagnostics.Trace.WriteLine(System.String)"/> independent of <see cref="T:NLog.LogLevel"/>
             </summary>
-            <docgen category='Layout Options' order='100' />
+            <docgen category='Output Options' order='100' />
+        </member>
+        <member name="P:NLog.Targets.TraceTarget.EnableTraceFail">
+            <summary>
+            Forward <see cref="F:NLog.LogLevel.Fatal" /> to <see cref="M:System.Diagnostics.Trace.Fail(System.String)" /> (Instead of <see cref="M:System.Diagnostics.Trace.TraceError(System.String)" />)
+            </summary>
+            <remarks>
+            Trace.Fail can have special side-effects, and give fatal exceptions, message dialogs or Environment.FailFast
+            </remarks>
+            <docgen category='Output Options' order='100' />
         </member>
         <member name="M:NLog.Targets.TraceTarget.#ctor">
             <summary>
@@ -26915,7 +27371,7 @@
             
             Redirects the log message depending on <see cref="T:NLog.LogLevel"/> and  <see cref="P:NLog.Targets.TraceTarget.RawWrite"/>. 
             When <see cref="P:NLog.Targets.TraceTarget.RawWrite"/> is <c>false</c>:
-             - <see cref="F:NLog.LogLevel.Fatal"/> writes to <see cref="M:System.Diagnostics.Trace.Fail(System.String)" />
+             - <see cref="F:NLog.LogLevel.Fatal"/> writes to <see cref="M:System.Diagnostics.Trace.TraceError(System.String)" />
              - <see cref="F:NLog.LogLevel.Error"/> writes to <see cref="M:System.Diagnostics.Trace.TraceError(System.String)" />
              - <see cref="F:NLog.LogLevel.Warn"/> writes to <see cref="M:System.Diagnostics.Trace.TraceWarning(System.String)" />
              - <see cref="F:NLog.LogLevel.Info"/> writes to <see cref="M:System.Diagnostics.Trace.TraceInformation(System.String)" />
@@ -27579,6 +28035,7 @@
             <summary>
             Only flush when LogEvent matches condition. Ignore explicit-flush, config-reload-flush and shutdown-flush
             </summary>
+            <docgen category='General Options' order='10' />
         </member>
         <member name="M:NLog.Targets.Wrappers.AutoFlushTargetWrapper.#ctor">
             <summary>

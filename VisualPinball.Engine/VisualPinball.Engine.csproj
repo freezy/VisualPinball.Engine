@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Import Project="..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props" Condition="Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')"/>
-	<Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+	<Import Project="..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props" Condition="Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" />
+	<Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
 	<PropertyGroup>
 		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -36,19 +36,19 @@
 		<WarningLevel>4</WarningLevel>
 	</PropertyGroup>
 	<ItemGroup>
-		<Reference Include="Microsoft.CSharp"/>
+		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="MiniZ.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
 			<HintPath>..\.packages\MiniZ.Net.1.0.0\lib\MiniZ.Net.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="mscorlib"/>
+		<Reference Include="mscorlib" />
 		<Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
 			<HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
 		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-			<HintPath>..\.packages\NLog.4.6.8\lib\net45\NLog.dll</HintPath>
-			<Private>True</Private>
+		  <HintPath>..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
+		  <Private>True</Private>
 		</Reference>
 		<Reference Include="OpenMcdf, Version=2.2.1.4, Culture=neutral, PublicKeyToken=fdbb1629d7c00800">
 			<HintPath>..\.packages\OpenMcdf.2.2.1.4\lib\net40\OpenMcdf.dll</HintPath>
@@ -62,20 +62,20 @@
 			<HintPath>..\.packages\SixLabors.ImageSharp.1.0.0-beta0007\lib\netstandard2.0\SixLabors.ImageSharp.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="System"/>
+		<Reference Include="System" />
 		<Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
 			<HintPath>..\.packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="System.Configuration"/>
-		<Reference Include="System.Core"/>
-		<Reference Include="System.Data"/>
-		<Reference Include="System.IO.Compression"/>
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.IO.Compression" />
 		<Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
 			<HintPath>..\.packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="System.Numerics"/>
+		<Reference Include="System.Numerics" />
 		<Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
 			<HintPath>..\.packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
 			<Private>True</Private>
@@ -84,166 +84,166 @@
 			<HintPath>..\.packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="System.Runtime.Serialization"/>
-		<Reference Include="System.ServiceModel"/>
-		<Reference Include="System.Transactions"/>
-		<Reference Include="System.Xml"/>
+		<Reference Include="System.Runtime.Serialization" />
+		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.Transactions" />
+		<Reference Include="System.Xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Include="Common\Logging.cs"/>
-		<Compile Include="Common\Profiler.cs"/>
-		<Compile Include="Common\Registry.cs"/>
-		<Compile Include="Common\StringExtensions.cs"/>
-		<Compile Include="Game\Event.cs"/>
-		<Compile Include="Game\EventProxy.cs"/>
-		<Compile Include="Game\IBallCreationPosition.cs"/>
-		<Compile Include="Game\IHittable.cs"/>
-		<Compile Include="Game\IMovable.cs"/>
-		<Compile Include="Game\IPlayable.cs"/>
-		<Compile Include="Game\IRenderable.cs"/>
-		<Compile Include="Game\PlayerPhysics.cs"/>
-		<Compile Include="Game\Player.cs"/>
-		<Compile Include="IO\BiffAttribute.cs"/>
-		<Compile Include="IO\BiffBoolAttribute.cs"/>
-		<Compile Include="IO\BiffByteAttribute.cs"/>
-		<Compile Include="IO\BiffColorAttribute.cs"/>
-		<Compile Include="IO\BiffData.cs"/>
-		<Compile Include="IO\BiffDragPointAttribute.cs"/>
-		<Compile Include="IO\BiffFloatAttribute.cs"/>
-		<Compile Include="IO\BiffFontAttribute.cs"/>
-		<Compile Include="IO\BiffIgnoreAttribute.cs"/>
-		<Compile Include="IO\BiffIntAttribute.cs"/>
-		<Compile Include="IO\BiffStringAttribute.cs"/>
-		<Compile Include="IO\BiffUtil.cs"/>
-		<Compile Include="IO\BiffVertexAttribute.cs"/>
-		<Compile Include="IO\BiffZlib.cs"/>
-		<Compile Include="IO\LzwReader.cs"/>
-		<Compile Include="IO\LzwWriter.cs"/>
-		<Compile Include="Math\CatmullCurve.cs"/>
-		<Compile Include="Math\Color.cs"/>
-		<Compile Include="Math\Constants.cs"/>
-		<Compile Include="Math\DragPoint.cs"/>
-		<Compile Include="Math\DragPointData.cs"/>
-		<Compile Include="Math\Functions.cs"/>
-		<Compile Include="Math\MathF.cs"/>
-		<Compile Include="Math\Matrix2D.cs"/>
-		<Compile Include="Math\Matrix3D.cs"/>
-		<Compile Include="Math\Rect3D.cs"/>
-		<Compile Include="Math\RenderVertex.cs"/>
-		<Compile Include="Math\SplineVertex.cs"/>
-		<Compile Include="Math\Vertex2D.cs"/>
-		<Compile Include="Math\Vertex3D.cs"/>
-		<Compile Include="Math\Vertex3DNoTex2.cs"/>
-		<Compile Include="Physics\AnimObject.cs"/>
-		<Compile Include="Physics\HitLine3D.cs"/>
-		<Compile Include="Physics\HitLineZ.cs"/>
-		<Compile Include="Physics\HitPoint.cs"/>
-		<Compile Include="Physics\SlingshotAnimObject.cs"/>
-		<Compile Include="Physics\CollisionEvent.cs"/>
-		<Compile Include="Physics\CollisionType.cs"/>
-		<Compile Include="Physics\Hit3DPoly.cs"/>
-		<Compile Include="Physics\HitCircle.cs"/>
-		<Compile Include="Physics\HitKd.cs"/>
-		<Compile Include="Physics\HitKdNode.cs"/>
-		<Compile Include="Physics\HitObject.cs"/>
-		<Compile Include="Physics\HitPlane.cs"/>
-		<Compile Include="Physics\HitQuadTree.cs"/>
-		<Compile Include="Physics\LineSeg.cs"/>
-		<Compile Include="Physics\IMoverObject.cs"/>
-		<Compile Include="Physics\LineSegSlingshot.cs"/>
-		<Compile Include="Properties\AssemblyInfo.cs"/>
-		<Compile Include="VPT\Ball\Ball.cs"/>
-		<Compile Include="VPT\Ball\BallData.cs"/>
-		<Compile Include="VPT\Ball\BallHit.cs"/>
-		<Compile Include="VPT\Ball\BallMover.cs"/>
-		<Compile Include="VPT\Ball\BallState.cs"/>
-		<Compile Include="VPT\BinaryData.cs"/>
-		<Compile Include="VPT\Bitmap.cs"/>
-		<Compile Include="VPT\Bumper\Bumper.cs"/>
-		<Compile Include="VPT\Bumper\BumperData.cs"/>
-		<Compile Include="VPT\Bumper\BumperMeshGenerator.cs"/>
-		<Compile Include="VPT\Collection\Collection.cs"/>
-		<Compile Include="VPT\Collection\CollectionData.cs"/>
-		<Compile Include="VPT\Decal\Decal.cs"/>
-		<Compile Include="VPT\Decal\DecalData.cs"/>
-		<Compile Include="VPT\DispReel\DispReel.cs"/>
-		<Compile Include="VPT\DispReel\DispReelData.cs"/>
-		<Compile Include="VPT\Enums.cs"/>
-		<Compile Include="VPT\Flasher\Flasher.cs"/>
-		<Compile Include="VPT\Flasher\FlasherData.cs"/>
-		<Compile Include="VPT\Flipper\Flipper.cs"/>
-		<Compile Include="VPT\Flipper\FlipperData.cs"/>
-		<Compile Include="VPT\Flipper\FlipperHit.cs"/>
-		<Compile Include="VPT\Flipper\FlipperMeshGenerator.cs"/>
-		<Compile Include="VPT\Flipper\FlipperMover.cs"/>
-		<Compile Include="VPT\Flipper\FlipperState.cs"/>
-		<Compile Include="VPT\Font.cs"/>
-		<Compile Include="VPT\Gate\Gate.cs"/>
-		<Compile Include="VPT\Gate\GateData.cs"/>
-		<Compile Include="VPT\Gate\GateMeshGenerator.cs"/>
-		<Compile Include="VPT\HitTarget\HitTarget.cs"/>
-		<Compile Include="VPT\HitTarget\HitTargetData.cs"/>
-		<Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs"/>
-		<Compile Include="VPT\Item.cs"/>
-		<Compile Include="VPT\ItemData.cs"/>
-		<Compile Include="VPT\ItemState.cs"/>
-		<Compile Include="VPT\Kicker\Kicker.cs"/>
-		<Compile Include="VPT\Kicker\KickerData.cs"/>
-		<Compile Include="VPT\Kicker\KickerMeshGenerator.cs"/>
-		<Compile Include="VPT\LightSeq\LightSeq.cs"/>
-		<Compile Include="VPT\LightSeq\LightSeqData.cs"/>
-		<Compile Include="VPT\Light\Light.cs"/>
-		<Compile Include="VPT\Light\LightData.cs"/>
-		<Compile Include="VPT\Light\LightMeshGenerator.cs"/>
-		<Compile Include="VPT\Material.cs"/>
-		<Compile Include="VPT\MaterialData.cs"/>
-		<Compile Include="VPT\Mesh.cs"/>
-		<Compile Include="VPT\MeshGenerator.cs"/>
-		<Compile Include="VPT\PbrMaterial.cs"/>
-		<Compile Include="VPT\Plunger\Plunger.cs"/>
-		<Compile Include="VPT\Plunger\PlungerData.cs"/>
-		<Compile Include="VPT\Primitive\Primitive.cs"/>
-		<Compile Include="VPT\Primitive\PrimitiveData.cs"/>
-		<Compile Include="VPT\Primitive\PrimitiveMeshGenerator.cs"/>
-		<Compile Include="VPT\Ramp\Ramp.cs"/>
-		<Compile Include="VPT\Ramp\RampData.cs"/>
-		<Compile Include="VPT\Ramp\RampMeshGenerator.cs"/>
-		<Compile Include="VPT\Rubber\Rubber.cs"/>
-		<Compile Include="VPT\Rubber\RubberData.cs"/>
-		<Compile Include="VPT\Rubber\RubberMeshGenerator.cs"/>
-		<Compile Include="VPT\Sound\Sound.cs"/>
-		<Compile Include="VPT\Sound\SoundData.cs"/>
-		<Compile Include="VPT\Sound\WaveFormat.cs"/>
-		<Compile Include="VPT\Spinner\Spinner.cs"/>
-		<Compile Include="VPT\Spinner\SpinnerData.cs"/>
-		<Compile Include="VPT\Spinner\SpinnerMeshGenerator.cs"/>
-		<Compile Include="VPT\Surface\Surface.cs"/>
-		<Compile Include="VPT\Surface\SurfaceData.cs"/>
-		<Compile Include="VPT\Surface\SurfaceHitGenerator.cs"/>
-		<Compile Include="VPT\Surface\SurfaceMeshGenerator.cs"/>
-		<Compile Include="VPT\Table\CustomInfoTags.cs"/>
-		<Compile Include="VPT\Table\HashWriter.cs"/>
-		<Compile Include="VPT\Table\Table.cs"/>
-		<Compile Include="VPT\Table\TableBuilder.cs"/>
-		<Compile Include="VPT\Table\TableData.cs"/>
-		<Compile Include="VPT\Table\TableHitGenerator.cs"/>
-		<Compile Include="VPT\Table\TableLoader.cs"/>
-		<Compile Include="VPT\Table\TableMeshGenerator.cs"/>
-		<Compile Include="VPT\Table\TableWriter.cs"/>
-		<Compile Include="VPT\TextBox\TextBox.cs"/>
-		<Compile Include="VPT\TextBox\TextBoxData.cs"/>
-		<Compile Include="VPT\Texture.cs"/>
-		<Compile Include="VPT\TextureData.cs"/>
-		<Compile Include="VPT\Timer\Timer.cs"/>
-		<Compile Include="VPT\Timer\TimerData.cs"/>
-		<Compile Include="VPT\Timer\TimerHit.cs"/>
-		<Compile Include="VPT\Timer\TimerOnOff.cs"/>
-		<Compile Include="VPT\Trigger\Trigger.cs"/>
-		<Compile Include="VPT\Trigger\TriggerData.cs"/>
-		<Compile Include="VPT\Trigger\TriggerMeshGenerator.cs"/>
+		<Compile Include="Common\Logging.cs" />
+		<Compile Include="Common\Profiler.cs" />
+		<Compile Include="Common\Registry.cs" />
+		<Compile Include="Common\StringExtensions.cs" />
+		<Compile Include="Game\Event.cs" />
+		<Compile Include="Game\EventProxy.cs" />
+		<Compile Include="Game\IBallCreationPosition.cs" />
+		<Compile Include="Game\IHittable.cs" />
+		<Compile Include="Game\IMovable.cs" />
+		<Compile Include="Game\IPlayable.cs" />
+		<Compile Include="Game\IRenderable.cs" />
+		<Compile Include="Game\PlayerPhysics.cs" />
+		<Compile Include="Game\Player.cs" />
+		<Compile Include="IO\BiffAttribute.cs" />
+		<Compile Include="IO\BiffBoolAttribute.cs" />
+		<Compile Include="IO\BiffByteAttribute.cs" />
+		<Compile Include="IO\BiffColorAttribute.cs" />
+		<Compile Include="IO\BiffData.cs" />
+		<Compile Include="IO\BiffDragPointAttribute.cs" />
+		<Compile Include="IO\BiffFloatAttribute.cs" />
+		<Compile Include="IO\BiffFontAttribute.cs" />
+		<Compile Include="IO\BiffIgnoreAttribute.cs" />
+		<Compile Include="IO\BiffIntAttribute.cs" />
+		<Compile Include="IO\BiffStringAttribute.cs" />
+		<Compile Include="IO\BiffUtil.cs" />
+		<Compile Include="IO\BiffVertexAttribute.cs" />
+		<Compile Include="IO\BiffZlib.cs" />
+		<Compile Include="IO\LzwReader.cs" />
+		<Compile Include="IO\LzwWriter.cs" />
+		<Compile Include="Math\CatmullCurve.cs" />
+		<Compile Include="Math\Color.cs" />
+		<Compile Include="Math\Constants.cs" />
+		<Compile Include="Math\DragPoint.cs" />
+		<Compile Include="Math\DragPointData.cs" />
+		<Compile Include="Math\Functions.cs" />
+		<Compile Include="Math\MathF.cs" />
+		<Compile Include="Math\Matrix2D.cs" />
+		<Compile Include="Math\Matrix3D.cs" />
+		<Compile Include="Math\Rect3D.cs" />
+		<Compile Include="Math\RenderVertex.cs" />
+		<Compile Include="Math\SplineVertex.cs" />
+		<Compile Include="Math\Vertex2D.cs" />
+		<Compile Include="Math\Vertex3D.cs" />
+		<Compile Include="Math\Vertex3DNoTex2.cs" />
+		<Compile Include="Physics\AnimObject.cs" />
+		<Compile Include="Physics\HitLine3D.cs" />
+		<Compile Include="Physics\HitLineZ.cs" />
+		<Compile Include="Physics\HitPoint.cs" />
+		<Compile Include="Physics\SlingshotAnimObject.cs" />
+		<Compile Include="Physics\CollisionEvent.cs" />
+		<Compile Include="Physics\CollisionType.cs" />
+		<Compile Include="Physics\Hit3DPoly.cs" />
+		<Compile Include="Physics\HitCircle.cs" />
+		<Compile Include="Physics\HitKd.cs" />
+		<Compile Include="Physics\HitKdNode.cs" />
+		<Compile Include="Physics\HitObject.cs" />
+		<Compile Include="Physics\HitPlane.cs" />
+		<Compile Include="Physics\HitQuadTree.cs" />
+		<Compile Include="Physics\LineSeg.cs" />
+		<Compile Include="Physics\IMoverObject.cs" />
+		<Compile Include="Physics\LineSegSlingshot.cs" />
+		<Compile Include="Properties\AssemblyInfo.cs" />
+		<Compile Include="VPT\Ball\Ball.cs" />
+		<Compile Include="VPT\Ball\BallData.cs" />
+		<Compile Include="VPT\Ball\BallHit.cs" />
+		<Compile Include="VPT\Ball\BallMover.cs" />
+		<Compile Include="VPT\Ball\BallState.cs" />
+		<Compile Include="VPT\BinaryData.cs" />
+		<Compile Include="VPT\Bitmap.cs" />
+		<Compile Include="VPT\Bumper\Bumper.cs" />
+		<Compile Include="VPT\Bumper\BumperData.cs" />
+		<Compile Include="VPT\Bumper\BumperMeshGenerator.cs" />
+		<Compile Include="VPT\Collection\Collection.cs" />
+		<Compile Include="VPT\Collection\CollectionData.cs" />
+		<Compile Include="VPT\Decal\Decal.cs" />
+		<Compile Include="VPT\Decal\DecalData.cs" />
+		<Compile Include="VPT\DispReel\DispReel.cs" />
+		<Compile Include="VPT\DispReel\DispReelData.cs" />
+		<Compile Include="VPT\Enums.cs" />
+		<Compile Include="VPT\Flasher\Flasher.cs" />
+		<Compile Include="VPT\Flasher\FlasherData.cs" />
+		<Compile Include="VPT\Flipper\Flipper.cs" />
+		<Compile Include="VPT\Flipper\FlipperData.cs" />
+		<Compile Include="VPT\Flipper\FlipperHit.cs" />
+		<Compile Include="VPT\Flipper\FlipperMeshGenerator.cs" />
+		<Compile Include="VPT\Flipper\FlipperMover.cs" />
+		<Compile Include="VPT\Flipper\FlipperState.cs" />
+		<Compile Include="VPT\Font.cs" />
+		<Compile Include="VPT\Gate\Gate.cs" />
+		<Compile Include="VPT\Gate\GateData.cs" />
+		<Compile Include="VPT\Gate\GateMeshGenerator.cs" />
+		<Compile Include="VPT\HitTarget\HitTarget.cs" />
+		<Compile Include="VPT\HitTarget\HitTargetData.cs" />
+		<Compile Include="VPT\HitTarget\HitTargetMeshGenerator.cs" />
+		<Compile Include="VPT\Item.cs" />
+		<Compile Include="VPT\ItemData.cs" />
+		<Compile Include="VPT\ItemState.cs" />
+		<Compile Include="VPT\Kicker\Kicker.cs" />
+		<Compile Include="VPT\Kicker\KickerData.cs" />
+		<Compile Include="VPT\Kicker\KickerMeshGenerator.cs" />
+		<Compile Include="VPT\LightSeq\LightSeq.cs" />
+		<Compile Include="VPT\LightSeq\LightSeqData.cs" />
+		<Compile Include="VPT\Light\Light.cs" />
+		<Compile Include="VPT\Light\LightData.cs" />
+		<Compile Include="VPT\Light\LightMeshGenerator.cs" />
+		<Compile Include="VPT\Material.cs" />
+		<Compile Include="VPT\MaterialData.cs" />
+		<Compile Include="VPT\Mesh.cs" />
+		<Compile Include="VPT\MeshGenerator.cs" />
+		<Compile Include="VPT\PbrMaterial.cs" />
+		<Compile Include="VPT\Plunger\Plunger.cs" />
+		<Compile Include="VPT\Plunger\PlungerData.cs" />
+		<Compile Include="VPT\Primitive\Primitive.cs" />
+		<Compile Include="VPT\Primitive\PrimitiveData.cs" />
+		<Compile Include="VPT\Primitive\PrimitiveMeshGenerator.cs" />
+		<Compile Include="VPT\Ramp\Ramp.cs" />
+		<Compile Include="VPT\Ramp\RampData.cs" />
+		<Compile Include="VPT\Ramp\RampMeshGenerator.cs" />
+		<Compile Include="VPT\Rubber\Rubber.cs" />
+		<Compile Include="VPT\Rubber\RubberData.cs" />
+		<Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
+		<Compile Include="VPT\Sound\Sound.cs" />
+		<Compile Include="VPT\Sound\SoundData.cs" />
+		<Compile Include="VPT\Sound\WaveFormat.cs" />
+		<Compile Include="VPT\Spinner\Spinner.cs" />
+		<Compile Include="VPT\Spinner\SpinnerData.cs" />
+		<Compile Include="VPT\Spinner\SpinnerMeshGenerator.cs" />
+		<Compile Include="VPT\Surface\Surface.cs" />
+		<Compile Include="VPT\Surface\SurfaceData.cs" />
+		<Compile Include="VPT\Surface\SurfaceHitGenerator.cs" />
+		<Compile Include="VPT\Surface\SurfaceMeshGenerator.cs" />
+		<Compile Include="VPT\Table\CustomInfoTags.cs" />
+		<Compile Include="VPT\Table\HashWriter.cs" />
+		<Compile Include="VPT\Table\Table.cs" />
+		<Compile Include="VPT\Table\TableBuilder.cs" />
+		<Compile Include="VPT\Table\TableData.cs" />
+		<Compile Include="VPT\Table\TableHitGenerator.cs" />
+		<Compile Include="VPT\Table\TableLoader.cs" />
+		<Compile Include="VPT\Table\TableMeshGenerator.cs" />
+		<Compile Include="VPT\Table\TableWriter.cs" />
+		<Compile Include="VPT\TextBox\TextBox.cs" />
+		<Compile Include="VPT\TextBox\TextBoxData.cs" />
+		<Compile Include="VPT\Texture.cs" />
+		<Compile Include="VPT\TextureData.cs" />
+		<Compile Include="VPT\Timer\Timer.cs" />
+		<Compile Include="VPT\Timer\TimerData.cs" />
+		<Compile Include="VPT\Timer\TimerHit.cs" />
+		<Compile Include="VPT\Timer\TimerOnOff.cs" />
+		<Compile Include="VPT\Trigger\Trigger.cs" />
+		<Compile Include="VPT\Trigger\TriggerData.cs" />
+		<Compile Include="VPT\Trigger\TriggerMeshGenerator.cs" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="packages.config"/>
+		<None Include="packages.config" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj">
@@ -251,17 +251,17 @@
 			<Name>VisualPinball.Resources</Name>
 		</ProjectReference>
 	</ItemGroup>
-	<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+	<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 	<Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
 		<PropertyGroup>
 			<ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
 		</PropertyGroup>
-		<Error Condition="!Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))"/>
-		<Error Condition="!Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))"/>
-		<Error Condition="!Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets'))"/>
+		<Error Condition="!Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
+		<Error Condition="!Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))" />
+		<Error Condition="!Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets'))" />
 	</Target>
-	<Import Project="..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')"/>
-	<Import Project="..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets" Condition="Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')"/>
+	<Import Project="..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" />
+	<Import Project="..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets" Condition="Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" />
 	<!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 		   Other similar extension points exist, see Microsoft.Common.targets.
 	  <Target Name="BeforeBuild">
@@ -271,8 +271,8 @@
 	  -->
 	<Target Name="AfterBuild">
 		<ItemGroup>
-			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)MiniZ32.dll;$(OutDir)System.Runtime.CompilerServices.Unsafe.*"/>
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)MiniZ32.dll;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
 		</ItemGroup>
-		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true"/>
+		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
 	</Target>
 </Project>
