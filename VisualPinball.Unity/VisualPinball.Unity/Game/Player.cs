@@ -43,6 +43,8 @@ namespace VisualPinball.Unity.Game
 
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
+			var ballApi = _ballManager.CreateBall(this, ballCreator, radius, mass);
+
 			// var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
 			// const ballId = Ball.idCounter++;
 			// const state = BallState.claim(`Ball${ballId}`, ballCreator.getBallCreationPosition(this.table));
@@ -62,14 +64,14 @@ namespace VisualPinball.Unity.Game
 			// this.previousStates[ball.getName()] = ball.getState().clone();
 			// this.emit('ballCreated', ball);
 			// return ball;
-			return null;
+			return ballApi;
 		}
 
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
-			_ballManager = new BallManager();
 			_table = tableComponent.CreateTable();
+			_ballManager = new BallManager(_table);
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
 			//DebugLog = File.CreateText("flipper.log");

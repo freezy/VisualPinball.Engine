@@ -4,6 +4,7 @@ namespace VisualPinball.Engine.Resources
 {
 	public class Resource
 	{
+		public static readonly Resource BallDebug = new Resource("__BallDebug", GetTexture("VisualPinball.Engine.Resources.Textures.BallDebug.png"));
 		public static readonly Resource BumperBase = new Resource("__BumperBase", GetTexture("VisualPinball.Engine.Resources.Textures.BumperBase.png"));
 		public static readonly Resource BumperCap = new Resource("__BumperCap", GetTexture("VisualPinball.Engine.Resources.Textures.BumperCap.png"));
 		public static readonly Resource BumperRing = new Resource("__BumperRing", GetTexture("VisualPinball.Engine.Resources.Textures.BumperRing.png"));

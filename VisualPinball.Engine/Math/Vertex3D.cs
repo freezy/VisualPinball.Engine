@@ -7,6 +7,7 @@ namespace VisualPinball.Engine.Math
 	public class Vertex3D : Vertex2D
 	{
 		public static readonly Vertex3D One = new Vertex3D(1.0f, 1.0f, 1.0f);
+		public static readonly Vertex3D Zero = new Vertex3D(0, 0, 0);
 
 		public float Z;
 

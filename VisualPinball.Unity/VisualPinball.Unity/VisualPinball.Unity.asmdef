@@ -10,6 +10,7 @@
 		"Unity.Rendering.Hybrid",
 		"Unity.Transforms",
 		"VisualPinball.Engine",
+		"VisualPinball.Resources",
 		"VisualPinball.Unity.Patcher"
 	],
 	"includePlatforms": [],
