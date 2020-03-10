@@ -63,6 +63,7 @@
     <Compile Include="Import\VpxAssetImporter.cs" />
     <Compile Include="Import\VpxMenuImporter.cs" />
     <Compile Include="Inspectors\FlipperInspector.cs" />
+    <Compile Include="Inspectors\PlayerInspector.cs" />
     <Compile Include="Inspectors\TableInspector.cs" />
     <Compile Include="Logging.cs" />
   </ItemGroup>

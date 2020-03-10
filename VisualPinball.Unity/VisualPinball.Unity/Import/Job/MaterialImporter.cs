@@ -42,9 +42,9 @@ namespace VisualPinball.Unity.Import.Job
 			}
 
 			// dump debug log
-			var writer = new StreamWriter("Assets/debug2.txt", false);
-			writer.Write(debug.ToString());
-			writer.Close();
+			// var writer = new StreamWriter("Assets/debug2.txt", false);
+			// writer.Write(debug.ToString());
+			// writer.Close();
 
 			_assetHandler.OnMaterialsSaved(_materials);
 		}
