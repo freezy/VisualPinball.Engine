@@ -9,6 +9,7 @@ namespace VisualPinball.Engine.VPT
 {
 	public class Texture : Item<TextureData>
 	{
+		public static readonly Texture BallDebug = new Texture(Resource.BallDebug);
 		public static readonly Texture BumperBase = new Texture(Resource.BumperBase);
 		public static readonly Texture BumperCap = new Texture(Resource.BumperCap);
 		public static readonly Texture BumperRing = new Texture(Resource.BumperRing);
@@ -17,7 +18,7 @@ namespace VisualPinball.Engine.VPT
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public static readonly Texture[] LocalTextures = {
-			BumperBase, BumperCap, BumperRing, BumperSocket
+			BumperBase, BumperCap, BumperRing, BumperSocket, BallDebug
 		};
 
 		public int Width => Data.Width;
