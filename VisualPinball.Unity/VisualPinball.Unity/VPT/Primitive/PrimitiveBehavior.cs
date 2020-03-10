@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.VPT.Primitive
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Primitive")]
 	public class PrimitiveBehavior : ItemBehavior<Engine.VPT.Primitive.Primitive, PrimitiveData>
 	{

@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.VPT.Spinner
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Spinner")]
 	public class SpinnerBehavior : ItemBehavior<Engine.VPT.Spinner.Spinner, SpinnerData>
 	{

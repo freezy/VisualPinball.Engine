@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.VPT.Rubber
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Rubber")]
 	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>
 	{

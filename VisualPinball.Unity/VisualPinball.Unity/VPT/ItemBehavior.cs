@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.VPT
 				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
 				return;
 			}
-			var table = transform.root.GetComponent<TableBehavior>().Table;
+			var table = transform.GetComponentInParent<TableBehavior>().Table;
 			if (table == null) {
 				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
 				return;

@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Gate")]
 	public class GateBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>
 	{

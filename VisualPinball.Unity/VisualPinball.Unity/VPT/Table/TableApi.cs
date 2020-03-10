@@ -2,18 +2,19 @@
 using System.Linq;
 using Unity.Entities;
 using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Kicker;
 
 namespace VisualPinball.Unity.VPT.Table
 {
 	public class TableApi
 	{
-		public FlipperApi Flipper(string name) => Flippers.ContainsKey(name) ? Flippers[name] : null;
-		internal FlipperApi Flipper(int entityIndex) => Flippers.Values.FirstOrDefault(f => f.Entity.Index == entityIndex);
+		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
+		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
 
 		internal Engine.VPT.Table.Table Table;
 		internal Entity Entity;
 
-		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
+		public FlipperApi Flipper(string name) => Flippers.ContainsKey(name) ? Flippers[name] : null;
 
 		internal IEnumerable<IApiInitializable> Initializables => new IApiInitializable[0]
 			.Concat(Flippers.Values)
