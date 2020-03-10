@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.VPT.HitTarget
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Hit Target")]
 	public class HitTargetBehavior : ItemBehavior<Engine.VPT.HitTarget.HitTarget, HitTargetData>
 	{

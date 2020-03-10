@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity.VPT.Light
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Light")]
 	public class LightBehavior : ItemBehavior<Engine.VPT.Light.Light, LightData>
 	{

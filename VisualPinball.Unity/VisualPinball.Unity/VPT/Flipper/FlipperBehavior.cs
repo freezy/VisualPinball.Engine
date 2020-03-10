@@ -12,7 +12,7 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[ExecuteInEditMode]
+	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
@@ -31,8 +31,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
-			// update table api
-			transform.GetComponentInParent<TablePlayer>().TableApi.Flippers[Item.Name] = new FlipperApi(Item, entity);
+			// register
+			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity);
 		}
 
 		private FlipperMaterialData GetMaterialData()
