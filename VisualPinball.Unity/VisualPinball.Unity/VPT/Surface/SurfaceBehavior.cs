@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.VPT.Surface
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Surface")]
 	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, SurfaceData>
 	{

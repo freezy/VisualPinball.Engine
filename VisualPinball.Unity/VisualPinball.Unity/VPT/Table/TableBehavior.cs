@@ -133,13 +133,18 @@ namespace VisualPinball.Unity.VPT.Table
 			Logger.Info("Restoring textures...");
 			foreach (var textureData in textures) {
 				var texture = new Texture(textureData);
-				if (textureData.Binary != null && textureData.Binary.Size > 0) {
-					textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-					textureData.Bitmap = null;
+				if (File.Exists(texture.GetUnityFilename(textureFolder))) {
+					if (textureData.Binary != null && textureData.Binary.Size > 0) {
+						textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+						textureData.Bitmap = null;
 
-				} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
-					textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-					textureData.Binary = null;
+					} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
+						textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+						textureData.Binary = null;
+					}
+
+				} else {
+					Logger.Warn($"Cannot find {texture.GetUnityFilename(textureFolder)}.");
 				}
 
 				table.Textures[texture.Name] = texture;
