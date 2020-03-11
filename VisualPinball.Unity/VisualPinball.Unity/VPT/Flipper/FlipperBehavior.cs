@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity);
+			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
 		}
 
 		private FlipperMaterialData GetMaterialData()
