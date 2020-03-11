@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			// register
-			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity);
+			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, gameObject);
 		}
 	}
 }
