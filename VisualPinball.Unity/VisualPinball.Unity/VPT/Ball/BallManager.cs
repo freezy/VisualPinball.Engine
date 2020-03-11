@@ -1,11 +1,14 @@
 ﻿using System.IO;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Extensions;
+using Material = UnityEngine.Material;
 using Player = VisualPinball.Unity.Game.Player;
+using SphereCollider = Unity.Physics.SphereCollider;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
@@ -50,7 +53,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			_spherePrefab.SetActive(false);
 
 			var pos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-			var scale = new float3(radius, radius, radius);
+			var scale = new float3(radius * 2, radius * 2, radius * 2);
 
 			// parenting
 			_entityManager.AddComponentData(entity, new Parent {Value = _rootEntity});
@@ -60,6 +63,23 @@ namespace VisualPinball.Unity.VPT.Ball
 			_entityManager.SetComponentData(entity, new Translation {Value = pos});
 			_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
 			_entityManager.AddComponentData(entity, new BallData {Mass = mass});
+
+			// physics
+			var collider = SphereCollider.Create(new SphereGeometry {
+				Center = pos,
+				Radius = radius
+			});
+			var colliderComponent = new PhysicsCollider {Value = collider};
+			_entityManager.AddComponentData(entity, colliderComponent);
+			_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 100));
+			_entityManager.AddComponentData(entity, new PhysicsVelocity {
+				Linear = float3.zero,
+				Angular = float3.zero
+			});
+			_entityManager.AddComponentData(entity, new PhysicsDamping {
+				Linear = 0.3f,
+				Angular = 0.05f
+			});
 
 			return new BallApi(entity, player);
 		}
