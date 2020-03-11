@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
@@ -25,9 +28,11 @@ namespace VisualPinball.Unity.Game
 		private Table _table;
 		private EntityManager _manager;
 		private BallManager _ballManager;
+		private Entity _rootEntity;
 
-		public void RegisterFlipper(Flipper flipper, Entity entity)
+		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
+			AttachToRoot(entity, go);
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
@@ -35,14 +40,21 @@ namespace VisualPinball.Unity.Game
 				(sender, e) => flipperApi.HandleEvent(e);
 		}
 
-		public void RegisterKicker(Kicker kicker, Entity entity)
+		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
+			AttachToRoot(entity, go);
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 		}
 
+		public void RegisterSurface(Surface item, Entity entity, GameObject go)
+		{
+			AttachToRoot(entity, go);
+		}
+
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
+			return null;
 			var ballApi = _ballManager.CreateBall(this, ballCreator, radius, mass);
 
 			// var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
@@ -73,6 +85,7 @@ namespace VisualPinball.Unity.Game
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			_rootEntity = GetRootEntity();
 
 			//DebugLog = File.CreateText("flipper.log");
 		}
@@ -106,6 +119,39 @@ namespace VisualPinball.Unity.Game
 			if (Input.GetKeyUp("right shift")) {
 				_tableApi.Flipper("RightFlipper")?.RotateToStart();
 			}
+		}
+
+		private Entity GetRootEntity()
+		{
+			var archetype = _manager.CreateArchetype(
+				typeof(LocalToWorld),
+				typeof(Translation),
+				typeof(Rotation),
+				typeof(Scale)
+			);
+			var entity = _manager.CreateEntity(archetype);
+
+			var t = transform;
+			var trans = t.localPosition;
+			var rot = t.localRotation;
+			var scale = t.localScale;
+			_manager.SetComponentData(entity, new Translation { Value = new float3(trans.x, trans.y, trans.z)});
+			_manager.SetComponentData(entity, new Rotation { Value = new quaternion(rot.x, rot.y, rot.z, rot.w) });
+			_manager.SetComponentData(entity, new Scale { Value = scale.x });
+
+			return entity;
+		}
+
+		private void AttachToRoot(Entity entity, GameObject go)
+		{
+			_manager.AddComponentData(entity, new Parent {Value = _rootEntity});
+			_manager.AddComponentData(entity, new LocalToParent());
+
+			// now it's attached to the parent, reset local transformation
+			// see https://forum.unity.com/threads/adding-localtoparent-resets-child-rotation.783239/#post-5218394
+			_manager.AddComponentData(entity, new Translation { Value = go.transform.localPosition });
+			_manager.AddComponentData(entity, new Rotation { Value = go.transform.localRotation });
+			_manager.AddComponentData(entity, new NonUniformScale { Value = Vector3.one });
 		}
 
 		private void OnDestroy()

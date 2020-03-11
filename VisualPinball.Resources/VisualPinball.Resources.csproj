@@ -78,13 +78,11 @@
     <Compile Include="Resource.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Textures\BallDebug.png" />
     <EmbeddedResource Include="Textures\BumperBase.png" />
     <EmbeddedResource Include="Textures\BumperCap.png" />
     <EmbeddedResource Include="Textures\BumperRing.png" />
     <EmbeddedResource Include="Textures\BumperSkirt.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Textures\BallDebug.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
