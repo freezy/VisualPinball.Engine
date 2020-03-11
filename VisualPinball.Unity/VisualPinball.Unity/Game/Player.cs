@@ -54,7 +54,6 @@ namespace VisualPinball.Unity.Game
 
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
-			return null;
 			var ballApi = _ballManager.CreateBall(this, ballCreator, radius, mass);
 
 			// var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
@@ -81,11 +80,12 @@ namespace VisualPinball.Unity.Game
 
 		private void Awake()
 		{
+			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
-			_ballManager = new BallManager(_table);
-			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			_rootEntity = GetRootEntity();
+			_ballManager = new BallManager(_table, _rootEntity);
 
 			//DebugLog = File.CreateText("flipper.log");
 		}
@@ -132,12 +132,9 @@ namespace VisualPinball.Unity.Game
 			var entity = _manager.CreateEntity(archetype);
 
 			var t = transform;
-			var trans = t.localPosition;
-			var rot = t.localRotation;
-			var scale = t.localScale;
-			_manager.SetComponentData(entity, new Translation { Value = new float3(trans.x, trans.y, trans.z)});
-			_manager.SetComponentData(entity, new Rotation { Value = new quaternion(rot.x, rot.y, rot.z, rot.w) });
-			_manager.SetComponentData(entity, new Scale { Value = scale.x });
+			_manager.SetComponentData(entity, new Translation { Value = t.localPosition });
+			_manager.SetComponentData(entity, new Rotation { Value = t.localRotation });
+			_manager.AddComponentData(entity, new NonUniformScale { Value = t.localScale });
 
 			return entity;
 		}

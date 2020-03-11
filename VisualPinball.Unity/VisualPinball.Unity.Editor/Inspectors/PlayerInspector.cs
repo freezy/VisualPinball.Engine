@@ -1,10 +1,12 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 using Player = VisualPinball.Unity.Game.Player;
+using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	{
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
-			return new Vertex3D(table.Width / 3f, table.Height / 5f, 10f);
+			return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), 50f);
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table table)
