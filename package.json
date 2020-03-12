@@ -17,7 +17,7 @@
 		"com.unity.test-framework": "1.1.11",
 		"com.unity.textmeshpro": "2.0.1",
 		"com.unity.collab-proxy": "1.2.16",
-		"com.unity.physics": "0.2.5-preview",
+		"com.unity.physics": "0.3.0-preview.1",
 		"com.unity.ugui": "1.0.0",
 		"com.unity.ide.vscode": "1.1.4"
 	},
