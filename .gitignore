@@ -42,6 +42,7 @@ bld/
 # Unity
 /*.meta
 /VisualPinball.Engine.Test/**/*.meta
+/VisualPinball.Resources/**/*.meta
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
