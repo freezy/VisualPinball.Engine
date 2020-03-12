@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{9902C758-AB1F-4A15-9F77-51FB08642EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "..\VisualPinball.Resources\VisualPinball.Resources.csproj", "{F7C27E2C-8931-46F3-968E-F1103E975074}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity", "VisualPinball.Unity\VisualPinball.Unity.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
@@ -34,12 +32,6 @@ Global
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.ActiveCfg = Debug Unity|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.Build.0 = Debug Unity|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
