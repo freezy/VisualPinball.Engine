@@ -92,4 +92,11 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+
+	<Target Name="AfterBuild">
+		<ItemGroup>
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" />
+		</ItemGroup>
+		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
+	</Target>
 </Project>

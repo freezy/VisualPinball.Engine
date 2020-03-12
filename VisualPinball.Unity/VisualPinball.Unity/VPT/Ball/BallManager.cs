@@ -1,10 +1,12 @@
 ﻿using System.IO;
+using System.Resources;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
 using Material = UnityEngine.Material;
 using Player = VisualPinball.Unity.Game.Player;
@@ -35,7 +37,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			// create a ball "prefab" (it's actually not a prefab, but we'll use it instantiate ball entities)
 			_material = new Material(Shader.Find("Standard"));
 			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
-			texture.LoadImage(File.ReadAllBytes(@"Assets\Scenes\check512.png"));
+			texture.LoadImage(Resource.BallDebug.Data);
 			_material.SetTexture(MainTex, texture);
 			_material.SetFloat(Metallic, 0.85f);
 			_material.SetFloat(Glossiness, 0.75f);
