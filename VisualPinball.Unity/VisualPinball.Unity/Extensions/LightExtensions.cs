@@ -12,8 +12,8 @@ namespace VisualPinball.Unity.Extensions
 
 			// Set color and position
 			lightComp.color = vpxLight.Data.Color.ToUnityColor();
-			lightComp.intensity = vpxLight.Data.Intensity / 5f;
-			lightComp.range = vpxLight.Data.Falloff * 0.01f;
+			lightComp.intensity = vpxLight.Data.Intensity / 50f;
+			lightComp.range = vpxLight.Data.Falloff * 0.001f;
 
 			// Set the position (or any transform property)
 			lightGameObject.transform.position = vpxLight.Data.Center.ToUnityVector3(50f);
