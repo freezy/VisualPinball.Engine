@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Import
 	public class VpxImporter : MonoBehaviour
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
-		private const float GlobalScale = 0.01f;
+		private const float GlobalScale = 0.001f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
