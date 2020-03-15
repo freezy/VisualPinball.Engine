@@ -16,10 +16,9 @@ namespace VisualPinball.Unity.VPT.Ball
 {
 	public class BallManager
 	{
-		//private int _id = 0;
+		private int _id = 0;
 
 		private readonly Engine.VPT.Table.Table _table;
-		private readonly Entity _rootEntity;
 		private readonly EntityManager _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 		private readonly GameObject _spherePrefab;
 
@@ -29,10 +28,9 @@ namespace VisualPinball.Unity.VPT.Ball
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
 
-		public BallManager(Engine.VPT.Table.Table table, Entity rootEntity)
+		public BallManager(Engine.VPT.Table.Table table)
 		{
 			_table = table;
-			_rootEntity = rootEntity;
 
 			// create a ball "prefab" (it's actually not a prefab, but we'll use it instantiate ball entities)
 			_material = new Material(Shader.Find("Standard"));
@@ -48,42 +46,43 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		public BallApi CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
 		{
-			var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
-
 			_spherePrefab.SetActive(true);
-			var entity = GameObjectConversionUtility.ConvertGameObjectHierarchy(_spherePrefab, settings);
-			_spherePrefab.SetActive(false);
+			_spherePrefab.name = $"Ball{++_id}";
+			using (var blobAssetStore = new BlobAssetStore()) {
+				var entity = GameObjectConversionUtility.ConvertGameObjectHierarchy(_spherePrefab,
+					GameObjectConversionSettings.FromWorld(_entityManager.World, blobAssetStore));
 
-			var pos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-			var scale = new float3(radius * 2, radius * 2, radius * 2);
+				_spherePrefab.SetActive(false);
 
-			// parenting
-			_entityManager.AddComponentData(entity, new Parent {Value = _rootEntity});
-			_entityManager.AddComponentData(entity, new LocalToParent());
+				var ballPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
+				var pos = math.mul(player.TableToWorld, new float4(ballPos, 1f));
+				var scale = new float3(radius * 2, radius * 2, radius * 2);
 
-			// local position
-			_entityManager.SetComponentData(entity, new Translation {Value = pos});
-			_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
-			_entityManager.AddComponentData(entity, new BallData {Mass = mass});
+				// local position
+				_entityManager.SetComponentData(entity, new Translation {Value = pos.xyz});
+				_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
+				_entityManager.AddComponentData(entity, new BallData {Mass = mass});
 
-			// physics
-			var collider = SphereCollider.Create(new SphereGeometry {
-				Center = pos,
-				Radius = radius
-			});
-			var colliderComponent = new PhysicsCollider {Value = collider};
-			_entityManager.AddComponentData(entity, colliderComponent);
-			_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 100));
-			_entityManager.AddComponentData(entity, new PhysicsVelocity {
-				Linear = float3.zero,
-				Angular = float3.zero
-			});
-			_entityManager.AddComponentData(entity, new PhysicsDamping {
-				Linear = 0.3f,
-				Angular = 0.05f
-			});
+				// physics
+				var collider = SphereCollider.Create(new SphereGeometry {
+					Center = pos.xyz,
+					Radius = radius
+				});
+				var colliderComponent = new PhysicsCollider {Value = collider};
+				_entityManager.AddComponentData(entity, colliderComponent);
+				_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 100));
+				_entityManager.AddComponentData(entity, new PhysicsVelocity {
+					Linear = float3.zero,
+					Angular = float3.zero
+				});
+				_entityManager.AddComponentData(entity, new PhysicsDamping {
+					Linear = 0.3f,
+					Angular = 0.05f
+				});
 
-			return new BallApi(entity, player);
+
+				return new BallApi(entity, player);
+			}
 		}
 
 		private GameObject CreateSphere()

@@ -28,11 +28,11 @@ namespace VisualPinball.Unity.Game
 		private Table _table;
 		private EntityManager _manager;
 		private BallManager _ballManager;
-		private Entity _rootEntity;
+		public float4x4 TableToWorld;
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
-			AttachToRoot(entity, go);
+			//AttachToRoot(entity, go);
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
@@ -42,14 +42,14 @@ namespace VisualPinball.Unity.Game
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
-			AttachToRoot(entity, go);
+			//AttachToRoot(entity, go);
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
 		{
-			AttachToRoot(entity, go);
+			//AttachToRoot(entity, go);
 		}
 
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
@@ -81,11 +81,11 @@ namespace VisualPinball.Unity.Game
 		private void Awake()
 		{
 			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			TableToWorld = transform.localToWorldMatrix;
 
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
-			_rootEntity = GetRootEntity();
-			_ballManager = new BallManager(_table, _rootEntity);
+			_ballManager = new BallManager(_table);
 
 			//DebugLog = File.CreateText("flipper.log");
 		}
@@ -139,17 +139,17 @@ namespace VisualPinball.Unity.Game
 			return entity;
 		}
 
-		private void AttachToRoot(Entity entity, GameObject go)
-		{
-			_manager.AddComponentData(entity, new Parent {Value = _rootEntity});
-			_manager.AddComponentData(entity, new LocalToParent());
-
-			// now it's attached to the parent, reset local transformation
-			// see https://forum.unity.com/threads/adding-localtoparent-resets-child-rotation.783239/#post-5218394
-			_manager.AddComponentData(entity, new Translation { Value = go.transform.localPosition });
-			_manager.AddComponentData(entity, new Rotation { Value = go.transform.localRotation });
-			_manager.AddComponentData(entity, new NonUniformScale { Value = Vector3.one });
-		}
+		// private void AttachToRoot(Entity entity, GameObject go)
+		// {
+		// 	_manager.AddComponentData(entity, new Parent {Value = _rootEntity});
+		// 	_manager.AddComponentData(entity, new LocalToParent());
+		//
+		// 	// now it's attached to the parent, reset local transformation
+		// 	// see https://forum.unity.com/threads/adding-localtoparent-resets-child-rotation.783239/#post-5218394
+		// 	_manager.AddComponentData(entity, new Translation { Value = go.transform.localPosition });
+		// 	_manager.AddComponentData(entity, new Rotation { Value = go.transform.localRotation });
+		// 	_manager.AddComponentData(entity, new NonUniformScale { Value = Vector3.one });
+		// }
 
 		private void OnDestroy()
 		{
