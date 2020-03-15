@@ -6,6 +6,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Import;
 using Material = UnityEngine.Material;
 using Player = VisualPinball.Unity.Game.Player;
 using SphereCollider = Unity.Physics.SphereCollider;
@@ -44,17 +45,18 @@ namespace VisualPinball.Unity.VPT.Ball
 				_spherePrefab.SetActive(false);
 
 				var ballPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-				var pos = math.mul(player.TableToWorld, new float4(ballPos, 1f));
-				var scale = new float3(radius * 2, radius * 2, radius * 2);
+				var pos = player.TableToWorld.MultiplyVector(ballPos);
+				var r = radius * 2 * VpxImporter.GlobalScale;
+				var scale = new float3(r, r, r);
 
 				// local position
-				_entityManager.SetComponentData(entity, new Translation {Value = pos.xyz});
+				_entityManager.SetComponentData(entity, new Translation {Value = pos});
 				_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
 				_entityManager.AddComponentData(entity, new BallData {Mass = mass});
 
 				// physics
 				var collider = SphereCollider.Create(new SphereGeometry {
-					Center = pos.xyz,
+					Center = pos,
 					Radius = radius
 				});
 				var colliderComponent = new PhysicsCollider {Value = collider};

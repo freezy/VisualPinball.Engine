@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Game
 		private Table _table;
 		private EntityManager _manager;
 		private BallManager _ballManager;
-		public float4x4 TableToWorld;
+		public Matrix4x4 TableToWorld;
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
