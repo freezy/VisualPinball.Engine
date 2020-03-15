@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Resources;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
@@ -22,8 +20,6 @@ namespace VisualPinball.Unity.VPT.Ball
 		private readonly EntityManager _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 		private readonly GameObject _spherePrefab;
 
-		private readonly Material _material;
-
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
@@ -33,14 +29,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			_table = table;
 
 			// create a ball "prefab" (it's actually not a prefab, but we'll use it instantiate ball entities)
-			_material = new Material(Shader.Find("Standard"));
-			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
-			texture.LoadImage(Resource.BallDebug.Data);
-			_material.SetTexture(MainTex, texture);
-			_material.SetFloat(Metallic, 0.85f);
-			_material.SetFloat(Glossiness, 0.75f);
-
-			_spherePrefab = CreateSphere();
+			_spherePrefab = CreateSphere(CreateMaterial());
 			_spherePrefab.SetActive(false);
 		}
 
@@ -85,11 +74,22 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
-		private GameObject CreateSphere()
+		private static GameObject CreateSphere(Material material)
 		{
 			var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			sphere.GetComponent<Renderer>().material = _material;
+			sphere.GetComponent<Renderer>().material = material;
 			return sphere;
+		}
+
+		private static Material CreateMaterial()
+		{
+			var material = new Material(Shader.Find("Standard"));
+			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
+			texture.LoadImage(Resource.BallDebug.Data);
+			material.SetTexture(MainTex, texture);
+			material.SetFloat(Metallic, 0.85f);
+			material.SetFloat(Glossiness, 0.75f);
+			return material;
 		}
 	}
 }
