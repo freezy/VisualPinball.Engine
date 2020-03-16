@@ -84,13 +84,11 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
 				return CreateUniversalMaterial();
-
-			} else if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
-				return CreateStandardMaterial();
-
-			} else {
-				return CreateStandardMaterial();
 			}
+
+			return GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")
+				? CreateHDMaterial()
+				: CreateStandardMaterial();
 		}
 
 		private static Material CreateStandardMaterial()
@@ -104,9 +102,19 @@ namespace VisualPinball.Unity.VPT.Ball
 			return material;
 		}
 
+		private static Material CreateHDMaterial()
+		{
+			return CreateScriptableMaterial("High Definition Render Pipeline/Lit");
+		}
+
 		private static Material CreateUniversalMaterial()
 		{
-			var material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+			return CreateScriptableMaterial("Universal Render Pipeline/Lit");
+		}
+
+		private static Material CreateScriptableMaterial(string shaderName)
+		{
+			var material = new Material(Shader.Find(shaderName));
 			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
 			texture.LoadImage(Resource.BallDebug.Data);
 			material.SetTexture(BaseMap, texture);
