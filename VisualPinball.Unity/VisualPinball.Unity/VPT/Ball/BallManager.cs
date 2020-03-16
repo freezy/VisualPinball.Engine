@@ -83,13 +83,17 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		private static Material CreateMaterial()
 		{
-			if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
-				return CreateUniversalMaterial();
+			if (GraphicsSettings.renderPipelineAsset != null) {
+				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
+					return CreateUniversalMaterial();
+				}
+
+				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
+					return CreateHDMaterial();
+				}
 			}
 
-			return GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")
-				? CreateHDMaterial()
-				: CreateStandardMaterial();
+			return CreateStandardMaterial();
 		}
 
 		private static Material CreateStandardMaterial()
