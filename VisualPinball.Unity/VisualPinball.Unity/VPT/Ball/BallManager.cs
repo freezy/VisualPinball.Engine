@@ -1,26 +1,21 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Transforms;
+using Unity.Physics.Authoring;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import;
-using BoxCollider = Unity.Physics.BoxCollider;
 using Material = UnityEngine.Material;
 using Player = VisualPinball.Unity.Game.Player;
-using SphereCollider = Unity.Physics.SphereCollider;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
 	public class BallManager
 	{
-		private int _id = 0;
+		private int _id;
 
 		private readonly Engine.VPT.Table.Table _table;
-		private readonly EntityManager _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-		private readonly GameObject _spherePrefab;
 
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
@@ -29,75 +24,57 @@ namespace VisualPinball.Unity.VPT.Ball
 		public BallManager(Engine.VPT.Table.Table table)
 		{
 			_table = table;
-
-			// create a ball "prefab" (it's actually not a prefab, but we'll use it instantiate ball entities)
-			_spherePrefab = CreateSphere(CreateMaterial());
-			_spherePrefab.SetActive(false);
 		}
 
 		public BallApi CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
 		{
-			_spherePrefab.SetActive(true);
-			_spherePrefab.name = $"Ball{++_id}";
-			using (var blobAssetStore = new BlobAssetStore()) {
-				var entity = GameObjectConversionUtility.ConvertGameObjectHierarchy(_spherePrefab,
-					GameObjectConversionSettings.FromWorld(_entityManager.World, blobAssetStore));
+			// calculate mass and scale
+			var m = player.TableToWorld;
+			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
+			var worldPos = m.MultiplyPoint(localPos);
+			var scale = new Vector3(
+				m.GetColumn(0).magnitude,
+				m.GetColumn(1).magnitude,
+				m.GetColumn(2).magnitude
+			) * (radius * 2);
 
-				_spherePrefab.SetActive(false);
-
-				var m = player.TableToWorld;
-				var ballPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-				var pos = m.MultiplyPoint(ballPos);
-				var rot = Quaternion.LookRotation(
-					m.GetColumn(2),
-					m.GetColumn(1)
-				);
-				var scale = new Vector3(
-					m.GetColumn(0).magnitude,
-					m.GetColumn(1).magnitude,
-					m.GetColumn(2).magnitude
-				) * (radius * 2);
-
-				// local position
-				_entityManager.SetComponentData(entity, new Translation {Value = pos});
-				_entityManager.AddComponentData(entity, new Rotation {Value = rot});
-				_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
-				_entityManager.AddComponentData(entity, new BallData {Mass = mass});
-
-				// physics
-				var boxCollider = BoxCollider.Create(new BoxGeometry {
-					Center = pos,
-					Size = new float3(
-						radius * 2 * VpxImporter.GlobalScale,
-						radius * 2 * VpxImporter.GlobalScale,
-						radius * 2 * VpxImporter.GlobalScale
-					)
-				});
-				var collider = SphereCollider.Create(new SphereGeometry {
-					Center = pos,
-					Radius = radius
-				});
-				var colliderComponent = new PhysicsCollider {Value = boxCollider};
-				_entityManager.AddComponentData(entity, colliderComponent);
-				_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 10));
-				_entityManager.AddComponentData(entity, new PhysicsVelocity {
-					Linear = float3.zero,
-					Angular = float3.zero
-				});
-				_entityManager.AddComponentData(entity, new PhysicsDamping {
-					Linear = 0.01f,
-					Angular = 0.05f
-				});
-
-				return new BallApi(entity, player);
-			}
+			// go will be converted automatically to entity
+			var go = CreateSphere(CreateMaterial(), worldPos, scale, mass);
+			return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
 		}
 
-		private static GameObject CreateSphere(Material material)
+		private GameObject CreateSphere(Material material, float3 pos, float3 scale, float mass)
 		{
-			var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			sphere.GetComponent<Renderer>().material = material;
-			return sphere;
+			// create go
+			var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+			go.name = $"Ball{++_id}";
+
+			// set material
+			go.GetComponent<Renderer>().material = material;
+
+			// set position and scale
+			go.transform.localPosition = pos;
+			go.transform.localScale = scale;
+
+			// mark to convert
+			go.AddComponent<ConvertToEntity>();
+
+			// physics shape
+			var shape = go.AddComponent<PhysicsShapeAuthoring>();
+			shape.SetSphere(new SphereGeometry { Radius = 0.5f, Center = float3.zero }, quaternion.identity);
+			shape.Friction = new PhysicsMaterialCoefficient
+				{Value = 0.1f, CombineMode = global::Unity.Physics.Material.CombinePolicy.Maximum};
+			shape.Restitution = new PhysicsMaterialCoefficient
+				{Value = 0.2f, CombineMode = global::Unity.Physics.Material.CombinePolicy.Maximum};
+
+			// physics body
+			var body = go.AddComponent<PhysicsBodyAuthoring>();
+			body.MotionType = BodyMotionType.Dynamic;
+			body.Mass = mass * 10f; // TODO tweak
+			body.LinearDamping = 0.01f;
+			body.AngularDamping = 0.05f;
+
+			return go;
 		}
 
 		private static Material CreateMaterial()
