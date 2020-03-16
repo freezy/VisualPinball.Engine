@@ -7,6 +7,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Import;
+using BoxCollider = Unity.Physics.BoxCollider;
 using Material = UnityEngine.Material;
 using Player = VisualPinball.Unity.Game.Player;
 using SphereCollider = Unity.Physics.SphereCollider;
@@ -44,33 +45,49 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				_spherePrefab.SetActive(false);
 
+				var m = player.TableToWorld;
 				var ballPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-				var pos = player.TableToWorld.MultiplyVector(ballPos);
-				var r = radius * 2 * VpxImporter.GlobalScale;
-				var scale = new float3(r, r, r);
+				var pos = m.MultiplyPoint(ballPos);
+				var rot = Quaternion.LookRotation(
+					m.GetColumn(2),
+					m.GetColumn(1)
+				);
+				var scale = new Vector3(
+					m.GetColumn(0).magnitude,
+					m.GetColumn(1).magnitude,
+					m.GetColumn(2).magnitude
+				) * (radius * 2);
 
 				// local position
 				_entityManager.SetComponentData(entity, new Translation {Value = pos});
+				_entityManager.AddComponentData(entity, new Rotation {Value = rot});
 				_entityManager.AddComponentData(entity, new NonUniformScale {Value = scale});
 				_entityManager.AddComponentData(entity, new BallData {Mass = mass});
 
 				// physics
+				var boxCollider = BoxCollider.Create(new BoxGeometry {
+					Center = pos,
+					Size = new float3(
+						radius * 2 * VpxImporter.GlobalScale,
+						radius * 2 * VpxImporter.GlobalScale,
+						radius * 2 * VpxImporter.GlobalScale
+					)
+				});
 				var collider = SphereCollider.Create(new SphereGeometry {
 					Center = pos,
 					Radius = radius
 				});
-				var colliderComponent = new PhysicsCollider {Value = collider};
+				var colliderComponent = new PhysicsCollider {Value = boxCollider};
 				_entityManager.AddComponentData(entity, colliderComponent);
-				_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 100));
+				_entityManager.AddComponentData(entity, PhysicsMass.CreateDynamic(colliderComponent.MassProperties, mass * 10));
 				_entityManager.AddComponentData(entity, new PhysicsVelocity {
 					Linear = float3.zero,
 					Angular = float3.zero
 				});
 				_entityManager.AddComponentData(entity, new PhysicsDamping {
-					Linear = 0.3f,
+					Linear = 0.01f,
 					Angular = 0.05f
 				});
-
 
 				return new BallApi(entity, player);
 			}

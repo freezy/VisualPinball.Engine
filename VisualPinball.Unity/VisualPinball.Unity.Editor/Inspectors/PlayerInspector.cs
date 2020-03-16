@@ -14,12 +14,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	{
 		public override void OnInspectorGUI()
 		{
-			if (EditorApplication.isPlaying) {
+			//if (EditorApplication.isPlaying) {
 				if (GUILayout.Button("Spawn Ball")) {
 					var player = (Player) target;
 					player.CreateBall(new DebugBallCreator());
 				}
-			}
+			//}
 		}
 	}
 
