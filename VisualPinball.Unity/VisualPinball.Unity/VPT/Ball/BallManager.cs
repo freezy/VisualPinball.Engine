@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Authoring;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
@@ -18,6 +19,8 @@ namespace VisualPinball.Unity.VPT.Ball
 		private readonly Engine.VPT.Table.Table _table;
 
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
+		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
 
@@ -79,13 +82,39 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		private static Material CreateMaterial()
 		{
+			if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
+				return CreateUniversalMaterial();
+
+			} else if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
+				return CreateStandardMaterial();
+
+			} else {
+				return CreateStandardMaterial();
+			}
+		}
+
+		private static Material CreateStandardMaterial()
+		{
 			var material = new Material(Shader.Find("Standard"));
 			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
 			texture.LoadImage(Resource.BallDebug.Data);
 			material.SetTexture(MainTex, texture);
+			material.SetFloat(Metallic, 0.9f);
+			material.SetFloat(Glossiness, 0.75f);
+			return material;
+		}
+
+		private static Material CreateUniversalMaterial()
+		{
+			var material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
+			texture.LoadImage(Resource.BallDebug.Data);
+			material.SetTexture(BaseMap, texture);
+			material.SetColor(BaseColor, Color.white);
 			material.SetFloat(Metallic, 0.85f);
 			material.SetFloat(Glossiness, 0.75f);
 			return material;
 		}
+
 	}
 }
