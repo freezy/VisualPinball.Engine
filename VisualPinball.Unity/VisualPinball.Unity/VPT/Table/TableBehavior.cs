@@ -50,7 +50,7 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.VPT.Table
 {
-	[AddComponentMenu("Visual Pinball/Playfield")]
+	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
