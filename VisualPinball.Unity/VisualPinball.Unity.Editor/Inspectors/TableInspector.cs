@@ -14,19 +14,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	{
 		public override void OnInspectorGUI()
 		{
-			serializedObject.Update();
-			DrawDefaultInspector();
-			if (GUILayout.Button("Export VPX")) {
-				var tableComponent = (TableBehavior) target;
-				var table = tableComponent.RecreateTable();
-				var path = EditorUtility.SaveFilePanel(
-					"Export table as VPX",
-					"",
-					table.Name + ".vpx",
-					"vpx");
+			if (!EditorApplication.isPlaying) {
+				serializedObject.Update();
+				DrawDefaultInspector();
+				if (GUILayout.Button("Export VPX")) {
+					var tableComponent = (TableBehavior) target;
+					var table = tableComponent.RecreateTable();
+					var path = EditorUtility.SaveFilePanel(
+						"Export table as VPX",
+						"",
+						table.Name + ".vpx",
+						"vpx");
 
-				if (!string.IsNullOrEmpty(path)) {
-					table.Save(path);
+					if (!string.IsNullOrEmpty(path)) {
+						table.Save(path);
+					}
 				}
 			}
 
