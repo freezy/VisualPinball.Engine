@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -138,18 +137,6 @@ namespace VisualPinball.Unity.Game
 
 			return entity;
 		}
-
-		// private void AttachToRoot(Entity entity, GameObject go)
-		// {
-		// 	_manager.AddComponentData(entity, new Parent {Value = _rootEntity});
-		// 	_manager.AddComponentData(entity, new LocalToParent());
-		//
-		// 	// now it's attached to the parent, reset local transformation
-		// 	// see https://forum.unity.com/threads/adding-localtoparent-resets-child-rotation.783239/#post-5218394
-		// 	_manager.AddComponentData(entity, new Translation { Value = go.transform.localPosition });
-		// 	_manager.AddComponentData(entity, new Rotation { Value = go.transform.localRotation });
-		// 	_manager.AddComponentData(entity, new NonUniformScale { Value = Vector3.one });
-		// }
 
 		private void OnDestroy()
 		{
