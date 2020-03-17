@@ -12,6 +12,12 @@ using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
+	/// <summary>
+	/// Handles ball creation.
+	///
+	/// It does it by authoring a game object that is then automatically
+	/// converted to an entity and then destroyed.
+	/// </summary>
 	public class BallManager
 	{
 		private int _id;
