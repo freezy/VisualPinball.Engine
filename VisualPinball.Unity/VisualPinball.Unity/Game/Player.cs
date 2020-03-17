@@ -25,9 +25,9 @@ namespace VisualPinball.Unity.Game
 		//public static StreamWriter DebugLog;
 
 		private Table _table;
-		private EntityManager _manager;
 		private BallManager _ballManager;
-		public Matrix4x4 TableToWorld;
+
+		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
@@ -41,47 +41,22 @@ namespace VisualPinball.Unity.Game
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
-			//AttachToRoot(entity, go);
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
 		{
-			//AttachToRoot(entity, go);
 		}
 
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
-			var ballApi = _ballManager.CreateBall(this, ballCreator, radius, mass);
-
-			// var data = new BallData(radius, mass, _table.Data.DefaultBulbIntensityScaleOnBall);
-			// const ballId = Ball.idCounter++;
-			// const state = BallState.claim(`Ball${ballId}`, ballCreator.getBallCreationPosition(this.table));
-			// state.pos.z += data.radius;
-			//
-			// const ball = new Ball(ballId, data, state, ballCreator.getBallCreationVelocity(this.table), player, this.table);
-			//
-			// ballCreator.onBallCreated(this, ball);
-			//
-			// this.balls.push(ball);
-			// this.movers.push(ball.getMover()); // balls are always added separately to this list!
-			//
-			// this.hitObjectsDynamic.push(ball.hit);
-			// this.hitOcTreeDynamic.fillFromVector(this.hitObjectsDynamic);
-			//
-			// this.currentStates[ball.getName()] = ball.getState();
-			// this.previousStates[ball.getName()] = ball.getState().clone();
-			// this.emit('ballCreated', ball);
-			// return ball;
-			return ballApi;
+			// todo callback and other stuff
+			return _ballManager.CreateBall(this, ballCreator, radius, mass);
 		}
 
 		private void Awake()
 		{
-			_manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			TableToWorld = transform.localToWorldMatrix;
-
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
@@ -118,24 +93,6 @@ namespace VisualPinball.Unity.Game
 			if (Input.GetKeyUp("right shift")) {
 				_tableApi.Flipper("RightFlipper")?.RotateToStart();
 			}
-		}
-
-		private Entity GetRootEntity()
-		{
-			var archetype = _manager.CreateArchetype(
-				typeof(LocalToWorld),
-				typeof(Translation),
-				typeof(Rotation),
-				typeof(Scale)
-			);
-			var entity = _manager.CreateEntity(archetype);
-
-			var t = transform;
-			_manager.SetComponentData(entity, new Translation { Value = t.localPosition });
-			_manager.SetComponentData(entity, new Rotation { Value = t.localRotation });
-			_manager.AddComponentData(entity, new NonUniformScale { Value = t.localScale });
-
-			return entity;
 		}
 
 		private void OnDestroy()
