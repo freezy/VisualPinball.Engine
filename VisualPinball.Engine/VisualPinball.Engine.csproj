@@ -155,6 +155,7 @@
 		<Compile Include="VPT\Ball\Ball.cs" />
 		<Compile Include="VPT\Ball\BallData.cs" />
 		<Compile Include="VPT\Ball\BallHit.cs" />
+		<Compile Include="VPT\Ball\BallMeshGenerator.cs" />
 		<Compile Include="VPT\Ball\BallMover.cs" />
 		<Compile Include="VPT\Ball\BallState.cs" />
 		<Compile Include="VPT\BinaryData.cs" />
