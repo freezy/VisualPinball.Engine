@@ -6,7 +6,11 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Physics.Authoring;
+using Unity.Transforms;
 using UnityEngine;
+using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
 
@@ -30,9 +34,65 @@ namespace VisualPinball.Unity.VPT.Flipper
 			manager.AddComponentData(entity, GetMovementData(d));
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
+			AddMissingECSComponents(entity, manager, conversionSystem);
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
+		}
+
+		private void Awake()
+		{
+			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
+			// can be null in editor, shouldn't be at runtime.
+			if (rootObj != null)
+			{
+				_tableData = rootObj.data;
+			}
+			AddMissingPhysicsComponents();
+		}
+
+		private void AddMissingECSComponents(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
+		{
+			var d = GetMaterialData();
+			var surfaceWithFlipper = gameObject.transform.GetComponentInParent<TableBehavior>(); // Now it is table... but it may be surface with flipper too.
+
+			//PhysicsJoint
+			var flipperRotationFix = new Quaternion(0.7071067811865475f, 0, 0.7071067811865475f, 0); // rotArray[19]
+
+			var flipperHingeJointPoint = new Vector3(0, 0, data.Height*0.5f * 0.001f); // half of flipper height
+			RigidTransform m = new RigidTransform(surfaceWithFlipper.transform.rotation, flipperHingeJointPoint);
+			Vector3 invFlipperHingeJointPoint = math.inverse(m).pos;
+
+			var jointData = JointData.CreateLimitedHinge(
+				new JointFrame(new RigidTransform(flipperRotationFix, flipperHingeJointPoint)),
+				new JointFrame(new RigidTransform(surfaceWithFlipper.transform.rotation * flipperRotationFix, gameObject.transform.position + invFlipperHingeJointPoint)),
+				new Math.FloatRange(d.AngleStart, d.AngleEnd));
+
+			manager.AddComponentData(entity, new PhysicsJoint
+			{
+				JointData = jointData,
+				EntityA = entity,
+				EntityB = Entity.Null,
+				EnableCollision = 1,
+			});
+		}
+
+		public void AddMissingPhysicsComponents()
+		{
+			var d = GetMaterialData();
+			// *** Warning: Magic numbers here! Replace it with somthing. See Mass, AngularDamping...
+
+			// Add Physics Body Component
+			var body = gameObject.AddComponent<PhysicsBodyAuthoring>();
+			body.MotionType = BodyMotionType.Dynamic;
+			body.Mass = 1;
+			body.LinearDamping = 0.0f;                                  // will hinge joint will be attached to object, there will be on linear move
+			body.AngularDamping = 0.1f;
+			body.InitialLinearVelocity = float3.zero;
+			body.InitialAngularVelocity = new float3(0,0,25); // float3.zero;
+			body.GravityFactor = 1.0f;                                  // is it needed?
+			body.OverrideDefaultMassDistribution = false;
+			body.CustomTags = CustomPhysicsBodyTags.Nothing;            // Add flipper tag here?
 		}
 
 		private FlipperMaterialData GetMaterialData()
@@ -98,6 +158,47 @@ namespace VisualPinball.Unity.VPT.Flipper
 				IsInContact = false
 			};
 		}
+
+
+		/**
+		 * Below are 24 rotations. All posible 90 deg.
+		 * I used this to find correct flipper rotations.
+		 * I left this here for future use.
+		 * Data is based on: https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
+		 */
+		static private float A = 0.7071067811865475f;
+		static private float H = 0.5f;
+		static public Quaternion[] all24rotations = {
+			new Quaternion(0,0,0,1),
+			new Quaternion(0,A,0,A),
+			new Quaternion(0,1,0,0),
+			new Quaternion(0,-A,0,A),
+
+			new Quaternion(0,0,A,A),
+			new Quaternion(H,H,H,H),
+			new Quaternion(A,A,0,0),
+			new Quaternion(-H,-H,H,H),
+
+			new Quaternion(0,0,-A,A),
+			new Quaternion(-H,H,-H,H),
+			new Quaternion(-A,A,0,0),
+			new Quaternion(H,-H,-H,H),
+
+			new Quaternion(A,0,0,A),
+			new Quaternion(H,H,-H,H),
+			new Quaternion(0,A,-A,0),
+			new Quaternion(H,-H,H,H),
+
+			new Quaternion(1,0,0,0),
+			new Quaternion(A,0,-A,0),
+			new Quaternion(0,0,1,0),
+			new Quaternion(A,0,A,0),
+
+			new Quaternion(-A,0,0,A),
+			new Quaternion(-H,H,H,H),
+			new Quaternion(0,A,A,0),
+			new Quaternion(-H,-H,-H,H),
+		};
 
 		protected virtual void OnDrawGizmos()
 		{

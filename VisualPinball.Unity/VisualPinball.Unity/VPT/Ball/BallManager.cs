@@ -117,7 +117,10 @@ namespace VisualPinball.Unity.VPT.Ball
 				Linear = 0.011f,
 				Angular = 0.055f
 			});
+
+#if UNITY_EDITOR
 			entityManager.SetName(entity, $"Ball{++_id}");
+#endif
 			return new BallApi(entity, player);
 		}
 
