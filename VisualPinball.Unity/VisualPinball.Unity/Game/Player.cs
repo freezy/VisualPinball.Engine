@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Game
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
-
+			PhysicsTags.SetAllPhysicsTagsAsStatic();
 			//DebugLog = File.CreateText("flipper.log");
 		}
 

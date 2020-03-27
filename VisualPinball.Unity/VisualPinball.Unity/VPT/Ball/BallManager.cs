@@ -85,7 +85,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					},
 					new CollisionFilter
 					{
-						BelongsTo = 0xffffffff,
+						BelongsTo = PhysicsTags.Ball,
 						CollidesWith = 0xffffffff,
 						GroupIndex = 0
 					},
