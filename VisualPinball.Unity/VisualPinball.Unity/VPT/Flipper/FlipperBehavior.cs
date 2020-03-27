@@ -54,12 +54,15 @@ namespace VisualPinball.Unity.VPT.Flipper
 		private void AddMissingECSComponents(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
 		{
 			var d = GetMaterialData();
+			var ltw = gameObject.transform.localToWorldMatrix;
+			var zScale = (ltw * new Vector4(0, 0, 1, 0).normalized).magnitude;
+
 			var surfaceWithFlipper = gameObject.transform.GetComponentInParent<TableBehavior>(); // Now it is table... but it may be surface with flipper too.
 
 			//PhysicsJoint
 			var flipperRotationFix = new Quaternion(0.7071067811865475f, 0, 0.7071067811865475f, 0); // rotArray[19]
 
-			var flipperHingeJointPoint = new Vector3(0, 0, data.Height*0.5f * 0.001f); // half of flipper height
+			var flipperHingeJointPoint = new Vector3(0, 0, data.Height * 0.5f * zScale); // half of flipper height
 			RigidTransform m = new RigidTransform(surfaceWithFlipper.transform.rotation, flipperHingeJointPoint);
 			Vector3 invFlipperHingeJointPoint = math.inverse(m).pos;
 
@@ -79,7 +82,10 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		public void AddMissingPhysicsComponents()
 		{
+			//ReplaceMeshWithCapsuleShapes();
+			ReplaceMeshWithCylindersShapes();
 			var d = GetMaterialData();
+
 			// *** Warning: Magic numbers here! Replace it with somthing. See Mass, AngularDamping...
 
 			// Add Physics Body Component
@@ -92,7 +98,131 @@ namespace VisualPinball.Unity.VPT.Flipper
 			body.InitialAngularVelocity = new float3(0,0,25); // float3.zero;
 			body.GravityFactor = 1.0f;                                  // is it needed?
 			body.OverrideDefaultMassDistribution = false;
-			body.CustomTags = CustomPhysicsBodyTags.Nothing;            // Add flipper tag here?
+			body.CustomTags = CustomPhysicsBodyTags.Nothing;            // Add flipper tag here?	
+
+			SetCollisionsFilters(gameObject);
+		}
+
+		private void ReplaceMeshWithCapsuleShapes()
+		{
+			var d = GetMaterialData();
+			var ltw = gameObject.transform.localToWorldMatrix;
+			var scale = (ltw * new Vector4(1, 1, 1, 0).normalized).magnitude;
+			var halfHeight = data.Height * 0.5f;                // This should be ball radius!
+
+			GameObject.Destroy(gameObject.GetComponent<PhysicsShapeAuthoring>());
+
+			// base capsule
+			var goBase = new GameObject();
+			goBase.transform.parent = gameObject.transform;
+			var baseCap = goBase.AddComponent<PhysicsShapeAuthoring>();
+			baseCap.BelongsTo = PhysicsCategoryTags.Nothing;
+			baseCap.SetCapsule(new CapsuleGeometryAuthoring
+			{
+				Orientation = ltw.rotation,
+				Center = ltw.MultiplyPoint(new Vector3(0, 0, halfHeight)),
+				Height = data.Height * scale,
+				Radius = data.BaseRadius * scale
+			});
+
+			// front capsule math
+			Vector3 frontNormal = new Vector3(-data.FlipperRadius, data.BaseRadius - data.EndRadius, 0).normalized;
+			Vector3 beg = new Vector3(0, 0, halfHeight) + frontNormal * (data.BaseRadius - data.EndRadius);
+			if (data.StartAngle < 0 | data.StartAngle > 180)
+				beg.x = -beg.x;
+			Vector3 end = new Vector3(0, -data.FlipperRadius, halfHeight);
+			Vector3 cen = (beg + end) * 0.5f;
+
+			float len = (beg - end).magnitude + data.EndRadius * 2;
+			Quaternion rot = Quaternion.LookRotation(beg - end);
+
+			// front capsule
+			var goFront = new GameObject();
+			goFront.transform.parent = gameObject.transform;
+			var frontCap = goFront.AddComponent<PhysicsShapeAuthoring>();
+			frontCap.SetCapsule(new CapsuleGeometryAuthoring
+			{
+				Orientation = ltw.rotation * rot,
+				Center = ltw.MultiplyPoint(cen),
+				Height = len * scale,
+				Radius = data.EndRadius * scale
+			});
+		}
+
+		private void ReplaceMeshWithCylindersShapes()
+		{
+			var d = GetMaterialData();
+			var ltw = gameObject.transform.localToWorldMatrix;
+			var zScale = (ltw * new Vector4(0, 0, 1, 0).normalized).magnitude;
+			var xyScale = (ltw * new Vector4(1, 1, 0, 0).normalized).magnitude;
+			var halfHeight = data.Height * 0.5f;                // This should be ball radius!
+
+			GameObject.Destroy(gameObject.GetComponent<PhysicsShapeAuthoring>());
+
+			// base cylinder
+			var goBase = new GameObject();
+			goBase.transform.parent = gameObject.transform;
+			var beg = goBase.AddComponent<PhysicsShapeAuthoring>();
+			beg.SetCylinder(new CylinderGeometry
+			{
+				Orientation = ltw.rotation,
+				Center = ltw.MultiplyPoint(new Vector3(0, 0, halfHeight)),
+				BevelRadius = 0,
+				Height = data.Height * zScale,
+				Radius = data.BaseRadius * xyScale
+			});
+
+			// end cylinder
+			var goEnd = new GameObject();
+			goEnd.transform.parent = gameObject.transform;
+			var end = goEnd.AddComponent<PhysicsShapeAuthoring>();
+			end.SetCylinder(new CylinderGeometry
+			{
+				Orientation = ltw.rotation,
+				Center = ltw.MultiplyPoint(new Vector3(0, -data.FlipperRadius, halfHeight)),
+				BevelRadius = 0,
+				Height = data.Height * zScale,
+				Radius = data.EndRadius * xyScale
+			});
+
+			// flat mesh
+			var goFlat = new GameObject();
+			goFlat.transform.parent = gameObject.transform;
+			PhysicsShapeAuthoring flat = goFlat.AddComponent<PhysicsShapeAuthoring>();
+			var flatMesh = new Mesh();
+			Vector3 n = new Vector3(data.FlipperRadius, data.BaseRadius - data.EndRadius, 0).normalized;
+			Vector3 m = new Vector3(-data.FlipperRadius, data.BaseRadius - data.EndRadius, 0).normalized;
+			float r1 = data.BaseRadius;
+			float r2 = data.EndRadius;
+			float h = data.Height;
+			float l = data.FlipperRadius;
+
+			Vector3[] verts = {
+				new Vector3(0,0,h) + n*r1,
+				new Vector3(0,-l,h) + n*r2,
+				new Vector3(0,0,0) + n*r1,
+				new Vector3(0,-l,0) + n*r2,
+
+				new Vector3(0,0,h) + m*r1,
+				new Vector3(0,-l,h) + m*r2,
+				new Vector3(0,0,0) + m*r1,
+				new Vector3(0,-l,0) + m*r2,
+			};
+
+			for (int i = 0; i < 8; ++i)
+			{
+				verts[i] = ltw.MultiplyPoint(verts[i]);
+			}
+
+			int[] tri = { 0, 1, 2,    1, 3, 2,    5, 4, 6,    5, 6, 7 };
+
+			// we don't need normals?!
+			//Vector3[] norm = { m,m,m,m,  n,n,n,n };
+			//flatMesh.normals = norm;
+
+			flatMesh.vertices = verts;
+			flatMesh.triangles = tri;
+			flat.SetMesh(flatMesh);
 		}
 
 		private FlipperMaterialData GetMaterialData()
@@ -159,6 +289,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
+		protected virtual uint PhysicsTag { get; } = PhysicsTags.Flipper;
 
 		/**
 		 * Below are 24 rotations. All posible 90 deg.

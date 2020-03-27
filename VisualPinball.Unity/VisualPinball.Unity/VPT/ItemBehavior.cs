@@ -74,5 +74,11 @@ namespace VisualPinball.Unity.VPT
 		protected abstract string[] Children { get; }
 
 		protected abstract TItem GetItem();
+
+		protected virtual uint PhysicsTag { get; } = PhysicsTags.Static;
+		public void SetCollisionsFilters(GameObject go)
+		{
+			PhysicsTags.SetCollisionsFilters(go, PhysicsTag);
+		}
 	}
 }
