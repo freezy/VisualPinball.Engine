@@ -15,7 +15,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			public void Execute(ref Rotation rot, [ReadOnly] ref FlipperMovementData movement)
 			{
-				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
+				//rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 			}
 		}
 

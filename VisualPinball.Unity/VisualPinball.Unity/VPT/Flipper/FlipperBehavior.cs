@@ -66,10 +66,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 			RigidTransform m = new RigidTransform(surfaceWithFlipper.transform.rotation, flipperHingeJointPoint);
 			Vector3 invFlipperHingeJointPoint = math.inverse(m).pos;
 
+			float angleStart = d.AngleStart % (float)(System.Math.PI * 2.0);
+			float angleEnd = d.AngleEnd % (float)(System.Math.PI * 2.0);
 			var jointData = JointData.CreateLimitedHinge(
 				new JointFrame(new RigidTransform(flipperRotationFix, flipperHingeJointPoint)),
 				new JointFrame(new RigidTransform(surfaceWithFlipper.transform.rotation * flipperRotationFix, gameObject.transform.position + invFlipperHingeJointPoint)),
-				new Math.FloatRange(d.AngleStart, d.AngleEnd));
+				angleStart<angleEnd ? new Math.FloatRange(angleStart, angleEnd): new Math.FloatRange(angleEnd, angleStart));
 
 			manager.AddComponentData(entity, new PhysicsJoint
 			{
@@ -91,11 +93,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 			// Add Physics Body Component
 			var body = gameObject.AddComponent<PhysicsBodyAuthoring>();
 			body.MotionType = BodyMotionType.Dynamic;
-			body.Mass = 1;
+			body.Mass = 10;
 			body.LinearDamping = 0.0f;                                  // will hinge joint will be attached to object, there will be on linear move
 			body.AngularDamping = 0.1f;
 			body.InitialLinearVelocity = float3.zero;
-			body.InitialAngularVelocity = new float3(0,0,25); // float3.zero;
+			body.InitialAngularVelocity = float3.zero;
 			body.GravityFactor = 1.0f;                                  // is it needed?
 			body.OverrideDefaultMassDistribution = false;
 			body.CustomTags = CustomPhysicsBodyTags.Nothing;            // Add flipper tag here?	
@@ -289,7 +291,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
-		protected virtual uint PhysicsTag { get; } = PhysicsTags.Flipper;
+		protected override uint PhysicsTag { get; } = PhysicsTags.Flipper;
 
 		/**
 		 * Below are 24 rotations. All posible 90 deg.
