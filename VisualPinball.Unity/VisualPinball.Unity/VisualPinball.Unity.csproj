@@ -49,6 +49,9 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Burst.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
     </Reference>
