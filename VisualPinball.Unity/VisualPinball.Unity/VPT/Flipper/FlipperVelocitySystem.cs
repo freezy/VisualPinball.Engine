@@ -5,7 +5,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Physics;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -27,23 +26,14 @@ namespace VisualPinball.Unity.VPT.Flipper
 		private NativeQueue<FlipperRotatedEvent> _eventQueue;
 
 		//[BurstCompile]
-		private struct FlipperVelocity : IJobForEachWithEntity<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData, PhysicsVelocity>
+		private struct FlipperVelocity : IJobForEachWithEntity<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
 		{
 			public float DTime;
 			public double ElapsedTime;
 			public NativeQueue<FlipperRotatedEvent>.ParallelWriter EventQueue;
 
-			public void Execute(Entity entity, int index, ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data, ref PhysicsVelocity pv)
+			public void Execute(Entity entity, int index, ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
 			{
-				float dir = data.AngleStart < data.AngleEnd ? 1 : -1;
-				if (solenoid.Value)
-				{
-					pv.Angular = new float3(0, 0, 900*dir*DTime);
-				} else
-				{
-					pv.Angular = new float3(0, 0, -500*dir* DTime);
-				}
-				return;
 				var initialTimeUsec = (long) (ElapsedTime * 1000000);
 				var curPhysicsFrameTime = mState.CurrentPhysicsTime == 0
 					? (long) (initialTimeUsec - DTime * 1000000)
