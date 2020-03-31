@@ -84,6 +84,7 @@
     <Compile Include="Extensions\TextureExtensions.cs" />
     <Compile Include="Game\Player.cs" />
     <Compile Include="Game\VisualPinballScript.cs" />
+    <Compile Include="Game\VisualPinballSimulationSystemGroup.cs" />
     <Compile Include="Import\AssetHandler\AssetMemoryHandler.cs" />
     <Compile Include="Import\AssetHandler\IAssetHandler.cs" />
     <Compile Include="Import\Job\MaterialImporter.cs" />
