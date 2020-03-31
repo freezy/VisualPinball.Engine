@@ -3,9 +3,11 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
+	[UpdateInGroup(typeof(VisualPinballSimulationSystemGroup))]
 	public class FlipperRotateSystem : JobComponentSystem
 	{
 		//[BurstCompile]
