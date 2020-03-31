@@ -61,12 +61,6 @@
     <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Physics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Physics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Physics.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Physics.Hybrid.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Rendering.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
     </Reference>
@@ -87,7 +81,6 @@
     <Compile Include="Extensions\MathExtensions.cs" />
     <Compile Include="Extensions\Matrix3DExtensions.cs" />
     <Compile Include="Extensions\MeshExtensions.cs" />
-    <Compile Include="Extensions\RenderObjectExtensions.cs" />
     <Compile Include="Extensions\TextureExtensions.cs" />
     <Compile Include="Game\Player.cs" />
     <Compile Include="Game\VisualPinballScript.cs" />
