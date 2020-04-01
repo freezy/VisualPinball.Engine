@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private SurfaceBehavior _surface;
 
-		private void OnEnable()
+		protected virtual void OnEnable()
 		{
 			_flipper = (FlipperBehavior) target;
 
@@ -35,6 +35,34 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_flipper.data.Surface != null && _table.Surfaces.ContainsKey(_flipper.data.Surface)) {
 				_surface = tableComp.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
 					.FirstOrDefault(s => s.name == _flipper.data.Surface);
+			}
+		}
+
+		protected virtual void OnDisable()
+		{
+			// restore tools
+			Tools.hidden = false;
+		}
+
+		protected virtual void OnSceneGUI()
+		{
+			// if the rotation tool is active turn off the default handles
+			if (Tools.current != Tool.Rotate) {
+				Tools.hidden = false;
+				return;
+			}
+			Tools.hidden = true;
+
+			var flipper = target as FlipperBehavior;
+			var pos = flipper.transform.position;
+
+			EditorGUI.BeginChangeCheck();
+			Handles.color = Handles.zAxisColor;
+			var rot = Handles.Disc(flipper.transform.rotation, pos, Vector3.up, HandleUtility.GetHandleSize(pos), false, 10f);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(flipper.transform, "Flipper Rotate");
+				flipper.transform.rotation = rot;
 			}
 		}
 
