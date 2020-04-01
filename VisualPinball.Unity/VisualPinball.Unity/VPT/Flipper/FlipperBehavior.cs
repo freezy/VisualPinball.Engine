@@ -98,5 +98,18 @@ namespace VisualPinball.Unity.VPT.Flipper
 				IsInContact = false
 			};
 		}
+
+		protected virtual void OnDrawGizmos()
+		{
+			// flippers tend to have sub object meshes, so nothing would be pickable on this game object,
+			// but generally you'll want to manipulate the whole flipper, so we'll draw an invisible
+			// gizmo slightly larger than one of the child meshes so clicking on the flipper in editor
+			// selects this object
+			var mf = this.GetComponentInChildren<MeshFilter>();
+			if (mf != null && mf.sharedMesh != null) {
+				Gizmos.color = Color.clear;
+				Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale * 1.1f);
+			}
+		}
 	}
 }
