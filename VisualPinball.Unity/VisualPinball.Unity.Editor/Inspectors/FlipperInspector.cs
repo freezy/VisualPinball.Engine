@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			EditorGUI.BeginChangeCheck();
 			Handles.color = Handles.zAxisColor;
-			var rot = Handles.Disc(flipper.transform.rotation, pos, Vector3.up, HandleUtility.GetHandleSize(pos), false, 10f);
+			var rot = Handles.Disc(flipper.transform.rotation, pos, flipper.transform.forward, HandleUtility.GetHandleSize(pos), false, 10f);
 
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(flipper.transform, "Flipper Rotate");
