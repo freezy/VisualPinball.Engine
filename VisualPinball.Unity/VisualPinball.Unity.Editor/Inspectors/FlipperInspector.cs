@@ -46,23 +46,62 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		protected virtual void OnSceneGUI()
 		{
-			// if the rotation tool is active turn off the default handles
-			if (Tools.current != Tool.Rotate) {
+			if (Tools.current == Tool.Rotate) {
+				// if the rotation tool is active turn off the default handles
+				Tools.hidden = true;
+
+				var flipper = target as FlipperBehavior;
+				var pos = flipper.transform.position;
+
+				EditorGUI.BeginChangeCheck();
+				Handles.color = Handles.zAxisColor;
+				var rot = Handles.Disc(flipper.transform.rotation, pos, flipper.transform.forward, HandleUtility.GetHandleSize(pos), false, 10f);
+
+				if (EditorGUI.EndChangeCheck()) {
+					Undo.RecordObject(flipper.transform, "Flipper Rotate");
+					flipper.transform.rotation = rot;
+					var localRotZ = flipper.transform.localEulerAngles.z;
+					flipper.transform.localRotation = Quaternion.Euler(0f, 0f, localRotZ);
+				}
+			} else if(Tools.current == Tool.Move) {
+				Tools.hidden = true;
+
+				var flipper = target as FlipperBehavior;
+				var pos = flipper.transform.position;
+
+				void FinishMove(Vector3 newPos)
+				{
+					Undo.RecordObject(flipper.transform, "Flipper Move");
+					flipper.transform.position = newPos;
+					var localPos = flipper.transform.localPosition;
+					localPos.z = 0f;
+					flipper.transform.localPosition = localPos;
+				}
+
+				EditorGUI.BeginChangeCheck();
+				Handles.color = Handles.xAxisColor;
+				var newPos = Handles.Slider(pos, flipper.transform.right);
+				if (EditorGUI.EndChangeCheck()) {
+					FinishMove(newPos);
+				}
+
+				EditorGUI.BeginChangeCheck();
+				Handles.color = Handles.yAxisColor;
+				newPos = Handles.Slider(pos, flipper.transform.up);
+				if (EditorGUI.EndChangeCheck()) {
+					FinishMove(newPos);
+				}
+
+				EditorGUI.BeginChangeCheck();
+				Handles.color = Handles.zAxisColor;
+				float size = HandleUtility.GetHandleSize(pos) * 0.2f;
+				newPos = Handles.Slider2D(pos, flipper.transform.forward, flipper.transform.right, flipper.transform.up, size, Handles.RectangleHandleCap, 0f);
+				if (EditorGUI.EndChangeCheck()) {
+					FinishMove(newPos);
+				}
+			} else {
 				Tools.hidden = false;
 				return;
-			}
-			Tools.hidden = true;
-
-			var flipper = target as FlipperBehavior;
-			var pos = flipper.transform.position;
-
-			EditorGUI.BeginChangeCheck();
-			Handles.color = Handles.zAxisColor;
-			var rot = Handles.Disc(flipper.transform.rotation, pos, flipper.transform.forward, HandleUtility.GetHandleSize(pos), false, 10f);
-
-			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(flipper.transform, "Flipper Rotate");
-				flipper.transform.rotation = rot;
 			}
 		}
 
