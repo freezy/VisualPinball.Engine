@@ -11,8 +11,6 @@ namespace VisualPinball.Unity.VPT.Surface
 		{
 			obj.AddComponent<SurfaceBehavior>().SetData(surface.Data);
 			obj.AddComponent<ConvertToEntity>();
-			//rog.AddPhysicsBody(obj);
-			rog.AddPhysicsShape(obj);
 		}
 	}
 }

@@ -1,12 +1,12 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Physics.Systems;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[UpdateBefore(typeof(BuildPhysicsWorld))]
+	[UpdateInGroup(typeof(VisualPinballSimulationSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
 

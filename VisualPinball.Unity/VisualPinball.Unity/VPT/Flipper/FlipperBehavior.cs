@@ -7,12 +7,13 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[ExecuteInEditMode]
+	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
@@ -31,8 +32,18 @@ namespace VisualPinball.Unity.VPT.Flipper
 			manager.AddComponentData(entity, GetVelocityData(d));
 			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
-			// update table api
-			transform.GetComponentInParent<TablePlayer>().TableApi.Flippers[Item.Name] = new FlipperApi(Item, entity);
+			// register
+			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
+		}
+
+		private void Awake()
+		{
+			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
+			// can be null in editor, shouldn't be at runtime.
+			if (rootObj != null)
+			{
+				_tableData = rootObj.data;
+			}
 		}
 
 		private FlipperMaterialData GetMaterialData()
@@ -97,6 +108,19 @@ namespace VisualPinball.Unity.VPT.Flipper
 				Direction = d.AngleEnd >= d.AngleStart,
 				IsInContact = false
 			};
+		}
+
+		protected virtual void OnDrawGizmos()
+		{
+			// flippers tend to have sub object meshes, so nothing would be pickable on this game object,
+			// but generally you'll want to manipulate the whole flipper, so we'll draw an invisible
+			// gizmo slightly larger than one of the child meshes so clicking on the flipper in editor
+			// selects this object
+			var mf = this.GetComponentInChildren<MeshFilter>();
+			if (mf != null && mf.sharedMesh != null) {
+				Gizmos.color = Color.clear;
+				Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale * 1.1f);
+			}
 		}
 	}
 }

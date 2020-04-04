@@ -10,7 +10,6 @@ namespace VisualPinball.Unity.VPT.Table
 		public static void SetupGameObject(this Engine.VPT.Table.Table table, GameObject go, RenderObjectGroup rog)
 		{
 			go.AddComponent<ConvertToEntity>();
-			rog.AddPhysicsShape(go);
 		}
 	}
 }

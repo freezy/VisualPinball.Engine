@@ -18,7 +18,7 @@
     <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>.build\Debug\</OutputPath>
-    <BaseIntermediateOutputPath >.build\obj\</BaseIntermediateOutputPath >
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>.build\Release\</OutputPath>
-    <BaseIntermediateOutputPath >.build\obj\</BaseIntermediateOutputPath >
+    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Meshes\BallMesh.cs" />
     <Compile Include="Meshes\BulbMesh.cs" />
     <Compile Include="Meshes\BulbSocket.cs" />
     <Compile Include="Meshes\BumperBase.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Resource.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Textures\BallDebug.png" />
     <EmbeddedResource Include="Textures\BumperBase.png" />
     <EmbeddedResource Include="Textures\BumperCap.png" />
     <EmbeddedResource Include="Textures\BumperRing.png" />
@@ -91,4 +93,11 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+
+	<Target Name="AfterBuild">
+		<ItemGroup>
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" />
+		</ItemGroup>
+		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
+	</Target>
 </Project>

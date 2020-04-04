@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Trigger")]
 	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>
 	{

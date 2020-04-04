@@ -3,10 +3,12 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public class FlipperApi : IApiInitializable
+	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable
 	{
 		public event EventHandler Collide;
 		public event EventHandler Hit;
@@ -15,31 +17,24 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public event EventHandler<RotationEventArgs> LimitEos;
 		public event EventHandler Timer;
 
-		internal readonly Entity Entity;
-
-		private readonly Engine.VPT.Flipper.Flipper _flipper;
-		private readonly EntityManager _manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-		public FlipperApi(Engine.VPT.Flipper.Flipper flipper, Entity entity)
+		public FlipperApi(Engine.VPT.Flipper.Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
-			_flipper = flipper;
-			Entity = entity;
 		}
 
 		public void RotateToEnd()
 		{
-			var mData = _manager.GetComponentData<FlipperMovementData>(Entity);
+			var mData = EntityManager.GetComponentData<FlipperMovementData>(Entity);
 			mData.EnableRotateEvent = 1;
-			_manager.SetComponentData(Entity, mData);
-			_manager.SetComponentData(Entity, new SolenoidStateData { Value = true });
+			EntityManager.SetComponentData(Entity, mData);
+			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = true });
 		}
 
 		public void RotateToStart()
 		{
-			var mData = _manager.GetComponentData<FlipperMovementData>(Entity);
+			var mData = EntityManager.GetComponentData<FlipperMovementData>(Entity);
 			mData.EnableRotateEvent = -1;
-			_manager.SetComponentData(Entity, mData);
-			_manager.SetComponentData(Entity, new SolenoidStateData { Value = false });
+			EntityManager.SetComponentData(Entity, mData);
+			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = false });
 		}
 
 		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)

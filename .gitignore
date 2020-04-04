@@ -31,6 +31,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 **/.build/**
+.tests
 .packages
 
 # Visual Studio 2015/2017 cache/options directory
@@ -41,6 +42,7 @@ bld/
 # Unity
 /*.meta
 /VisualPinball.Engine.Test/**/*.meta
+/VisualPinball.Resources/**/*.meta
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/

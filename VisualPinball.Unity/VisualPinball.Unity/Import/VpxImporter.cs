@@ -37,6 +37,7 @@ using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.VPT.Trigger;
 using Logger = NLog.Logger;
+using Player = VisualPinball.Unity.Game.Player;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Import
@@ -44,7 +45,7 @@ namespace VisualPinball.Unity.Import
 	public class VpxImporter : MonoBehaviour
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
-		private const float GlobalScale = 0.01f;
+		public const float GlobalScale = 0.001f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -91,7 +92,7 @@ namespace VisualPinball.Unity.Import
 			MakeSerializable(go, table, assetHandler);
 
 			// finally, add the player script
-			go.AddComponent<TablePlayer>();
+			go.AddComponent<Player>();
 		}
 
 		private void ImportTextures()

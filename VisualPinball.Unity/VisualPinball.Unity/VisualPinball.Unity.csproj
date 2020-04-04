@@ -49,6 +49,9 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Burst.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
     </Reference>
@@ -61,11 +64,8 @@
     <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Physics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Physics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Physics.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Physics.Hybrid.dll</HintPath>
+    <Reference Include="Unity.Rendering.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Transforms, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
@@ -84,10 +84,10 @@
     <Compile Include="Extensions\MathExtensions.cs" />
     <Compile Include="Extensions\Matrix3DExtensions.cs" />
     <Compile Include="Extensions\MeshExtensions.cs" />
-    <Compile Include="Extensions\RenderObjectExtensions.cs" />
     <Compile Include="Extensions\TextureExtensions.cs" />
-    <Compile Include="Game\TablePlayer.cs" />
+    <Compile Include="Game\Player.cs" />
     <Compile Include="Game\VisualPinballScript.cs" />
+    <Compile Include="Game\VisualPinballSimulationSystemGroup.cs" />
     <Compile Include="Import\AssetHandler\AssetMemoryHandler.cs" />
     <Compile Include="Import\AssetHandler\IAssetHandler.cs" />
     <Compile Include="Import\Job\MaterialImporter.cs" />
@@ -97,6 +97,9 @@
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VPT\Ball\BallApi.cs" />
+    <Compile Include="VPT\Ball\BallData.cs" />
+    <Compile Include="VPT\Ball\BallManager.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
@@ -111,7 +114,9 @@
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
     <Compile Include="VPT\IApi.cs" />
+    <Compile Include="VPT\ItemApi.cs" />
     <Compile Include="VPT\ItemBehavior.cs" />
+    <Compile Include="VPT\Kicker\KickerApi.cs" />
     <Compile Include="VPT\Kicker\KickerBehavior.cs" />
     <Compile Include="VPT\Light\LightBehavior.cs" />
     <Compile Include="VPT\Primitive\PrimitiveBehavior.cs" />
@@ -129,6 +134,10 @@
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
       <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
       <Name>VisualPinball.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualPinball.Resources\VisualPinball.Resources.csproj">
+      <Project>{f7c27e2c-8931-46f3-968e-f1103e975074}</Project>
+      <Name>VisualPinball.Resources</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj">
       <Project>{040d1234-942b-47fe-9a55-841e25a6305d}</Project>

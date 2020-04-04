@@ -7,8 +7,10 @@
 		"Unity.Mathematics",
 		"Unity.Physics",
 		"Unity.Physics.Hybrid",
+		"Unity.Rendering.Hybrid",
 		"Unity.Transforms",
 		"VisualPinball.Engine",
+		"VisualPinball.Resources",
 		"VisualPinball.Unity.Patcher"
 	],
 	"includePlatforms": [],

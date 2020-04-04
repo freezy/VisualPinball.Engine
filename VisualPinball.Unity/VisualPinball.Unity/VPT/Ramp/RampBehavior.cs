@@ -9,7 +9,6 @@ using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.VPT.Ramp
 {
-	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Ramp")]
 	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>
 	{
