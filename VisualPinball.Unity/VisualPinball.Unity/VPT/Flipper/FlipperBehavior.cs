@@ -110,48 +110,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
-		protected override uint PhysicsTag { get; } = PhysicsTags.Flipper;
-
-		/**
-		 * Below are 24 rotations. All posible 90 deg.
-		 * I used this to find correct flipper rotations.
-		 * I left this here for future use.
-		 * Data is based on: https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm
-		 */
-		static private float A = 0.7071067811865475f;
-		static private float H = 0.5f;
-		static public Quaternion[] all24rotations = {
-			new Quaternion(0,0,0,1),
-			new Quaternion(0,A,0,A),
-			new Quaternion(0,1,0,0),
-			new Quaternion(0,-A,0,A),
-
-			new Quaternion(0,0,A,A),
-			new Quaternion(H,H,H,H),
-			new Quaternion(A,A,0,0),
-			new Quaternion(-H,-H,H,H),
-
-			new Quaternion(0,0,-A,A),
-			new Quaternion(-H,H,-H,H),
-			new Quaternion(-A,A,0,0),
-			new Quaternion(H,-H,-H,H),
-
-			new Quaternion(A,0,0,A),
-			new Quaternion(H,H,-H,H),
-			new Quaternion(0,A,-A,0),
-			new Quaternion(H,-H,H,H),
-
-			new Quaternion(1,0,0,0),
-			new Quaternion(A,0,-A,0),
-			new Quaternion(0,0,1,0),
-			new Quaternion(A,0,A,0),
-
-			new Quaternion(-A,0,0,A),
-			new Quaternion(-H,H,H,H),
-			new Quaternion(0,A,A,0),
-			new Quaternion(-H,-H,-H,H),
-		};
-
 		protected virtual void OnDrawGizmos()
 		{
 			// flippers tend to have sub object meshes, so nothing would be pickable on this game object,
