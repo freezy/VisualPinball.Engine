@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public int EntityIndex;
 	}
 
-	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
+	[UpdateInGroup(typeof(VisualPinballUpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
 
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<PhysicsSimulateCycleSystemGroup>();
+			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
 
 			var flipperDisplacementJob = new FlipperDisplacement {
 				DTime = (float)sim.DTime
