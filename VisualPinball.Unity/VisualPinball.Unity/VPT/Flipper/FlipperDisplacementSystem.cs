@@ -1,5 +1,3 @@
-using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -14,18 +12,17 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public int EntityIndex;
 	}
 
+	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(VisualPinballUpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
-
-		[BurstCompile]
-		private struct FlipperDisplacement : IJobForEach<FlipperMovementData, FlipperMaterialData>
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			public float DTime;
+			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
+			var dTime = (float) sim.DTime;
 
-			public void Execute(ref FlipperMovementData state, [ReadOnly] ref FlipperMaterialData data)
-			{
-				var dTime = DTime;
+			Entities.ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
+
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
@@ -72,17 +69,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 					state.EnableRotateEvent = 0;
 				}
-			}
-		}
+			}).Run();
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
-		{
-			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
-
-			var flipperDisplacementJob = new FlipperDisplacement {
-				DTime = (float)sim.DTime
-			};
-			return flipperDisplacementJob.Schedule(this, inputDeps);
+			return default;
 		}
 	}
 }
