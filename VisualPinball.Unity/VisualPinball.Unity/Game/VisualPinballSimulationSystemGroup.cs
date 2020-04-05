@@ -31,9 +31,9 @@ namespace VisualPinball.Unity.Game
 
 		protected override void OnCreate()
 		{
-			_velocitiesSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballUpdateVelocitiesSystemGroup>();
-			_cycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
-			_transformSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballTransformSystemGroup>();
+			_velocitiesSystemGroup = World.GetOrCreateSystem<VisualPinballUpdateVelocitiesSystemGroup>();
+			_cycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
+			_transformSystemGroup = World.GetOrCreateSystem<VisualPinballTransformSystemGroup>();
 
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_cycleSystemGroup);

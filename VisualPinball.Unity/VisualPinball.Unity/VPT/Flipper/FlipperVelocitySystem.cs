@@ -1,7 +1,5 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
-using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -10,14 +8,14 @@ using VisualPinball.Unity.Physics;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
+	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(VisualPinballUpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
-		[BurstCompile]
-		private struct FlipperVelocity : IJobForEachWithEntity<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			public void Execute(Entity entity, int index, ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)
-			{
+			Entities.ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperMaterialData data) => {
+
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
 
@@ -81,12 +79,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 				mState.AngularMomentum += PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
-			}
-		}
+			}).Run();
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
-		{
-			return new FlipperVelocity().Schedule(this, inputDeps);
+			return default;
 		}
 	}
 }
