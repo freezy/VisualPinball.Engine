@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -17,7 +18,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
 
-		//[BurstCompile]
+		[BurstCompile]
 		private struct FlipperDisplacement : IJobForEach<FlipperMovementData, FlipperMaterialData>
 		{
 			public float DTime;
