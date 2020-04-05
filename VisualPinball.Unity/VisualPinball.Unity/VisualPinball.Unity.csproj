@@ -96,6 +96,9 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\UpdateDisplacementSystemGroup.cs" />
+    <Compile Include="Physics\UpdateVelocitiesSystemGroup.cs" />
+    <Compile Include="Physics\PhysicsSimulateCycleSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\BallApi.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
@@ -108,8 +111,9 @@
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperVelocityData.cs" />
-    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
+    <Compile Include="VPT\Flipper\FlipperSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperBehavior.cs" />
+    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\SolenoidStateData.cs" />
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
