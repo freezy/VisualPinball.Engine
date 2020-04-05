@@ -35,8 +35,8 @@ namespace VisualPinball.Unity.Game
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
-			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperVelocitySystem>().OnRotated +=
-				(sender, e) => flipperApi.HandleEvent(e);
+			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
+			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
