@@ -9,7 +9,7 @@ using VisualPinball.Unity.Physics;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
+	[UpdateInGroup(typeof(VisualPinballUpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
 		//[BurstCompile]
@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 				var desiredTorque = data.Strength;
 				if (!solenoid.Value) {
-					// this.True solState = button pressed, false = released
+					// True solState = button pressed, false = released
 					desiredTorque *= -data.ReturnRatio;
 				}
 
