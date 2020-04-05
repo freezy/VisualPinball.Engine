@@ -16,10 +16,16 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[UpdateInGroup(typeof(VisualPinballUpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
+		private VisualPinballSimulatePhysicsCycleSystemGroup _simulatePhysicsCycleSystemGroup;
+
+		protected override void OnCreate()
+		{
+			_simulatePhysicsCycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
+		}
+
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
-			var dTime = (float) sim.DTime;
+			var dTime = (float) _simulatePhysicsCycleSystemGroup.DTime;
 
 			Entities.ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
 

@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Game
 		private VisualPinballUpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private VisualPinballSimulatePhysicsCycleSystemGroup _cycleSystemGroup;
 		private VisualPinballTransformSystemGroup _transformSystemGroup;
+		public long CurPhysicsFrameTime;
 
 		protected override void OnCreate()
 		{
@@ -44,7 +45,7 @@ namespace VisualPinball.Unity.Game
 		{
 			const int startTimeUsec = 0;
 			var initialTimeUsec = (long)(Time.ElapsedTime * 1000000);
-			var curPhysicsFrameTime = _currentPhysicsTime == 0
+			CurPhysicsFrameTime = _currentPhysicsTime == 0
 				? (long) (initialTimeUsec - Time.DeltaTime * 1000000)
 				: _currentPhysicsTime;
 
@@ -52,11 +53,11 @@ namespace VisualPinball.Unity.Game
 			//Logger.Info("[{0}] (+{1}) Player::UpdatePhysics()\n", tt, (double)(initialTimeUsec - _lastUpdatePhysicsUsec) / 1000);
 			_lastUpdatePhysicsUsec = initialTimeUsec;
 
-			while (curPhysicsFrameTime < initialTimeUsec) {
+			while (CurPhysicsFrameTime < initialTimeUsec) {
 
-				var timeMsec = (int)((curPhysicsFrameTime - startTimeUsec) / 1000);
+				var timeMsec = (int)((CurPhysicsFrameTime - startTimeUsec) / 1000);
 
-				PhysicsDiffTime = (_nextPhysicsFrameTime - curPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
+				PhysicsDiffTime = (_nextPhysicsFrameTime - CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
 				//Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
 
@@ -67,12 +68,12 @@ namespace VisualPinball.Unity.Game
 				_cycleSystemGroup.Update();
 
 				// new cycle, on physics frame boundary
-				curPhysicsFrameTime = _nextPhysicsFrameTime;
+				CurPhysicsFrameTime = _nextPhysicsFrameTime;
 
 				// advance physics position
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 			}
-			_currentPhysicsTime = curPhysicsFrameTime;
+			_currentPhysicsTime = CurPhysicsFrameTime;
 
 			_transformSystemGroup.Update();
 		}

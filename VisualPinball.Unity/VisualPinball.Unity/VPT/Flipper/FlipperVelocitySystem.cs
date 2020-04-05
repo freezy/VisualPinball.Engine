@@ -12,9 +12,32 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[UpdateInGroup(typeof(VisualPinballUpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
+		#if FLIPPER_LOG
+		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
+		private VisualPinballSimulatePhysicsCycleSystemGroup _simulatePhysicsCycleSystemGroup;
+
+		private long _debugRelTimeDelta = 0;
+
+		protected override void OnCreate()
+		{
+			_simulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			_simulatePhysicsCycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
+		}
+		#endif
+
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			Entities.ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperMaterialData data) => {
+			Entities.WithoutBurst().ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperMaterialData data) => {
+
+				#if FLIPPER_LOG
+				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
+					_debugRelTimeDelta = _simulationSystemGroup.CurPhysicsFrameTime;
+				}
+				if (mState.AngleSpeed != 0) {
+					var relTime = _simulationSystemGroup.CurPhysicsFrameTime - _debugRelTimeDelta + 1000;
+					VisualPinball.Unity.Game.Player.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed}");
+				}
+				#endif
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);

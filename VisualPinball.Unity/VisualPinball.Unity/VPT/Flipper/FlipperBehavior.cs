@@ -95,7 +95,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 				AngularMomentum = 0f,
 				EnableRotateEvent = 0,
 				BaseRotation = baseRotation,
-				CurrentPhysicsTime = 0,
 			};
 		}
 
