@@ -1,5 +1,6 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -12,7 +13,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[UpdateInGroup(typeof(VisualPinballUpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
-		//[BurstCompile]
+		[BurstCompile]
 		private struct FlipperVelocity : IJobForEachWithEntity<FlipperMovementData, FlipperVelocityData, SolenoidStateData, FlipperMaterialData>
 		{
 			public void Execute(Entity entity, int index, ref FlipperMovementData mState, ref FlipperVelocityData vState, [ReadOnly] ref SolenoidStateData solenoid, [ReadOnly] ref FlipperMaterialData data)

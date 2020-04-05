@@ -1,6 +1,7 @@
 {
 	"name": "VisualPinball.Unity",
 	"references": [
+		"Unity.Burst",
 		"Unity.Entities",
 		"Unity.Entities.Hybrid",
 		"Unity.Collections",
