@@ -96,6 +96,10 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\HitTest\CollisionEventData.cs" />
+    <Compile Include="Physics\HitTest\HitObjectData.cs" />
+    <Compile Include="Physics\HitTest\HitTestSystem.cs" />
+    <Compile Include="Physics\HitTest\VisualPinballHitTestSystemGroup.cs" />
     <Compile Include="Physics\VisualPinballUpdateDisplacementSystemGroup.cs" />
     <Compile Include="Physics\VisualPinballUpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Physics\VisualPinballSimulatePhysicsCycleSystemGroup.cs" />
@@ -150,6 +154,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Physics\README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
