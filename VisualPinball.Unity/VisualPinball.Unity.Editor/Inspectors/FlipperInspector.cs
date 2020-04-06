@@ -69,27 +69,18 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				var flipper = target as FlipperBehavior;
 				var pos = flipper.transform.position;
 
-				void FinishMove(Vector3 newPos)
-				{
-					Undo.RecordObject(flipper.transform, "Flipper Move");
-					flipper.transform.position = newPos;
-					var localPos = flipper.transform.localPosition;
-					localPos.z = 0f;
-					flipper.transform.localPosition = localPos;
-				}
-
 				EditorGUI.BeginChangeCheck();
 				Handles.color = Handles.xAxisColor;
 				var newPos = Handles.Slider(pos, flipper.transform.right);
 				if (EditorGUI.EndChangeCheck()) {
-					FinishMove(newPos);
+					FinishMove(flipper, newPos);
 				}
 
 				EditorGUI.BeginChangeCheck();
 				Handles.color = Handles.yAxisColor;
 				newPos = Handles.Slider(pos, flipper.transform.up);
 				if (EditorGUI.EndChangeCheck()) {
-					FinishMove(newPos);
+					FinishMove(flipper, newPos);
 				}
 
 				EditorGUI.BeginChangeCheck();
@@ -97,12 +88,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				float size = HandleUtility.GetHandleSize(pos) * 0.2f;
 				newPos = Handles.Slider2D(pos, flipper.transform.forward, flipper.transform.right, flipper.transform.up, size, Handles.RectangleHandleCap, 0f);
 				if (EditorGUI.EndChangeCheck()) {
-					FinishMove(newPos);
+					FinishMove(flipper, newPos);
 				}
 			} else {
 				Tools.hidden = false;
 				return;
 			}
+		}
+
+		private void FinishMove(FlipperBehavior flipper, Vector3 newPos)
+		{
+			Undo.RecordObject(flipper.transform, "Flipper Move");
+			flipper.transform.position = newPos;
+			var localPos = flipper.transform.localPosition;
+			localPos.z = 0f;
+			flipper.transform.localPosition = localPos;
 		}
 
 		public override void OnInspectorGUI()
