@@ -2,6 +2,7 @@
 using NLog;
 using Unity.Entities;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.HitTest;
 
 namespace VisualPinball.Unity.Physics
 {
@@ -15,17 +16,19 @@ namespace VisualPinball.Unity.Physics
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
+		private VisualPinballHitTestSystemGroup _hitTestSystemGroup;
 		private VisualPinballUpdateDisplacementSystemGroup _displacementSystemGroup;
 
 		protected override void OnCreate()
 		{
-			_displacementSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballUpdateDisplacementSystemGroup>();
+			_hitTestSystemGroup = World.GetOrCreateSystem<VisualPinballHitTestSystemGroup>();
+			_displacementSystemGroup = World.GetOrCreateSystem<VisualPinballUpdateDisplacementSystemGroup>();
 			_systemsToUpdate.Add(_displacementSystemGroup);
 		}
 
 		protected override void OnUpdate()
 		{
-			var sim = World.DefaultGameObjectInjectionWorld.GetExistingSystem<VisualPinballSimulationSystemGroup>();
+			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
 			DTime = sim.PhysicsDiffTime;
 			while (DTime > 0) {
@@ -34,6 +37,7 @@ namespace VisualPinball.Unity.Physics
 
 				var hitTime = DTime;
 
+				_hitTestSystemGroup.Update();
 				_displacementSystemGroup.Update();
 
 				DTime -= hitTime;
