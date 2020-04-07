@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Physics
 		/// ball-velocity)
 		/// </summary>
 		public float Threshold = 0f;                                           // m_threshold
-		public Rect3D HitBBox = new Rect3D();                                  // m_hitBBox
+		public Rect3D HitBBox = new Rect3D(true);                                  // m_hitBBox
 
 		public float Elasticity = 0.3f;                                        // m_elasticity
 		public float ElasticityFalloff;                                        // m_elasticityFalloff

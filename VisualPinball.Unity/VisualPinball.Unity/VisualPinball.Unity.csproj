@@ -99,11 +99,10 @@
     <Compile Include="Physics\HitTest\CollisionEventData.cs" />
     <Compile Include="Physics\HitTest\HitObjectData.cs" />
     <Compile Include="Physics\HitTest\HitTestSystem.cs" />
-    <Compile Include="Physics\HitTest\VisualPinballHitTestSystemGroup.cs" />
-    <Compile Include="Physics\VisualPinballUpdateDisplacementSystemGroup.cs" />
-    <Compile Include="Physics\VisualPinballUpdateVelocitiesSystemGroup.cs" />
-    <Compile Include="Physics\VisualPinballSimulatePhysicsCycleSystemGroup.cs" />
-    <Compile Include="Physics\VisualPinballTransformSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\BallApi.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
