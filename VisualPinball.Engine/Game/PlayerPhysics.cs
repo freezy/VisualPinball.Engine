@@ -60,7 +60,7 @@ namespace VisualPinball.Engine.Game
 		private HitPlane _hitTopGlass;                                         // m_hitTopGlass
 
 		private readonly HitKd _hitOcTreeDynamic = new HitKd();                // m_hitoctree_dynamic
-		private readonly HitQuadTree _hitOcTree = new HitQuadTree();           // m_hitoctree
+		private HitQuadTree _hitOcTree;                                        // m_hitoctree
 		private readonly List<TimerHit> _hitTimers = new List<TimerHit>();     // m_vht
 
 		private long _lastTimeUsec;                                            // m_lastTime_usec
@@ -145,12 +145,8 @@ namespace VisualPinball.Engine.Game
 
 		private void InitOcTree(Table table)
 		{
-			foreach (var hitObject in _hitObjects) {
-				_hitOcTree.AddElement(hitObject);
-			}
+			_hitOcTree = new HitQuadTree(_hitObjects, table.Data.BoundingBox);
 
-			var tableBounds = table.Data.BoundingBox;
-			_hitOcTree.Initialize(tableBounds);
 			// initialize hit structure for dynamic objects
 			_hitOcTreeDynamic.FillFromVector(_hitObjectsDynamic);
 		}
