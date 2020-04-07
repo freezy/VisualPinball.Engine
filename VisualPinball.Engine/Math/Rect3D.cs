@@ -1,21 +1,26 @@
 namespace VisualPinball.Engine.Math
 {
-	public class Rect3D
+	public struct Rect3D
 	{
-		public float Left = 0;
-		public float Top = 0;
-		public float Right = 0;
-		public float Bottom = 0;
-		public float ZLow = 0;
-		public float ZHigh = 0;
+		public float Left;
+		public float Top;
+		public float Right;
+		public float Bottom;
+		public float ZLow;
+		public float ZHigh;
 
 		public float Width => MathF.Abs(Left - Right);
 		public float Height => MathF.Abs(Top - Bottom);
 		public float Depth => MathF.Abs(ZLow - ZHigh);
 
-		public Rect3D()
+		public Rect3D(bool init)
 		{
-			Clear();
+			Left = Constants.FloatMax;
+			Right = -Constants.FloatMax;
+			Top = Constants.FloatMax;
+			Bottom = -Constants.FloatMax;
+			ZLow = Constants.FloatMax;
+			ZHigh = -Constants.FloatMax;
 		}
 
 		public Rect3D(float left, float right, float top, float bottom, float zLow, float zHigh)
@@ -24,6 +29,7 @@ namespace VisualPinball.Engine.Math
 			Right = right;
 			Top = top;
 			Bottom = bottom;
+			ZLow = 0;
 			ZLow = zLow;
 			ZHigh = zHigh;
 		}

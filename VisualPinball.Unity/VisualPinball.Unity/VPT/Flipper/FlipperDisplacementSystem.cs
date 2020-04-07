@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Unity.Physics;
+using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
@@ -13,19 +14,19 @@ namespace VisualPinball.Unity.VPT.Flipper
 	}
 
 	[AlwaysSynchronizeSystem]
-	[UpdateInGroup(typeof(VisualPinballUpdateDisplacementSystemGroup))]
+	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
-		private VisualPinballSimulatePhysicsCycleSystemGroup _simulatePhysicsCycleSystemGroup;
+		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
 		protected override void OnCreate()
 		{
-			_simulatePhysicsCycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var dTime = (float) _simulatePhysicsCycleSystemGroup.DTime;
+			var dTime = (float) _simulateCycleSystemGroup.DTime;
 
 			Entities.ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
 
