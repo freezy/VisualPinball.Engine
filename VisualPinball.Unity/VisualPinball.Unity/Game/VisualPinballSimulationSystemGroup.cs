@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics;
+using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.Game
 {
@@ -25,20 +26,20 @@ namespace VisualPinball.Unity.Game
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
-		private VisualPinballUpdateVelocitiesSystemGroup _velocitiesSystemGroup;
-		private VisualPinballSimulatePhysicsCycleSystemGroup _cycleSystemGroup;
-		private VisualPinballTransformSystemGroup _transformSystemGroup;
+		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
+		private SimulateCycleSystemGroup _cycleSystemGroup;
+		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 		public long CurPhysicsFrameTime;
 
 		protected override void OnCreate()
 		{
-			_velocitiesSystemGroup = World.GetOrCreateSystem<VisualPinballUpdateVelocitiesSystemGroup>();
-			_cycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
-			_transformSystemGroup = World.GetOrCreateSystem<VisualPinballTransformSystemGroup>();
+			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
+			_cycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_cycleSystemGroup);
-			_systemsToUpdate.Add(_transformSystemGroup);
+			_systemsToUpdate.Add(_transformMeshesSystemGroup);
 		}
 
 		protected override void OnUpdate()
@@ -75,7 +76,7 @@ namespace VisualPinball.Unity.Game
 			}
 			_currentPhysicsTime = CurPhysicsFrameTime;
 
-			_transformSystemGroup.Update();
+			_transformMeshesSystemGroup.Update();
 		}
 	}
 }

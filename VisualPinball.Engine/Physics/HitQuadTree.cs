@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Physics
 
 		public void Initialize()
 		{
-			var bounds = new Rect3D();
+			var bounds = new Rect3D(true);
 			foreach (var vho in _hitObjects) {
 				bounds.Extend(vho.HitBBox);
 			}

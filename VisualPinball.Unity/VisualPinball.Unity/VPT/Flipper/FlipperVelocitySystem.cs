@@ -5,11 +5,12 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics;
+using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
 	[AlwaysSynchronizeSystem]
-	[UpdateInGroup(typeof(VisualPinballUpdateVelocitiesSystemGroup))]
+	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{
 		#if FLIPPER_LOG

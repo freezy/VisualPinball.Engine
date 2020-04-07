@@ -4,10 +4,10 @@ using Unity.Entities;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.HitTest;
 
-namespace VisualPinball.Unity.Physics
+namespace VisualPinball.Unity.Physics.SystemGroup
 {
 	[DisableAutoCreation]
-	public class VisualPinballSimulatePhysicsCycleSystemGroup : ComponentSystemGroup
+	public class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
 		public double DTime;
 
@@ -16,13 +16,13 @@ namespace VisualPinball.Unity.Physics
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
-		private VisualPinballHitTestSystemGroup _hitTestSystemGroup;
-		private VisualPinballUpdateDisplacementSystemGroup _displacementSystemGroup;
+		private HitTestSystem _hitTestSystem;
+		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 
 		protected override void OnCreate()
 		{
-			_hitTestSystemGroup = World.GetOrCreateSystem<VisualPinballHitTestSystemGroup>();
-			_displacementSystemGroup = World.GetOrCreateSystem<VisualPinballUpdateDisplacementSystemGroup>();
+			_hitTestSystem = World.GetOrCreateSystem<HitTestSystem>();
+			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_systemsToUpdate.Add(_displacementSystemGroup);
 		}
 
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Physics
 
 				var hitTime = DTime;
 
-				_hitTestSystemGroup.Update();
+				_hitTestSystem.Update();
 				_displacementSystemGroup.Update();
 
 				DTime -= hitTime;
