@@ -11,25 +11,17 @@ namespace VisualPinball.Engine.Physics
 
 		private readonly HitQuadTree[] _children = new HitQuadTree[4];
 		private readonly Vertex3D _center = new Vertex3D();
-		private List<HitObject> _hitObjects = new List<HitObject>();
+		private List<HitObject> _hitObjects;
 		private bool _isLeaf = true;
 
-		public void AddElement(HitObject pho)
+		private HitQuadTree()
 		{
-			_hitObjects.Add(pho);
+			_hitObjects = new List<HitObject>();
 		}
 
-		public void Initialize()
+		public HitQuadTree(List<HitObject> hitObjects, Rect3D bounds)
 		{
-			var bounds = new Rect3D(true);
-			foreach (var vho in _hitObjects) {
-				bounds.Extend(vho.HitBBox);
-			}
-			CreateNextLevel(bounds, 0, 0);
-		}
-
-		public void Initialize(Rect3D bounds)
-		{
+			_hitObjects = hitObjects;
 			CreateNextLevel(bounds, 0, 0);
 		}
 
@@ -131,11 +123,11 @@ namespace VisualPinball.Engine.Physics
 				}
 			}
 
-			// m_vho originally.Swap(vRemain); - but vRemain isn"t used below.
+			// m_vho originally.Swap(vRemain); - but vRemain isn't used below.
 			_hitObjects = vRemain;
 
-			// check if at least two nodes feature objects, otherwise don"t bother subdividing further
-			var countEmpty = (_hitObjects.Count == 0) ? 1 : 0;
+			// check if at least two nodes feature objects, otherwise don't bother subdividing further
+			var countEmpty = _hitObjects.Count == 0 ? 1 : 0;
 			for (var i = 0; i < 4; ++i) {
 				if (_children[i]._hitObjects.Count == 0) {
 					++countEmpty;
