@@ -96,11 +96,13 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\HitObjectsBlob.cs" />
     <Compile Include="Physics\HitQuadTreeBlob.cs" />
     <Compile Include="Physics\HitTest\CollisionEventData.cs" />
     <Compile Include="Physics\HitTest\HitObjectData.cs" />
-    <Compile Include="Physics\HitTest\HitObjectManager.cs" />
     <Compile Include="Physics\HitTest\HitTestSystem.cs" />
+    <Compile Include="Physics\IHitObject.cs" />
+    <Compile Include="Physics\StaticKdTree.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />

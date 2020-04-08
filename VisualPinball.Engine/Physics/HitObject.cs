@@ -8,6 +8,8 @@ namespace VisualPinball.Engine.Physics
 {
 	public abstract class HitObject
 	{
+		public uint Id;
+
 		/// <summary>
 		/// Base object pointer.
 		///

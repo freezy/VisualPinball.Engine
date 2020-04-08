@@ -141,7 +141,6 @@
 		<Compile Include="Physics\HitLine3D.cs" />
 		<Compile Include="Physics\HitLineZ.cs" />
 		<Compile Include="Physics\HitPoint.cs" />
-		<Compile Include="Physics\IHitObject.cs" />
 		<Compile Include="Physics\SlingshotAnimObject.cs" />
 		<Compile Include="Physics\CollisionEvent.cs" />
 		<Compile Include="Physics\CollisionType.cs" />
