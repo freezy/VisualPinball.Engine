@@ -5,30 +5,29 @@ using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
 {
-
 	public class HitQuadTree
 	{
 		private EventProxy _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
 
-		private readonly HitQuadTree[] _children = new HitQuadTree[4];
-		private readonly Vertex3D _center = new Vertex3D();
-		private List<HitObject> _hitObjects;
-		private bool _isLeaf = true;
+		public readonly HitQuadTree[] Children = new HitQuadTree[4];
+		public readonly Vertex3D Center = new Vertex3D();
+		public List<HitObject> HitObjects;
+		public bool IsLeaf = true;
 
 		private HitQuadTree()
 		{
-			_hitObjects = new List<HitObject>();
+			HitObjects = new List<HitObject>();
 		}
 
 		public HitQuadTree(List<HitObject> hitObjects, Rect3D bounds)
 		{
-			_hitObjects = hitObjects;
+			HitObjects = hitObjects;
 			CreateNextLevel(bounds, 0, 0);
 		}
 
 		public void HitTestBall(Ball ball, CollisionEvent coll, PlayerPhysics physics)
 		{
-			foreach (var vho in _hitObjects) {
+			foreach (var vho in HitObjects) {
 				if (ball.Hit != vho // ball can not hit itself
 				    && vho.HitBBox.IntersectRect(ball.Hit.HitBBox)
 				    && vho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.HitRadiusSqr))
@@ -37,29 +36,29 @@ namespace VisualPinball.Engine.Physics
 				}
 			}
 
-			if (!_isLeaf) {
-				var isLeft = ball.Hit.HitBBox.Left <= _center.X;
-				var isRight = ball.Hit.HitBBox.Right >= _center.X;
+			if (!IsLeaf) {
+				var isLeft = ball.Hit.HitBBox.Left <= Center.X;
+				var isRight = ball.Hit.HitBBox.Right >= Center.X;
 
-				if (ball.Hit.HitBBox.Top <= _center.Y) {
+				if (ball.Hit.HitBBox.Top <= Center.Y) {
 					// Top
 					if (isLeft) {
-						_children[0].HitTestBall(ball, coll, physics);
+						Children[0].HitTestBall(ball, coll, physics);
 					}
 
 					if (isRight) {
-						_children[1].HitTestBall(ball, coll, physics);
+						Children[1].HitTestBall(ball, coll, physics);
 					}
 				}
 
-				if (ball.Hit.HitBBox.Bottom >= _center.Y) {
+				if (ball.Hit.HitBBox.Bottom >= Center.Y) {
 					// Bottom
 					if (isLeft) {
-						_children[2].HitTestBall(ball, coll, physics);
+						Children[2].HitTestBall(ball, coll, physics);
 					}
 
 					if (isRight) {
-						_children[3].HitTestBall(ball, coll, physics);
+						Children[3].HitTestBall(ball, coll, physics);
 					}
 				}
 			}
@@ -67,28 +66,28 @@ namespace VisualPinball.Engine.Physics
 
 		private void CreateNextLevel(Rect3D bounds, int level, int levelEmpty)
 		{
-			if (_hitObjects.Count <= 4) {
+			if (HitObjects.Count <= 4) {
 				//!! magic
 				return;
 			}
 
-			_isLeaf = false;
+			IsLeaf = false;
 
-			_center.X = (bounds.Left + bounds.Right) * 0.5f;
-			_center.Y = (bounds.Top + bounds.Bottom) * 0.5f;
-			_center.Z = (bounds.ZLow + bounds.ZHigh) * 0.5f;
+			Center.X = (bounds.Left + bounds.Right) * 0.5f;
+			Center.Y = (bounds.Top + bounds.Bottom) * 0.5f;
+			Center.Z = (bounds.ZLow + bounds.ZHigh) * 0.5f;
 
 			for (var i = 0; i < 4; i++) {
-				_children[i] = new HitQuadTree();
+				Children[i] = new HitQuadTree();
 			}
 
 			List<HitObject> vRemain = new List<HitObject>(); // hit objects which did not go to a quadrant
 
 			// TODO check if casting in C++ results in null if not the cast type
-			_unique = _hitObjects[0].E ? _hitObjects[0].Obj : null;
+			_unique = HitObjects[0].E ? HitObjects[0].Obj : null;
 
 			// sort items into appropriate child nodes
-			foreach (var hitObject in _hitObjects) {
+			foreach (var hitObject in HitObjects) {
 				int oct;
 
 				if ((hitObject.E ? hitObject.Obj : null) != _unique) {
@@ -96,20 +95,20 @@ namespace VisualPinball.Engine.Physics
 					_unique = null;
 				}
 
-				if (hitObject.HitBBox.Right < _center.X) {
+				if (hitObject.HitBBox.Right < Center.X) {
 					oct = 0;
 
-				} else if (hitObject.HitBBox.Left > _center.X) {
+				} else if (hitObject.HitBBox.Left > Center.X) {
 					oct = 1;
 
 				} else {
 					oct = 128;
 				}
 
-				if (hitObject.HitBBox.Bottom < _center.Y) {
+				if (hitObject.HitBBox.Bottom < Center.Y) {
 					oct |= 0;
 
-				} else if (hitObject.HitBBox.Top > _center.Y) {
+				} else if (hitObject.HitBBox.Top > Center.Y) {
 					oct |= 2;
 
 				} else {
@@ -117,7 +116,7 @@ namespace VisualPinball.Engine.Physics
 				}
 
 				if ((oct & 128) == 0) {
-					_children[oct]._hitObjects.Add(hitObject);
+					Children[oct].HitObjects.Add(hitObject);
 
 				} else {
 					vRemain.Add(hitObject);
@@ -125,12 +124,12 @@ namespace VisualPinball.Engine.Physics
 			}
 
 			// m_vho originally.Swap(vRemain); - but vRemain isn't used below.
-			_hitObjects = vRemain;
+			HitObjects = vRemain;
 
 			// check if at least two nodes feature objects, otherwise don't bother subdividing further
-			var countEmpty = _hitObjects.Count == 0 ? 1 : 0;
+			var countEmpty = HitObjects.Count == 0 ? 1 : 0;
 			for (var i = 0; i < 4; ++i) {
-				if (_children[i]._hitObjects.Count == 0) {
+				if (Children[i].HitObjects.Count == 0) {
 					++countEmpty;
 				}
 			}
@@ -142,7 +141,7 @@ namespace VisualPinball.Engine.Physics
 				levelEmpty = 0;
 			}
 
-			if (_center.X - bounds.Left > 0.0001 //!! magic
+			if (Center.X - bounds.Left > 0.0001 //!! magic
 			    &&
 			    levelEmpty <=
 			    8 // If 8 levels were all just subdividing the same objects without luck, exit & Free the nodes again (but at least empty space was cut off)
@@ -150,15 +149,15 @@ namespace VisualPinball.Engine.Physics
 			{
 				for (var i = 0; i < 4; ++i) {
 					var childBounds = new Rect3D {
-						Left = (i & 1) != 0 ? _center.X : bounds.Left,
-						Top = (i & 2) != 0 ? _center.Y : bounds.Top,
+						Left = (i & 1) != 0 ? Center.X : bounds.Left,
+						Top = (i & 2) != 0 ? Center.Y : bounds.Top,
 						ZLow = bounds.ZLow,
-						Right = (i & 1) != 0 ? bounds.Right : _center.X,
-						Bottom = (i & 2) != 0 ? bounds.Bottom : _center.Y,
+						Right = (i & 1) != 0 ? bounds.Right : Center.X,
+						Bottom = (i & 2) != 0 ? bounds.Bottom : Center.Y,
 						ZHigh = bounds.ZHigh
 					};
 
-					_children[i].CreateNextLevel(childBounds, level + 1, levelEmpty);
+					Children[i].CreateNextLevel(childBounds, level + 1, levelEmpty);
 				}
 			}
 		}

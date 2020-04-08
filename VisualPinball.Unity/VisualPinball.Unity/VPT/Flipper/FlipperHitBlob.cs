@@ -2,19 +2,24 @@
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Physics;
+using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
 	public struct FlipperHitBlob : IHitObject
 	{
 		public Rect3D HitBBox { get; }
-		public void DoHitTest(Engine.VPT.Ball.Ball ball, CollisionEvent coll, PlayerPhysics physics)
-		{
 
+		public float HitTest(BallData ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
+		{
+			return -1;
 		}
 
-		public static FlipperHitBlob Create(FlipperHit flipperHit)
+
+		public static FlipperHitBlob Create(FlipperHit flipperHit, uint id)
 		{
+			flipperHit.Id = id;
 			return new FlipperHitBlob();
 		}
 	}
