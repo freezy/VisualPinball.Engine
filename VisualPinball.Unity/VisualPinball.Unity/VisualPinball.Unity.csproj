@@ -96,8 +96,10 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\HitQuadTreeBlob.cs" />
     <Compile Include="Physics\HitTest\CollisionEventData.cs" />
     <Compile Include="Physics\HitTest\HitObjectData.cs" />
+    <Compile Include="Physics\HitTest\HitObjectManager.cs" />
     <Compile Include="Physics\HitTest\HitTestSystem.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
+    <Compile Include="VPT\Flipper\FlipperHitBlob.cs" />
     <Compile Include="VPT\Flipper\FlipperMaterialData.cs" />
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
