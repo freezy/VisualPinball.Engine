@@ -5,6 +5,7 @@ using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
 {
+
 	public class HitQuadTree
 	{
 		private EventProxy _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
@@ -87,28 +88,28 @@ namespace VisualPinball.Engine.Physics
 			_unique = _hitObjects[0].E ? _hitObjects[0].Obj : null;
 
 			// sort items into appropriate child nodes
-			foreach (var pho in _hitObjects) {
+			foreach (var hitObject in _hitObjects) {
 				int oct;
 
-				if ((pho.E ? pho.Obj : null) != _unique) {
+				if ((hitObject.E ? hitObject.Obj : null) != _unique) {
 					// are all objects in current node unique/belong to the same primitive?
 					_unique = null;
 				}
 
-				if (pho.HitBBox.Right < _center.X) {
+				if (hitObject.HitBBox.Right < _center.X) {
 					oct = 0;
 
-				} else if (pho.HitBBox.Left > _center.X) {
+				} else if (hitObject.HitBBox.Left > _center.X) {
 					oct = 1;
 
 				} else {
 					oct = 128;
 				}
 
-				if (pho.HitBBox.Bottom < _center.Y) {
+				if (hitObject.HitBBox.Bottom < _center.Y) {
 					oct |= 0;
 
-				} else if (pho.HitBBox.Top > _center.Y) {
+				} else if (hitObject.HitBBox.Top > _center.Y) {
 					oct |= 2;
 
 				} else {
@@ -116,10 +117,10 @@ namespace VisualPinball.Engine.Physics
 				}
 
 				if ((oct & 128) == 0) {
-					_children[oct]._hitObjects.Add(pho);
+					_children[oct]._hitObjects.Add(hitObject);
 
 				} else {
-					vRemain.Add(pho);
+					vRemain.Add(hitObject);
 				}
 			}
 
