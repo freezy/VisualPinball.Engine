@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -96,12 +97,22 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\Collider\Aabb.cs" />
+    <Compile Include="Physics\Collider\Collider.cs" />
+    <Compile Include="Physics\Collider\ColliderHeader.cs" />
+    <Compile Include="Physics\Collider\ColliderType.cs" />
+    <Compile Include="Physics\Collider\QuadTree.cs" />
+    <Compile Include="Physics\Collider\ICollidable.cs" />
+    <Compile Include="Physics\Collider\ICollider.cs" />
+    <Compile Include="Physics\Collider\LineCollider.cs" />
     <Compile Include="Physics\HitObjectsBlob.cs" />
     <Compile Include="Physics\HitQuadTreeBlob.cs" />
+    <Compile Include="Physics\HitTest\BallBroadPhaseSystem.cs" />
     <Compile Include="Physics\HitTest\CollisionEventData.cs" />
     <Compile Include="Physics\HitTest\HitObjectData.cs" />
     <Compile Include="Physics\HitTest\HitTestSystem.cs" />
     <Compile Include="Physics\IHitObject.cs" />
+    <Compile Include="Physics\KdTreeConverter.cs" />
     <Compile Include="Physics\StaticKdTree.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
