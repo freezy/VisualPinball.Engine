@@ -21,6 +21,11 @@ namespace VisualPinball.Unity.Extensions
 			return new Vector3(vertex.X, vertex.Y, z);
 		}
 
+		public static float2 ToUnityFloat2(this Vertex2D vertex)
+		{
+			return new float2(vertex.X, vertex.Y);
+		}
+
 		public static Vector3 ToUnityVector3(this Vertex3DNoTex2 vertex)
 		{
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
