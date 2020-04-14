@@ -12,10 +12,10 @@ namespace VisualPinball.Unity.Physics.Collider
 		private ColliderHeader _header;
 		public ColliderType Type => _header.Type;
 
-		public static BlobPtr<Collider> CreatePtr(HitObject hitObject)
+		public static BlobPtr<Collider> CreatePtr(HitObject hitObject, ref BlobPtr<Collider> ptr)
 		{
 			if (hitObject is LineSeg lineSeg) {
-				return LineCollider.CreatePtr(lineSeg);
+				LineCollider.CreatePtr(lineSeg, ref ptr);
 			}
 			return new BlobPtr<Collider> {Value = new Collider()};
 		}

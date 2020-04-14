@@ -44,12 +44,35 @@
 		<Reference Include="System.Core" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Xml" />
+		<Reference Include="Unity.Entities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.TestRunner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\..\..\EntityComponentSystemSamples\UnityPhysicsSamples\Library\ScriptAssemblies\UnityEngine.TestRunner.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
+		<Compile Include="Physics\Collider\QuadTreeTests.cs" />
 		<Compile Include="Properties\AssemblyInfo.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="packages.config" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
+	    <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
+	    <Name>VisualPinball.Engine</Name>
+	  </ProjectReference>
+	  <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj">
+	    <Project>{89dc7792-2ac2-4a69-8605-d3a14cc7b6b0}</Project>
+	    <Name>VisualPinball.Unity</Name>
+	  </ProjectReference>
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Include="VisualPinball.Unity.Test.asmdef" />
 	</ItemGroup>
 	<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 	<Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
