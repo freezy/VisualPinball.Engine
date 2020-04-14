@@ -25,11 +25,11 @@ namespace VisualPinball.Unity.Physics.Collider
 			return BlobAssetReference<Collider>.Create(&collider, sizeof(LineCollider));
 		}
 
-		public static void Create(LineSeg lineSeg, ref BlobPtr<Collider> ptr, BlobBuilder builder)
+		public static void Create(LineSeg src, ref BlobPtr<Collider> dest, BlobBuilder builder)
 		{
 			var collider = default(LineCollider);
-			collider.Init(lineSeg.V1.ToUnityFloat2(), lineSeg.V2.ToUnityFloat2(), lineSeg.HitBBox.ZLow, lineSeg.HitBBox.ZHigh);
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref ptr);
+			collider.Init(src.V1.ToUnityFloat2(), src.V2.ToUnityFloat2(), src.HitBBox.ZLow, src.HitBBox.ZHigh);
+			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			builder.Allocate(ref linePtr);
 		}
 
