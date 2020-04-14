@@ -28,7 +28,8 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			var colliders = blobBuilder.Allocate(ref hitQuadTreeBlob.HitObjects, hitQuadTree.HitObjects.Count);
 			for (var i = 0; i < hitQuadTree.HitObjects.Count; i++) {
-				Collider.CreatePtr(hitQuadTree.HitObjects[i], ref colliders[i]);
+				//var ptr = blobBuilder.Allocate(ref colliders[i]);
+				Collider.CreatePtr(hitQuadTree.HitObjects[i], ref colliders[i], blobBuilder);
 				blobBuilder.Allocate(ref colliders[i]);
 			}
 		}

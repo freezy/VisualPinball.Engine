@@ -44,6 +44,9 @@
 		<Reference Include="System.Core" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Xml" />
+		<Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+		</Reference>
 		<Reference Include="Unity.Entities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
 		  <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
 		</Reference>

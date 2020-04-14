@@ -12,12 +12,11 @@ namespace VisualPinball.Unity.Physics.Collider
 		private ColliderHeader _header;
 		public ColliderType Type => _header.Type;
 
-		public static BlobPtr<Collider> CreatePtr(HitObject hitObject, ref BlobPtr<Collider> ptr)
+		public static void CreatePtr(HitObject hitObject, ref BlobPtr<Collider> ptr, BlobBuilder builder)
 		{
 			if (hitObject is LineSeg lineSeg) {
-				LineCollider.CreatePtr(lineSeg, ref ptr);
+				LineCollider.CreatePtr(lineSeg, ref ptr, builder);
 			}
-			return new BlobPtr<Collider> {Value = new Collider()};
 		}
 
 		public unsafe int MemorySize
