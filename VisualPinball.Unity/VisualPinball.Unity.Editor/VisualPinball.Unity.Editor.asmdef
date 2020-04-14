@@ -4,12 +4,11 @@
 		"Unity.Entities",
 		"Unity.Entities.Hybrid",
 		"Unity.Mathematics",
-		"Unity.Physics",
-		"Unity.Physics.Hybrid",
 		"Unity.Transforms",
 		"VisualPinball.Engine",
 		"VisualPinball.Unity",
 		"VisualPinball.Unity.Patcher"
+
 	],
 	"includePlatforms": [],
 	"excludePlatforms": [
