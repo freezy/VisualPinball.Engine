@@ -12,10 +12,10 @@ namespace VisualPinball.Unity.Physics.Collider
 		private ColliderHeader _header;
 		public ColliderType Type => _header.Type;
 
-		public static void Create(HitObject hitObject, ref BlobPtr<Collider> ptr, BlobBuilder builder)
+		public static void Create(HitObject src, ref BlobPtr<Collider> dest, BlobBuilder builder)
 		{
-			if (hitObject is LineSeg lineSeg) {
-				LineCollider.Create(lineSeg, ref ptr, builder);
+			if (src is LineSeg lineSeg) {
+				LineCollider.Create(lineSeg, ref dest, builder);
 			}
 		}
 
