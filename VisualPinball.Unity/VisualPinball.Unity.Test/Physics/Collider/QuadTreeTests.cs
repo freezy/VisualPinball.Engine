@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 
 				ref var rootQuadTree = ref blobBuilder.ConstructRoot<QuadTree>();
 
-				QuadTree.Create(blobBuilder, ref rootQuadTree, hitQuad);
+				QuadTree.Create(hitQuad, ref rootQuadTree, blobBuilder);
 
 				var quadTreeBlobAssetRef = blobBuilder.CreateBlobAssetReference<QuadTree>(Allocator.Persistent);
 				ref var colliderPtr = ref quadTreeBlobAssetRef.Value.HitObjects[0];
