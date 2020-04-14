@@ -1,6 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
@@ -14,7 +12,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		public BlobArray<BlobPtr<Collider>> HitObjects;
 		public bool IsLeaf;
 
-		public static void Create(BlobBuilder blobBuilder, ref QuadTree hitQuadTreeBlob, HitQuadTree hitQuadTree)
+		public static void Create(HitQuadTree hitQuadTree, ref QuadTree hitQuadTreeBlob, BlobBuilder blobBuilder)
 		{
 			// var children = blobBuilder.Allocate(ref hitQuadTreeBlob.Children, 4);
 			// for (var i = 0; i < 4; i++) {
@@ -28,9 +26,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			var colliders = blobBuilder.Allocate(ref hitQuadTreeBlob.HitObjects, hitQuadTree.HitObjects.Count);
 			for (var i = 0; i < hitQuadTree.HitObjects.Count; i++) {
-				//var ptr = blobBuilder.Allocate(ref colliders[i]);
-				Collider.CreatePtr(hitQuadTree.HitObjects[i], ref colliders[i], blobBuilder);
-				blobBuilder.Allocate(ref colliders[i]);
+				Collider.Create(hitQuadTree.HitObjects[i], ref colliders[i], blobBuilder);
 			}
 		}
 
