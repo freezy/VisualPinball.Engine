@@ -7,45 +7,31 @@ namespace VisualPinball.Unity.Physics.Collider
 {
 	public struct QuadTree
 	{
-		public BlobArray<BlobAssetReference<QuadTree>> Children;
-		public float3 Center;
+		public BlobArray<BlobPtr<QuadTree>> Children;
 		public BlobArray<BlobPtr<Collider>> HitObjects;
+		public float3 Center;
 		public bool IsLeaf;
 
-		public static void Create(HitQuadTree hitQuadTree, ref QuadTree hitQuadTreeBlob, BlobBuilder blobBuilder)
+		public static void Create(HitQuadTree src, ref QuadTree dest, BlobBuilder builder)
 		{
-			// var children = blobBuilder.Allocate(ref hitQuadTreeBlob.Children, 4);
-			// for (var i = 0; i < 4; i++) {
-			// 	if (hitQuadTree.Children[i] != null) {
-			// 		blobBuilder.Allocate(Children[i])
-			// 		Create(blobBuilder, ref children[i], hitQuad.Children[i]);
-			// 	}
-			// }
-			hitQuadTreeBlob.Center = hitQuadTree.Center.ToUnityFloat3();
-			hitQuadTreeBlob.IsLeaf = hitQuadTree.IsLeaf;
+			var children = builder.Allocate(ref dest.Children, 4);
+			for (var i = 0; i < 4; i++) {
+				if (src.Children[i] != null) {
+					Create(src.Children[i], ref children[i], builder);
+				}
+			}
+			dest.Center = src.Center.ToUnityFloat3();
+			dest.IsLeaf = src.IsLeaf;
 
-			var colliders = blobBuilder.Allocate(ref hitQuadTreeBlob.HitObjects, hitQuadTree.HitObjects.Count);
-			for (var i = 0; i < hitQuadTree.HitObjects.Count; i++) {
-				Collider.Create(hitQuadTree.HitObjects[i], ref colliders[i], blobBuilder);
+			var colliders = builder.Allocate(ref dest.HitObjects, src.HitObjects.Count);
+			for (var i = 0; i < src.HitObjects.Count; i++) {
+				Collider.Create(src.HitObjects[i], ref colliders[i], builder);
 			}
 		}
 
-		// public static QuadTree Create(HitQuadTree hitQuadTree)
-		// {
-		// 	var children = new BlobArray<QuadTree>();
-		// 	for (var i = 0; i < 4; i++) {
-		// 		if (hitQuadTree.Children[i] != null) {
-		// 			children[i] = Create(hitQuadTree.Children[i]);
-		// 		} else {
-		// 			children[i] = default;
-		// 		}
-		// 	}
-		//
-		// 	return new QuadTree {
-		// 		Children = children,
-		// 		Center = hitQuadTree.Center.ToUnityFloat3(),
-		// 		IsLeaf = hitQuadTree.IsLeaf
-		// 	};
-		// }
+		private static void Create(HitQuadTree src, ref BlobPtr<QuadTree> dest, BlobBuilder builder)
+		{
+			Create(src, ref dest.Value, builder);
+		}
 	}
 }
