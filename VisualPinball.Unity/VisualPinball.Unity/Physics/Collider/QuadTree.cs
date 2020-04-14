@@ -27,7 +27,8 @@ namespace VisualPinball.Unity.Physics.Collider
 			var children = builder.Allocate(ref dest.Children, 4);
 			for (var i = 0; i < 4; i++) {
 				if (src.Children[i] != null) {
-					Create(src.Children[i], ref children[i].Value, builder);
+					ref var child = ref builder.Allocate(ref children[i]);
+					Create(src.Children[i], ref child, builder);
 				}
 			}
 
