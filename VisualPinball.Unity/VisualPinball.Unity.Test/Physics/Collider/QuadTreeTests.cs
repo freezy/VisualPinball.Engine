@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Physics.Collider;
@@ -24,19 +21,10 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 			var bounds = new Rect3D(true);
 			var hitQuad = new HitQuadTree(new List<HitObject> { lineSeg }, bounds);
 
-			using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
+			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference(hitQuad);
+			ref var collider = ref quadTreeBlobAssetRef.Value.HitObjects[0].Value;
 
-				ref var rootQuadTree = ref blobBuilder.ConstructRoot<QuadTree>();
-
-				QuadTree.Create(hitQuad, ref rootQuadTree, blobBuilder);
-
-				var quadTreeBlobAssetRef = blobBuilder.CreateBlobAssetReference<QuadTree>(Allocator.Persistent);
-				ref var colliderPtr = ref quadTreeBlobAssetRef.Value.HitObjects[0];
-				var collider = colliderPtr.Value;
-				var hitTime = collider.HitTest(1);
-
-				Assert.AreEqual(ColliderType.Line, collider.Type);
-			}
+			Assert.AreEqual(ColliderType.Line, collider.Type);
 		}
 	}
 }

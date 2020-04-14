@@ -7,7 +7,7 @@ namespace VisualPinball.Unity.Physics.Collider
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : ICollider, ICollidable
+	public struct Collider : ICollider, ICollidable, IComponentData
 	{
 		private ColliderHeader _header;
 		public ColliderType Type => _header.Type;
