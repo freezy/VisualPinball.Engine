@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
@@ -15,7 +16,11 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 		[Test]
 		public void ShouldSerializeCorrectly()
 		{
-			var lineSeg = new LineSeg(new Vertex2D(1f, 2f), new Vertex2D(3f, 4f), 5f, 6f);
+			var v1 = new Vertex2D(1f, 2f);
+			var v2 = new Vertex2D(3f, 4f);
+			const float zLow = 5f;
+			const float zHigh = 6f;
+			var lineSeg = new LineSeg(v1, v2, zLow, zHigh);
 			var bounds = new Rect3D(true);
 			var hitQuad = new HitQuadTree(new List<HitObject> { lineSeg }, bounds);
 
@@ -26,11 +31,12 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 				QuadTree.Create(blobBuilder, ref rootQuadTree, hitQuad);
 
 				var quadTreeBlobAssetRef = blobBuilder.CreateBlobAssetReference<QuadTree>(Allocator.Persistent);
+				ref var colliderPtr = ref quadTreeBlobAssetRef.Value.HitObjects[0];
+				var collider = colliderPtr.Value;
+				var hitTime = collider.HitTest(1);
 
-				Assert.Equals(true, true);
+				Assert.AreEqual(ColliderType.Line, collider.Type);
 			}
-
-
 		}
 	}
 }
