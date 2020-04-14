@@ -29,12 +29,16 @@ namespace VisualPinball.Unity.Physics
 					hitObject.CalcHitBBox();
 				}
 			}
-			var kdTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
 
+			// construct quad tree
+			var quadTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
+			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference(quadTree);
+
+			// assign it to system
 			var bbpSystem = DstEntityManager.World.GetOrCreateSystem<BallBroadPhaseSystem>();
-			bbpSystem.KdTree = kdTree;
+			bbpSystem.QuadTree = quadTreeBlobAssetRef;
 
-			Logger.Info("KdTree converted.");
+			Logger.Info("QuadTree converted.");
 		}
 	}
 }
