@@ -4,12 +4,12 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity.Physics.Collision
 {
 	public struct QuadTree
 	{
 		public BlobArray<BlobPtr<QuadTree>> Children;
-		public BlobArray<BlobPtr<Collider>> HitObjects;
+		public BlobArray<BlobPtr<Collider.Collider>> HitObjects;
 		public float3 Center;
 		public bool IsLeaf;
 
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			var colliders = builder.Allocate(ref dest.HitObjects, src.HitObjects.Count);
 			for (var i = 0; i < src.HitObjects.Count; i++) {
-				Collider.Create(src.HitObjects[i], ref colliders[i], builder);
+				Collider.Collider.Create(src.HitObjects[i], ref colliders[i], builder);
 			}
 
 			dest.Center = src.Center.ToUnityFloat3();

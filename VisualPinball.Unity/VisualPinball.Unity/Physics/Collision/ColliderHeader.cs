@@ -1,4 +1,6 @@
-﻿namespace VisualPinball.Unity.Physics.Collider
+﻿using VisualPinball.Unity.Physics.Collider;
+
+namespace VisualPinball.Unity.Physics.Collision
 {
 	/// <summary>
 	/// The common data to all colliders.

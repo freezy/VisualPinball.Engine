@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
