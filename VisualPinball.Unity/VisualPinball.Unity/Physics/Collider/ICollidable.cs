@@ -1,7 +1,10 @@
-﻿namespace VisualPinball.Unity.Physics.Collider
+﻿using VisualPinball.Engine.Physics;
+using VisualPinball.Unity.VPT.Ball;
+
+namespace VisualPinball.Unity.Physics.Collider
 {
 	public interface ICollidable
 	{
-		float HitTest(float dTime);
+		float HitTest(BallData ball, float dTime, CollisionEvent coll);
 	}
 }

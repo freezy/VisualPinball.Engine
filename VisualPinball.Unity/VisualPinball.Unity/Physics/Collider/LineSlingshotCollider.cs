@@ -7,7 +7,7 @@ using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
-	public struct LineCollider : ICollider, ICollidable
+	public struct LineSlingshotCollider : ICollider, ICollidable
 	{
 		private ColliderHeader _header;
 
@@ -20,9 +20,9 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public static void Create(LineSeg src, ref BlobPtr<Collider> dest, BlobBuilder builder)
 		{
-			var collider = default(LineCollider);
+			var collider = default(LineSlingshotCollider);
 			collider.Init(src);
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref dest);
 			builder.Allocate(ref linePtr);
 		}
 
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public float HitTest(BallData ball, float dTime, CollisionEvent coll)
 		{
-			return -2;
+			return -3;
 		}
 	}
 }

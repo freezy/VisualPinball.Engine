@@ -7,13 +7,12 @@ namespace VisualPinball.Unity.Physics.HitTest
 {
 	public class BallBroadPhaseSystem : JobComponentSystem
 	{
-		public BlobAssetReference<QuadTree> QuadTree;
-
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var quadTree = QuadTree;
+			var collisionData = GetSingleton<CollisionData>();
 			return Entities.ForEach((ref BallData ballData) => {
-				if (quadTree.Value.Center.x > 0) {
+				ref var quadTree = ref collisionData.QuadTree.Value;
+				if (quadTree.Center.x > 0) {
 
 				}
 			}).Schedule(inputDeps);
