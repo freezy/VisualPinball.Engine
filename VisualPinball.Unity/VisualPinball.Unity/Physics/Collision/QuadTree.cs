@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -20,6 +21,48 @@ namespace VisualPinball.Unity.Physics.Collision
 				Create(hitQuadTree, ref rootQuadTree, blobBuilder);
 				return blobBuilder.CreateBlobAssetReference<QuadTree>(Allocator.Persistent);
 			}
+		}
+
+		public NativeList<Collider.Collider> GetAabbOverlaps(BallData ball, NativeList<Collider.Collider> colliders)
+		{
+			var ballAabb = ball.Aabb;
+			var collisionRadiusSqr = ball.CollisionRadiusSqr;
+
+			for (var i = 0; i < HitObjects.Length; i++) {
+				ref var collider = ref HitObjects[i].Value;
+				if (collider.Aabb.IntersectRect(ballAabb) && collider.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					colliders.Add(collider);
+				}
+			}
+
+			if (!IsLeaf) {
+				var isLeft = ballAabb.Left <= Center.x;
+				var isRight = ballAabb.Right >= Center.x;
+
+				if (ballAabb.Top <= Center.y) {
+					// Top
+					if (isLeft) {
+						Children[0].Value.GetAabbOverlaps(ball, colliders);
+					}
+
+					if (isRight) {
+						Children[1].Value.GetAabbOverlaps(ball, colliders);
+					}
+				}
+
+				if (ballAabb.Bottom >= Center.y) {
+					// Bottom
+					if (isLeft) {
+						Children[2].Value.GetAabbOverlaps(ball, colliders);
+					}
+
+					if (isRight) {
+						Children[3].Value.GetAabbOverlaps(ball, colliders);
+					}
+				}
+			}
+
+			return colliders;
 		}
 
 		private static void Create(HitQuadTree src, ref QuadTree dest, BlobBuilder builder)
