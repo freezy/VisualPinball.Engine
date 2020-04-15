@@ -13,6 +13,7 @@ namespace VisualPinball.Unity.Physics.Collider
 	{
 		private ColliderHeader _header;
 		public ColliderType Type => _header.Type;
+		public Aabb Aabb => _header.HitBBox;
 
 		public static void Create(HitObject src, ref BlobPtr<Collider> dest, BlobBuilder builder)
 		{
