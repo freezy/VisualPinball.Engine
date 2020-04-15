@@ -99,12 +99,14 @@
     <Compile Include="Import\VpxImporter.cs" />
     <Compile Include="Physics\Collider\CircleCollider.cs" />
     <Compile Include="Physics\Collider\Collider.cs" />
+    <Compile Include="Physics\Collider\FlipperCollider.cs" />
     <Compile Include="Physics\Collider\Line3DCollider.cs" />
     <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
     <Compile Include="Physics\Collider\LineZCollider.cs" />
     <Compile Include="Physics\Collider\PlaneCollider.cs" />
     <Compile Include="Physics\Collider\PointCollider.cs" />
     <Compile Include="Physics\Collider\LineCollider.cs" />
+    <Compile Include="Physics\Collider\Poly3DCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
     <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />

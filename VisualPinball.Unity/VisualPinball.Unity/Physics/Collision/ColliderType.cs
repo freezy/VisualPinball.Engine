@@ -3,11 +3,13 @@
 	public enum ColliderType
 	{
 		Circle,
+		Flipper,
 		Line,
 		Line3D,
 		LineSlingShot,
 		LineZ,
 		Plane,
 		Point,
+		Poly3D,
 	}
 }
