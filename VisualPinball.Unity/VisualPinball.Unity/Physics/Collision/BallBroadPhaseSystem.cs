@@ -15,18 +15,18 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<CollisionData>(collEntity);
 
-			Entities.WithoutBurst().ForEach((ref BallData ballData) => {
+			return Entities.ForEach((ref BallData ballData) => {
 				ref var quadTree = ref collData.QuadTree.Value;
-				var colliders = quadTree.GetAabbOverlaps(ballData, new NativeList<Collider.Collider>());
+				var colliders = new NativeList<Collider.Collider>(Allocator.Temp);
+				quadTree.GetAabbOverlaps(ballData, colliders);
 
 				if (colliders.Length > 0) {
 					Debug.Log($"Found {colliders.Length} overlaps.");
 				}
 
-			}).Run();
-			//}).Schedule(inputDeps);
+				colliders.Dispose();
 
-			return default;
+			}).Schedule(inputDeps);
 		}
 	}
 }

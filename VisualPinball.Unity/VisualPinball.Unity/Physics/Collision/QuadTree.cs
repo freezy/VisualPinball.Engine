@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 		}
 
-		public NativeList<Collider.Collider> GetAabbOverlaps(BallData ball, NativeList<Collider.Collider> colliders)
+		public void GetAabbOverlaps(BallData ball, NativeList<Collider.Collider> colliders)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
@@ -62,8 +62,6 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 			}
-
-			return colliders;
 		}
 
 		private static void Create(HitQuadTree src, ref QuadTree dest, BlobBuilder builder)

@@ -23,6 +23,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		{
 			_ballBroadPhaseSystem = World.GetOrCreateSystem<BallBroadPhaseSystem>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
+			_systemsToUpdate.Add(_ballBroadPhaseSystem);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 		}
 
