@@ -3,14 +3,13 @@ using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Physics
+namespace VisualPinball.Unity.Physics.Collision
 {
 	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
-	public class KdTreeConverter : GameObjectConversionSystem
+	public class QuadTreeConversionSystem : GameObjectConversionSystem
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
