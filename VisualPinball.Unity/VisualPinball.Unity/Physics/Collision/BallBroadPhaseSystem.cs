@@ -2,10 +2,9 @@
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
-using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.HitTest
+namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
 	public class BallBroadPhaseSystem : JobComponentSystem
