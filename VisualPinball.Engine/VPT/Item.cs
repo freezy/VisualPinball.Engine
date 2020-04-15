@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.VPT
 		public readonly TData Data;
 
 		public string Name => Data.GetName();
+		public int Index { get; set; }
 
 		public Item(TData data)
 		{

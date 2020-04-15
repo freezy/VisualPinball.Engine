@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -49,6 +50,11 @@ namespace VisualPinball.Unity.VPT
 					UpdateMesh(child, transform.Find(child).gameObject, rog);
 				}
 			}
+		}
+
+		protected void Convert(Entity entity, EntityManager dstManager)
+		{
+			Item.Index = entity.Index;
 		}
 
 		private void Awake()

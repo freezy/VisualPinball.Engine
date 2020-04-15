@@ -49,6 +49,8 @@ namespace VisualPinball.Engine.Physics
 		/// </summary>
 		public bool E = false;                                                 // m_e
 
+		public int ItemIndex;
+
 		public abstract void CalcHitBBox();
 
 		public abstract float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics);

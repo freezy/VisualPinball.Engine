@@ -8,6 +8,7 @@
 	public struct ColliderHeader
 	{
 		public ColliderType Type;
+		public int EntityIndex;
 		public Aabb HitBBox;
 	}
 }
