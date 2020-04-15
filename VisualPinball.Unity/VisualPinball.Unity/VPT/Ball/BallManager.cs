@@ -48,7 +48,13 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// go will be converted automatically to entity
 			var go = CreateSphere(material, worldPos, scale * radius * 2, mass);
-			return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
+			var ballBehavior = go.AddComponent<BallBehavior>();
+			ballBehavior.Position = localPos;
+			ballBehavior.Radius = radius;
+			ballBehavior.Mass = mass;
+
+			//return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
+			return null;
 		}
 
 		/// <summary>
@@ -86,6 +92,8 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			return go;
 		}
+
+		#region Material
 
 		private static Material CreateMaterial()
 		{
@@ -134,5 +142,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			material.SetFloat(Glossiness, 0.75f);
 			return material;
 		}
+
+		#endregion
+
 	}
 }

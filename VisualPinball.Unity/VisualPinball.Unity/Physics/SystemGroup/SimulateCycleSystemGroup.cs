@@ -16,12 +16,12 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
-		private HitTestSystem _hitTestSystem;
+		private BallBroadPhaseSystem _ballBroadPhaseSystem;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 
 		protected override void OnCreate()
 		{
-			_hitTestSystem = World.GetOrCreateSystem<HitTestSystem>();
+			_ballBroadPhaseSystem = World.GetOrCreateSystem<BallBroadPhaseSystem>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_systemsToUpdate.Add(_displacementSystemGroup);
 		}
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				var hitTime = DTime;
 
-				_hitTestSystem.Update();
+				_ballBroadPhaseSystem.Update();
 				_displacementSystemGroup.Update();
 
 				DTime -= hitTime;

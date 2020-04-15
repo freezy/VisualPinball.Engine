@@ -127,6 +127,7 @@
     <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\BallApi.cs" />
+    <Compile Include="VPT\Ball\BallBehavior.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
     <Compile Include="VPT\Ball\BallManager.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
