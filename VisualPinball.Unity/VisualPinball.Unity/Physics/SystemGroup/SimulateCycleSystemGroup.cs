@@ -2,7 +2,7 @@
 using NLog;
 using Unity.Entities;
 using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.HitTest;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Physics.SystemGroup
 {
