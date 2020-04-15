@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Physics
 			var hitObjects = new List<HitObject>();
 			foreach (var hittable in table.Hittables) {
 				foreach (var hitObject in hittable.GetHitShapes()) {
+					hitObject.ItemIndex = hittable.Index;
 					hitObjects.Add(hitObject);
 					hitObject.CalcHitBBox();
 				}

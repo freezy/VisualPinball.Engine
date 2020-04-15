@@ -23,6 +23,7 @@ namespace VisualPinball.Unity.VPT.Surface
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			Convert(entity, dstManager);
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 	}

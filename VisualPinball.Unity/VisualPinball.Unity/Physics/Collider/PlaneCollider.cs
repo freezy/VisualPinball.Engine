@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(HitPlane src)
 		{
 			_header.Type = ColliderType.Plane;
+			_header.EntityIndex = src.ItemIndex;
 			_header.HitBBox = src.HitBBox.ToAabb();
 
 			_normal = src.Normal.ToUnityFloat3();
