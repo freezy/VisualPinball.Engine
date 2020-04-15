@@ -2,6 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Extensions
 {

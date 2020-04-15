@@ -1,4 +1,4 @@
-﻿namespace VisualPinball.Unity.Physics.Collider
+﻿namespace VisualPinball.Unity.Physics.Collision
 {
 	public enum ColliderType
 	{

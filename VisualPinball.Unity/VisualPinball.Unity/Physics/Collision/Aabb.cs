@@ -1,6 +1,6 @@
 ﻿using Unity.Mathematics;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity.Physics.Collision
 {
 	public struct Aabb
 	{
