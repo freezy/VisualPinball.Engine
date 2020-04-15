@@ -3,9 +3,7 @@ using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.HitTest;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -18,6 +16,11 @@ namespace VisualPinball.Unity.Physics
 
 		protected override void OnUpdate()
 		{
+			// fixme
+			if (DstEntityManager.CreateEntityQuery(typeof(CollisionData)).CalculateEntityCount() > 0) {
+				return;
+			}
+
 			var table = Object.FindObjectOfType<TableBehavior>().Table;
 
 			foreach (var playable in table.Playables) {
@@ -38,10 +41,12 @@ namespace VisualPinball.Unity.Physics
 			var quadTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
 			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference(quadTree);
 
-			// assign it to system
-			var bbpSystem = DstEntityManager.World.GetOrCreateSystem<BallBroadPhaseSystem>();
-			DstEntityManager.CreateEntity(ComponentType.ReadOnly<CollisionData>());
-			bbpSystem.SetSingleton(new CollisionData { QuadTree = quadTreeBlobAssetRef });
+			// save it to entity
+			var collEntity = DstEntityManager.CreateEntity(ComponentType.ReadOnly<CollisionData>());
+			DstEntityManager.SetName(collEntity, "Collision Holder");
+			DstEntityManager.SetComponentData(collEntity, new CollisionData { QuadTree = quadTreeBlobAssetRef });
+
+			Logger.Info("Static QuadTree initialized.");
 		}
 	}
 }

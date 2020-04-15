@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 			var hitQuad = new HitQuadTree(new List<HitObject> { lineSeg }, bounds);
 
 			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference(hitQuad);
-			ref var collider = ref quadTreeBlobAssetRef.Value.HitObjects[0].Value;
+			ref var collider = ref quadTreeBlobAssetRef.Value.Colliders[0].Value;
 
 			Assert.AreEqual(ColliderType.Line, collider.Type);
 		}

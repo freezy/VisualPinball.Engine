@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	public struct QuadTree
 	{
 		public BlobArray<BlobPtr<QuadTree>> Children;
-		public BlobArray<BlobPtr<Collider.Collider>> HitObjects;
+		public BlobArray<BlobPtr<Collider.Collider>> Colliders;
 		public float3 Center;
 		public bool IsLeaf;
 
@@ -28,8 +28,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
-			for (var i = 0; i < HitObjects.Length; i++) {
-				ref var collider = ref HitObjects[i].Value;
+			for (var i = 0; i < Colliders.Length; i++) {
+				ref var ptr = ref Colliders[i];
+				ref var collider = ref ptr.Value;
 				if (collider.Aabb.IntersectRect(ballAabb) && collider.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
 					colliders.Add(collider);
 				}
@@ -75,7 +76,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 			}
 
-			var colliders = builder.Allocate(ref dest.HitObjects, src.HitObjects.Count);
+			var colliders = builder.Allocate(ref dest.Colliders, src.HitObjects.Count);
 			for (var i = 0; i < src.HitObjects.Count; i++) {
 				Collider.Collider.Create(src.HitObjects[i], ref colliders[i], builder);
 			}
