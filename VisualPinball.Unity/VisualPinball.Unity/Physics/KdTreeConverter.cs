@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Physics.Collider;
@@ -9,6 +10,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Physics
 {
+	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
 	public class KdTreeConverter : GameObjectConversionSystem
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -36,9 +38,8 @@ namespace VisualPinball.Unity.Physics
 
 			// assign it to system
 			var bbpSystem = DstEntityManager.World.GetOrCreateSystem<BallBroadPhaseSystem>();
-			bbpSystem.QuadTree = quadTreeBlobAssetRef;
-
-			Logger.Info("QuadTree converted.");
+			DstEntityManager.CreateEntity(ComponentType.ReadOnly<CollisionData>());
+			bbpSystem.SetSingleton(new CollisionData { QuadTree = quadTreeBlobAssetRef });
 		}
 	}
 }

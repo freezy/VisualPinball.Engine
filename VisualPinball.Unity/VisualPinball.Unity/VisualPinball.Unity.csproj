@@ -98,9 +98,16 @@
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
     <Compile Include="Physics\Collider\Aabb.cs" />
+    <Compile Include="Physics\Collider\CircleCollider.cs" />
     <Compile Include="Physics\Collider\Collider.cs" />
     <Compile Include="Physics\Collider\ColliderHeader.cs" />
     <Compile Include="Physics\Collider\ColliderType.cs" />
+    <Compile Include="Physics\Collider\CollisionData.cs" />
+    <Compile Include="Physics\Collider\Line3DCollider.cs" />
+    <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
+    <Compile Include="Physics\Collider\LineZCollider.cs" />
+    <Compile Include="Physics\Collider\PlaneCollider.cs" />
+    <Compile Include="Physics\Collider\PointCollider.cs" />
     <Compile Include="Physics\Collider\QuadTree.cs" />
     <Compile Include="Physics\Collider\ICollidable.cs" />
     <Compile Include="Physics\Collider\ICollider.cs" />
