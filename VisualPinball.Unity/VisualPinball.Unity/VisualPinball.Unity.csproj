@@ -106,6 +106,7 @@
     <Compile Include="Physics\Collider\PointCollider.cs" />
     <Compile Include="Physics\Collider\LineCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
+    <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />
     <Compile Include="Physics\Collision\ColliderType.cs" />
     <Compile Include="Physics\Collision\CollisionData.cs" />
@@ -113,14 +114,6 @@
     <Compile Include="Physics\Collision\ICollider.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
-    <Compile Include="Physics\HitObjectsBlob.cs" />
-    <Compile Include="Physics\HitQuadTreeBlob.cs" />
-    <Compile Include="Physics\HitTest\BallBroadPhaseSystem.cs" />
-    <Compile Include="Physics\HitTest\CollisionEventData.cs" />
-    <Compile Include="Physics\HitTest\HitObjectData.cs" />
-    <Compile Include="Physics\HitTest\HitTestSystem.cs" />
-    <Compile Include="Physics\IHitObject.cs" />
-    <Compile Include="Physics\StaticKdTree.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
@@ -134,7 +127,6 @@
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
-    <Compile Include="VPT\Flipper\FlipperHitBlob.cs" />
     <Compile Include="VPT\Flipper\FlipperMaterialData.cs" />
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
