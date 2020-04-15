@@ -4,6 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.HitTest;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;

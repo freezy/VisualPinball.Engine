@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Jobs;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.HitTest
