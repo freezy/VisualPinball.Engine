@@ -17,7 +17,10 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			return Entities.ForEach((ref BallData ballData) => {
 				ref var quadTree = ref collData.QuadTree.Value;
-				var colliders = new NativeList<Collider.Collider>(Allocator.Temp);
+				var colliders = new NativeList<Collider.Collider>(Allocator.Temp) {
+					collData.PlayfieldCollider, // todo check if not covered by playfield mesh
+					collData.GlassCollider
+				};
 				quadTree.GetAabbOverlaps(ballData, colliders);
 
 				if (colliders.Length > 0) {
