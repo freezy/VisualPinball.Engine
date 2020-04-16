@@ -1,6 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
@@ -23,6 +24,14 @@ namespace VisualPinball.Unity.Physics.Collider
 			collider.Init(src);
 			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
 			builder.Allocate(ref ptr);
+		}
+
+		public static Collider Create(HitPlane src)
+		{
+			var collider = default(PlaneCollider);
+			collider.Init(src);
+			ref var ptr = ref UnsafeUtilityEx.As<PlaneCollider, Collider>(ref collider);
+			return ptr;
 		}
 
 		private void Init(HitPlane src)
