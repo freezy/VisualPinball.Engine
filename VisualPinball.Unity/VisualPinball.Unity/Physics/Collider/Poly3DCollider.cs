@@ -15,6 +15,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private float3 _normal;
 		//private NativeArray<float3> _rgv;
+		//private BlobArray<float3> _rgv; // read comment at Unity.Physics.BlobArray
 
 		public ColliderType Type => _header.Type;
 
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			_header.Type = ColliderType.Poly3D;
 			_header.EntityIndex = src.ItemIndex;
-			_header.HitBBox = src.HitBBox.ToAabb();
+			_header.Aabb = src.HitBBox.ToAabb();
 
 			_normal = src.Normal.ToUnityFloat3();
 			// _rgv = new NativeArray<float3>(src.Rgv.Length, Allocator.Persistent);

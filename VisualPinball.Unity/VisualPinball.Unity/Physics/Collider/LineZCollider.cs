@@ -27,19 +27,19 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			_header.Type = ColliderType.LineZ;
 			_header.EntityIndex = src.ItemIndex;
-			_header.HitBBox = src.HitBBox.ToAabb();
+			_header.Aabb = src.HitBBox.ToAabb();
 
 			_xy = src.Xy.ToUnityFloat2();
 		}
 
 		private void CalcHitBBox(float zLow, float zHigh)
 		{
-			_header.HitBBox.Left = _xy.x;
-			_header.HitBBox.Right = _xy.x;
-			_header.HitBBox.Top = _xy.y;
-			_header.HitBBox.Bottom = _xy.y;
-			_header.HitBBox.ZLow = zLow;
-			_header.HitBBox.ZHigh = zHigh;
+			_header.Aabb.Left = _xy.x;
+			_header.Aabb.Right = _xy.x;
+			_header.Aabb.Top = _xy.y;
+			_header.Aabb.Bottom = _xy.y;
+			_header.Aabb.ZLow = zLow;
+			_header.Aabb.ZHigh = zHigh;
 		}
 
 		public float HitTest(BallData ball, float dTime, CollisionEvent coll)

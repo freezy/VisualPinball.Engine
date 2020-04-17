@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
@@ -18,6 +19,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				Radius = Radius,
 				Velocity = new float3(0, 0, 0)
 			});
+			dstManager.AddBuffer<ColliderBufferElement>(entity);
 		}
 	}
 }
