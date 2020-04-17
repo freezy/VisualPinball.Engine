@@ -16,12 +16,11 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
-		public static void Create(HitLineZ src, ref BlobPtr<Collider> dest, BlobBuilder builder)
+		public static void Create(BlobBuilder builder, HitLineZ src, ref BlobPtr<Collider> dest)
 		{
-			var collider = default(LineZCollider);
-			collider.Init(src);
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref dest);
-			builder.Allocate(ref linePtr);
+			ref var collider = ref builder.Allocate(ref linePtr);
+			collider.Init(src);
 		}
 
 		private void Init(HitLineZ src)
