@@ -10,9 +10,10 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
+			return Entities.ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
 
+				var validColl = Collider.Collider.None;
 				for (var i = 0; i < colliders.Length; i++) {
 					var coll = colliders[i].Value;
 
@@ -32,12 +33,18 @@ namespace VisualPinball.Unity.Physics.Collision
 						} else {                         // if (validhit)
 							collEvent.Set(newCollEvent);
 							collEvent.HitTime = newTime;
+							validColl = coll;
 						}
 					}
 				}
 
 				// don't need those anymore
 				colliders.Clear();
+
+				// todo probably faster to add it as separate data via a EntityCommandBufferSystem
+				if (validColl.Type != ColliderType.None) {
+					colliders.Add(new ColliderBufferElement {Value = validColl});
+				}
 
 			}).Schedule(inputDeps);
 		}

@@ -2,6 +2,7 @@
 {
 	public enum ColliderType
 	{
+		None,
 		Circle,
 		Flipper,
 		Line,
