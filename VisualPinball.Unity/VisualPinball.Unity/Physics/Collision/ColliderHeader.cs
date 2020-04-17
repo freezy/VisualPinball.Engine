@@ -12,5 +12,6 @@ namespace VisualPinball.Unity.Physics.Collision
 		public ColliderType Type;
 		public int EntityIndex;
 		public Aabb Aabb;
+		public PhysicsMaterialData Material;
 	}
 }
