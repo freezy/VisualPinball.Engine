@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 		}
 
-		public void GetAabbOverlaps(BallData ball, NativeList<Collider.Collider> colliders)
+		public void GetAabbOverlaps(BallData ball, DynamicBuffer<ColliderBufferElement> colliders)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref var ptr = ref Colliders[i];
 				ref var collider = ref ptr.Value;
 				if (collider.Aabb.IntersectRect(ballAabb) && collider.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					colliders.Add(collider);
+					colliders.Add(new ColliderBufferElement { Value = collider });
 				}
 			}
 
