@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
-		public unsafe float HitTest(BallData ball, float dTime, CollisionEvent coll)
+		public unsafe float HitTest(BallData ball, float dTime, CollisionEventData coll)
 		{
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {

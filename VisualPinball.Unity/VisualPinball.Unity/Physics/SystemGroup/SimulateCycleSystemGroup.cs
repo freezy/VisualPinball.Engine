@@ -17,13 +17,16 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private BallBroadPhaseSystem _ballBroadPhaseSystem;
+		private BallNarrowPhaseSystemGroup _ballNarrowPhaseSystemGroup;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 
 		protected override void OnCreate()
 		{
 			_ballBroadPhaseSystem = World.GetOrCreateSystem<BallBroadPhaseSystem>();
+			_ballNarrowPhaseSystemGroup = World.GetOrCreateSystem<BallNarrowPhaseSystemGroup>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_systemsToUpdate.Add(_ballBroadPhaseSystem);
+			_systemsToUpdate.Add(_ballNarrowPhaseSystemGroup);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 		}
 
@@ -39,6 +42,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				var hitTime = DTime;
 
 				_ballBroadPhaseSystem.Update();
+				_ballNarrowPhaseSystemGroup.Update();
 				_displacementSystemGroup.Update();
 
 				DTime -= hitTime;
