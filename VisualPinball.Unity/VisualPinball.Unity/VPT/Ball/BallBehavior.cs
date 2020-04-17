@@ -20,8 +20,8 @@ namespace VisualPinball.Unity.VPT.Ball
 				Velocity = new float3(0, 0, 0)
 			});
 			dstManager.AddComponentData(entity, new CollisionEventData {
-				hitTime = -1,
-				isContact = false
+				HitTime = -1,
+				IsContact = false
 			});
 			dstManager.AddBuffer<ColliderBufferElement>(entity);
 			dstManager.AddBuffer<ContactBufferElement>(entity);
