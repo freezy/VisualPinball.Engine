@@ -5,6 +5,6 @@ namespace VisualPinball.Unity.Physics.Collision
 {
 	public interface ICollidable
 	{
-		float HitTest(BallData ball, float dTime, CollisionEventData coll);
+		float HitTest(in BallData ball, float dTime, CollisionEventData coll);
 	}
 }

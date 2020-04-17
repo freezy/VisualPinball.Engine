@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_d = src.D;
 		}
 
-		public float HitTest(BallData ball, float dTime, CollisionEventData coll)
+		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
 		{
 
 			var bnv = math.dot(_normal, ball.Velocity); // speed in normal direction
@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return hitTime;
 		}
 
-		public void Collide(BallData ball, CollisionEventData coll)
+		public void Collide(ref BallData ball, CollisionEventData coll)
 		{
 			BallCollider.Collide3DWall(ref ball, ref _header.Material, ref coll, ref coll.HitNormal);
 
