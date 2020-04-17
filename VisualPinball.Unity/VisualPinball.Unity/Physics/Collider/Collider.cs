@@ -11,12 +11,21 @@ namespace VisualPinball.Unity.Physics.Collider
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : ICollider, ICollidable
+	public struct Collider : ICollider, ICollidable, IComponentData
 	{
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
-		public ColliderType Type => _header.Type;
-		public Aabb Aabb => _header.Aabb;
+		public ColliderType Type => Header.Type;
+		public Aabb Aabb => Header.Aabb;
+		public PhysicsMaterialData Material => Header.Material;
+
+		public static Collider None => new Collider {
+			Header = {
+				Type = ColliderType.None,
+				Aabb = default,
+				EntityIndex = -1
+			}
+		};
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -73,5 +82,15 @@ namespace VisualPinball.Unity.Physics.Collider
 				}
 			}
 		}
+
+		public unsafe void Collide(BallData ballData, CollisionEventData coll)
+		{
+			fixed (Collider* collider = &this) {
+				switch (collider->Type) {
+					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ballData, coll); break;
+				}
+			}
+		}
+
 	}
 }

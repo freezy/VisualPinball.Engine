@@ -38,6 +38,12 @@ namespace VisualPinball.Unity.Physics.Collider
 			_header.Type = ColliderType.Plane;
 			_header.EntityIndex = src.ItemIndex;
 			_header.Aabb = src.HitBBox.ToAabb();
+			_header.Material = new PhysicsMaterialData {
+				Elasticity = src.Elasticity,
+				ElasticityFalloff = src.ElasticityFalloff,
+				Friction = src.Friction,
+				Scatter = src.Scatter,
+			};
 
 			_normal = src.Normal.ToUnityFloat3();
 			_d = src.D;
@@ -86,6 +92,18 @@ namespace VisualPinball.Unity.Physics.Collider
 			coll.HitDistance = bnd; // actual contact distance
 
 			return hitTime;
+		}
+
+		public void Collide(BallData ball, CollisionEventData coll)
+		{
+			BallCollider.Collide3DWall(ref ball, ref _header.Material, ref coll, ref coll.HitNormal);
+
+			// distance from plane to ball surface
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _d;
+			if (bnd < 0) {
+				// if ball has penetrated, push it out of the plane
+				ball.Position += _normal * bnd;
+			}
 		}
 	}
 }

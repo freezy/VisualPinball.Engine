@@ -19,15 +19,18 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private BallBroadPhaseSystem _ballBroadPhaseSystem;
 		private BallNarrowPhaseSystemGroup _ballNarrowPhaseSystemGroup;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
+		private BallResolveCollisionSystem _ballResolveCollisionSystem;
 
 		protected override void OnCreate()
 		{
 			_ballBroadPhaseSystem = World.GetOrCreateSystem<BallBroadPhaseSystem>();
 			_ballNarrowPhaseSystemGroup = World.GetOrCreateSystem<BallNarrowPhaseSystemGroup>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
+			_ballResolveCollisionSystem = World.GetOrCreateSystem<BallResolveCollisionSystem>();
 			_systemsToUpdate.Add(_ballBroadPhaseSystem);
 			_systemsToUpdate.Add(_ballNarrowPhaseSystemGroup);
 			_systemsToUpdate.Add(_displacementSystemGroup);
+			_systemsToUpdate.Add(_ballResolveCollisionSystem);
 		}
 
 		protected override void OnUpdate()
@@ -44,6 +47,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				_ballBroadPhaseSystem.Update();
 				_ballNarrowPhaseSystemGroup.Update();
 				_displacementSystemGroup.Update();
+				_ballResolveCollisionSystem.Update();
 
 				DTime -= hitTime;
 			}
