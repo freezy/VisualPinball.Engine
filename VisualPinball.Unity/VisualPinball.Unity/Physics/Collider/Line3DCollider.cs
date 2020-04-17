@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_zHigh = src.ZHigh;
 		}
 
-		public float HitTest(BallData ball, float dTime, CollisionEvent coll)
+		public float HitTest(BallData ball, float dTime, CollisionEventData coll)
 		{
 			return -1;
 		}

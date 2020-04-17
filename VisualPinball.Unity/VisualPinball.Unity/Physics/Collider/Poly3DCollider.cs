@@ -1,5 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
@@ -39,7 +38,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			// }
 		}
 
-		public float HitTest(BallData ball, float dTime, CollisionEvent coll)
+		public float HitTest(BallData ball, float dTime, CollisionEventData coll)
 		{
 			return -1;
 		}

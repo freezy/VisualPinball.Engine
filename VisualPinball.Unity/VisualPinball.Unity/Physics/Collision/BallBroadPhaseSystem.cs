@@ -1,7 +1,5 @@
-﻿using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -11,6 +9,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
+			// retrieve static collision data
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(CollisionData));
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<CollisionData>(collEntity);
