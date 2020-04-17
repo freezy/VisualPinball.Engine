@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					// }
 
 					var newCollEvent = new CollisionEventData();
-					var newTime = coll.HitTest(ballData, collEvent.HitTime, newCollEvent);
+					var newTime = coll.HitTest(in ballData, collEvent.HitTime, newCollEvent);
 					var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 					if (newCollEvent.IsContact || validHit) {

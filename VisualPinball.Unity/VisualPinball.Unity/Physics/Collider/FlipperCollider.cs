@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_header.Aabb = src.HitBBox.ToAabb();
 		}
 
-		public float HitTest(BallData ball, float dTime, CollisionEventData coll)
+		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
 		{
 			return -1;
 		}

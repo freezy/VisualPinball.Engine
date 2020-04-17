@@ -65,29 +65,29 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
-		public unsafe float HitTest(BallData ball, float dTime, CollisionEventData coll)
+		public unsafe float HitTest(in BallData ball, float dTime, CollisionEventData coll)
 		{
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {
-					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(ball, dTime, coll);
-					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(ball, dTime, coll);
+					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(in ball, dTime, coll);
 					default: return -1;
 				}
 			}
 		}
 
-		public unsafe void Collide(BallData ballData, CollisionEventData coll)
+		public unsafe void Collide(ref BallData ballData, CollisionEventData coll)
 		{
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {
-					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ballData, coll); break;
+					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, coll); break;
 				}
 			}
 		}
