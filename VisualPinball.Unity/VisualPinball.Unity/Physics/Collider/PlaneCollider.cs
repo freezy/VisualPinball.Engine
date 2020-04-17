@@ -18,12 +18,11 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
-		public static void Create(HitPlane src, ref BlobPtr<Collider> dest, BlobBuilder builder)
+		public static void Create(BlobBuilder builder, HitPlane src, ref BlobPtr<Collider> dest)
 		{
-			var collider = default(PlaneCollider);
-			collider.Init(src);
 			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
-			builder.Allocate(ref ptr);
+			ref var collider = ref builder.Allocate(ref ptr);
+			collider.Init(src);
 		}
 
 		public static Collider Create(HitPlane src)

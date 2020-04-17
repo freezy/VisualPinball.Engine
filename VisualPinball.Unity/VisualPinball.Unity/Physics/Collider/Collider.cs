@@ -24,31 +24,31 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			switch (src) {
 				case HitCircle hitCircle:
-					CircleCollider.Create(hitCircle, ref dest, builder);
+					CircleCollider.Create(builder, hitCircle, ref dest);
 					break;
 				case LineSegSlingshot lineSegSlingshot:
-					LineSlingshotCollider.Create(lineSegSlingshot, ref dest, builder);
+					LineSlingshotCollider.Create(builder, lineSegSlingshot, ref dest);
 					break;
 				case FlipperHit flipperHit:
-					FlipperCollider.Create(flipperHit, ref dest, builder);
+					FlipperCollider.Create(builder, flipperHit, ref dest);
 					break;
 				case LineSeg lineSeg:
-					LineCollider.Create(lineSeg, ref dest, builder);
+					LineCollider.Create(builder, lineSeg, ref dest);
 					break;
 				case HitLine3D hitLine3D:
-					Line3DCollider.Create(hitLine3D, ref dest, builder);
+					Line3DCollider.Create(builder, hitLine3D, ref dest);
 					break;
 				case HitLineZ hitLineZ:
-					LineZCollider.Create(hitLineZ, ref dest, builder);
+					LineZCollider.Create(builder, hitLineZ, ref dest);
 					break;
 				case HitPoint hitPoint:
-					PointCollider.Create(hitPoint, ref dest, builder);
+					PointCollider.Create(builder, hitPoint, ref dest);
 					break;
 				case Hit3DPoly hit3DPoly:
-					Poly3DCollider.Create(hit3DPoly, ref dest, builder);
+					Poly3DCollider.Create(builder, hit3DPoly, ref dest);
 					break;
 				case HitPlane hitPlane:
-					PlaneCollider.Create(hitPlane, ref dest, builder);
+					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
 				default:
 					Logger.Warn("Unknown hit object {0}, skipping.", src.GetType().Name);
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(ball, dTime, coll);
 					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(ball, dTime, coll);
 					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(ball, dTime, coll);
-					//case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(ball, dTime, coll);
+					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(ball, dTime, coll);
 					default: return -1;
 				}
 			}
