@@ -19,7 +19,12 @@ namespace VisualPinball.Unity.VPT.Ball
 				Radius = Radius,
 				Velocity = new float3(0, 0, 0)
 			});
+			dstManager.AddComponentData(entity, new CollisionEventData {
+				hitTime = -1,
+				isContact = false
+			});
 			dstManager.AddBuffer<ColliderBufferElement>(entity);
+			dstManager.AddBuffer<ContactBufferElement>(entity);
 		}
 	}
 }
