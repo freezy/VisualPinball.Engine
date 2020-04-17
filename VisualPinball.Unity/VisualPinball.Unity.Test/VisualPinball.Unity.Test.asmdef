@@ -2,6 +2,7 @@
     "name": "VisualPinball.Engine.Test",
     "references": [
         "UnityEditor.TestRunner",
+        "Unity.Collections",
         "Unity.Entities",
         "Unity.Entities.Hybrid",
         "Unity.Mathematics",

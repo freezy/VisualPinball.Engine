@@ -15,12 +15,11 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
-		public static void Create(FlipperHit src, ref BlobPtr<Collider> dest, BlobBuilder builder)
+		public static void Create(BlobBuilder builder, FlipperHit src, ref BlobPtr<Collider> dest)
 		{
-			var collider = default(FlipperCollider);
-			collider.Init(src);
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref dest);
-			builder.Allocate(ref linePtr);
+			ref var collider = ref builder.Allocate(ref linePtr);
+			collider.Init(src);
 		}
 
 		private void Init(FlipperHit src)
