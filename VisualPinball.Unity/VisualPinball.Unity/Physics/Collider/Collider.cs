@@ -11,12 +11,12 @@ namespace VisualPinball.Unity.Physics.Collider
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : ICollider, ICollidable, IComponentData
+	public struct Collider : ICollider, ICollidable
 	{
 		private ColliderHeader _header;
 
 		public ColliderType Type => _header.Type;
-		public Aabb Aabb => _header.HitBBox;
+		public Aabb Aabb => _header.Aabb;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
 				default:
-					Logger.Warn("Unknown hit object {0}, skipping.", src.GetType().Name);
+					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
 					break;
 			}
 		}

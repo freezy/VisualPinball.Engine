@@ -15,24 +15,14 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<CollisionData>(collEntity);
 
-			Entities.WithoutBurst().ForEach((ref BallData ballData) => {
+			return Entities.ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, in BallData ballData) => {
 				ref var quadTree = ref collData.QuadTree.Value;
-				var colliders = new NativeList<Collider.Collider>(Allocator.Temp) {
-					collData.PlayfieldCollider, // todo check if not covered by playfield mesh
-					collData.GlassCollider
-				};
+				colliders.Add(new ColliderBufferElement { Value = collData.PlayfieldCollider}); // todo check if not covered by playfield mesh
+				colliders.Add(new ColliderBufferElement { Value = collData.GlassCollider});
+
 				quadTree.GetAabbOverlaps(ballData, colliders);
 
-				if (colliders.Length > 2) {
-					Debug.Log($"Found {colliders.Length} overlaps.");
-				}
-
-				colliders.Dispose();
-
-			}).Run();
-
-			return inputDeps;
-			//}).Schedule(inputDeps);
+			}).Schedule(inputDeps);
 		}
 	}
 }
