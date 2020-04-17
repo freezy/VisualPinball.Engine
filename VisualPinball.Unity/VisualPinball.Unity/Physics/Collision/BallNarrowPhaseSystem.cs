@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			return Entities.ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
+			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
 
 				for (var i = 0; i < colliders.Length; i++) {
@@ -22,16 +22,16 @@ namespace VisualPinball.Unity.Physics.Collision
 					// }
 
 					var newCollEvent = new CollisionEventData();
-					var newTime = coll.HitTest(ballData, collEvent.hitTime, newCollEvent);
-					var validHit = newTime >= 0 && newTime <= collEvent.hitTime;
+					var newTime = coll.HitTest(ballData, collEvent.HitTime, newCollEvent);
+					var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
-					if (newCollEvent.isContact || validHit) {
-						if (newCollEvent.isContact) {
+					if (newCollEvent.IsContact || validHit) {
+						if (newCollEvent.IsContact) {
 							contacts.Add(new ContactBufferElement { Value = newCollEvent });
 
 						} else {                         // if (validhit)
 							collEvent.Set(newCollEvent);
-							collEvent.hitTime = newTime;
+							collEvent.HitTime = newTime;
 						}
 					}
 				}
