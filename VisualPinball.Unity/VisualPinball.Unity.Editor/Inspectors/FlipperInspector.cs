@@ -20,7 +20,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private Table _table;
 		private FlipperBehavior _flipper;
-		private Transform _transform;
 
 		private SurfaceBehavior _surface;
 
@@ -30,7 +29,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			var tableComp = _flipper.gameObject.GetComponentInParent<TableBehavior>();
 			_table = tableComp.Table;
-			_transform = _flipper.gameObject.GetComponent<Transform>();
 
 			if (_flipper.data.Surface != null && _table.Surfaces.ContainsKey(_flipper.data.Surface)) {
 				_surface = tableComp.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
@@ -46,24 +44,90 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		protected virtual void OnSceneGUI()
 		{
-			// if the rotation tool is active turn off the default handles
-			if (Tools.current != Tool.Rotate) {
-				Tools.hidden = false;
-				return;
+			switch (Tools.current) {
+				case Tool.Rotate:
+					HandleRotationTool();
+					break;
+
+				case Tool.Move:
+					HandleMoveTool();
+					break;
+
+				default:
+					Tools.hidden = false;
+					break;
 			}
+		}
+
+		private void HandleRotationTool()
+		{
+			// if the rotation tool is active turn off the default handles
 			Tools.hidden = true;
 
-			var flipper = target as FlipperBehavior;
-			var pos = flipper.transform.position;
+			if (_flipper == null) {
+				return;
+			}
+			var flipperTransform = _flipper.transform;
+			var pos = flipperTransform.position;
 
 			EditorGUI.BeginChangeCheck();
 			Handles.color = Handles.zAxisColor;
-			var rot = Handles.Disc(flipper.transform.rotation, pos, flipper.transform.forward, HandleUtility.GetHandleSize(pos), false, 10f);
+			var rot = Handles.Disc(flipperTransform.rotation, pos, flipperTransform.forward, HandleUtility.GetHandleSize(pos), false, 10f);
 
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(flipper.transform, "Flipper Rotate");
-				flipper.transform.rotation = rot;
+				Undo.RecordObject(flipperTransform, "Flipper Rotate");
+				flipperTransform.rotation = rot;
+				var localRotZ = flipperTransform.localEulerAngles.z;
+				flipperTransform.localRotation = Quaternion.Euler(0f, 0f, localRotZ);
 			}
+		}
+
+		private void HandleMoveTool()
+		{
+			Tools.hidden = true;
+
+			if (_flipper == null) {
+				return;
+			}
+			var flipperTransform = _flipper.transform;
+			var pos = flipperTransform.position;
+
+			EditorGUI.BeginChangeCheck();
+			Handles.color = Handles.xAxisColor;
+			var newPos = Handles.Slider(pos, flipperTransform.right);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishMove(flipperTransform, newPos);
+			}
+
+			EditorGUI.BeginChangeCheck();
+			Handles.color = Handles.yAxisColor;
+			newPos = Handles.Slider(pos, flipperTransform.up);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishMove(flipperTransform, newPos);
+			}
+
+			EditorGUI.BeginChangeCheck();
+			Handles.color = Handles.zAxisColor;
+			newPos = Handles.Slider2D(
+				pos,
+				flipperTransform.forward,
+				flipperTransform.right,
+				flipperTransform.up,
+				HandleUtility.GetHandleSize(pos) * 0.2f,
+				Handles.RectangleHandleCap,
+			0f);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishMove(flipperTransform, newPos);
+			}
+		}
+
+		private static void FinishMove(Transform flipperTransform, Vector3 newPos)
+		{
+			Undo.RecordObject(flipperTransform, "Flipper Move");
+			flipperTransform.position = newPos;
+			var localPos = flipperTransform.localPosition;
+			localPos.z = 0f;
+			flipperTransform.localPosition = localPos;
 		}
 
 		public override void OnInspectorGUI()
