@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref var quadTree = ref collData.QuadTree.Value;
 				colliders.Clear();
 				colliders.Add(new ColliderBufferElement { Value = collData.PlayfieldCollider}); // todo check if not covered by playfield mesh
-				colliders.Add(new ColliderBufferElement { Value = collData.GlassCollider});
+				//colliders.Add(new ColliderBufferElement { Value = collData.GlassCollider});
 
 				quadTree.GetAabbOverlaps(ballData, colliders);
 

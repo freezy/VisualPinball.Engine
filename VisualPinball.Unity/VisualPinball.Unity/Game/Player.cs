@@ -2,9 +2,11 @@
 using System.IO;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Surface;
@@ -56,6 +58,13 @@ namespace VisualPinball.Unity.Game
 		{
 			// todo callback and other stuff
 			return _ballManager.CreateBall(this, ballCreator, radius, mass);
+		}
+
+		public float3 GetGravity()
+		{
+			var slope = _table.Data.AngleTiltMin + (_table.Data.AngleTiltMax - _table.Data.AngleTiltMin) * _table.Data.GlobalDifficulty;
+			var strength = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity;
+			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 		}
 
 		private void Awake()

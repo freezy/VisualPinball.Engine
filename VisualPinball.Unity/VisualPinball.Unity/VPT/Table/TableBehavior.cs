@@ -82,14 +82,6 @@ namespace VisualPinball.Unity.VPT.Table
 			return RecreateTable();
 		}
 
-		protected void Awake()
-		{
-			base.Awake();
-			var ballContactSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BallContactSystem>();
-			var slope = data.AngleTiltMin + (data.AngleTiltMax - data.AngleTiltMin) * data.GlobalDifficulty;
-			ballContactSystem.SetGravity(slope, data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : data.Gravity);
-		}
-
 		public Engine.VPT.Table.Table CreateTable()
 		{
 			Logger.Info("Restoring table...");

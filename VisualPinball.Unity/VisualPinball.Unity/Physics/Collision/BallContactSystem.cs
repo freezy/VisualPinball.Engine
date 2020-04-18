@@ -2,11 +2,16 @@
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
+using Logger = NLog.Logger;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
+	[DisableAutoCreation]
 	public class BallContactSystem : JobComponentSystem
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
@@ -17,6 +22,11 @@ namespace VisualPinball.Unity.Physics.Collision
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+		}
+
+		protected override void OnStartRunning()
+		{
+			_gravity = Object.FindObjectOfType<Player>().GetGravity();
 		}
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -41,14 +51,6 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 
 			}).Schedule(inputDeps);
-		}
-
-		public void SetGravity(float slopeDeg, float strength)
-		{
-			_gravity.x = 0;
-			_gravity.y = math.sin(math.radians(slopeDeg)) * strength;
-			_gravity.z = -math.cos(math.radians(slopeDeg)) * strength;
-			Logger.Info("Gravity set to {0}", _gravity);
 		}
 	}
 }

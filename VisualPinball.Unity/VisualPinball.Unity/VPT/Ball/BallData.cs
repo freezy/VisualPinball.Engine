@@ -36,6 +36,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
+		public float Inertia => 2.0f / 5.0f * Radius * Radius * Mass;
+
 		public float3 SurfaceVelocity(in float3 surfP)
 		{
 			// linear velocity plus tangential velocity due to rotation
