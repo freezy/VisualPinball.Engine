@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, ref PhysicsMaterialData material, ref CollisionEventData coll, ref float3 hitNormal)
+		public static void Collide3DWall(ref BallData ball, ref PhysicsMaterialData material, ref CollisionEventData coll, float3 hitNormal)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -91,6 +91,80 @@ namespace VisualPinball.Unity.VPT.Ball
 				var vyt = ball.Velocity.y;
 				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
 				ball.Velocity.y = vyt * radCos + vxt * radSin;
+			}
+		}
+
+		public static void HandleStaticContact(ref BallData ball, in CollisionEventData coll, float friction, float dTime, in float3 gravity)
+		{
+			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
+			var normVel = math.dot(ball.Velocity, coll.HitNormal);
+
+			// If some collision has changed the ball's velocity, we may not have to do anything.
+			if (normVel <= PhysicsConstants.ContactVel) {
+
+				// external forces (only gravity for now)
+				var fe = gravity * ball.Mass;
+				var dot = math.dot(fe, coll.HitNormal);
+
+				// normal force is always nonnegative
+				var normalForce = math.max(0.0f, -(dot * dTime + coll.HitOrgNormalVelocity));
+
+				// Add just enough to kill original normal velocity and counteract the external forces.
+				ball.Velocity += coll.HitNormal * normalForce;
+
+				if (coll.HitDistance <= PhysicsConstants.PhysTouch) {
+					ball.Velocity += coll.HitNormal * math.max(math.min(PhysicsConstants.EmbedVelLimit, -coll.HitDistance), PhysicsConstants.PhysTouch);
+				}
+
+				ApplyFriction(ref ball, coll.HitNormal, dTime, friction, gravity);
+			}
+		}
+
+		public static void ApplyFriction(ref BallData ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity)
+		{
+			// surface contact point relative to center of mass
+			var surfP = -ball.Radius * hitNormal;
+			var surfVel = ball.SurfaceVelocity(surfP);
+			var inertia = 2.0f / 5.0f * ball.Radius * ball.Radius * ball.Mass;
+
+			// calc the tangential slip velocity
+			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
+
+			var maxFriction = frictionCoeff * ball.Mass * -math.dot(gravity, hitNormal);
+
+			var slipSpeed = math.length(slip);
+			float3 slipDir;
+			float numer;
+
+			var normVel = math.dot(ball.Velocity, hitNormal);
+			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
+				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
+				// slip speed zero - static friction case
+
+				var surfAcc = ball.SurfaceAcceleration(surfP, gravity);
+				// calc the tangential slip acceleration
+				var slipAcc = surfAcc - hitNormal * math.dot(surfAcc, hitNormal);
+
+				// neither slip velocity nor slip acceleration? nothing to do here
+				if (math.lengthsq(slipAcc) < 1e-6) {
+					return;
+				}
+
+				slipDir = math.normalize(slipAcc);
+				numer = -math.dot(slipDir, surfAcc);
+
+			} else {
+				// nonzero slip speed - dynamic friction case
+				slipDir = slip / slipSpeed;
+				numer = -math.dot(slipDir, surfVel);
+			}
+
+			var cp = math.cross(surfP, slipDir);
+			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / inertia, surfP));
+			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
+
+			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
+				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
 			}
 		}
 	}

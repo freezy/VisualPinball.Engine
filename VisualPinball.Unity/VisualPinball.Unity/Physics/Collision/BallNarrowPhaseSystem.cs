@@ -14,6 +14,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
 
 				var validColl = Collider.Collider.None;
+				contacts.Clear();
 				for (var i = 0; i < colliders.Length; i++) {
 					var coll = colliders[i].Value;
 
@@ -28,7 +29,10 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					if (newCollEvent.IsContact || validHit) {
 						if (newCollEvent.IsContact) {
-							contacts.Add(new ContactBufferElement { Value = newCollEvent });
+							contacts.Add(new ContactBufferElement {
+								CollisionEvent = newCollEvent,
+								Collider = coll
+							});
 
 						} else {                         // if (validhit)
 							collEvent.Set(newCollEvent);
