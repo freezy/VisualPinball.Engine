@@ -49,17 +49,6 @@ namespace VisualPinball.Unity.Physics.Collider
 			_normal.y = -vT.x * invLength;
 		}
 
-		private void CalcHitBBox(float zLow, float zHigh)
-		{
-			// Allow roundoff
-			_header.Aabb.Left = math.min(_v1.x, _v2.x);
-			_header.Aabb.Right = math.max(_v1.x, _v2.x);
-			_header.Aabb.Top = math.min(_v1.y, _v2.y);
-			_header.Aabb.Bottom = math.max(_v1.y, _v2.y);
-			_header.Aabb.ZLow = zLow;
-			_header.Aabb.ZHigh = zHigh;
-		}
-
 		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
 		{
 			return -2;

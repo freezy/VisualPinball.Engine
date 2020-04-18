@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, ref PhysicsMaterialData material, ref CollisionEventData coll, float3 hitNormal)
+		public static void Collide3DWall(ref BallData ball, ref PhysicsMaterialData material, ref CollisionEventData coll, in float3 hitNormal)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
