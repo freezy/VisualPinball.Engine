@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Test", "VisualPinball.Unity.Test\VisualPinball.Unity.Test.csproj", "{D54D9710-FD25-47AB-973F-C8C83B26D6B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Unity|Any CPU = Debug Unity|Any CPU
@@ -40,6 +42,12 @@ Global
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

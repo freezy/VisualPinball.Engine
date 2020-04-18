@@ -11,7 +11,8 @@
 		"com.unity.entities": "0.8.0-preview.8",
 		"com.unity.rendering.hybrid": "0.4.0-preview.8",
 		"com.unity.jobs": "0.2.7-preview.11",
-		"com.unity.mathematics": "1.1.0"
+		"com.unity.mathematics": "1.1.0",
+		"com.unity.test-framework": "1.1.13"
 	},
 	"keywords": [
 		"Pinball",

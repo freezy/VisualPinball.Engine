@@ -24,13 +24,14 @@ namespace VisualPinball.Unity.VPT.Flipper
 			return new Engine.VPT.Flipper.Flipper(data);
 		}
 
-		public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			Convert(entity, dstManager);
 			var d = GetMaterialData();
-			manager.AddComponentData(entity, d);
-			manager.AddComponentData(entity, GetMovementData(d));
-			manager.AddComponentData(entity, GetVelocityData(d));
-			manager.AddComponentData(entity, new SolenoidStateData { Value = false });
+			dstManager.AddComponentData(entity, d);
+			dstManager.AddComponentData(entity, GetMovementData(d));
+			dstManager.AddComponentData(entity, GetVelocityData(d));
+			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
@@ -95,7 +96,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 				AngularMomentum = 0f,
 				EnableRotateEvent = 0,
 				BaseRotation = baseRotation,
-				CurrentPhysicsTime = 0,
 			};
 		}
 

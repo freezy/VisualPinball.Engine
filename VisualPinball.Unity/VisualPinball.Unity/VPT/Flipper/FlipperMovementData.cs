@@ -10,7 +10,5 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public float AngularMomentum;
 		public sbyte EnableRotateEvent;
 		public quaternion BaseRotation;
-		public long CurrentPhysicsTime;
-		public long DebugRelTimeDelta;
 	}
 }

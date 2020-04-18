@@ -6,9 +6,9 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitLine3D : HitLineZ
 	{
-		private readonly Matrix2D _matrix = new Matrix2D();
-		private readonly float _zLow;
-		private readonly float _zHigh;
+		public readonly Matrix2D Matrix = new Matrix2D();
+		public readonly float ZLow;
+		public readonly float ZHigh;
 
 		public HitLine3D(Vertex3D v1, Vertex3D v2) : base(new Vertex2D())
 		{
@@ -29,16 +29,16 @@ namespace VisualPinball.Engine.Physics
 			// Angle to rotate the line into the z-axis
 			var dot = vLine.Z; //vLine.Dot(&vup);
 
-			_matrix.RotationAroundAxis(transAxis, -MathF.Sqrt(1 - dot * dot), dot);
+			Matrix.RotationAroundAxis(transAxis, -MathF.Sqrt(1 - dot * dot), dot);
 
-			var vTrans1 = v1.Clone().ApplyMatrix2D(_matrix);
-			var vTrans2 = v2.Clone().ApplyMatrix2D(_matrix);
+			var vTrans1 = v1.Clone().ApplyMatrix2D(Matrix);
+			var vTrans2 = v2.Clone().ApplyMatrix2D(Matrix);
 			var vTrans2Z = vTrans2.Z;
 
 			// set up HitLineZ parameters
 			Xy.Set(vTrans1.X, vTrans1.Y);
-			_zLow = MathF.Min(vTrans1.Z, vTrans2Z);
-			_zHigh = MathF.Max(vTrans1.Z, vTrans2Z);
+			ZLow = MathF.Min(vTrans1.Z, vTrans2Z);
+			ZHigh = MathF.Max(vTrans1.Z, vTrans2Z);
 
 			HitBBox.Left = MathF.Min(v1.X, v2.X);
 			HitBBox.Right = MathF.Max(v1.X, v2.X);
@@ -60,13 +60,13 @@ namespace VisualPinball.Engine.Physics
 			// transform ball to cylinder coordinate system
 			var oldPos = ball.State.Pos.Clone();
 			var oldVel = ball.Hit.Vel.Clone();
-			ball.State.Pos.ApplyMatrix2D(_matrix);
-			ball.State.Pos.ApplyMatrix2D(_matrix);
+			ball.State.Pos.ApplyMatrix2D(Matrix);
+			ball.State.Pos.ApplyMatrix2D(Matrix);
 
 			// and update z bounds of LineZ with transformed coordinates
 			var oldZ = new Vertex2D(HitBBox.ZLow, HitBBox.ZHigh);
-			HitBBox.ZLow = _zLow; // HACK; needed below // evil cast to non-const, should actually change the stupid HitLineZ to have explicit z coordinates!
-			HitBBox.ZHigh = _zHigh; // dto.
+			HitBBox.ZLow = ZLow; // HACK; needed below // evil cast to non-const, should actually change the stupid HitLineZ to have explicit z coordinates!
+			HitBBox.ZHigh = ZHigh; // dto.
 
 			var hitTime = base.HitTest(ball, dTime, coll, physics);
 
@@ -77,7 +77,7 @@ namespace VisualPinball.Engine.Physics
 
 			if (hitTime >= 0) {
 				// transform hit normal back to world coordinate system
-				coll.HitNormal.Set(_matrix.MultiplyVectorT(coll.HitNormal));
+				coll.HitNormal.Set(Matrix.MultiplyVectorT(coll.HitNormal));
 			}
 
 			return hitTime;

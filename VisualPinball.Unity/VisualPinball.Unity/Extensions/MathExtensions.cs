@@ -1,6 +1,8 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Extensions
 {
@@ -21,6 +23,11 @@ namespace VisualPinball.Unity.Extensions
 			return new Vector3(vertex.X, vertex.Y, z);
 		}
 
+		public static float2 ToUnityFloat2(this Vertex2D vertex)
+		{
+			return new float2(vertex.X, vertex.Y);
+		}
+
 		public static Vector3 ToUnityVector3(this Vertex3DNoTex2 vertex)
 		{
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
@@ -34,6 +41,26 @@ namespace VisualPinball.Unity.Extensions
 		public static Vector3 ToUnityUvVector2(this Vertex3DNoTex2 vertex)
 		{
 			return new Vector2(vertex.Tu, -vertex.Tv);
+		}
+
+		public static Aabb ToAabb(this Rect3D rect)
+		{
+			return new Aabb(rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
+		}
+
+		public static float3x3 ToUnityFloat3x3(this Matrix2D matrix)
+		{
+			return new float3x3(
+				matrix.Matrix[0][0],
+				matrix.Matrix[0][1],
+				matrix.Matrix[0][2],
+				matrix.Matrix[1][0],
+				matrix.Matrix[1][1],
+				matrix.Matrix[1][2],
+				matrix.Matrix[2][0],
+				matrix.Matrix[2][1],
+				matrix.Matrix[2][2]
+			);
 		}
 
 		public static float3 ToEuler(this quaternion quaternion) {

@@ -11,7 +11,8 @@
     <AssemblyName>VisualPinball.Unity</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -96,8 +97,40 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\Collider\CircleCollider.cs" />
+    <Compile Include="Physics\Collider\Collider.cs" />
+    <Compile Include="Physics\Collider\FlipperCollider.cs" />
+    <Compile Include="Physics\Collider\Line3DCollider.cs" />
+    <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
+    <Compile Include="Physics\Collider\LineZCollider.cs" />
+    <Compile Include="Physics\Collider\PlaneCollider.cs" />
+    <Compile Include="Physics\Collider\PointCollider.cs" />
+    <Compile Include="Physics\Collider\LineCollider.cs" />
+    <Compile Include="Physics\Collider\Poly3DCollider.cs" />
+    <Compile Include="Physics\Collision\Aabb.cs" />
+    <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\BallResolveCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\ColliderBufferElement.cs" />
+    <Compile Include="Physics\Collision\ColliderHeader.cs" />
+    <Compile Include="Physics\Collision\ColliderType.cs" />
+    <Compile Include="Physics\Collision\CollisionData.cs" />
+    <Compile Include="Physics\Collision\CollisionEventData.cs" />
+    <Compile Include="Physics\Collision\ContactBufferElement.cs" />
+    <Compile Include="Physics\Collision\ICollidable.cs" />
+    <Compile Include="Physics\Collision\ICollider.cs" />
+    <Compile Include="Physics\Collision\BallNarrowPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
+    <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
+    <Compile Include="Physics\Collision\QuadTree.cs" />
+    <Compile Include="Physics\SystemGroup\BallNarrowPhaseSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\BallApi.cs" />
+    <Compile Include="VPT\Ball\BallBehavior.cs" />
+    <Compile Include="VPT\Ball\BallCollider.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
     <Compile Include="VPT\Ball\BallManager.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
@@ -108,8 +141,8 @@
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperVelocityData.cs" />
-    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\FlipperBehavior.cs" />
+    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\SolenoidStateData.cs" />
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
@@ -146,6 +179,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Physics\README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

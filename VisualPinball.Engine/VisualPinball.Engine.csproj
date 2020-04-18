@@ -88,6 +88,9 @@
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.Transactions" />
 		<Reference Include="System.Xml" />
+		<Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\VisualPinball.Unity\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Common\Logging.cs" />

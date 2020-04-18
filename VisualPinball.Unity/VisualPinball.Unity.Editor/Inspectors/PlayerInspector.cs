@@ -27,7 +27,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	{
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
-			return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
+			return new Vertex3D(376f, 1793, 25);
+			//return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table table)

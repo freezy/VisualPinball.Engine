@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Unity.Entities;
 using Unity.Transforms;
@@ -22,7 +23,9 @@ namespace VisualPinball.Unity.Game
 		private readonly Dictionary<int, FlipperApi> _flippers = new Dictionary<int, FlipperApi>();
 		private FlipperApi Flipper(int entityIndex) => _flippers.Values.FirstOrDefault(f => f.Entity.Index == entityIndex);
 
-		//public static StreamWriter DebugLog;
+		#if FLIPPER_LOG
+		public static StreamWriter DebugLog;
+		#endif
 
 		private Table _table;
 		private BallManager _ballManager;
@@ -35,8 +38,8 @@ namespace VisualPinball.Unity.Game
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
-			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperVelocitySystem>().OnRotated +=
-				(sender, e) => flipperApi.HandleEvent(e);
+			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
+			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -60,7 +63,9 @@ namespace VisualPinball.Unity.Game
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
-			//DebugLog = File.CreateText("flipper.log");
+			#if FLIPPER_LOG
+			DebugLog = File.CreateText("flipper.log");
+			#endif
 		}
 
 		private void Start()
@@ -94,9 +99,12 @@ namespace VisualPinball.Unity.Game
 			}
 		}
 
+		#if FLIPPER_LOG
 		private void OnDestroy()
 		{
-			//DebugLog.Dispose();
+			DebugLog.Dispose();
 		}
+		#endif
+
 	}
 }
