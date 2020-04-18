@@ -12,7 +12,6 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
-			var inertia = 2.0f / 5.0f * ball.Radius * ball.Radius * ball.Mass;
 
 			if (dot >= -PhysicsConstants.LowNormVel) {
 				// nearly receding ... make sure of conditions
@@ -62,7 +61,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				// compute friction impulse
 				var cross = math.cross(surfP, tangent); // todo check this does the same as Vertex3D.CrossProduct
-				var kt = 1f / ball.Mass + math.dot(tangent, math.cross(cross / inertia, surfP));
+				var kt = 1f / ball.Mass + math.dot(tangent, math.cross(cross / ball.Inertia, surfP));
 
 				// friction impulse can't be greater than coefficient of friction times collision impulse (Coulomb friction cone)
 				var maxFric = material.Friction * reactionImpulse;
@@ -125,7 +124,6 @@ namespace VisualPinball.Unity.VPT.Ball
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
 			var surfVel = ball.SurfaceVelocity(surfP);
-			var inertia = 2.0f / 5.0f * ball.Radius * ball.Radius * ball.Mass;
 
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
@@ -160,7 +158,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 
 			var cp = math.cross(surfP, slipDir);
-			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / inertia, surfP));
+			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
 			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
 
 			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
