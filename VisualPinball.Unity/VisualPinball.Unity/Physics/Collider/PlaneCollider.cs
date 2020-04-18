@@ -51,15 +51,16 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
 		{
+			// speed in normal direction
+			var bnv = math.dot(_normal, ball.Velocity);
 
-			var bnv = math.dot(_normal, ball.Velocity); // speed in normal direction
-
+			// return if clearly ball is receding from object
 			if (bnv > PhysicsConstants.ContactVel) {
-				// return if clearly ball is receding from object
 				return -1.0f;
 			}
 
-			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _d; // distance from plane to ball surface
+			// distance from plane to ball surface
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _d;
 
 			//!! solely responsible for ball through playfield?? check other places, too (radius*2??)
 			if (bnd < ball.Radius * -2.0) {
@@ -73,18 +74,24 @@ namespace VisualPinball.Unity.Physics.Collider
 					coll.HitNormal = _normal;
 					coll.HitOrgNormalVelocity = bnv; // remember original normal velocity
 					coll.HitDistance = bnd;
-					return 0.0f; // hit time is ignored for contacts
+
+					// hit time is ignored for contacts
+					return 0.0f;
 				}
-				return -1.0f; // large distance, small velocity -> no hit
+
+				// large distance, small velocity -> no hit
+				return -1.0f;
 			}
 
-			var hitTime = bnd / (-bnv);
+			var hitTime = bnd / -bnv;
+
+			// already penetrating? then collide immediately
 			if (hitTime < 0) {
-				hitTime = 0.0f; // already penetrating? then collide immediately
+				hitTime = 0.0f;
 			}
 
+			// time is outside this frame ... no collision
 			if (float.IsNaN(hitTime) || float.IsInfinity(hitTime) || hitTime < 0 || hitTime > dTime) {
-				// time is outside this frame ... no collision
 				return -1.0f;
 			}
 
