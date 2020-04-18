@@ -109,6 +109,7 @@
     <Compile Include="Physics\Collider\Poly3DCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
     <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\BallContactSystem.cs" />
     <Compile Include="Physics\Collision\BallResolveCollisionSystem.cs" />
     <Compile Include="Physics\Collision\ColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />

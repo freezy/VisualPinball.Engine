@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.VPT
 			Item.Index = entity.Index;
 		}
 
-		private void Awake()
+		protected void Awake()
 		{
 			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
 			// can be null in editor, shouldn't be at runtime.

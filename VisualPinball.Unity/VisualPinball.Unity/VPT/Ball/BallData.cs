@@ -36,13 +36,20 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
-		public float3 SurfaceVelocity(float3 surfP)
+		public float3 SurfaceVelocity(in float3 surfP)
 		{
 			// linear velocity plus tangential velocity due to rotation
 			return Velocity + math.cross(AngularVelocity, surfP);
 		}
 
-		public void ApplySurfaceImpulse(float3 rotI, float3 impulse)
+		public float3 SurfaceAcceleration(in float3 surfP, in float3 gravity)
+		{
+			// if we had any external torque, we would have to add "(deriv. of ang.Vel.) x surfP" here
+			return gravity / Mass // linear acceleration
+			       + math.cross(AngularVelocity, math.cross(AngularVelocity, surfP)); // centripetal acceleration
+		}
+
+		public void ApplySurfaceImpulse(in float3 rotI, in float3 impulse)
 		{
 			Velocity += impulse / Mass;
 			AngularMomentum += rotI;

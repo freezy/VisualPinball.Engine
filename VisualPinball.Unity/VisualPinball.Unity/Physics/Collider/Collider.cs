@@ -1,5 +1,6 @@
 ﻿using NLog;
 using Unity.Entities;
+using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Physics.Collision;
@@ -92,5 +93,9 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
+		public void Contact(ref BallData ball, in CollisionEventData coll, double hitTime, in float3 gravity)
+		{
+			BallCollider.HandleStaticContact(ref ball, coll, Header.Material.Friction, (float)hitTime, gravity);
+		}
 	}
 }

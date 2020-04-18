@@ -96,7 +96,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public void Collide(ref BallData ball, CollisionEventData coll)
 		{
-			BallCollider.Collide3DWall(ref ball, ref _header.Material, ref coll, ref coll.HitNormal);
+			BallCollider.Collide3DWall(ref ball, ref _header.Material, ref coll, coll.HitNormal);
 
 			// distance from plane to ball surface
 			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _d;

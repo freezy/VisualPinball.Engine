@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
@@ -33,6 +35,7 @@ using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
@@ -77,6 +80,14 @@ namespace VisualPinball.Unity.VPT.Table
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();
+		}
+
+		protected void Awake()
+		{
+			base.Awake();
+			var ballContactSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BallContactSystem>();
+			var slope = data.AngleTiltMin + (data.AngleTiltMax - data.AngleTiltMin) * data.GlobalDifficulty;
+			ballContactSystem.SetGravity(slope, data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : data.Gravity);
 		}
 
 		public Engine.VPT.Table.Table CreateTable()
