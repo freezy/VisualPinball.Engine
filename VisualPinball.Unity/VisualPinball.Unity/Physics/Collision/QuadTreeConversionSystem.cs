@@ -14,10 +14,10 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected override void OnUpdate()
+		protected override unsafe void OnUpdate()
 		{
 			// fixme
-			if (DstEntityManager.CreateEntityQuery(typeof(CollisionData)).CalculateEntityCount() > 0) {
+			if (DstEntityManager.CreateEntityQuery(typeof(ColliderData)).CalculateEntityCount() > 0) {
 				return;
 			}
 
@@ -39,20 +39,22 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			// construct quad tree
 			var quadTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
-			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference(quadTree);
+			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
+				quadTree,
+				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists
+				table.GenerateGlassHit()
+			);
 
-			// playfield and glass are separate
-			var playfieldCollider = PlaneCollider.Create(table.GeneratePlayfieldHit());
-			var glassCollider = PlaneCollider.Create(table.GenerateGlassHit());
+			ref var collider4 = ref quadTreeBlobAssetRef.Value.PlayfieldCollider.Value;
+			Debug.Log("Playfield Collider: " + Collider.Collider.ToString(ref collider4));
+			fixed (Collider.Collider* collider = &collider4) {
+				Debug.Log("Playfield Collider Normal: " + ((PlaneCollider*)collider)->Normal);
+			}
 
 			// save it to entity
-			var collEntity = DstEntityManager.CreateEntity(ComponentType.ReadOnly<CollisionData>());
+			var collEntity = DstEntityManager.CreateEntity(ComponentType.ReadOnly<ColliderData>());
 			DstEntityManager.SetName(collEntity, "Collision Holder");
-			DstEntityManager.SetComponentData(collEntity, new CollisionData {
-				QuadTree = quadTreeBlobAssetRef,
-				PlayfieldCollider =  playfieldCollider,
-				GlassCollider = glassCollider
-			});
+			DstEntityManager.SetComponentData(collEntity, new ColliderData { Colliders = quadTreeBlobAssetRef });
 
 			Logger.Info("Static QuadTree initialized.");
 		}

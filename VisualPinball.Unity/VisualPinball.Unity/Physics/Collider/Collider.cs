@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using System;
+using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
@@ -57,29 +58,46 @@ namespace VisualPinball.Unity.Physics.Collider
 				case Hit3DPoly hit3DPoly:
 					Poly3DCollider.Create(builder, hit3DPoly, ref dest);
 					break;
-				case HitPlane hitPlane:
-					PlaneCollider.Create(builder, hitPlane, ref dest);
-					break;
+				case HitPlane _:
+					throw new InvalidOperationException("Plane colliders are not allowed in the quad tree.");
 				default:
 					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
 					break;
 			}
 		}
 
-		public unsafe float HitTest(in BallData ball, float dTime, CollisionEventData coll)
+		public unsafe float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {
-					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(in ball, dTime, coll);
-					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(in ball, dTime, coll);
+					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					default: return -1;
+				}
+			}
+		}
+
+		public static unsafe string ToString(ref Collider col)
+		{
+			fixed (Collider* collider = &col) {
+				switch (collider->Type) {
+					case ColliderType.Circle:        return ((CircleCollider*)collider)->ToString();
+					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->ToString();
+					case ColliderType.Line:          return ((LineCollider*)collider)->ToString();
+					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->ToString();
+					case ColliderType.LineZ:         return ((LineZCollider*)collider)->ToString();
+					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->ToString();
+					case ColliderType.Point:         return ((PointCollider*)collider)->ToString();
+					case ColliderType.Plane:         return ((PlaneCollider*)collider)->ToString();
+					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->ToString();
+					default: return "Collider";
 				}
 			}
 		}
