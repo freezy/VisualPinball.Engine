@@ -35,18 +35,27 @@ namespace VisualPinball.Unity.Physics.Collision
 			var hitTime = _simulateCycleSystemGroup.DTime;
 			var gravity = _gravity;
 
+			// retrieve reference to static collider data
+			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+			var collEntity = collDataEntityQuery.GetSingletonEntity();
+			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+
 			return Entities.ForEach((ref BallData ballData, ref DynamicBuffer<ContactBufferElement> contacts) => {
+
+				ref var colliders = ref collData.Value.Value.Colliders;
 
 				if (rnd.NextBool()) { // swap order of contact handling randomly
 					// tslint:disable-next-line:prefer-for-of
 					for (var i = 0; i < contacts.Length; i++) {
 						var contact = contacts[i];
-						contact.Collider.Contact(ref ballData, in contact.CollisionEvent, hitTime, gravity);
+						ref var collider = ref colliders[contact.ColliderId].Value;
+						collider.Contact(ref ballData, in contact.CollisionEvent, hitTime, gravity);
 					}
 				} else {
 					for (var i = contacts.Length - 1; i != -1; --i) {
 						var contact = contacts[i];
-						contact.Collider.Contact(ref ballData, in contact.CollisionEvent, hitTime, gravity);
+						ref var collider = ref colliders[contact.ColliderId].Value;
+						collider.Contact(ref ballData, in contact.CollisionEvent, hitTime, gravity);
 					}
 				}
 

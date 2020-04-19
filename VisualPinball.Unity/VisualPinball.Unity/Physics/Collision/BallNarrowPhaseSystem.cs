@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement {
 						CollisionEvent = newCollEvent,
-						Collider = coll
+						ColliderId = coll.Id
 					});
 
 				} else {                         // if (validhit)
