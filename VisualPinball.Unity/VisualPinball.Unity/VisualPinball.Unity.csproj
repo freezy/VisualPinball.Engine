@@ -114,13 +114,14 @@
     <Compile Include="Physics\Collision\ColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />
     <Compile Include="Physics\Collision\ColliderType.cs" />
-    <Compile Include="Physics\Collision\CollisionData.cs" />
+    <Compile Include="Physics\Collision\ColliderData.cs" />
     <Compile Include="Physics\Collision\CollisionEventData.cs" />
     <Compile Include="Physics\Collision\ContactBufferElement.cs" />
     <Compile Include="Physics\Collision\ICollidable.cs" />
     <Compile Include="Physics\Collision\ICollider.cs" />
     <Compile Include="Physics\Collision\BallNarrowPhaseSystem.cs" />
     <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
+    <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
     <Compile Include="Physics\SystemGroup\BallNarrowPhaseSystemGroup.cs" />

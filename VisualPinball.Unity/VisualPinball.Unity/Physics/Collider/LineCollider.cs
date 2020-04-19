@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_normal.y = -vT.x * invLength;
 		}
 
-		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
+		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			return -2;
 		}

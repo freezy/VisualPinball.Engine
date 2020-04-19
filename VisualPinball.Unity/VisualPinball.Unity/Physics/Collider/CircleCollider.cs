@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_radius = src.Radius;
 		}
 
-		public float HitTest(in BallData ball, float dTime, CollisionEventData coll)
+		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			return -1;
 		}

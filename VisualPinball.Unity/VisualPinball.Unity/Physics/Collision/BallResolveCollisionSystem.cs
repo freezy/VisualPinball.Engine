@@ -19,7 +19,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var hitTime = _simulateCycleSystemGroup.DTime;
-			return Entities.ForEach((ref BallData ballData, ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent) => {
+			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent) => {
 
 				if (colliders.Length == 0) {
 					return;

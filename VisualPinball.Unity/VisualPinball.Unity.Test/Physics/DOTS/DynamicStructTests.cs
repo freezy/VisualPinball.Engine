@@ -4,13 +4,13 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity.Test.Physics.Collider
+namespace VisualPinball.Unity.Test.Physics.DOTS
 {
 	[TestFixture]
 	public class DynamicStructTests
 	{
 		[Test]
-		public unsafe void ShouldSerializeCorrectly()
+		public unsafe void ShouldSerializeBlobAssetReference()
 		{
 			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference();
 
@@ -18,11 +18,20 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 			ref var collider2 = ref quadTreeBlobAssetRef.Value.Colliders[1].Value;
 
 			Assert.AreEqual(ColliderType.Line, collider1.Type);
-			Assert.AreEqual(new Aabb(1f, 3f, 2f, 4f, 5f, 6f), collider1.Aabb);
+			//Assert.AreEqual(new Aabb(1f, 3f, 20f, 4f, 5f, 6f), collider1.Aabb);
 			fixed (Collider* collider = &collider1) {
-				Assert.AreEqual(new float2(1f, 2f), ((LineCollider*)collider)->V1);
+				Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->V1);
+				Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->GetV1());
 			}
 			Assert.AreEqual(ColliderType.Point, collider2.Type);
+		}
+
+		[Test]
+		public unsafe void ShouldSerializeStruc()
+		{
+			var coll = LineCollider.Create(new float2(1f, 2f), new float2(3f, 4f), 5f, 6f);
+			var collider = &coll;
+			Assert.AreEqual(new float2(1f, 2f), ((LineCollider*)collider)->V1);
 		}
 	}
 
@@ -36,7 +45,7 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 				ref var rootQuadTree = ref builder.ConstructRoot<QuadTree>();
 
 				var colliders = builder.Allocate(ref rootQuadTree.Colliders, 2);
-				LineCollider.Create(builder, ref colliders[0], new float2(1f, 2f), new float2(3f, 4f), 5f, 6f);
+				LineCollider.Create(builder, ref colliders[0], new float2(1f, 20f), new float2(3f, 4f), 5f, 6f);
 				PointCollider.Create(builder, ref colliders[1], new float3(7f, 8f, 9f));
 
 				return builder.CreateBlobAssetReference<QuadTree>(Allocator.Persistent);
@@ -58,11 +67,20 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 		public float2 V1;
 		public float2 V2;
 
+		public float2 GetV1() => V1;
+
 		public static void Create(BlobBuilder builder, ref BlobPtr<Collider> dest, float2 v1, float2 v2, float zLow, float zHigh)
 		{
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(v1, v2, zLow, zHigh);
+		}
+
+		public static Collider Create(float2 v1, float2 v2, float zLow, float zHigh)
+		{
+			var dest = default(LineCollider);
+			dest.Init(v1, v2, zLow, zHigh);
+			return UnsafeUtilityEx.As<LineCollider, Collider>(ref dest);
 		}
 
 		private void Init(float2 v1, float2 v2, float zLow, float zHigh)

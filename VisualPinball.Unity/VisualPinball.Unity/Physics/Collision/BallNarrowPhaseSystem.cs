@@ -8,13 +8,22 @@ namespace VisualPinball.Unity.Physics.Collision
 	[UpdateInGroup(typeof(BallNarrowPhaseSystemGroup))]
 	public class BallNarrowPhaseSystem : JobComponentSystem
 	{
+		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+
+		protected override void OnCreate()
+		{
+			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+		}
+
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			return Entities.ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
+			var hitTime = (float)_simulateCycleSystemGroup.DTime;
+			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
 
 				var validColl = Collider.Collider.None;
 				contacts.Clear();
+				collEvent.HitTime = hitTime; // search upto current hittime
 				for (var i = 0; i < colliders.Length; i++) {
 					var coll = colliders[i].Value;
 
@@ -24,7 +33,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					// }
 
 					var newCollEvent = new CollisionEventData();
-					var newTime = coll.HitTest(in ballData, collEvent.HitTime, newCollEvent);
+					var newTime = coll.HitTest(ref newCollEvent, in ballData, collEvent.HitTime);
 					var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 					if (newCollEvent.IsContact || validHit) {
