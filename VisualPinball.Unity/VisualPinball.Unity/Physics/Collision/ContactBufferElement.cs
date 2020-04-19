@@ -6,6 +6,6 @@ namespace VisualPinball.Unity.Physics.Collision
 	public struct ContactBufferElement : IBufferElementData
 	{
 		public CollisionEventData CollisionEvent;
-		public Collider.Collider Collider;
+		public int ColliderId;
 	}
 }
