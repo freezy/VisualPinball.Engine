@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			_header.Type = ColliderType.Flipper;
 			_header.EntityIndex = src.ItemIndex;
-			_header.Aabb = src.HitBBox.ToAabb();
+			_header.Id = src.Id;
 		}
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)

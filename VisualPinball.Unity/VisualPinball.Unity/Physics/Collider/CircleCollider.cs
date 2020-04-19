@@ -27,8 +27,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(HitCircle src)
 		{
 			_header.Type = ColliderType.Circle;
+			_header.Id = src.Id;
 			_header.EntityIndex = src.ItemIndex;
-			_header.Aabb = src.HitBBox.ToAabb();
 
 			_center = src.Center.ToUnityFloat2();
 			_radius = src.Radius;

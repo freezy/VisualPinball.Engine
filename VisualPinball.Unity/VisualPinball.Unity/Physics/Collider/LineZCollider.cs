@@ -26,8 +26,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(HitLineZ src)
 		{
 			_header.Type = ColliderType.LineZ;
+			_header.Id = src.Id;
 			_header.EntityIndex = src.ItemIndex;
-			_header.Aabb = src.HitBBox.ToAabb();
 
 			_xy = src.Xy.ToUnityFloat2();
 		}

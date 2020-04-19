@@ -19,6 +19,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			get {
 				var vl = math.length(Velocity) + Radius + 0.05f; //!! 0.05f = paranoia
 				return new Aabb(
+					-1,
 					Position.x - vl,
 					Position.x + vl,
 					Position.y - vl,

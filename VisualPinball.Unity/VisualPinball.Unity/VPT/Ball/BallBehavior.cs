@@ -8,6 +8,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	public class BallBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{
 		public float3 Position;
+		public float3 Velocity;
 		public float Radius;
 		public float Mass;
 
@@ -18,7 +19,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				Position = Position,
 				Radius = Radius,
 				Mass = Mass,
-				Velocity = new float3(0, 0, 0)
+				Velocity = Velocity
 			});
 			dstManager.AddComponentData(entity, new CollisionEventData {
 				HitTime = -1,
@@ -31,7 +32,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			// 		EntityIndex = -1
 			// 	}
 			// });
-			dstManager.AddBuffer<ColliderBufferElement>(entity);
+			dstManager.AddBuffer<MatchedColliderBufferElement>(entity);
 			dstManager.AddBuffer<ContactBufferElement>(entity);
 		}
 	}

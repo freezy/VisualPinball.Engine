@@ -34,7 +34,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			var m = player.TableToWorld;
 
 			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-			localPos.z += 10;
+			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
+			localPos.z += radius;
 			float4x4 model = player.TableToWorld * Matrix4x4.TRS(localPos, Quaternion.identity, new float3(radius));
 
 			var worldPos = m.MultiplyPoint(localPos);
@@ -50,6 +51,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			var go = CreateSphere(material, worldPos, scale * radius * 2, mass);
 			var ballBehavior = go.AddComponent<BallBehavior>();
 			ballBehavior.Position = localPos;
+			ballBehavior.Velocity = localVel;
 			ballBehavior.Radius = radius;
 			ballBehavior.Mass = mass;
 
