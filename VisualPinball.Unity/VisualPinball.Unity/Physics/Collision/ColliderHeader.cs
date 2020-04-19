@@ -10,8 +10,8 @@ namespace VisualPinball.Unity.Physics.Collision
 	public struct ColliderHeader
 	{
 		public ColliderType Type;
+		public int Id;
 		public int EntityIndex;
-		public Aabb Aabb;
 		public PhysicsMaterialData Material;
 	}
 }

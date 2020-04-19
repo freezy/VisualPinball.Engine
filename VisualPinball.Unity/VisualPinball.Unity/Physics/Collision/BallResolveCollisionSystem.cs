@@ -18,19 +18,29 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
+			// retrieve reference to static collider data
+			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+			var collEntity = collDataEntityQuery.GetSingletonEntity();
+			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+
 			var hitTime = _simulateCycleSystemGroup.DTime;
-			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<ColliderBufferElement> colliders, ref CollisionEventData collEvent) => {
 
-				if (colliders.Length == 0) {
+			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent) => {
+
+				if (matchedColliderIds.Length == 0) {
 					return;
 				}
 
-				if (colliders.Length != 1) {
-					Debug.LogWarning($"Number of colliders should be 1 by now, but it's {colliders.Length}.");
+				if (matchedColliderIds.Length != 1) {
+					Debug.LogWarning($"Number of matched colliders should be 1 by now, but it's {matchedColliderIds.Length}.");
 					return;
 				}
 
-				var pho = colliders[0].Value; // object that ball hit in trials
+				// retrieve static data
+				ref var colliders = ref collData.Value.Value.Colliders;
+
+				// pick collider that matched during narrowphase
+				ref var pho = ref colliders[matchedColliderIds[0].Value].Value; // object that ball hit in trials
 
 				// find balls with hit objects and minimum time
 				if (collEvent.HitTime <= hitTime) {

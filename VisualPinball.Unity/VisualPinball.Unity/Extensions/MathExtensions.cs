@@ -1,4 +1,5 @@
-﻿using Unity.Mathematics;
+﻿using System.Runtime.InteropServices;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics.Collider;
@@ -43,9 +44,20 @@ namespace VisualPinball.Unity.Extensions
 			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
 
-		public static Aabb ToAabb(this Rect3D rect)
+		public static Aabb ToAabb(this Rect3D rect, int colliderId)
 		{
-			return new Aabb(rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
+			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
+		}
+
+		public static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
+		{
+			aabb.ColliderId = colliderId;
+			aabb.Left = rect.Left;
+			aabb.Right = rect.Right;
+			aabb.Top = rect.Top;
+			aabb.Bottom = rect.Bottom;
+			aabb.ZLow = rect.ZLow;
+			aabb.ZHigh = rect.ZHigh;
 		}
 
 		public static float3x3 ToUnityFloat3x3(this Matrix2D matrix)

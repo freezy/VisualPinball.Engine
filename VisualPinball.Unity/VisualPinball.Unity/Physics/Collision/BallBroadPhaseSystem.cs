@@ -9,20 +9,15 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			// retrieve static collision data
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+			// retrieve reference to static quad tree data
+			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(QuadTreeData));
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
-			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+			var collData = EntityManager.GetComponentData<QuadTreeData>(collEntity);
 
-			return Entities.ForEach((ref DynamicBuffer<ColliderBufferElement> colliders, in BallData ballData) => {
-				ref var quadTree = ref collData.Colliders.Value.QuadTree;
-				colliders.Clear();
-
-				// glass and playfield are always added
-				colliders.Add(new ColliderBufferElement { Value = collData.Colliders.Value.PlayfieldCollider.Value }); // todo check if not covered by playfield mesh
-				//colliders.Add(new ColliderBufferElement { Value = collData.Colliders.Value.GlassCollider.Value});
-
-				quadTree.GetAabbOverlaps(ballData, colliders);
+			return Entities.ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliders, in BallData ballData) => {
+				ref var quadTree = ref collData.Value.Value.QuadTree;
+				matchedColliders.Clear();
+				quadTree.GetAabbOverlaps(ballData, matchedColliders);
 
 			}).Schedule(inputDeps);
 		}

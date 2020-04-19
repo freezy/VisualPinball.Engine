@@ -1,6 +1,5 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Physics.Collider;
 

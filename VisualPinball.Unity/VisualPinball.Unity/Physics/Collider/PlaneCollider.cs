@@ -29,8 +29,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(HitPlane src)
 		{
 			Header.Type = ColliderType.Plane;
+			Header.Id = src.Id;
 			Header.EntityIndex = src.ItemIndex;
-			Header.Aabb = src.HitBBox.ToAabb();
 			Header.Material = new PhysicsMaterialData {
 				Elasticity = src.Elasticity,
 				ElasticityFalloff = src.ElasticityFalloff,

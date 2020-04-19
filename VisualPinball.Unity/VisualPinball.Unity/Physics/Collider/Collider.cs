@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -13,25 +14,24 @@ namespace VisualPinball.Unity.Physics.Collider
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : ICollider, ICollidable, IComponentData
+	public struct Collider : ICollider, IComponentData
 	{
 		public ColliderHeader Header;
 
+		public int Id => Header.Id;
 		public ColliderType Type => Header.Type;
-		public Aabb Aabb => Header.Aabb;
 		public PhysicsMaterialData Material => Header.Material;
 
 		public static Collider None => new Collider {
 			Header = {
 				Type = ColliderType.None,
-				Aabb = default,
 				EntityIndex = -1
 			}
 		};
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static void Create(HitObject src, ref BlobPtr<Collider> dest, BlobBuilder builder)
+		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
 		{
 			switch (src) {
 				case HitCircle hitCircle:
@@ -58,17 +58,18 @@ namespace VisualPinball.Unity.Physics.Collider
 				case Hit3DPoly hit3DPoly:
 					Poly3DCollider.Create(builder, hit3DPoly, ref dest);
 					break;
-				case HitPlane _:
-					throw new InvalidOperationException("Plane colliders are not allowed in the quad tree.");
+				case HitPlane hitPlane:
+					PlaneCollider.Create(builder, hitPlane, ref dest);
+					break;
 				default:
 					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
 					break;
 			}
 		}
 
-		public unsafe float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
-			fixed (Collider* collider = &this) {
+			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
 					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(ref collEvent, in ball, dTime);

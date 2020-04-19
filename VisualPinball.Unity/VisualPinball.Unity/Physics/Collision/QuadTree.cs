@@ -1,5 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
@@ -10,7 +9,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	public struct QuadTree
 	{
 		public BlobArray<BlobPtr<QuadTree>> Children;
-		public BlobArray<BlobPtr<Collider.Collider>> Colliders;
+		public BlobArray<BlobPtr<Aabb>> Bounds;
 		public float3 Center;
 		public bool IsLeaf;
 
@@ -24,25 +23,25 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 			}
 
-			var colliders = builder.Allocate(ref dest.Colliders, src.HitObjects.Count);
+			var colliders = builder.Allocate(ref dest.Bounds, src.HitObjects.Count);
 			for (var i = 0; i < src.HitObjects.Count; i++) {
-				Collider.Collider.Create(src.HitObjects[i], ref colliders[i], builder);
+				ref var bounds = ref builder.Allocate(ref colliders[i]);
+				src.HitObjects[i].HitBBox.ToAabb(ref bounds, src.HitObjects[i].Id);
 			}
 
 			dest.Center = src.Center.ToUnityFloat3();
 			dest.IsLeaf = src.IsLeaf;
 		}
 
-		public void GetAabbOverlaps(BallData ball, DynamicBuffer<ColliderBufferElement> colliders)
+		public void GetAabbOverlaps(BallData ball, DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
-			for (var i = 0; i < Colliders.Length; i++) {
-				ref var ptr = ref Colliders[i];
-				ref var collider = ref ptr.Value;
-				if (collider.Aabb.IntersectRect(ballAabb) && collider.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					colliders.Add(new ColliderBufferElement { Value = collider });
+			for (var i = 0; i < Bounds.Length; i++) {
+				ref var bounds = ref Bounds[i].Value;
+				if (bounds.IntersectRect(ballAabb) && bounds.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					matchedColliderIds.Add(new MatchedColliderBufferElement { Value = bounds.ColliderId });
 				}
 			}
 
@@ -53,22 +52,22 @@ namespace VisualPinball.Unity.Physics.Collision
 				if (ballAabb.Top <= Center.y) {
 					// Top
 					if (isLeft) {
-						Children[0].Value.GetAabbOverlaps(ball, colliders);
+						Children[0].Value.GetAabbOverlaps(ball, matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[1].Value.GetAabbOverlaps(ball, colliders);
+						Children[1].Value.GetAabbOverlaps(ball, matchedColliderIds);
 					}
 				}
 
 				if (ballAabb.Bottom >= Center.y) {
 					// Bottom
 					if (isLeft) {
-						Children[2].Value.GetAabbOverlaps(ball, colliders);
+						Children[2].Value.GetAabbOverlaps(ball, matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[3].Value.GetAabbOverlaps(ball, colliders);
+						Children[3].Value.GetAabbOverlaps(ball, matchedColliderIds);
 					}
 				}
 			}

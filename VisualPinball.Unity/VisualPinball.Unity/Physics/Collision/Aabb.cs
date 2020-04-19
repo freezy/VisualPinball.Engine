@@ -4,6 +4,7 @@ namespace VisualPinball.Unity.Physics.Collision
 {
 	public struct Aabb
 	{
+		public int ColliderId;
 		public float Left;
 		public float Top;
 		public float Right;
@@ -15,9 +16,10 @@ namespace VisualPinball.Unity.Physics.Collision
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
 
-		public static Aabb Create()
+		public static Aabb Create(int colliderId)
 		{
 			return new Aabb(
+				colliderId,
 				float.MaxValue,
 				-float.MaxValue,
 				float.MaxValue,
@@ -27,8 +29,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			);
 		}
 
-		public Aabb(float left, float right, float top, float bottom, float zLow, float zHigh)
+		public Aabb(int colliderId, float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
+			ColliderId = colliderId;
 			Left = left;
 			Right = right;
 			Top = top;
