@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return hitTime;
 		}
 
-		public void Collide(ref BallData ball, CollisionEventData coll)
+		public void Collide(ref BallData ball, in CollisionEventData coll)
 		{
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in coll, in coll.HitNormal);
 

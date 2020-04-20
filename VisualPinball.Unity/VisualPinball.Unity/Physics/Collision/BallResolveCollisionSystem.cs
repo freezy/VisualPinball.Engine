@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					// now collision, contact and script reactions on active ball (object)+++++++++
 
 					//this.activeBall = ball;                         // For script that wants the ball doing the collision
-					pho.Collide(ref ballData, collEvent);          // !!!!! 3) collision on active ball
+					Collider.Collider.Collide(ref pho, ref ballData, collEvent);          // !!!!! 3) collision on active ball
 
 					// todo fix below
 					// ball.coll.clear();                     // remove trial hit object pointer
