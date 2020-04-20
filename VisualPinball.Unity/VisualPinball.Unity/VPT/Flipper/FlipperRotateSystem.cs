@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			Entities.ForEach((ref Rotation rot, in FlipperMovementData movement) => {
+			Entities.WithoutBurst().ForEach((ref Rotation rot, in FlipperMovementData movement) => {
 				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 			}).Run();
 

@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var gravity = _gravity;
-			return Entities.ForEach((ref BallData ball) => {
+			return Entities.WithoutBurst().ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;

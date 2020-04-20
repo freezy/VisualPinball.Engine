@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, ref PhysicsMaterialData material, ref CollisionEventData coll, in float3 hitNormal)
+		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData coll, in float3 hitNormal)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -110,10 +110,6 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
 				ball.Velocity += coll.HitNormal * normalForce;
-
-				if (coll.HitDistance <= PhysicsConstants.PhysTouch) {
-					ball.Velocity += coll.HitNormal * math.max(math.min(PhysicsConstants.EmbedVelLimit, -coll.HitDistance), PhysicsConstants.PhysTouch);
-				}
 
 				ApplyFriction(ref ball, coll.HitNormal, dTime, friction, gravity);
 			}
