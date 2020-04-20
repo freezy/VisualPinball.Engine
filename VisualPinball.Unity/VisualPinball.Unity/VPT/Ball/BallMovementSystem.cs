@@ -29,8 +29,15 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var ltw = _baseTransform;
-			Entities.WithoutBurst().ForEach((ref Translation translation, in BallData ball) => {
+			Entities.WithoutBurst().ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
 				translation.Value = math.transform(ltw, ball.Position);
+				var or = ball.Orientation;
+				rot.Value = new quaternion(new float4x4(
+					or.c0.x, or.c1.x, or.c2.x, 0.0f,
+					or.c0.y, or.c1.y, or.c2.y, 0.0f,
+					or.c0.z, or.c1.z, or.c2.z, 0.0f,
+					0f, 0f, 0f, 1f
+				));
 			}).Run();
 
 			return default;

@@ -11,6 +11,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		public float3 Velocity;
 		public float3 AngularVelocity;
 		public float3 AngularMomentum;
+		public float3x3 Orientation;
 		public float Radius;
 		public float Mass;
 		public bool IsFrozen;

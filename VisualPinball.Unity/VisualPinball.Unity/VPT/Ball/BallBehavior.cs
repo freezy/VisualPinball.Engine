@@ -19,7 +19,8 @@ namespace VisualPinball.Unity.VPT.Ball
 				Position = Position,
 				Radius = Radius,
 				Mass = Mass,
-				Velocity = Velocity
+				Velocity = Velocity,
+				Orientation = float3x3.identity
 			});
 			dstManager.AddComponentData(entity, new CollisionEventData {
 				HitTime = -1,
