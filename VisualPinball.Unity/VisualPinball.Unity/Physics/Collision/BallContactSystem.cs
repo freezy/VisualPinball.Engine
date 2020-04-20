@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var rnd = new Random(666);
-			var hitTime = _simulateCycleSystemGroup.DTime;
+			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var gravity = _gravity;
 
 			// retrieve reference to static collider data
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
-			return Entities.ForEach((ref BallData ballData, ref DynamicBuffer<ContactBufferElement> contacts) => {
+			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<ContactBufferElement> contacts) => {
 
 				ref var colliders = ref collData.Value.Value.Colliders;
 

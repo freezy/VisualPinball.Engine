@@ -17,9 +17,9 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var dTime = (float) _simulateCycleSystemGroup.DTime;
+			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			return Entities.ForEach((ref BallData ball) => {
+			return Entities.WithoutBurst().ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;

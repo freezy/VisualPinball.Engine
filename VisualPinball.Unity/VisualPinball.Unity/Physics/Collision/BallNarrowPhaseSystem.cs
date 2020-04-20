@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
-			var hitTime = (float)_simulateCycleSystemGroup.DTime;
+			var hitTime = _simulateCycleSystemGroup.HitTime;
 
 			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
@@ -50,8 +50,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				matchedColliderIds.Clear();
 
 				// todo probably faster to add it as separate data via a EntityCommandBufferSystem
-				if (validColl.Type != ColliderType.None) {
-					matchedColliderIds.Add(new MatchedColliderBufferElement {Value = validColl.Id});
+				if (collEvent.HitTime >= 0 && validColl.Type != ColliderType.None) {
+					matchedColliderIds.Add(new MatchedColliderBufferElement { Value = validColl.Id });
 				}
 
 			}).Schedule(inputDeps);
@@ -69,6 +69,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
+				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement {
 						CollisionEvent = newCollEvent,
@@ -77,7 +78,6 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				} else {                         // if (validhit)
 					collEvent.Set(newCollEvent);
-					collEvent.HitTime = newTime;
 					validColl = coll;
 				}
 			}

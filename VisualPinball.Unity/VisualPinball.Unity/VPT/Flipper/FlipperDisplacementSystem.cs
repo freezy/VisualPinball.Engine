@@ -26,9 +26,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			var dTime = (float) _simulateCycleSystemGroup.DTime;
+			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
+			Entities.WithoutBurst().ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 

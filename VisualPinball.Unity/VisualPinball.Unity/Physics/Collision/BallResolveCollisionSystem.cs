@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
-			var hitTime = _simulateCycleSystemGroup.DTime;
+			var hitTime = _simulateCycleSystemGroup.HitTime;
 
 			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent) => {
 
@@ -63,6 +63,8 @@ namespace VisualPinball.Unity.Physics.Collision
 					// 	ball.hit.calcHitBBox(); // do new boundings
 					// }
 				}
+
+				matchedColliderIds.Clear();
 
 			}).Schedule(inputDeps);
 		}

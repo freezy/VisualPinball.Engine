@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using NLog;
+using Unity.Collections;
 using Unity.Entities;
+using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
 
@@ -9,7 +11,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 	[DisableAutoCreation]
 	public class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
-		public double DTime;
+		public float HitTime;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
@@ -40,20 +42,49 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		{
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
-			DTime = sim.PhysicsDiffTime;
-			while (DTime > 0) {
+			var staticCnts = PhysicsConstants.StaticCnts;
+			var dTime = sim.PhysicsDiffTime;
+			while (dTime > 0) {
 
 				//Logger.Info("     ({0}) Player::PhysicsSimulateCycle (loop)\n", DTime);
 
-				var hitTime = DTime;
+				HitTime = (float)dTime;
+
+				// // find earliest time where a flipper collides with its stop
+				// for (size_t i = 0; i < m_vFlippers.size(); ++i)
+				// {
+				// 	const float fliphit = m_vFlippers[i]->GetHitTime();
+				// 	if (fliphit > 0.f && fliphit < hittime) {//!! >= 0.f causes infinite loop
+				// 		fprintf(m_flog, "     flipper hit\n");
+				// 		hittime = fliphit;
+				// 	}
+				// }
 
 				_ballBroadPhaseSystem.Update();
 				_ballNarrowPhaseSystemGroup.Update();
+
+				// update hittime
+				var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
+				var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
+				foreach (var entity in entities) {
+					var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
+					if (collEvent.HitTime <= HitTime) {                                  // smaller hit time??
+						HitTime = collEvent.HitTime;                                     // record actual event time
+						if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
+							if (--staticCnts < 0) {
+								staticCnts = 0;                                          // keep from wrapping
+								HitTime = PhysicsConstants.StaticTime;
+							}
+						}
+					}
+				}
+				entities.Dispose();
+
 				_displacementSystemGroup.Update();
 				_ballResolveCollisionSystem.Update();
 				_ballContactSystem.Update();
 
-				DTime -= hitTime;
+				dTime -= HitTime;
 			}
 		}
 	}
