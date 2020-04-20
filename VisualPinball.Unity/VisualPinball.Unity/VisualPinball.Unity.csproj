@@ -137,6 +137,7 @@
     <Compile Include="VPT\Ball\BallCollider.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
     <Compile Include="VPT\Ball\BallManager.cs" />
+    <Compile Include="VPT\Ball\BallMovementSystem.cs" />
     <Compile Include="VPT\Ball\BallVelocitySystem.cs" />
     <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
