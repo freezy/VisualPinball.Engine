@@ -27,16 +27,15 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.Position += ball.Velocity * dTime;
 
-				// todo rotation
-				var mat3 = CreateSkewSymmetric(ball.AngularVelocity);
-				// var addedOrientation = new float3x3();
-				// addedOrientation.MultiplyMatrix(mat3, ball.Orientation);
-				// addedOrientation.MultiplyScalar(dTime);
-				//
-				// _state.Orientation.AddMatrix(addedOrientation, _state.Orientation);
-				// _state.Orientation.OrthoNormalize();
+				var inertia = ball.Inertia;
+				var mat3 = CreateSkewSymmetric(ball.AngularMomentum / inertia);
+				var addedOrientation = math.mul(ball.Orientation, mat3);
+				addedOrientation *= dTime;
 
-				ball.AngularVelocity = ball.AngularMomentum / ball.Inertia;
+				ball.Orientation += addedOrientation;
+				math.orthonormalize(ball.Orientation);
+
+				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
 			}).Schedule(inputDeps);
 		}
