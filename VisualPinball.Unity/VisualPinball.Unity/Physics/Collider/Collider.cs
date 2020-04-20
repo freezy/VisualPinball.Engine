@@ -1,10 +1,8 @@
-﻿using System;
-using NLog;
+﻿using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -85,6 +83,21 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
+		public static unsafe void Collide(ref Collider coll, ref BallData ballData, in CollisionEventData collEvent)
+		{
+			fixed (Collider* collider = &coll) {
+				switch (collider->Type) {
+					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, in collEvent); break;
+					case ColliderType.Line: ((LineCollider*)collider)->Collide(ref ballData, in collEvent); break;
+				}
+			}
+		}
+
+		public void Contact(ref BallData ball, in CollisionEventData coll, double hitTime, in float3 gravity)
+		{
+			BallCollider.HandleStaticContact(ref ball, coll, Header.Material.Friction, (float)hitTime, gravity);
+		}
+
 		public static unsafe string ToString(ref Collider col)
 		{
 			fixed (Collider* collider = &col) {
@@ -101,20 +114,6 @@ namespace VisualPinball.Unity.Physics.Collider
 					default: return "Collider";
 				}
 			}
-		}
-
-		public unsafe void Collide(ref BallData ballData, CollisionEventData coll)
-		{
-			fixed (Collider* collider = &this) {
-				switch (collider->Type) {
-					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, coll); break;
-				}
-			}
-		}
-
-		public void Contact(ref BallData ball, in CollisionEventData coll, double hitTime, in float3 gravity)
-		{
-			BallCollider.HandleStaticContact(ref ball, coll, Header.Material.Friction, (float)hitTime, gravity);
 		}
 	}
 }
