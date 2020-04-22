@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\Math.cs" />
     <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
@@ -140,10 +141,12 @@
     <Compile Include="VPT\Ball\BallMovementSystem.cs" />
     <Compile Include="VPT\Ball\BallVelocitySystem.cs" />
     <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
+    <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
+    <Compile Include="VPT\Flipper\FlipperHitData.cs" />
     <Compile Include="VPT\Flipper\FlipperMaterialData.cs" />
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
@@ -156,6 +159,7 @@
     <Compile Include="VPT\IApi.cs" />
     <Compile Include="VPT\ItemApi.cs" />
     <Compile Include="VPT\ItemBehavior.cs" />
+    <Compile Include="VPT\ItemType.cs" />
     <Compile Include="VPT\Kicker\KickerApi.cs" />
     <Compile Include="VPT\Kicker\KickerBehavior.cs" />
     <Compile Include="VPT\Light\LightBehavior.cs" />
@@ -164,6 +168,7 @@
     <Compile Include="VPT\Rubber\RubberBehavior.cs" />
     <Compile Include="VPT\Spinner\SpinnerBehavior.cs" />
     <Compile Include="VPT\Surface\SurfaceBehavior.cs" />
+    <Compile Include="VPT\Surface\SurfaceData.cs" />
     <Compile Include="VPT\Surface\SurfaceExtensions.cs" />
     <Compile Include="VPT\Table\TableApi.cs" />
     <Compile Include="VPT\Table\TableExtensions.cs" />

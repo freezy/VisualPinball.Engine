@@ -8,6 +8,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		public float HitTime;
 		public float3 HitNormal;
 		public float HitDistance;
+		public bool HitFlag;
 		public float HitOrgNormalVelocity;
 		public bool IsContact;
 

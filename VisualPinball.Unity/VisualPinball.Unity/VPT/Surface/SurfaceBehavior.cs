@@ -12,7 +12,7 @@ using VisualPinball.Unity.Game;
 namespace VisualPinball.Unity.VPT.Surface
 {
 	[AddComponentMenu("Visual Pinball/Surface")]
-	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, SurfaceData>, IConvertGameObjectToEntity
+	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
 

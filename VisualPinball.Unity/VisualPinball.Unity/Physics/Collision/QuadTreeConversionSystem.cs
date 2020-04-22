@@ -29,9 +29,10 @@ namespace VisualPinball.Unity.Physics.Collision
 			// index hittables
 			var hitObjects = new List<HitObject>();
 			var id = 0;
-			foreach (var hittable in table.Hittables) {
-				foreach (var hitObject in hittable.GetHitShapes()) {
-					hitObject.ItemIndex = hittable.Index;
+			foreach (var item in table.Hittables) {
+				foreach (var hitObject in item.GetHitShapes()) {
+					hitObject.ItemIndex = item.Index;
+					hitObject.ItemVersion = item.Version;
 					hitObject.Id = id++;
 					hitObjects.Add(hitObject);
 					hitObject.CalcHitBBox();

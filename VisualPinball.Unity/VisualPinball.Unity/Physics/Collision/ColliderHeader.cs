@@ -1,4 +1,6 @@
-﻿using VisualPinball.Unity.Physics.Collider;
+﻿using Unity.Entities;
+using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -10,8 +12,9 @@ namespace VisualPinball.Unity.Physics.Collision
 	public struct ColliderHeader
 	{
 		public ColliderType Type;
+		public ItemType ItemType;
 		public int Id;
-		public int EntityIndex;
+		public Entity Entity;
 		public PhysicsMaterialData Material;
 	}
 }

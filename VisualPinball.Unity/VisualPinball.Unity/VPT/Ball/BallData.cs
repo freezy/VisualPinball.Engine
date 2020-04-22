@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		}
 
 		public float Inertia => 2.0f / 5.0f * Radius * Radius * Mass;
+		public float InvMass => 1f / Mass;
 
 		public float3 SurfaceVelocity(in float3 surfP)
 		{
@@ -57,6 +58,41 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			Velocity += impulse / Mass;
 			AngularMomentum += rotI;
+		}
+
+		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		{
+			int i;
+			var inside = false;
+			for (i = 0; i < insideOfs.Length; i++) {
+				if (insideOfs[i].Value == entity) {
+					inside = true;
+					break;
+				}
+			}
+			if (inside) {
+				insideOfs.RemoveAt(i);
+			}
+		}
+
+		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		{
+			insideOfs.Add(new BallInsideOfBufferElement {Value = entity});
+		}
+
+		public static bool IsOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		{
+			return !IsInsideOf(ref insideOfs, ref entity);
+		}
+
+		public static bool IsInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		{
+			for (var i = 0; i < insideOfs.Length; i++) {
+				if (insideOfs[i].Value == entity) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }

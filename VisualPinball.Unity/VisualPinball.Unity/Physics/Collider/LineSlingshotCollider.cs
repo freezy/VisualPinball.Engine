@@ -5,6 +5,7 @@ using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Surface;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
@@ -29,8 +30,9 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(LineSeg src)
 		{
 			_header.Type = ColliderType.Line;
+			_header.ItemType = Collider.GetItemType(src.ObjType);
 			_header.Id = src.Id;
-			_header.EntityIndex = src.ItemIndex;
+			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 
 			_v1 = src.V1.ToUnityFloat2();
 			_v2 = src.V2.ToUnityFloat2();
@@ -49,7 +51,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_normal.y = -vT.x * invLength;
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData coll, in SurfaceData surfaceData, in BallData ball, float dTime)
 		{
 			return -3;
 		}

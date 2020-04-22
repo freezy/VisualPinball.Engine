@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Physics
 		/// </summary>
 		public float Scatter;                                                  // m_scatter
 
-		protected string ObjType = CollisionType.Null;
+		public string ObjType = CollisionType.Null;
 		public bool IsEnabled = true;                                          // m_enabled
 
 		/// <summary>
@@ -50,6 +50,7 @@ namespace VisualPinball.Engine.Physics
 		public bool E = false;                                                 // m_e
 
 		public int ItemIndex;
+		public int ItemVersion;
 
 		public abstract void CalcHitBBox();
 

@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			dstManager.AddComponentData(entity, GetMovementData(d));
 			dstManager.AddComponentData(entity, GetVelocityData(d));
 			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
+			dstManager.AddComponentData(entity, new FlipperHitData());
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);

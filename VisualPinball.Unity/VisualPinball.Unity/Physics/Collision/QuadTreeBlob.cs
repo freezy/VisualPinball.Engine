@@ -23,8 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				} else {
 					ref var playfieldCollider = ref builder.Allocate(ref rootQuadTree.PlayfieldCollider);
 					playfieldCollider.Header = new ColliderHeader {
-						Type = ColliderType.None,
-						EntityIndex = -1
+						Type = ColliderType.None
 					};
 				}
 				PlaneCollider.Create(builder, glass, ref rootQuadTree.GlassCollider);

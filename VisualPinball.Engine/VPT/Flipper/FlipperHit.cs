@@ -17,6 +17,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		private readonly EventProxy _events;
 		private uint _lastHitTime;                                             // m_last_hittime
 
+		public HitCircle HitCircleBase => _mover.HitCircleBase;
+
 		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table)
 		{
 			data.UpdatePhysicsSettings(table);
