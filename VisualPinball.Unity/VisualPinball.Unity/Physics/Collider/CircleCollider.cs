@@ -39,10 +39,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private void Init(HitCircle src)
 		{
-			_header.Type = ColliderType.Circle;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Id = src.Id;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
+			_header.Init(ColliderType.Circle, src);
 
 			Center = src.Center.ToUnityFloat2();
 			Radius = src.Radius;

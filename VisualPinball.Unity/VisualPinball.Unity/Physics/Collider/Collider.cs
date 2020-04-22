@@ -84,37 +84,33 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
+		/// <summary>
+		/// Most colliders use the standard Collide3DWall routine, only overrides
+		/// are cast and dispatched to their respective implementation.
+		/// </summary>
 		public static unsafe void Collide(ref Collider coll, ref BallData ballData, in CollisionEventData collEvent)
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
 					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, in collEvent); break;
-					case ColliderType.Line: ((LineCollider*)collider)->Collide(ref ballData, in collEvent); break;
+					default:  collider->Collide(ref ballData, in collEvent); break;
 				}
 			}
+		}
+
+		private void Collide(ref BallData ball, in CollisionEventData coll)
+		{
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in coll, in coll.HitNormal);
+			// todo
+			// var dot = math.dot(coll.HitNormal, ball.Velocity);
+			// if (dot <= -m_threshold) {
+			// 	FireHitEvent(coll.m_ball);
+			// }
 		}
 
 		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
-		}
-
-		public static unsafe string ToString(ref Collider col)
-		{
-			fixed (Collider* collider = &col) {
-				switch (collider->Type) {
-					case ColliderType.Circle:        return ((CircleCollider*)collider)->ToString();
-					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->ToString();
-					case ColliderType.Line:          return ((LineCollider*)collider)->ToString();
-					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->ToString();
-					case ColliderType.LineZ:         return ((LineZCollider*)collider)->ToString();
-					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->ToString();
-					case ColliderType.Point:         return ((PointCollider*)collider)->ToString();
-					case ColliderType.Plane:         return ((PlaneCollider*)collider)->ToString();
-					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->ToString();
-					default: return "Collider";
-				}
-			}
 		}
 
 		public static ItemType GetItemType(string name)

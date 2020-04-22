@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// compute friction impulse
 			var surfP = -ball.Radius * hitNormal;                        // surface contact point relative to center of mass
-			var surfVel = ball.SurfaceVelocity(surfP);                              // velocity at impact point
+			var surfVel = BallData.SurfaceVelocity(in ball, in surfP);                              // velocity at impact point
 			var tangent = surfVel - hitNormal * math.dot(surfVel, hitNormal);  // calc the tangential velocity
 
 			var tangentSpSq = math.lengthsq(tangent);
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
-			var surfVel = ball.SurfaceVelocity(surfP);
+			var surfVel = BallData.SurfaceVelocity(in ball, in surfP);
 
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
@@ -135,7 +135,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
 				// slip speed zero - static friction case
 
-				var surfAcc = ball.SurfaceAcceleration(surfP, gravity);
+				var surfAcc = BallData.SurfaceAcceleration(in ball, in surfP, in gravity);
 				// calc the tangential slip acceleration
 				var slipAcc = surfAcc - hitNormal * math.dot(surfAcc, hitNormal);
 

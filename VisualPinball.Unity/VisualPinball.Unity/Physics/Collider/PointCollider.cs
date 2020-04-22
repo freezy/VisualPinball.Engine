@@ -25,10 +25,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private void Init(HitPoint src)
 		{
-			_header.Type = ColliderType.Point;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Id = src.Id;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
+			_header.Init(ColliderType.Point, src);
 
 			_p = src.P.ToUnityFloat3();
 		}
