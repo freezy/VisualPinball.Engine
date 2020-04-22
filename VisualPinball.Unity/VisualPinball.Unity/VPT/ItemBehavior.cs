@@ -55,6 +55,7 @@ namespace VisualPinball.Unity.VPT
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Item.Index = entity.Index;
+			Item.Version = entity.Version;
 		}
 
 		protected void Awake()

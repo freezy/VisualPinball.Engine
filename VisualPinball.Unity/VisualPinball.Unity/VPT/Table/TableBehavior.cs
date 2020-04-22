@@ -120,7 +120,7 @@ namespace VisualPinball.Unity.VPT.Table
 			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table.Ramps);
 			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table.Rubbers);
 			Restore<SpinnerBehavior, Engine.VPT.Spinner.Spinner, SpinnerData>(table.Spinners);
-			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, SurfaceData>(table.Surfaces);
+			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>(table.Surfaces);
 			Restore<TriggerBehavior, Engine.VPT.Trigger.Trigger, TriggerData>(table.Triggers);
 
 			return table;

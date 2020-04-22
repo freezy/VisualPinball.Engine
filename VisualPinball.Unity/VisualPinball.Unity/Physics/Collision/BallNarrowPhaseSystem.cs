@@ -1,12 +1,14 @@
-﻿using Unity.Entities;
-using Unity.Jobs;
+﻿﻿using Unity.Entities;
+using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Surface;
 
-namespace VisualPinball.Unity.Physics.Collision
+ namespace VisualPinball.Unity.Physics.Collision
 {
 	[UpdateInGroup(typeof(BallNarrowPhaseSystemGroup))]
-	public class BallNarrowPhaseSystem : JobComponentSystem
+	public class BallNarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -15,7 +17,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			// retrieve reference to static collider data
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
@@ -24,8 +26,8 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent,
-				ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) => {
+			Entities.WithoutBurst().ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent,
+				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ballData) => {
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -38,12 +40,41 @@ namespace VisualPinball.Unity.Physics.Collision
 				collEvent.HitTime = hitTime; // search upto current hittime
 
 				// check playfield and glass first
-				HitTest(ref playfieldCollider, ref validColl, ref collEvent, ref contacts, ballData);
-				HitTest(ref glassCollider, ref validColl, ref collEvent, ref contacts, ballData);
+				HitTest(ref playfieldCollider, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
+				HitTest(ref glassCollider, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
 
 				for (var i = 0; i < matchedColliderIds.Length; i++) {
 					ref var coll = ref colliders[matchedColliderIds[i].Value].Value;
-					HitTest(ref coll, ref validColl, ref collEvent, ref contacts, ballData);
+
+					var newCollEvent = new CollisionEventData();
+					float newTime;
+					unsafe {
+						fixed (Collider.Collider* collider = &coll) {
+							switch (coll.Type) {
+								case ColliderType.LineSlingShot:
+									var surfaceData = GetComponent<SurfaceData>(coll.Entity);
+									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, in surfaceData, in ballData, collEvent.HitTime);
+									break;
+
+								case ColliderType.Flipper:
+									var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
+									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+									var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
+									newTime = ((FlipperCollider*) collider)->HitTest(
+										ref newCollEvent, ref insideOfs, ref flipperHitData,
+										in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
+									);
+									break;
+
+								default:
+									newTime = Collider.Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+									break;
+							}
+						}
+					}
+
+					HitTest(ref coll, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
+					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime, ref validColl);
 				}
 
 				// don't need those anymore
@@ -54,10 +85,14 @@ namespace VisualPinball.Unity.Physics.Collision
 					matchedColliderIds.Add(new MatchedColliderBufferElement { Value = validColl.Id });
 				}
 
-			}).Schedule(inputDeps);
+			}).ScheduleParallel();
 		}
-		private static void HitTest(ref Collider.Collider coll, ref Collider.Collider validColl,
-			ref CollisionEventData collEvent, ref DynamicBuffer<ContactBufferElement> contacts, in BallData ballData) {
+
+
+		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
+			ref Collider.Collider validColl,
+			ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			in BallData ballData) {
 
 			// todo
 			// if (collider.obj && collider.obj.abortHitTest && collider.obj.abortHitTest()) {
@@ -65,7 +100,15 @@ namespace VisualPinball.Unity.Physics.Collision
 			// }
 
 			var newCollEvent = new CollisionEventData();
-			var newTime = Collider.Collider.HitTest(ref coll, ref newCollEvent, in ballData, collEvent.HitTime);
+			var newTime = Collider.Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+
+			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime, ref validColl);
+		}
+
+		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
+			ref DynamicBuffer<ContactBufferElement> contacts, in Collider.Collider coll, float newTime,
+			ref Collider.Collider validColl)
+		{
 			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
@@ -83,5 +126,4 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 		}
 	}
-
 }

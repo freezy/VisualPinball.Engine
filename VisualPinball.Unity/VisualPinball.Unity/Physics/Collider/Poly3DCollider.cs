@@ -28,8 +28,9 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(Hit3DPoly src, BlobBuilder builder)
 		{
 			_header.Type = ColliderType.Poly3D;
+			_header.ItemType = Collider.GetItemType(src.ObjType);
 			_header.Id = src.Id;
-			_header.EntityIndex = src.ItemIndex;
+			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 
 			_normal = src.Normal.ToUnityFloat3();
 			// _rgv = new NativeArray<float3>(src.Rgv.Length, Allocator.Persistent);

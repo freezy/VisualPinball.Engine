@@ -12,5 +12,10 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public float TorqueDamping;
 		public float TorqueDampingAngle;
 		public float RampUpSpeed;
+
+		// only used in hit, probably split
+		public float EndRadius;
+		public float FlipperRadius;
+
 	}
 }

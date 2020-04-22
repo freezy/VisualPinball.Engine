@@ -25,4 +25,9 @@ namespace VisualPinball.Engine.Physics
 		public const string Trigger = "eTrigger";
 		public const string Kicker = "eKicker";
 	}
+
+	public enum ItemCollisionType
+	{
+
+	}
 }

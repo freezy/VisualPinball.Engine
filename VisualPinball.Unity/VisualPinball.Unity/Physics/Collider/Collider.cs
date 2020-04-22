@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -17,13 +18,13 @@ namespace VisualPinball.Unity.Physics.Collider
 		public ColliderHeader Header;
 
 		public int Id => Header.Id;
+		public Entity Entity => Header.Entity;
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
 
 		public static Collider None => new Collider {
 			Header = {
-				Type = ColliderType.None,
-				EntityIndex = -1
+				Type = ColliderType.None
 			}
 		};
 
@@ -65,14 +66,13 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
-		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
+			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallData ball, float dTime)
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
-					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Flipper:       return ((FlipperCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.LineSlingShot: return ((LineSlingshotCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
@@ -113,6 +113,35 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->ToString();
 					default: return "Collider";
 				}
+			}
+		}
+
+		public static ItemType GetItemType(string name)
+		{
+			switch (name) {
+				case CollisionType.Null: return ItemType.Null;
+				case CollisionType.Point: return ItemType.Point;
+				case CollisionType.LineSeg: return ItemType.LineSeg;
+				case CollisionType.LineSegSlingshot: return ItemType.LineSegSlingshot;
+				case CollisionType.Joint: return ItemType.Joint;
+				case CollisionType.Circle: return ItemType.Circle;
+				case CollisionType.Flipper: return ItemType.Flipper;
+				case CollisionType.Plunger: return ItemType.Plunger;
+				case CollisionType.Spinner: return ItemType.Spinner;
+				case CollisionType.Ball: return ItemType.Ball;
+				case CollisionType.Poly: return ItemType.Poly;
+				case CollisionType.Triangle: return ItemType.Triangle;
+				case CollisionType.Plane: return ItemType.Plane;
+				case CollisionType.Line: return ItemType.Line;
+				case CollisionType.Gate: return ItemType.Gate;
+				case CollisionType.TextBox: return ItemType.TextBox;
+				case CollisionType.DispReel: return ItemType.DispReel;
+				case CollisionType.LightSeq: return ItemType.LightSeq;
+				case CollisionType.Primitive: return ItemType.Primitive;
+				case CollisionType.HitTarget: return ItemType.HitTarget;
+				case CollisionType.Trigger: return ItemType.Trigger;
+				case CollisionType.Kicker: return ItemType.Kicker;
+				default: return ItemType.Null;
 			}
 		}
 	}

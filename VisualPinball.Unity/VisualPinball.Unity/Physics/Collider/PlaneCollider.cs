@@ -28,8 +28,9 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Init(HitPlane src)
 		{
 			Header.Type = ColliderType.Plane;
+			Header.ItemType = Collider.GetItemType(src.ObjType);
 			Header.Id = src.Id;
-			Header.EntityIndex = src.ItemIndex;
+			Header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 			Header.Material = new PhysicsMaterialData {
 				Elasticity = src.Elasticity,
 				ElasticityFalloff = src.ElasticityFalloff,
@@ -43,7 +44,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public override string ToString()
 		{
-			return $"PlaneCollider[{Header.EntityIndex}] {Distance} at ({Normal.x}/{Normal.y}/{Normal.z})";
+			return $"PlaneCollider[{Header.Entity}] {Distance} at ({Normal.x}/{Normal.y}/{Normal.z})";
 		}
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)

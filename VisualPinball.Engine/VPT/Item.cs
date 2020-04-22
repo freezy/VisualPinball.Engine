@@ -1,6 +1,3 @@
-using System.Text.RegularExpressions;
-using VisualPinball.Engine.Common;
-
 namespace VisualPinball.Engine.VPT
 {
 	/// <summary>
@@ -13,6 +10,7 @@ namespace VisualPinball.Engine.VPT
 
 		public string Name => Data.GetName();
 		public int Index { get; set; }
+		public int Version { get; set; }
 
 		public Item(TData data)
 		{
