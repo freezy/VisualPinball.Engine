@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Surface;
@@ -15,6 +14,7 @@ using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Table;
+using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity.Game
 {
@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Game
 
 		private Table _table;
 		private BallManager _ballManager;
+		private Player _player;
 
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
@@ -72,6 +73,7 @@ namespace VisualPinball.Unity.Game
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
+			_player = gameObject.GetComponent<Player>();
 			#if FLIPPER_LOG
 			DebugLog = File.CreateText("flipper.log");
 			#endif
@@ -106,6 +108,10 @@ namespace VisualPinball.Unity.Game
 			if (Input.GetKeyUp("right shift")) {
 				_tableApi.Flipper("RightFlipper")?.RotateToStart();
 			}
+
+			if (Input.GetKeyUp("b")) {
+				_player.CreateBall(new DebugBallCreator());
+			}
 		}
 
 		#if FLIPPER_LOG
@@ -115,5 +121,24 @@ namespace VisualPinball.Unity.Game
 		}
 		#endif
 
+	}
+
+	internal class DebugBallCreator : IBallCreationPosition
+	{
+		public Vertex3D GetBallCreationPosition(Table table)
+		{
+			return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
+		}
+
+		public Vertex3D GetBallCreationVelocity(Table table)
+		{
+			// no velocity
+			return Vertex3D.Zero;
+		}
+
+		public void OnBallCreated(PlayerPhysics physics, Ball ball)
+		{
+			// nothing to do
+		}
 	}
 }

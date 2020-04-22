@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			// save it to entity
 			var collEntity = DstEntityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
-			DstEntityManager.SetName(collEntity, "Collision Data Holder");
+			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
 			DstEntityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
 			DstEntityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
 
