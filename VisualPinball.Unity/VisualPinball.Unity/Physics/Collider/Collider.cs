@@ -6,6 +6,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
@@ -93,9 +94,9 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
-		public void Contact(ref BallData ball, in CollisionEventData coll, double hitTime, in float3 gravity)
+		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
-			BallCollider.HandleStaticContact(ref ball, coll, Header.Material.Friction, (float)hitTime, gravity);
+			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
 		}
 
 		public static unsafe string ToString(ref Collider col)
