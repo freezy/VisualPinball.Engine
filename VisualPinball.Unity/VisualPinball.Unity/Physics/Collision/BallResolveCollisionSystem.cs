@@ -1,13 +1,13 @@
 ﻿using Unity.Entities;
-using Unity.Jobs;
 using UnityEngine;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
-	public class BallResolveCollisionSystem : JobComponentSystem
+	public class BallResolveCollisionSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -16,7 +16,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			// retrieve reference to static collider data
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
@@ -25,7 +25,8 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			return Entities.WithoutBurst().ForEach((ref BallData ballData, ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent) => {
+			Entities.WithoutBurst().ForEach((ref BallData ballData,
+				ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds, ref CollisionEventData collEvent) => {
 
 				if (matchedColliderIds.Length == 0) {
 					return;
@@ -40,14 +41,33 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref var colliders = ref collData.Value.Value.Colliders;
 
 				// pick collider that matched during narrowphase
-				ref var pho = ref colliders[matchedColliderIds[0].Value].Value; // object that ball hit in trials
+				ref var coll = ref colliders[matchedColliderIds[0].Value].Value; // object that ball hit in trials
 
 				// find balls with hit objects and minimum time
 				if (collEvent.HitTime <= hitTime) {
 					// now collision, contact and script reactions on active ball (object)+++++++++
 
 					//this.activeBall = ball;                         // For script that wants the ball doing the collision
-					Collider.Collider.Collide(ref pho, ref ballData, collEvent);          // !!!!! 3) collision on active ball
+
+					unsafe {
+						fixed (Collider.Collider* collider = &coll) {
+							switch (coll.Type) {
+								case ColliderType.Flipper:
+									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
+									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+									var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
+									((FlipperCollider*) collider)->Collide(
+										ref ballData, ref collEvent, ref flipperMovementData,
+										in flipperMaterialData, in flipperVelocityData
+									);
+									break;
+
+								default:
+									Collider.Collider.Collide(ref coll, ref ballData, collEvent);          // !!!!! 3) collision on active ball
+									break;
+							}
+						}
+					}
 
 					// todo fix below
 					// ball.coll.clear();                     // remove trial hit object pointer
@@ -66,7 +86,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				matchedColliderIds.Clear();
 
-			}).Schedule(inputDeps);
+			}).ScheduleParallel();
 		}
 	}
 }

@@ -4,11 +4,11 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Common;
+using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity.VPT.Flipper
 {
 	public struct FlipperCollider : ICollider, ICollidable
 	{
@@ -157,8 +157,8 @@ namespace VisualPinball.Unity.Physics.Collider
 
 				// rotate and translate to world position
 				var vt = new float2(
-					vp.x * radCos - vp.x * radSin + flipperBase.x,
-					vp.y * radCos + vp.y * radSin + flipperBase.y
+					vp.x * radCos - vp.y * radSin + flipperBase.x,
+					vp.y * radCos + vp.x * radSin + flipperBase.y
 				);
 
 				// new ball position relative to rotated line segment endpoint
@@ -277,7 +277,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			var invDist = 1.0f / distance;
 
 			hitData.HitVelocity.x = -dist.y * invDist;
-			hitData.HitVelocity.x = dist.x * invDist; // Unit Tangent velocity of contact point(rotate Normal clockwise)
+			hitData.HitVelocity.y = dist.x * invDist; // Unit Tangent velocity of contact point(rotate Normal clockwise)
 			//coll.Hitvelocity.Z = 0.0f; // used as normal velocity so far, only if isContact is set, see below
 
 			if (contactAng >= angleMax && angleSpeed > 0 || contactAng <= angleMin && angleSpeed < 0) {
@@ -504,10 +504,9 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		#endregion
 
-
 		#region Contact
 
-		public void Contact(ref BallData ball, CollisionEventData coll, ref FlipperMovementData movementData,
+		public void Contact(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
 			in FlipperMaterialData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
 			var normal = coll.HitNormal;
@@ -616,7 +615,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		#region Collision
 
-		public void Collide(ref BallData ball, CollisionEventData coll, ref FlipperMovementData movementData,
+		public void Collide(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
 			in FlipperMaterialData matData, in FlipperVelocityData velData)
 		{
 			var normal = coll.HitNormal;

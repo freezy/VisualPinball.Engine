@@ -100,7 +100,6 @@
     <Compile Include="Import\VpxImporter.cs" />
     <Compile Include="Physics\Collider\CircleCollider.cs" />
     <Compile Include="Physics\Collider\Collider.cs" />
-    <Compile Include="Physics\Collider\FlipperCollider.cs" />
     <Compile Include="Physics\Collider\Line3DCollider.cs" />
     <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
     <Compile Include="Physics\Collider\LineZCollider.cs" />
@@ -144,6 +143,7 @@
     <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
+    <Compile Include="VPT\Flipper\FlipperCollider.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
     <Compile Include="VPT\Flipper\FlipperHitData.cs" />
