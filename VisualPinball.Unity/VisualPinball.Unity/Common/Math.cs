@@ -4,7 +4,7 @@ namespace VisualPinball.Unity.Common
 {
 	public static class Math
 	{
-		public static float3 CrossZ(float rz, float3 v)
+		public static float3 CrossZ(float rz, in float3 v)
 		{
 			return new float3(-rz * v.y, rz * v.x, 0);
 		}

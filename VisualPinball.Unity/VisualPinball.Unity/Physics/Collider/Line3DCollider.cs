@@ -8,16 +8,14 @@ using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
-	public struct Line3DCollider : ICollider, ICollidable
+	public struct Line3DCollider
 	{
 		private ColliderHeader _header;
 
 		private float2 _xy;
-		private float3x3 _matrix;
 		private float _zLow;
 		private float _zHigh;
-
-		public ColliderType Type => _header.Type;
+		private float3x3 _matrix;
 
 		public static void Create(BlobBuilder builder, HitLine3D src, ref BlobPtr<Collider> dest)
 		{
@@ -28,20 +26,41 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private void Init(HitLine3D src)
 		{
-			_header.Type = ColliderType.Line3D;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Id = src.Id;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
+			_header.Init(ColliderType.Line3D, src);
 
 			_xy = src.Xy.ToUnityFloat2();
-			_matrix = src.Matrix.ToUnityFloat3x3();
 			_zLow = src.ZLow;
 			_zHigh = src.ZHigh;
+			_matrix = src.Matrix.ToUnityFloat3x3();
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
-			return -1;
+			return HitTest(ref collEvent, ref this, in ball, dTime);
+		}
+
+		public static float HitTest(ref CollisionEventData collEvent, ref Line3DCollider coll, in BallData ball, float dTime)
+		{
+			// todo
+			// if (!IsEnabled) {
+			// 	return -1.0f;
+			// }
+
+			var hitTestBall = ball;
+
+			// transform ball to cylinder coordinate system
+			hitTestBall.Position = math.mul(coll._matrix, ball.Position);
+			hitTestBall.Velocity = math.mul(coll._matrix, ball.Velocity);
+
+			ref var lineZColl = ref UnsafeUtilityEx.As<Line3DCollider, LineZCollider>(ref coll);
+			var hitTime = LineZCollider.HitTest(ref collEvent, in lineZColl, in hitTestBall, dTime);
+
+			// transform hit normal back to world coordinate system
+			if (hitTime >= 0) {
+				collEvent.HitNormal = math.mul(coll._matrix, collEvent.HitNormal);
+			}
+
+			return hitTime;
 		}
 	}
 }

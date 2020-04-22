@@ -31,10 +31,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private void Init(LineSeg src)
 		{
-			_header.Type = ColliderType.Line;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Id = src.Id;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
+			_header.Init(ColliderType.Line, src);
 
 			_v1 = src.V1.ToUnityFloat2();
 			_v2 = src.V2.ToUnityFloat2();

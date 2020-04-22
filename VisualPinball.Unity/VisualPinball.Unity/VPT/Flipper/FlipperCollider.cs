@@ -33,6 +33,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 			_header.ItemType = Collider.GetItemType(src.ObjType);
 			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 			_header.Id = src.Id;
+			_header.Material = new PhysicsMaterialData {
+				Elasticity = src.Elasticity,
+				ElasticityFalloff = src.ElasticityFalloff,
+				Friction = src.Friction,
+				Scatter = src.Scatter,
+			};
 
 			_hitCircleBase = CircleCollider.Create(src.HitCircleBase);
 			_zLow = src.HitBBox.ZLow;
@@ -524,8 +530,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
 				// compute accelerations of point on ball and flipper
-				var aB = ball.SurfaceAcceleration(rB, gravity);
-				var aF = movementData.SurfaceAcceleration(rF, velData.AngularAcceleration);
+				var aB = BallData.SurfaceAcceleration(in ball, in rB, in gravity);
+				var aF = FlipperMovementData.SurfaceAcceleration(in movementData, in velData, in rF);
 				var aRel = aB - aF;
 
 				// time derivative of the normal vector
@@ -606,8 +612,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 			);
 
 			rF = hitPos - cF; // displacement relative to flipper center
-			var vB = ball.SurfaceVelocity(rB);
-			var vF = movementData.SurfaceVelocity(rF);
+			var vB = BallData.SurfaceVelocity(in ball, in rB);
+			var vF = FlipperMovementData.SurfaceVelocity(in movementData, in rF);
 			vRel = vB - vF;
 		}
 

@@ -11,12 +11,12 @@ namespace VisualPinball.Unity.Physics.Collider
 {
 	public struct PlaneCollider : ICollider, ICollidable
 	{
-		public ColliderHeader Header;
+		private ColliderHeader _header;
 
-		public float3 Normal;
-		public float Distance;
+		private float3 _normal;
+		private float _distance;
 
-		public ColliderType Type => Header.Type;
+		public ColliderType Type => _header.Type;
 
 		public static void Create(BlobBuilder builder, HitPlane src, ref BlobPtr<Collider> dest)
 		{
@@ -27,30 +27,21 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		private void Init(HitPlane src)
 		{
-			Header.Type = ColliderType.Plane;
-			Header.ItemType = Collider.GetItemType(src.ObjType);
-			Header.Id = src.Id;
-			Header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			Header.Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				Scatter = src.Scatter,
-			};
+			_header.Init(ColliderType.Plane, src);
 
-			Normal = src.Normal.ToUnityFloat3();
-			Distance = src.D;
+			_normal = src.Normal.ToUnityFloat3();
+			_distance = src.D;
 		}
 
 		public override string ToString()
 		{
-			return $"PlaneCollider[{Header.Entity}] {Distance} at ({Normal.x}/{Normal.y}/{Normal.z})";
+			return $"PlaneCollider[{_header.Entity}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 		}
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			// speed in normal direction
-			var bnv = math.dot(Normal, ball.Velocity);
+			var bnv = math.dot(_normal, ball.Velocity);
 
 			// return if clearly ball is receding from object
 			if (bnv > PhysicsConstants.ContactVel) {
@@ -58,7 +49,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 
 			// distance from plane to ball surface
-			var bnd = math.dot(Normal, ball.Position) - ball.Radius - Distance;
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
 
 			//!! solely responsible for ball through playfield?? check other places, too (radius*2??)
 			if (bnd < ball.Radius * -2.0) {
@@ -69,7 +60,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
 				if (math.abs(bnd) <= PhysicsConstants.PhysTouch) {
 					coll.IsContact = true;
-					coll.HitNormal = Normal;
+					coll.HitNormal = _normal;
 					coll.HitOrgNormalVelocity = bnv; // remember original normal velocity
 					coll.HitDistance = bnd;
 
@@ -93,7 +84,7 @@ namespace VisualPinball.Unity.Physics.Collider
 				return -1.0f;
 			}
 
-			coll.HitNormal = Normal;
+			coll.HitNormal = _normal;
 			coll.HitDistance = bnd; // actual contact distance
 
 			return hitTime;
@@ -101,13 +92,13 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public void Collide(ref BallData ball, in CollisionEventData coll)
 		{
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in coll, in coll.HitNormal);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in coll, in coll.HitNormal);
 
 			// distance from plane to ball surface
-			var bnd = math.dot(Normal, ball.Position) - ball.Radius - Distance;
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
 			if (bnd < 0) {
 				// if ball has penetrated, push it out of the plane
-				ball.Position += Normal * bnd;
+				ball.Position += _normal * bnd;
 			}
 		}
 	}
