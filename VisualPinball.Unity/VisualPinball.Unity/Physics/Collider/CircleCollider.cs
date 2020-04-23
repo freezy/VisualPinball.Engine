@@ -1,9 +1,9 @@
-﻿using System;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
@@ -150,14 +150,14 @@ namespace VisualPinball.Unity.Physics.Collider
 					return -1.0f;
 				}
 
-				var sol = Functions.SolveQuadraticEq(a, 2.0f * b, bcddsq - targetRadius * targetRadius);
-				if (sol == null) {
+				var solved = Math.SolveQuadraticEq(a, 2.0f * b, bcddsq - targetRadius * targetRadius,
+					out var time1, out var time2);
+				if (!solved) {
 					return -1.0f;
 				}
 
-				var (time1, time2) = sol;
 				isUnhit = time1 * time2 < 0;
-				hitTime = isUnhit ? MathF.Max(time1, time2) : MathF.Min(time1, time2); // ball is inside the circle
+				hitTime = isUnhit ? math.max(time1, time2) : math.min(time1, time2); // ball is inside the circle
 			}
 
 			if (float.IsNaN(hitTime) || float.IsInfinity(hitTime) || hitTime < 0 || hitTime > dTime) {
@@ -183,7 +183,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			// over center?
 			if (sqrLen > 1.0e-8) {
 				// no
-				var invLen = 1.0f / MathF.Sqrt(sqrLen);
+				var invLen = 1.0f / math.sqrt(sqrLen);
 				coll.HitNormal.x = (hitX - c.x) * invLen;
 				coll.HitNormal.y = (hitY - c.y) * invLen;
 

@@ -1,7 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;

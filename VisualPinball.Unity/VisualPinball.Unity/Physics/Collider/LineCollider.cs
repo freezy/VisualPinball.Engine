@@ -1,7 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
@@ -35,29 +35,18 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			_v1 = src.V1.ToUnityFloat2();
 			_v2 = src.V2.ToUnityFloat2();
-			_zHigh = src.HitBBox.ZHigh;
+			_normal = src.Normal.ToUnityFloat2();
+			_length = src.Length;
 			_zLow = src.HitBBox.ZLow;
-
-			CalcNormal();
+			_zHigh = src.HitBBox.ZHigh;
 		}
 
-		private void CalcNormal()
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
-			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
-
-			// Set up line normal
-			_length = math.length(vT);
-			var invLength = 1.0f / _length;
-			_normal.x = vT.y * invLength;
-			_normal.y = -vT.x * invLength;
+			return HitTestBasic(ref collEvent, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
-		{
-			return HitTestBasic(ref coll, ball, dTime, true, true, true); // normal face, lateral, rigid
-		}
-
-		public float HitTestBasic(ref CollisionEventData coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public static float HitTestBasic(ref CollisionEventData collEvent, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// if (!IsEnabled || ball.State.IsFrozen) {
 			// 	return -1.0f;
@@ -68,7 +57,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			var ballVy = ball.Velocity.y;
 
 			// ball velocity normal to segment, positive if receding, zero=parallel
-			var bnv = ballVx * _normal.x + ballVy * _normal.y;
+			var bnv = ballVx * coll._normal.x + ballVy * coll._normal.y;
 			var isUnHit = bnv > PhysicsConstants.LowNormVel;
 
 			// direction true and clearly receding from normal face
@@ -82,7 +71,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			// ball normal contact distance distance normal to segment. lateral contact subtract the ball radius
 			var rollingRadius = lateral ? ball.Radius : PhysicsConstants.ToleranceRadius; // lateral or rolling point
-			var bcpd = (ballX - _v1.x) * _normal.x + (ballY - _v1.y) * _normal.y; // ball center to plane distance
+			var bcpd = (ballX - coll._v1.x) * coll._normal.x + (ballY - coll._v1.y) * coll._normal.y; // ball center to plane distance
 			var bnd = bcpd - rollingRadius;
 
 			// todo for a spinner add the ball radius otherwise the ball goes half through the spinner until it moves
@@ -100,7 +89,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 				if (lateral && bnd <= PhysicsConstants.PhysTouch) {
 					if (inside
-					    || MathF.Abs(bnv) > PhysicsConstants.ContactVel // fast velocity, return zero time
+					    || math.abs(bnv) > PhysicsConstants.ContactVel // fast velocity, return zero time
 					    || bnd <= -PhysicsConstants.PhysTouch) {
 						// zero time for rigid fast bodies
 						hitTime = 0; // slow moving but embedded
@@ -109,7 +98,7 @@ namespace VisualPinball.Unity.Physics.Collider
 						hitTime = bnd * (float)(1.0 / (2.0 * PhysicsConstants.PhysTouch)) + 0.5f; // don't compete for fast zero time events
 					}
 
-				} else if (MathF.Abs(bnv) > PhysicsConstants.LowNormVel) {
+				} else if (math.abs(bnv) > PhysicsConstants.LowNormVel) {
 					// not velocity low ????
 					hitTime = bnd / -bnv; // rate ok for safe divide
 				} else {
@@ -140,12 +129,12 @@ namespace VisualPinball.Unity.Physics.Collider
 				return -1.0f; // time is outside this frame ... no collision
 			}
 
-			var btv = ballVx * _normal.y - ballVy * _normal.x; // ball velocity tangent to segment with respect to direction from _v1 to _v2
-			var btd = (ballX - _v1.x) * _normal.y
-			             - (ballY - _v1.y) * _normal.x    // ball tangent distance
+			var btv = ballVx * coll._normal.y - ballVy * coll._normal.x; // ball velocity tangent to segment with respect to direction from _v1 to _v2
+			var btd = (ballX - coll._v1.x) * coll._normal.y
+			             - (ballY - coll._v1.y) * coll._normal.x    // ball tangent distance
 			             + btv * hitTime;                 // ball tangent distance (projection) (initial position + velocity * hitime)
 
-			if (btd < -PhysicsConstants.ToleranceEndPoints || btd > _length + PhysicsConstants.ToleranceEndPoints) {
+			if (btd < -PhysicsConstants.ToleranceEndPoints || btd > coll._length + PhysicsConstants.ToleranceEndPoints) {
 				// is the contact off the line segment???
 				return -1.0f;
 			}
@@ -158,22 +147,22 @@ namespace VisualPinball.Unity.Physics.Collider
 			var ballRadius = ball.Radius;
 			var hitZ = ball.Position.z + ball.Velocity.z * hitTime; // check too high or low relative to ball rolling point at hittime
 
-			if (hitZ + ballRadius * 0.5 < _zLow // check limits of object"s height and depth
-			    || hitZ - ballRadius * 0.5 > _zHigh) {
+			if (hitZ + ballRadius * 0.5 < coll._zLow // check limits of object"s height and depth
+			    || hitZ - ballRadius * 0.5 > coll._zHigh) {
 				return -1.0f;
 			}
 
 			// hit normal is same as line segment normal
-			coll.HitNormal.x = _normal.x;
-			coll.HitNormal.y = _normal.y;
-			coll.HitNormal.z = 0f;
-			coll.HitDistance = bnd; // actual contact distance ...
+			collEvent.HitNormal.x = coll._normal.x;
+			collEvent.HitNormal.y = coll._normal.y;
+			collEvent.HitNormal.z = 0f;
+			collEvent.HitDistance = bnd; // actual contact distance ...
 			//coll.M_hitRigid = rigid;     // collision type
 
 			// check for contact
-			if (MathF.Abs(bnv) <= PhysicsConstants.ContactVel && MathF.Abs(bnd) <= PhysicsConstants.PhysTouch) {
-				coll.IsContact = true;
-				coll.HitOrgNormalVelocity = bnv;
+			if (math.abs(bnv) <= PhysicsConstants.ContactVel && math.abs(bnd) <= PhysicsConstants.PhysTouch) {
+				collEvent.IsContact = true;
+				collEvent.HitOrgNormalVelocity = bnv;
 			}
 			return hitTime;
 		}

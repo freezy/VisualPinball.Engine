@@ -93,6 +93,7 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
+		<Compile Include="Common\Constants.cs" />
 		<Compile Include="Common\Logging.cs" />
 		<Compile Include="Common\Profiler.cs" />
 		<Compile Include="Common\Registry.cs" />
@@ -124,7 +125,6 @@
 		<Compile Include="IO\LzwWriter.cs" />
 		<Compile Include="Math\CatmullCurve.cs" />
 		<Compile Include="Math\Color.cs" />
-		<Compile Include="Math\Constants.cs" />
 		<Compile Include="Math\DragPoint.cs" />
 		<Compile Include="Math\DragPointData.cs" />
 		<Compile Include="Math\Functions.cs" />

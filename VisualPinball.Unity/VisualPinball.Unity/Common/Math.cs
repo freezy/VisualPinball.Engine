@@ -26,5 +26,23 @@ namespace VisualPinball.Unity.Common
 
 			return elasticity;
 		}
+
+		public static bool SolveQuadraticEq(float a, float b, float c, out float u, out float v)
+		{
+			var discr = b * b - 4.0f * a * c;
+			if (discr < 0) {
+				u = -1;
+				v = -1;
+				return false;
+			}
+			discr = math.sqrt(discr);
+
+			var invA = (-0.5f) / a;
+
+			u = (b + discr) * invA;
+			v = (b - discr) * invA;
+
+			return true;
+		}
 	}
 }

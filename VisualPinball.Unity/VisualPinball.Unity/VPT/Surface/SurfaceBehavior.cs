@@ -6,8 +6,8 @@
 
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.VPT.Surface
 {
@@ -24,6 +24,10 @@ namespace VisualPinball.Unity.VPT.Surface
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+			dstManager.AddComponentData(entity, new LineSlingshotData {
+				IsDisabled = false,
+				Threshold = data.SlingshotForce,
+			});
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 	}

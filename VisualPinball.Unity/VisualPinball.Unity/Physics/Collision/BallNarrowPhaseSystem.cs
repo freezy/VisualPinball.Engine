@@ -3,7 +3,6 @@ using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Surface;
 
  namespace VisualPinball.Unity.Physics.Collision
 {
@@ -51,9 +50,9 @@ using VisualPinball.Unity.VPT.Surface;
 					unsafe {
 						fixed (Collider.Collider* collider = &coll) {
 							switch (coll.Type) {
+
 								case ColliderType.LineSlingShot:
-									var surfaceData = GetComponent<SurfaceData>(coll.Entity);
-									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, in surfaceData, in ballData, collEvent.HitTime);
+									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, in ballData, collEvent.HitTime);
 									break;
 
 								case ColliderType.Flipper:
@@ -73,7 +72,6 @@ using VisualPinball.Unity.VPT.Surface;
 						}
 					}
 
-					HitTest(ref coll, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
 					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime, ref validColl);
 				}
 

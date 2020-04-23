@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using System;
+using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
@@ -72,14 +73,27 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
-					case ColliderType.Circle:        return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
-					case ColliderType.Line:          return ((LineCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.LineZ:         return ((LineZCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Line3D:        return ((Line3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Point:         return ((PointCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Plane:         return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Poly3D:        return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
-					default: return -1;
+					case ColliderType.Circle:
+						return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					case ColliderType.Line:
+						return ((LineCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.LineZ:
+						return ((LineZCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Line3D:
+						return ((Line3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Point:
+						return ((PointCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Plane:
+						return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Poly3D:
+						return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+
+					case ColliderType.Flipper:
+					case ColliderType.LineSlingShot:
+						throw new InvalidOperationException(coll.Type + " must be hit-tested separately!");
+
+					default:
+						return -1;
 				}
 			}
 		}

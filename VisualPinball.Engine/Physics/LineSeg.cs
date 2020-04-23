@@ -1,6 +1,7 @@
 ﻿// ReSharper disable CommentTypo
 
 using System.Linq;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
@@ -11,8 +12,8 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex2D V1;
 		public readonly Vertex2D V2;
-		protected readonly Vertex2D Normal = new Vertex2D();
-		protected float Length;
+		public readonly Vertex2D Normal = new Vertex2D();
+		public float Length;
 
 		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, string objType = null)
 		{
