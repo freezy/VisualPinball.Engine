@@ -76,10 +76,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\BlobArray.cs" />
     <Compile Include="Common\Logging.cs" />
     <Compile Include="Common\Math.cs" />
     <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
+    <Compile Include="Common\UnsafeEx.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="Extensions\MaterialExtensions.cs" />

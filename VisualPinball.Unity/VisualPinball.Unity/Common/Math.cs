@@ -1,4 +1,5 @@
-﻿using Unity.Mathematics;
+﻿using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Common
 {
@@ -44,5 +45,8 @@ namespace VisualPinball.Unity.Common
 
 			return true;
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ulong NextMultipleOf16(ulong input) => ((input + 15) >> 4) << 4;
 	}
 }
