@@ -3,6 +3,10 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Physics;
+using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Physics.Collider;
 
 namespace VisualPinball.Unity.Test.Physics.DOTS
 {
@@ -32,6 +36,16 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 			var coll = LineCollider.Create(new float2(1f, 2f), new float2(3f, 4f), 5f, 6f);
 			var collider = &coll;
 			Assert.AreEqual(new float2(1f, 2f), ((LineCollider*)collider)->V1);
+		}
+
+		[Test]
+		public void ShouldSerializeBlobArray()
+		{
+			var hit = new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) });
+			var coll = Poly3DCollider.Create(hit);
+
+			Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll._rgv[0]);
+			Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll._rgv[1]);
 		}
 	}
 

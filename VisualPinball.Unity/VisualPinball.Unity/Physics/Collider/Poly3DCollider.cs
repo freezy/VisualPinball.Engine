@@ -1,7 +1,12 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
@@ -13,8 +18,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private ColliderHeader _header;
 
 		private float3 _normal;
-		//private NativeArray<float3> _rgv;
-		//private BlobArray<float3> _rgv; // read comment at Unity.Physics.BlobArray
+		private BlobArray _rgvBlob; // read comment at Unity.Physics.BlobArray
+		public BlobArray.Accessor<float3> _rgv => new BlobArray.Accessor<float3>(ref _rgvBlob);
 
 		public ColliderType Type => _header.Type;
 
@@ -22,23 +27,69 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<Poly3DCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src, builder);
+			collider.Init(src);
 		}
 
-		private void Init(Hit3DPoly src, BlobBuilder builder)
+		public static unsafe Poly3DCollider Create(Hit3DPoly hitObject)
+		{
+			// Allocate
+			int totalSize = sizeof(Poly3DCollider) + sizeof(float3) * hitObject.Rgv.Length;
+			Poly3DCollider* data = (Poly3DCollider*)UnsafeUtility.Malloc(totalSize, 16, Allocator.Persistent);
+			UnsafeUtility.MemClear(data, totalSize);
+
+			// Initialize
+			{
+				byte* end = (byte*) data + sizeof(Poly3DCollider);
+				data->_rgvBlob.Offset = UnsafeEx.CalculateOffset(end, ref data->_rgvBlob);
+				data->_rgvBlob.Length = hitObject.Rgv.Length;
+
+				for (var i = 0; i < hitObject.Rgv.Length; i++) {
+					data->_rgv[i] = hitObject.Rgv[i].ToUnityFloat3();
+				}
+			}
+
+			UnsafeUtility.CopyPtrToStructure(data, out Poly3DCollider collider);
+			return collider;
+		}
+
+		private void Init(Hit3DPoly src)
 		{
 			_header.Init(ColliderType.Poly3D, src);
-
 			_normal = src.Normal.ToUnityFloat3();
-			// _rgv = new NativeArray<float3>(src.Rgv.Length, Allocator.Persistent);
-			// for (var i = 0; i < src.Rgv.Length; i++) {
-			// 	_rgv[i] = src.Rgv[i].ToUnityFloat3();
-			// }
 		}
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			return -1;
+		}
+
+		public struct Float3Blob
+		{
+			internal BlobArray m_BlobArray;
+			internal byte m_Version;
+
+			BlobArray.Accessor<float3> Accessor => new BlobArray.Accessor<float3>(ref m_BlobArray);
+
+			public int Length => m_BlobArray.Length;
+
+			// Enumerator for the constraints, allowing use of foreach()
+			public BlobArray.Accessor<float3>.Enumerator GetEnumerator() => Accessor.GetEnumerator();
+
+			// Indexer for the constraints
+			// TODO: Add accessor for the constraints based on type? e.g. [LimitedHinge.Axis]
+			[IndexerName("Constraints")]
+			public float3 this[int index]
+			{
+				get => Accessor[index];
+				set
+				{
+					if (!value.Equals(Accessor[index]))
+					{
+						Accessor[index] = value;
+						m_Version++;
+					}
+				}
+			}
 		}
 	}
 }
