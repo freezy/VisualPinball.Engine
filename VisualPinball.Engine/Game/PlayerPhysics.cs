@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Ball;

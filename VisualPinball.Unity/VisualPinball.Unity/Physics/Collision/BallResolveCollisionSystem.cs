@@ -1,5 +1,8 @@
-﻿using Unity.Entities;
+﻿// ReSharper disable ConvertIfStatementToSwitchStatement
+
+using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
@@ -51,20 +54,23 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					unsafe {
 						fixed (Collider.Collider* collider = &coll) {
-							switch (coll.Type) {
-								case ColliderType.Flipper:
-									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
-									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-									var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
-									((FlipperCollider*) collider)->Collide(
-										ref ballData, ref collEvent, ref flipperMovementData,
-										in flipperMaterialData, in flipperVelocityData
-									);
-									break;
 
-								default:
-									Collider.Collider.Collide(ref coll, ref ballData, collEvent);          // !!!!! 3) collision on active ball
-									break;
+							if (coll.Type == ColliderType.Flipper) {
+								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
+								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+								var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
+								((FlipperCollider*) collider)->Collide(
+									ref ballData, ref collEvent, ref flipperMovementData,
+									in flipperMaterialData, in flipperVelocityData
+								);
+
+							} else if (coll.Type == ColliderType.LineSlingShot) {
+								Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
+								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
+								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent);
+
+							} else {
+								Collider.Collider.Collide(ref coll, ref ballData, collEvent);
 							}
 						}
 					}

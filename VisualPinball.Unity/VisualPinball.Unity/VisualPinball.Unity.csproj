@@ -112,6 +112,7 @@
     <Compile Include="Physics\Collision\BallContactSystem.cs" />
     <Compile Include="Physics\Collision\BallResolveCollisionSystem.cs" />
     <Compile Include="Physics\Collision\ColliderBlob.cs" />
+    <Compile Include="Physics\Collision\LineSlingshotData.cs" />
     <Compile Include="Physics\Collision\MatchedColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\ColliderData.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />

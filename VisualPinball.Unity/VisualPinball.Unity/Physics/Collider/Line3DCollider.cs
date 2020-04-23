@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return HitTest(ref collEvent, ref this, in ball, dTime);
 		}
 
-		public static float HitTest(ref CollisionEventData collEvent, ref Line3DCollider coll, in BallData ball, float dTime)
+		private static float HitTest(ref CollisionEventData collEvent, ref Line3DCollider coll, in BallData ball, float dTime)
 		{
 			// todo
 			// if (!IsEnabled) {

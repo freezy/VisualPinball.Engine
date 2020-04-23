@@ -1,7 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
@@ -88,13 +88,11 @@ namespace VisualPinball.Unity.Physics.Collider
 					return -1.0f;
 				}
 
-				var sol = Functions.SolveQuadraticEq(a, 2.0f * b, bcddsq - ball.Radius * ball.Radius);
-				if (sol == null) {
+				var solved = Common.Math.SolveQuadraticEq(a, 2.0f * b, bcddsq - ball.Radius * ball.Radius,
+					out var time1, out var time2);
+				if (!solved) {
 					return -1.0f;
 				}
-
-				var time1 = sol.Item1;
-				var time2 = sol.Item2;
 
 				// find smallest non-negative solution
 				hitTime = time1 * time2 < 0 ? math.max(time1, time2) : math.min(time1, time2);
