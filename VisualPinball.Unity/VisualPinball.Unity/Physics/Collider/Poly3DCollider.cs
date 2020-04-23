@@ -60,36 +60,8 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
+			// todo
 			return -1;
-		}
-
-		public struct Float3Blob
-		{
-			internal BlobArray m_BlobArray;
-			internal byte m_Version;
-
-			BlobArray.Accessor<float3> Accessor => new BlobArray.Accessor<float3>(ref m_BlobArray);
-
-			public int Length => m_BlobArray.Length;
-
-			// Enumerator for the constraints, allowing use of foreach()
-			public BlobArray.Accessor<float3>.Enumerator GetEnumerator() => Accessor.GetEnumerator();
-
-			// Indexer for the constraints
-			// TODO: Add accessor for the constraints based on type? e.g. [LimitedHinge.Axis]
-			[IndexerName("Constraints")]
-			public float3 this[int index]
-			{
-				get => Accessor[index];
-				set
-				{
-					if (!value.Equals(Accessor[index]))
-					{
-						Accessor[index] = value;
-						m_Version++;
-					}
-				}
-			}
 		}
 	}
 }
