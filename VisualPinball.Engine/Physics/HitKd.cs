@@ -27,6 +27,7 @@ namespace VisualPinball.Engine.Physics
 		{
 			_orgHitObjects = vho;
 			_numItems = vho.Count;
+			_maxItems = _numItems;
 
 			if (_numItems > _maxItems) {
 				_maxItems = _numItems;

@@ -86,7 +86,6 @@ using VisualPinball.Unity.VPT.Flipper;
 			}).ScheduleParallel();
 		}
 
-
 		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
 			ref Collider.Collider validColl,
 			ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
