@@ -1,10 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
@@ -23,19 +20,22 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
-		public static void Create(BlobBuilder builder, Hit3DPoly src, ref BlobPtr<Collider> dest)
+		public static unsafe void Create(BlobBuilder builder, Hit3DPoly src, ref BlobPtr<Collider> dest)
 		{
 			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<Poly3DCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
+			var totalSize = sizeof(Poly3DCollider) + sizeof(float3) * src.Rgv.Length;
+			totalSize = (totalSize + 15) & 0x7ffffff0;
+
+			ref var collider = ref builder.Allocate(ref ptr, totalSize, out var offsetPtr);
+			collider.Init(src, offsetPtr);
 		}
 
-		
+
 		public static unsafe BlobAssetReference<Poly3DCollider> Create(Hit3DPoly hitObject)
 		{
 			// Allocate
 			int totalSize = sizeof(Poly3DCollider) + sizeof(float3) * hitObject.Rgv.Length;
-			totalSize = (totalSize + 15) & 0x7ffffff0; 
+			totalSize = (totalSize + 15) & 0x7ffffff0;
 			Poly3DCollider* data = (Poly3DCollider*)UnsafeUtility.Malloc(totalSize, 16, Allocator.Temp);
 			UnsafeUtility.MemClear(data, totalSize);
 
@@ -56,16 +56,28 @@ namespace VisualPinball.Unity.Physics.Collider
 			return collider;
 		}
 
-		private void Init(Hit3DPoly src)
+		private unsafe void Init(Hit3DPoly src, int* offsetPtr)
 		{
 			_header.Init(ColliderType.Poly3D, src);
 			_normal = src.Normal.ToUnityFloat3();
+
+			var end = (byte*)offsetPtr + sizeof(Poly3DCollider);
+			_rgvBlob.Offset = UnsafeEx.CalculateOffset(end, ref _rgvBlob);
+			_rgvBlob.Length = src.Rgv.Length;
+			for (var i = 0; i < src.Rgv.Length; i++) {
+				_rgv[i] = src.Rgv[i].ToUnityFloat3();
+			}
 		}
 
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			// todo
 			return -1;
+		}
+
+		public override string ToString()
+		{
+			return $"Poly3DCollider, rgv[0] = {_rgv[0]}";
 		}
 	}
 }
