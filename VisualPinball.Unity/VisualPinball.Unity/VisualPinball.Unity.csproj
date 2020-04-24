@@ -112,8 +112,11 @@
     <Compile Include="Physics\Collision\Aabb.cs" />
     <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
     <Compile Include="Physics\Collision\BallContactSystem.cs" />
+    <Compile Include="Physics\Collision\BallDynamicBroadPhaseSystem.cs" />
     <Compile Include="Physics\Collision\BallResolveCollisionSystem.cs" />
     <Compile Include="Physics\Collision\ColliderBlob.cs" />
+    <Compile Include="Physics\Collision\KdNode.cs" />
+    <Compile Include="Physics\Collision\KdRoot.cs" />
     <Compile Include="Physics\Collision\LineSlingshotData.cs" />
     <Compile Include="Physics\Collision\MatchedColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\ColliderData.cs" />
