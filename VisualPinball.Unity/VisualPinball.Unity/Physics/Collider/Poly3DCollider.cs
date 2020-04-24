@@ -30,25 +30,29 @@ namespace VisualPinball.Unity.Physics.Collider
 			collider.Init(src);
 		}
 
-		public static unsafe Poly3DCollider Create(Hit3DPoly hitObject)
+		
+		public static unsafe BlobAssetReference<Poly3DCollider> Create(Hit3DPoly hitObject)
 		{
 			// Allocate
 			int totalSize = sizeof(Poly3DCollider) + sizeof(float3) * hitObject.Rgv.Length;
-			Poly3DCollider* data = (Poly3DCollider*)UnsafeUtility.Malloc(totalSize, 16, Allocator.Persistent);
+			totalSize = (totalSize + 15) & 0x7ffffff0; 
+			Poly3DCollider* data = (Poly3DCollider*)UnsafeUtility.Malloc(totalSize, 16, Allocator.Temp);
 			UnsafeUtility.MemClear(data, totalSize);
 
 			// Initialize
 			{
-				byte* end = (byte*) data + sizeof(Poly3DCollider);
+				byte* end = (byte*)data + sizeof(Poly3DCollider);
 				data->_rgvBlob.Offset = UnsafeEx.CalculateOffset(end, ref data->_rgvBlob);
 				data->_rgvBlob.Length = hitObject.Rgv.Length;
 
-				for (var i = 0; i < hitObject.Rgv.Length; i++) {
+				for (var i = 0; i < hitObject.Rgv.Length; i++)
+				{
 					data->_rgv[i] = hitObject.Rgv[i].ToUnityFloat3();
 				}
 			}
 
-			UnsafeUtility.CopyPtrToStructure(data, out Poly3DCollider collider);
+			var collider = BlobAssetReference<Poly3DCollider>.Create(data, totalSize);
+			UnsafeUtility.Free(data, Allocator.Temp);
 			return collider;
 		}
 
