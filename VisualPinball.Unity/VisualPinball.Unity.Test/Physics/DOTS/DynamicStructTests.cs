@@ -44,8 +44,8 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 			var hit = new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) });
 			var coll = Poly3DCollider.Create(hit);
 
-			Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll._rgv[0]);
-			Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll._rgv[1]);
+			Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll.Value._rgv[0]);
+			Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll.Value._rgv[1]);
 		}
 	}
 
