@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -7,6 +8,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Test.Physics.DOTS
 {
@@ -46,6 +48,18 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 
 			Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll.Value._rgv[0]);
 			Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll.Value._rgv[1]);
+		}
+
+		[Test]
+		public void ShouldSerializePoly3DCollider()
+		{
+			var colliderBlob = ColliderBlob.CreateBlobAssetReference( new List<HitObject> {
+				new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) })
+			}, 0, 0);
+
+			ref var poly3DCollider = ref colliderBlob.Value.Colliders[0].Value;
+
+			Assert.AreEqual("Poly3DCollider, rgv[0] = float3(1f, 2f, 3f)", Unity.Physics.Collider.Collider.ToString(ref poly3DCollider));
 		}
 	}
 

@@ -155,5 +155,18 @@ namespace VisualPinball.Unity.Physics.Collider
 				default: return ItemType.Null;
 			}
 		}
+
+		public static unsafe string ToString(ref Collider coll)
+		{
+			fixed (Collider* collider = &coll) {
+				switch (collider->Type) {
+					case ColliderType.Poly3D:
+						return ((Poly3DCollider*)collider)->ToString();
+
+					default:
+						return collider->ToString();
+				}
+			}
+		}
 	}
 }
