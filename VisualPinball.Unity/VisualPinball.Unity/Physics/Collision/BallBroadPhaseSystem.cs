@@ -17,7 +17,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			return Entities.WithoutBurst().ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliders, in BallData ballData) => {
 				ref var quadTree = ref collData.Value.Value.QuadTree;
 				matchedColliders.Clear();
-				quadTree.GetAabbOverlaps(ballData, matchedColliders);
+				quadTree.GetAabbOverlaps(in ballData, ref matchedColliders);
 
 			}).Schedule(inputDeps);
 		}

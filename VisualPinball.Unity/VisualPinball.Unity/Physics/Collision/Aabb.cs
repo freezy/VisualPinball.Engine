@@ -1,8 +1,9 @@
-﻿using Unity.Mathematics;
+﻿using System;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
-	public struct Aabb
+	public struct Aabb : IEquatable<Aabb>
 	{
 		public int ColliderId;
 		public float Left;
@@ -80,6 +81,30 @@ namespace VisualPinball.Unity.Physics.Collision
 			       && Top <= rc.Bottom
 			       && ZLow <= rc.ZHigh
 			       && ZHigh >= rc.ZLow;
+		}
+
+		public bool Equals(Aabb other)
+		{
+			return ColliderId == other.ColliderId && Left.Equals(other.Left) && Top.Equals(other.Top) && Right.Equals(other.Right) && Bottom.Equals(other.Bottom) && ZLow.Equals(other.ZLow) && ZHigh.Equals(other.ZHigh);
+		}
+
+		public override bool Equals(object obj)
+		{
+			return obj is Aabb other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked {
+				var hashCode = ColliderId;
+				hashCode = (hashCode * 397) ^ Left.GetHashCode();
+				hashCode = (hashCode * 397) ^ Top.GetHashCode();
+				hashCode = (hashCode * 397) ^ Right.GetHashCode();
+				hashCode = (hashCode * 397) ^ Bottom.GetHashCode();
+				hashCode = (hashCode * 397) ^ ZLow.GetHashCode();
+				hashCode = (hashCode * 397) ^ ZHigh.GetHashCode();
+				return hashCode;
+			}
 		}
 	}
 }

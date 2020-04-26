@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			// 	}
 			// });
 			dstManager.AddBuffer<MatchedColliderBufferElement>(entity);
+			dstManager.AddBuffer<MatchedBallColliderBufferElement>(entity);
 			dstManager.AddBuffer<ContactBufferElement>(entity);
 			dstManager.AddBuffer<BallInsideOfBufferElement>(entity);
 		}

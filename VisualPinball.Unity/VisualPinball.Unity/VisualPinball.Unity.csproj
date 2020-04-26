@@ -118,6 +118,7 @@
     <Compile Include="Physics\Collision\KdNode.cs" />
     <Compile Include="Physics\Collision\KdRoot.cs" />
     <Compile Include="Physics\Collision\LineSlingshotData.cs" />
+    <Compile Include="Physics\Collision\MatchedBallColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\MatchedColliderBufferElement.cs" />
     <Compile Include="Physics\Collision\ColliderData.cs" />
     <Compile Include="Physics\Collision\ColliderHeader.cs" />
