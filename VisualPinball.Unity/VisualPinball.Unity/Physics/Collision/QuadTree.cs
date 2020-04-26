@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			dest.IsLeaf = src.IsLeaf;
 		}
 
-		public void GetAabbOverlaps(BallData ball, DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds)
+		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
@@ -52,22 +52,22 @@ namespace VisualPinball.Unity.Physics.Collision
 				if (ballAabb.Top <= Center.y) {
 					// Top
 					if (isLeft) {
-						Children[0].Value.GetAabbOverlaps(ball, matchedColliderIds);
+						Children[0].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[1].Value.GetAabbOverlaps(ball, matchedColliderIds);
+						Children[1].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 				}
 
 				if (ballAabb.Bottom >= Center.y) {
 					// Bottom
 					if (isLeft) {
-						Children[2].Value.GetAabbOverlaps(ball, matchedColliderIds);
+						Children[2].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[3].Value.GetAabbOverlaps(ball, matchedColliderIds);
+						Children[3].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 				}
 			}

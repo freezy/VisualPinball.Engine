@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Unity.Entities;
+using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -44,6 +46,11 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 
 			_rootNode.CreateNextLevel(0, 0, this);
+		}
+
+		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds)
+		{
+			_rootNode.GetAabbOverlaps(ref this, in ball, ref matchedColliderIds);
 		}
 
 		public ref Aabb GetItemAt(int i)

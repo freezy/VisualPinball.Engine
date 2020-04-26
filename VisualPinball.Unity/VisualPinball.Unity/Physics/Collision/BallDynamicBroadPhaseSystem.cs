@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -22,6 +21,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			[ReadOnly]
 			public ArchetypeChunkComponentType<BallData> BallType;
+			public ArchetypeChunkBufferType<MatchedBallColliderBufferElement> MatchedBallColliderType;
 
 			public void Execute()
 			{
@@ -30,12 +30,25 @@ namespace VisualPinball.Unity.Physics.Collision
 					var balls = Chunks[j].GetNativeArray(BallType);
 					//Debug.Log($"We have {balls.Length} ball(s) and ({Chunks.Length} chunk(s)!");
 
-					for (int i = 0; i < Chunks[j].Count; i++) {
+					for (var i = 0; i < Chunks[j].Count; i++) {
 						ballBounds.Add(balls[i].Aabb);
 					}
 				}
 
 				var kdRoot = new KdRoot(ballBounds.ToArray());
+
+				for (var j = 0; j < Chunks.Length; j++) {
+
+					var balls = Chunks[j].GetNativeArray(BallType);
+					var matchedColliderIdBuffers = Chunks[j].GetBufferAccessor(MatchedBallColliderType);
+
+					//Debug.Log($"We have {balls.Length} ball(s) and ({Chunks.Length} chunk(s)!");
+
+					for (var i = 0; i < Chunks[j].Count; i++) {
+						var matchedColliderIdBuffer = matchedColliderIdBuffers[i];
+						kdRoot.GetAabbOverlaps(balls[i], ref matchedColliderIdBuffer);
+					}
+				}
 			}
 		}
 
@@ -43,46 +56,13 @@ namespace VisualPinball.Unity.Physics.Collision
 			BallQuery = GetEntityQuery(typeof(BallData));
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps) {
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		{
 			return new BallDynamicBroadPhaseJob {
 				Chunks = BallQuery.CreateArchetypeChunkArray(Allocator.TempJob),
-				BallType = GetArchetypeChunkComponentType<BallData>(true)
+				BallType = GetArchetypeChunkComponentType<BallData>(true),
+				MatchedBallColliderType = GetArchetypeChunkBufferType<MatchedBallColliderBufferElement>()
 			}.Schedule(inputDeps);
 		}
-
-		// EntityQuery ballChunkQuery;
-		// protected override void OnCreate()
-		// {
-		// 	ballChunkQuery = GetEntityQuery(new EntityQueryDesc {
-		// 		All = new[] { ComponentType.ReadOnly<BallData>() }
-		// 	});
-		// }
-		//
-		// [BurstCompile]
-		// struct BallDynamicBroadPhaseJob : IJobChunk
-		// {
-		// 	[ReadOnly] public ArchetypeChunkComponentType<BallData> BallDataTypeInfo;
-		//
-		// 	public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
-		// 	{
-		// 		var balls = chunk.GetNativeArray<BallData>(BallDataTypeInfo);
-		// 		Debug.Log($"We have {balls.Length} balls!");
-		// 	}
-		// }
-		//
-		// protected override void OnUpdate()
-		// {
-		// 	var job = new BallDynamicBroadPhaseJob {
-		// 		BallDataTypeInfo = GetArchetypeChunkComponentType<BallData>(true)
-		// 	};
-		// 	Dependency = job.Schedule(ballChunkQuery, this.Dependency);
-		//
-		// 	//
-		// 	// var balls = new List<BallData>();
-		// 	// Entities.WithoutBurst().ForEach((in BallData ballData) => {
-		// 	// 	balls.Add(ballData);
-		// 	// }).Run();
-		// 	// Debug.Log($"We have {balls.Count} balls!");
-		// }
 	}
 }
