@@ -48,9 +48,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			_rootNode.CreateNextLevel(0, 0, this);
 		}
 
-		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds)
+		public void GetAabbOverlaps(in Entity entity, in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds)
 		{
-			_rootNode.GetAabbOverlaps(ref this, in ball, ref matchedColliderIds);
+			_rootNode.GetAabbOverlaps(ref this, in entity, in ball, ref matchedColliderIds);
 		}
 
 		public ref Aabb GetItemAt(int i)

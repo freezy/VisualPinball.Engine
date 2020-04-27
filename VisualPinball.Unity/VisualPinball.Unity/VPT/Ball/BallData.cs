@@ -31,6 +31,19 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
+		public Aabb GetAabb(Entity entity) {
+			var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
+			return new Aabb(
+				entity,
+				Position.x - vl,
+				Position.x + vl,
+				Position.y - vl,
+				Position.y + vl,
+				Position.z - vl,
+				Position.z + vl
+			);
+		}
+
 		public float CollisionRadiusSqr {
 			get {
 				var v1 = math.length(Velocity) + Radius + 0.05f;
