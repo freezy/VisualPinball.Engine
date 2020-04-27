@@ -2,18 +2,17 @@
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	//[AlwaysSynchronizeSystem]
+	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class FlipperRotateSystem : JobComponentSystem
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			Entities.WithoutBurst().ForEach((ref Rotation rot, in FlipperMovementData movement) => {
+			Entities.WithoutBurst().WithName("FlipperRotateJob").ForEach((ref Rotation rot, in FlipperMovementData movement) => {
 				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 			}).Run();
 

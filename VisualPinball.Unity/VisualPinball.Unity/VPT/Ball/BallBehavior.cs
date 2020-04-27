@@ -7,6 +7,8 @@ namespace VisualPinball.Unity.VPT.Ball
 {
 	public class BallBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{
+		private static int _id;
+
 		public float3 Position;
 		public float3 Velocity;
 		public float Radius;
@@ -15,6 +17,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			dstManager.AddComponentData(entity, new BallData {
+				Id = _id++,
 				IsFrozen = false,
 				Position = Position,
 				Radius = Radius,

@@ -8,6 +8,7 @@ using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
+	[DisableAutoCreation]
 	public class DynamicCollisionSystem : SystemBase
 	{
 		[BurstCompile]
@@ -66,8 +67,11 @@ namespace VisualPinball.Unity.Physics.Collision
 
 						//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
-						BallCollider.Collide(ref ballData, ref collidingBall, in collEvent, in collidingCollEvent,
-							SwapBallCollisionHandling);
+						BallCollider.Collide(
+							ref ballData, ref collidingBall,
+							in collEvent, in collidingCollEvent,
+							SwapBallCollisionHandling
+						);
 					}
 
 					chunkMatchedBalls[i].Clear();

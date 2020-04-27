@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
-			Entities.WithoutBurst().ForEach((ref BallData ballData, ref CollisionEventData collEvent,
+			Entities.WithoutBurst().WithName("ContactJob").ForEach((ref BallData ballData, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts) => {
 
 				ref var colliders = ref collData.Value.Value.Colliders;

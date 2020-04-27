@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public int EntityIndex;
 	}
 
-	//[AlwaysSynchronizeSystem]
+	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithoutBurst().ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
+			Entities.WithoutBurst().WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 

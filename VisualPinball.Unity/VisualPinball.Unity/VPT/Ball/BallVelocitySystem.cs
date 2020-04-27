@@ -5,7 +5,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -24,7 +23,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var gravity = _gravity;
-			return Entities.WithoutBurst().ForEach((ref BallData ball) => {
+			return Entities.WithoutBurst().WithName("BallVelocityJob").ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;

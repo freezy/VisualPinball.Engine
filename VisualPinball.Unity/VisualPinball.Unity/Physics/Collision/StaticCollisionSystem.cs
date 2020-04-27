@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithoutBurst().ForEach((ref BallData ballData,
+			Entities.WithoutBurst().WithName("StaticCollisionJob").ForEach((ref BallData ballData,
 				ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds,
 				ref CollisionEventData collEvent) => {
 
