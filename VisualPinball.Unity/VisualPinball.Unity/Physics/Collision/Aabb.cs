@@ -1,11 +1,13 @@
 ﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
-	public struct Aabb : IEquatable<Aabb>
+	public struct Aabb
 	{
 		public int ColliderId;
+		public Entity ColliderEntity;
 		public float Left;
 		public float Top;
 		public float Right;
@@ -17,22 +19,23 @@ namespace VisualPinball.Unity.Physics.Collision
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
 
-		public static Aabb Create(int colliderId)
-		{
-			return new Aabb(
-				colliderId,
-				float.MaxValue,
-				-float.MaxValue,
-				float.MaxValue,
-				-float.MaxValue,
-				float.MaxValue,
-				-float.MaxValue
-			);
-		}
-
 		public Aabb(int colliderId, float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
 			ColliderId = colliderId;
+			ColliderEntity = Entity.Null;
+			Left = left;
+			Right = right;
+			Top = top;
+			Bottom = bottom;
+			ZLow = 0;
+			ZLow = zLow;
+			ZHigh = zHigh;
+		}
+
+		public Aabb(Entity entity, float left, float right, float top, float bottom, float zLow, float zHigh)
+		{
+			ColliderId = -1;
+			ColliderEntity = entity;
 			Left = left;
 			Right = right;
 			Top = top;
@@ -83,28 +86,5 @@ namespace VisualPinball.Unity.Physics.Collision
 			       && ZHigh >= rc.ZLow;
 		}
 
-		public bool Equals(Aabb other)
-		{
-			return ColliderId == other.ColliderId && Left.Equals(other.Left) && Top.Equals(other.Top) && Right.Equals(other.Right) && Bottom.Equals(other.Bottom) && ZLow.Equals(other.ZLow) && ZHigh.Equals(other.ZHigh);
-		}
-
-		public override bool Equals(object obj)
-		{
-			return obj is Aabb other && Equals(other);
-		}
-
-		public override int GetHashCode()
-		{
-			unchecked {
-				var hashCode = ColliderId;
-				hashCode = (hashCode * 397) ^ Left.GetHashCode();
-				hashCode = (hashCode * 397) ^ Top.GetHashCode();
-				hashCode = (hashCode * 397) ^ Right.GetHashCode();
-				hashCode = (hashCode * 397) ^ Bottom.GetHashCode();
-				hashCode = (hashCode * 397) ^ ZLow.GetHashCode();
-				hashCode = (hashCode * 397) ^ ZHigh.GetHashCode();
-				return hashCode;
-			}
-		}
 	}
 }

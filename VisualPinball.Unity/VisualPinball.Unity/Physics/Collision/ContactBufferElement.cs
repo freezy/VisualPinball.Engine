@@ -7,5 +7,6 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		public CollisionEventData CollisionEvent;
 		public int ColliderId;
+		public Entity ColliderEntity;
 	}
 }

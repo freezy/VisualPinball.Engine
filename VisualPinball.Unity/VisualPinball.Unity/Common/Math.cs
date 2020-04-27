@@ -5,6 +5,8 @@ namespace VisualPinball.Unity.Common
 {
 	public static class Math
 	{
+		private static Random _random = new Random(6429845);
+
 		public static float3 CrossZ(float rz, in float3 v)
 		{
 			return new float3(-rz * v.y, rz * v.x, 0);
@@ -44,6 +46,15 @@ namespace VisualPinball.Unity.Common
 			v = (b - discr) * invA;
 
 			return true;
+		}
+
+		/// <summary>
+		/// Returns a random number between 0f and 1f.
+		/// </summary>
+		/// <returns></returns>
+		public static float Random()
+		{
+			return (float) _random.NextDouble();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

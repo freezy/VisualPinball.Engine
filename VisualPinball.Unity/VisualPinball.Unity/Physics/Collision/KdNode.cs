@@ -250,7 +250,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			_children[1].CreateNextLevel(level + 1, levelEmpty, hitOct);
 		}
 
-		public void GetAabbOverlaps(ref KdRoot hitOct, in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds) {
+		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds) {
 
 			var orgItems = Items & 0x3FFFFFFF;
 			var axis = Items >> 30;
@@ -258,9 +258,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = Start; i < Start + orgItems; i++) {
-				ref var pho = ref hitOct.GetItemAt(i);
-				if (!bounds.Equals(pho) && pho.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new MatchedBallColliderBufferElement { Value = bounds.ColliderId });
+				ref var aabb = ref hitOct.GetItemAt(i);
+				if (entity != aabb.ColliderEntity && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					matchedColliderIds.Add(new MatchedBallColliderBufferElement { Value = aabb.ColliderEntity });
 				}
 			}
 
@@ -270,11 +270,11 @@ namespace VisualPinball.Unity.Physics.Collision
 					case 0: {
 						var vCenter = (RectBounds.Left + RectBounds.Right) * 0.5f;
 						if (bounds.Left <= vCenter) {
-							_children[0].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[0].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 
 						if (bounds.Right >= vCenter) {
-							_children[1].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[1].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 						break;
 					}
@@ -282,11 +282,11 @@ namespace VisualPinball.Unity.Physics.Collision
 					case 1: {
 						var vCenter = (RectBounds.Top + RectBounds.Bottom) * 0.5f;
 						if (bounds.Top <= vCenter) {
-							_children[0].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[0].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 
 						if (bounds.Bottom >= vCenter) {
-							_children[1].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[1].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 						break;
 					}
@@ -294,11 +294,11 @@ namespace VisualPinball.Unity.Physics.Collision
 					default: {
 						var vCenter = (RectBounds.ZLow + RectBounds.ZHigh) * 0.5f;
 						if (bounds.ZLow <= vCenter) {
-							_children[0].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[0].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 
 						if (bounds.ZHigh >= vCenter) {
-							_children[1].GetAabbOverlaps(ref hitOct, in ball, ref matchedColliderIds);
+							_children[1].GetAabbOverlaps(ref hitOct, in entity, in ball, ref matchedColliderIds);
 						}
 						break;
 					}

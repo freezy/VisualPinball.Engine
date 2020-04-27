@@ -1,6 +1,6 @@
 ﻿using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -44,9 +44,9 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// magnitude of the impulse which is just sufficient to keep the ball from
 			// penetrating the wall (needed for friction computations)
-			var reactionImpulse = ball.Mass * MathF.Abs(dot);
+			var reactionImpulse = ball.Mass * math.abs(dot);
 
-			var elasticity = Functions.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
+			var elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 
@@ -83,10 +83,10 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			if (dot > 1.0 && scatterAngle > 1.0e-5) {
 				// no scatter at low velocity
-				var scatter = MathF.Random() * 2 - 1;                                    // -1.0f..1.0f
+				var scatter = Math.Random() * 2 - 1;                                    // -1.0f..1.0f
 				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
-				var radSin = MathF.Sin(scatter);                               // Green's transform matrix... rotate angle delta
-				var radCos = MathF.Cos(scatter);                               // rotational transform from current position to position at time t
+				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
+				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
 				var vxt = ball.Velocity.x;
 				var vyt = ball.Velocity.y;
 				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
@@ -161,6 +161,99 @@ namespace VisualPinball.Unity.VPT.Ball
 			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
 				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
 			}
+		}
+
+		public static float HitTest(ref CollisionEventData collEvent, ref BallData hittingBall, in BallData ball, float dTime)
+		{
+			var d = ball.Position - hittingBall.Position;                    // delta position
+			var dv = ball.Velocity - hittingBall.Velocity;                            // delta velocity
+
+			var bcddSq = math.lengthsq(d);                                         // square of ball center"s delta distance
+			var bcdd = math.sqrt(bcddSq);                                     // length of delta
+
+			if (bcdd < 1.0e-8) {
+				// two balls center-over-center embedded
+				d.z = -1.0f;                                                   // patch up
+				hittingBall.Position.z -= d.z;                                       // lift up
+
+				bcdd = 1.0f;                                                   // patch up
+				bcddSq = 1.0f;                                                 // patch up
+				dv.z = 0.1f;                                                   // small speed difference
+				hittingBall.Velocity.z -= dv.z;
+			}
+
+			var b = math.dot(dv, d);                                                 // inner product
+			var bnv = b / bcdd;                                                // normal speed of balls toward each other
+
+			if (bnv > PhysicsConstants.LowNormVel) {
+				// dot of delta velocity and delta displacement, positive if receding no collision
+				return -1.0f;
+			}
+
+			var totalRadius = hittingBall.Radius + ball.Radius;
+			var bnd = bcdd - totalRadius;                                      // distance between ball surfaces
+
+			float hitTime;
+			var isContact = false;
+			if (bnd <= PhysicsConstants.PhysTouch) {
+				// in contact?
+				if (bnd < hittingBall.Radius * -2.0f) {
+					return -1.0f;                                              // embedded too deep?
+				}
+
+				if (math.abs(bnv) > PhysicsConstants.ContactVel               // >fast velocity, return zero time
+				    || bnd <= -PhysicsConstants.PhysTouch) {
+					// zero time for rigid fast bodies
+					hitTime = 0; // slow moving but embedded
+
+				} else {
+					hitTime = bnd / -bnv;
+				}
+
+				if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
+					isContact = true;
+				}
+
+			} else {
+				var a = math.lengthsq(dv);                                         // square of differential velocity
+				if (a < 1.0e-8) {
+					// ball moving really slow, then wait for contact
+					return -1.0f;
+				}
+
+				var solved = Math.SolveQuadraticEq(a, 2.0f * b, bcddSq - totalRadius * totalRadius,
+					out var time1, out var time2);
+				if (!solved) {
+					return -1.0f;
+				}
+
+				hitTime = time1 * time2 < 0
+					? math.max(time1, time2)
+					: math.min(time1, time2);                                 // find smallest nonnegative solution
+			}
+
+			if (float.IsNaN(hitTime) || float.IsInfinity(hitTime) || hitTime < 0 || hitTime > dTime) {
+				// .. was some time previous || beyond the next physics tick
+				return -1.0f;
+			}
+
+			var hitPos = hittingBall.Position + hitTime * dv; // new ball position
+
+			// calc unit normal of collision
+			var hitNormal = hitPos - ball.Position;
+			if (math.abs(hitNormal.x) <= Constants.FloatMin && math.abs(hitNormal.y) <= Constants.FloatMin &&
+			    math.abs(hitNormal.z) <= Constants.FloatMin) {
+				return -1.0f;
+			}
+
+			collEvent.HitNormal = math.normalize(hitNormal);
+			collEvent.HitDistance = bnd;                                            // actual contact distance
+			collEvent.IsContact = isContact;
+			if (isContact) {
+				collEvent.HitOrgNormalVelocity = bnv;
+			}
+
+			return hitTime;
 		}
 	}
 }
