@@ -5,7 +5,7 @@ using VisualPinball.Unity.VPT.Ball;
 namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
-	public class BallBroadPhaseSystem : JobComponentSystem
+	public class StaticBroadPhaseSystem : JobComponentSystem
 	{
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{

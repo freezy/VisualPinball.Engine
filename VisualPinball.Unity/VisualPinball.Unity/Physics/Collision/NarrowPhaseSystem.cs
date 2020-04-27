@@ -7,7 +7,7 @@ using VisualPinball.Unity.VPT.Flipper;
  namespace VisualPinball.Unity.Physics.Collision
 {
 	[UpdateInGroup(typeof(BallNarrowPhaseSystemGroup))]
-	public class BallNarrowPhaseSystem : SystemBase
+	public class NarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 

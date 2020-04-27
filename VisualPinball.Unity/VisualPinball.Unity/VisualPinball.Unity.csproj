@@ -110,10 +110,11 @@
     <Compile Include="Physics\Collider\LineCollider.cs" />
     <Compile Include="Physics\Collider\Poly3DCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
-    <Compile Include="Physics\Collision\BallBroadPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\BallContactSystem.cs" />
-    <Compile Include="Physics\Collision\BallDynamicBroadPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\BallResolveCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\DynamicCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\StaticBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\ContactSystem.cs" />
+    <Compile Include="Physics\Collision\DynamicBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\StaticCollisionSystem.cs" />
     <Compile Include="Physics\Collision\ColliderBlob.cs" />
     <Compile Include="Physics\Collision\KdNode.cs" />
     <Compile Include="Physics\Collision\KdRoot.cs" />
@@ -128,7 +129,7 @@
     <Compile Include="Physics\Collision\ContactBufferElement.cs" />
     <Compile Include="Physics\Collision\ICollidable.cs" />
     <Compile Include="Physics\Collision\ICollider.cs" />
-    <Compile Include="Physics\Collision\BallNarrowPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\NarrowPhaseSystem.cs" />
     <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
     <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
