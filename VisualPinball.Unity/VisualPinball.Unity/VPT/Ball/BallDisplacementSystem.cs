@@ -19,7 +19,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			return Entities.WithoutBurst().ForEach((ref BallData ball) => {
+			return Entities.WithoutBurst().WithName("BallDisplacementJob").ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;

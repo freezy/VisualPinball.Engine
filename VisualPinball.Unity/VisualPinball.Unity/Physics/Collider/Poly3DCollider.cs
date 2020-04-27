@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			ref var collider = ref builder.Allocate(ref ptr);
 			//ref var collider = ref builder.Allocate(ref ptr, totalSize, out var offsetPtr);
 			//collider.Init(src, offsetPtr);
+			collider.Init(src);
 		}
 
 		private unsafe void Init(Hit3DPoly src, int* offsetPtr)
@@ -44,15 +45,21 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
+		private void Init(Hit3DPoly src)
+		{
+			_header.Init(ColliderType.Poly3D, src);
+			_normal = src.Normal.ToUnityFloat3();
+		}
+
 		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
 		{
 			// todo
 			return -1;
 		}
 
-		public override string ToString()
-		{
-			return $"Poly3DCollider, rgv[0] = {_rgv[0]}";
-		}
+		// public override string ToString()
+		// {
+		// 	return $"Poly3DCollider, rgv[0] = {_rgv[0]}";
+		// }
 	}
 }

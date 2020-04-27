@@ -3,7 +3,6 @@ using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
 
@@ -25,7 +24,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private BallNarrowPhaseSystemGroup _ballNarrowPhaseSystemGroup;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 		private StaticCollisionSystem _staticCollisionSystem;
-		private DynamicCollisionSystem _dynamicCollisionSystem;
+		//private DynamicCollisionSystem _dynamicCollisionSystem;
 		private ContactSystem _contactSystem;
 
 		protected override void OnCreate()
@@ -35,13 +34,13 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			_ballNarrowPhaseSystemGroup = World.GetOrCreateSystem<BallNarrowPhaseSystemGroup>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
-			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
+			//_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_ballNarrowPhaseSystemGroup);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 			_systemsToUpdate.Add(_staticCollisionSystem);
-			_systemsToUpdate.Add(_dynamicCollisionSystem);
+			//_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
 		}
 
@@ -90,7 +89,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				_displacementSystemGroup.Update();
 				_staticCollisionSystem.Update();
-				_dynamicCollisionSystem.Update();
+				//_dynamicCollisionSystem.Update();
 				_contactSystem.Update();
 
 				dTime -= HitTime;

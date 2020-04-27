@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			Entities.WithoutBurst().ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperMaterialData data) => {
+			Entities.WithoutBurst().WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperMaterialData data) => {
 
 				#if FLIPPER_LOG
 				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
