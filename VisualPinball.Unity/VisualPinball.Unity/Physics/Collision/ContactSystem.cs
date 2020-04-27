@@ -13,7 +13,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
-	public class BallContactSystem : SystemBase
+	public class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private float3 _gravity;
