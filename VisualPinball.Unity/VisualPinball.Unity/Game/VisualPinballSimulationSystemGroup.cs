@@ -28,18 +28,18 @@ namespace VisualPinball.Unity.Game
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
-		private SimulateCycleSystemGroup _cycleSystemGroup;
+		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 		public long CurPhysicsFrameTime;
 
 		protected override void OnCreate()
 		{
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
-			_cycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
-			_systemsToUpdate.Add(_cycleSystemGroup);
+			_systemsToUpdate.Add(_simulateCycleSystemGroup);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
 		}
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Game
 				_velocitiesSystemGroup.Update();
 
 				// simulate cycle
-				_cycleSystemGroup.Update();
+				_simulateCycleSystemGroup.Update();
 
 				// new cycle, on physics frame boundary
 				CurPhysicsFrameTime = _nextPhysicsFrameTime;

@@ -7,7 +7,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[AlwaysSynchronizeSystem]
+	//[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class FlipperRotateSystem : JobComponentSystem
 	{

@@ -10,7 +10,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[AlwaysSynchronizeSystem]
+	//[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : JobComponentSystem
 	{

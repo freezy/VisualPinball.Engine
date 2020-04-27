@@ -8,7 +8,7 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
-	[AlwaysSynchronizeSystem]
+	//[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class BallMovementSystem : JobComponentSystem
 	{
