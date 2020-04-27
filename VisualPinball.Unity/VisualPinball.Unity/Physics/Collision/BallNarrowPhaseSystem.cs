@@ -1,10 +1,8 @@
-﻿﻿using System.Diagnostics;
- using Unity.Entities;
- using VisualPinball.Unity.Physics.Collider;
+﻿﻿using Unity.Entities;
+using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
- using Debug = UnityEngine.Debug;
 
  namespace VisualPinball.Unity.Physics.Collision
 {

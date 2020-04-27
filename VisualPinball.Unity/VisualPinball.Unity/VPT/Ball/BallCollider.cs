@@ -255,5 +255,86 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			return hitTime;
 		}
+
+		public static void Collide(ref BallData ball, ref BallData collidingBall,
+			in CollisionEventData ballCollEvent, in CollisionEventData collidingCollEvent,
+			bool swapBallCollisionHandling)
+		{
+			// make sure we process each ball/ball collision only once
+			// (but if we are frozen, there won't be a second collision event, so deal with it now!)
+			if ((swapBallCollisionHandling && collidingBall.Id >= ball.Id ||
+			     !swapBallCollisionHandling && collidingBall.Id <= ball.Id) && !ball.IsFrozen) {
+				return;
+			}
+
+			// target ball to object ball delta velocity
+			var vRel = collidingBall.Velocity - ball.Velocity;
+			var vNormal = collidingCollEvent.HitNormal;
+			var dot = math.dot(vRel, vNormal);
+
+			// correct displacements, mostly from low velocity, alternative to true acceleration processing
+			if (dot >= -PhysicsConstants.LowNormVel) {
+
+				// nearly receding ... make sure of conditions
+				if (dot > PhysicsConstants.LowNormVel) {
+
+					// otherwise if clearly approaching .. process the collision
+					return; // is this velocity clearly receding (i.E must > a minimum)
+				}
+
+				//#ifdef PhysicsConstants.Embedded
+				if (collidingCollEvent.HitDistance < -PhysicsConstants.Embedded) {
+					dot = -PhysicsConstants.EmbedShot; // has ball become embedded???, give it a kick
+
+				} else {
+					return;
+				}
+
+				//#endif
+			}
+
+			// fixme script
+			// send ball/ball collision event to script function
+			// if (dot < -0.25f) {   // only collisions with at least some small true impact velocity (no contacts)
+			//      g_pplayer->m_ptable->InvokeBallBallCollisionCallback(this, pball, -dot);
+			// }
+
+			//#ifdef PhysicsConstants.DispGain
+			var eDist = -PhysicsConstants.DispGain * collidingCollEvent.HitDistance;
+			var normalDist = eDist * vNormal;
+			if (eDist > 1.0e-4) {
+				if (eDist > PhysicsConstants.DispLimit) {
+					eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
+				}
+
+				if (!ball.IsFrozen) {
+					// if the hit ball is not frozen
+					eDist *= 0.5f;
+				}
+
+				collidingBall.Position += normalDist; // push along norm, back to free area
+				// use the norm, but is not correct, but cheaply handled
+			}
+
+			eDist = -PhysicsConstants.DispGain * ballCollEvent.HitDistance; // noisy value .... needs investigation
+			if (!ball.IsFrozen && eDist > 1.0e-4) {
+				if (eDist > PhysicsConstants.DispLimit) {
+					eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
+				}
+
+				eDist *= 0.5f;
+				ball.Position -= normalDist; // pull along norm, back to free area
+			}
+			//#endif
+
+			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
+			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + collidingBall.InvMass); // resitution = 0.8
+
+			if (!ball.IsFrozen) {
+				ball.Velocity -= impulse * myInvMass * vNormal;
+			}
+
+			collidingBall.Velocity += impulse * collidingBall.InvMass * vNormal;
+		}
 	}
 }

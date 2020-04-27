@@ -1,7 +1,6 @@
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -13,7 +12,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public int EntityIndex;
 	}
 
-	[AlwaysSynchronizeSystem]
+	//[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : JobComponentSystem
 	{
