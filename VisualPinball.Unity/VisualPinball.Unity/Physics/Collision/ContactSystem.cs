@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Physics.Collision
 							switch (coll.Type) {
 								case ColliderType.Flipper:
 									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-									var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
+									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
 									((FlipperCollider*) collider)->Contact(
 										ref ballData, ref collEvent, ref flipperMovementData,

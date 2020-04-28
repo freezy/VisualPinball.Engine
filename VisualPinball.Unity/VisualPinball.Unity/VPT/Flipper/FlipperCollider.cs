@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		public float HitTest(ref CollisionEventData coll, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperMaterialData matData, in BallData ball, float dTime)
+			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
 			// todo
 			// if (!_data.IsEnabled) {
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		}
 
 		private float HitTestFlipperFace(ref CollisionEventData coll, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperMaterialData matData, in BallData ball,
+			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball,
 			float dTime, bool face1)
 		{
 			var angleCur = movementData.Angle;
@@ -316,7 +316,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		}
 
 		private float HitTestFlipperEnd(ref CollisionEventData coll, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperMaterialData matData, in BallData ball, float dTime)
+			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
 			var angleCur = movementData.Angle;
 			var angleSpeed = movementData.AngleSpeed; // rotation rate
@@ -514,7 +514,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#region Contact
 
 		public void Contact(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
-			in FlipperMaterialData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
+			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
 			var normal = coll.HitNormal;
 
@@ -623,7 +623,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#region Collision
 
 		public void Collide(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
-			in FlipperMaterialData matData, in FlipperVelocityData velData)
+			in FlipperStaticData matData, in FlipperVelocityData velData)
 		{
 			var normal = coll.HitNormal;
 			GetRelativeVelocity(normal, ball, movementData, out var vRel, out var rB, out var rF);

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithoutBurst().WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
+			Entities.WithoutBurst().WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
