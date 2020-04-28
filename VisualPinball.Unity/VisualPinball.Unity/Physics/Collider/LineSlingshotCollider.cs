@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return LineCollider.HitTestBasic(ref collEvent, in lineColl, in ball, dTime, true, true, true);
 		}
 
-		public void Collide(ref BallData ball, in LineSlingshotData slingshotData, in CollisionEventData collEvent)
+		public void Collide(ref BallData ball, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Physics.Collider
 				ball.Velocity -= hitNormal * force;
 			}
 
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal, ref random);
 
 			// todo event
 			// if (m_obj && m_fe && !m_psurface->m_disabled && threshold) {

@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData coll, in float3 hitNormal)
+		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData coll, in float3 hitNormal, ref Random random)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			if (dot > 1.0 && scatterAngle > 1.0e-5) {
 				// no scatter at low velocity
-				var scatter = Math.Random() * 2 - 1;                                    // -1.0f..1.0f
+				var scatter = random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
 				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
 				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
 				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
