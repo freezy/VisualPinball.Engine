@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 
-				var kdRoot = new KdRoot(ballBounds.ToArray()); // todo fix, copies data
+				var kdRoot = new KdRoot(ballBounds);
 				for (var j = 0; j < Chunks.Length; j++) {
 
 					var balls = Chunks[j].GetNativeArray(BallType);
@@ -51,6 +51,7 @@ namespace VisualPinball.Unity.Physics.Collision
 						kdRoot.GetAabbOverlaps(entities[i], balls[i], ref matchedColliderIdBuffer);
 					}
 				}
+				kdRoot.Dispose();
 			}
 		}
 

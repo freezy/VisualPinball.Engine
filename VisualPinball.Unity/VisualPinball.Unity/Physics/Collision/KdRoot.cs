@@ -1,31 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
-	public struct KdRoot
+	public struct KdRoot : IDisposable
 	{
-		public int[] OrgIdx;                                                   // m_org_idx
+		public NativeArray<int> OrgIdx;                                                   // m_org_idx
 		public int NumNodes;                                                   // m_num_nodes
-		public int[] Indices;                                                  // tmp
+		public NativeArray<int> Indices;                                                  // tmp
 
 		private KdNode _rootNode;                                              // m_rootNode
-		private Aabb[] _orgHitObjects;                                         // m_org_vho
-		private KdNode[] _nodes;                                               // m_nodes
+		private NativeArray<Aabb> _orgHitObjects;                                         // m_org_vho
+		private NativeArray<KdNode> _nodes;                                               // m_nodes
 
 		private int _numItems;                                                 // m_num_items
 		private int _maxItems;                                                 // m_max_items
 
-		public KdRoot(Aabb[] bounds)
+		public KdRoot(NativeArray<Aabb> bounds)
 		{
 			_orgHitObjects = bounds;
 			_numItems = bounds.Length;
 			_maxItems = _numItems;
 
-			OrgIdx = new int[_numItems];
-			Indices = new int[_numItems];
-			_nodes = new KdNode[_numItems * 2 + 1];
+			OrgIdx = new NativeArray<int>(_numItems, Allocator.Temp);
+			Indices = new NativeArray<int>(_numItems, Allocator.Temp);
+			_nodes = new NativeArray<KdNode>(_numItems * 2 + 1, Allocator.Temp);
 
 			NumNodes = 0;
 			_rootNode = new KdNode();
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			FillFromVector(bounds);
 		}
 
-		private void FillFromVector(IReadOnlyList<Aabb> bounds)
+		private void FillFromVector(NativeArray<Aabb> bounds)
 		{
 			_rootNode.RectBounds.Clear();
 			_rootNode.Start = 0;
@@ -53,19 +54,26 @@ namespace VisualPinball.Unity.Physics.Collision
 			_rootNode.GetAabbOverlaps(ref this, in entity, in ball, ref matchedColliderIds);
 		}
 
-		public ref Aabb GetItemAt(int i)
+		public Aabb GetItemAt(int i)
 		{
-			return ref _orgHitObjects[OrgIdx[i]];
+			return _orgHitObjects[OrgIdx[i]];
 		}
 
-		public KdNode[] AllocTwoNodes()
+		public NativeSlice<KdNode> AllocTwoNodes()
 		{
 			if (NumNodes + 1 >= _nodes.Length) {
 				// space for two more nodes?
-				return null;
+				return new NativeSlice<KdNode>();
 			}
 			NumNodes += 2;
-			return new[] { _nodes[NumNodes - 2], _nodes[NumNodes - 1]};
+			return new NativeSlice<KdNode>(_nodes, NumNodes - 2, 2);
+		}
+
+		public void Dispose()
+		{
+			OrgIdx.Dispose();
+			Indices.Dispose();
+			_orgHitObjects.Dispose();
 		}
 	}
 }
