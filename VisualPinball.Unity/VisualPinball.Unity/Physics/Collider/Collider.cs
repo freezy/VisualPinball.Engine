@@ -8,6 +8,7 @@ using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
@@ -102,19 +103,19 @@ namespace VisualPinball.Unity.Physics.Collider
 		/// Most colliders use the standard Collide3DWall routine, only overrides
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
-		public static unsafe void Collide(ref Collider coll, ref BallData ballData, in CollisionEventData collEvent)
+		public static unsafe void Collide(ref Collider coll, ref BallData ballData, in CollisionEventData collEvent, ref Random random)
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
-					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, in collEvent); break;
-					default:  collider->Collide(ref ballData, in collEvent); break;
+					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, in collEvent, ref random); break;
+					default:  collider->Collide(ref ballData, in collEvent, ref random); break;
 				}
 			}
 		}
 
-		private void Collide(ref BallData ball, in CollisionEventData coll)
+		private void Collide(ref BallData ball, in CollisionEventData coll, ref Random random)
 		{
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in coll, in coll.HitNormal);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in coll, in coll.HitNormal, ref random);
 			// todo
 			// var dot = math.dot(coll.HitNormal, ball.Velocity);
 			// if (dot <= -m_threshold) {

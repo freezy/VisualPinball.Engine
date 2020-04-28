@@ -1,8 +1,7 @@
 ﻿// ReSharper disable ConvertIfStatementToSwitchStatement
 
-using System;
 using Unity.Entities;
-using UnityEngine;
+using Unity.Mathematics;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -26,6 +25,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
@@ -69,10 +69,10 @@ namespace VisualPinball.Unity.Physics.Collision
 							} else if (coll.Type == ColliderType.LineSlingShot) {
 								//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
 								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
-								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent);
+								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent, ref random);
 
 							} else {
-								Collider.Collider.Collide(ref coll, ref ballData, collEvent);
+								Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
 							}
 						}
 					}
