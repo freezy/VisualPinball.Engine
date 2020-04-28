@@ -59,21 +59,28 @@ namespace VisualPinball.Unity.Physics.Collision
 			return _orgHitObjects[OrgIdx[i]];
 		}
 
-		public NativeSlice<KdNode> AllocTwoNodes()
+		public KdNode GetNodeAt(int i)
 		{
-			if (NumNodes + 1 >= _nodes.Length) {
-				// space for two more nodes?
-				return new NativeSlice<KdNode>();
-			}
+			return _nodes[i];
+		}
+
+		public bool HasNodesAvailable()
+		{
+			// space for two more nodes?
+			return NumNodes + 1 < _nodes.Length;
+		}
+
+		public void AddNodes(KdNode nodeA, KdNode nodeB)
+		{
 			NumNodes += 2;
-			return new NativeSlice<KdNode>(_nodes, NumNodes - 2, 2);
+			_nodes[NumNodes - 2] = nodeA;
+			_nodes[NumNodes - 1] = nodeB;
 		}
 
 		public void Dispose()
 		{
 			OrgIdx.Dispose();
 			Indices.Dispose();
-			_orgHitObjects.Dispose();
 		}
 	}
 }

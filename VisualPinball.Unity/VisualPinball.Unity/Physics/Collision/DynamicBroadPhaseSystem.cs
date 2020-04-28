@@ -52,6 +52,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 				kdRoot.Dispose();
+				ballBounds.Dispose();
 			}
 		}
 
