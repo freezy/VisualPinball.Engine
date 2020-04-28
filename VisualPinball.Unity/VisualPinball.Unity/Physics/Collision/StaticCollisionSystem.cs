@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								);
 
 							} else if (coll.Type == ColliderType.LineSlingShot) {
-								Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
+								//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
 								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
 								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent);
 
