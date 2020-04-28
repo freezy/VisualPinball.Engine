@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -17,11 +18,11 @@ namespace VisualPinball.Unity.Physics.Collision
 		/// <summary>
 		/// If NULL, is a leaf; otherwise keeps the 2 children
 		/// </summary>
-		private KdNode[] _children;                                 // m_children
+		private NativeSlice<KdNode> _children;                                 // m_children
 
 		public void Reset()
 		{
-			_children = null;
+			_children = new NativeSlice<KdNode>();
 			Start = 0;
 			Items = 0;
 		}
@@ -64,13 +65,16 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			// create children
 			_children = hitOct.AllocTwoNodes();
-			if (_children == null) {
+			if (_children.Length == 0) {
 				// ran out of nodes - abort
 				return;
 			}
 
-			_children[0].RectBounds = RectBounds;
-			_children[1].RectBounds = RectBounds;
+			var child0 = new KdNode();
+			var child1 = new KdNode();
+
+			child0.RectBounds = RectBounds;
+			child1.RectBounds = RectBounds;
 
 			var vCenter = new float3(
 				(RectBounds.Left + RectBounds.Right) * 0.5f,
@@ -79,74 +83,74 @@ namespace VisualPinball.Unity.Physics.Collision
 			);
 			switch (axis) {
 				case 0:
-					_children[0].RectBounds.Right = vCenter.x;
-					_children[1].RectBounds.Left = vCenter.x;
+					child0.RectBounds.Right = vCenter.x;
+					child1.RectBounds.Left = vCenter.x;
 					break;
 				case 1:
-					_children[0].RectBounds.Bottom = vCenter.y;
-					_children[1].RectBounds.Top = vCenter.y;
+					child0.RectBounds.Bottom = vCenter.y;
+					child1.RectBounds.Top = vCenter.y;
 					break;
 				default:
-					_children[0].RectBounds.ZHigh = vCenter.z;
-					_children[1].RectBounds.ZLow = vCenter.z;
+					child0.RectBounds.ZHigh = vCenter.z;
+					child1.RectBounds.ZLow = vCenter.z;
 					break;
 			}
 
-			_children[0].Items = 0;
-			_children[0]._children = null;
-			_children[1].Items = 0;
-			_children[1]._children = null;
+			child0.Items = 0;
+			child0._children = new NativeSlice<KdNode>();
+			child1.Items = 0;
+			child1._children = new NativeSlice<KdNode>();
 
 			// determine amount of items that cross splitplane, or are passed on to the children
 			if (axis == 0) {
 				for (var i = Start; i < Start + orgItems; ++i) {
-					ref var bounds = ref hitOct.GetItemAt(i);
+					var bounds = hitOct.GetItemAt(i);
 
 					if (bounds.Right < vCenter.x) {
-						_children[0].Items++;
+						child0.Items++;
 
 					} else if (bounds.Left > vCenter.x) {
-						_children[1].Items++;
+						child1.Items++;
 					}
 				}
 
 			} else if (axis == 1) {
 				for (var i = Start; i < Start + orgItems; ++i) {
-					ref var bounds = ref hitOct.GetItemAt(i);
+					var bounds = hitOct.GetItemAt(i);
 
 					if (bounds.Bottom < vCenter.y) {
-						_children[0].Items++;
+						child0.Items++;
 
 					} else if (bounds.Top > vCenter.y) {
-						_children[1].Items++;
+						child1.Items++;
 					}
 				}
 
 			} else {
 				// axis == 2
 				for (var i = Start; i < Start + orgItems; ++i) {
-					ref var bounds = ref hitOct.GetItemAt(i);
+					var bounds = hitOct.GetItemAt(i);
 
 					if (bounds.ZHigh < vCenter.z) {
-						_children[0].Items++;
+						child0.Items++;
 
 					} else if (bounds.ZLow > vCenter.z) {
-						_children[1].Items++;
+						child1.Items++;
 					}
 				}
 			}
 
 			// check if at least two nodes feature objects, otherwise don"t bother subdividing further
 			var countEmpty = 0;
-			if (_children[0].Items == 0) {
+			if (child0.Items == 0) {
 				countEmpty = 1;
 			}
 
-			if (_children[1].Items == 0) {
+			if (child1.Items == 0) {
 				++countEmpty;
 			}
 
-			if (orgItems - _children[0].Items - _children[1].Items == 0) {
+			if (orgItems - child0.Items - child1.Items == 0) {
 				++countEmpty;
 			}
 
@@ -160,29 +164,29 @@ namespace VisualPinball.Unity.Physics.Collision
 			if (levelEmpty > 8) {
 				// If 8 levels were all just subdividing the same objects without luck, exit & Free the nodes again (but at least empty space was cut off)
 				hitOct.NumNodes -= 2;
-				_children = null;
+				_children = new NativeSlice<KdNode>();
 				return;
 			}
 
-			_children[0].Start = Start + orgItems - _children[0].Items - _children[1].Items;
-			_children[1].Start = _children[0].Start + _children[0].Items;
+			child0.Start = Start + orgItems - child0.Items - child1.Items;
+			child1.Start = child0.Start + child0.Items;
 
 			var items = 0;
-			_children[0].Items = 0;
-			_children[1].Items = 0;
+			child0.Items = 0;
+			child1.Items = 0;
 
 			switch (axis) {
 
 				// sort items that cross splitplane in-place, the others are sorted into a temporary
 				case 0: {
 					for (var i = Start; i < Start + orgItems; ++i) {
-						ref var bounds = ref hitOct.GetItemAt(i);
+						var bounds = hitOct.GetItemAt(i);
 
 						if (bounds.Right < vCenter.x) {
-							hitOct.Indices[_children[0].Start + _children[0].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child0.Start + child0.Items++] = hitOct.OrgIdx[i];
 
 						} else if (bounds.Left > vCenter.x) {
-							hitOct.Indices[_children[1].Start + _children[1].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child1.Start + child1.Items++] = hitOct.OrgIdx[i];
 
 						} else {
 							hitOct.OrgIdx[Start + items++] = hitOct.OrgIdx[i];
@@ -193,13 +197,13 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				case 1: {
 					for (var i = Start; i < Start + orgItems; ++i) {
-						ref var bounds = ref hitOct.GetItemAt(i);
+						var bounds = hitOct.GetItemAt(i);
 
 						if (bounds.Bottom < vCenter.y) {
-							hitOct.Indices[_children[0].Start + _children[0].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child0.Start + child0.Items++] = hitOct.OrgIdx[i];
 
 						} else if (bounds.Top > vCenter.y) {
-							hitOct.Indices[_children[1].Start + _children[1].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child1.Start + child1.Items++] = hitOct.OrgIdx[i];
 
 						} else {
 							hitOct.OrgIdx[Start + items++] = hitOct.OrgIdx[i];
@@ -211,13 +215,13 @@ namespace VisualPinball.Unity.Physics.Collision
 				default: { // axis == 2
 
 					for (var i = Start; i < Start + orgItems; ++i) {
-						ref var bounds = ref hitOct.GetItemAt(i);
+						var bounds = hitOct.GetItemAt(i);
 
 						if (bounds.ZHigh < vCenter.z) {
-							hitOct.Indices[_children[0].Start + _children[0].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child0.Start + child0.Items++] = hitOct.OrgIdx[i];
 
 						} else if (bounds.ZLow > vCenter.z) {
-							hitOct.Indices[_children[1].Start + _children[1].Items++] = hitOct.OrgIdx[i];
+							hitOct.Indices[child1.Start + child1.Items++] = hitOct.OrgIdx[i];
 
 						} else {
 							hitOct.OrgIdx[Start + items++] = hitOct.OrgIdx[i];
@@ -236,18 +240,21 @@ namespace VisualPinball.Unity.Physics.Collision
 			Items = items | (axis << 30);
 
 			// copy temporary back //!! could omit this by doing everything inplace
-			for (var i = 0; i < _children[0].Items; i++) {
-				hitOct.OrgIdx[_children[0].Start + i] = hitOct.Indices[_children[0].Start + i];
+			for (var i = 0; i < child0.Items; i++) {
+				hitOct.OrgIdx[child0.Start + i] = hitOct.Indices[child0.Start + i];
 			}
 
-			for (var i = 0; i < _children[1].Items; i++) {
-				hitOct.OrgIdx[_children[1].Start + i] = hitOct.Indices[_children[1].Start + i];
+			for (var i = 0; i < child1.Items; i++) {
+				hitOct.OrgIdx[child1.Start + i] = hitOct.Indices[child1.Start + i];
 			}
 			//memcpy(&this.HitOct->m_org_idx[this.Children[0].Start], &this.HitOct->tmp[this.Children[0].Start], this.Children[0].Items*sizeof(unsigned int));
 			//memcpy(&this.HitOct->m_org_idx[this.Children[1].Start], &this.HitOct->tmp[this.Children[1].Start], this.Children[1].This.Items*sizeof(unsigned int));
 
-			_children[0].CreateNextLevel(level + 1, levelEmpty, hitOct);
-			_children[1].CreateNextLevel(level + 1, levelEmpty, hitOct);
+			_children[0] = child0;
+			_children[1] = child1;
+
+			child0.CreateNextLevel(level + 1, levelEmpty, hitOct);
+			child1.CreateNextLevel(level + 1, levelEmpty, hitOct);
 		}
 
 		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds) {
@@ -258,13 +265,13 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = Start; i < Start + orgItems; i++) {
-				ref var aabb = ref hitOct.GetItemAt(i);
+				var aabb = hitOct.GetItemAt(i);
 				if (entity != aabb.ColliderEntity && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
 					matchedColliderIds.Add(new MatchedBallColliderBufferElement { Value = aabb.ColliderEntity });
 				}
 			}
 
-			if (_children != null) {
+			if (_children.Length > 0) {
 				switch (axis) {
 					// not a leaf
 					case 0: {

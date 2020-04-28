@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 
 				if (matchedColliderIds.Length != 1) {
-					Debug.LogWarning($"Number of matched colliders should be 1 by now, but it's {matchedColliderIds.Length}.");
+					//Debug.LogWarning($"Number of matched colliders should be 1 by now, but it's {matchedColliderIds.Length}.");
 					return;
 				}
 
