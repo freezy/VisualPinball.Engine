@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -14,7 +13,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	public class FlipperDisplacementSystem : JobComponentSystem
+	public class FlipperDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -23,11 +22,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithoutBurst().WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
+			Entities.WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
@@ -75,9 +74,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 					state.EnableRotateEvent = 0;
 				}
-			}).Run();
-
-			return default;
+			}).ScheduleParallel();
 		}
 	}
 }

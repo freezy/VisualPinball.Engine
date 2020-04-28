@@ -25,7 +25,7 @@ using VisualPinball.Unity.VPT.Flipper;
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithoutBurst().WithName("NarrowPhaseJob").ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds,
+			Entities.WithName("NarrowPhaseJob").ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds,
 				ref DynamicBuffer<MatchedBallColliderBufferElement> matchedBallColliderEntities, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in BallData ballData) => {

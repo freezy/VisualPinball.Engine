@@ -6,7 +6,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 namespace VisualPinball.Unity.VPT.Ball
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	public class BallDisplacementSystem : JobComponentSystem
+	public class BallDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -15,11 +15,11 @@ namespace VisualPinball.Unity.VPT.Ball
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 
-			return Entities.WithoutBurst().WithName("BallDisplacementJob").ForEach((ref BallData ball) => {
+			Entities.WithName("BallDisplacementJob").ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
-			}).Schedule(inputDeps);
+			}).ScheduleParallel();
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

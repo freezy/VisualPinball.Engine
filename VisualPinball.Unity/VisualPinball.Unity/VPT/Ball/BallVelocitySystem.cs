@@ -11,7 +11,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 namespace VisualPinball.Unity.VPT.Ball
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	public class BallVelocitySystem : JobComponentSystem
+	public class BallVelocitySystem : SystemBase
 	{
 		private float3 _gravity;
 
@@ -20,17 +20,17 @@ namespace VisualPinball.Unity.VPT.Ball
 			_gravity = Object.FindObjectOfType<Player>().GetGravity();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			var gravity = _gravity;
-			return Entities.WithoutBurst().WithName("BallVelocityJob").ForEach((ref BallData ball) => {
+			Entities.WithName("BallVelocityJob").ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;
 				}
 				ball.Velocity += gravity * PhysicsConstants.PhysFactor;
 
-			}).Schedule(inputDeps);
+			}).ScheduleParallel();
 		}
 	}
 }

@@ -20,27 +20,27 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private StaticBroadPhaseSystem _staticBroadPhaseSystem;
-		private BallDynamicBroadPhaseSystem _ballDynamicBroadPhaseSystem;
+		private DynamicBroadPhaseSystem _dynamicBroadPhaseSystem;
 		private BallNarrowPhaseSystemGroup _ballNarrowPhaseSystemGroup;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 		private StaticCollisionSystem _staticCollisionSystem;
-		//private DynamicCollisionSystem _dynamicCollisionSystem;
+		private DynamicCollisionSystem _dynamicCollisionSystem;
 		private ContactSystem _contactSystem;
 
 		protected override void OnCreate()
 		{
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
-			_ballDynamicBroadPhaseSystem = World.GetOrCreateSystem<BallDynamicBroadPhaseSystem>();
+			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
 			_ballNarrowPhaseSystemGroup = World.GetOrCreateSystem<BallNarrowPhaseSystemGroup>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
-			//_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
+			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_ballNarrowPhaseSystemGroup);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 			_systemsToUpdate.Add(_staticCollisionSystem);
-			//_systemsToUpdate.Add(_dynamicCollisionSystem);
+			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
 		}
 
@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				// 	}
 				// }
 
-				_ballDynamicBroadPhaseSystem.Update();
+				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
 				_ballNarrowPhaseSystemGroup.Update();
 
@@ -89,7 +89,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				_displacementSystemGroup.Update();
 				_staticCollisionSystem.Update();
-				//_dynamicCollisionSystem.Update();
+				_dynamicCollisionSystem.Update();
 				_contactSystem.Update();
 
 				dTime -= HitTime;
