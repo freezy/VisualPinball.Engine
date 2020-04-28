@@ -7,21 +7,21 @@ using VisualPinball.Unity.VPT.Ball;
 namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
-	public class BallDynamicBroadPhaseSystem : JobComponentSystem
+	public class DynamicBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _ballQuery;
 
 		[BurstCompile]
-		private struct BallDynamicBroadPhaseJob : IJob {
+		private struct DynamicBroadPhaseJob : IJob {
 
 			[DeallocateOnJobCompletion]
 			public NativeArray<ArchetypeChunk> Chunks;
 
 			[ReadOnly]
 			public ArchetypeChunkComponentType<BallData> BallType;
-			public ArchetypeChunkBufferType<MatchedBallColliderBufferElement> MatchedBallColliderType;
 			[ReadOnly]
 			public ArchetypeChunkEntityType EntityChunkType;
+			public ArchetypeChunkBufferType<MatchedBallColliderBufferElement> MatchedBallColliderType;
 
 			public void Execute()
 			{
@@ -40,8 +40,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				var kdRoot = new KdRoot(ballBounds.ToArray()); // todo fix, copies data
 				for (var j = 0; j < Chunks.Length; j++) {
 
-					var entities = Chunks[j].GetNativeArray(EntityChunkType);
 					var balls = Chunks[j].GetNativeArray(BallType);
+					var entities = Chunks[j].GetNativeArray(EntityChunkType);
 					var matchedColliderIdBuffers = Chunks[j].GetBufferAccessor(MatchedBallColliderType);
 
 					//Debug.Log($"We have {balls.Length} ball(s) and ({Chunks.Length} chunk(s)!");
@@ -58,14 +58,14 @@ namespace VisualPinball.Unity.Physics.Collision
 			_ballQuery = GetEntityQuery(typeof(BallData));
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
-			return new BallDynamicBroadPhaseJob {
+			Dependency = new DynamicBroadPhaseJob {
 				Chunks = _ballQuery.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
 				MatchedBallColliderType = GetArchetypeChunkBufferType<MatchedBallColliderBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
-			}.Schedule(inputDeps);
+			}.Schedule(Dependency);
 		}
 	}
 }

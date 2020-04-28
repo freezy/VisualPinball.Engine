@@ -1,5 +1,4 @@
 ﻿using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
@@ -10,7 +9,7 @@ namespace VisualPinball.Unity.VPT.Ball
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class BallMovementSystem : JobComponentSystem
+	public class BallMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
 
@@ -26,10 +25,10 @@ namespace VisualPinball.Unity.VPT.Ball
 			);
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
 			var ltw = _baseTransform;
-			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
+			Entities.WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
 				translation.Value = math.transform(ltw, ball.Position);
 				var or = ball.Orientation;
 				rot.Value = new quaternion(new float4x4(
@@ -38,9 +37,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					or.c0.z, or.c1.z, or.c2.z, 0.0f,
 					0f, 0f, 0f, 1f
 				));
-			}).Run();
-
-			return default;
+			}).ScheduleParallel();
 		}
 	}
 }

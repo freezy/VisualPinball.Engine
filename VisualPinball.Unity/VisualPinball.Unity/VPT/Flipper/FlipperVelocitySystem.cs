@@ -4,7 +4,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -12,7 +11,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	public class FlipperVelocitySystem : JobComponentSystem
+	public class FlipperVelocitySystem : SystemBase
 	{
 		#if FLIPPER_LOG
 		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
@@ -27,9 +26,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 		}
 		#endif
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
-			Entities.WithoutBurst().WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
+			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
 
 				#if FLIPPER_LOG
 				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
@@ -104,9 +103,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 				mState.AngularMomentum += PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
-			}).Run();
 
-			return default;
+			}).ScheduleParallel();
 		}
 	}
 }
