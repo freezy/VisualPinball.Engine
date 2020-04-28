@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<QuadTreeData>(collEntity);
 
-			Entities.WithName("StaticBroadPhaseJob").ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliders, in BallData ballData) => {
+			Entities.WithName("StaticBroadPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliders, in BallData ballData) => {
 				ref var quadTree = ref collData.Value.Value.QuadTree;
 				matchedColliders.Clear();
 				quadTree.GetAabbOverlaps(in ballData, ref matchedColliders);

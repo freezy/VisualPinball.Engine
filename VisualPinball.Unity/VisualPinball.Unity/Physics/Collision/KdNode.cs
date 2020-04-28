@@ -260,7 +260,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			childB.CreateNextLevel(level + 1, levelEmpty, hitOct);
 		}
 
-		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallData ball, ref DynamicBuffer<MatchedBallColliderBufferElement> matchedColliderIds) {
+		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallData ball, ref DynamicBuffer<OverlappingDynamicBufferElement> matchedColliderIds) {
 
 			var orgItems = Items & 0x3FFFFFFF;
 			var axis = Items >> 30;
@@ -270,7 +270,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			for (var i = Start; i < Start + orgItems; i++) {
 				var aabb = hitOct.GetItemAt(i);
 				if (entity != aabb.ColliderEntity && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new MatchedBallColliderBufferElement { Value = aabb.ColliderEntity });
+					matchedColliderIds.Add(new OverlappingDynamicBufferElement { Value = aabb.ColliderEntity });
 				}
 			}
 

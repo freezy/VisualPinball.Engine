@@ -256,20 +256,20 @@ namespace VisualPinball.Unity.VPT.Ball
 			return hitTime;
 		}
 
-		public static void Collide(ref BallData ball, ref BallData collidingBall,
-			in CollisionEventData ballCollEvent, in CollisionEventData collidingCollEvent,
+		public static void Collide(ref BallData ball, ref BallData otherBall,
+			in CollisionEventData ballCollEvent, in CollisionEventData otherCollEvent,
 			bool swapBallCollisionHandling)
 		{
 			// make sure we process each ball/ball collision only once
 			// (but if we are frozen, there won't be a second collision event, so deal with it now!)
-			if ((swapBallCollisionHandling && collidingBall.Id >= ball.Id ||
-			     !swapBallCollisionHandling && collidingBall.Id <= ball.Id) && !ball.IsFrozen) {
+			if ((swapBallCollisionHandling && otherBall.Id >= ball.Id ||
+			     !swapBallCollisionHandling && otherBall.Id <= ball.Id) && !ball.IsFrozen) {
 				return;
 			}
 
 			// target ball to object ball delta velocity
-			var vRel = collidingBall.Velocity - ball.Velocity;
-			var vNormal = collidingCollEvent.HitNormal;
+			var vRel = otherBall.Velocity - ball.Velocity;
+			var vNormal = otherCollEvent.HitNormal;
 			var dot = math.dot(vRel, vNormal);
 
 			// correct displacements, mostly from low velocity, alternative to true acceleration processing
@@ -283,7 +283,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				}
 
 				//#ifdef PhysicsConstants.Embedded
-				if (collidingCollEvent.HitDistance < -PhysicsConstants.Embedded) {
+				if (otherCollEvent.HitDistance < -PhysicsConstants.Embedded) {
 					dot = -PhysicsConstants.EmbedShot; // has ball become embedded???, give it a kick
 
 				} else {
@@ -300,7 +300,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			// }
 
 			//#ifdef PhysicsConstants.DispGain
-			var eDist = -PhysicsConstants.DispGain * collidingCollEvent.HitDistance;
+			var eDist = -PhysicsConstants.DispGain * otherCollEvent.HitDistance;
 			var normalDist = eDist * vNormal;
 			if (eDist > 1.0e-4) {
 				if (eDist > PhysicsConstants.DispLimit) {
@@ -312,7 +312,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					eDist *= 0.5f;
 				}
 
-				collidingBall.Position += normalDist; // push along norm, back to free area
+				otherBall.Position += normalDist; // push along norm, back to free area
 				// use the norm, but is not correct, but cheaply handled
 			}
 
@@ -328,13 +328,13 @@ namespace VisualPinball.Unity.VPT.Ball
 			//#endif
 
 			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
-			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + collidingBall.InvMass); // resitution = 0.8
+			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
 
 			if (!ball.IsFrozen) {
 				ball.Velocity -= impulse * myInvMass * vNormal;
 			}
 
-			collidingBall.Velocity += impulse * collidingBall.InvMass * vNormal;
+			otherBall.Velocity += impulse * otherBall.InvMass * vNormal;
 		}
 	}
 }

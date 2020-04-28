@@ -25,8 +25,8 @@ using VisualPinball.Unity.VPT.Flipper;
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithName("NarrowPhaseJob").ForEach((ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds,
-				ref DynamicBuffer<MatchedBallColliderBufferElement> matchedBallColliderEntities, ref CollisionEventData collEvent,
+			Entities.WithName("NarrowPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> staticColliderIds,
+				ref DynamicBuffer<OverlappingDynamicBufferElement> dynamicEntities, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in BallData ballData) => {
 
@@ -44,8 +44,9 @@ using VisualPinball.Unity.VPT.Flipper;
 				HitTest(ref playfieldCollider, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
 				HitTest(ref glassCollider, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
 
-				for (var i = 0; i < matchedColliderIds.Length; i++) {
-					ref var coll = ref colliders[matchedColliderIds[i].Value].Value;
+				// statics first (todo: randomly switch order)
+				for (var i = 0; i < staticColliderIds.Length; i++) {
+					ref var coll = ref colliders[staticColliderIds[i].Value].Value;
 
 					var newCollEvent = new CollisionEventData();
 					float newTime;
@@ -77,24 +78,27 @@ using VisualPinball.Unity.VPT.Flipper;
 					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime, ref validColl);
 				}
 
-				var validBallColl = Entity.Null;
-				for (var i = 0; i < matchedBallColliderEntities.Length; i++) {
-					var collBallEntity = matchedBallColliderEntities[i].Value;
+				// secondly, dynamic checks
+				var validBallEntity = Entity.Null;
+				for (var i = 0; i < dynamicEntities.Length; i++) {
+					var collBallEntity = dynamicEntities[i].Value;
 					var collBall = GetComponent<BallData>(collBallEntity);
 					var newCollEvent = new CollisionEventData();
 					var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ballData, collEvent.HitTime);
 
-					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime, ref validBallColl);
+					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime, ref validBallEntity);
 				}
 
-				matchedColliderIds.Clear();
-				matchedBallColliderEntities.Clear();
+				staticColliderIds.Clear();
+				dynamicEntities.Clear();
 
-				if (collEvent.HitTime >= 0 && validBallColl != Entity.Null) {
-					matchedBallColliderEntities.Add(new MatchedBallColliderBufferElement { Value = validBallColl });
+				if (collEvent.HitTime >= 0) {
+					if (validBallEntity != Entity.Null) {
+						dynamicEntities.Add(new OverlappingDynamicBufferElement { Value = validBallEntity });
 
-				} else if (collEvent.HitTime >= 0 && validColl.Type != ColliderType.None) {
-					matchedColliderIds.Add(new MatchedColliderBufferElement { Value = validColl.Id });
+					} else if (validColl.Type != ColliderType.None) {
+						staticColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = validColl.Id });
+					}
 				}
 
 			}).ScheduleParallel();
@@ -139,7 +143,7 @@ using VisualPinball.Unity.VPT.Flipper;
 
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 			ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime,
-			ref Entity validBallColl)
+			ref Entity validBallEntity)
 		{
 			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
@@ -153,7 +157,7 @@ using VisualPinball.Unity.VPT.Flipper;
 
 				} else {                         // if (validhit)
 					collEvent.Set(newCollEvent);
-					validBallColl = ballEntity;
+					validBallEntity = ballEntity;
 				}
 			}
 		}

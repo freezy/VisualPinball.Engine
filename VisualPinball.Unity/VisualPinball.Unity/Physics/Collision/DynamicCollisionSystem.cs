@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public NativeArray<ArchetypeChunk> Chunks;
 
 			public ArchetypeChunkComponentType<BallData> BallDataType;
-			public ArchetypeChunkBufferType<MatchedBallColliderBufferElement> MatchedBallBuffer;
+			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> MatchedBallBuffer;
 			[ReadOnly] public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
 			[ReadOnly] public ArchetypeChunkEntityType EntityType;
 
@@ -52,14 +52,14 @@ namespace VisualPinball.Unity.Physics.Collision
 						throw new InvalidOperationException($"Found {chunkMatchedBalls[i].Length} ball collisions but expected 1 (or 0).");
 					}
 
-					// pick colling ball
-					var collidingEntity = chunkMatchedBalls[i][0].Value;
-					var collidingBall = balls[collidingEntity];
-					var collidingCollEvent = collisionEvents[collidingEntity];
-
-					// pick ball
+					// pick "current" ball
 					var ballData = chunkBallData[i];
 					var collEvent = chunkCollEventData[i];
+
+					// pick "other" ball
+					var otherEntity = chunkMatchedBalls[i][0].Value;
+					var otherBall = balls[otherEntity];
+					var otherCollEvent = collisionEvents[otherEntity];
 
 					// find balls with hit objects and minimum time
 					if (collEvent.HitTime <= HitTime) {
@@ -68,8 +68,8 @@ namespace VisualPinball.Unity.Physics.Collision
 						//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
 						BallCollider.Collide(
-							ref ballData, ref collidingBall,
-							in collEvent, in collidingCollEvent,
+							ref ballData, ref otherBall,
+							in collEvent, in otherCollEvent,
 							SwapBallCollisionHandling
 						);
 					}
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var rotationsSpeedJob = new DynamicCollisionJob {
 				Chunks = _query.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallDataType = GetArchetypeChunkComponentType<BallData>(),
-				MatchedBallBuffer = GetArchetypeChunkBufferType<MatchedBallColliderBufferElement>(),
+				MatchedBallBuffer = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(true),
 				EntityType = GetArchetypeChunkEntityType(),
 				HitTime = _simulateCycleSystemGroup.HitTime,
