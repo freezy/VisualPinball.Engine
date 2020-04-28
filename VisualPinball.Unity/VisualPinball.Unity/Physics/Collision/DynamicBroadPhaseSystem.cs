@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public ArchetypeChunkComponentType<BallData> BallType;
 			[ReadOnly]
 			public ArchetypeChunkEntityType EntityChunkType;
-			public ArchetypeChunkBufferType<MatchedBallColliderBufferElement> MatchedBallColliderType;
+			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> MatchedBallColliderType;
 
 			public void Execute()
 			{
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			Dependency = new DynamicBroadPhaseJob {
 				Chunks = _ballQuery.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
-				MatchedBallColliderType = GetArchetypeChunkBufferType<MatchedBallColliderBufferElement>(),
+				MatchedBallColliderType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
 			}.Schedule(Dependency);
 		}

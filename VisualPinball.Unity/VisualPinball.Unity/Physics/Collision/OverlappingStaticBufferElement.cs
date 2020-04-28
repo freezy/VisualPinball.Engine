@@ -3,7 +3,7 @@
 namespace VisualPinball.Unity.Physics.Collision
 {
 	[InternalBufferCapacity(0)]
-	public struct MatchedColliderBufferElement : IBufferElementData
+	public struct OverlappingStaticColliderBufferElement : IBufferElementData
 	{
 		public int Value;
 	}

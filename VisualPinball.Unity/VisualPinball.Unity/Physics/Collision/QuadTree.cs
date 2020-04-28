@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			dest.IsLeaf = src.IsLeaf;
 		}
 
-		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<MatchedColliderBufferElement> matchedColliderIds)
+		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			for (var i = 0; i < Bounds.Length; i++) {
 				ref var bounds = ref Bounds[i].Value;
 				if (bounds.IntersectRect(ballAabb) && bounds.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new MatchedColliderBufferElement { Value = bounds.ColliderId });
+					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
 				}
 			}
 

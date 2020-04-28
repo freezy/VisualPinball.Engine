@@ -36,8 +36,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			// 		EntityIndex = -1
 			// 	}
 			// });
-			dstManager.AddBuffer<MatchedColliderBufferElement>(entity);
-			dstManager.AddBuffer<MatchedBallColliderBufferElement>(entity);
+			dstManager.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
+			dstManager.AddBuffer<OverlappingDynamicBufferElement>(entity);
 			dstManager.AddBuffer<ContactBufferElement>(entity);
 			dstManager.AddBuffer<BallInsideOfBufferElement>(entity);
 		}
