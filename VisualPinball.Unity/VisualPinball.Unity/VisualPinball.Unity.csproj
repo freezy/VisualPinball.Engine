@@ -155,7 +155,7 @@
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
     <Compile Include="VPT\Flipper\FlipperHitData.cs" />
-    <Compile Include="VPT\Flipper\FlipperMaterialData.cs" />
+    <Compile Include="VPT\Flipper\FlipperStaticData.cs" />
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperVelocityData.cs" />

@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			}
 		}
 
-		private FlipperMaterialData GetMaterialData()
+		private FlipperStaticData GetMaterialData()
 		{
 			float flipperRadius;
 			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			var mass = data.GetFlipperMass(_tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
-			return new FlipperMaterialData {
+			return new FlipperStaticData {
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
-		private FlipperMovementData GetMovementData(FlipperMaterialData d)
+		private FlipperMovementData GetMovementData(FlipperStaticData d)
 		{
 			// store flipper base rotation without starting angle
 			var baseRotation = math.normalize(math.mul(
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
-		private static FlipperVelocityData GetVelocityData(FlipperMaterialData d)
+		private static FlipperVelocityData GetVelocityData(FlipperStaticData d)
 		{
 			return new FlipperVelocityData {
 				AngularAcceleration = 0f,

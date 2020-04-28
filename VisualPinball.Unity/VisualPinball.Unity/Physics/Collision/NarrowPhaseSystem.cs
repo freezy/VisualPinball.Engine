@@ -60,7 +60,7 @@ using VisualPinball.Unity.VPT.Flipper;
 								case ColliderType.Flipper:
 									var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
 									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-									var flipperMaterialData = GetComponent<FlipperMaterialData>(coll.Entity);
+									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 									newTime = ((FlipperCollider*) collider)->HitTest(
 										ref newCollEvent, ref insideOfs, ref flipperHitData,
 										in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
