@@ -17,7 +17,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (EditorApplication.isPlaying) {
 				if (GUILayout.Button("Spawn Ball")) {
 					var player = (Player) target;
-					player.CreateBall(new DebugBallCreator());
+
+					player.CreateBall(new DebugBallCreator(390, 1125));
+					player.CreateBall(new DebugBallCreator(425, 1325));
 				}
 			}
 		}
@@ -25,9 +27,18 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 	internal class DebugBallCreator : IBallCreationPosition
 	{
+		private readonly float _x;
+		private readonly float _y;
+
+		public DebugBallCreator(float x, float y)
+		{
+			_x = x;
+			_y = y;
+		}
+
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
-			return new Vertex3D(325, 1125, 0);
+			return new Vertex3D(_x, _y, 0);
 			//return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
 		}
 

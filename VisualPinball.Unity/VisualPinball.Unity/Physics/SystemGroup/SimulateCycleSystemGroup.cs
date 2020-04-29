@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private StaticBroadPhaseSystem _staticBroadPhaseSystem;
 		private DynamicBroadPhaseSystem _dynamicBroadPhaseSystem;
-		private BallNarrowPhaseSystemGroup _ballNarrowPhaseSystemGroup;
+		private NarrowPhaseSystem _narrowPhaseSystem;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
@@ -31,13 +31,14 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		{
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
-			_ballNarrowPhaseSystemGroup = World.GetOrCreateSystem<BallNarrowPhaseSystemGroup>();
+			_narrowPhaseSystem = World.GetOrCreateSystem<NarrowPhaseSystem>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
 			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
-			_systemsToUpdate.Add(_ballNarrowPhaseSystemGroup);
+			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
+			_systemsToUpdate.Add(_narrowPhaseSystem);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 			_systemsToUpdate.Add(_staticCollisionSystem);
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
-				_ballNarrowPhaseSystemGroup.Update();
+				_narrowPhaseSystem.Update();
 
 				// update hittime
 				var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());

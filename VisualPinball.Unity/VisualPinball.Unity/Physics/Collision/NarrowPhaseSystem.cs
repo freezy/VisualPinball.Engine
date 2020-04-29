@@ -6,7 +6,7 @@ using VisualPinball.Unity.VPT.Flipper;
 
  namespace VisualPinball.Unity.Physics.Collision
 {
-	[UpdateInGroup(typeof(BallNarrowPhaseSystemGroup))]
+	[DisableAutoCreation]
 	public class NarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
@@ -38,7 +38,7 @@ using VisualPinball.Unity.VPT.Flipper;
 				// init contacts and event
 				var validColl = Collider.Collider.None;
 				contacts.Clear();
-				collEvent.HitTime = hitTime; // search upto current hittime
+				collEvent.Reset(hitTime); // search upto current hittime
 
 				// check playfield and glass first
 				HitTest(ref playfieldCollider, ref collEvent, ref validColl, ref contacts, ref insideOfs, in ballData);
@@ -92,16 +92,16 @@ using VisualPinball.Unity.VPT.Flipper;
 				staticColliderIds.Clear();
 				dynamicEntities.Clear();
 
-				if (collEvent.HitTime >= 0) {
-					if (validBallEntity != Entity.Null) {
-						dynamicEntities.Add(new OverlappingDynamicBufferElement { Value = validBallEntity });
+				// if (collEvent.HitTime >= 0) {
+				// 	if (validBallEntity != Entity.Null) {
+				// 		dynamicEntities.Add(new OverlappingDynamicBufferElement { Value = validBallEntity });
+				//
+				// 	} else if (validColl.Type != ColliderType.None) {
+				// 		staticColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = validColl.Id });
+				// 	}
+				// }
 
-					} else if (validColl.Type != ColliderType.None) {
-						staticColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = validColl.Id });
-					}
-				}
-
-			}).ScheduleParallel();
+			}).Run();
 		}
 
 		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
@@ -135,7 +135,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					});
 
 				} else {                         // if (validhit)
-					collEvent.Set(newCollEvent);
+					collEvent.Set(coll.Id, newCollEvent);
 					validColl = coll;
 				}
 			}
@@ -156,7 +156,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					});
 
 				} else {                         // if (validhit)
-					collEvent.Set(newCollEvent);
+					collEvent.Set(ballEntity, newCollEvent);
 					validBallEntity = ballEntity;
 				}
 			}

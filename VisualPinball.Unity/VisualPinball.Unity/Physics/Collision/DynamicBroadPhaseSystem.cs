@@ -25,6 +25,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			public void Execute()
 			{
+				// get bounds for all balls
 				var ballBounds = new NativeList<Aabb>(Allocator.Temp);
 				for (var j = 0; j < Chunks.Length; j++) {
 					var balls = Chunks[j].GetNativeArray(BallType);
@@ -37,7 +38,10 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 
+				// create kdtree
 				var kdRoot = new KdRoot(ballBounds);
+
+				// find aabb overlaps
 				for (var j = 0; j < Chunks.Length; j++) {
 
 					var balls = Chunks[j].GetNativeArray(BallType);
@@ -48,6 +52,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					for (var i = 0; i < Chunks[j].Count; i++) {
 						var overlappingEntityBuffer = overlappingBuffers[i];
+						overlappingEntityBuffer.Clear();
 						kdRoot.GetAabbOverlaps(entities[i], balls[i], ref overlappingEntityBuffer);
 					}
 				}

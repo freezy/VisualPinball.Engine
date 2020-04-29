@@ -48,13 +48,13 @@ namespace VisualPinball.Unity.Physics.Collider
 			_zLow = src.HitBBox.ZLow;
 		}
 
-		public float HitTest(ref CollisionEventData coll, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			// normal face, lateral, rigid
-			return HitTestBasicRadius(ref coll, ref insideOfs, ball, dTime, true, true, true);
+			return HitTestBasicRadius(ref collEvent, ref insideOfs, ball, dTime, true, true, true);
 		}
 
-		public float HitTestBasicRadius(ref CollisionEventData coll, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// todo
 			// if (!IsEnabled || ball.State.IsFrozen) {
@@ -176,35 +176,35 @@ namespace VisualPinball.Unity.Physics.Collider
 			var hitY = ball.Position.y + ball.Velocity.y * hitTime;
 			var sqrLen = (hitX - c.x) * (hitX - c.x) + (hitY - c.y) * (hitY - c.y);
 
-			coll.HitNormal.x = 0;
-			coll.HitNormal.y = 0;
-			coll.HitNormal.z = 0;
+			collEvent.HitNormal.x = 0;
+			collEvent.HitNormal.y = 0;
+			collEvent.HitNormal.z = 0;
 
 			// over center?
 			if (sqrLen > 1.0e-8) {
 				// no
 				var invLen = 1.0f / math.sqrt(sqrLen);
-				coll.HitNormal.x = (hitX - c.x) * invLen;
-				coll.HitNormal.y = (hitY - c.y) * invLen;
+				collEvent.HitNormal.x = (hitX - c.x) * invLen;
+				collEvent.HitNormal.y = (hitY - c.y) * invLen;
 
 			} else {
 				// yes, over center
-				coll.HitNormal.x = 0.0f; // make up a value, any direction is ok
-				coll.HitNormal.y = 1.0f;
-				coll.HitNormal.z = 0.0f;
+				collEvent.HitNormal.x = 0.0f; // make up a value, any direction is ok
+				collEvent.HitNormal.y = 1.0f;
+				collEvent.HitNormal.z = 0.0f;
 			}
 
 			if (!rigid) {
 				// non rigid body collision? return direction
-				coll.HitFlag = isUnhit; // UnHit signal is receding from target
+				collEvent.HitFlag = isUnhit; // UnHit signal is receding from target
 			}
 
-			coll.IsContact = isContact;
+			collEvent.IsContact = isContact;
 			if (isContact) {
-				coll.HitOrgNormalVelocity = bnv;
+				collEvent.HitOrgNormalVelocity = bnv;
 			}
 
-			coll.HitDistance = bnd; // actual contact distance ...
+			collEvent.HitDistance = bnd; // actual contact distance ...
 			//coll.M_hitRigid = rigid;                         // collision type
 
 			return hitTime;
