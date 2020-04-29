@@ -43,10 +43,36 @@ namespace VisualPinball.Unity.Game
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
 		}
 
+		enum TimingMode { RealTime, Atleast60, Locked60 };
+		TimingMode timingMode = TimingMode.Locked60;
+
+		long GetTargetTime()
+		{
+			const long dt60fps = 1000000 / 60;
+			long t = (long)(Time.ElapsedTime * 1000000); // default: TimingMode.RealTime:
+
+			switch (timingMode)
+			{
+				case TimingMode.Atleast60:
+					long dt = (long)(Time.DeltaTime * 1000000);
+					if (_currentPhysicsTime > 0 && dt > dt60fps)
+					{
+						dt = dt60fps;
+					}
+					t = _currentPhysicsTime + dt;					
+					break;
+
+				case TimingMode.Locked60:
+					t = _currentPhysicsTime + dt60fps;
+					break;
+			}
+			return t;
+		}
+
 		protected override void OnUpdate()
 		{
 			const int startTimeUsec = 0;
-			var initialTimeUsec = (long)(Time.ElapsedTime * 1000000);
+			var initialTimeUsec = GetTargetTime();
 			CurPhysicsFrameTime = _currentPhysicsTime == 0
 				? (long) (initialTimeUsec - Time.DeltaTime * 1000000)
 				: _currentPhysicsTime;
