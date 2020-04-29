@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public ArchetypeChunkComponentType<BallData> BallType;
 			[ReadOnly]
 			public ArchetypeChunkEntityType EntityChunkType;
-			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> MatchedBallColliderType;
+			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
 
 			public void Execute()
 			{
@@ -42,13 +42,13 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					var balls = Chunks[j].GetNativeArray(BallType);
 					var entities = Chunks[j].GetNativeArray(EntityChunkType);
-					var matchedColliderIdBuffers = Chunks[j].GetBufferAccessor(MatchedBallColliderType);
+					var overlappingBuffers = Chunks[j].GetBufferAccessor(OverlappingDynamicBufferType);
 
 					//Debug.Log($"We have {balls.Length} ball(s) and ({Chunks.Length} chunk(s)!");
 
 					for (var i = 0; i < Chunks[j].Count; i++) {
-						var matchedColliderIdBuffer = matchedColliderIdBuffers[i];
-						kdRoot.GetAabbOverlaps(entities[i], balls[i], ref matchedColliderIdBuffer);
+						var overlappingEntityBuffer = overlappingBuffers[i];
+						kdRoot.GetAabbOverlaps(entities[i], balls[i], ref overlappingEntityBuffer);
 					}
 				}
 				kdRoot.Dispose();
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			Dependency = new DynamicBroadPhaseJob {
 				Chunks = _ballQuery.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
-				MatchedBallColliderType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
+				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
 			}.Schedule(Dependency);
 		}
