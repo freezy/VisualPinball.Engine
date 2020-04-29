@@ -30,15 +30,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
 			Entities.WithName("StaticCollisionJob").ForEach((ref BallData ballData,
-				ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds,
 				ref CollisionEventData collEvent) => {
 
-				if (matchedColliderIds.Length == 0) {
-					return;
-				}
-
-				if (matchedColliderIds.Length != 1) {
-					//Debug.LogWarning($"Number of matched colliders should be 1 by now, but it's {matchedColliderIds.Length}.");
+				if (collEvent.ColliderId < 0) {
 					return;
 				}
 
@@ -46,7 +40,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref var colliders = ref collData.Value.Value.Colliders;
 
 				// pick collider that matched during narrowphase
-				ref var coll = ref colliders[matchedColliderIds[0].Value].Value; // object that ball hit in trials
+				ref var coll = ref colliders[collEvent.ColliderId].Value; // object that ball hit in trials
 
 				// find balls with hit objects and minimum time
 				if (collEvent.HitTime <= hitTime) {
@@ -77,7 +71,6 @@ namespace VisualPinball.Unity.Physics.Collision
 						}
 					}
 				}
-				matchedColliderIds.Clear();
 
 
 				// todo fix below
