@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData coll, in float3 hitNormal, ref Random random)
+		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref Random random)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					return; // is this velocity clearly receding (i.E must > a minimum)
 				}
 
-				if (coll.HitDistance < -PhysicsConstants.Embedded) {
+				if (collEvent.HitDistance < -PhysicsConstants.Embedded) {
 					dot = -PhysicsConstants.EmbedShot; // has ball become embedded???, give it a kick
 
 				} else {
@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 
 			// correct displacements, mostly from low velocity, alternative to acceleration processing
-			var hDist = -PhysicsConstants.DispGain * coll.HitDistance; // limit delta noise crossing ramps,
+			var hDist = -PhysicsConstants.DispGain * collEvent.HitDistance; // limit delta noise crossing ramps,
 			if (hDist > 1.0e-4) {
 				// when hit detection checked it what was the displacement
 				if (hDist > PhysicsConstants.DispLimit) {
@@ -94,25 +94,25 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
-		public static void HandleStaticContact(ref BallData ball, in CollisionEventData coll, float friction, float dTime, in float3 gravity)
+		public static void HandleStaticContact(ref BallData ball, in CollisionEventData collEvent, float friction, float dTime, in float3 gravity)
 		{
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
-			var normVel = math.dot(ball.Velocity, coll.HitNormal);
+			var normVel = math.dot(ball.Velocity, collEvent.HitNormal);
 
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
 
 				// external forces (only gravity for now)
 				var fe = gravity * ball.Mass;
-				var dot = math.dot(fe, coll.HitNormal);
+				var dot = math.dot(fe, collEvent.HitNormal);
 
 				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + coll.HitOrgNormalVelocity));
+				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
-				ball.Velocity += coll.HitNormal * normalForce;
+				ball.Velocity += collEvent.HitNormal * normalForce;
 
-				ApplyFriction(ref ball, coll.HitNormal, dTime, friction, gravity);
+				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, gravity);
 			}
 		}
 
@@ -163,10 +163,10 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
-		public static float HitTest(ref CollisionEventData collEvent, ref BallData hittingBall, in BallData ball, float dTime)
+		public static float HitTest(ref CollisionEventData collEvent, ref BallData otherBall, in BallData ball, float dTime)
 		{
-			var d = ball.Position - hittingBall.Position;                    // delta position
-			var dv = ball.Velocity - hittingBall.Velocity;                            // delta velocity
+			var d = ball.Position - otherBall.Position;                    // delta position
+			var dv = ball.Velocity - otherBall.Velocity;                            // delta velocity
 
 			var bcddSq = math.lengthsq(d);                                         // square of ball center"s delta distance
 			var bcdd = math.sqrt(bcddSq);                                     // length of delta
@@ -174,12 +174,12 @@ namespace VisualPinball.Unity.VPT.Ball
 			if (bcdd < 1.0e-8) {
 				// two balls center-over-center embedded
 				d.z = -1.0f;                                                   // patch up
-				hittingBall.Position.z -= d.z;                                       // lift up
+				otherBall.Position.z -= d.z;                                       // lift up
 
 				bcdd = 1.0f;                                                   // patch up
 				bcddSq = 1.0f;                                                 // patch up
 				dv.z = 0.1f;                                                   // small speed difference
-				hittingBall.Velocity.z -= dv.z;
+				otherBall.Velocity.z -= dv.z;
 			}
 
 			var b = math.dot(dv, d);                                                 // inner product
@@ -190,14 +190,14 @@ namespace VisualPinball.Unity.VPT.Ball
 				return -1.0f;
 			}
 
-			var totalRadius = hittingBall.Radius + ball.Radius;
+			var totalRadius = otherBall.Radius + ball.Radius;
 			var bnd = bcdd - totalRadius;                                      // distance between ball surfaces
 
 			float hitTime;
 			var isContact = false;
 			if (bnd <= PhysicsConstants.PhysTouch) {
 				// in contact?
-				if (bnd < hittingBall.Radius * -2.0f) {
+				if (bnd < otherBall.Radius * -2.0f) {
 					return -1.0f;                                              // embedded too deep?
 				}
 
@@ -237,7 +237,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				return -1.0f;
 			}
 
-			var hitPos = hittingBall.Position + hitTime * dv; // new ball position
+			var hitPos = otherBall.Position + hitTime * dv; // new ball position
 
 			// calc unit normal of collision
 			var hitNormal = hitPos - ball.Position;

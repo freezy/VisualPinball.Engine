@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_p = src.P.ToUnityFloat3();
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			// todo
 			// if (!IsEnabled) {
@@ -96,14 +96,14 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 
 			var hitPos = ball.Position + hitTime * ball.Velocity;
-			coll.HitNormal = math.normalize(hitPos - _p);
+			collEvent.HitNormal = math.normalize(hitPos - _p);
 
-			coll.IsContact = isContact;
+			collEvent.IsContact = isContact;
 			if (isContact) {
-				coll.HitOrgNormalVelocity = bnv;
+				collEvent.HitOrgNormalVelocity = bnv;
 			}
 
-			coll.HitDistance = bnd; // actual contact distance
+			collEvent.HitDistance = bnd; // actual contact distance
 			//coll.M_hitRigid = true;
 
 			return hitTime;

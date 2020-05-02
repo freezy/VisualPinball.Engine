@@ -103,14 +103,14 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override void OnUpdate()
 		{
-			Dependency = new DynamicCollisionJob {
+			new DynamicCollisionJob {
 				Chunks = _query.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallDataType = GetArchetypeChunkComponentType<BallData>(),
 				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(true),
 				EntityType = GetArchetypeChunkEntityType(),
 				HitTime = _simulateCycleSystemGroup.HitTime,
 				SwapBallCollisionHandling = _simulateCycleSystemGroup.SwapBallCollisionHandling
-			}.Schedule(Dependency);
+			}.Run();
 		}
 	}
 }

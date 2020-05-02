@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 					state.EnableRotateEvent = 0;
 				}
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

@@ -125,7 +125,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 			return new FlipperHitData {
 				ZeroAngNorm = zeroAngNorm,
-				HitMomentBit = false,
+				HitMomentBit = true,
 				HitVelocity = new float2(),
 				LastHitFace = false,
 			};

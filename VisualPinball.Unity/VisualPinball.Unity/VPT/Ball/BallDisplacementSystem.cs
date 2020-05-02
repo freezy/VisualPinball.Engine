@@ -1,3 +1,4 @@
+using NLog;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -9,6 +10,8 @@ namespace VisualPinball.Unity.VPT.Ball
 	public class BallDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnCreate()
 		{
@@ -27,6 +30,8 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.Position += ball.Velocity * dTime;
 
+				Logger.Debug($"Ball {ball.Id} Position = {ball.Position}");
+
 				var inertia = ball.Inertia;
 				var mat3 = CreateSkewSymmetric(ball.AngularMomentum / inertia);
 				var addedOrientation = math.mul(ball.Orientation, mat3);
@@ -37,7 +42,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				}
 				ball.Velocity += gravity * PhysicsConstants.PhysFactor;
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

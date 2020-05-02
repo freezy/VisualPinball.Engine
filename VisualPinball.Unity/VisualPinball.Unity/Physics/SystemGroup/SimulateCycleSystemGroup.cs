@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 	public class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
 		public float HitTime;
-		public bool SwapBallCollisionHandling;
+		public bool SwapBallCollisionHandling = true;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 

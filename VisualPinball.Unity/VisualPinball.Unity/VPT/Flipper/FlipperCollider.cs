@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData coll, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref FlipperHitData hitData,
 			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
@@ -65,25 +65,25 @@ namespace VisualPinball.Unity.VPT.Flipper
 			// endRadius is more likely than baseRadius ... so check it first
 
 			// first face
-			var hitTime = HitTestFlipperFace(ref coll, ref hitData, movementData, matData, ball, dTime, lastFace);
+			var hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, matData, ball, dTime, lastFace);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
 
 			// second face
-			hitTime = HitTestFlipperFace(ref coll, ref hitData, movementData, matData, ball, dTime, !lastFace);
+			hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, matData, ball, dTime, !lastFace);
 			if (hitTime >= 0) {
 				hitData.LastHitFace = !lastFace; // change this face to check first // HACK
 				return hitTime;
 			}
 
 			// end radius
-			hitTime = HitTestFlipperEnd(ref coll, ref hitData, movementData, matData, ball, dTime);
+			hitTime = HitTestFlipperEnd(ref collEvent, ref hitData, movementData, matData, ball, dTime);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
 
-			hitTime = _hitCircleBase.HitTest(ref coll, ref insideOfs, in ball, dTime);
+			hitTime = _hitCircleBase.HitTest(ref collEvent, ref insideOfs, in ball, dTime);
 			if (hitTime >= 0) {
 				hitData.HitVelocity.x = 0;  // Tangent velocity of contact point (rotate Normal right)
 				hitData.HitVelocity.y = 0;  // rad units*d/t (Radians*diameter/time)
@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			return -1;
 		}
 
-		private float HitTestFlipperFace(ref CollisionEventData coll, ref FlipperHitData hitData,
+		private float HitTestFlipperFace(ref CollisionEventData collEvent, ref FlipperHitData hitData,
 			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball,
 			float dTime, bool face1)
 		{
@@ -270,9 +270,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 			// parameters need to be calculated from the actual configuration, i.E contact radius must be calc"ed
 
 			// hit normal is same as line segment normal
-			coll.HitNormal.x = faceNormal.x;
-			coll.HitNormal.y = faceNormal.y;
-			coll.HitNormal.z = 0;
+			collEvent.HitNormal.x = faceNormal.x;
+			collEvent.HitNormal.y = faceNormal.y;
+			collEvent.HitNormal.z = 0;
 
 			var dist = new float2( // calculate moment from flipper base center
 				ball.Position.x + ballVx * t - ballRadius * faceNormal.x - _hitCircleBase.Center.x, // center of ball + projected radius to contact point
@@ -298,23 +298,23 @@ namespace VisualPinball.Unity.VPT.Flipper
 				ballVy - hitData.HitVelocity.y * angleSpeed * distance
 			);
 
-			var bnv = dv.x * coll.HitNormal.x + dv.y * coll.HitNormal.y; // dot Normal to delta v
+			var bnv = dv.x * collEvent.HitNormal.x + dv.y * collEvent.HitNormal.y; // dot Normal to delta v
 
 			if (math.abs(bnv) <= PhysicsConstants.ContactVel && bffnd <= PhysicsConstants.PhysTouch) {
-				coll.IsContact = true;
-				coll.HitOrgNormalVelocity = bnv;
+				collEvent.IsContact = true;
+				collEvent.HitOrgNormalVelocity = bnv;
 
 			} else if (bnv > PhysicsConstants.LowNormVel) {
 				return -1.0f; // not hit ... ball is receding from endradius already, must have been embedded
 			}
 
-			coll.HitDistance = bffnd; // normal ...Actual contact distance ...
+			collEvent.HitDistance = bffnd; // normal ...Actual contact distance ...
 			//coll.M_hitRigid = true;                               // collision type
 
 			return t;
 		}
 
-		private float HitTestFlipperEnd(ref CollisionEventData coll, ref FlipperHitData hitData,
+		private float HitTestFlipperEnd(ref CollisionEventData collEvent, ref FlipperHitData hitData,
 			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
 			var angleCur = movementData.Angle;
@@ -461,14 +461,14 @@ namespace VisualPinball.Unity.VPT.Flipper
 			// ok we have a confirmed contact, calc the stats, remember there are "near" solution, so all
 			// parameters need to be calculated from the actual configuration, i.E. contact radius must be calc"ed
 			var invCbceDist = 1.0f / cbceDist;
-			coll.HitNormal.x = ballVtx * invCbceDist; // normal vector from flipper end to ball
-			coll.HitNormal.y = ballVty * invCbceDist;
-			coll.HitNormal.z = 0.0f;
+			collEvent.HitNormal.x = ballVtx * invCbceDist; // normal vector from flipper end to ball
+			collEvent.HitNormal.y = ballVty * invCbceDist;
+			collEvent.HitNormal.z = 0.0f;
 
 			// vector from base to flipperEnd plus the projected End radius
 			var dist = new float2(
-				ball.Position.x + ballVx * t - ballRadius * coll.HitNormal.x - _hitCircleBase.Center.x,
-				ball.Position.y + ballVy * t - ballRadius * coll.HitNormal.y - _hitCircleBase.Center.y
+				ball.Position.x + ballVx * t - ballRadius * collEvent.HitNormal.x - _hitCircleBase.Center.x,
+				ball.Position.y + ballVy * t - ballRadius * collEvent.HitNormal.y - _hitCircleBase.Center.y
 			);
 
 			// distance from base center to contact point
@@ -491,7 +491,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				ballVy - hitData.HitVelocity.y * angleSpeed * distance
 			);
 
-			var bnv = dv.x * coll.HitNormal.x + dv.y * coll.HitNormal.y; // dot Normal to delta v
+			var bnv = dv.x * collEvent.HitNormal.x + dv.y * collEvent.HitNormal.y; // dot Normal to delta v
 
 			if (bnv >= 0) {
 				// not hit ... ball is receding from face already, must have been embedded or shallow angled
@@ -499,11 +499,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 			}
 
 			if (math.abs(bnv) <= PhysicsConstants.ContactVel && bFend <= PhysicsConstants.PhysTouch) {
-				coll.IsContact = true;
-				coll.HitOrgNormalVelocity = bnv;
+				collEvent.IsContact = true;
+				collEvent.HitOrgNormalVelocity = bnv;
 			}
 
-			coll.HitDistance = bFend; // actual contact distance ..
+			collEvent.HitDistance = bFend; // actual contact distance ..
 
 			return t;
 		}
@@ -512,12 +512,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		#region Contact
 
-		public void Contact(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
+		public void Contact(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
 			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
-			var normal = coll.HitNormal;
+			var normal = collEvent.HitNormal;
 
-			if (coll.HitDistance < -PhysicsConstants.Embedded) {
+			if (collEvent.HitDistance < -PhysicsConstants.Embedded) {
 				// magic to avoid balls being pushed by each other through resting flippers!
 				ball.Velocity += 0.1f * normal;
 			}
@@ -554,7 +554,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				var j = -normAcc / contactForceAcc;
 
 				// kill any existing normal velocity
-				ball.Velocity += (j * dTime * ball.InvMass - coll.HitOrgNormalVelocity) * normal;
+				ball.Velocity += (j * dTime * ball.InvMass - collEvent.HitOrgNormalVelocity) * normal;
 				movementData.ApplyImpulse(j * dTime * cross, matData.Inertia);
 
 				// apply friction
@@ -621,10 +621,10 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref CollisionEventData coll, ref FlipperMovementData movementData,
+		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
 			in FlipperStaticData matData, in FlipperVelocityData velData)
 		{
-			var normal = coll.HitNormal;
+			var normal = collEvent.HitNormal;
 			GetRelativeVelocity(normal, ball, movementData, out var vRel, out var rB, out var rF);
 
 			var bnv = math.dot(normal, vRel); // relative normal velocity
@@ -638,7 +638,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				}
 
 				//#ifdef PhysicsConstants.EMBEDDED
-				if (coll.HitDistance < -PhysicsConstants.Embedded) {
+				if (collEvent.HitDistance < -PhysicsConstants.Embedded) {
 					bnv = -PhysicsConstants.EmbedShot; // has ball become embedded???, give it a kick
 
 				} else {
@@ -650,14 +650,14 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 			//#ifdef PhysicsConstants.DISP_GAIN
 			// correct displacements, mostly from low velocity blindness, an alternative to true acceleration processing
-			var hitDist = -PhysicsConstants.DispGain * coll.HitDistance; // distance found in hit detection
+			var hitDist = -PhysicsConstants.DispGain * collEvent.HitDistance; // distance found in hit detection
 			if (hitDist > 1.0e-4) {
 				if (hitDist > PhysicsConstants.DispLimit) {
 					hitDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
 				}
 
 				// push along norm, back to free area; use the norm, but is not correct
-				ball.Position += hitDist * coll.HitNormal;
+				ball.Position += hitDist * collEvent.HitNormal;
 			}
 			//#endif
 

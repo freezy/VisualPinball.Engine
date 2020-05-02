@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return $"PlaneCollider[{_header.Entity}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			// speed in normal direction
 			var bnv = math.dot(_normal, ball.Velocity);
@@ -59,10 +59,10 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
 				if (math.abs(bnd) <= PhysicsConstants.PhysTouch) {
-					coll.IsContact = true;
-					coll.HitNormal = _normal;
-					coll.HitOrgNormalVelocity = bnv; // remember original normal velocity
-					coll.HitDistance = bnd;
+					collEvent.IsContact = true;
+					collEvent.HitNormal = _normal;
+					collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
+					collEvent.HitDistance = bnd;
 
 					// hit time is ignored for contacts
 					return 0.0f;
@@ -84,15 +84,15 @@ namespace VisualPinball.Unity.Physics.Collider
 				return -1.0f;
 			}
 
-			coll.HitNormal = _normal;
-			coll.HitDistance = bnd; // actual contact distance
+			collEvent.HitNormal = _normal;
+			collEvent.HitDistance = bnd; // actual contact distance
 
 			return hitTime;
 		}
 
-		public void Collide(ref BallData ball, in CollisionEventData coll, ref Random random)
+		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
 		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in coll, in coll.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			// distance from plane to ball surface
 			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;

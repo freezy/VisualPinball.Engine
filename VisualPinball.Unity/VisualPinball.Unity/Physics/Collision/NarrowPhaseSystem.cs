@@ -127,6 +127,7 @@ using VisualPinball.Unity.VPT.Flipper;
 			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
+				newCollEvent.SetCollider(coll.Id);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement {
@@ -135,7 +136,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					});
 
 				} else {                         // if (validhit)
-					collEvent.Set(coll.Id, newCollEvent);
+					collEvent = newCollEvent;
 					validColl = coll;
 				}
 			}
@@ -148,6 +149,7 @@ using VisualPinball.Unity.VPT.Flipper;
 			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
+				newCollEvent.SetCollider(ballEntity);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement {
@@ -156,7 +158,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					});
 
 				} else {                         // if (validhit)
-					collEvent.Set(ballEntity, newCollEvent);
+					collEvent = newCollEvent;
 					validBallEntity = ballEntity;
 				}
 			}
