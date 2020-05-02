@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Game
 		}
 
 		enum TimingMode { RealTime, Atleast60, Locked60 };
-		TimingMode timingMode = TimingMode.Locked60;
+		TimingMode timingMode = TimingMode.RealTime;
 
 		long GetTargetTime()
 		{
@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Game
 					{
 						dt = dt60fps;
 					}
-					t = _currentPhysicsTime + dt;					
+					t = _currentPhysicsTime + dt;
 					break;
 
 				case TimingMode.Locked60:
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Game
 
 				PhysicsDiffTime = (_nextPhysicsFrameTime - CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
-				//Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
+				Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
 
 				// update velocities
 				_velocitiesSystemGroup.Update();

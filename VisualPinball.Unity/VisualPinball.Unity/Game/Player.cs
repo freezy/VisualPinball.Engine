@@ -111,8 +111,8 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("b")) {
-				_player.CreateBall(new DebugBallCreator(390, 1125));
 				_player.CreateBall(new DebugBallCreator(425, 1325));
+				_player.CreateBall(new DebugBallCreator(390, 1125));
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Game
 		public Vertex3D GetBallCreationVelocity(Table table)
 		{
 			// no velocity
-			return Vertex3D.Zero;
+			return new Vertex3D(0f, 0, 0);
 		}
 
 		public void OnBallCreated(PlayerPhysics physics, Ball ball)

@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				matchedColliders.Clear();
 				quadTree.GetAabbOverlaps(in ballData, ref matchedColliders);
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					or.c0.z, or.c1.z, or.c2.z, 0.0f,
 					0f, 0f, 0f, 1f
 				));
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

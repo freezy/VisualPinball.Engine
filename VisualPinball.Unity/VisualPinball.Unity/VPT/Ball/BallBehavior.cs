@@ -25,9 +25,12 @@ namespace VisualPinball.Unity.VPT.Ball
 				Velocity = Velocity,
 				Orientation = float3x3.identity
 			});
-			dstManager.AddComponentData(entity, new CollisionEventData {
+			 dstManager.AddComponentData(entity, new CollisionEventData {
 				HitTime = -1,
-				IsContact = false
+				HitDistance = 0,
+				HitFlag = false,
+				IsContact = false,
+				HitNormal = new float3(0, 0, 0),
 			});
 			// dstManager.AddComponentData(entity, new VisualPinball.Unity.Physics.Collider.Collider {
 			// 	Header = new ColliderHeader {

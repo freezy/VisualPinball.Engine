@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				// 	ball.hit.calcHitBBox(); // do new boundings
 				// }
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

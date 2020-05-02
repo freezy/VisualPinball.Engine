@@ -24,30 +24,26 @@ namespace VisualPinball.Unity.Physics.Collision
 			HitFlag = false;
 		}
 
-		public void Set(int colliderId, CollisionEventData newColl)
+		public void SetCollider(int colliderId)
 		{
 			ColliderId = colliderId;
 			ColliderEntity = Entity.Null;
-
-			Set(newColl);
 		}
 
-		public void Set(Entity colliderEntity, CollisionEventData newColl)
+		public void SetCollider(Entity colliderEntity)
 		{
 			ColliderId = -1;
 			ColliderEntity = colliderEntity;
-
-			Set(newColl);
 		}
 
-		private void Set(CollisionEventData newColl)
+		public void Set(CollisionEventData newCollEvent)
 		{
-			HitTime = newColl.HitTime;
-			HitNormal = newColl.HitNormal;
-			HitDistance = newColl.HitDistance;
-			HitFlag = newColl.HitFlag;
-			HitOrgNormalVelocity = newColl.HitOrgNormalVelocity;
-			IsContact = newColl.IsContact;
+			HitTime = newCollEvent.HitTime;
+			HitNormal = newCollEvent.HitNormal;
+			HitDistance = newCollEvent.HitDistance;
+			HitFlag = newCollEvent.HitFlag;
+			HitOrgNormalVelocity = newCollEvent.HitOrgNormalVelocity;
+			IsContact = newCollEvent.IsContact;
 		}
 	}
 }

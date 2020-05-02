@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			_normal = src.Normal.ToUnityFloat3();
 		}
 
-		public float HitTest(ref CollisionEventData coll, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			// todo
 			return -1;

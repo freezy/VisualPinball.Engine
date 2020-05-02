@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				// 	}
 				// }
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

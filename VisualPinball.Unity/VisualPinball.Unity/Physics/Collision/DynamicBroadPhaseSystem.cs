@@ -67,12 +67,12 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override void OnUpdate()
 		{
-			Dependency = new DynamicBroadPhaseJob {
+			new DynamicBroadPhaseJob {
 				Chunks = _ballQuery.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
 				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
-			}.Schedule(Dependency);
+			}.Run();
 		}
 	}
 }

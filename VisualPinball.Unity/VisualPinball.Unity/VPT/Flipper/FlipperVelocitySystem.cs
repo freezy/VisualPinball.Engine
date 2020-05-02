@@ -1,10 +1,8 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -104,7 +102,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }
