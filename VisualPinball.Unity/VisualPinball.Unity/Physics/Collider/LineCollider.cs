@@ -157,11 +157,11 @@ namespace VisualPinball.Unity.Physics.Collider
 			collEvent.HitNormal.y = coll._normal.y;
 			collEvent.HitNormal.z = 0f;
 			collEvent.HitDistance = bnd; // actual contact distance ...
-			//coll.M_hitRigid = rigid;     // collision type
 
 			// check for contact
-			if (math.abs(bnv) <= PhysicsConstants.ContactVel && math.abs(bnd) <= PhysicsConstants.PhysTouch) {
-				collEvent.IsContact = true;
+			collEvent.IsContact = math.abs(bnv) <= PhysicsConstants.ContactVel &&
+			                      math.abs(bnd) <= PhysicsConstants.PhysTouch;
+			if (collEvent.IsContact) {
 				collEvent.HitOrgNormalVelocity = bnv;
 			}
 			return hitTime;

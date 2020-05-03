@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
 				foreach (var entity in entities) {
 					var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
-					if (collEvent.HitTime <= HitTime) {                                  // smaller hit time??
+					if (collEvent.HasCollider() && collEvent.HitTime <= HitTime) {       // smaller hit time??
 						HitTime = collEvent.HitTime;                                     // record actual event time
 						if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
 							if (--staticCnts < 0) {
