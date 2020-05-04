@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Game
 
 				PhysicsDiffTime = (_nextPhysicsFrameTime - CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
-				Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
+				//Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
 
 				// update velocities
 				_velocitiesSystemGroup.Update();

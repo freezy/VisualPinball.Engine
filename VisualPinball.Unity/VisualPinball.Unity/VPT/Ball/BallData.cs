@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Unity.Physics.Collision;
 
@@ -107,6 +108,11 @@ namespace VisualPinball.Unity.VPT.Ball
 				}
 			}
 			return false;
+		}
+
+		public override string ToString()
+		{
+			return $"Ball{Id} ({Position.x}/{Position.y})";
 		}
 	}
 }

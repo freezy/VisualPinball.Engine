@@ -31,14 +31,16 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				// index data for faster access below
 				var numEntities = Chunks.Length * Chunks[0].Count;
-				var indices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
+				var chunkIndices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
+				var positionIndices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
 
-				for (var j = 0; j < Chunks.Length; j++) {
-					var chunkEntities = Chunks[j].GetNativeArray(EntityType);
-					var chunkCount = Chunks[j].Count;
+				for (var i = 0; i < Chunks.Length; i++) {
+					var chunkEntities = Chunks[i].GetNativeArray(EntityType);
+					var chunkCount = Chunks[i].Count;
 
-					for (var i = 0; i < chunkCount; i++) {
-						indices.Add(chunkEntities[i], i);
+					for (var j = 0; j < chunkCount; j++) {
+						chunkIndices.Add(chunkEntities[j], i);
+						positionIndices.Add(chunkEntities[j], j);
 					}
 				}
 
@@ -52,7 +54,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					for (var i = 0; i < chunkCount; i++) {
 
 						// pick "current" ball
-						var ballData = chunkBallData[i];
+						var ball = chunkBallData[i];
 						var collEvent = chunkCollEventData[i];
 
 						// pick "other" ball
@@ -61,18 +63,24 @@ namespace VisualPinball.Unity.Physics.Collision
 						// find balls with hit objects and minimum time
 						if (otherEntity != Entity.Null && collEvent.HitTime <= HitTime) {
 
-							var otherBall = chunkBallData[indices[otherEntity]];
-							var otherCollEvent = chunkCollEventData[indices[otherEntity]];
+							var chunkOtherBallData = Chunks[chunkIndices[otherEntity]].GetNativeArray(BallDataType);
+							var chunkOtherCollEventData = Chunks[chunkIndices[otherEntity]].GetNativeArray(CollisionEventDataType);
+
+							var otherBall = chunkOtherBallData[positionIndices[otherEntity]];
+							var otherCollEvent = chunkOtherCollEventData[positionIndices[otherEntity]];
 
 							// now collision, contact and script reactions on active ball (object)+++++++++
 
 							//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
-							BallCollider.Collide(
-								ref otherBall, ref ballData,
+							if (BallCollider.Collide(
+								ref otherBall, ref ball,
 								in collEvent, in otherCollEvent,
 								SwapBallCollisionHandling
-							);
+							)) {
+								chunkBallData[i] = ball;
+								chunkOtherBallData[positionIndices[otherEntity]] = otherBall;
+							}
 
 							// remove trial hit object pointer
 							collEvent.ClearCollider();

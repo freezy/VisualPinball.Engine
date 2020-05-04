@@ -256,7 +256,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			return hitTime;
 		}
 
-		public static void Collide(ref BallData ball, ref BallData otherBall,
+		public static bool Collide(ref BallData ball, ref BallData otherBall,
 			in CollisionEventData ballCollEvent, in CollisionEventData otherCollEvent,
 			bool swapBallCollisionHandling)
 		{
@@ -264,7 +264,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			// (but if we are frozen, there won't be a second collision event, so deal with it now!)
 			if ((swapBallCollisionHandling && otherBall.Id >= ball.Id ||
 			     !swapBallCollisionHandling && otherBall.Id <= ball.Id) && !ball.IsFrozen) {
-				return;
+				return false;
 			}
 
 			// target ball to object ball delta velocity
@@ -279,7 +279,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				if (dot > PhysicsConstants.LowNormVel) {
 
 					// otherwise if clearly approaching .. process the collision
-					return; // is this velocity clearly receding (i.E must > a minimum)
+					return false; // is this velocity clearly receding (i.E must > a minimum)
 				}
 
 				//#ifdef PhysicsConstants.Embedded
@@ -287,7 +287,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					dot = -PhysicsConstants.EmbedShot; // has ball become embedded???, give it a kick
 
 				} else {
-					return;
+					return false;
 				}
 
 				//#endif
@@ -335,6 +335,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 
 			otherBall.Velocity += impulse * otherBall.InvMass * vNormal;
+
+			return true;
 		}
 	}
 }
