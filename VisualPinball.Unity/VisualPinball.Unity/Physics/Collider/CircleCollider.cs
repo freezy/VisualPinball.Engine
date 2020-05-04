@@ -176,16 +176,13 @@ namespace VisualPinball.Unity.Physics.Collider
 			var hitY = ball.Position.y + ball.Velocity.y * hitTime;
 			var sqrLen = (hitX - c.x) * (hitX - c.x) + (hitY - c.y) * (hitY - c.y);
 
-			collEvent.HitNormal.x = 0;
-			collEvent.HitNormal.y = 0;
-			collEvent.HitNormal.z = 0;
-
 			// over center?
 			if (sqrLen > 1.0e-8) {
 				// no
 				var invLen = 1.0f / math.sqrt(sqrLen);
 				collEvent.HitNormal.x = (hitX - c.x) * invLen;
 				collEvent.HitNormal.y = (hitY - c.y) * invLen;
+				collEvent.HitNormal.z = 0;
 
 			} else {
 				// yes, over center
