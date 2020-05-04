@@ -31,21 +31,15 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				// index data for faster access below
 				var numEntities = Chunks.Length * Chunks[0].Count;
-				var balls = new NativeHashMap<Entity, BallData>(numEntities, Allocator.Temp);
-				var collisionEvents = new NativeHashMap<Entity, CollisionEventData>(numEntities, Allocator.Temp);
+				var indices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
 
 				for (var j = 0; j < Chunks.Length; j++) {
-					var chunkBallData = Chunks[j].GetNativeArray(BallDataType);
-					var chunkCollEventData = Chunks[j].GetNativeArray(CollisionEventDataType);
 					var chunkEntities = Chunks[j].GetNativeArray(EntityType);
 					var chunkCount = Chunks[j].Count;
 
-
 					for (var i = 0; i < chunkCount; i++) {
-						balls.Add(chunkEntities[i], chunkBallData[i]);
-						collisionEvents.Add(chunkEntities[i], chunkCollEventData[i]);
+						indices.Add(chunkEntities[i], i);
 					}
-
 				}
 
 				// collide balls
@@ -62,26 +56,38 @@ namespace VisualPinball.Unity.Physics.Collision
 						var collEvent = chunkCollEventData[i];
 
 						// pick "other" ball
-						var otherEntity = collEvent.ColliderEntity;
-						if (otherEntity == Entity.Null) {
-							// no dynamic collision
-							continue;
-						}
-
-						var otherBall = balls[otherEntity];
-						var otherCollEvent = collisionEvents[otherEntity];
+						ref var otherEntity = ref collEvent.ColliderEntity;
 
 						// find balls with hit objects and minimum time
-						if (collEvent.HitTime <= HitTime) {
+						if (otherEntity != Entity.Null && collEvent.HitTime <= HitTime) {
+
+							var otherBall = chunkBallData[indices[otherEntity]];
+							var otherCollEvent = chunkCollEventData[indices[otherEntity]];
+
 							// now collision, contact and script reactions on active ball (object)+++++++++
 
 							//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
 							BallCollider.Collide(
-								ref ballData, ref otherBall,
+								ref otherBall, ref ballData,
 								in collEvent, in otherCollEvent,
 								SwapBallCollisionHandling
 							);
+
+							// remove trial hit object pointer
+							collEvent.ClearCollider();
+
+							// todo fix below (probably just delete)
+							// Collide may have changed the velocity of the ball,
+							// and therefore the bounding box for the next hit cycle
+							// if (this.balls[i] !== ball) { // Ball still exists? may have been deleted from list
+							//
+							// 	// collision script deleted the ball, back up one count
+							// 	--i;
+							//
+							// } else {
+							// 	ball.hit.calcHitBBox(); // do new boundings
+							// }
 						}
 					}
 				}

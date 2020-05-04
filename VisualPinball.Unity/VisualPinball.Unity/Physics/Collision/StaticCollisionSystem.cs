@@ -29,10 +29,10 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithName("StaticCollisionJob").ForEach((ref BallData ballData,
-				ref CollisionEventData collEvent) => {
+			Entities.WithName("StaticCollisionJob").ForEach((ref BallData ballData, ref CollisionEventData collEvent) => {
 
-				if (collEvent.ColliderId < 0) {
+				// find balls with hit objects and minimum time
+				if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
 					return;
 				}
 
@@ -42,42 +42,39 @@ namespace VisualPinball.Unity.Physics.Collision
 				// pick collider that matched during narrowphase
 				ref var coll = ref colliders[collEvent.ColliderId].Value; // object that ball hit in trials
 
-				// find balls with hit objects and minimum time
-				if (collEvent.HitTime <= hitTime) {
-					// now collision, contact and script reactions on active ball (object)+++++++++
+				// now collision, contact and script reactions on active ball (object)+++++++++
 
-					//this.activeBall = ball;                         // For script that wants the ball doing the collision
+				//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
-					unsafe {
-						fixed (Collider.Collider* collider = &coll) {
+				unsafe {
+					fixed (Collider.Collider* collider = &coll) {
 
-							if (coll.Type == ColliderType.Flipper) {
-								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
-								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-								((FlipperCollider*) collider)->Collide(
-									ref ballData, ref collEvent, ref flipperMovementData,
-									in flipperMaterialData, in flipperVelocityData
-								);
+						if (coll.Type == ColliderType.Flipper) {
+							var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
+							var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+							var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
+							((FlipperCollider*) collider)->Collide(
+								ref ballData, ref collEvent, ref flipperMovementData,
+								in flipperMaterialData, in flipperVelocityData
+							);
 
-							} else if (coll.Type == ColliderType.LineSlingShot) {
-								//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
-								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
-								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent, ref random);
+						} else if (coll.Type == ColliderType.LineSlingShot) {
+							//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
+							var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
+							((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent, ref random);
 
-							} else {
-								Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
-							}
+						} else {
+							Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
 						}
 					}
 				}
 
+				// remove trial hit object pointer
+				collEvent.ClearCollider();
 
-				// todo fix below
-				// ball.coll.clear();                     // remove trial hit object pointer
-				//
-				// // Collide may have changed the velocity of the ball,
-				// // and therefore the bounding box for the next hit cycle
+				// todo fix below (probably just delete)
+				// Collide may have changed the velocity of the ball,
+				// and therefore the bounding box for the next hit cycle
 				// if (this.balls[i] !== ball) { // Ball still exists? may have been deleted from list
 				//
 				// 	// collision script deleted the ball, back up one count
