@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.Position += ball.Velocity * dTime;
 
-				Logger.Debug($"Ball {ball.Id} Position = {ball.Position}");
+				//Logger.Debug($"Ball {ball.Id} Position = {ball.Position}");
 
 				var inertia = ball.Inertia;
 				var mat3 = CreateSkewSymmetric(ball.AngularMomentum / inertia);
