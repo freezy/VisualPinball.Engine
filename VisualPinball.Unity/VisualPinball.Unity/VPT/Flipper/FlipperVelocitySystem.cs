@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.SystemGroup;
+using Profiler = UnityEngine.Profiling.Profiler;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
@@ -27,6 +28,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 		protected override void OnUpdate()
 		{
 			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
+
+				Profiler.BeginSample("FlipperVelocitySystem");
 
 				#if FLIPPER_LOG
 				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
@@ -101,6 +104,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 				mState.AngularMomentum += PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
+
+				Profiler.EndSample();
 
 			}).Run();
 		}

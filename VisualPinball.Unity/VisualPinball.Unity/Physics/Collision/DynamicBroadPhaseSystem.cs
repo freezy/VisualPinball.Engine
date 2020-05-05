@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -25,6 +26,9 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			public void Execute()
 			{
+
+				Profiler.BeginSample("DynamicBroadPhaseSystem");
+
 				// get bounds for all balls
 				var ballBounds = new NativeList<Aabb>(Allocator.Temp);
 				for (var j = 0; j < Chunks.Length; j++) {
@@ -58,6 +62,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 				kdRoot.Dispose();
 				ballBounds.Dispose();
+
+				Profiler.EndSample();
 			}
 		}
 
@@ -72,7 +78,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
 				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
-			}.Run();
+			}.Schedule();
 		}
 	}
 }
