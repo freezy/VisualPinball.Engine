@@ -2,6 +2,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
 					return;
 				}
+
+				Profiler.BeginSample("StaticCollisionSystem");
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -84,7 +87,9 @@ namespace VisualPinball.Unity.Physics.Collision
 				// 	ball.hit.calcHitBBox(); // do new boundings
 				// }
 
-			}).Run();
+				Profiler.EndSample();
+
+			}).ScheduleParallel();
 		}
 	}
 }

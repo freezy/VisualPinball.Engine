@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -28,6 +29,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				if (Chunks.Length == 0) {
 					return;
 				}
+
+				Profiler.BeginSample("DynamicCollisionSystem");
 
 				// index data for faster access below
 				var numEntities = Chunks.Length * Chunks[0].Count;
@@ -99,6 +102,8 @@ namespace VisualPinball.Unity.Physics.Collision
 						}
 					}
 				}
+
+				Profiler.EndSample();
 			}
 		}
 

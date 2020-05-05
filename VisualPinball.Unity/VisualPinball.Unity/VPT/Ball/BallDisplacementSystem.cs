@@ -1,7 +1,7 @@
 using NLog;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.VPT.Ball
 					return;
 				}
 
+				Profiler.BeginSample("BallDisplacementSystem");
+
 				ball.Position += ball.Velocity * dTime;
 
 				//Logger.Debug($"Ball {ball.Id} Position = {ball.Position}");
@@ -42,7 +44,9 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
-			}).Run();
+				Profiler.EndSample();
+
+			}).ScheduleParallel();
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

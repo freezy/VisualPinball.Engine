@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -28,6 +29,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 			Entities.WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
 
+				Profiler.BeginSample("FlipperDisplacementSystem");
+
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
@@ -43,6 +46,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 				if (math.abs(state.AngleSpeed) < 0.0005f) {
 					// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
+					Profiler.EndSample();
 					return;
 				}
 
@@ -74,6 +78,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 					state.EnableRotateEvent = 0;
 				}
+
+				Profiler.EndSample();
 			}).Run();
 		}
 	}

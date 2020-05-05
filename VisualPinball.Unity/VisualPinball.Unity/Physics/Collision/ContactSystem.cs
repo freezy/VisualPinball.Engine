@@ -2,6 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -31,6 +32,8 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override void OnUpdate()
 		{
+			Profiler.BeginSample("ContactSystem");
+
 			var rnd = new Random(666);
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var gravity = _gravity;
@@ -40,7 +43,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collEntity = collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
-			Entities.WithName("ContactJob").ForEach((ref BallData ballData, ref CollisionEventData collEvent,
+			Entities.WithName("ContactJob").ForEach((ref BallData ball, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts) => {
 
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -59,22 +62,27 @@ namespace VisualPinball.Unity.Physics.Collision
 										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 										var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
 										((FlipperCollider*) collider)->Contact(
-											ref ballData, ref collEvent, ref flipperMovementData,
+											ref ball, ref collEvent, ref flipperMovementData,
 											in flipperMaterialData, in flipperVelocityData, hitTime, in gravity);
 										break;
 
 									default:
-										Collider.Collider.Contact(ref coll, ref ballData, in contact.CollisionEvent, hitTime, in gravity);
+										Collider.Collider.Contact(ref coll, ref ball, in contact.CollisionEvent, hitTime, in gravity);
 										break;
 								}
 							}
 						}
 					} else if (contact.ColliderEntity != Entity.Null) {
-						// todo handle ball/ball contact
+						// todo move ball friction into some data component
+						BallCollider.HandleStaticContact(ref ball, collEvent, 0.3f, hitTime, gravity);
 					}
 				}
 
+				contacts.Clear();
+
 			}).Run();
+
+			Profiler.EndSample();
 		}
 	}
 }

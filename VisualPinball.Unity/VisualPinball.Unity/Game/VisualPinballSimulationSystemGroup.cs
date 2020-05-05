@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Game
 		}
 
 		enum TimingMode { RealTime, Atleast60, Locked60 };
-		TimingMode timingMode = TimingMode.RealTime;
+		TimingMode timingMode = TimingMode.Locked60;
 
 		long GetTargetTime()
 		{

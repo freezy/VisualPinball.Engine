@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Table;
 
@@ -29,6 +30,9 @@ namespace VisualPinball.Unity.VPT.Ball
 		{
 			var ltw = _baseTransform;
 			Entities.WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
+
+				Profiler.BeginSample("BallMovementSystem");
+
 				translation.Value = math.transform(ltw, ball.Position);
 				var or = ball.Orientation;
 				rot.Value = new quaternion(new float4x4(
@@ -37,6 +41,9 @@ namespace VisualPinball.Unity.VPT.Ball
 					or.c0.z, or.c1.z, or.c2.z, 0.0f,
 					0f, 0f, 0f, 1f
 				));
+
+				Profiler.EndSample();
+
 			}).Run();
 		}
 	}

@@ -1,5 +1,6 @@
 ﻿﻿using Unity.Entities;
-using VisualPinball.Unity.Physics.Collider;
+ using UnityEngine.Profiling;
+ using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
@@ -29,6 +30,8 @@ using VisualPinball.Unity.VPT.Flipper;
 				ref DynamicBuffer<OverlappingDynamicBufferElement> dynamicEntities, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in BallData ballData) => {
+
+				Profiler.BeginSample("NarrowPhaseSystem");
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -95,7 +98,9 @@ using VisualPinball.Unity.VPT.Flipper;
 					collEvent.ClearCollider();
 				}
 
-			}).Run();
+				Profiler.EndSample();
+
+			}).ScheduleParallel();
 		}
 
 		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
