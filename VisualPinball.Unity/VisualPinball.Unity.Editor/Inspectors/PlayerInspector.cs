@@ -1,10 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Ball;
-using VisualPinball.Engine.VPT.Table;
-using Player = VisualPinball.Unity.Game.Player;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -17,40 +13,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (EditorApplication.isPlaying) {
 				if (GUILayout.Button("Spawn Ball")) {
 					var player = (Player) target;
-
-					player.CreateBall(new DebugBallCreator(390, 1125));
-					player.CreateBall(new DebugBallCreator(425, 1325));
+					player.CreateBall(new DebugBallCreator());
 				}
 			}
-		}
-	}
-
-	internal class DebugBallCreator : IBallCreationPosition
-	{
-		private readonly float _x;
-		private readonly float _y;
-
-		public DebugBallCreator(float x, float y)
-		{
-			_x = x;
-			_y = y;
-		}
-
-		public Vertex3D GetBallCreationPosition(Table table)
-		{
-			return new Vertex3D(_x, _y, 0);
-			//return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
-		}
-
-		public Vertex3D GetBallCreationVelocity(Table table)
-		{
-			// no velocity
-			return Vertex3D.Zero;
-		}
-
-		public void OnBallCreated(PlayerPhysics physics, Ball ball)
-		{
-			// nothing to do
 		}
 	}
 }

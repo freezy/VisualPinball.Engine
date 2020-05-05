@@ -111,8 +111,9 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("b")) {
-				_player.CreateBall(new DebugBallCreator(425, 1325));
-				_player.CreateBall(new DebugBallCreator(390, 1125));
+				_player.CreateBall(new DebugBallCreator());
+				// _player.CreateBall(new DebugBallCreator(425, 1325));
+				// _player.CreateBall(new DebugBallCreator(390, 1125));
 			}
 		}
 
@@ -125,10 +126,16 @@ namespace VisualPinball.Unity.Game
 
 	}
 
-	internal class DebugBallCreator : IBallCreationPosition
+	public class DebugBallCreator : IBallCreationPosition
 	{
-		private readonly float _x;
-		private readonly float _y;
+		private float _x;
+		private float _y;
+
+		public DebugBallCreator()
+		{
+			_x = -1;
+			_y = -1;
+		}
 
 		public DebugBallCreator(float x, float y)
 		{
@@ -138,6 +145,10 @@ namespace VisualPinball.Unity.Game
 
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
+			if (_x < 0 || _y < 0) {
+				_x = Random.Range(table.Width / 6f, table.Width / 6f * 5f);
+				_y = Random.Range(table.Height / 8f, table.Height / 2f);
+			}
 			return new Vertex3D(_x, _y, 0);
 		}
 
