@@ -16,14 +16,14 @@ namespace VisualPinball.Unity.Patcher.Patcher.Common
 		[NameMatch("BallShadow7")]
 		public void RemoveBallShadow(GameObject gameObject)
 		{
-			gameObject.SetActive(false);
+			gameObject.GetComponent<MeshRenderer>().enabled = false;
 		}
 
 		[NameMatch("FlipperLSh")]
 		[NameMatch("FlipperRSh")]
 		public void RemoveFlipperShadow(GameObject gameObject)
 		{
-			gameObject.SetActive(false);
+			gameObject.GetComponent<MeshRenderer>().enabled = false;
 		}
 	}
 }
