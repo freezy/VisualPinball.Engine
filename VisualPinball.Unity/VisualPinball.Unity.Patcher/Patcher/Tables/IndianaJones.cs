@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Patcher.Patcher.Tables
 		[NameMatch("RightFlipperSh")]
 		public void RemoveFlipperShadow(GameObject gameObject)
 		{
-			gameObject.SetActive(false);
+			gameObject.GetComponent<MeshRenderer>().enabled = false;
 		}
 
 		[NameMatch("Primitive21")]
