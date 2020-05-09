@@ -7,26 +7,24 @@ namespace VisualPinball.Unity.Physics.Collision
 {
 	public struct KdRoot : IDisposable
 	{
-		public NativeArray<int> OrgIdx;                                                   // m_org_idx
 		public int NumNodes;                                                   // m_num_nodes
-		public NativeArray<int> Indices;                                                  // tmp
+		public NativeArray<int> OrgIdx;                                        // m_org_idx
+		public NativeArray<int> Indices;                                       // tmp
 
 		private KdNode _rootNode;                                              // m_rootNode
-		private NativeArray<Aabb> _orgHitObjects;                                         // m_org_vho
-		private NativeArray<KdNode> _nodes;                                               // m_nodes
+		private NativeArray<Aabb> _bounds;                                     // m_org_vho
+		private NativeArray<KdNode> _nodes;                                    // m_nodes
 
-		private int _numItems;                                                 // m_num_items
-		private int _maxItems;                                                 // m_max_items
+		private readonly int _numItems;                                        // m_num_items
 
 		public KdRoot(NativeArray<Aabb> bounds)
 		{
-			_orgHitObjects = bounds;
+			_bounds = bounds;
 			_numItems = bounds.Length;
-			_maxItems = _numItems;
 
 			OrgIdx = new NativeArray<int>(_numItems, Allocator.Temp);
 			Indices = new NativeArray<int>(_numItems, Allocator.Temp);
-			_nodes = new NativeArray<KdNode>(_numItems * 2 + 1, Allocator.Temp);
+			_nodes = new NativeArray<KdNode>(_numItems * 2, Allocator.Temp);
 
 			NumNodes = 0;
 			_rootNode = new KdNode();
@@ -37,12 +35,12 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		private void FillFromVector(NativeArray<Aabb> bounds)
 		{
-			_rootNode.RectBounds.Clear();
+			_rootNode.Bounds.Clear();
 			_rootNode.Start = 0;
 			_rootNode.Items = _numItems;
 
 			for (var i = 0; i < _numItems; ++i) {
-				_rootNode.RectBounds.Extend(bounds[i]);
+				_rootNode.Bounds.Extend(bounds[i]);
 				OrgIdx[i] = i;
 			}
 
@@ -56,7 +54,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		public Aabb GetItemAt(int i)
 		{
-			return _orgHitObjects[OrgIdx[i]];
+			return _bounds[OrgIdx[i]];
 		}
 
 		public KdNode GetNodeAt(int i)
