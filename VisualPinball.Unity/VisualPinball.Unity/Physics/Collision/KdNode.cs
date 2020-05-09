@@ -1,14 +1,12 @@
-﻿using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
 	public struct KdNode
 	{
-		public Aabb RectBounds;                               // m_rectbounds
+		public Aabb Bounds;                                                    // m_rectbounds
 		public int Start;                                                      // m_start
 
 		/// <summary>
@@ -23,6 +21,15 @@ namespace VisualPinball.Unity.Physics.Collision
 		private int _childB;
 
 		private bool HasChildren => _childA > -1 && _childB > -1;
+
+		public KdNode(Aabb bounds)
+		{
+			Bounds = bounds;
+			Start = 0;
+			Items = 2;
+			_childA = -1;
+			_childB = -1;
+		}
 
 		public void Reset()
 		{
@@ -42,9 +49,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			}
 
 			var vDiag = new float3(
-				RectBounds.Right - RectBounds.Left,
-				RectBounds.Bottom - RectBounds.Top,
-				RectBounds.ZHigh - RectBounds.ZLow
+				Bounds.Right - Bounds.Left,
+				Bounds.Bottom - Bounds.Top,
+				Bounds.ZHigh - Bounds.ZLow
 			);
 
 			int axis;
@@ -75,29 +82,26 @@ namespace VisualPinball.Unity.Physics.Collision
 				return;
 			}
 
-			var childA = new KdNode();
-			var childB = new KdNode();
-
-			childA.RectBounds = RectBounds;
-			childB.RectBounds = RectBounds;
+			var childA = new KdNode(Bounds);
+			var childB = new KdNode(Bounds);
 
 			var vCenter = new float3(
-				(RectBounds.Left + RectBounds.Right) * 0.5f,
-				(RectBounds.Top + RectBounds.Bottom) * 0.5f,
-				(RectBounds.ZLow + RectBounds.ZHigh) * 0.5f
+				(Bounds.Left + Bounds.Right) * 0.5f,
+				(Bounds.Top + Bounds.Bottom) * 0.5f,
+				(Bounds.ZLow + Bounds.ZHigh) * 0.5f
 			);
 			switch (axis) {
 				case 0:
-					childA.RectBounds.Right = vCenter.x;
-					childB.RectBounds.Left = vCenter.x;
+					childA.Bounds.Right = vCenter.x;
+					childB.Bounds.Left = vCenter.x;
 					break;
 				case 1:
-					childA.RectBounds.Bottom = vCenter.y;
-					childB.RectBounds.Top = vCenter.y;
+					childA.Bounds.Bottom = vCenter.y;
+					childB.Bounds.Top = vCenter.y;
 					break;
 				default:
-					childA.RectBounds.ZHigh = vCenter.z;
-					childB.RectBounds.ZLow = vCenter.z;
+					childA.Bounds.ZHigh = vCenter.z;
+					childB.Bounds.ZLow = vCenter.z;
 					break;
 			}
 
@@ -278,7 +282,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				switch (axis) {
 					// not a leaf
 					case 0: {
-						var vCenter = (RectBounds.Left + RectBounds.Right) * 0.5f;
+						var vCenter = (Bounds.Left + Bounds.Right) * 0.5f;
 						if (bounds.Left <= vCenter) {
 							hitOct.GetNodeAt(_childA).GetAabbOverlaps(ref hitOct, in entity, in ball, ref overlappingEntities);
 						}
@@ -290,7 +294,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 
 					case 1: {
-						var vCenter = (RectBounds.Top + RectBounds.Bottom) * 0.5f;
+						var vCenter = (Bounds.Top + Bounds.Bottom) * 0.5f;
 						if (bounds.Top <= vCenter) {
 							hitOct.GetNodeAt(_childA).GetAabbOverlaps(ref hitOct, in entity, in ball, ref overlappingEntities);
 						}
@@ -302,7 +306,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 
 					default: {
-						var vCenter = (RectBounds.ZLow + RectBounds.ZHigh) * 0.5f;
+						var vCenter = (Bounds.ZLow + Bounds.ZHigh) * 0.5f;
 						if (bounds.ZLow <= vCenter) {
 							hitOct.GetNodeAt(_childA).GetAabbOverlaps(ref hitOct, in entity, in ball, ref overlappingEntities);
 						}

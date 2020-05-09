@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
 				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
 				EntityChunkType = GetArchetypeChunkEntityType()
-			}.Schedule();
+			}.Run();
 		}
 	}
 }

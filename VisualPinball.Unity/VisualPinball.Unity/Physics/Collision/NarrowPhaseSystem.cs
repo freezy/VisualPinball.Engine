@@ -100,7 +100,7 @@ using VisualPinball.Unity.VPT.Flipper;
 
 				Profiler.EndSample();
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 
 		private static void HitTest(ref Collider.Collider coll, ref CollisionEventData collEvent,
