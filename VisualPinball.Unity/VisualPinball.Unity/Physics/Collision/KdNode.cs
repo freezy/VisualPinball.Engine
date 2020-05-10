@@ -170,7 +170,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			if (levelEmpty > 8) {
 				// If 8 levels were all just subdividing the same objects without luck, exit & Free the nodes again (but at least empty space was cut off)
-				hitOct.NumNodes -= 2;
+				// no need to update NumNodes, since we didn't increment them yet.
 				_childA = -1;
 				_childB = -1;
 				return;
@@ -251,14 +251,11 @@ namespace VisualPinball.Unity.Physics.Collision
 			for (var i = 0; i < childA.Items; i++) {
 				hitOct.OrgIdx[childA.Start + i] = hitOct.Indices[childA.Start + i];
 			}
-
 			for (var i = 0; i < childB.Items; i++) {
 				hitOct.OrgIdx[childB.Start + i] = hitOct.Indices[childB.Start + i];
 			}
-			//memcpy(&this.HitOct->m_org_idx[this.Children[0].Start], &this.HitOct->tmp[this.Children[0].Start], this.Children[0].Items*sizeof(unsigned int));
-			//memcpy(&this.HitOct->m_org_idx[this.Children[1].Start], &this.HitOct->tmp[this.Children[1].Start], this.Children[1].This.Items*sizeof(unsigned int));
 
-			hitOct.AddNodes(childA, childB);
+			hitOct.AddNodes(childA, childB, out _childA, out _childB);
 
 			childA.CreateNextLevel(level + 1, levelEmpty, hitOct);
 			childB.CreateNextLevel(level + 1, levelEmpty, hitOct);

@@ -86,5 +86,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			       && ZHigh >= rc.ZLow;
 		}
 
+		public override string ToString()
+		{
+			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";
+		}
 	}
 }
