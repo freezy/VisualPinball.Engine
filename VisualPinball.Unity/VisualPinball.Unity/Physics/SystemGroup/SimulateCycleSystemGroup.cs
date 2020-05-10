@@ -5,6 +5,7 @@ using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.SystemGroup
 {
@@ -57,36 +58,13 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				HitTime = (float)dTime;
 
-				// // find earliest time where a flipper collides with its stop
-				// for (size_t i = 0; i < m_vFlippers.size(); ++i)
-				// {
-				// 	const float fliphit = m_vFlippers[i]->GetHitTime();
-				// 	if (fliphit > 0.f && fliphit < hittime) {//!! >= 0.f causes infinite loop
-				// 		fprintf(m_flog, "     flipper hit\n");
-				// 		hittime = fliphit;
-				// 	}
-				// }
+				ApplyFlipperTime();
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
 				_narrowPhaseSystem.Update();
 
-				// update hittime
-				var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
-				var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
-				foreach (var entity in entities) {
-					var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
-					if (collEvent.HasCollider() && collEvent.HitTime <= HitTime) {       // smaller hit time??
-						HitTime = collEvent.HitTime;                                     // record actual event time
-						if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
-							if (--staticCnts < 0) {
-								staticCnts = 0;                                          // keep from wrapping
-								HitTime = PhysicsConstants.StaticTime;
-							}
-						}
-					}
-				}
-				entities.Dispose();
+				ApplyStaticTime(ref staticCnts);
 
 				_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
@@ -97,6 +75,42 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
 			}
+		}
+
+		private void ApplyFlipperTime()
+		{
+			// update hittime
+			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
+			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
+			foreach (var entity in entities) {
+				var movementData = EntityManager.GetComponentData<FlipperMovementData>(entity);
+				var staticData = EntityManager.GetComponentData<FlipperStaticData>(entity);
+				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, staticData.AngleEnd);
+				if (flipperHitTime > 0 && flipperHitTime < HitTime) { //!! >= 0.f causes infinite loop
+					HitTime = flipperHitTime;
+				}
+			}
+			entities.Dispose();
+		}
+
+		private void ApplyStaticTime(ref float staticCnts)
+		{
+			// update hittime
+			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
+			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
+			foreach (var entity in entities) {
+				var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
+				if (collEvent.HasCollider() && collEvent.HitTime <= HitTime) {       // smaller hit time??
+					HitTime = collEvent.HitTime;                                     // record actual event time
+					if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
+						if (--staticCnts < 0) {
+							staticCnts = 0;                                          // keep from wrapping
+							HitTime = PhysicsConstants.StaticTime;
+						}
+					}
+				}
+			}
+			entities.Dispose();
 		}
 	}
 }
