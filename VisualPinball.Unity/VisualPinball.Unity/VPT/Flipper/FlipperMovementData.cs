@@ -39,5 +39,26 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			return Math.CrossZ(data.AngleSpeed, in surfP);
 		}
+
+		public float GetHitTime(float angleStart, float angleEnd)
+		{
+			if (AngleSpeed == 0f) {
+				return -1.0f;
+			}
+
+			var angleMin = math.min(angleStart, angleEnd);
+			var angleMax = math.max(angleStart, angleEnd);
+
+			var dist = AngleSpeed > 0
+				? angleMax - Angle       // >= 0
+				: angleMin - Angle;      // <= 0
+
+			var hitTime = dist / AngleSpeed;
+
+			if (float.IsNaN(hitTime) || float.IsInfinity(hitTime) || hitTime < 0) {
+				return -1.0f;
+			}
+			return hitTime;
+		}
 	}
 }
