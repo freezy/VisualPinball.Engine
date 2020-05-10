@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			OrgIdx = new NativeArray<int>(_numItems, Allocator.Temp);
 			Indices = new NativeArray<int>(_numItems, Allocator.Temp);
-			_nodes = new NativeArray<KdNode>(_numItems * 2, Allocator.Temp);
+			_nodes = new NativeArray<KdNode>(_numItems * 2 + 1, Allocator.Temp);
 
 			NumNodes = 0;
 			_rootNode = new KdNode();
@@ -68,11 +68,13 @@ namespace VisualPinball.Unity.Physics.Collision
 			return NumNodes + 1 < _nodes.Length;
 		}
 
-		public void AddNodes(KdNode nodeA, KdNode nodeB)
+		public void AddNodes(KdNode nodeA, KdNode nodeB, out int nodeIndexA, out int nodeIndexB)
 		{
 			NumNodes += 2;
-			_nodes[NumNodes - 2] = nodeA;
-			_nodes[NumNodes - 1] = nodeB;
+			nodeIndexA = NumNodes - 2;
+			nodeIndexB = NumNodes - 1;
+			_nodes[nodeIndexA] = nodeA;
+			_nodes[nodeIndexB] = nodeB;
 		}
 
 		public void Dispose()
