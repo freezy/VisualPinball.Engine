@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override void OnUpdate()
 		{
-			Profiler.BeginSample("ContactSystem");
+			// Profiler.BeginSample("ContactSystem");
 
 			var rnd = new Random(666);
 			var hitTime = _simulateCycleSystemGroup.HitTime;
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			}).Run();
 
-			Profiler.EndSample();
+			// Profiler.EndSample();
 		}
 	}
 }

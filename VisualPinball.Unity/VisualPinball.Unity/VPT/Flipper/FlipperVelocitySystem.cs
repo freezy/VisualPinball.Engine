@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
 
-				Profiler.BeginSample("FlipperVelocitySystem");
+				// Profiler.BeginSample("FlipperVelocitySystem");
 
 				#if FLIPPER_LOG
 				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).Run();
 		}

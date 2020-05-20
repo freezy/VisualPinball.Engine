@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					return;
 				}
 
-				Profiler.BeginSample("BallDisplacementSystem");
+				// Profiler.BeginSample("BallDisplacementSystem");
 
 				ball.Position += ball.Velocity * dTime;
 
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).ScheduleParallel();
 		}

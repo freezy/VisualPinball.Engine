@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public void Execute()
 			{
 
-				Profiler.BeginSample("DynamicBroadPhaseSystem");
+				// Profiler.BeginSample("DynamicBroadPhaseSystem");
 
 				// get bounds for all balls
 				var ballBounds = new NativeList<Aabb>(Allocator.Temp);
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				kdRoot.Dispose();
 				ballBounds.Dispose();
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 			}
 		}
 

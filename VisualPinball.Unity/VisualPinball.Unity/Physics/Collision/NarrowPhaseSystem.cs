@@ -31,7 +31,7 @@ using VisualPinball.Unity.VPT.Flipper;
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in BallData ballData) => {
 
-				Profiler.BeginSample("NarrowPhaseSystem");
+				// Profiler.BeginSample("NarrowPhaseSystem");
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -98,7 +98,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					collEvent.ClearCollider();
 				}
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).Run();
 		}
