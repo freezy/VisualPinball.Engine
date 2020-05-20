@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			var ltw = _baseTransform;
 			Entities.WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
 
-				Profiler.BeginSample("BallMovementSystem");
+				// Profiler.BeginSample("BallMovementSystem");
 
 				translation.Value = math.transform(ltw, ball.Position);
 				var or = ball.Orientation;
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					0f, 0f, 0f, 1f
 				));
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).Run();
 		}

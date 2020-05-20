@@ -29,11 +29,11 @@ namespace VisualPinball.Unity.VPT.Ball
 					return;
 				}
 
-				Profiler.BeginSample("BallVelocitySystem");
+				// Profiler.BeginSample("BallVelocitySystem");
 
 				ball.Velocity += gravity * PhysicsConstants.PhysFactor;
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).Run();
 		}

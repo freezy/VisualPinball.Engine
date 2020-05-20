@@ -14,11 +14,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			Entities.WithName("FlipperRotateJob").ForEach((ref Rotation rot, in FlipperMovementData movement) => {
 
-				Profiler.BeginSample("FlipperRotateSystem");
+				// Profiler.BeginSample("FlipperRotateSystem");
 
 				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).Run();
 		}

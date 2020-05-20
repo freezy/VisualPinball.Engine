@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					return;
 				}
 
-				Profiler.BeginSample("StaticCollisionSystem");
+				// Profiler.BeginSample("StaticCollisionSystem");
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				// 	ball.hit.calcHitBBox(); // do new boundings
 				// }
 
-				Profiler.EndSample();
+				// Profiler.EndSample();
 
 			}).ScheduleParallel();
 		}
