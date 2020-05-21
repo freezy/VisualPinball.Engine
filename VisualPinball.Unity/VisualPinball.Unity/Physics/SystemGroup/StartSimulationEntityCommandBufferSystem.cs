@@ -1,7 +1,10 @@
-﻿namespace VisualPinball.Unity.Physics.SystemGroup
+﻿using Unity.Entities;
+
+namespace VisualPinball.Unity.Physics.SystemGroup
 {
-	public class StartSimulationEntityCommandBufferSystem
+	[DisableAutoCreation]
+	public class StartSimulationEntityCommandBufferSystem : EntityCommandBufferSystem
 	{
-		
+
 	}
 }
