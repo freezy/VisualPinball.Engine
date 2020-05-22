@@ -4,8 +4,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
+using VisualPinball.Engine.Resources.Meshes;
 using VisualPinball.Unity.Extensions;
-using Material = UnityEngine.Material;
+using VisualPinball.Unity.Physics.SystemGroup;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -16,12 +18,14 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		private readonly Engine.VPT.Table.Table _table;
 
+		private static readonly Mesh _ballMesh = new Mesh("BallMesh", BallMesh.Vertices, BallMesh.Indices);
+
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
 		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
-		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
+		private static UnityEngine.Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
 		public BallManager(Engine.VPT.Table.Table table)
 		{
@@ -36,7 +40,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
 			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
 			localPos.z += radius;
-			float4x4 model = player.TableToWorld * Matrix4x4.TRS(localPos, Quaternion.identity, new float3(radius));
+			//float4x4 model = player.TableToWorld * Matrix4x4.TRS(localPos, Quaternion.identity, new float3(radius));
 
 			var worldPos = m.MultiplyPoint(localPos);
 			var scale3 = new Vector3(
@@ -48,15 +52,30 @@ namespace VisualPinball.Unity.VPT.Ball
 			var material = CreateMaterial();
 
 			// go will be converted automatically to entity
-			var go = CreateSphere(material, worldPos, scale * radius * 2, mass);
+			//CreateViaGameObject(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
+			CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
+
+			//return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
+			return null;
+		}
+
+		private void CreateViaGameObject(Vector3 worldPos, Vector3 localPos, Vector3 localVel, float scale, float mass, float radius, Material material)
+		{
+			var go = CreateSphere(material, worldPos, scale);
 			var ballBehavior = go.AddComponent<BallBehavior>();
 			ballBehavior.Position = localPos;
 			ballBehavior.Velocity = localVel;
 			ballBehavior.Radius = radius;
 			ballBehavior.Mass = mass;
+		}
 
-			//return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
-			return null;
+		private void CreateEntity(Vector3 worldPos, float3 localPos, float3 localVel, float scale, float mass,
+			float radius, Material material)
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			BallBehavior.CreateEntity(entityManager,
+					GetSphereMesh(), material, worldPos, scale, localPos,
+					localVel, radius, mass);
 		}
 
 		/// <summary>
@@ -64,7 +83,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		/// ToDo: Get Mesh from our resources
 		/// </summary>
 		/// <returns>Sphere Mesh</returns>
-		private static Mesh GetSphereMesh()
+		private static UnityEngine.Mesh GetSphereMesh()
 		{
 			if (!_unitySphereMesh)
 			{
@@ -76,7 +95,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			return _unitySphereMesh;
 		}
 
-		private GameObject CreateSphere(Material material, float3 pos, float3 scale, float mass)
+		private GameObject CreateSphere(Material material, float3 pos, float3 scale)
 		{
 			// create go
 			var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
