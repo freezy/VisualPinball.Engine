@@ -21,7 +21,7 @@
     <Optimize>false</Optimize>
     <OutputPath>.build\Debug\</OutputPath>
     <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;TIME_LOG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -64,6 +64,12 @@
     </Reference>
     <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rendering.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
@@ -135,6 +141,7 @@
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\StartSimulationEntityCommandBufferSystem.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
