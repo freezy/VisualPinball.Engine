@@ -64,6 +64,7 @@ namespace VisualPinball.Unity.Physics.Collision
 										((FlipperCollider*) collider)->Contact(
 											ref ball, ref collEvent, ref flipperMovementData,
 											in flipperMaterialData, in flipperVelocityData, hitTime, in gravity);
+										SetComponent(coll.Entity, flipperMovementData);
 										break;
 
 									default:

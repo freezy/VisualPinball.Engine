@@ -60,6 +60,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								ref ballData, ref collEvent, ref flipperMovementData,
 								in flipperMaterialData, in flipperVelocityData
 							);
+							SetComponent(coll.Entity, flipperMovementData);
 
 						} else if (coll.Type == ColliderType.LineSlingShot) {
 							//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
