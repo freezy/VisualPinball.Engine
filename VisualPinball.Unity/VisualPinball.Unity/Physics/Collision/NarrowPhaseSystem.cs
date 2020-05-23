@@ -68,6 +68,7 @@ using VisualPinball.Unity.VPT.Flipper;
 										ref newCollEvent, ref insideOfs, ref flipperHitData,
 										in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
 									);
+									SetComponent(coll.Entity, flipperHitData);
 									break;
 
 								default:
@@ -87,6 +88,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					var newCollEvent = new CollisionEventData();
 					var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ballData, collEvent.HitTime);
 
+					SetComponent(collBallEntity, collBall);
 					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
 				}
 
