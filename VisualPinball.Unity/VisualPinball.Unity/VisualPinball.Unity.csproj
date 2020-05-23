@@ -11,7 +11,7 @@
     <AssemblyName>VisualPinball.Unity</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -21,7 +21,7 @@
     <Optimize>false</Optimize>
     <OutputPath>.build\Debug\</OutputPath>
     <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE;TIME_LOG</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -117,6 +117,7 @@
     <Compile Include="Physics\Collider\Poly3DCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
     <Compile Include="Physics\Collision\DynamicCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\DynamicNarrowPhaseSystem.cs" />
     <Compile Include="Physics\Collision\StaticBroadPhaseSystem.cs" />
     <Compile Include="Physics\Collision\ContactSystem.cs" />
     <Compile Include="Physics\Collision\DynamicBroadPhaseSystem.cs" />
@@ -135,7 +136,7 @@
     <Compile Include="Physics\Collision\ContactBufferElement.cs" />
     <Compile Include="Physics\Collision\ICollidable.cs" />
     <Compile Include="Physics\Collision\ICollider.cs" />
-    <Compile Include="Physics\Collision\NarrowPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\StaticNarrowPhaseSystem.cs" />
     <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
     <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />

@@ -22,7 +22,8 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private StaticBroadPhaseSystem _staticBroadPhaseSystem;
 		private DynamicBroadPhaseSystem _dynamicBroadPhaseSystem;
-		private NarrowPhaseSystem _narrowPhaseSystem;
+		private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
+		private DynamicNarrowPhaseSystem _dynamicNarrowPhaseSystem;
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
@@ -32,14 +33,16 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		{
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
-			_narrowPhaseSystem = World.GetOrCreateSystem<NarrowPhaseSystem>();
+			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
+			_dynamicNarrowPhaseSystem = World.GetOrCreateSystem<DynamicNarrowPhaseSystem>();
 			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
 			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
-			_systemsToUpdate.Add(_narrowPhaseSystem);
+			_systemsToUpdate.Add(_staticNarrowPhaseSystem);
+			_systemsToUpdate.Add(_dynamicNarrowPhaseSystem);
 			_systemsToUpdate.Add(_displacementSystemGroup);
 			_systemsToUpdate.Add(_staticCollisionSystem);
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
@@ -62,7 +65,8 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
-				_narrowPhaseSystem.Update();
+				_staticNarrowPhaseSystem.Update();
+				_dynamicNarrowPhaseSystem.Update();
 
 				ApplyStaticTime(ref staticCnts);
 
