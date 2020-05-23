@@ -1,6 +1,6 @@
 ﻿﻿using Unity.Entities;
- using UnityEngine.Profiling;
- using VisualPinball.Unity.Physics.Collider;
+using UnityEngine.Profiling;
+using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
@@ -8,7 +8,7 @@ using VisualPinball.Unity.VPT.Flipper;
  namespace VisualPinball.Unity.Physics.Collision
 {
 	[DisableAutoCreation]
-	public class NarrowPhaseSystem : SystemBase
+	public class StaticNarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -26,10 +26,9 @@ using VisualPinball.Unity.VPT.Flipper;
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithName("NarrowPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> staticColliderIds,
-				ref DynamicBuffer<OverlappingDynamicBufferElement> dynamicEntities, ref CollisionEventData collEvent,
-				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-				in BallData ballData) => {
+			Entities.WithName("DynamicNarrowPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> staticColliderIds,
+				ref CollisionEventData collEvent, ref DynamicBuffer<ContactBufferElement> contacts,
+				ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ballData) => {
 
 				// Profiler.BeginSample("NarrowPhaseSystem");
 
@@ -81,19 +80,19 @@ using VisualPinball.Unity.VPT.Flipper;
 					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime);
 				}
 
-				// secondly, dynamic checks
-				for (var i = 0; i < dynamicEntities.Length; i++) {
-					var collBallEntity = dynamicEntities[i].Value;
-					var collBall = GetComponent<BallData>(collBallEntity);
-					var newCollEvent = new CollisionEventData();
-					var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ballData, collEvent.HitTime);
-
-					SetComponent(collBallEntity, collBall);
-					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
-				}
+				// // secondly, dynamic checks
+				// for (var i = 0; i < dynamicEntities.Length; i++) {
+				// 	var collBallEntity = dynamicEntities[i].Value;
+				// 	var collBall = GetComponent<BallData>(collBallEntity);
+				// 	var newCollEvent = new CollisionEventData();
+				// 	var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ballData, collEvent.HitTime);
+				//
+				// 	SetComponent(collBallEntity, collBall);
+				// 	SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
+				// }
 
 				staticColliderIds.Clear();
-				dynamicEntities.Clear();
+				//dynamicEntities.Clear();
 
 				// no negative time allowed
 				if (collEvent.HitTime < 0) {
@@ -137,21 +136,21 @@ using VisualPinball.Unity.VPT.Flipper;
 			}
 		}
 
-		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-			ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
-		{
-			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
-
-			if (newCollEvent.IsContact || validHit) {
-				newCollEvent.SetCollider(ballEntity);
-				newCollEvent.HitTime = newTime;
-				if (newCollEvent.IsContact) {
-					contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
-
-				} else {                         // if (validhit)
-					collEvent = newCollEvent;
-				}
-			}
-		}
+		// private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
+		// 	ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
+		// {
+		// 	var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
+		//
+		// 	if (newCollEvent.IsContact || validHit) {
+		// 		newCollEvent.SetCollider(ballEntity);
+		// 		newCollEvent.HitTime = newTime;
+		// 		if (newCollEvent.IsContact) {
+		// 			contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
+		//
+		// 		} else {                         // if (validhit)
+		// 			collEvent = newCollEvent;
+		// 		}
+		// 	}
+		// }
 	}
 }

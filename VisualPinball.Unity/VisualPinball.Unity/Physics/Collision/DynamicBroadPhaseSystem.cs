@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		}
 
 		protected override void OnCreate() {
-			_ballQuery = GetEntityQuery(typeof(BallData));
+			_ballQuery = GetEntityQuery(ComponentType.ReadOnly<BallData>());
 		}
 
 		protected override void OnUpdate()
