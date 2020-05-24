@@ -47,8 +47,8 @@ namespace VisualPinball.Unity.VPT.Ball
 		public static void CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
 			float3 worldPos, float scale, float3 localPos, float3 velocity, float radius, float mass)
 		{
-			var startSimulationEntityCommandBufferSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StartSimulationEntityCommandBufferSystem>();
-			var ecb = startSimulationEntityCommandBufferSystem.CreateCommandBuffer();
+			var ecbs = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
+			var ecb = ecbs.CreateCommandBuffer();
 
 			var archetype = entityManager.CreateArchetype(
 				typeof(Translation),

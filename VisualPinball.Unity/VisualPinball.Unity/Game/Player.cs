@@ -11,6 +11,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
@@ -111,8 +112,15 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("b")) {
-				//_player.CreateBall(new DebugBallCreator());
-				_player.CreateBall(new DebugBallCreator(425, 1325));
+				_player.CreateBall(new DebugBallCreator());
+				// _player.CreateBall(new DebugBallCreator(425, 1325));
+				// _player.CreateBall(new DebugBallCreator(390, 1125));
+
+				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
+				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyUp("n")) {
 				_player.CreateBall(new DebugBallCreator(390, 1125));
 			}
 		}
