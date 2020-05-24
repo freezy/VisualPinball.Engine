@@ -17,7 +17,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			public ArchetypeChunkComponentType<BallData> BallDataType;
 			public ArchetypeChunkBufferType<ContactBufferElement> ContactBufferElementType;
-			[ReadOnly] public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
+			public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
 			[ReadOnly] public ArchetypeChunkEntityType EntityType;
 			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
 
@@ -60,20 +60,19 @@ namespace VisualPinball.Unity.Physics.Collision
 						var dynamicEntities = chunkDynamicEntities[i];
 						var contacts = chunkCollisions[i];
 
-						// pick "other" ball
-						ref var otherEntity = ref collEvent.ColliderEntity;
-
-						for (var k = 0; i < dynamicEntities.Length; i++) {
+						for (var k = 0; k < dynamicEntities.Length; k++) {
 							var collBallEntity = dynamicEntities[k].Value;
-							var chunkCollBallData = Chunks[chunkIndices[otherEntity]].GetNativeArray(BallDataType);
-							var collBall = chunkCollBallData[positionIndices[otherEntity]];
+							var chunkCollBallData = Chunks[chunkIndices[collBallEntity]].GetNativeArray(BallDataType);
+							var collBall = chunkCollBallData[positionIndices[collBallEntity]];
 
 							var newCollEvent = new CollisionEventData();
 							var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 
-							// write back
-							chunkCollBallData[positionIndices[otherEntity]] = collBall;
 							SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
+
+							// write back
+							chunkCollEventData[i] = collEvent;
+							chunkCollBallData[positionIndices[collBallEntity]] = collBall;
 						}
 
 						chunkDynamicEntities[i].Clear();
@@ -117,7 +116,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				Chunks = _query.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallDataType = GetArchetypeChunkComponentType<BallData>(),
 				ContactBufferElementType = GetArchetypeChunkBufferType<ContactBufferElement>(),
-				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(true),
+				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(),
 				EntityType = GetArchetypeChunkEntityType(),
 				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>()
 			}.Run();
