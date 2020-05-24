@@ -19,7 +19,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public ArchetypeChunkBufferType<ContactBufferElement> ContactBufferElementType;
 			public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
 			[ReadOnly] public ArchetypeChunkEntityType EntityType;
-			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
+			[ReadOnly] public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
 
 			public void Execute()
 			{
@@ -74,8 +74,6 @@ namespace VisualPinball.Unity.Physics.Collision
 							chunkCollEventData[i] = collEvent;
 							chunkCollBallData[positionIndices[collBallEntity]] = collBall;
 						}
-
-						chunkDynamicEntities[i].Clear();
 					}
 				}
 
@@ -118,7 +116,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				ContactBufferElementType = GetArchetypeChunkBufferType<ContactBufferElement>(),
 				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(),
 				EntityType = GetArchetypeChunkEntityType(),
-				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>()
+				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(true)
 			}.Run();
 		}
 	}
