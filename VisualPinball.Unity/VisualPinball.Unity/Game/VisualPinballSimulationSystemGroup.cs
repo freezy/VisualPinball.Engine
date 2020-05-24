@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Game
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
-		private StartSimulationEntityCommandBufferSystem _startSimulationEntityCommandBufferSystem;
+		private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
@@ -48,12 +48,12 @@ namespace VisualPinball.Unity.Game
 		{
 			_time.Start();
 
-			_startSimulationEntityCommandBufferSystem = World.GetOrCreateSystem<StartSimulationEntityCommandBufferSystem>();
+			_createBallEntityCommandBufferSystem = World.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
-			_systemsToUpdate.Add(_startSimulationEntityCommandBufferSystem);
+			_systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_simulateCycleSystemGroup);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Game
 
 		protected override void OnUpdate()
 		{
-			_startSimulationEntityCommandBufferSystem.Update();
+			_createBallEntityCommandBufferSystem.Update();
 
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();

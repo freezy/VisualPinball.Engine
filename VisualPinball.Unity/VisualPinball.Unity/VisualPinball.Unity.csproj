@@ -142,7 +142,7 @@
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
-    <Compile Include="Physics\SystemGroup\StartSimulationEntityCommandBufferSystem.cs" />
+    <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
