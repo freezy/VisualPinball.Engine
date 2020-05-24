@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 using NLog;
 using Unity.Entities;
 using Unity.Transforms;
@@ -6,6 +10,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Physics.SystemGroup;
+using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Game
 {
@@ -16,78 +21,129 @@ namespace VisualPinball.Unity.Game
 	public class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
+		public int NumBalls;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
-		private long _nextPhysicsFrameTime;
-		private long _currentPhysicsTime;
-
-		private long _lastUpdatePhysicsUsec;
+		private readonly Stopwatch _time = new Stopwatch();
+		private ulong _currentPhysicsTime;
+		private ulong _nextPhysicsFrameTime;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
+		private StartSimulationEntityCommandBufferSystem _startSimulationEntityCommandBufferSystem;
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
-		public long CurPhysicsFrameTime;
+		public ulong CurPhysicsFrameTime;
+		private ulong _lastUpdatePhysicsUsec;
+
+		#if TIME_LOG
+		private StringBuilder _log;
+		public ulong StartLogTimeUsec;
+		#endif
 
 		protected override void OnCreate()
 		{
+			_time.Start();
+
+			_startSimulationEntityCommandBufferSystem = World.GetOrCreateSystem<StartSimulationEntityCommandBufferSystem>();
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
+			_systemsToUpdate.Add(_startSimulationEntityCommandBufferSystem);
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_simulateCycleSystemGroup);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
+
+			#if TIME_LOG
+			_log = new StringBuilder();
+			#endif
 		}
 
-		enum TimingMode { RealTime, Atleast60, Locked60 };
-		TimingMode timingMode = TimingMode.Locked60;
+		protected override void OnStartRunning()
+		{
+			_currentPhysicsTime = GetTargetTime();
+			_nextPhysicsFrameTime = _currentPhysicsTime + PhysicsConstants.PhysicsStepTime;
+		}
 
-		long GetTargetTime()
+		#if TIME_LOG
+		protected override void OnDestroy()
+		{
+			var f = new StreamWriter(@"C:\Development\vpvr\m_flog-unity.txt");
+			f.Write(_log.ToString());
+			f.Dispose();
+		}
+
+		public void Log(string line)
+		{
+			_log.AppendLine(line);
+		}
+		#endif
+
+		private enum TimingMode { UnityTime, SystemTime, Atleast60, Locked60 };
+
+		private const TimingMode timingMode = TimingMode.UnityTime;
+
+		private ulong GetTargetTime()
 		{
 			const long dt60fps = 1000000 / 60;
-			long t = (long)(Time.ElapsedTime * 1000000); // default: TimingMode.RealTime:
 
-			switch (timingMode)
-			{
+			switch (timingMode) {
 				case TimingMode.Atleast60:
-					long dt = (long)(Time.DeltaTime * 1000000);
-					if (_currentPhysicsTime > 0 && dt > dt60fps)
-					{
+					var dt = (ulong)(Time.DeltaTime * 1000000);
+					if (_currentPhysicsTime > 0 && dt > dt60fps) {
 						dt = dt60fps;
 					}
-					t = _currentPhysicsTime + dt;
-					break;
+					return _currentPhysicsTime + dt;
 
 				case TimingMode.Locked60:
-					t = _currentPhysicsTime + dt60fps;
-					break;
+					return _currentPhysicsTime + dt60fps;
+
+				case TimingMode.UnityTime:
+					return (ulong)(Time.ElapsedTime * 1000000);
+
+				case TimingMode.SystemTime:
+					return (ulong) (_time.Elapsed.TotalMilliseconds * 1000);
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
-			return t;
 		}
 
 		protected override void OnUpdate()
 		{
-			const int startTimeUsec = 0;
-			var initialTimeUsec = GetTargetTime();
-			CurPhysicsFrameTime = _currentPhysicsTime == 0
-				? (long) (initialTimeUsec - Time.DeltaTime * 1000000)
-				: _currentPhysicsTime;
+			_startSimulationEntityCommandBufferSystem.Update();
 
-			var tt = initialTimeUsec - startTimeUsec;
-			//Logger.Info("[{0}] (+{1}) Player::UpdatePhysics()\n", tt, (double)(initialTimeUsec - _lastUpdatePhysicsUsec) / 1000);
+			//const int startTimeUsec = 0;
+			var initialTimeUsec = GetTargetTime();
+
+			#if TIME_LOG
+			if (StartLogTimeUsec == 0 && NumBalls > 0) {
+				StartLogTimeUsec = initialTimeUsec;
+				Log($"Logging physics time, because we now have {NumBalls} ball(s).");
+			}
+
+			if (StartLogTimeUsec > 0) {
+				var tt = initialTimeUsec - StartLogTimeUsec;
+				Log($"[{(double) tt / 1000}] (+{(double) (initialTimeUsec - _lastUpdatePhysicsUsec) / 1000}) Player::UpdatePhysics()");
+			}
+			#endif
+
 			_lastUpdatePhysicsUsec = initialTimeUsec;
 
 			while (CurPhysicsFrameTime < initialTimeUsec) {
 
-				var timeMsec = (int)((CurPhysicsFrameTime - startTimeUsec) / 1000);
-
 				PhysicsDiffTime = (_nextPhysicsFrameTime - CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
-				//Logger.Info($"   [{timeMsec}] ({PhysicsDiffTime}) loop");
+				#if TIME_LOG
+				if (StartLogTimeUsec > 0) {
+					var timeMsecLog = (int) ((CurPhysicsFrameTime - StartLogTimeUsec) / 1000);
+					Log($"   [{timeMsecLog}] ({PhysicsDiffTime}) outer loop");
+				}
+				#endif
 
 				// update velocities
 				_velocitiesSystemGroup.Update();
