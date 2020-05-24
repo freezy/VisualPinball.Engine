@@ -5,6 +5,7 @@ using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.SystemGroup
@@ -57,11 +58,11 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			var dTime = sim.PhysicsDiffTime;
 			while (dTime > 0) {
 
-				//Logger.Info("     ({0}) Player::PhysicsSimulateCycle (loop)\n", DTime);
-
 				HitTime = (float)dTime;
+				var hitTime1 = HitTime;
 
-				ApplyFlipperTime();
+				ApplyFlipperTime(sim);
+				var hitTime2 = HitTime;
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
@@ -69,19 +70,28 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				_dynamicNarrowPhaseSystem.Update();
 
 				ApplyStaticTime(ref staticCnts);
+				var hitTime3 = HitTime;
 
 				_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
 				_staticCollisionSystem.Update();
 				_contactSystem.Update();
+				var hitTime4 = HitTime;
 
 				dTime -= HitTime;
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
+
+				#if TIME_LOG
+				if (sim.StartLogTimeUsec > 0 && dTime > 0) {
+					sim.Log($"     ({dTime}) Player::PhysicsSimulateCycle (inner loop): {hitTime1} -> {hitTime2} -> {hitTime3} -> {hitTime4}");
+				}
+				#endif
+
 			}
 		}
 
-		private void ApplyFlipperTime()
+		private void ApplyFlipperTime(VisualPinballSimulationSystemGroup sim)
 		{
 			// update hittime
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
@@ -90,6 +100,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				var movementData = EntityManager.GetComponentData<FlipperMovementData>(entity);
 				var staticData = EntityManager.GetComponentData<FlipperStaticData>(entity);
 				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, staticData.AngleEnd);
+				//sim.Log($"     flipper hit time = {flipperHitTime}");
 				if (flipperHitTime > 0 && flipperHitTime < HitTime) { //!! >= 0.f causes infinite loop
 					HitTime = flipperHitTime;
 				}
