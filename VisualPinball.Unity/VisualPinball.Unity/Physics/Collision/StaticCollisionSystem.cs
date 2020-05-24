@@ -90,7 +90,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				// Profiler.EndSample();
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }
