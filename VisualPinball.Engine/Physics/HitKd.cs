@@ -27,16 +27,14 @@ namespace VisualPinball.Engine.Physics
 		{
 			_orgHitObjects = vho;
 			_numItems = vho.Count;
-			_maxItems = _numItems;
 
 			if (_numItems > _maxItems) {
-				_maxItems = _numItems;
-
 				OrgIdx = new int[_numItems];
 				Indices = new int[_numItems];
 				_nodes = new HitKdNode[(_numItems * 2 + 1) & ~1u];
-			}
+             			}
 
+			_maxItems = _numItems;
 			NumNodes = 0;
 			_rootNode.Reset();
 		}
