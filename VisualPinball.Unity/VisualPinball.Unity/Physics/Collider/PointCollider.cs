@@ -20,15 +20,14 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public static void Create(BlobBuilder builder, HitPoint src, ref BlobPtr<Collider> dest)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref linePtr);
+			ref var colliderPtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
+			ref var collider = ref builder.Allocate(ref colliderPtr);
 			collider.Init(src);
 		}
 
 		private void Init(HitPoint src)
 		{
 			_header.Init(ColliderType.Point, src);
-
 			_p = src.P.ToUnityFloat3();
 		}
 
@@ -42,8 +41,8 @@ namespace VisualPinball.Unity.Physics.Collider
 			// relative ball position
 			var dist = ball.Position - _p;
 
-			var bcddsq = math.lengthsq(dist);                                      // ball center to line distance squared
-			var bcdd = math.sqrt(bcddsq);                                     // distance ball to line
+			var bcddsq = math.lengthsq(dist);                                  // ball center to line distance squared
+			var bcdd = math.sqrt(bcddsq);                                      // distance ball to line
 			if (bcdd <= 1.0e-6) {
 				// no hit on exact center
 				return -1.0f;
@@ -57,7 +56,7 @@ namespace VisualPinball.Unity.Physics.Collider
 				return -1.0f;
 			}
 
-			var bnd = bcdd - ball.Radius;                                 // ball distance to line
+			var bnd = bcdd - ball.Radius;                                      // ball distance to line
 			var a = math.lengthsq(ball.Velocity);
 
 			float hitTime;
