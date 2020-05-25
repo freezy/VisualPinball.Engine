@@ -5,15 +5,24 @@ using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.SystemGroup
 {
+	/// <summary>
+	///
+	/// </summary>
 	[DisableAutoCreation]
 	public class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
+		/// <summary>
+		/// Time of the next collision; other systems can update this.
+		/// </summary>
 		public float HitTime;
+
+		/// <summary>
+		/// Ball-ball collision resolution order is swapped each time
+		/// </summary>
 		public bool SwapBallCollisionHandling;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
@@ -59,10 +68,8 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			while (dTime > 0) {
 
 				HitTime = (float)dTime;
-				var hitTime1 = HitTime;
 
 				ApplyFlipperTime(sim);
-				var hitTime2 = HitTime;
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
@@ -70,37 +77,27 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				_dynamicNarrowPhaseSystem.Update();
 
 				ApplyStaticTime(ref staticCnts);
-				var hitTime3 = HitTime;
 
 				_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
 				_staticCollisionSystem.Update();
 				_contactSystem.Update();
-				var hitTime4 = HitTime;
 
 				dTime -= HitTime;
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
-
-				#if TIME_LOG
-				if (sim.StartLogTimeUsec > 0 && dTime > 0) {
-					sim.Log($"     ({dTime}) Player::PhysicsSimulateCycle (inner loop): {hitTime1} -> {hitTime2} -> {hitTime3} -> {hitTime4}");
-				}
-				#endif
-
 			}
 		}
 
 		private void ApplyFlipperTime(VisualPinballSimulationSystemGroup sim)
 		{
-			// update hittime
+			// update hit time
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
 			foreach (var entity in entities) {
 				var movementData = EntityManager.GetComponentData<FlipperMovementData>(entity);
 				var staticData = EntityManager.GetComponentData<FlipperStaticData>(entity);
 				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, staticData.AngleEnd);
-				//sim.Log($"     flipper hit time = {flipperHitTime}");
 				if (flipperHitTime > 0 && flipperHitTime < HitTime) { //!! >= 0.f causes infinite loop
 					HitTime = flipperHitTime;
 				}
@@ -110,7 +107,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 		private void ApplyStaticTime(ref float staticCnts)
 		{
-			// update hittime
+			// update hit time
 			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
 			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
 			foreach (var entity in entities) {

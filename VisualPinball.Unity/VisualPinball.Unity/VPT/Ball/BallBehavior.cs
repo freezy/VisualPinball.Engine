@@ -40,8 +40,6 @@ namespace VisualPinball.Unity.VPT.Ball
 			dstManager.AddBuffer<OverlappingDynamicBufferElement>(entity);
 			dstManager.AddBuffer<ContactBufferElement>(entity);
 			dstManager.AddBuffer<BallInsideOfBufferElement>(entity);
-
-			dstManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().NumBalls++;
 		}
 
 		public static void CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
@@ -100,8 +98,6 @@ namespace VisualPinball.Unity.VPT.Ball
 				IsContact = false,
 				HitNormal = new float3(0, 0, 0),
 			});
-
-			entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().NumBalls++;
 		}
 	}
 }
