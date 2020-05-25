@@ -4,10 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
-using VisualPinball.Engine.Resources.Meshes;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.SystemGroup;
-using Mesh = VisualPinball.Engine.VPT.Mesh;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -18,14 +15,12 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		private readonly Engine.VPT.Table.Table _table;
 
-		private static readonly Mesh _ballMesh = new Mesh("BallMesh", BallMesh.Vertices, BallMesh.Indices);
-
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
 		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
-		private static UnityEngine.Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
+		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
 		public BallManager(Engine.VPT.Table.Table table)
 		{
@@ -83,7 +78,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		/// ToDo: Get Mesh from our resources
 		/// </summary>
 		/// <returns>Sphere Mesh</returns>
-		private static UnityEngine.Mesh GetSphereMesh()
+		private static Mesh GetSphereMesh()
 		{
 			if (!_unitySphereMesh)
 			{
