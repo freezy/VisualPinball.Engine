@@ -11,24 +11,26 @@ using VisualPinball.Unity.VPT.Flipper;
 	public class StaticNarrowPhaseSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private EntityQuery _collDataEntityQuery;
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 
 		protected override void OnUpdate()
 		{
 			// retrieve reference to static collider data
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
-			var collEntity = collDataEntityQuery.GetSingletonEntity();
+
+			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 
-			Entities.WithName("DynamicNarrowPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> staticColliderIds,
-				ref CollisionEventData collEvent, ref DynamicBuffer<ContactBufferElement> contacts,
-				ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ballData) => {
+			Entities.WithName("DynamicNarrowPhaseJob").ForEach((ref CollisionEventData collEvent,
+				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
 				// Profiler.BeginSample("NarrowPhaseSystem");
 
@@ -46,8 +48,8 @@ using VisualPinball.Unity.VPT.Flipper;
 				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballData);
 
 				// statics first (todo: randomly switch order)
-				for (var i = 0; i < staticColliderIds.Length; i++) {
-					ref var coll = ref colliders[staticColliderIds[i].Value].Value;
+				for (var i = 0; i < colliderIds.Length; i++) {
+					ref var coll = ref colliders[colliderIds[i].Value].Value;
 
 					var newCollEvent = new CollisionEventData();
 					float newTime;
@@ -79,8 +81,6 @@ using VisualPinball.Unity.VPT.Flipper;
 
 					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime);
 				}
-
-				staticColliderIds.Clear();
 
 				// no negative time allowed
 				if (collEvent.HitTime < 0) {
