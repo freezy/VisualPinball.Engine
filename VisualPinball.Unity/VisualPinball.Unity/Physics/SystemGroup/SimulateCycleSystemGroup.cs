@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
@@ -10,7 +9,7 @@ using VisualPinball.Unity.VPT.Flipper;
 namespace VisualPinball.Unity.Physics.SystemGroup
 {
 	/// <summary>
-	///
+	/// The main simulation loop
 	/// </summary>
 	[DisableAutoCreation]
 	public class SimulateCycleSystemGroup : ComponentSystemGroup
@@ -27,9 +26,8 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
+
 		private StaticBroadPhaseSystem _staticBroadPhaseSystem;
 		private DynamicBroadPhaseSystem _dynamicBroadPhaseSystem;
 		private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
@@ -39,8 +37,16 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private DynamicCollisionSystem _dynamicCollisionSystem;
 		private ContactSystem _contactSystem;
 
+		private float _staticCounts;
+		private EntityQuery _flipperDataQuery;
+		private EntityQuery _collisionDataQuery;
+
 		protected override void OnCreate()
 		{
+
+			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
+			_collisionDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
+
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
 			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
@@ -63,20 +69,20 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		{
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
-			var staticCnts = PhysicsConstants.StaticCnts;
+			_staticCounts = PhysicsConstants.StaticCnts;
 			var dTime = sim.PhysicsDiffTime;
 			while (dTime > 0) {
 
 				HitTime = (float)dTime;
 
-				ApplyFlipperTime(sim);
+				ApplyFlipperTime();
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
 				_staticNarrowPhaseSystem.Update();
 				_dynamicNarrowPhaseSystem.Update();
 
-				ApplyStaticTime(ref staticCnts);
+				ApplyStaticTime();
 
 				_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
@@ -89,15 +95,16 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			}
 		}
 
-		private void ApplyFlipperTime(VisualPinballSimulationSystemGroup sim)
+		private void ApplyFlipperTime()
 		{
-			// update hit time
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
-			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
+			// for each flipper
+			var entities = _flipperDataQuery.ToEntityArray(Allocator.TempJob);
 			foreach (var entity in entities) {
 				var movementData = EntityManager.GetComponentData<FlipperMovementData>(entity);
 				var staticData = EntityManager.GetComponentData<FlipperStaticData>(entity);
 				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, staticData.AngleEnd);
+
+				// if flipper comes to a rest before the end of the cycle, advance to that time
 				if (flipperHitTime > 0 && flipperHitTime < HitTime) { //!! >= 0.f causes infinite loop
 					HitTime = flipperHitTime;
 				}
@@ -105,18 +112,17 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			entities.Dispose();
 		}
 
-		private void ApplyStaticTime(ref float staticCnts)
+		private void ApplyStaticTime()
 		{
-			// update hit time
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
-			var entities = collDataEntityQuery.ToEntityArray(Allocator.TempJob);
+			// for each collision event
+			var entities = _collisionDataQuery.ToEntityArray(Allocator.TempJob);
 			foreach (var entity in entities) {
 				var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
 				if (collEvent.HasCollider() && collEvent.HitTime <= HitTime) {       // smaller hit time??
 					HitTime = collEvent.HitTime;                                     // record actual event time
 					if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
-						if (--staticCnts < 0) {
-							staticCnts = 0;                                          // keep from wrapping
+						if (--_staticCounts < 0) {
+							_staticCounts = 0;                                       // keep from wrapping
 							HitTime = PhysicsConstants.StaticTime;
 						}
 					}
