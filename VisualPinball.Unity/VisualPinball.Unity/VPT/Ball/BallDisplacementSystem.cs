@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				// Profiler.EndSample();
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)
