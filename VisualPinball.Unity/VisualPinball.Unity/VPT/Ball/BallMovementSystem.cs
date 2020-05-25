@@ -35,12 +35,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				translation.Value = math.transform(ltw, ball.Position);
 				var or = ball.Orientation;
-				rot.Value = new quaternion(new float4x4(
-					or.c0.x, or.c1.x, or.c2.x, 0.0f,
-					or.c0.y, or.c1.y, or.c2.y, 0.0f,
-					or.c0.z, or.c1.z, or.c2.z, 0.0f,
-					0f, 0f, 0f, 1f
-				));
+				rot.Value = quaternion.LookRotation(or.c2,  or.c1);
 
 				// Profiler.EndSample();
 
