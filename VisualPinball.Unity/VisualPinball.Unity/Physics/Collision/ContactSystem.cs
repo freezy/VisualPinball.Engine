@@ -17,12 +17,14 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private float3 _gravity;
+		private EntityQuery _collDataEntityQuery;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 
 		protected override void OnStartRunning()
@@ -39,8 +41,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var gravity = _gravity;
 
 			// retrieve reference to static collider data
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
-			var collEntity = collDataEntityQuery.GetSingletonEntity();
+			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
 			Entities.WithName("ContactJob").ForEach((ref BallData ball, ref CollisionEventData collEvent,

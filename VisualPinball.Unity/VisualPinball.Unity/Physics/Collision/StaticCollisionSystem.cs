@@ -14,17 +14,18 @@ namespace VisualPinball.Unity.Physics.Collision
 	public class StaticCollisionSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private EntityQuery _collDataEntityQuery;
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 
 		protected override void OnUpdate()
 		{
 			// retrieve reference to static collider data
-			var collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
-			var collEntity = collDataEntityQuery.GetSingletonEntity();
+			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 
