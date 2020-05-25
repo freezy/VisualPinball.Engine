@@ -26,6 +26,7 @@ namespace VisualPinball.Unity.Game
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
 		private readonly Stopwatch _time = new Stopwatch();
+		private readonly Stopwatch _frameTime = new Stopwatch();
 		private ulong _currentPhysicsTime;
 		private ulong _nextPhysicsFrameTime;
 
@@ -115,6 +116,11 @@ namespace VisualPinball.Unity.Game
 
 		protected override void OnUpdate()
 		{
+			#if TIME_LOG
+			_frameTime.Reset();
+			_frameTime.Start();
+			#endif
+
 			_createBallEntityCommandBufferSystem.Update();
 
 			//const int startTimeUsec = 0;
@@ -160,6 +166,12 @@ namespace VisualPinball.Unity.Game
 			_currentPhysicsTime = CurPhysicsFrameTime;
 
 			_transformMeshesSystemGroup.Update();
+
+			#if TIME_LOG
+			_frameTime.Stop();
+			var ms = Math.Round(_frameTime.Elapsed.TotalMilliseconds, 3);
+			Log($"Frame: {ms}ms");
+			#endif
 		}
 	}
 }
