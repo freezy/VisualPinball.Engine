@@ -15,17 +15,14 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		private readonly BumperData _data;
 
-		private readonly Mesh _scaledBaseMesh;
-		private readonly Mesh _scaledCapMesh;
-		private readonly Mesh _scaledRingMesh;
-		private readonly Mesh _scaledSocketMesh;
+		private Mesh _scaledBaseMesh;
+		private Mesh _scaledCapMesh;
+		private Mesh _scaledRingMesh;
+		private Mesh _scaledSocketMesh;
+		private float _generatedScale;
 
 		internal BumperMeshGenerator(BumperData data) {
 			_data = data;
-			_scaledBaseMesh = BaseMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
-			_scaledCapMesh = CapMesh.Clone().MakeScale(_data.Radius * 2, _data.Radius * 2, _data.HeightScale);
-			_scaledRingMesh = RingMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
-			_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
@@ -81,6 +78,14 @@ namespace VisualPinball.Engine.VPT.Bumper
 			}
 			var matrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+
+			if (_generatedScale != _data.Radius) {
+				_scaledBaseMesh = BaseMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+				_scaledCapMesh = CapMesh.Clone().MakeScale(_data.Radius * 2, _data.Radius * 2, _data.HeightScale);
+				_scaledRingMesh = RingMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+				_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+			}
+
 			return new Dictionary<string, Mesh> {
 				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height, origin) },
 				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height, origin) },

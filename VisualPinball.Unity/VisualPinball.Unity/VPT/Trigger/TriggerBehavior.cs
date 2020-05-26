@@ -6,6 +6,7 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
@@ -17,6 +18,28 @@ namespace VisualPinball.Unity.VPT.Trigger
 		protected override Engine.VPT.Trigger.Trigger GetItem()
 		{
 			return new Engine.VPT.Trigger.Trigger(data);
+		}
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition()
+		{
+			return data.Center.ToUnityVector3(0f);
+		}
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			data.Center = pos.ToVertex2Dxy();
+			transform.localPosition = data.Center.ToUnityVector3(0f);
+		}
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation()
+		{
+			return new Vector3(data.Rotation, 0f, 0f);
+		}
+		public override void SetEditorRotation(Vector3 rot)
+		{
+			data.Rotation = rot.x;
+			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
 		}
 	}
 }
