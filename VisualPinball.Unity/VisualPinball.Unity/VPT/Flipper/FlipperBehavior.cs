@@ -10,6 +10,7 @@ using UnityEngine;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
@@ -17,6 +18,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
+		public override bool RebuildMeshOnScale => true;
 		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
 		protected override Engine.VPT.Flipper.Flipper GetItem()
@@ -37,14 +39,48 @@ namespace VisualPinball.Unity.VPT.Flipper
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
 		}
 
-		private void Awake()
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition()
 		{
-			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
-			// can be null in editor, shouldn't be at runtime.
-			if (rootObj != null)
-			{
-				_tableData = rootObj.data;
+			return data.Center.ToUnityVector3(0f);
+		}
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			data.Center = pos.ToVertex2Dxy();
+			transform.localPosition = data.Center.ToUnityVector3(0f);
+		}
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation()
+		{
+			return new Vector3(data.StartAngle, 0f, 0f);
+		}
+		public override void SetEditorRotation(Vector3 rot)
+		{
+			data.StartAngle = rot.x;
+			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
+		}
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorScale()
+		{
+			return new Vector3(data.BaseRadius, data.FlipperRadius, data.Height);
+		}
+		public override void SetEditorScale(Vector3 scale)
+		{
+			if (data.BaseRadius > 0) {
+				float endRadiusRatio = data.EndRadius / data.BaseRadius;
+				data.EndRadius = scale.x * endRadiusRatio;
 			}
+			data.BaseRadius = scale.x;
+			data.FlipperRadius = scale.y;
+			if (data.Height > 0) {
+				float rubberHeightRatio = data.RubberHeight / data.Height;
+				data.RubberHeight = scale.z * rubberHeightRatio;
+				float rubberWidthRatio = data.RubberWidth / data.Height;
+				data.RubberWidth = scale.z * rubberWidthRatio;
+			}
+			data.Height = scale.z;
 		}
 
 		private FlipperMaterialData GetMaterialData()
@@ -108,19 +144,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 				Direction = d.AngleEnd >= d.AngleStart,
 				IsInContact = false
 			};
-		}
-
-		protected virtual void OnDrawGizmos()
-		{
-			// flippers tend to have sub object meshes, so nothing would be pickable on this game object,
-			// but generally you'll want to manipulate the whole flipper, so we'll draw an invisible
-			// gizmo slightly larger than one of the child meshes so clicking on the flipper in editor
-			// selects this object
-			var mf = this.GetComponentInChildren<MeshFilter>();
-			if (mf != null && mf.sharedMesh != null) {
-				Gizmos.color = Color.clear;
-				Gizmos.DrawMesh(mf.sharedMesh, transform.position, transform.rotation, transform.lossyScale * 1.1f);
-			}
 		}
 	}
 }

@@ -11,7 +11,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IItemDataTransformable where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
@@ -22,6 +22,13 @@ namespace VisualPinball.Unity.VPT
 		private TItem _item;
 
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+		// for tracking if we need to rebuild the meshes (handled by the editor scripts) during undo/redo flows
+		[SerializeField]
+		private bool _meshDirty;
+		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
+		public virtual bool RebuildMeshOnMove => false;
+		public virtual bool RebuildMeshOnScale => false;
 
 		public void SetData(TData d)
 		{
@@ -47,22 +54,50 @@ namespace VisualPinball.Unity.VPT
 				UpdateMesh(Item.Name, gameObject, rog);
 			} else {
 				foreach (var child in children) {
-					UpdateMesh(child, transform.Find(child).gameObject, rog);
+					Transform childTransform = transform.Find(child);
+					if (childTransform != null) {
+						UpdateMesh(child, childTransform.gameObject, rog);
+					}
 				}
 			}
+			_meshDirty = false;
 		}
+
+		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
+		public virtual Vector3 GetEditorPosition() { return Vector3.zero; }
+		public virtual void SetEditorPosition(Vector3 pos) { }
+
+		public virtual ItemDataTransformType EditorRotationType => ItemDataTransformType.None;
+		public virtual Vector3 GetEditorRotation() { return Vector3.zero; }
+		public virtual void SetEditorRotation(Vector3 rot) { }
+
+		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
+		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
+		public virtual void SetEditorScale(Vector3 rot) { }
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Item.Index = entity.Index;
 		}
 
-		private void Awake()
+		protected virtual void Awake()
 		{
 			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
 			// can be null in editor, shouldn't be at runtime.
 			if (rootObj != null) {
 				_tableData = rootObj.data;
+			}
+		}
+
+		protected virtual void OnDrawGizmos()
+		{
+			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
+			// selects the item itself first, which is most likely what the user would want
+			var mfs = this.GetComponentsInChildren<MeshFilter>();
+			Gizmos.color = Color.clear;
+			Gizmos.matrix = Matrix4x4.identity;
+			foreach (var mf in mfs) {
+				Gizmos.DrawMesh(mf.sharedMesh, mf.transform.position, mf.transform.rotation, mf.transform.lossyScale);
 			}
 		}
 

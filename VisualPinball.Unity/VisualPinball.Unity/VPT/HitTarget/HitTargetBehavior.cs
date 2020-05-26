@@ -6,6 +6,7 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.HitTarget
 {
@@ -17,6 +18,39 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		protected override Engine.VPT.HitTarget.HitTarget GetItem()
 		{
 			return new Engine.VPT.HitTarget.HitTarget(data);
+		}
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorPosition()
+		{
+			return data.Position.ToUnityVector3();
+		}
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			data.Position = pos.ToVertex3D();
+			transform.localPosition = data.Position.ToUnityVector3();
+		}
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation()
+		{
+			return new Vector3(data.RotZ, 0f, 0f);
+		}
+		public override void SetEditorRotation(Vector3 rot)
+		{
+			data.RotZ = rot.x;
+			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
+		}
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorScale()
+		{
+			return data.Size.ToUnityVector3();
+		}
+		public override void SetEditorScale(Vector3 scale)
+		{
+			data.Size = scale.ToVertex3D();
+			transform.localScale = data.Size.ToUnityVector3();
 		}
 	}
 }

@@ -8,6 +8,16 @@ namespace VisualPinball.Unity.Extensions
 {
 	public static class MathExtensions
 	{
+		public static Vertex3D ToVertex3D(this Vector3 vector)
+		{
+			return new Vertex3D(vector.x, vector.y, vector.z);
+		}
+
+		public static Vertex2D ToVertex2Dxy(this Vector3 vector)
+		{
+			return new Vertex2D(vector.x, vector.y);
+		}
+
 		public static Vector3 ToUnityVector3(this Vertex3D vertex)
 		{
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
@@ -16,6 +26,16 @@ namespace VisualPinball.Unity.Extensions
 		public static float3 ToUnityFloat3(this Vertex3D vertex)
 		{
 			return new float3(vertex.X, vertex.Y, vertex.Z);
+		}
+
+		public static Vertex3D ToVertex3D(this Vector2 vector, float z)
+		{
+			return new Vertex3D(vector.x, vector.y, z);
+		}
+
+		public static Vertex2D ToVertex2D(this Vector2 vector)
+		{
+			return new Vertex2D(vector.x, vector.y);
 		}
 
 		public static Vector3 ToUnityVector3(this Vertex2D vertex, float z)
