@@ -126,7 +126,7 @@ namespace VisualPinball.Unity.Editor.Import.AssetHandler
 		public void OnPreprocessTexture()
 		{
 			var importer = assetImporter as TextureImporter;
-			if (importer != null) {
+			if (importer != null && Textures.ContainsKey(importer.assetPath)) {
 				var texture = Textures[importer.assetPath];
 
 				importer.textureType = texture.UsageNormalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
