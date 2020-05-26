@@ -55,7 +55,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					ref var coll = ref colliders[colliderIds[i].Value].Value;
 
 					var newCollEvent = new CollisionEventData();
-					float newTime;
+					float newTime = 0;
 					unsafe {
 						fixed (Collider.Collider* collider = &coll) {
 							switch (coll.Type) {
@@ -65,14 +65,20 @@ using VisualPinball.Unity.VPT.Flipper;
 									break;
 
 								case ColliderType.Flipper:
-									var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
-									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-									newTime = ((FlipperCollider*) collider)->HitTest(
-										ref newCollEvent, ref insideOfs, ref flipperHitData,
-										in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
-									);
-									SetComponent(coll.Entity, flipperHitData);
+										if (HasComponent<FlipperHitData>(coll.Entity) && 
+											HasComponent<FlipperMovementData>(coll.Entity) && 
+											HasComponent<FlipperStaticData>(coll.Entity))
+										{
+											var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
+											var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+											var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
+											newTime = ((FlipperCollider*)collider)->HitTest(
+												ref newCollEvent, ref insideOfs, ref flipperHitData,
+												in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
+											);
+
+											SetComponent(coll.Entity, flipperHitData);
+										}
 									break;
 
 								default:
