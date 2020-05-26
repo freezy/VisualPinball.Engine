@@ -65,8 +65,8 @@ using VisualPinball.Unity.VPT.Flipper;
 									break;
 
 								case ColliderType.Flipper:
-										if (HasComponent<FlipperHitData>(coll.Entity) && 
-											HasComponent<FlipperMovementData>(coll.Entity) && 
+									if (HasComponent<FlipperHitData>(coll.Entity) &&
+											HasComponent<FlipperMovementData>(coll.Entity) &&
 											HasComponent<FlipperStaticData>(coll.Entity))
 										{
 											var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);

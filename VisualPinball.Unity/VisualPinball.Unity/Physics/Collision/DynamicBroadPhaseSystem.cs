@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			// create kdtree
 			PerfMarker1.Begin();
 			var ballEntities = _ballQuery.ToEntityArray(Allocator.Temp);
-			var balls = GetComponentDataFromEntity<BallData>();
+			var balls = GetComponentDataFromEntity<BallData>(true);
 			var ballBounds = new NativeArray<Aabb>(ballEntities.Length, Allocator.Temp);
 			for (var i = 0; i < ballEntities.Length; i++) {
 				ballBounds[i] = balls[ballEntities[i]].GetAabb(ballEntities[i]);
