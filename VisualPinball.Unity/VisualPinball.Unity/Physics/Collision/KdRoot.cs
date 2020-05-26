@@ -15,16 +15,16 @@ namespace VisualPinball.Unity.Physics.Collision
 		private NativeArray<Aabb> _bounds;                                     // m_org_vho
 		private NativeArray<KdNode> _nodes;                                    // m_nodes
 
-		private readonly int _numItems;                                        // m_num_items
+		private int _numItems;                                                 // m_num_items
 
-		public KdRoot(NativeArray<Aabb> bounds)
+		public void Init(NativeArray<Aabb> bounds, Allocator allocator)
 		{
 			_bounds = bounds;
 			_numItems = bounds.Length;
 
-			OrgIdx = new NativeArray<int>(_numItems, Allocator.Temp);
-			Indices = new NativeArray<int>(_numItems, Allocator.Temp);
-			_nodes = new NativeArray<KdNode>(_numItems * 2 + 1, Allocator.Temp);
+			OrgIdx = new NativeArray<int>(_numItems, allocator);
+			Indices = new NativeArray<int>(_numItems, allocator);
+			_nodes = new NativeArray<KdNode>(_numItems * 2 + 1, allocator);
 
 			NumNodes = 0;
 			_rootNode = new KdNode();
@@ -79,6 +79,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		public void Dispose()
 		{
+			_bounds.Dispose();
 			OrgIdx.Dispose();
 			Indices.Dispose();
 		}
