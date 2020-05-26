@@ -1,7 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -49,7 +48,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 				if (math.abs(state.AngleSpeed) < 0.0005f) {
 					// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
-					// Profiler.EndSample();
+					marker.End();
 					return;
 				}
 

@@ -1,7 +1,4 @@
-﻿using Unity.Burst;
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Jobs;
+﻿using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -12,79 +9,38 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 
-		[BurstCompile]
-		private struct DynamicNarrowPhaseJob : IJob
+		protected override void OnUpdate()
 		{
-			[DeallocateOnJobCompletion]
-			public NativeArray<ArchetypeChunk> Chunks;
+			var balls = GetComponentDataFromEntity<BallData>();
+			var marker = PerfMarker;
 
-			public ArchetypeChunkComponentType<BallData> BallDataType;
-			public ArchetypeChunkBufferType<ContactBufferElement> ContactBufferElementType;
-			public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
-			[ReadOnly] public ArchetypeChunkEntityType EntityType;
-			[ReadOnly] public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
-			public ProfilerMarker Marker;
+			Entities
+				.WithName("DynamicNarrowPhaseJob")
+				.WithNativeDisableParallelForRestriction(balls)
+				.ForEach((ref BallData ball, ref DynamicBuffer<ContactBufferElement> contacts, ref CollisionEventData collEvent,
+					in DynamicBuffer<OverlappingDynamicBufferElement> dynamicEntities) => {
 
-			public void Execute()
-			{
-				if (Chunks.Length == 0) {
-					return;
-				}
+					marker.Begin();
 
-				Marker.Begin();
+					for (var k = 0; k < dynamicEntities.Length; k++) {
+						var collBallEntity = dynamicEntities[k].Value;
+						var collBall = balls[collBallEntity];
 
-				// index data for faster access below
-				var numEntities = Chunks.Length * Chunks[0].Count;
-				var chunkIndices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
-				var positionIndices = new NativeHashMap<Entity, int>(numEntities, Allocator.Temp);
+						var newCollEvent = new CollisionEventData();
+						var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 
-				for (var i = 0; i < Chunks.Length; i++) {
-					var chunkEntities = Chunks[i].GetNativeArray(EntityType);
-					var chunkCount = Chunks[i].Count;
+						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
 
-					for (var j = 0; j < chunkCount; j++) {
-						chunkIndices.Add(chunkEntities[j], i);
-						positionIndices.Add(chunkEntities[j], j);
+						// write back
+						balls[collBallEntity] = collBall;
 					}
-				}
 
-				for (var j = 0; j < Chunks.Length; j++) {
+					marker.End();
 
-					var chunkBallData = Chunks[j].GetNativeArray(BallDataType);
-					var chunkCollisions = Chunks[j].GetBufferAccessor(ContactBufferElementType);
-					var chunkCollEventData = Chunks[j].GetNativeArray(CollisionEventDataType);
-					var chunkCount = Chunks[j].Count;
-					var chunkDynamicEntities = Chunks[j].GetBufferAccessor(OverlappingDynamicBufferType);
+				}).Run();
+		}
 
-					for (var i = 0; i < chunkCount; i++) {
-
-						// pick "current" ball
-						var ball = chunkBallData[i];
-						var collEvent = chunkCollEventData[i];
-						var dynamicEntities = chunkDynamicEntities[i];
-						var contacts = chunkCollisions[i];
-
-						for (var k = 0; k < dynamicEntities.Length; k++) {
-							var collBallEntity = dynamicEntities[k].Value;
-							var chunkCollBallData = Chunks[chunkIndices[collBallEntity]].GetNativeArray(BallDataType);
-							var collBall = chunkCollBallData[positionIndices[collBallEntity]];
-
-							var newCollEvent = new CollisionEventData();
-							var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
-
-							SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
-
-							// write back
-							chunkCollEventData[i] = collEvent;
-							chunkCollBallData[positionIndices[collBallEntity]] = collBall;
-						}
-					}
-				}
-
-				Marker.End();
-			}
-
-			private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
+		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
 			{
 				var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
@@ -100,29 +56,5 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 			}
-		}
-
-		private EntityQuery _query;
-
-		protected override void OnCreate()
-		{
-			var queryDesc = new EntityQueryDesc {
-				All = new[]{ typeof(BallData), ComponentType.ReadOnly<CollisionEventData>() }
-			};
-			_query = GetEntityQuery(queryDesc);
-		}
-
-		protected override void OnUpdate()
-		{
-			new DynamicNarrowPhaseJob {
-				Chunks = _query.CreateArchetypeChunkArray(Allocator.TempJob),
-				BallDataType = GetArchetypeChunkComponentType<BallData>(),
-				ContactBufferElementType = GetArchetypeChunkBufferType<ContactBufferElement>(),
-				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(),
-				EntityType = GetArchetypeChunkEntityType(),
-				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(true),
-				Marker = PerfMarker
-			}.Run();
-		}
 	}
 }
