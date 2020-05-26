@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -13,6 +14,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	public class BallMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallMovementSystem");
 
 		protected override void OnStartRunning()
 		{
@@ -29,15 +31,16 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override void OnUpdate()
 		{
 			var ltw = _baseTransform;
+			var marker = PerfMarker;
 			Entities.WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
 
-				// Profiler.BeginSample("BallMovementSystem");
+				marker.Begin();
 
 				translation.Value = math.transform(ltw, ball.Position);
 				var or = ball.Orientation;
 				rot.Value = quaternion.LookRotation(or.c2,  or.c1);
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

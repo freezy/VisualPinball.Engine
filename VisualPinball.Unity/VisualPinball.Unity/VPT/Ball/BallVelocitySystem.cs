@@ -2,6 +2,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
@@ -14,6 +15,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	public class BallVelocitySystem : SystemBase
 	{
 		private float3 _gravity;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallVelocitySystem");
 
 		protected override void OnStartRunning()
 		{
@@ -23,17 +25,18 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override void OnUpdate()
 		{
 			var gravity = _gravity;
+			var marker = PerfMarker;
 			Entities.WithName("BallVelocityJob").ForEach((ref BallData ball) => {
 
 				if (ball.IsFrozen) {
 					return;
 				}
 
-				// Profiler.BeginSample("BallVelocitySystem");
+				marker.Begin();
 
 				ball.Velocity += gravity * PhysicsConstants.PhysFactor;
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

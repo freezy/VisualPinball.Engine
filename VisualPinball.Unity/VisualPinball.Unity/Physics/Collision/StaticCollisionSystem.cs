@@ -2,6 +2,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
@@ -15,6 +16,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticCollisionSystem");
 
 		protected override void OnCreate()
 		{
@@ -30,6 +32,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
+			var marker = PerfMarker;
 
 			Entities.WithName("StaticCollisionJob").ForEach((ref BallData ballData, ref CollisionEventData collEvent) => {
 
@@ -38,7 +41,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					return;
 				}
 
-				// Profiler.BeginSample("StaticCollisionSystem");
+				marker.Begin();
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -89,7 +92,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				// 	ball.hit.calcHitBBox(); // do new boundings
 				// }
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

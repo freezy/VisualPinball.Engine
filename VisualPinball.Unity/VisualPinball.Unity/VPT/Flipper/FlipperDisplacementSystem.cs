@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -17,6 +18,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	public class FlipperDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
 
 		protected override void OnCreate()
 		{
@@ -26,10 +28,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
+			var marker = PerfMarker;
 
 			Entities.WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
 
-				// Profiler.BeginSample("FlipperDisplacementSystem");
+				marker.Begin();
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
@@ -79,7 +82,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 					state.EnableRotateEvent = 0;
 				}
 
-				// Profiler.EndSample();
+				marker.End();
 			}).Run();
 		}
 	}

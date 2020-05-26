@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -11,6 +12,8 @@ namespace VisualPinball.Unity.Physics.Collision
 	[DisableAutoCreation]
 	public class DynamicCollisionSystem : SystemBase
 	{
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicCollisionSystem");
+
 		[BurstCompile]
 		private struct DynamicCollisionJob : IJob
 		{
@@ -23,6 +26,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			public float HitTime;
 			public bool SwapBallCollisionHandling;
+			public ProfilerMarker Marker;
 
 			public void Execute()
 			{
@@ -30,7 +34,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					return;
 				}
 
-				// Profiler.BeginSample("DynamicCollisionSystem");
+				Marker.Begin();
 
 				// index data for faster access below
 				var numEntities = Chunks.Length * Chunks[0].Count;
@@ -103,7 +107,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 
-				// Profiler.EndSample();
+				Marker.End();
 			}
 		}
 
@@ -128,7 +132,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(true),
 				EntityType = GetArchetypeChunkEntityType(),
 				HitTime = _simulateCycleSystemGroup.HitTime,
-				SwapBallCollisionHandling = _simulateCycleSystemGroup.SwapBallCollisionHandling
+				SwapBallCollisionHandling = _simulateCycleSystemGroup.SwapBallCollisionHandling,
+				Marker = PerfMarker
 			}.Run();
 		}
 	}

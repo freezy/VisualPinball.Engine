@@ -1,6 +1,7 @@
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -12,6 +13,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallDisplacementSystem");
 
 		protected override void OnCreate()
 		{
@@ -21,6 +23,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
+			var marker = PerfMarker;
 
 			Entities.WithName("BallDisplacementJob").ForEach((ref BallData ball) => {
 
@@ -28,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					return;
 				}
 
-				// Profiler.BeginSample("BallDisplacementSystem");
+				marker.Begin();
 
 				ball.Position += ball.Velocity * dTime;
 
@@ -44,7 +47,7 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

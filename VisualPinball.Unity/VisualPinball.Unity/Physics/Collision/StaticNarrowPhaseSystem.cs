@@ -1,5 +1,6 @@
 ﻿﻿using Unity.Entities;
-using UnityEngine.Profiling;
+ using Unity.Profiling;
+ using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -12,6 +13,7 @@ using VisualPinball.Unity.VPT.Flipper;
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticNarrowPhaseSystem");
 
 		protected override void OnCreate()
 		{
@@ -27,12 +29,13 @@ using VisualPinball.Unity.VPT.Flipper;
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
+			var marker = PerfMarker;
 
 			Entities.WithName("DynamicNarrowPhaseJob").ForEach((ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
-				// Profiler.BeginSample("NarrowPhaseSystem");
+				marker.Begin();
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -87,7 +90,7 @@ using VisualPinball.Unity.VPT.Flipper;
 					collEvent.ClearCollider();
 				}
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -11,6 +12,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	public class DynamicBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _ballQuery;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicBroadPhaseSystem");
 
 		[BurstCompile]
 		private struct DynamicBroadPhaseJob : IJob {
@@ -23,11 +25,11 @@ namespace VisualPinball.Unity.Physics.Collision
 			[ReadOnly]
 			public ArchetypeChunkEntityType EntityChunkType;
 			public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
+			public ProfilerMarker Marker;
 
 			public void Execute()
 			{
-
-				// Profiler.BeginSample("DynamicBroadPhaseSystem");
+				Marker.Begin();
 
 				// get bounds for all balls
 				var ballBounds = new NativeList<Aabb>(Allocator.Temp);
@@ -63,7 +65,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				kdRoot.Dispose();
 				ballBounds.Dispose();
 
-				// Profiler.EndSample();
+				Marker.End();
 			}
 		}
 
@@ -77,7 +79,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				Chunks = _ballQuery.CreateArchetypeChunkArray(Allocator.TempJob),
 				BallType = GetArchetypeChunkComponentType<BallData>(true),
 				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(),
-				EntityChunkType = GetArchetypeChunkEntityType()
+				EntityChunkType = GetArchetypeChunkEntityType(),
+				Marker = PerfMarker
 			}.Run();
 		}
 	}

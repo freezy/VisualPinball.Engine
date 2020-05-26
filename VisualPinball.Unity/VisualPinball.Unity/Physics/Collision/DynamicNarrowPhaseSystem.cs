@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Profiling;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -9,6 +10,8 @@ namespace VisualPinball.Unity.Physics.Collision
 	[DisableAutoCreation]
 	public class DynamicNarrowPhaseSystem : SystemBase
 	{
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
+
 		[BurstCompile]
 		private struct DynamicNarrowPhaseJob : IJob
 		{
@@ -20,6 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			public ArchetypeChunkComponentType<CollisionEventData> CollisionEventDataType;
 			[ReadOnly] public ArchetypeChunkEntityType EntityType;
 			[ReadOnly] public ArchetypeChunkBufferType<OverlappingDynamicBufferElement> OverlappingDynamicBufferType;
+			public ProfilerMarker Marker;
 
 			public void Execute()
 			{
@@ -27,7 +31,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					return;
 				}
 
-				// Profiler.BeginSample("DynamicNarrowPhaseSystem");
+				Marker.Begin();
 
 				// index data for faster access below
 				var numEntities = Chunks.Length * Chunks[0].Count;
@@ -77,7 +81,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					}
 				}
 
-				// Profiler.EndSample();
+				Marker.End();
 			}
 
 			private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
@@ -116,7 +120,8 @@ namespace VisualPinball.Unity.Physics.Collision
 				ContactBufferElementType = GetArchetypeChunkBufferType<ContactBufferElement>(),
 				CollisionEventDataType = GetArchetypeChunkComponentType<CollisionEventData>(),
 				EntityType = GetArchetypeChunkEntityType(),
-				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(true)
+				OverlappingDynamicBufferType = GetArchetypeChunkBufferType<OverlappingDynamicBufferElement>(true),
+				Marker = PerfMarker
 			}.Run();
 		}
 	}

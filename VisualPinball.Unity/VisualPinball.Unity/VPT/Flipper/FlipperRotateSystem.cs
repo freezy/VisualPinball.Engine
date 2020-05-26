@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using Unity.Transforms;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -10,15 +10,18 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class FlipperRotateSystem : SystemBase
 	{
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperRotateSystem");
+
 		protected override void OnUpdate()
 		{
+			var marker = PerfMarker;
 			Entities.WithName("FlipperRotateJob").ForEach((ref Rotation rot, in FlipperMovementData movement) => {
 
-				// Profiler.BeginSample("FlipperRotateSystem");
+				marker.Begin();
 
 				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
 
-				// Profiler.EndSample();
+				marker.End();
 
 			}).Run();
 		}

@@ -1,14 +1,13 @@
 ﻿using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using Logger = NLog.Logger;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -20,6 +19,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		private EntityQuery _collDataEntityQuery;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("ContactSystem");
 
 		protected override void OnCreate()
 		{
@@ -36,17 +36,18 @@ namespace VisualPinball.Unity.Physics.Collision
 		{
 			// Profiler.BeginSample("ContactSystem");
 
-			var rnd = new Random(666);
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var gravity = _gravity;
 
 			// retrieve reference to static collider data
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+			var marker = PerfMarker;
 
 			Entities.WithName("ContactJob").ForEach((ref BallData ball, ref CollisionEventData collEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts) => {
 
+				marker.Begin();
 				ref var colliders = ref collData.Value.Value.Colliders;
 
 				//if (rnd.NextBool()) { // swap order of contact handling randomly
@@ -81,10 +82,9 @@ namespace VisualPinball.Unity.Physics.Collision
 				}
 
 				contacts.Clear();
+				marker.End();
 
 			}).Run();
-
-			// Profiler.EndSample();
 		}
 	}
 }
