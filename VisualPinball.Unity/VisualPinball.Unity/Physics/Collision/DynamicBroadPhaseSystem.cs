@@ -43,10 +43,6 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithNativeDisableParallelForRestriction(overlappingEntities)
 				.ForEach((Entity entity, in BallData ball) => {
 
-					if (overlappingEntities.Exists(entity)) {
-						return;
-					}
-
 					marker.Begin();
 
 					var colliderEntities = overlappingEntities[entity];

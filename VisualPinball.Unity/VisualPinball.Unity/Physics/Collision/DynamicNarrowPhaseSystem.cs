@@ -12,18 +12,23 @@ namespace VisualPinball.Unity.Physics.Collision
 		protected override void OnUpdate()
 		{
 			var balls = GetComponentDataFromEntity<BallData>();
+			var overlappingEntitiesBuffer = GetBufferFromEntity<OverlappingDynamicBufferElement>(true);
+			var contactsBuffer = GetBufferFromEntity<ContactBufferElement>();
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("DynamicNarrowPhaseJob")
 				.WithNativeDisableParallelForRestriction(balls)
-				.ForEach((ref BallData ball, ref DynamicBuffer<ContactBufferElement> contacts, ref CollisionEventData collEvent,
-					in DynamicBuffer<OverlappingDynamicBufferElement> dynamicEntities) => {
+				.WithNativeDisableParallelForRestriction(contactsBuffer)
+				.WithReadOnly(overlappingEntitiesBuffer)
+				.ForEach((Entity entity, ref BallData ball, ref CollisionEventData collEvent) => {
 
 					marker.Begin();
 
-					for (var k = 0; k < dynamicEntities.Length; k++) {
-						var collBallEntity = dynamicEntities[k].Value;
+					var contacts = contactsBuffer[entity];
+					var overlappingEntities = overlappingEntitiesBuffer[entity];
+					for (var k = 0; k < overlappingEntities.Length; k++) {
+						var collBallEntity = overlappingEntities[k].Value;
 						var collBall = balls[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
