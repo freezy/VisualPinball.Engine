@@ -151,8 +151,11 @@
     <Compile Include="VPT\Ball\BallBehavior.cs" />
     <Compile Include="VPT\Ball\BallCollider.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
+    <Compile Include="VPT\Ball\BallLastPositionsBufferElement.cs" />
     <Compile Include="VPT\Ball\BallManager.cs" />
     <Compile Include="VPT\Ball\BallMovementSystem.cs" />
+    <Compile Include="VPT\Ball\BallRingCounterSystem.cs" />
+    <Compile Include="VPT\Ball\BallSpinHackSystem.cs" />
     <Compile Include="VPT\Ball\BallVelocitySystem.cs" />
     <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
     <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />

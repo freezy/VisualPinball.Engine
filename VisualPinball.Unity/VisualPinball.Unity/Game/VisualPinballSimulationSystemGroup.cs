@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.SystemGroup;
+using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Game
 {
@@ -30,6 +31,7 @@ namespace VisualPinball.Unity.Game
 		private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private BallRingCounterSystem _ballRingCounterSystem;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
 		private const TimingMode Timing = TimingMode.UnityTime;
@@ -41,11 +43,13 @@ namespace VisualPinball.Unity.Game
 			_createBallEntityCommandBufferSystem = World.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_ballRingCounterSystem = World.GetOrCreateSystem<BallRingCounterSystem>();
 			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
 			_systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_simulateCycleSystemGroup);
+			_systemsToUpdate.Add(_ballRingCounterSystem);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
 		}
 
@@ -79,6 +83,9 @@ namespace VisualPinball.Unity.Game
 				// advance physics position
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 			}
+
+			_ballRingCounterSystem.Update();
+
 			_currentPhysicsTime = _currentPhysicsFrameTime;
 
 			// transform all meshes

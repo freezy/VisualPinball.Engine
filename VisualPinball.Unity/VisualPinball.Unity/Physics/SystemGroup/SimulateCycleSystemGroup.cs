@@ -4,6 +4,7 @@ using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 
 namespace VisualPinball.Unity.Physics.SystemGroup
@@ -36,6 +37,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
 		private ContactSystem _contactSystem;
+		private BallSpinHackSystem _ballSpinHackSystem;
 
 		private float _staticCounts;
 		private EntityQuery _flipperDataQuery;
@@ -55,6 +57,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
 			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
+			_ballSpinHackSystem = World.GetOrCreateSystem<BallSpinHackSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
 			_systemsToUpdate.Add(_staticNarrowPhaseSystem);
@@ -63,6 +66,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			_systemsToUpdate.Add(_staticCollisionSystem);
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
+			_systemsToUpdate.Add(_ballSpinHackSystem);
 		}
 
 		protected override void OnUpdate()
@@ -88,6 +92,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				_dynamicCollisionSystem.Update();
 				_staticCollisionSystem.Update();
 				_contactSystem.Update();
+				_ballSpinHackSystem.Update();
 
 				dTime -= HitTime;
 

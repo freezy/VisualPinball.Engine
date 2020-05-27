@@ -23,7 +23,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collData = EntityManager.GetComponentData<QuadTreeData>(collEntity);
 			var marker = PerfMarker;
 
-			Entities.WithName("StaticBroadPhaseJob").ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
+			Entities
+				.WithName("StaticBroadPhaseJob")
+				.ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
 				marker.Begin();
 

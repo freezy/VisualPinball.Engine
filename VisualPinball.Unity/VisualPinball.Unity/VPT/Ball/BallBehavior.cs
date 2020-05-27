@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.SystemGroup;
 
@@ -60,7 +59,8 @@ namespace VisualPinball.Unity.VPT.Ball
 				typeof(OverlappingStaticColliderBufferElement),
 				typeof(OverlappingDynamicBufferElement),
 				typeof(ContactBufferElement),
-				typeof(BallInsideOfBufferElement)
+				typeof(BallInsideOfBufferElement),
+				typeof(BallLastPositionsBufferElement)
 			);
 			var entity = ecb.CreateEntity(archetype);
 
@@ -88,7 +88,8 @@ namespace VisualPinball.Unity.VPT.Ball
 				Radius = radius,
 				Mass = mass,
 				Velocity = velocity,
-				Orientation = float3x3.identity
+				Orientation = float3x3.identity,
+				RingCounterOldPos = 0
 			});
 
 			ecb.SetComponent(entity, new CollisionEventData {
@@ -98,6 +99,13 @@ namespace VisualPinball.Unity.VPT.Ball
 				IsContact = false,
 				HitNormal = new float3(0, 0, 0),
 			});
+
+			var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
+			for (var i = 0; i < BallRingCounterSystem.MaxBallTrailPos; i++) {
+				lastBallPostBuffer.Add(new BallLastPositionsBufferElement
+					{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
+				);
+			}
 		}
 	}
 }

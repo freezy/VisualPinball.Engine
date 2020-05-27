@@ -17,6 +17,7 @@ namespace VisualPinball.Unity.VPT.Ball
 		public float Radius;
 		public float Mass;
 		public bool IsFrozen;
+		public int RingCounterOldPos;
 
 		public Aabb Aabb {
 			get {
