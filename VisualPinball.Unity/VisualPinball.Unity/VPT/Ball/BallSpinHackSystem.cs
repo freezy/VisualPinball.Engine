@@ -5,6 +5,7 @@ using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.VPT.Ball
 {
+	[DisableAutoCreation]
 	public class BallSpinHackSystem : SystemBase
 	{
 		protected override void OnUpdate()
