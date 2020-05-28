@@ -51,6 +51,7 @@ namespace VisualPinball.Unity.Game
 			_systemsToUpdate.Add(_simulateCycleSystemGroup);
 			_systemsToUpdate.Add(_ballRingCounterSystem);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
+			base.OnCreate();
 		}
 
 		protected override void OnStartRunning()

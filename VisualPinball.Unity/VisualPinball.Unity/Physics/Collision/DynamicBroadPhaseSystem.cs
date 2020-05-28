@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			// create kdtree
 			PerfMarker1.Begin();
 
-			var ballEntities = _ballQuery.ToEntityArray(Allocator.Temp);
+			var ballEntities = _ballQuery.ToEntityArray(Allocator.TempJob);
 			var balls = GetComponentDataFromEntity<BallData>(true);
 			var kdRoot = new KdRoot();
 			Job.WithCode(() => {
