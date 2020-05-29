@@ -128,6 +128,7 @@
 		<Compile Include="Math\Color.cs" />
 		<Compile Include="Math\DragPoint.cs" />
 		<Compile Include="Math\DragPointData.cs" />
+		<Compile Include="Math\EdgeSet.cs" />
 		<Compile Include="Math\Functions.cs" />
 		<Compile Include="Math\MathF.cs" />
 		<Compile Include="Math\Matrix2D.cs" />
@@ -142,6 +143,7 @@
 		<Compile Include="Physics\HitLine3D.cs" />
 		<Compile Include="Physics\HitLineZ.cs" />
 		<Compile Include="Physics\HitPoint.cs" />
+		<Compile Include="Physics\HitTriangle.cs" />
 		<Compile Include="Physics\SlingshotAnimObject.cs" />
 		<Compile Include="Physics\CollisionEvent.cs" />
 		<Compile Include="Physics\CollisionType.cs" />
@@ -215,6 +217,7 @@
 		<Compile Include="VPT\Ramp\RampMeshGenerator.cs" />
 		<Compile Include="VPT\Rubber\Rubber.cs" />
 		<Compile Include="VPT\Rubber\RubberData.cs" />
+		<Compile Include="VPT\Rubber\RubberHitGenerator.cs" />
 		<Compile Include="VPT\Rubber\RubberMeshGenerator.cs" />
 		<Compile Include="VPT\Sound\Sound.cs" />
 		<Compile Include="VPT\Sound\SoundData.cs" />

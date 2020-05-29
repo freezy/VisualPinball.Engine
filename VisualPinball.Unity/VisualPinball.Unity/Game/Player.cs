@@ -126,7 +126,8 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				_player.CreateBall(new DebugBallCreator(237, 1100));
+				_player.CreateBall(new DebugBallCreator(375f, 1700f));
+				_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 		}
 
