@@ -34,8 +34,8 @@ namespace VisualPinball.Unity.Physics.Collision
 					hitObject.ItemIndex = item.Index;
 					hitObject.ItemVersion = item.Version;
 					hitObject.Id = id++;
-					hitObjects.Add(hitObject);
 					hitObject.CalcHitBBox();
+					hitObjects.Add(hitObject);
 				}
 			}
 
