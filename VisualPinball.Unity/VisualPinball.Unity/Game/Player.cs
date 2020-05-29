@@ -121,7 +121,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				_player.CreateBall(new DebugBallCreator(390, 1125));
+				_player.CreateBall(new DebugBallCreator(237, 1100));
 			}
 		}
 

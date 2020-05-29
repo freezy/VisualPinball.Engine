@@ -14,6 +14,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public FlipperPhysicsTests(ITestOutputHelper output) : base(output)
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+
 		}
 
 		[Fact]

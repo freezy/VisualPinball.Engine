@@ -1,13 +1,13 @@
 ﻿// ReSharper disable ConvertIfStatementToSwitchStatement
 
+using System;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -34,7 +34,9 @@ namespace VisualPinball.Unity.Physics.Collision
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
-			Entities.WithName("StaticCollisionJob").ForEach((ref BallData ballData, ref CollisionEventData collEvent) => {
+			Entities
+				.WithName("StaticCollisionJob")
+				.ForEach((ref BallData ballData, ref CollisionEventData collEvent) => {
 
 				// find balls with hit objects and minimum time
 				if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
@@ -46,6 +48,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
 
+
 				// pick collider that matched during narrowphase
 				ref var coll = ref colliders[collEvent.ColliderId].Value; // object that ball hit in trials
 
@@ -56,23 +59,38 @@ namespace VisualPinball.Unity.Physics.Collision
 				unsafe {
 					fixed (Collider.Collider* collider = &coll) {
 
-						if (coll.Type == ColliderType.Flipper) {
-							var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
-							var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-							var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-							((FlipperCollider*) collider)->Collide(
-								ref ballData, ref collEvent, ref flipperMovementData,
-								in flipperMaterialData, in flipperVelocityData
-							);
-							SetComponent(coll.Entity, flipperMovementData);
+						switch (coll.Type) {
+							case ColliderType.Flipper:
+								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
+								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 
-						} else if (coll.Type == ColliderType.LineSlingShot) {
-							//Debug.Log("Entering slingshot with type = " + coll.Type + " and entity = " + coll.Entity);
-							var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
-							((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent, ref random);
+								((FlipperCollider*) collider)->Collide(
+									ref ballData, ref collEvent, ref flipperMovementData,
+									in flipperMaterialData, in flipperVelocityData
+								);
+								SetComponent(coll.Entity, flipperMovementData);
+								break;
 
-						} else {
-							Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
+							case ColliderType.LineSlingShot:
+								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
+								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent,
+									ref random);
+								break;
+
+							case ColliderType.Line:
+							case ColliderType.Line3D:
+							case ColliderType.Circle:
+							case ColliderType.LineZ:
+							case ColliderType.Plane:
+							case ColliderType.Point:
+							case ColliderType.Poly3D:
+								Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
+							break;
+
+							case ColliderType.None:
+							default:
+								throw new ArgumentOutOfRangeException();
 						}
 					}
 				}

@@ -132,8 +132,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
 			texture.LoadImage(Resource.BallDebug.Data);
 			material.SetTexture(MainTex, texture);
-			material.SetFloat(Metallic, 0.9f);
-			material.SetFloat(Glossiness, 0.75f);
+			material.SetFloat(Metallic, 1f);
+			material.SetFloat(Glossiness, 1f);
 			return material;
 		}
 

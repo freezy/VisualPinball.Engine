@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.VPT.Surface
 			Convert(entity, dstManager);
 			dstManager.AddComponentData(entity, new LineSlingshotData {
 				IsDisabled = false,
-				Threshold = data.SlingshotForce,
+				Threshold = data.SlingshotThreshold,
 			});
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
