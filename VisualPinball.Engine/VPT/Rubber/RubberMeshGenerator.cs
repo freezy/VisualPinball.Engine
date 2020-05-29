@@ -63,7 +63,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new Tuple<Matrix3D, Matrix3D>(vertMatrix, fullMatrix);
 		}
 
-		private Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
+		internal Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
 			_data.StaticRendering = true;
 			var mesh = new Mesh(_data.Name);
