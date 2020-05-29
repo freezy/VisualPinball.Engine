@@ -116,6 +116,7 @@
     <Compile Include="Physics\Collider\PointCollider.cs" />
     <Compile Include="Physics\Collider\LineCollider.cs" />
     <Compile Include="Physics\Collider\Poly3DCollider.cs" />
+    <Compile Include="Physics\Collider\TriangleCollider.cs" />
     <Compile Include="Physics\Collision\Aabb.cs" />
     <Compile Include="Physics\Collision\DynamicCollisionSystem.cs" />
     <Compile Include="Physics\Collision\DynamicNarrowPhaseSystem.cs" />

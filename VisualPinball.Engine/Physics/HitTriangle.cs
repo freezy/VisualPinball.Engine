@@ -28,7 +28,12 @@ namespace VisualPinball.Engine.Physics
 
 		public override void CalcHitBBox()
 		{
-			throw new System.NotImplementedException();
+			HitBBox.Left = System.Math.Min(Rgv[0].X, System.Math.Min(Rgv[1].X, Rgv[2].X));
+			HitBBox.Right = System.Math.Max(Rgv[0].X, System.Math.Max(Rgv[1].X, Rgv[2].X));
+			HitBBox.Top = System.Math.Min(Rgv[0].Y, System.Math.Min(Rgv[1].Y, Rgv[2].Y));
+			HitBBox.Bottom = System.Math.Max(Rgv[0].Y, System.Math.Max(Rgv[1].Y, Rgv[2].Y));
+			HitBBox.ZLow = System.Math.Min(Rgv[0].Z, System.Math.Min(Rgv[1].Z, Rgv[2].Z));
+			HitBBox.ZHigh = System.Math.Max(Rgv[0].Z, System.Math.Max(Rgv[1].Z, Rgv[2].Z));
 		}
 
 		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)

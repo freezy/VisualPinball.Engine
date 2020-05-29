@@ -12,5 +12,6 @@
 		Plane,
 		Point,
 		Poly3D,
+		Triangle
 	}
 }
