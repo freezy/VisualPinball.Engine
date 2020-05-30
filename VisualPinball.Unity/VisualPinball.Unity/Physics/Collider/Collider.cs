@@ -63,6 +63,9 @@ namespace VisualPinball.Unity.Physics.Collider
 				case HitPlane hitPlane:
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
+				case HitTriangle hitTriangle:
+					TriangleCollider.Create(builder, hitTriangle, ref dest);
+					break;
 				default:
 					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
 					break;
@@ -88,6 +91,8 @@ namespace VisualPinball.Unity.Physics.Collider
 						return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Poly3D:
 						return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Triangle:
+						return ((TriangleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 
 					case ColliderType.Flipper:
 					case ColliderType.LineSlingShot:

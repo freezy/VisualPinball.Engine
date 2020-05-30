@@ -97,6 +97,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(Flippers.Values)
+			.Concat(Rubbers.Values)
 			.Concat(Surfaces.Values);
 
 		#endregion
