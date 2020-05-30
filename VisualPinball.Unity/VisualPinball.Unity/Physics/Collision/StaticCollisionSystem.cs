@@ -85,6 +85,7 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Plane:
 							case ColliderType.Point:
 							case ColliderType.Poly3D:
+							case ColliderType.Triangle:
 								Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
 							break;
 
