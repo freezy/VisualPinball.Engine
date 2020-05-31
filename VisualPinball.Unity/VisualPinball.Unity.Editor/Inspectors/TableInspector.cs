@@ -15,7 +15,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		public override void OnInspectorGUI()
 		{
 			if (!EditorApplication.isPlaying) {
-				serializedObject.Update();
 				DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {
 					var tableComponent = (TableBehavior) target;
@@ -31,8 +30,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					}
 				}
 			}
-
-			//serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

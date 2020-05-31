@@ -9,13 +9,16 @@ using VisualPinball.Unity.VPT.Flipper;
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(Transform))]
-	[CanEditMultipleObjects] // TODO: transform all targets
+	[CanEditMultipleObjects]
 	public class TransformInspector : UnityEditor.Editor
 	{
 		private UnityEditor.Editor _defaultEditor;
 		private Transform _transform;
 		private IItemDataTransformable _primaryItem;
 		private List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
+		private ItemDataTransformType _positionType = ItemDataTransformType.ThreeD;
+		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
+		private ItemDataTransformType _scaleType = ItemDataTransformType.ThreeD;
 
 		protected virtual void OnEnable()
 		{
@@ -28,13 +31,19 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					useDefault = false;
 					if (_primaryItem == null) {
 						_primaryItem = item;
+						_positionType = item.EditorPositionType;
+						_rotationType = item.EditorRotationType;
+						_scaleType = item.EditorScaleType;
 					} else {
-						if (_primaryItem.EditorPositionType != item.EditorPositionType
-							|| _primaryItem.EditorRotationType != item.EditorRotationType) {
-							// differing var types in underlying data, null out item so we inspectors and tools are hidden
-							_primaryItem = null;
-							_secondaryItems.Clear();
-							break;
+						// only transform on axes supported by all
+						if (item.EditorPositionType < _positionType) {
+							_positionType = item.EditorPositionType;
+						}
+						if (item.EditorRotationType < _rotationType) {
+							_rotationType = item.EditorRotationType;
+						}
+						if (item.EditorScaleType < _scaleType) {
+							_scaleType = item.EditorScaleType;
 						}
 						_secondaryItems.Add(new SecondaryItem {
 							Transform = t as Transform,
@@ -68,35 +77,37 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				return;
 			}
 
-			if (_transform == null || _primaryItem == null) {
-				return;
-			}
+			GUILayout.Label("VPE items' transform driven by data on the component below.");
 
-			if (_primaryItem.EditorPositionType != ItemDataTransformType.None) {
-				EditorGUI.BeginChangeCheck();
-				var pos = ItemDataTransformField("Position", _primaryItem.EditorPositionType, _primaryItem.GetEditorPosition());
-				if (EditorGUI.EndChangeCheck()) {
-					FinishMove(pos, isLocalPos: true);
-				}
-			}
+			//if (_transform == null || _primaryItem == null) {
+			//	return;
+			//}
 
-			if (_primaryItem.EditorRotationType != ItemDataTransformType.None) {
-				EditorGUI.BeginChangeCheck();
-				var rot = ItemDataTransformField("Rotation", _primaryItem.EditorRotationType, _primaryItem.GetEditorRotation());
-				if (EditorGUI.EndChangeCheck()) {
-					FinishRotate(rot);
-				}
-			}
+			//if (_primaryItem.EditorPositionType != ItemDataTransformType.None) {
+			//	EditorGUI.BeginChangeCheck();
+			//	var pos = ItemDataTransformField("Position", _primaryItem.EditorPositionType, _primaryItem.GetEditorPosition());
+			//	if (EditorGUI.EndChangeCheck()) {
+			//		FinishMove(pos, isLocalPos: true);
+			//	}
+			//}
 
-			if (_primaryItem.EditorScaleType != ItemDataTransformType.None) {
-				EditorGUI.BeginChangeCheck();
-				var scale = ItemDataTransformField("Scale", _primaryItem.EditorScaleType, _primaryItem.GetEditorScale());
-				if (EditorGUI.EndChangeCheck()) {
-					FinishScale(scale);
-				}
-			}
+			//if (_primaryItem.EditorRotationType != ItemDataTransformType.None) {
+			//	EditorGUI.BeginChangeCheck();
+			//	var rot = ItemDataTransformField("Rotation", _primaryItem.EditorRotationType, _primaryItem.GetEditorRotation());
+			//	if (EditorGUI.EndChangeCheck()) {
+			//		FinishRotate(rot);
+			//	}
+			//}
 
-			RebuildMeshes();
+			//if (_primaryItem.EditorScaleType != ItemDataTransformType.None) {
+			//	EditorGUI.BeginChangeCheck();
+			//	var scale = ItemDataTransformField("Scale", _primaryItem.EditorScaleType, _primaryItem.GetEditorScale());
+			//	if (EditorGUI.EndChangeCheck()) {
+			//		FinishScale(scale);
+			//	}
+			//}
+
+			//RebuildMeshes();
 		}
 
 		private void RebuildMeshes()
@@ -205,14 +216,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				case ItemDataTransformType.TwoD: {
 					EditorGUI.BeginChangeCheck();
 					Handles.color = Handles.xAxisColor;
-					var newPos = Handles.Slider(handlePos, _transform.right);
+					var newPos = Handles.Slider(handlePos, Vector3.right);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}
 
 					EditorGUI.BeginChangeCheck();
 					Handles.color = Handles.yAxisColor;
-					newPos = Handles.Slider(handlePos, _transform.up);
+					newPos = Handles.Slider(handlePos, Vector3.forward);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}
@@ -234,7 +245,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				}
 				case ItemDataTransformType.ThreeD: {
 					EditorGUI.BeginChangeCheck();
-					Vector3 newPos = Handles.PositionHandle(handlePos, _transform.rotation);
+					Vector3 newPos = Handles.PositionHandle(handlePos, Quaternion.identity);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}

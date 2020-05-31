@@ -8,10 +8,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 {
 	public static class FlipperExtensions
 	{
-		public static void SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
+		public static FlipperBehavior SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
 		{
-			obj.AddComponent<FlipperBehavior>().SetData(flipper.Data);
+			var ic = obj.AddComponent<FlipperBehavior>().SetData(flipper.Data);
 			obj.AddComponent<ConvertToEntity>();
+			return ic as FlipperBehavior;
 		}
 	}
 }

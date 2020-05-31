@@ -1,0 +1,60 @@
+﻿using UnityEditor;
+using VisualPinball.Unity.VPT.Gate;
+
+namespace VisualPinball.Unity.Editor.Inspectors
+{
+	[CustomEditor(typeof(GateBehavior))]
+	public class GateInspector : ItemInspector
+	{
+		private GateBehavior _gate;
+		private bool _foldoutColorsAndFormatting = true;
+		private bool _foldoutPosition = true;
+		private bool _foldoutPhysics = true;
+		private bool _foldoutMisc = true;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_gate = target as GateBehavior;
+		}
+
+		public override void OnInspectorGUI()
+		{
+			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				ItemDataField("Visible", ref _gate.data.IsVisible);
+				ItemDataField("Show Bracket", ref _gate.data.ShowBracket);
+				ItemDataField("Reflection Enabled", ref _gate.data.IsReflectionEnabled);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
+				ItemDataField("", ref _gate.data.Center);
+				ItemDataField("Length", ref _gate.data.Length);
+				ItemDataField("Height", ref _gate.data.Height);
+				ItemDataField("Rotation", ref _gate.data.Rotation);
+				ItemDataField("Open Angle", ref _gate.data.AngleMax, dirtyMesh: false);
+				ItemDataField("Close Angle", ref _gate.data.AngleMin, dirtyMesh: false);
+				SurfaceField("Surface", ref _gate.data.Surface);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
+				ItemDataField("Elasticity", ref _gate.data.Elasticity, dirtyMesh: false);
+				ItemDataField("Friction", ref _gate.data.Friction, dirtyMesh: false);
+				ItemDataField("Damping", ref _gate.data.Damping, dirtyMesh: false);
+				ItemDataField("Gravity Factor", ref _gate.data.GravityFactor, dirtyMesh: false);
+				ItemDataField("Collidable", ref _gate.data.IsCollidable, dirtyMesh: false);
+				ItemDataField("Two Way", ref _gate.data.TwoWay, dirtyMesh: false);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
+				ItemDataField("Timer Enabled", ref _gate.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _gate.data.TimerInterval, dirtyMesh: false);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			base.OnInspectorGUI();
+		}
+	}
+}
