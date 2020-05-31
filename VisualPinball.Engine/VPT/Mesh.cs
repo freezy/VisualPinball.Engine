@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT

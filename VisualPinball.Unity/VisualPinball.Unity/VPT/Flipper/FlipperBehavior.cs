@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			dstManager.AddComponentData(entity, d);
 			dstManager.AddComponentData(entity, GetMovementData(d));
 			dstManager.AddComponentData(entity, GetVelocityData(d));
+			dstManager.AddComponentData(entity, GetHitData());
 			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			// register
@@ -83,7 +84,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			data.Height = scale.z;
 		}
 
-		private FlipperMaterialData GetMaterialData()
+		private FlipperStaticData GetMaterialData()
 		{
 			float flipperRadius;
 			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
@@ -94,6 +95,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				flipperRadius = data.FlipperRadiusMax;
 			}
 
+			var endRadius = math.max(data.EndRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
 			var angleStart = math.radians(data.StartAngle);
 			var angleEnd = math.radians(data.EndAngle);
@@ -107,7 +109,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			var mass = data.GetFlipperMass(_tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
-			return new FlipperMaterialData {
+			return new FlipperStaticData {
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
@@ -115,11 +117,14 @@ namespace VisualPinball.Unity.VPT.Flipper
 				ReturnRatio = data.GetReturnRatio(_tableData),
 				TorqueDamping = data.GetTorqueDamping(_tableData),
 				TorqueDampingAngle = data.GetTorqueDampingAngle(_tableData),
-				RampUpSpeed = data.GetRampUpSpeed(_tableData)
+				RampUpSpeed = data.GetRampUpSpeed(_tableData),
+
+				EndRadius = endRadius,
+				FlipperRadius = flipperRadius
 			};
 		}
 
-		private FlipperMovementData GetMovementData(FlipperMaterialData d)
+		private FlipperMovementData GetMovementData(FlipperStaticData d)
 		{
 			// store flipper base rotation without starting angle
 			var baseRotation = math.normalize(math.mul(
@@ -135,7 +140,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			};
 		}
 
-		private static FlipperVelocityData GetVelocityData(FlipperMaterialData d)
+		private static FlipperVelocityData GetVelocityData(FlipperStaticData d)
 		{
 			return new FlipperVelocityData {
 				AngularAcceleration = 0f,
@@ -143,6 +148,22 @@ namespace VisualPinball.Unity.VPT.Flipper
 				CurrentTorque = 0f,
 				Direction = d.AngleEnd >= d.AngleStart,
 				IsInContact = false
+			};
+		}
+
+		private FlipperHitData GetHitData()
+		{
+			var ratio = (math.max(data.BaseRadius, 0.01f) - math.max(data.EndRadius, 0.01f)) / math.max(data.FlipperRadius, 0.01f);
+			var zeroAngNorm = new float2(
+				math.sqrt(1.0f - ratio * ratio), // F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
+				-ratio                              // F1 norm, change sign of x component, i.e -zeroAngNorm.x // = -cosf(faceNormOffset)
+			);
+
+			return new FlipperHitData {
+				ZeroAngNorm = zeroAngNorm,
+				HitMomentBit = true,
+				HitVelocity = new float2(),
+				LastHitFace = false,
 			};
 		}
 	}

@@ -8,16 +8,42 @@ namespace VisualPinball.Unity.Physics.Collision
 		public float HitTime;
 		public float3 HitNormal;
 		public float HitDistance;
+		public bool HitFlag;
 		public float HitOrgNormalVelocity;
 		public bool IsContact;
 
-		public void Set(CollisionEventData newColl)
+		public int ColliderId;
+		public Entity ColliderEntity;
+
+		public void SetCollider(int colliderId)
 		{
-			HitTime = newColl.HitTime;
-			HitNormal = newColl.HitNormal;
-			HitDistance = newColl.HitDistance;
-			HitOrgNormalVelocity = newColl.HitOrgNormalVelocity;
-			IsContact = newColl.IsContact;
+			ColliderId = colliderId;
+			ColliderEntity = Entity.Null;
+		}
+
+		public void SetCollider(Entity colliderEntity)
+		{
+			ColliderId = -1;
+			ColliderEntity = colliderEntity;
+		}
+
+		public void ClearCollider(float hitTime)
+		{
+			HitTime = hitTime;
+			ColliderId = -1;
+			ColliderEntity = Entity.Null;
+		}
+
+
+		public void ClearCollider()
+		{
+			ColliderId = -1;
+			ColliderEntity = Entity.Null;
+		}
+
+		public bool HasCollider()
+		{
+			return ColliderId > -1 || ColliderEntity != Entity.Null;
 		}
 	}
 }

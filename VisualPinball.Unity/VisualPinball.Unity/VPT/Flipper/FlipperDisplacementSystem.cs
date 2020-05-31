@@ -1,7 +1,6 @@
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
-using VisualPinball.Unity.Physics;
+using Unity.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -15,20 +14,24 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	public class FlipperDisplacementSystem : JobComponentSystem
+	public class FlipperDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
-			var dTime = (float) _simulateCycleSystemGroup.DTime;
+			var dTime = _simulateCycleSystemGroup.HitTime;
+			var marker = PerfMarker;
 
-			Entities.ForEach((ref FlipperMovementData state, in FlipperMaterialData data) => {
+			Entities.WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
+
+				marker.Begin();
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
@@ -45,6 +48,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 				if (math.abs(state.AngleSpeed) < 0.0005f) {
 					// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
+					marker.End();
 					return;
 				}
 
@@ -76,9 +80,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 					state.EnableRotateEvent = 0;
 				}
-			}).Run();
 
-			return default;
+				marker.End();
+			}).Run();
 		}
 	}
 }

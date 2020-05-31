@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 

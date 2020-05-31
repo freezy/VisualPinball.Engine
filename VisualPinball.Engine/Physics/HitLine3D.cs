@@ -53,6 +53,7 @@ namespace VisualPinball.Engine.Physics
 		}
 
 		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics) {
+
 			if (!IsEnabled) {
 				return -1.0f;
 			}

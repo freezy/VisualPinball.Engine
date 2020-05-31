@@ -20,17 +20,10 @@ namespace VisualPinball.Engine.Physics
 		/// If NULL, is a leaf; otherwise keeps the 2 children
 		/// </summary>
 		private HitKdNode[] _children;                                         // m_children
-		//private HitKd _hitOct;                                                 // m_hitoct
-
-		public HitKdNode()
-		{
-			//_hitOct = hitOct;
-		}
 
 		public void Reset()
 		{
 			_children = null;
-			//_hitOct = hitOct;
 			Start = 0;
 			Items = 0;
 		}
@@ -155,10 +148,8 @@ namespace VisualPinball.Engine.Physics
 				_children[1].RectBounds.ZLow = vCenter.Z;
 			}
 
-			//_children[0]._hitOct = hitOct; //!! meh
 			_children[0].Items = 0;
 			_children[0]._children = null;
-			//_children[1]._hitOct = hitOct; //!! meh
 			_children[1].Items = 0;
 			_children[1]._children = null;
 

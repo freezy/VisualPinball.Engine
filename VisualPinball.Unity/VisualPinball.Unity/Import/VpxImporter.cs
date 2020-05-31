@@ -202,7 +202,6 @@ namespace VisualPinball.Unity.Import
 			}
 
 			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-			obj.SetActive(ro.IsVisible);
 
 			// apply mesh to game object
 			var mf = obj.AddComponent<MeshFilter>();
@@ -211,6 +210,7 @@ namespace VisualPinball.Unity.Import
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
 			mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
+			mr.enabled = ro.IsVisible;
 
 			// patch
 			_patcher.ApplyPatches(item, ro, obj);

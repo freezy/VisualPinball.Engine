@@ -1,3 +1,5 @@
+using VisualPinball.Engine.Common;
+
 namespace VisualPinball.Engine.Math
 {
 	public struct Rect3D

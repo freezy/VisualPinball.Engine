@@ -62,8 +62,8 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Include="Physics\Collider\DynamicStructTests.cs" />
 		<Compile Include="Physics\Collider\QuadTreeTests.cs" />
+		<Compile Include="Physics\DOTS\DynamicStructTests.cs" />
 		<Compile Include="Properties\AssemblyInfo.cs" />
 	</ItemGroup>
 	<ItemGroup>
