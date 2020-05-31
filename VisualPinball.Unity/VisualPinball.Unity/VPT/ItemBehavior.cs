@@ -11,7 +11,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IItemDataTransformable where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
