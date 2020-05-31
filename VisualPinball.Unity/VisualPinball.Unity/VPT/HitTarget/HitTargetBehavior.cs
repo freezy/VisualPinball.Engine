@@ -28,7 +28,6 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Position = pos.ToVertex3D();
-			transform.localPosition = data.Position.ToUnityVector3();
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
@@ -39,7 +38,6 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.RotZ = rot.x;
-			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
@@ -50,7 +48,6 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public override void SetEditorScale(Vector3 scale)
 		{
 			data.Size = scale.ToVertex3D();
-			transform.localScale = data.Size.ToUnityVector3();
 		}
 	}
 }

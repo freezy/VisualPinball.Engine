@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.VPT.Gate
 		{
 			data.Center = pos.ToVertex2Dxy();
 			data.Height = pos.z;
-			transform.localPosition = data.Center.ToUnityVector3(data.Height);
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
@@ -40,7 +39,6 @@ namespace VisualPinball.Unity.VPT.Gate
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.Rotation = rot.x;
-			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
@@ -51,7 +49,6 @@ namespace VisualPinball.Unity.VPT.Gate
 		public override void SetEditorScale(Vector3 scale)
 		{
 			data.Length = scale.x;
-			transform.localScale = new Vector3(data.Length, data.Length, data.Length);
 		}
 	}
 }
