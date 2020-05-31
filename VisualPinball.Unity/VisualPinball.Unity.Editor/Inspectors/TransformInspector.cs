@@ -77,37 +77,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				return;
 			}
 
-			GUILayout.Label("VPE items' transform driven by data on the component below.");
-
-			//if (_transform == null || _primaryItem == null) {
-			//	return;
-			//}
-
-			//if (_primaryItem.EditorPositionType != ItemDataTransformType.None) {
-			//	EditorGUI.BeginChangeCheck();
-			//	var pos = ItemDataTransformField("Position", _primaryItem.EditorPositionType, _primaryItem.GetEditorPosition());
-			//	if (EditorGUI.EndChangeCheck()) {
-			//		FinishMove(pos, isLocalPos: true);
-			//	}
-			//}
-
-			//if (_primaryItem.EditorRotationType != ItemDataTransformType.None) {
-			//	EditorGUI.BeginChangeCheck();
-			//	var rot = ItemDataTransformField("Rotation", _primaryItem.EditorRotationType, _primaryItem.GetEditorRotation());
-			//	if (EditorGUI.EndChangeCheck()) {
-			//		FinishRotate(rot);
-			//	}
-			//}
-
-			//if (_primaryItem.EditorScaleType != ItemDataTransformType.None) {
-			//	EditorGUI.BeginChangeCheck();
-			//	var scale = ItemDataTransformField("Scale", _primaryItem.EditorScaleType, _primaryItem.GetEditorScale());
-			//	if (EditorGUI.EndChangeCheck()) {
-			//		FinishScale(scale);
-			//	}
-			//}
-
-			//RebuildMeshes();
+			GUILayout.Label("VPE item transforms driven by data on the component below.");
 		}
 
 		private void RebuildMeshes()
@@ -120,22 +90,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					secondary.Item.RebuildMeshes();
 				}
 			}
-		}
-
-		private Vector3 ItemDataTransformField(string label, ItemDataTransformType type, Vector3 val)
-		{
-			switch (type) {
-				case ItemDataTransformType.OneD:
-					val.x = EditorGUILayout.FloatField(label, val.x);
-					break;
-				case ItemDataTransformType.TwoD:
-					val = EditorGUILayout.Vector2Field(label, val);
-					break;
-				case ItemDataTransformType.ThreeD:
-					val = EditorGUILayout.Vector3Field(label, val);
-					break;
-			}
-			return val;
 		}
 
 		protected virtual void OnSceneGUI()
@@ -172,6 +126,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private void HandleRotationTool()
 		{
 			Tools.hidden = true;
+			if (_secondaryItems.Count > 0) {
+				return;
+			}
 			var handlePos = _primaryItem.GetEditorPosition();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
@@ -259,6 +216,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private void HandleScaleTool()
 		{
 			Tools.hidden = true;
+			if (_secondaryItems.Count > 0) {
+				return;
+			}
 			var handlePos = _primaryItem.GetEditorPosition();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
@@ -276,7 +236,16 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				}
 				case ItemDataTransformType.ThreeD: {
 					EditorGUI.BeginChangeCheck();
-					Vector3 newScale = Handles.ScaleHandle(_primaryItem.GetEditorScale(), handlePos, handleRot, handleScale);
+					Vector3 oldScale = _primaryItem.GetEditorScale();
+					Vector3 newScale = Handles.ScaleHandle(oldScale, handlePos, handleRot, handleScale);
+					if (Mathf.Abs(newScale.x - oldScale.x) > Mathf.Epsilon && Mathf.Abs(newScale.y - oldScale.y) > Mathf.Epsilon && Mathf.Abs(newScale.z - oldScale.z) > Mathf.Epsilon) {
+						// for some reason unity is using non local scale when you drag the center point of the handle, so we'll need to mult by the table's scale
+						var mb = _primaryItem as MonoBehaviour;
+						var renderScale = mb.transform.lossyScale;
+						newScale.x *= renderScale.x;
+						newScale.y *= renderScale.y;
+						newScale.z *= renderScale.z;
+					}
 					if (EditorGUI.EndChangeCheck()) {
 						FinishScale(newScale);
 					}
