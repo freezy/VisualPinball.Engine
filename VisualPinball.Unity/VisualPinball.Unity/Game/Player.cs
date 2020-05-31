@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -171,6 +170,5 @@ namespace VisualPinball.Unity.Game
 		{
 			// nothing to do
 		}
-
 	}
 }
