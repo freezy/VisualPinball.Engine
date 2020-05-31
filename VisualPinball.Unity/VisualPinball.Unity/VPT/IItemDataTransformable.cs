@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.VPT
 {
+	// TODO: rename this interface, its evolved a bit
 	public interface IItemDataTransformable
 	{
 		bool RebuildMeshOnMove { get; }
