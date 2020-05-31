@@ -36,7 +36,6 @@ namespace VisualPinball.Unity.VPT.Kicker
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Center = pos.ToVertex2Dxy();
-			transform.localPosition = data.Center.ToUnityVector3(0f);
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
@@ -47,7 +46,6 @@ namespace VisualPinball.Unity.VPT.Kicker
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.Orientation = rot.x;
-			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
 		}
 	}
 }

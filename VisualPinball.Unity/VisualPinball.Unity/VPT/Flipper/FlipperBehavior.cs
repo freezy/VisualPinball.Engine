@@ -18,7 +18,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
-		public override bool RebuildMeshOnScale => true;
 		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
 		protected override Engine.VPT.Flipper.Flipper GetItem()
@@ -48,7 +47,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Center = pos.ToVertex2Dxy();
-			transform.localPosition = data.Center.ToUnityVector3(0f);
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
@@ -59,7 +57,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.StartAngle = rot.x;
-			transform.localEulerAngles = new Vector3(0f, 0f, rot.x);
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;

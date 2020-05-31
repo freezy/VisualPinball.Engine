@@ -13,7 +13,6 @@ namespace VisualPinball.Unity.VPT.Bumper
 	[AddComponentMenu("Visual Pinball/Bumper")]
 	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>
 	{
-		public override bool RebuildMeshOnScale => true;
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
 
 		protected override Engine.VPT.Bumper.Bumper GetItem()
@@ -29,7 +28,6 @@ namespace VisualPinball.Unity.VPT.Bumper
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Center = pos.ToVertex2Dxy();
-			transform.localPosition = data.Center.ToUnityVector3(0f);
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;

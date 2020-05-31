@@ -13,7 +13,6 @@ namespace VisualPinball.Unity.VPT.Rubber
 	[AddComponentMenu("Visual Pinball/Rubber")]
 	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>
 	{
-		public override bool RebuildMeshOnMove => true;
 		protected override string[] Children => null;
 
 		protected override Engine.VPT.Rubber.Rubber GetItem()
