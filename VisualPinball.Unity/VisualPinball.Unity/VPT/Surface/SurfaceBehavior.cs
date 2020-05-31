@@ -8,6 +8,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Surface
 {

@@ -171,7 +171,6 @@ namespace VisualPinball.Unity.Game
 		{
 			// nothing to do
 		}
-		#endif
 
 	}
 }
