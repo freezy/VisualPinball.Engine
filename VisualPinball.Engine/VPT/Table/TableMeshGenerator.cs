@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Security.Cryptography;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
@@ -19,17 +18,18 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
 		{
+			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
 			return HasMeshAsPlayfield
-				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table")
-				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(table, asRightHanded));
+				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table", material)
+				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
 		}
 
-		public void SetFromPrimitive(Table table, Primitive.Primitive primitive)
+		public void SetFromPrimitive(Primitive.Primitive primitive)
 		{
 			_playfield = primitive;
 		}
 
-		private RenderObject GetFromTableDimensions(Table table, bool asRightHanded)
+		private RenderObject GetFromTableDimensions(bool asRightHanded, PbrMaterial material)
 		{
 			var rgv = new[] {
 				new Vertex3DNoTex2(_data.Left, _data.Top, _data.TableHeight),
@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.VPT.Table
 			return new RenderObject(
 				_data.Name,
 				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image)),
+				material,
 				true
 			);
 		}

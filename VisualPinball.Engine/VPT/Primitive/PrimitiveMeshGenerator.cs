@@ -18,14 +18,15 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true, string parent = null)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true,
+			string parent = null, PbrMaterial material = null)
 		{
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetMesh(table).Transform(preVertexMatrix, preNormalsMatrix),
-				new PbrMaterial(
+				GetMesh().Transform(preVertexMatrix, preNormalsMatrix),
+				material ?? new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
 					table.GetTexture(_data.NormalMap)
@@ -34,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			));
 		}
 
-		private Mesh GetMesh(Table.Table table)
+		public Mesh GetMesh()
 		{
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
 		}

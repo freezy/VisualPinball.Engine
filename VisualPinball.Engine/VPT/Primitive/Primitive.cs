@@ -1,8 +1,5 @@
 using System.IO;
-using System.Linq;
-using System;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -23,14 +20,19 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Primitive(BinaryReader reader, string itemName) : this(new PrimitiveData(reader, itemName)) { }
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent);
+			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+		}
+
+		public Mesh GetMesh()
+		{
+			return _meshGenerator.GetMesh();
 		}
 	}
 }

@@ -171,7 +171,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public void SetupPlayfieldMesh()
 		{
 			if (Primitives.ContainsKey("playfield_mesh")) {
-				_meshGenerator.SetFromPrimitive(this, Primitives["playfield_mesh"]);
+				_meshGenerator.SetFromPrimitive(Primitives["playfield_mesh"]);
 				Primitives.Remove("playfield_mesh");
 			}
 		}
