@@ -4,8 +4,6 @@ namespace VisualPinball.Unity.VPT
 {
 	public interface IEditableItemBehavior
 	{
-		bool RebuildMeshOnMove { get; }
-		bool RebuildMeshOnScale { get; }
 		bool MeshDirty { get; set; }
 		void RebuildMeshes();
 

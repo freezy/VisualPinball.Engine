@@ -15,7 +15,6 @@ namespace VisualPinball.Unity.VPT.Surface
 	[AddComponentMenu("Visual Pinball/Surface")]
 	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IConvertGameObjectToEntity
 	{
-		public override bool RebuildMeshOnMove => true;
 		protected override string[] Children => new [] { "Side", "Top" };
 
 		protected override Engine.VPT.Surface.Surface GetItem()

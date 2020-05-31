@@ -28,7 +28,6 @@ namespace VisualPinball.Unity.VPT.Primitive
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Position = pos.ToVertex3D();
-			transform.localPosition = data.Position.ToUnityVector3();
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
@@ -41,7 +40,6 @@ namespace VisualPinball.Unity.VPT.Primitive
 			data.RotAndTra[0] = rot.x;
 			data.RotAndTra[1] = rot.y;
 			data.RotAndTra[2] = rot.z;
-			transform.localEulerAngles = rot;
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
@@ -52,7 +50,6 @@ namespace VisualPinball.Unity.VPT.Primitive
 		public override void SetEditorScale(Vector3 scale)
 		{
 			data.Size = scale.ToVertex3D();
-			transform.localScale = data.Size.ToUnityVector3();
 		}
 	}
 }

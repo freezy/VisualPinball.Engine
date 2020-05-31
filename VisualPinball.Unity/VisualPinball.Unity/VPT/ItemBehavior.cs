@@ -28,8 +28,6 @@ namespace VisualPinball.Unity.VPT
 		[SerializeField]
 		private bool _meshDirty;
 		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
-		public virtual bool RebuildMeshOnMove => false;
-		public virtual bool RebuildMeshOnScale => false;
 
 		public ItemBehavior<TItem, TData> SetData(TData d)
 		{

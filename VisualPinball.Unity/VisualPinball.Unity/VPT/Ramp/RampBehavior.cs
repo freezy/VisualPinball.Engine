@@ -13,7 +13,6 @@ namespace VisualPinball.Unity.VPT.Ramp
 	[AddComponentMenu("Visual Pinball/Ramp")]
 	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>
 	{
-		public override bool RebuildMeshOnMove => true;
 		protected override string[] Children => new []{ "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
 		protected override Engine.VPT.Ramp.Ramp GetItem()

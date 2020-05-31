@@ -20,6 +20,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _scaleType = ItemDataTransformType.ThreeD;
 
+		// work around for scale handle weirdness
+		private float _scaleFactor = 1.0f;
+
 		protected virtual void OnEnable()
 		{
 			_transform = target as Transform;
@@ -116,7 +119,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					break;
 
 				default:
-					Tools.hidden = false;
+					Tools.hidden = true;
 					break;
 			}
 
@@ -215,6 +218,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void HandleScaleTool()
 		{
+			var e = Event.current;
+			if (e.type == EventType.MouseDown || e.type == EventType.MouseUp) {
+				_scaleFactor = _primaryItem.GetEditorScale().x;
+			}
+
 			Tools.hidden = true;
 			if (_secondaryItems.Count > 0) {
 				return;
@@ -239,12 +247,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					Vector3 oldScale = _primaryItem.GetEditorScale();
 					Vector3 newScale = Handles.ScaleHandle(oldScale, handlePos, handleRot, handleScale);
 					if (Mathf.Abs(newScale.x - oldScale.x) > Mathf.Epsilon && Mathf.Abs(newScale.y - oldScale.y) > Mathf.Epsilon && Mathf.Abs(newScale.z - oldScale.z) > Mathf.Epsilon) {
-						// for some reason unity is using non local scale when you drag the center point of the handle, so we'll need to mult by the table's scale
-						var mb = _primaryItem as MonoBehaviour;
-						var renderScale = mb.transform.lossyScale;
-						newScale.x *= renderScale.x;
-						newScale.y *= renderScale.y;
-						newScale.z *= renderScale.z;
+						// the center bit of the scale handle appears to be doing some extra multiplying, not totally sure what's going on, but experimentally
+						// it seems like its a factor of one of the axes too much, so (on click) we'll update a factor and adjust accordingly
+						if (_scaleFactor != 0) {
+							newScale /= _scaleFactor;
+						} else {
+							newScale = Vector3.zero;
+						}
 					}
 					if (EditorGUI.EndChangeCheck()) {
 						FinishScale(newScale);
@@ -258,9 +267,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void FinishMove(Vector3 newWorldPos, bool isLocalPos = false)
 		{
-			if (_primaryItem.RebuildMeshOnMove) {
-				_primaryItem.MeshDirty = true;
-			}
+			_primaryItem.MeshDirty = true;
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -271,9 +278,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			_primaryItem.SetEditorPosition(finalPos);
 
 			foreach (var secondary in _secondaryItems) {
-				if (secondary.Item.RebuildMeshOnMove) {
-					secondary.Item.MeshDirty = true;
-				}
+				secondary.Item.MeshDirty = true;
 				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
 				Undo.RecordObject(secondary.Transform, undoLabel);
 				secondary.Item.SetEditorPosition(finalPos + secondary.Offset);
@@ -282,9 +287,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void FinishRotate(Vector3 newEuler)
 		{
-			if (_primaryItem.RebuildMeshOnMove) {
-				_primaryItem.MeshDirty = true;
-			}
+			_primaryItem.MeshDirty = true;
 			string undoLabel = "Rotate " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -293,9 +296,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void FinishScale(Vector3 newScale)
 		{
-			if (_primaryItem.RebuildMeshOnScale) {
-				_primaryItem.MeshDirty = true;
-			}
+			_primaryItem.MeshDirty = true;
 			string undoLabel = "Scale " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
