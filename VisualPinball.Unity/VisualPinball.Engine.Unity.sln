@@ -7,11 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{9902C758-AB1F-4A15-9F77-51FB08642EF6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "..\VisualPinball.Resources\VisualPinball.Resources.csproj", "{F7C27E2C-8931-46F3-968E-F1103E975074}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity", "VisualPinball.Unity\VisualPinball.Unity.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{38507534-0C23-412C-88D9-E1E6F1534C70}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Test", "VisualPinball.Unity.Test\VisualPinball.Unity.Test.csproj", "{D54D9710-FD25-47AB-973F-C8C83B26D6B7}"
 EndProject
@@ -34,14 +36,30 @@ Global
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.ActiveCfg = Debug Unity|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.Build.0 = Debug Unity|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.ActiveCfg = Debug Unity|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.Build.0 = Debug Unity|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
-		{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Debug Unity|Any CPU.ActiveCfg = Debug Unity|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Debug Unity|Any CPU.Build.0 = Debug Unity|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Debug Unity|Any CPU.ActiveCfg = Debug Unity|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Debug Unity|Any CPU.Build.0 = Debug Unity|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38507534-0C23-412C-88D9-E1E6F1534C70}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
 		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
 		{D54D9710-FD25-47AB-973F-C8C83B26D6B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

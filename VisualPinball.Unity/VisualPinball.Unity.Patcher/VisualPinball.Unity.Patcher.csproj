@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}</ProjectGuid>
+    <ProjectGuid>{38507534-0C23-412C-88D9-E1E6F1534C70}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VisualPinball.Unity.Patcher</RootNamespace>
