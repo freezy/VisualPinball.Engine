@@ -1,0 +1,25 @@
+{
+    "name": "VisualPinball.Engine.Test",
+    "references": [
+        "UnityEditor.TestRunner",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "VisualPinball.Engine",
+        "VisualPinball.Unity",
+        "VisualPinball.Unity.Patcher"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

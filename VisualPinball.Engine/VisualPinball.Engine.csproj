@@ -88,8 +88,12 @@
 		<Reference Include="System.ServiceModel" />
 		<Reference Include="System.Transactions" />
 		<Reference Include="System.Xml" />
+		<Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\VisualPinball.Unity\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
+		<Compile Include="Common\Constants.cs" />
 		<Compile Include="Common\Logging.cs" />
 		<Compile Include="Common\Profiler.cs" />
 		<Compile Include="Common\Registry.cs" />
@@ -121,7 +125,6 @@
 		<Compile Include="IO\LzwWriter.cs" />
 		<Compile Include="Math\CatmullCurve.cs" />
 		<Compile Include="Math\Color.cs" />
-		<Compile Include="Math\Constants.cs" />
 		<Compile Include="Math\DragPoint.cs" />
 		<Compile Include="Math\DragPointData.cs" />
 		<Compile Include="Math\Functions.cs" />

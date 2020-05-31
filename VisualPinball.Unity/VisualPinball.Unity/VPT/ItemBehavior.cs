@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -51,7 +52,13 @@ namespace VisualPinball.Unity.VPT
 			}
 		}
 
-		private void Awake()
+		protected void Convert(Entity entity, EntityManager dstManager)
+		{
+			Item.Index = entity.Index;
+			Item.Version = entity.Version;
+		}
+
+		protected void Awake()
 		{
 			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
 			// can be null in editor, shouldn't be at runtime.

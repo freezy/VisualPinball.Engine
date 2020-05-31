@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
@@ -33,6 +35,7 @@ using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
@@ -117,7 +120,7 @@ namespace VisualPinball.Unity.VPT.Table
 			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table.Ramps);
 			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table.Rubbers);
 			Restore<SpinnerBehavior, Engine.VPT.Spinner.Spinner, SpinnerData>(table.Spinners);
-			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, SurfaceData>(table.Surfaces);
+			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>(table.Surfaces);
 			Restore<TriggerBehavior, Engine.VPT.Trigger.Trigger, TriggerData>(table.Triggers);
 
 			return table;

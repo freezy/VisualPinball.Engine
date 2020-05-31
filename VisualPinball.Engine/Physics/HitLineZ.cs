@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Game;
+﻿using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 
@@ -6,7 +7,7 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitLineZ : HitObject
 	{
-		protected readonly Vertex2D Xy;
+		public readonly Vertex2D Xy;
 
 		protected HitLineZ(Vertex2D xy)
 		{

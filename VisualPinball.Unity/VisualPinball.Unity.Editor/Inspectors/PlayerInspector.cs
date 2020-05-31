@@ -1,10 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Ball;
-using VisualPinball.Engine.VPT.Table;
-using Player = VisualPinball.Unity.Game.Player;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -20,25 +16,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					player.CreateBall(new DebugBallCreator());
 				}
 			}
-		}
-	}
-
-	internal class DebugBallCreator : IBallCreationPosition
-	{
-		public Vertex3D GetBallCreationPosition(Table table)
-		{
-			return new Vertex3D(Random.Range(table.Width / 4f, table.Width / 4f * 3f), Random.Range(table.Height / 5f, table.Height / 2f), Random.Range(0, 200f));
-		}
-
-		public Vertex3D GetBallCreationVelocity(Table table)
-		{
-			// no velocity
-			return Vertex3D.Zero;
-		}
-
-		public void OnBallCreated(PlayerPhysics physics, Ball ball)
-		{
-			// nothing to do
 		}
 	}
 }

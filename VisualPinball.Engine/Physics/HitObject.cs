@@ -8,6 +8,8 @@ namespace VisualPinball.Engine.Physics
 {
 	public abstract class HitObject
 	{
+		public int Id;
+
 		/// <summary>
 		/// Base object pointer.
 		///
@@ -21,7 +23,7 @@ namespace VisualPinball.Engine.Physics
 		/// ball-velocity)
 		/// </summary>
 		public float Threshold = 0f;                                           // m_threshold
-		public Rect3D HitBBox = new Rect3D();                                  // m_hitBBox
+		public Rect3D HitBBox = new Rect3D(true);                                  // m_hitBBox
 
 		public float Elasticity = 0.3f;                                        // m_elasticity
 		public float ElasticityFalloff;                                        // m_elasticityFalloff
@@ -32,7 +34,7 @@ namespace VisualPinball.Engine.Physics
 		/// </summary>
 		public float Scatter;                                                  // m_scatter
 
-		protected string ObjType = CollisionType.Null;
+		public string ObjType = CollisionType.Null;
 		public bool IsEnabled = true;                                          // m_enabled
 
 		/// <summary>
@@ -46,6 +48,9 @@ namespace VisualPinball.Engine.Physics
 		/// out intersection traversal if primitive is flagged as not collidable
 		/// </summary>
 		public bool E = false;                                                 // m_e
+
+		public int ItemIndex;
+		public int ItemVersion;
 
 		public abstract void CalcHitBBox();
 

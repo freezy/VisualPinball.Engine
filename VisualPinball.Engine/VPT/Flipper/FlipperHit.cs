@@ -1,6 +1,7 @@
 ﻿// ReSharper disable CommentTypo
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
@@ -16,6 +17,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		private readonly TableData _tableData;
 		private readonly EventProxy _events;
 		private uint _lastHitTime;                                             // m_last_hittime
+
+		public HitCircle HitCircleBase => _mover.HitCircleBase;
 
 		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table)
 		{

@@ -11,7 +11,8 @@
     <AssemblyName>VisualPinball.Unity</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -64,6 +65,12 @@
     <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Mathematics.Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Rendering.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
     </Reference>
@@ -75,9 +82,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\BlobArray.cs" />
     <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\Math.cs" />
     <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
+    <Compile Include="Common\UnsafeEx.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="Extensions\MaterialExtensions.cs" />
@@ -96,26 +106,78 @@
     <Compile Include="Import\MemHelper.cs" />
     <Compile Include="Import\ScaleNormalizer.cs" />
     <Compile Include="Import\VpxImporter.cs" />
+    <Compile Include="Physics\Collider\CircleCollider.cs" />
+    <Compile Include="Physics\Collider\Collider.cs" />
+    <Compile Include="Physics\Collider\Line3DCollider.cs" />
+    <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
+    <Compile Include="Physics\Collider\LineZCollider.cs" />
+    <Compile Include="Physics\Collider\PlaneCollider.cs" />
+    <Compile Include="Physics\Collider\PointCollider.cs" />
+    <Compile Include="Physics\Collider\LineCollider.cs" />
+    <Compile Include="Physics\Collider\Poly3DCollider.cs" />
+    <Compile Include="Physics\Collision\Aabb.cs" />
+    <Compile Include="Physics\Collision\DynamicCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\DynamicNarrowPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\StaticBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\ContactSystem.cs" />
+    <Compile Include="Physics\Collision\DynamicBroadPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\StaticCollisionSystem.cs" />
+    <Compile Include="Physics\Collision\ColliderBlob.cs" />
+    <Compile Include="Physics\Collision\KdNode.cs" />
+    <Compile Include="Physics\Collision\KdRoot.cs" />
+    <Compile Include="Physics\Collision\LineSlingshotData.cs" />
+    <Compile Include="Physics\Collision\OverlappingDynamicBufferElement.cs" />
+    <Compile Include="Physics\Collision\OverlappingStaticBufferElement.cs" />
+    <Compile Include="Physics\Collision\ColliderData.cs" />
+    <Compile Include="Physics\Collision\ColliderHeader.cs" />
+    <Compile Include="Physics\Collision\ColliderType.cs" />
+    <Compile Include="Physics\Collision\QuadTreeData.cs" />
+    <Compile Include="Physics\Collision\CollisionEventData.cs" />
+    <Compile Include="Physics\Collision\ContactBufferElement.cs" />
+    <Compile Include="Physics\Collision\ICollidable.cs" />
+    <Compile Include="Physics\Collision\ICollider.cs" />
+    <Compile Include="Physics\Collision\StaticNarrowPhaseSystem.cs" />
+    <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
+    <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
+    <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
+    <Compile Include="Physics\Collision\QuadTree.cs" />
+    <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
+    <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VPT\Ball\BallApi.cs" />
+    <Compile Include="VPT\Ball\BallBehavior.cs" />
+    <Compile Include="VPT\Ball\BallCollider.cs" />
     <Compile Include="VPT\Ball\BallData.cs" />
+    <Compile Include="VPT\Ball\BallLastPositionsBufferElement.cs" />
     <Compile Include="VPT\Ball\BallManager.cs" />
+    <Compile Include="VPT\Ball\BallMovementSystem.cs" />
+    <Compile Include="VPT\Ball\BallRingCounterSystem.cs" />
+    <Compile Include="VPT\Ball\BallSpinHackSystem.cs" />
+    <Compile Include="VPT\Ball\BallVelocitySystem.cs" />
+    <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
+    <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
+    <Compile Include="VPT\Flipper\FlipperCollider.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
-    <Compile Include="VPT\Flipper\FlipperMaterialData.cs" />
+    <Compile Include="VPT\Flipper\FlipperHitData.cs" />
+    <Compile Include="VPT\Flipper\FlipperStaticData.cs" />
     <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
     <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperVelocityData.cs" />
-    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\FlipperBehavior.cs" />
+    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\SolenoidStateData.cs" />
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
     <Compile Include="VPT\IApi.cs" />
     <Compile Include="VPT\ItemApi.cs" />
     <Compile Include="VPT\ItemBehavior.cs" />
+    <Compile Include="VPT\ItemType.cs" />
     <Compile Include="VPT\Kicker\KickerApi.cs" />
     <Compile Include="VPT\Kicker\KickerBehavior.cs" />
     <Compile Include="VPT\Light\LightBehavior.cs" />
@@ -124,6 +186,7 @@
     <Compile Include="VPT\Rubber\RubberBehavior.cs" />
     <Compile Include="VPT\Spinner\SpinnerBehavior.cs" />
     <Compile Include="VPT\Surface\SurfaceBehavior.cs" />
+    <Compile Include="VPT\Surface\SurfaceData.cs" />
     <Compile Include="VPT\Surface\SurfaceExtensions.cs" />
     <Compile Include="VPT\Table\TableApi.cs" />
     <Compile Include="VPT\Table\TableExtensions.cs" />
@@ -146,6 +209,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Physics\README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

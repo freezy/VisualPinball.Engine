@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.Physics
 
 		public HitKd()
 		{
-			_rootNode = new HitKdNode(this);
+			_rootNode = new HitKdNode();
 		}
 
 		public void Init(List<HitObject> vho)
@@ -29,15 +29,14 @@ namespace VisualPinball.Engine.Physics
 			_numItems = vho.Count;
 
 			if (_numItems > _maxItems) {
-				_maxItems = _numItems;
-
 				OrgIdx = new int[_numItems];
 				Indices = new int[_numItems];
 				_nodes = new HitKdNode[(_numItems * 2 + 1) & ~1u];
-			}
+             			}
 
+			_maxItems = _numItems;
 			NumNodes = 0;
-			_rootNode.Reset(this);
+			_rootNode.Reset();
 		}
 
 		public void FillFromVector(List<HitObject> vho)
@@ -55,7 +54,7 @@ namespace VisualPinball.Engine.Physics
 				OrgIdx[i] = i;
 			}
 
-			_rootNode.CreateNextLevel(0, 0);
+			_rootNode.CreateNextLevel(0, 0, this);
 		}
 
 		// call when the bounding boxes of the HitObjects have changed to update the tree
@@ -66,7 +65,7 @@ namespace VisualPinball.Engine.Physics
 
 		public void HitTestBall(Ball ball, CollisionEvent collision, PlayerPhysics physics)
 		{
-			_rootNode.HitTestBall(ball, collision, physics);
+			_rootNode.HitTestBall(ball, collision, physics, this);
 		}
 
 		public HitObject GetItemAt(int i)

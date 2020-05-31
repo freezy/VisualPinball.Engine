@@ -1,28 +1,29 @@
-﻿using Unity.Collections;
-using Unity.Entities;
-using Unity.Jobs;
+﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using Unity.Transforms;
-using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	[UpdateInGroup(typeof(VisualPinballSimulationSystemGroup))]
-	public class FlipperRotateSystem : JobComponentSystem
+	[AlwaysSynchronizeSystem]
+	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
+	public class FlipperRotateSystem : SystemBase
 	{
-		//[BurstCompile]
-		struct MoveForwardRotation : IJobForEach<Rotation, FlipperMovementData>
-		{
-			public void Execute(ref Rotation rot, [ReadOnly] ref FlipperMovementData movement)
-			{
-				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
-			}
-		}
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperRotateSystem");
 
-		protected override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override void OnUpdate()
 		{
-			var moveForwardRotationJob = new MoveForwardRotation();
-			return moveForwardRotationJob.Schedule(this, inputDeps);
+			var marker = PerfMarker;
+			Entities.WithName("FlipperRotateJob").ForEach((ref Rotation rot, in FlipperMovementData movement) => {
+
+				marker.Begin();
+
+				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
+
+				marker.End();
+
+			}).Run();
 		}
 	}
 }

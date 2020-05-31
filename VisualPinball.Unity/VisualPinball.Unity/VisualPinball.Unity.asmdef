@@ -1,10 +1,13 @@
 {
 	"name": "VisualPinball.Unity",
 	"references": [
+		"Unity.Burst",
 		"Unity.Entities",
 		"Unity.Entities.Hybrid",
 		"Unity.Collections",
 		"Unity.Mathematics",
+		"Unity.Mathematics.Extensions",
+		"Unity.Mathematics.Extensions.Hybrid",
 		"Unity.Physics",
 		"Unity.Physics.Hybrid",
 		"Unity.Rendering.Hybrid",

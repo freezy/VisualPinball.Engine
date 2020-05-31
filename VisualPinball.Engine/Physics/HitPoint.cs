@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Game;
+﻿using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 
@@ -6,16 +7,16 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitPoint : HitObject
 	{
-		private readonly Vertex3D _p;
+		public readonly Vertex3D P;
 
 		public HitPoint(Vertex3D p)
 		{
-			_p = p;
+			P = p;
 		}
 
 		public override void CalcHitBBox()
 		{
-			HitBBox = new Rect3D(_p.X, _p.X, _p.Y, _p.Y, _p.Z, _p.Z);
+			HitBBox = new Rect3D(P.X, P.X, P.Y, P.Y, P.Z, P.Z);
 		}
 
 		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
@@ -25,7 +26,7 @@ namespace VisualPinball.Engine.Physics
 			}
 
 			// relative ball position
-			var dist = ball.State.Pos.Clone().Sub(_p);
+			var dist = ball.State.Pos.Clone().Sub(P);
 
 			var bcddsq = dist.LengthSq();                                      // ball center to line distance squared
 			var bcdd = MathF.Sqrt(bcddsq);                                     // distance ball to line
@@ -85,7 +86,7 @@ namespace VisualPinball.Engine.Physics
 			var hitVel = ball.Hit.Vel.Clone().MultiplyScalar(hitTime);
 			var hitNormal = ball.State.Pos.Clone()
 				.Add(hitVel)
-				.Sub(_p)
+				.Sub(P)
 				.Normalize();
 			coll.HitNormal.Set(hitNormal);
 
