@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			var item = target as IItemDataTransformable;
+			var item = target as IEditableItemBehavior;
 			if (item == null) return;
 
 			GUILayout.Space(10);
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			string undoLabel = "Edit " + label;
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				var item = (target as IItemDataTransformable);
+				var item = (target as IEditableItemBehavior);
 				if (item != null) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);
