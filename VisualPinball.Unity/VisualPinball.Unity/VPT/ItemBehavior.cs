@@ -24,16 +24,18 @@ namespace VisualPinball.Unity.VPT
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
 		// for tracking if we need to rebuild the meshes (handled by the editor scripts) during undo/redo flows
+		[HideInInspector]
 		[SerializeField]
 		private bool _meshDirty;
 		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
 		public virtual bool RebuildMeshOnMove => false;
 		public virtual bool RebuildMeshOnScale => false;
 
-		public void SetData(TData d)
+		public ItemBehavior<TItem, TData> SetData(TData d)
 		{
 			name = d.GetName();
 			data = d;
+			return this;
 		}
 
 		public void RebuildMeshes()
@@ -59,6 +61,9 @@ namespace VisualPinball.Unity.VPT
 						UpdateMesh(child, childTransform.gameObject, rog);
 					}
 				}
+			}
+			if (rog.HasChildren) {
+				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 			}
 			_meshDirty = false;
 		}

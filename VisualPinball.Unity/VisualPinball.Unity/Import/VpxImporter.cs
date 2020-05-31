@@ -46,6 +46,7 @@ namespace VisualPinball.Unity.Import
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
+		public const int ChildObjectsLayer = 8;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -154,34 +155,42 @@ namespace VisualPinball.Unity.Import
 
 			if (rog.HasOnlyChild) {
 				ImportRenderObject(item, rog.RenderObjects[0], obj);
-
 			} else if (rog.HasChildren) {
 				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.parent = obj.transform;
+					subObj.layer = ChildObjectsLayer;
 					ImportRenderObject(item, ro, subObj);
 				}
 			}
 
 			// apply transformation
 			if (rog.HasChildren) {
-				SetTransform(obj.transform, rog.TransformationMatrix.ToUnityMatrix());
+				obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 			}
 
 			// add unity component
+			MonoBehaviour ic = null;
 			switch (item) {
-				case Bumper bumper: obj.AddComponent<BumperBehavior>().SetData(bumper.Data); break;
-				case Flipper flipper: flipper.SetupGameObject(obj, rog); break;
-				case Gate gate: obj.AddComponent<GateBehavior>().SetData(gate.Data); break;
-				case HitTarget hitTarget: obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
-				case Kicker kicker: obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
-				case Primitive primitive: obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
-				case Ramp ramp: obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
-				case Rubber rubber: obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
-				case Spinner spinner: obj.AddComponent<SpinnerBehavior>().SetData(spinner.Data); break;
-				case Surface surface: surface.SetupGameObject(obj, rog); break;
-				case Table table: table.SetupGameObject(obj, rog); break;
-				case Trigger trigger: obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
+				case Bumper bumper:			ic = obj.AddComponent<BumperBehavior>().SetData(bumper.Data); break;
+				case Flipper flipper:		ic = flipper.SetupGameObject(obj, rog); break;
+				case Gate gate:				ic = obj.AddComponent<GateBehavior>().SetData(gate.Data); break;
+				case HitTarget hitTarget:	ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
+				case Kicker kicker:			ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
+				case Primitive primitive:	ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
+				case Ramp ramp:				ic = obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
+				case Rubber rubber:			ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
+				case Spinner spinner:		ic = obj.AddComponent<SpinnerBehavior>().SetData(spinner.Data); break;
+				case Surface surface:		ic = surface.SetupGameObject(obj, rog); break;
+				case Table table:			ic = table.SetupGameObject(obj, rog); break;
+				case Trigger trigger:		ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
+			}
+			// for convenience move item behavior to the top of the list
+			if (ic != null) {
+				int numComp = obj.GetComponents<MonoBehaviour>().Length;
+				for (int i = 0; i <= numComp; i++) {
+					UnityEditorInternal.ComponentUtility.MoveComponentUp(ic);
+				}
 			}
 		}
 
@@ -208,21 +217,6 @@ namespace VisualPinball.Unity.Import
 
 			// add mesh to asset
 			_assetHandler.SaveMesh(mesh, item.Name);
-		}
-
-		private static void SetTransform(Transform tf, Matrix4x4 trs)
-		{
-			tf.localScale = new Vector3(
-				trs.GetColumn(0).magnitude,
-				trs.GetColumn(1).magnitude,
-				trs.GetColumn(2).magnitude
-			);
-			//Logger.Info($"Scaling at {trs.GetColumn(0).magnitude}/{trs.GetColumn(1).magnitude}/{trs.GetColumn(2).magnitude}");
-			tf.localPosition = trs.GetColumn(3);
-			tf.localRotation = Quaternion.LookRotation(
-				trs.GetColumn(2),
-				trs.GetColumn(1)
-			);
 		}
 
 		private void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
