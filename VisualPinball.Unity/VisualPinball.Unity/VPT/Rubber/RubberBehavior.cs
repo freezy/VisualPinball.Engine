@@ -5,13 +5,14 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Rubber
 {
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>
+	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>, IDragPointsEditable
 	{
 		protected override string[] Children => null;
 
@@ -53,5 +54,9 @@ namespace VisualPinball.Unity.VPT.Rubber
 			data.RotY = rot.y;
 			data.RotZ = rot.z;
 		}
+
+		//IDragPointsEditable
+		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HitHeight); }
 	}
 }
