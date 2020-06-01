@@ -5,13 +5,14 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
 	[AddComponentMenu("Visual Pinball/Trigger")]
-	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>
+	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>, IDragPointsEditable
 	{
 		protected override string[] Children => null;
 
@@ -27,5 +28,9 @@ namespace VisualPinball.Unity.VPT.Trigger
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
 		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
+
+		//IDragPointsEditable
+		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public Vector3 GetEditableOffset() { return new Vector3(); }
 	}
 }

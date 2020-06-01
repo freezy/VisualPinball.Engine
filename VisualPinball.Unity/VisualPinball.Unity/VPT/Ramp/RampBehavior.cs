@@ -5,13 +5,14 @@
 #endregion
 
 using UnityEngine;
+using UnityEditor;
 using VisualPinball.Engine.VPT.Ramp;
-using VisualPinball.Unity.Extensions;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.VPT.Ramp
 {
 	[AddComponentMenu("Visual Pinball/Ramp")]
-	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>
+	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable
 	{
 		protected override string[] Children => new []{ "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
@@ -42,5 +43,9 @@ namespace VisualPinball.Unity.VPT.Ramp
 				pt.Vertex = pt.Vertex.Add(diff);
 			}
 		}
+
+		//IDragPointsEditable
+		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public Vector3 GetEditableOffset() { return new Vector3(); }
 	}
 }
