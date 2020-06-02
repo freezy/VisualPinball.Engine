@@ -1,23 +1,22 @@
-﻿using System;
+﻿// ReSharper disable StaticMemberInGenericType
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
 
 namespace VisualPinball.Engine.Common
 {
-	public class EngineProvider<T> where T : IEngine
+	public static class EngineProvider<T> where T : IEngine
 	{
-		public bool Exists { get; private set; }
+		public static bool Exists { get; private set; }
 
-		public static EngineProvider<T> Instance => _instance ?? (_instance = new EngineProvider<T>());
-
-		private static EngineProvider<T> _instance;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private T _selectedEngine;
-		private Dictionary<string, T> _availableEngines;
+		private static T _selectedEngine;
+		private static Dictionary<string, T> _availableEngines;
 
-		public IEnumerable<T> GetAll()
+		public static IEnumerable<T> GetAll()
 		{
 			var t = typeof(T);
 
@@ -41,7 +40,7 @@ namespace VisualPinball.Engine.Common
 			return _availableEngines.Values;
 		}
 
-		public void Set(string id)
+		public static void Set(string id)
 		{
 			if (id == null) {
 				return;
@@ -57,7 +56,7 @@ namespace VisualPinball.Engine.Common
 			Exists = true;
 		}
 
-		public T Get()
+		public static T Get()
 		{
 			if (_selectedEngine == null) {
 				throw new InvalidOperationException($"Must select {typeof(T)} engine before retrieving!");
@@ -65,7 +64,7 @@ namespace VisualPinball.Engine.Common
 			return _selectedEngine;
 		}
 
-		public string GetId(object obj)
+		public static string GetId(object obj)
 		{
 			return obj.GetType().FullName;
 		}

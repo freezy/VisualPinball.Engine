@@ -49,23 +49,22 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void DrawEngineSelector<T>(string engineName, ref string engineId, ref T[] instances, ref string[] names, ref int index) where T : IEngine
 		{
-			var engineProvider = EngineProvider<T>.Instance;
 			if (instances == null) {
 				// get all instances
-				instances = engineProvider.GetAll().ToArray();
+				instances = EngineProvider<T>.GetAll().ToArray();
 				names = instances.Select(x => x.Name).ToArray();
 
 				// set the current index based on the table's ID
 				index = -1;
 				for (var i = 0; i < instances.Length; i++) {
-					if (engineProvider.GetId(instances[i]) == engineId) {
+					if (EngineProvider<T>.GetId(instances[i]) == engineId) {
 						index = i;
 						break;
 					}
 				}
 				if (instances.Length > 0 && index < 0) {
 					index = 0;
-					engineId = engineProvider.GetId(instances[index]);
+					engineId = EngineProvider<T>.GetId(instances[index]);
 				}
 			}
 			if (names.Length == 0) {
@@ -74,7 +73,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			var newIndex = EditorGUILayout.Popup(engineName, index, names);
 			if (index != newIndex) {
 				index = newIndex;
-				engineId = engineProvider.GetId(instances[newIndex]);
+				engineId = EngineProvider<T>.GetId(instances[newIndex]);
 			}
 		}
 	}
