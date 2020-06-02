@@ -21,10 +21,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Center.ToUnityVector3(data.Height);
-		}
+		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(data.Height);
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			data.Center = pos.ToVertex2Dxy();
@@ -32,23 +29,11 @@ namespace VisualPinball.Unity.VPT.Spinner
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.Rotation, 0f, 0f);
-		}
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			data.Rotation = rot.x;
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale()
-		{
-			return new Vector3(data.Length, 0f, 0f);
-		}
-		public override void SetEditorScale(Vector3 scale)
-		{
-			data.Length = scale.x;
-		}
+		public override Vector3 GetEditorScale() => new Vector3(data.Length, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => data.Length = scale.x;
 	}
 }

@@ -7,6 +7,9 @@ namespace VisualPinball.Unity.VPT
 		bool MeshDirty { get; set; }
 		void RebuildMeshes();
 
+		// the following interfaces allow each item behavior to define which axes should
+		// be shown on the scene view gizmo, the gizmo itself will use the associated
+		// get and set methods, which are expected to update item data directly
 		ItemDataTransformType EditorPositionType { get; }
 		Vector3 GetEditorPosition();
 		void SetEditorPosition(Vector3 pos);

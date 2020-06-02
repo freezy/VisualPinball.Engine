@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			bool useDefault = true;
 			foreach (var t in targets) {
-				var item = (t as Transform).GetComponent<IEditableItemBehavior>();
+				var item = (t as Transform)?.GetComponent<IEditableItemBehavior>();
 				if (item != null) {
 					useDefault = false;
 					if (_primaryItem == null) {

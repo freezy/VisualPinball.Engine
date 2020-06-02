@@ -46,10 +46,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.RotX, data.RotY, data.RotZ);
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.RotX, data.RotY, data.RotZ);
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.RotX = rot.x;

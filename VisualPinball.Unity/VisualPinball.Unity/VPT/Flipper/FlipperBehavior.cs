@@ -40,30 +40,15 @@ namespace VisualPinball.Unity.VPT.Flipper
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Center.ToUnityVector3(0f);
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			data.Center = pos.ToVertex2Dxy();
-		}
+		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.StartAngle, 0f, 0f);
-		}
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			data.StartAngle = rot.x;
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => data.StartAngle = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale()
-		{
-			return new Vector3(data.BaseRadius, data.FlipperRadius, data.Height);
-		}
+		public override Vector3 GetEditorScale() => new Vector3(data.BaseRadius, data.FlipperRadius, data.Height);
 		public override void SetEditorScale(Vector3 scale)
 		{
 			if (data.BaseRadius > 0) {
