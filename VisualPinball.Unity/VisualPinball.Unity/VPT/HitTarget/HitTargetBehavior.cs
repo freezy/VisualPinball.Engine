@@ -21,33 +21,15 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Position.ToUnityVector3();
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			data.Position = pos.ToVertex3D();
-		}
+		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
+		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.RotZ, 0f, 0f);
-		}
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			data.RotZ = rot.x;
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.RotZ, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => data.RotZ = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale()
-		{
-			return data.Size.ToUnityVector3();
-		}
-		public override void SetEditorScale(Vector3 scale)
-		{
-			data.Size = scale.ToVertex3D();
-		}
+		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
+		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
 	}
 }

@@ -110,10 +110,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 
 			EditorGUI.BeginChangeCheck();
-			_surface = (SurfaceBehavior)EditorGUILayout.ObjectField("Surface", _surface, typeof(SurfaceBehavior), true);
+			_surface = (SurfaceBehavior)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceBehavior), true);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
-				field = _surface.name;
+				field = _surface != null ? _surface.name : "";
 			}
 		}
 

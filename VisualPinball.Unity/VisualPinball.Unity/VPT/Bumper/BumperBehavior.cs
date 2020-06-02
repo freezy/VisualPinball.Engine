@@ -21,23 +21,11 @@ namespace VisualPinball.Unity.VPT.Bumper
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Center.ToUnityVector3(0f);
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			data.Center = pos.ToVertex2Dxy();
-		}
+		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale()
-		{
-			return new Vector3(data.Radius, 0f, 0f);
-		}
-		public override void SetEditorScale(Vector3 scale)
-		{
-			data.Radius = scale.x;
-		}
+		public override Vector3 GetEditorScale() => new Vector3(data.Radius, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => data.Radius = scale.x;
 	}
 }

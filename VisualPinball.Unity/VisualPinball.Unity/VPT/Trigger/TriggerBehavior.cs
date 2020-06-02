@@ -21,23 +21,11 @@ namespace VisualPinball.Unity.VPT.Trigger
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Center.ToUnityVector3(0f);
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			data.Center = pos.ToVertex2Dxy();
-		}
+		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.Rotation, 0f, 0f);
-		}
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			data.Rotation = rot.x;
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
 	}
 }

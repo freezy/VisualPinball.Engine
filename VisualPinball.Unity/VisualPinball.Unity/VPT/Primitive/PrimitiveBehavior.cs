@@ -21,20 +21,11 @@ namespace VisualPinball.Unity.VPT.Primitive
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			return data.Position.ToUnityVector3();
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			data.Position = pos.ToVertex3D();
-		}
+		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
+		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation()
-		{
-			return new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
-		}
+		public override Vector3 GetEditorRotation() => new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
 		public override void SetEditorRotation(Vector3 rot)
 		{
 			data.RotAndTra[0] = rot.x;
@@ -43,13 +34,7 @@ namespace VisualPinball.Unity.VPT.Primitive
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale()
-		{
-			return data.Size.ToUnityVector3();
-		}
-		public override void SetEditorScale(Vector3 scale)
-		{
-			data.Size = scale.ToVertex3D();
-		}
+		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
+		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
 	}
 }
