@@ -88,6 +88,11 @@ namespace VisualPinball.Unity.VPT.Table
 			EngineProvider<IDebugUINew>.Instance.Set(debugUiId);
 		}
 
+		private void Start()
+		{
+			EngineProvider<IPhysicsEngineNew>.Instance.Get().Init(this);
+		}
+
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();

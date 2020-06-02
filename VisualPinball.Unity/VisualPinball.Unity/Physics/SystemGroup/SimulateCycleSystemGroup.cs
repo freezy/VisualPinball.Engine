@@ -3,8 +3,11 @@ using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.DebugAndPhysicsComunicationProxy;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Physics.Engine;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 
@@ -26,6 +29,8 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		/// </summary>
 		public bool SwapBallCollisionHandling;
 
+		public DefaultPhysicsEngine PhysicsEngine;
+
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
@@ -44,9 +49,10 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _collisionDataQuery;
 
+		private Stopwatch _simulationTime = new Stopwatch();
+
 		protected override void OnCreate()
 		{
-
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			_collisionDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
 
@@ -68,18 +74,17 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
 			_systemsToUpdate.Add(_ballSpinHackSystem);
+
+			_simulationTime.Start();
 		}
 
 		protected override void OnUpdate()
 		{
-			Stopwatch stopwatch = new Stopwatch();
-			int numSteps = 0;
-			stopwatch.Start();
-
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
 			_staticCounts = PhysicsConstants.StaticCnts;
 			var dTime = sim.PhysicsDiffTime;
+			var numSteps = 0;
 			while (dTime > 0) {
 
 				HitTime = (float)dTime;
@@ -104,7 +109,13 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
 				++numSteps;
 			}
-			DPProxy.OnPhysicsUpdate(numSteps, (float)stopwatch.Elapsed.TotalMilliseconds);
+
+			// debug ui update
+			if (EngineProvider<IDebugUINew>.Instance.Exists) {
+				PhysicsEngine.UpdateDebugFlipperStates();
+				EngineProvider<IDebugUINew>.Instance.Get().OnPhysicsUpdate(numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
+				DPProxy.OnPhysicsUpdate(numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
+			}
 		}
 
 		private void ApplyFlipperTime()

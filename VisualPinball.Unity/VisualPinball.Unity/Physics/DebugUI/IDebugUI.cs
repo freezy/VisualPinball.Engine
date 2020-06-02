@@ -7,11 +7,18 @@ namespace VisualPinball.Unity.Physics.DebugUI
 {
 	public interface IDebugUINew : IEngine
 	{
-		void ManualBallRoller(Entity entity, float3 targetPosition);
+		void OnPhysicsUpdate(int numSteps, float elapsedTotalMilliseconds);
 
-		// ========================================================================== accesible from DebugUI ===
-		bool GetFlipperState(Entity entity, out DebugFlipperState flipperState);
-		float GetFloat(Params param);
-		void SetFloat(Params param, float val);
+		void OnRegisterFlipper(Entity entity, string name);
+
+		void OnCreateBall(Entity entity);
+
+		// void ManualBallRoller(Entity entity, float3 targetPosition);
+		//
+		// // ========================================================================== accesible from DebugUI ===
+		// bool GetFlipperState(Entity entity, out DebugFlipperState flipperState);
+		// float GetFloat(Params param);
+		// void SetFloat(Params param, float val);
+
 	}
 }
