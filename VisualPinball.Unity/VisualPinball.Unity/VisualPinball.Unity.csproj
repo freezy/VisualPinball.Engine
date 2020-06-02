@@ -88,6 +88,9 @@
     <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Common\UnsafeEx.cs" />
+    <Compile Include="DebugUI\DebugAndPhysicsComunicationProxy.cs" />
+    <Compile Include="DebugUI\DebugAndPhysicsComunicationProxy_Interfaces.cs" />
+    <Compile Include="DebugUI\VPX_PhysicsEngineProxyClient.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="Extensions\MaterialExtensions.cs" />
