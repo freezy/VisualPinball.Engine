@@ -74,8 +74,8 @@ namespace VisualPinball.Unity.VPT.Table
 
 		[HideInInspector] public string textureFolder;
 
-		public string physicsEngineId;
-		public string debugUiId;
+		[HideInInspector] public string physicsEngineId;
+		[HideInInspector] public string debugUiId;
 
 		protected override string[] Children => null;
 
@@ -91,6 +91,9 @@ namespace VisualPinball.Unity.VPT.Table
 		private void Start()
 		{
 			EngineProvider<IPhysicsEngineNew>.Instance.Get().Init(this);
+			if (EngineProvider<IDebugUINew>.Instance.Exists) {
+				EngineProvider<IDebugUINew>.Instance.Get().Init(this);
+			}
 		}
 
 		protected override Engine.VPT.Table.Table GetItem()

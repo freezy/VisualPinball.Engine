@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
     }
 
     /// <summary>
-    /// Comunication interface to VisualPinball.Engine.Unity.ImgGUI	
+    /// Comunication interface to VisualPinball.Engine.Unity.ImgGUI
     /// </summary>
     public interface IDebugUI
     {
@@ -41,16 +41,16 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
     /// </summary>
     public interface IPhysicsEngine
     {
-        void OnRegisterFlipper(Entity entity, string name);
-        void OnPhysicsUpdate(int numSteps, float processingTime);
-        void OnCreateBall(Entity entity, float3 position, float3 velocity, float radius, float mass);
-        void OnRotateToEnd(Entity entity);
-        void OnRotateToStart(Entity entity);
-        bool UsePureEntity();
-        void ManualBallRoller(Entity entity, float3 targetPosition);
-
-        // ========================================================================== accesible from DebugUI ===
-        bool GetFlipperState(Entity entity, out FlipperState flipperState);
+        // void OnRegisterFlipper(Entity entity, string name);
+        // void OnPhysicsUpdate(int numSteps, float processingTime);
+        // void OnCreateBall(Entity entity, float3 position, float3 velocity, float radius, float mass);
+        // void OnRotateToEnd(Entity entity);
+        // void OnRotateToStart(Entity entity);
+        // bool UsePureEntity();
+        // void ManualBallRoller(in Entity entity, in float3 targetPosition);
+        //
+        // // ========================================================================== accesible from DebugUI ===
+        // bool GetFlipperState(Entity entity, out FlipperState flipperState);
         float GetFloat(Params param);
         void SetFloat(Params param, float val);
     }

@@ -38,6 +38,9 @@ namespace VisualPinball.Unity.Game
 
 		protected override void OnCreate()
 		{
+			// let IPhysicsEngine enable it
+			Enabled = false;
+
 			_time.Start();
 
 			_createBallEntityCommandBufferSystem = World.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
@@ -59,7 +62,6 @@ namespace VisualPinball.Unity.Game
 			_currentPhysicsTime = GetTargetTime();
 			_nextPhysicsFrameTime = _currentPhysicsTime + PhysicsConstants.PhysicsStepTime;
 		}
-
 
 		protected override void OnUpdate()
 		{

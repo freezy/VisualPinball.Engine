@@ -43,11 +43,14 @@ namespace VisualPinball.Engine.Common
 
 		public void Set(string id)
 		{
+			if (id == null) {
+				return;
+			}
 			if (_availableEngines == null) {
 				GetAll();
 			}
 			if (!_availableEngines.ContainsKey(id)) {
-				throw new ArgumentException($"Unknown {typeof(T)} engine {id}.");
+				throw new ArgumentException($"Unknown {typeof(T)} engine {id} (available: [ {string.Join(", ", _availableEngines.Keys)} ]).");
 			}
 			_selectedEngine = _availableEngines[id];
 			Logger.Info("Set {0} engine to {1}.", typeof(T), id);

@@ -48,7 +48,6 @@ namespace VisualPinball.Unity.Game
 				EngineProvider<IDebugUINew>.Instance.Get().OnRegisterFlipper(entity, flipper.Name);
 			}
 
-			DPProxy.OnRegisterFlipper(entity, flipper.Name);
 			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
 			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}

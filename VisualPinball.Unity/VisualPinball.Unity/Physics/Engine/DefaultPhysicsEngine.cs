@@ -2,6 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -14,57 +15,38 @@ namespace VisualPinball.Unity.Physics.Engine
 	{
 		public string Name => "Default VPX";
 
-		private readonly EntityManager _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+		private EntityManager _entityManager;
+		private EntityQuery _flipperDataQuery;
 
 		private Matrix4x4 _worldToLocal;
-		private EntityQuery _flipperDataQuery;
 		private DebugFlipperState[] _flipperStates = new DebugFlipperState[0];
 
-		public DefaultPhysicsEngine()
+		public void Init(TableBehavior tableBehavior)
 		{
+			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			_flipperDataQuery = _entityManager.CreateEntityQuery(
 				ComponentType.ReadOnly<FlipperMovementData>(),
 				ComponentType.ReadOnly<FlipperStaticData>(),
 				ComponentType.ReadOnly<SolenoidStateData>()
 			);
-		}
 
-		public void Init(TableBehavior tableBehavior)
-		{
+			var visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystem<SimulateCycleSystemGroup>();
-			simulateCycleSystemGroup.PhysicsEngine = this;
+
+			visualPinballSimulationSystemGroup.Enabled = true;
+			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
+
 			_worldToLocal = tableBehavior.gameObject.transform.worldToLocalMatrix;
 		}
 
-		public DebugFlipperState[] GetDebugFlipperStates()
-		{
-			return _flipperStates;
-		}
-
-		public Entity CreateBall(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public Entity BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius)
 		{
 			return BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
 				scale * radius * 2, in mass, in radius);
 		}
 
-		public void FlipperRotateToEnd(in Entity entity)
-		{
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = 1;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
-		}
-
-		public void FlipperRotateToStart(in Entity entity)
-		{
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = -1;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
-		}
-
-		public void ManualBallRoller(in Entity entity, in float3 targetWorldPosition)
+		public void BallManualRoll(in Entity entity, in float3 targetWorldPosition)
 		{
 			// fail safe, if we get invalid entity
 			if (entity == Entity.Null && entity.Index != -1) {
@@ -90,10 +72,31 @@ namespace VisualPinball.Unity.Physics.Engine
 			}
 		}
 
+		public void FlipperRotateToEnd(in Entity entity)
+		{
+			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			mData.EnableRotateEvent = 1;
+			_entityManager.SetComponentData(entity, mData);
+			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
+		}
+
+		public void FlipperRotateToStart(in Entity entity)
+		{
+			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			mData.EnableRotateEvent = -1;
+			_entityManager.SetComponentData(entity, mData);
+			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
+		}
+
+		public DebugFlipperState[] FlipperGetDebugStates()
+		{
+			return _flipperStates;
+		}
+
 		public void UpdateDebugFlipperStates()
 		{
 			// for each flipper
-			var entities = _flipperDataQuery.ToEntityArray(Allocator.TempJob);
+			var entities = _flipperDataQuery.ToEntityArray(Allocator.Temp);
 			if (_flipperStates.Length == 0) {
 				_flipperStates = new DebugFlipperState[entities.Length];
 			}

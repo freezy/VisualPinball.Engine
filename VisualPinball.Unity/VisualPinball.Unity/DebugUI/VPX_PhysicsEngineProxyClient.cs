@@ -40,41 +40,41 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 
         public void OnRegisterFlipper(Entity entity, string name) { _flippers[entity] = new FlipperState(); }
 
-        public void OnPhysicsUpdate(int numSteps, float processingTime)
-        {
-            // store state of flippers
-            var keys = _flippers.Keys.ToList();
-            foreach (var entity in keys)
-            {
-                var fmd = EntityManager.GetComponentData<FlipperMovementData>(entity);
-                var fsd = EntityManager.GetComponentData<FlipperStaticData>(entity);
-                var fss = EntityManager.GetComponentData<SolenoidStateData>(entity);
-                _flippers[entity] = new FlipperState(
-                    math.degrees(math.abs(fmd.Angle - fsd.AngleStart)),
-                    fss.Value);
-            }
-
-			// search for balls with pending notification to DebugUI
-			if (_pendingOnCreateBall > 0)
-			{
-				using (var ballEntities = _ballQuery.ToEntityArray(Allocator.TempJob))
-				{
-					foreach (var entity in ballEntities)
-					{
-						if (entity.Index < 0) // this should not happed?
-							continue;
-
-						var ballData = EntityManager.GetComponentData<BallData>(entity);
-						if (ballData.Id == _lastSendOnCreateBall + 1)
-						{
-							++_lastSendOnCreateBall;
-							--_pendingOnCreateBall;
-							DPProxy.debugUI?.OnCreateBall(entity);
-						}
-					}
-				}
-			}
-        }
+   //      public void OnPhysicsUpdate(int numSteps, float processingTime)
+   //      {
+   //          // store state of flippers
+   //          var keys = _flippers.Keys.ToList();
+   //          foreach (var entity in keys)
+   //          {
+   //              var fmd = EntityManager.GetComponentData<FlipperMovementData>(entity);
+   //              var fsd = EntityManager.GetComponentData<FlipperStaticData>(entity);
+   //              var fss = EntityManager.GetComponentData<SolenoidStateData>(entity);
+   //              _flippers[entity] = new FlipperState(
+   //                  math.degrees(math.abs(fmd.Angle - fsd.AngleStart)),
+   //                  fss.Value);
+   //          }
+   //
+			// // search for balls with pending notification to DebugUI
+			// if (_pendingOnCreateBall > 0)
+			// {
+			// 	using (var ballEntities = _ballQuery.ToEntityArray(Allocator.TempJob))
+			// 	{
+			// 		foreach (var entity in ballEntities)
+			// 		{
+			// 			if (entity.Index < 0) // this should not happed?
+			// 				continue;
+   //
+			// 			var ballData = EntityManager.GetComponentData<BallData>(entity);
+			// 			if (ballData.Id == _lastSendOnCreateBall + 1)
+			// 			{
+			// 				++_lastSendOnCreateBall;
+			// 				--_pendingOnCreateBall;
+			// 				DPProxy.debugUI?.OnCreateBall(entity);
+			// 			}
+			// 		}
+			// 	}
+			// }
+   //      }
 
 		private int _pendingOnCreateBall = 0;
 		private int _lastSendOnCreateBall = -1;
@@ -84,18 +84,18 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 				++_pendingOnCreateBall;
 		}
 
-        public void OnRotateToEnd(Entity entity) { }
-        public void OnRotateToStart(Entity entity) { }
-        public bool UsePureEntity() { return false; }
+        // public void OnRotateToEnd(Entity entity) { }
+        // public void OnRotateToStart(Entity entity) { }
+        // public bool UsePureEntity() { return false; }
 
-        public bool GetFlipperState(Entity entity, out FlipperState flipperState)
-        {
-            return _flippers.TryGetValue(entity, out flipperState);
-        }
+        // public bool GetFlipperState(Entity entity, out FlipperState flipperState)
+        // {
+        //     return _flippers.TryGetValue(entity, out flipperState);
+        // }
 
         public float GetFloat(Params param) { return 0; }
         public void SetFloat(Params param, float val) { }
-        public void ManualBallRoller(Entity entity, float3 targetPosition)
+        public void ManualBallRoller(in Entity entity, in float3 targetPosition)
         {
 			// fail safe, if we get invalid entity
 			if (entity == Entity.Null && entity.Index != -1)
