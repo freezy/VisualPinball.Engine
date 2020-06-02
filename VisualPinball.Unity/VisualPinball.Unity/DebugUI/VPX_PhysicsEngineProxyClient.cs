@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
         public void SetFloat(Params param, float val) { }
         public void ManualBallRoller(Entity entity, float3 targetPosition)
         {
-			// fail safe, if we get invalide entity
+			// fail safe, if we get invalid entity
 			if (entity == Entity.Null && entity.Index != -1)
 				return;
 

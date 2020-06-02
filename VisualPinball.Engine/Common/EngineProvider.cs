@@ -7,6 +7,8 @@ namespace VisualPinball.Engine.Common
 {
 	public class EngineProvider<T> where T : IEngine
 	{
+		public bool Exists { get; private set; }
+
 		public static EngineProvider<T> Instance => _instance ?? (_instance = new EngineProvider<T>());
 
 		private static EngineProvider<T> _instance;
@@ -49,6 +51,7 @@ namespace VisualPinball.Engine.Common
 			}
 			_selectedEngine = _availableEngines[id];
 			Logger.Info("Set {0} engine to {1}.", typeof(T), id);
+			Exists = true;
 		}
 
 		public T Get()
