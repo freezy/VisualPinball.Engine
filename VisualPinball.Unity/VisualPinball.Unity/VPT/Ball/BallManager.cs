@@ -1,10 +1,13 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -48,27 +51,56 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// go will be converted automatically to entity
 			//CreateViaGameObject(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
-			CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
+			Entity ballEntity = DPProxy.physicsEngine.UsePureEntity() ? 
+				CreatePureEntity(worldPos, scale * radius * 2, GetSphereMesh(), material) 
+				: CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
 
-			//return new BallApi(go.GetComponent<GameObjectEntity>().Entity, player);
+			DPProxy.OnCreateBall( ballEntity, localPos, localVel, mass, radius);
+
 			return null;
 		}
 
-		private void CreateViaGameObject(Vector3 worldPos, Vector3 localPos, Vector3 localVel, float scale, float mass, float radius, Material material)
+		private Entity CreatePureEntity(float3 position, float scale, Mesh mesh, Material material)
 		{
-			var go = CreateSphere(material, worldPos, scale);
-			var ballBehavior = go.AddComponent<BallBehavior>();
-			ballBehavior.Position = localPos;
-			ballBehavior.Velocity = localVel;
-			ballBehavior.Radius = radius;
-			ballBehavior.Mass = mass;
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+			Entity entity = entityManager.CreateEntity(
+				typeof(Translation),
+				typeof(Scale),
+				typeof(Rotation),
+				typeof(RenderMesh),
+				typeof(LocalToWorld),
+				typeof(RenderBounds));
+
+			entityManager.SetSharedComponentData(entity, new RenderMesh
+			{
+				mesh = mesh,
+				material = material
+			});
+
+			entityManager.SetComponentData(entity, new RenderBounds
+			{
+				Value = mesh.bounds.ToAABB()
+			});
+
+			entityManager.SetComponentData(entity, new Translation
+			{
+				Value = position
+			});
+
+			entityManager.SetComponentData(entity, new Scale
+			{
+				Value = scale
+			});
+
+			return entity;
 		}
 
-		private void CreateEntity(Vector3 worldPos, float3 localPos, float3 localVel, float scale, float mass,
+		private Entity CreateEntity(Vector3 worldPos, float3 localPos, float3 localVel, float scale, float mass,
 			float radius, Material material)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			BallBehavior.CreateEntity(entityManager,
+			return BallBehavior.CreateEntity(entityManager,
 					GetSphereMesh(), material, worldPos, scale, localPos,
 					localVel, radius, mass);
 		}

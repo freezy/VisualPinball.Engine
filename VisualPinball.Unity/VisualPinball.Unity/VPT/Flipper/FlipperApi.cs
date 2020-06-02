@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			mData.EnableRotateEvent = 1;
 			EntityManager.SetComponentData(Entity, mData);
 			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = true });
+			DPProxy.OnRotateToEnd(Entity);
 		}
 
 		public void RotateToStart()
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			mData.EnableRotateEvent = -1;
 			EntityManager.SetComponentData(Entity, mData);
 			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = false });
+			DPProxy.OnRotateToStart(Entity);
 		}
 
 		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)

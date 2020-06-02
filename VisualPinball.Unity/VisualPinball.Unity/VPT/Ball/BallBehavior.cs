@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			dstManager.AddBuffer<BallInsideOfBufferElement>(entity);
 		}
 
-		public static void CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
+		public static Entity CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
 			float3 worldPos, float scale, float3 localPos, float3 velocity, float radius, float mass)
 		{
 			var ecbs = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
@@ -106,6 +106,8 @@ namespace VisualPinball.Unity.VPT.Ball
 					{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
 				);
 			}
+
+			return entity;
 		}
 	}
 }
