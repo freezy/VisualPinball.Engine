@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 		private Matrix4x4 _worldToLocal;
 		private bool _wordlToLocalSet = false;
 		private Matrix4x4 worldToLocal { get {
-				if (!_wordlToLocalSet) 
+				if (!_wordlToLocalSet)
 				{
 					_wordlToLocalSet = true;
 					TableBehavior[] tables = GameObject.FindObjectsOfType<TableBehavior>();
@@ -29,12 +29,14 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 				return _worldToLocal;
 			} }
 
+		Dictionary<Entity, FlipperState> _flippers = new Dictionary<Entity, FlipperState>();
+
 		public VPX_PhysicsEngineProxyClient()
 		{
-			_ballQuery = EntityManager.CreateEntityQuery((ComponentType.ReadOnly<BallData>()));			
+			_ballQuery = EntityManager.CreateEntityQuery((ComponentType.ReadOnly<BallData>()));
 		}
 
-		Dictionary<Entity, FlipperState> _flippers = new Dictionary<Entity, FlipperState>();
+
 
         public void OnRegisterFlipper(Entity entity, string name) { _flippers[entity] = new FlipperState(); }
 
@@ -76,7 +78,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 
 		private int _pendingOnCreateBall = 0;
 		private int _lastSendOnCreateBall = -1;
-        public void OnCreateBall(Entity entity, float3 position, float3 velocity, float radius, float mass) 
+        public void OnCreateBall(Entity entity, float3 position, float3 velocity, float radius, float mass)
 		{
 			if (entity.Index < 0)
 				++_pendingOnCreateBall;
@@ -93,7 +95,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 
         public float GetFloat(Params param) { return 0; }
         public void SetFloat(Params param, float val) { }
-        public void ManualBallRoller(Entity entity, float3 targetPosition) 
+        public void ManualBallRoller(Entity entity, float3 targetPosition)
         {
 			// fail safe, if we get invalide entity
 			if (entity == Entity.Null && entity.Index != -1)
@@ -115,7 +117,7 @@ namespace VisualPinball.Unity.DebugAndPhysicsComunicationProxy
 				dist = dist + 1.0f;
 				ballData.Velocity = dir * dist * 0.001f;
 				EntityManager.SetComponentData(entity, ballData);
-			}			            
+			}
         }
     }
 }

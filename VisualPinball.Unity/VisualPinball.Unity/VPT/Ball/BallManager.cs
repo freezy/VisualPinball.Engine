@@ -4,10 +4,12 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.Engine;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -51,11 +53,12 @@ namespace VisualPinball.Unity.VPT.Ball
 
 			// go will be converted automatically to entity
 			//CreateViaGameObject(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
-			Entity ballEntity = DPProxy.physicsEngine.UsePureEntity() ? 
-				CreatePureEntity(worldPos, scale * radius * 2, GetSphereMesh(), material) 
+			var physicsEngine = EngineProvider<IPhysicsEngineNew>.Instance.Get();
+			var ballEntity = physicsEngine.UsePureEntity
+				? CreatePureEntity(worldPos, scale * radius * 2, GetSphereMesh(), material)
 				: CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
 
-			DPProxy.OnCreateBall( ballEntity, localPos, localVel, mass, radius);
+			physicsEngine.OnCreateBall( ballEntity, localPos, localVel, mass, radius);
 
 			return null;
 		}

@@ -144,6 +144,10 @@
     <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
+    <Compile Include="Physics\DebugUI\DebugFlipperState.cs" />
+    <Compile Include="Physics\DebugUI\IDebugUI.cs" />
+    <Compile Include="Physics\Engine\DefaultPhysicsEngine.cs" />
+    <Compile Include="Physics\Engine\IPhysicsEngineNew.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
