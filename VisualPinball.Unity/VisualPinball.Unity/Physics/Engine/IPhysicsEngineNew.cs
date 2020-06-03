@@ -62,5 +62,13 @@ namespace VisualPinball.Unity.Physics.Engine
 		/// </summary>
 		/// <returns>All flipper states</returns>
 		DebugFlipperState[] FlipperGetDebugStates();
+
+		/// <summary>
+		/// Returns which sliders for flippers the debug UI should display.
+		/// </summary>
+		DebugFlipperSlider[] FlipperGetDebugSliders();
+
+		void SetFlipperDebugValue(DebugFlipperSliderParam param, float v);
+		float GetFlipperDebugValue(DebugFlipperSliderParam param);
 	}
 }

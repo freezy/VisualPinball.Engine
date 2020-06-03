@@ -3,7 +3,6 @@ using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.DebugAndPhysicsComunicationProxy;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.DebugUI;

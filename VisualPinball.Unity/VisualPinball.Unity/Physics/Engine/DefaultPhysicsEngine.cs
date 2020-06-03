@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace VisualPinball.Unity.Physics.Engine
 
 		private Matrix4x4 _worldToLocal;
 		private DebugFlipperState[] _flipperStates = new DebugFlipperState[0];
+		private readonly DebugFlipperSlider[] _flipperSliders = new DebugFlipperSlider[0];
 
 		public void Init(TableBehavior tableBehavior)
 		{
@@ -91,6 +93,21 @@ namespace VisualPinball.Unity.Physics.Engine
 		public DebugFlipperState[] FlipperGetDebugStates()
 		{
 			return _flipperStates;
+		}
+
+		public DebugFlipperSlider[] FlipperGetDebugSliders()
+		{
+			return _flipperSliders;
+		}
+
+		public void SetFlipperDebugValue(DebugFlipperSliderParam param, float v)
+		{
+			throw new InvalidOperationException("No debug values for default engine.");
+		}
+
+		public float GetFlipperDebugValue(DebugFlipperSliderParam param)
+		{
+			throw new InvalidOperationException("No debug values for default engine.");
 		}
 
 		public void UpdateDebugFlipperStates()
