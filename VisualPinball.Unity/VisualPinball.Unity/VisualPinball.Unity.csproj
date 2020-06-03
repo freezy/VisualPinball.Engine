@@ -145,7 +145,7 @@
     <Compile Include="Physics\DebugUI\DebugFlipperState.cs" />
     <Compile Include="Physics\DebugUI\IDebugUI.cs" />
     <Compile Include="Physics\Engine\DefaultPhysicsEngine.cs" />
-    <Compile Include="Physics\Engine\IPhysicsEngineNew.cs" />
+    <Compile Include="Physics\Engine\IPhysicsEngine.cs" />
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
