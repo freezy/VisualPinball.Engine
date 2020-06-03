@@ -32,7 +32,6 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
-using VisualPinball.Unity.DebugAndPhysicsComunicationProxy;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
