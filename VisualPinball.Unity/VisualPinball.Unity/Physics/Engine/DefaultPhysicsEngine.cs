@@ -12,7 +12,7 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Physics.Engine
 {
-	public class DefaultPhysicsEngine : IPhysicsEngineNew
+	public class DefaultPhysicsEngine : IPhysicsEngine
 	{
 		public string Name => "Default VPX";
 

@@ -54,10 +54,10 @@ namespace VisualPinball.Unity.VPT.Ball
 			var mesh = GetSphereMesh();
 
 			// create ball entity
-			var entity = EngineProvider<IPhysicsEngineNew>.Get()
+			var entity = EngineProvider<IPhysicsEngine>.Get()
 				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
-			if (EngineProvider<IDebugUINew>.Exists) {
-				EngineProvider<IDebugUINew>.Get().OnCreateBall(entity);
+			if (EngineProvider<IDebugUI>.Exists) {
+				EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
 			}
 
 			return null;

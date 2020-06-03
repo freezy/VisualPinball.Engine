@@ -25,12 +25,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		public void RotateToEnd()
 		{
-			EngineProvider<IPhysicsEngineNew>.Get().FlipperRotateToEnd(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
 		}
 
 		public void RotateToStart()
 		{
-			EngineProvider<IPhysicsEngineNew>.Get().FlipperRotateToStart(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
 		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)

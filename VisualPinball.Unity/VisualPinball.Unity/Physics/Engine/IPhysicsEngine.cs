@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Physics.Engine
 	/// <summary>
 	/// A swappable engine that implements VPE's rigid body physics.
 	/// </summary>
-	public interface IPhysicsEngineNew : IEngine
+	public interface IPhysicsEngine : IEngine
 	{
 		/// <summary>
 		/// Initialize and enable the engine.
