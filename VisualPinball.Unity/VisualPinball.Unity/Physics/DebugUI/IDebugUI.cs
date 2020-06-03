@@ -4,7 +4,7 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Physics.DebugUI
 {
-	public interface IDebugUINew : IEngine
+	public interface IDebugUI : IEngine
 	{
 		void Init(TableBehavior tableBehavior);
 

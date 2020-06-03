@@ -83,15 +83,15 @@ namespace VisualPinball.Unity.VPT.Table
 		protected override void Awake()
 		{
 			base.Awake();
-			EngineProvider<IPhysicsEngineNew>.Set(physicsEngineId);
-			EngineProvider<IDebugUINew>.Set(debugUiId);
+			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
+			EngineProvider<IDebugUI>.Set(debugUiId);
 		}
 
 		private void Start()
 		{
-			EngineProvider<IPhysicsEngineNew>.Get().Init(this);
-			if (EngineProvider<IDebugUINew>.Exists) {
-				EngineProvider<IDebugUINew>.Get().Init(this);
+			EngineProvider<IPhysicsEngine>.Get().Init(this);
+			if (EngineProvider<IDebugUI>.Exists) {
+				EngineProvider<IDebugUI>.Get().Init(this);
 			}
 		}
 

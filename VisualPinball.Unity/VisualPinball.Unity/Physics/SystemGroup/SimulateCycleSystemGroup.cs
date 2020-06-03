@@ -110,9 +110,9 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			}
 
 			// debug ui update
-			if (EngineProvider<IDebugUINew>.Exists) {
+			if (EngineProvider<IDebugUI>.Exists) {
 				PhysicsEngine.UpdateDebugFlipperStates();
-				EngineProvider<IDebugUINew>.Get().OnPhysicsUpdate(numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
+				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
 			}
 		}
 

@@ -16,11 +16,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	[CanEditMultipleObjects]
 	public class TableInspector : UnityEditor.Editor
 	{
-		private IPhysicsEngineNew[] _physicsEngines;
+		private IPhysicsEngine[] _physicsEngines;
 		private string[] _physicsEngineNames;
 		private int _physicsEngineIndex;
 
-		private IDebugUINew[] _debugUIs;
+		private IDebugUI[] _debugUIs;
 		private string[] _debugUINames;
 		private int _debugUIIndex;
 
