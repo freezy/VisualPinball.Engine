@@ -1,3 +1,6 @@
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace VisualPinball.Unity.Physics.DebugUI
 {
 	public class DebugFlipperSlider

@@ -88,8 +88,6 @@
     <Compile Include="Common\SerializableDictionary.cs" />
     <Compile Include="Common\UnityTarget.cs" />
     <Compile Include="Common\UnsafeEx.cs" />
-    <Compile Include="DebugUI\DebugAndPhysicsComunicationProxy_Interfaces.cs" />
-    <Compile Include="DebugUI\VPX_PhysicsEngineProxyClient.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\LightExtensions.cs" />
     <Compile Include="Extensions\MaterialExtensions.cs" />
@@ -143,6 +141,7 @@
     <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
     <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
     <Compile Include="Physics\Collision\QuadTree.cs" />
+    <Compile Include="Physics\DebugUI\DebugFlipperSlider.cs" />
     <Compile Include="Physics\DebugUI\DebugFlipperState.cs" />
     <Compile Include="Physics\DebugUI\IDebugUI.cs" />
     <Compile Include="Physics\Engine\DefaultPhysicsEngine.cs" />
