@@ -68,7 +68,18 @@ namespace VisualPinball.Unity.Physics.Engine
 		/// </summary>
 		DebugFlipperSlider[] FlipperGetDebugSliders();
 
+		/// <summary>
+		/// Updates a flipper property during gameplay.
+		/// </summary>
+		/// <param name="param">Which property to update</param>
+		/// <param name="v">New value</param>
 		void SetFlipperDebugValue(DebugFlipperSliderParam param, float v);
+
+		/// <summary>
+		/// Retrieves a flipper property during gameplay.
+		/// </summary>
+		/// <param name="param">Which property to retrieve</param>
+		/// <returns>Value of the property</returns>
 		float GetFlipperDebugValue(DebugFlipperSliderParam param);
 	}
 }
