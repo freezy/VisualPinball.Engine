@@ -113,7 +113,7 @@ namespace VisualPinball.Unity.Physics.Engine
 		public void UpdateDebugFlipperStates()
 		{
 			// for each flipper
-			var entities = _flipperDataQuery.ToEntityArray(Allocator.Temp);
+			var entities = _flipperDataQuery.ToEntityArray(Allocator.TempJob);
 			if (_flipperStates.Length == 0) {
 				_flipperStates = new DebugFlipperState[entities.Length];
 			}
