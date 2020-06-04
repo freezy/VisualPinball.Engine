@@ -13,6 +13,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
     {
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
+		protected DragPoints.DragPointsEditor _dragPointsEditor = new DragPoints.DragPointsEditor();
 
 		protected virtual void OnEnable()
 		{
@@ -32,6 +33,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (item.MeshDirty) {
 				item.RebuildMeshes();
 			}
+		}
+
+		public virtual void OnSceneGUI()
+		{
+			_dragPointsEditor.OnSceneGUI(target);
 		}
 
 		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true)
@@ -130,5 +136,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 			Undo.RecordObject(target, undoLabel);
 		}
+
 	}
 }

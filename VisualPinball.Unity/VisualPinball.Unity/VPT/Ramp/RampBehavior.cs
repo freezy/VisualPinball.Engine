@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Ramp
 {

@@ -8,37 +8,37 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor.DragPoints
 {
-	public abstract class DragPointsEditor : UnityEditor.Editor
+	public class DragPointsEditor
 	{
 		List<DragPointData> controlPoints = new List<DragPointData>();
 
         List<Vector3> pathPoints = new List<Vector3>();
-        float resolution = 0.2f;
 
-		public virtual void OnSceneGUI()
+		public void OnSceneGUI(Object target)
 		{
-			IDragPointsEditable editable = target as IDragPointsEditable;
+			IEditableItemBehavior editable = target as IEditableItemBehavior;
+			IDragPointsEditable dpeditable = target as IDragPointsEditable;
 			Behaviour bh = target as Behaviour;
 
-			if (bh == null || editable == null)
+			if (bh == null || dpeditable == null)
 				return;
 
 			controlPoints.Clear();
 
-			Vector3 offset = editable.GetEditableOffset();
+			Vector3 offset = dpeditable.GetEditableOffset();
 			Matrix4x4 lwMat = bh.transform.localToWorldMatrix;
 			Matrix4x4 wlMat = bh.transform.worldToLocalMatrix;
 
-			foreach (var dpoint in editable.GetDragPoints())
+			foreach (var dpoint in dpeditable.GetDragPoints())
 			{
-				Vector3 dpos = MathExtensions.ToUnityVector3(dpoint.Vertex);
+				Vector3 dpos = dpoint.Vertex.ToUnityVector3();
 				dpos.z += dpoint.CalcHeight;
 				dpos += offset;
 				dpos = lwMat.MultiplyPoint(dpos);
 				EditorGUI.BeginChangeCheck();
 				dpos = Handles.PositionHandle(dpos, Quaternion.identity);
 				DragPointData transformedData = new DragPointData(dpoint);
-				transformedData.Vertex = MathExtensions.FromUnityVector3(dpos);
+				transformedData.Vertex = dpos.ToVertex3D();
 				controlPoints.Add(transformedData);
 				if (EditorGUI.EndChangeCheck())
 				{
@@ -46,7 +46,12 @@ namespace VisualPinball.Unity.Editor.DragPoints
 					dpos = wlMat.MultiplyPoint(dpos);
 					dpos -= offset;
 					dpos.z -= dpoint.CalcHeight;
-					dpoint.Vertex = MathExtensions.FromUnityVector3(dpos);
+					dpoint.Vertex = dpos.ToVertex3D();
+
+					if (editable != null)
+					{
+						editable.MeshDirty = true;
+					}
 				}
 			}
 
@@ -54,7 +59,7 @@ namespace VisualPinball.Unity.Editor.DragPoints
 			{
 				var cross = controlPoints[1].Vertex.Clone().Sub(controlPoints[0].Vertex).Cross(controlPoints[2].Vertex.Clone().Sub(controlPoints[0].Vertex));
 				var areaSq = cross.LengthSq();
-				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(controlPoints.ToArray(), editable.PointsAreLooping(), areaSq * 0.000001f);
+				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(controlPoints.ToArray(), dpeditable.PointsAreLooping(), areaSq * 0.000001f);
 
 				if (vVertex.Length > 0)
 				{
@@ -71,16 +76,4 @@ namespace VisualPinball.Unity.Editor.DragPoints
 
 		}
 	}
-
-	[CustomEditor(typeof(VPT.Ramp.RampBehavior))]
-	public class RampDragPointsEditor : DragPointsEditor { }
-
-	[CustomEditor(typeof(VPT.Rubber.RubberBehavior))]
-	public class RubberDragPointsEditor : DragPointsEditor { }
-
-	[CustomEditor(typeof(VPT.Surface.SurfaceBehavior))]
-	public class SurfaceDragPointsEditor : DragPointsEditor { }
-
-	[CustomEditor(typeof(VPT.Trigger.TriggerBehavior))]
-	public class TriggerDragPointsEditor : DragPointsEditor { }
 }
