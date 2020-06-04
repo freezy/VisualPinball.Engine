@@ -4,10 +4,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Gate;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -45,6 +47,9 @@ namespace VisualPinball.Unity.Physics.Collider
 				case FlipperHit flipperHit:
 					FlipperCollider.Create(builder, flipperHit, ref dest);
 					break;
+				case GateHit gateHit:
+					GateCollider.Create(builder, gateHit, ref dest);
+					break;
 				case LineSeg lineSeg:
 					LineCollider.Create(builder, lineSeg, ref dest);
 					break;
@@ -79,6 +84,8 @@ namespace VisualPinball.Unity.Physics.Collider
 				switch (collider->Type) {
 					case ColliderType.Circle:
 						return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					case ColliderType.Gate:
+						return ((GateCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Line:
 						return ((LineCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.LineZ:

@@ -5,6 +5,7 @@ using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
+ using VisualPinball.Unity.VPT.Gate;
 
  namespace VisualPinball.Unity.Physics.Collision
 {
