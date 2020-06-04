@@ -187,6 +187,8 @@
 		<Compile Include="VPT\Font.cs" />
 		<Compile Include="VPT\Gate\Gate.cs" />
 		<Compile Include="VPT\Gate\GateData.cs" />
+		<Compile Include="VPT\Gate\GateHit.cs" />
+		<Compile Include="VPT\Gate\GateHitGenerator.cs" />
 		<Compile Include="VPT\Gate\GateMeshGenerator.cs" />
 		<Compile Include="VPT\HitTarget\HitTarget.cs" />
 		<Compile Include="VPT\HitTarget\HitTargetData.cs" />
