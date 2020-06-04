@@ -173,7 +173,7 @@ namespace VisualPinball.Unity.Import
 			switch (item) {
 				case Bumper bumper:			ic = obj.AddComponent<BumperBehavior>().SetData(bumper.Data); break;
 				case Flipper flipper:		ic = flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:				ic = obj.AddComponent<GateBehavior>().SetData(gate.Data); break;
+				case Gate gate:				ic = gate.SetupGameObject(obj, rog); break;
 				case HitTarget hitTarget:	ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
 				case Kicker kicker:			ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
 				case Primitive primitive:	ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;

@@ -179,6 +179,7 @@
     <Compile Include="VPT\Flipper\FlipperBehavior.cs" />
     <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
     <Compile Include="VPT\Flipper\SolenoidStateData.cs" />
+    <Compile Include="VPT\Gate\GateExtensions.cs" />
     <Compile Include="VPT\Gate\GateMovementSystem.cs" />
     <Compile Include="VPT\Gate\GateVelocitySystem.cs" />
     <Compile Include="VPT\Gate\GateDisplacementSystem.cs" />
