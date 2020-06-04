@@ -88,15 +88,18 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Triggers.Values.Select(i => i.Data));
 
 		public IEnumerable<IMovable> Movables => new IMovable[0]
-			.Concat(Flippers.Values);
+			.Concat(Flippers.Values)
+			.Concat(Gates.Values);
 
 		public IEnumerable<IHittable> Hittables => new IHittable[0]
 			.Concat(Flippers.Values)
+			.Concat(Gates.Values)
 			.Concat(Rubbers.Values)
 			.Concat(Surfaces.Values);
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(Flippers.Values)
+			.Concat(Gates.Values)
 			.Concat(Rubbers.Values)
 			.Concat(Surfaces.Values);
 

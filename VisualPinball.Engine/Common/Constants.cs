@@ -18,6 +18,11 @@ namespace VisualPinball.Engine.Common
 		public const float ContactVel = 0.099f;                                // C_CONTACTVEL
 
 		/// <summary>
+		/// seems like this mimics the radius of the ball -> replace with radius where possible?
+		/// </summary>
+		public const float PhysSkin = 25.0f;
+
+		/// <summary>
 		/// Layer outside object which increases it's size for contact measurements. Used to determine clearances.
 		/// Setting this value during testing to 0.1 will insure clearance. After testing set the value to 0.005
 		/// Default 0.01
@@ -94,8 +99,5 @@ namespace VisualPinball.Engine.Common
 		/// Precision level and cycles for interative calculations // acceptable contact time ... near zero time
 		/// </summary>
 		public const int Internations = 20;                                    // C_INTERATIONS
-
-
-
 	}
 }
