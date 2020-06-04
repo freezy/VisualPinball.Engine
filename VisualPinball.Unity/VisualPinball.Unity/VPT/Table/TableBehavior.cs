@@ -85,11 +85,11 @@ namespace VisualPinball.Unity.VPT.Table
 			base.Awake();
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
 			EngineProvider<IDebugUI>.Set(debugUiId);
+			EngineProvider<IPhysicsEngine>.Get().Init(this);
 		}
 
 		private void Start()
 		{
-			EngineProvider<IPhysicsEngine>.Get().Init(this);
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(this);
 			}
