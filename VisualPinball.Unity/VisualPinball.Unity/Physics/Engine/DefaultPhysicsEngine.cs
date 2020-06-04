@@ -1,8 +1,10 @@
 ﻿using System;
+using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.SystemGroup;
@@ -18,10 +20,12 @@ namespace VisualPinball.Unity.Physics.Engine
 
 		private EntityManager _entityManager;
 		private EntityQuery _flipperDataQuery;
+		private EntityQuery _ballDataQuery;
 
 		private Matrix4x4 _worldToLocal;
 		private DebugFlipperState[] _flipperStates = new DebugFlipperState[0];
 		private readonly DebugFlipperSlider[] _flipperSliders = new DebugFlipperSlider[0];
+		private int _nextBallIdToNotifyDebugUI;
 
 		public void Init(TableBehavior tableBehavior)
 		{
@@ -32,6 +36,8 @@ namespace VisualPinball.Unity.Physics.Engine
 				ComponentType.ReadOnly<SolenoidStateData>()
 			);
 
+			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
+
 			var visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 
@@ -41,10 +47,10 @@ namespace VisualPinball.Unity.Physics.Engine
 			_worldToLocal = tableBehavior.gameObject.transform.worldToLocalMatrix;
 		}
 
-		public Entity BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius)
 		{
-			return BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
+			BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
 				scale * radius * 2, in mass, in radius);
 		}
 
@@ -129,6 +135,28 @@ namespace VisualPinball.Unity.Physics.Engine
 				);
 			}
 			entities.Dispose();
+		}
+
+		public void PushPendingCreateBallNotifications()
+		{
+			if (_nextBallIdToNotifyDebugUI == BallBehavior.NumBallsCreated)
+				return; // nothing to report
+
+			var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
+			int numBallsToReport = BallBehavior.NumBallsCreated - _nextBallIdToNotifyDebugUI;
+			foreach (var entity in entities)
+			{
+				var ballData = _entityManager.GetComponentData<BallData>(entity);
+				if (ballData.Id >= _nextBallIdToNotifyDebugUI)
+				{
+					EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
+					--numBallsToReport;
+				}
+			}
+
+			// error checking
+			Assert.AreEqual(0, numBallsToReport);
+			_nextBallIdToNotifyDebugUI = BallBehavior.NumBallsCreated;
 		}
 	}
 }

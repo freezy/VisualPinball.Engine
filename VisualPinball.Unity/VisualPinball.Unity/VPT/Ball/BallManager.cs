@@ -54,11 +54,8 @@ namespace VisualPinball.Unity.VPT.Ball
 			var mesh = GetSphereMesh();
 
 			// create ball entity
-			var entity = EngineProvider<IPhysicsEngine>.Get()
+			EngineProvider<IPhysicsEngine>.Get()
 				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
-			if (EngineProvider<IDebugUI>.Exists) {
-				EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
-			}
 
 			return null;
 		}
@@ -99,11 +96,11 @@ namespace VisualPinball.Unity.VPT.Ball
 			return entity;
 		}
 
-		public static Entity CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			return BallBehavior.CreateEntity(entityManager,
+			BallBehavior.CreateEntity(entityManager,
 				mesh, material, worldPos, scale, localPos,
 					localVel, radius, mass);
 		}

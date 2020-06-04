@@ -184,6 +184,7 @@ namespace VisualPinball.Unity.Import
 				case Table table:			ic = table.SetupGameObject(obj, rog); break;
 				case Trigger trigger:		ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
 			}
+#if UNITY_EDITOR
 			// for convenience move item behavior to the top of the list
 			if (ic != null) {
 				int numComp = obj.GetComponents<MonoBehaviour>().Length;
@@ -191,8 +192,8 @@ namespace VisualPinball.Unity.Import
 					UnityEditorInternal.ComponentUtility.MoveComponentUp(ic);
 				}
 			}
+#endif
 		}
-
 		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)
 		{
 			if (ro.Mesh == null) {
