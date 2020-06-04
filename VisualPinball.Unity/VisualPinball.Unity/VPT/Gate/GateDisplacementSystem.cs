@@ -21,7 +21,9 @@ namespace VisualPinball.Unity.VPT.Gate
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
-			Entities.WithName("GateDisplacementJob").ForEach((ref GateMovementData movementData, in GateStaticData data) => {
+			Entities
+				.WithName("GateDisplacementJob")
+				.ForEach((ref GateMovementData movementData, in GateStaticData data) => {
 
 				marker.Begin();
 

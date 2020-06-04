@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData, in GateStaticData data)
+		public static void Collide(in BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData, in GateStaticData data)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.VPT.Gate
 
 			movementData.AngleSpeed = speed;
 			if (!collEvent.HitFlag && !data.TwoWay) {
-				movementData.AngleSpeed *= 1.0f / 8.0f;                // Give a little bounce-back.
+				movementData.AngleSpeed *= 1.0f / 8.0f;        // Give a little bounce-back.
 				return;                                        // hit from back doesn't count if not two-way
 			}
 
