@@ -73,12 +73,12 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
 			_systemsToUpdate.Add(_ballSpinHackSystem);
-
-			_simulationTime.Start();
 		}
 
 		protected override void OnUpdate()
 		{
+			_simulationTime.Restart();
+
 			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 
 			_staticCounts = PhysicsConstants.StaticCnts;
@@ -112,6 +112,7 @@ namespace VisualPinball.Unity.Physics.SystemGroup
 			// debug ui update
 			if (EngineProvider<IDebugUI>.Exists) {
 				PhysicsEngine.UpdateDebugFlipperStates();
+				PhysicsEngine.PushPendingCreateBallNotifications();
 				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
 			}
 		}

@@ -33,8 +33,7 @@ namespace VisualPinball.Unity.Physics.Engine
 		/// <param name="scale">Scale relative to ball mesh</param>
 		/// <param name="mass">Physics mass</param>
 		/// <param name="radius">Radius in local space</param>
-		/// <returns></returns>
-		Entity BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos, in float3 localVel,
+		void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos, in float3 localVel,
 			in float scale, in float mass, in float radius);
 
 		/// <summary>
