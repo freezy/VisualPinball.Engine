@@ -55,6 +55,19 @@ namespace VisualPinball.Engine.Math
 			Init(typeof(DragPointData), Attributes);
 		}
 
+		public DragPointData(DragPointData rf) : base(null)
+		{
+			Vertex = rf.Vertex;
+			PosZ = rf.PosZ;
+			IsSmooth = rf.IsSmooth;
+			IsSlingshot = rf.IsSlingshot;
+			HasAutoTexture = rf.HasAutoTexture;
+			TextureCoord = rf.TextureCoord;
+			IsLocked = rf.IsLocked;
+			EditorLayer = rf.EditorLayer;
+			CalcHeight = rf.CalcHeight;
+		}
+
 		public DragPointData(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
