@@ -76,8 +76,8 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Gate:
 								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
-								((GateCollider*) collider)->Collide(
-									ref ballData, ref collEvent, ref gateMovementData,
+								GateCollider.Collide(
+									in ballData, ref collEvent, ref gateMovementData,
 									in gateStaticData
 								);
 								SetComponent(coll.Entity, gateMovementData);

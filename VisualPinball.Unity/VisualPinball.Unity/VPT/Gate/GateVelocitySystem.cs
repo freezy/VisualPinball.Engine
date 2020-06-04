@@ -8,7 +8,6 @@ using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
-	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class GateVelocitySystem : SystemBase
 	{
