@@ -95,6 +95,7 @@
     <Compile Include="Extensions\Matrix3DExtensions.cs" />
     <Compile Include="Extensions\MeshExtensions.cs" />
     <Compile Include="Extensions\TextureExtensions.cs" />
+    <Compile Include="Extensions\TransformExtensions.cs" />
     <Compile Include="Game\Player.cs" />
     <Compile Include="Game\VisualPinballScript.cs" />
     <Compile Include="Game\VisualPinballSimulationSystemGroup.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
     <Compile Include="VPT\IApi.cs" />
+    <Compile Include="VPT\IEditableItemBehavior.cs" />
     <Compile Include="VPT\ItemApi.cs" />
     <Compile Include="VPT\ItemBehavior.cs" />
     <Compile Include="VPT\ItemType.cs" />

@@ -20,7 +20,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Import.Job;
 using VisualPinball.Unity.VPT.Bumper;
