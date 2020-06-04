@@ -3,8 +3,10 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.Engine;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
@@ -23,20 +25,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		public void RotateToEnd()
 		{
-			var mData = EntityManager.GetComponentData<FlipperMovementData>(Entity);
-			mData.EnableRotateEvent = 1;
-			EntityManager.SetComponentData(Entity, mData);
-			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = true });
-			DPProxy.OnRotateToEnd(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
 		}
 
 		public void RotateToStart()
 		{
-			var mData = EntityManager.GetComponentData<FlipperMovementData>(Entity);
-			mData.EnableRotateEvent = -1;
-			EntityManager.SetComponentData(Entity, mData);
-			EntityManager.SetComponentData(Entity, new SolenoidStateData { Value = false });
-			DPProxy.OnRotateToStart(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
 		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)

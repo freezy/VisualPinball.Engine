@@ -94,6 +94,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Common\Constants.cs" />
+		<Compile Include="Common\EngineProvider.cs" />
 		<Compile Include="Common\Logging.cs" />
 		<Compile Include="Common\Profiler.cs" />
 		<Compile Include="Common\Registry.cs" />

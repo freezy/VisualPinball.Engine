@@ -4,10 +4,13 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Physics.Engine;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Ball
@@ -48,19 +51,19 @@ namespace VisualPinball.Unity.VPT.Ball
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
 			var material = CreateMaterial();
+			var mesh = GetSphereMesh();
 
-			// go will be converted automatically to entity
-			//CreateViaGameObject(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
-			Entity ballEntity = DPProxy.physicsEngine.UsePureEntity() ? 
-				CreatePureEntity(worldPos, scale * radius * 2, GetSphereMesh(), material) 
-				: CreateEntity(worldPos, localPos, localVel, scale * radius * 2, mass, radius, material);
-
-			DPProxy.OnCreateBall( ballEntity, localPos, localVel, mass, radius);
+			// create ball entity
+			var entity = EngineProvider<IPhysicsEngine>.Get()
+				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
+			if (EngineProvider<IDebugUI>.Exists) {
+				EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
+			}
 
 			return null;
 		}
 
-		private Entity CreatePureEntity(float3 position, float scale, Mesh mesh, Material material)
+		public static Entity CreatePureEntity(Mesh mesh, Material material, float3 position, float scale)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
@@ -96,12 +99,12 @@ namespace VisualPinball.Unity.VPT.Ball
 			return entity;
 		}
 
-		private Entity CreateEntity(Vector3 worldPos, float3 localPos, float3 localVel, float scale, float mass,
-			float radius, Material material)
+		public static Entity CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+			in float3 localVel, in float scale, in float mass, in float radius)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			return BallBehavior.CreateEntity(entityManager,
-					GetSphereMesh(), material, worldPos, scale, localPos,
+				mesh, material, worldPos, scale, localPos,
 					localVel, radius, mass);
 		}
 

@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.VPT
 			Item.Version = entity.Version;
 		}
 
-		protected void Awake()
+		protected virtual void Awake()
 		{
 			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
 			// can be null in editor, shouldn't be at runtime.

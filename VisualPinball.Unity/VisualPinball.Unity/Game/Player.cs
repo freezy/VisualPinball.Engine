@@ -11,6 +11,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
@@ -43,7 +44,10 @@ namespace VisualPinball.Unity.Game
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity.Index] = flipperApi;
-			DPProxy.OnRegisterFlipper(entity, flipper.Name);
+			if (EngineProvider<IDebugUI>.Exists) {
+				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
+			}
+
 			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
 			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}
