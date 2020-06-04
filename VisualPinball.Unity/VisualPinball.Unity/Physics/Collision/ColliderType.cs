@@ -5,6 +5,7 @@
 		None,
 		Circle,
 		Flipper,
+		Gate,
 		Line,
 		Line3D,
 		LineSlingShot,

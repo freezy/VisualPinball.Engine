@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Unity.Extensions;
@@ -11,9 +12,29 @@ using VisualPinball.Unity.Extensions;
 namespace VisualPinball.Unity.VPT.Gate
 {
 	[AddComponentMenu("Visual Pinball/Gate")]
-	public class GateBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>
+	public class GateBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			dstManager.AddComponentData(entity, new GateStaticData {
+				AngleMin = data.AngleMin,
+				AngleMax = data.AngleMax,
+				Height = data.Height,
+				Damping = data.Damping,
+				GravityFactor = data.GravityFactor,
+				TwoWay = data.TwoWay
+			});
+			dstManager.AddComponentData(entity, new GateMovementData {
+				Angle = data.AngleMin,
+				AngleSpeed = 0,
+				ForcedMove = false,
+				IsOpen = false
+			});
+		}
 
 		protected override Engine.VPT.Gate.Gate GetItem()
 		{

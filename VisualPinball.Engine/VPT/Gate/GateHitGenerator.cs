@@ -14,7 +14,7 @@ namespace VisualPinball.Engine.VPT.Gate
 			_gateData = gateData;
 		}
 
-		public LineSeg[] GenerateLineSegs(EventProxy events, float height, Vertex2D tangent)
+		public LineSeg[] GenerateLineSegs(float height, Vertex2D tangent)
 		{
 			if (_gateData.TwoWay) {
 				return new LineSeg[0];
@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.Gate
 			_gateData.AngleMax = angleMax;
 
 			// oversize by the ball's radius to prevent the ball from clipping through
-			var rgv = new Vertex2D[] {
+			var rgv = new[] {
 				_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 				_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 			};
@@ -41,15 +41,16 @@ namespace VisualPinball.Engine.VPT.Gate
 			return new[] {lineSeg};
 		}
 
-		// public GateHit GenerateGateHit(GateState state, EventProxy events, float height)
-		// {
-		// 	var hit = new GateHit(_gateData, state, events, height);
-		// 	hit.TwoWay = _gateData.TwoWay;
-		// 	hit.Obj = events;
-		// 	hit.Fe = true;
-		// 	hit.IsEnabled = _gateData.IsCollidable;
-		// 	return hit;
-		// }
+		public GateHit GenerateGateHit(EventProxy events, float height)
+		{
+			var hit = new GateHit(_gateData, height) {
+				TwoWay = _gateData.TwoWay,
+				Obj = events,
+				FireEvents = true,
+				IsEnabled = _gateData.IsCollidable
+			};
+			return hit;
+		}
 
 		public HitCircle[] GenerateBracketHits(float height, Vertex2D tangent)
 		{
