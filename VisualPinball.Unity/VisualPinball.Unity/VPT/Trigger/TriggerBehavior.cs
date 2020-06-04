@@ -32,5 +32,6 @@ namespace VisualPinball.Unity.VPT.Trigger
 		//IDragPointsEditable
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public Vector3 GetEditableOffset() { return new Vector3(); }
+		public bool PointsAreLooping() { return true; }
 	}
 }

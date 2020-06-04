@@ -6,6 +6,7 @@
 
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Extensions;
@@ -13,7 +14,7 @@ using VisualPinball.Unity.Extensions;
 namespace VisualPinball.Unity.VPT.Surface
 {
 	[AddComponentMenu("Visual Pinball/Surface")]
-	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IConvertGameObjectToEntity
+	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IConvertGameObjectToEntity, IDragPointsEditable
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
 
@@ -52,5 +53,10 @@ namespace VisualPinball.Unity.VPT.Surface
 				pt.Vertex = pt.Vertex.Add(diff);
 			}
 		}
+
+		//IDragPointsEditable
+		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public Vector3 GetEditableOffset() { return new Vector3(); }
+		public bool PointsAreLooping() { return true; }
 	}
 }

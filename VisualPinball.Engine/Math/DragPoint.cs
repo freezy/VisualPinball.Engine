@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Engine.Math
 {
-	static internal class DragPoint
+	static public class DragPoint
 	{
 		public static TVertex[] GetRgVertex<TVertex, TCatmullCurveFactory>(DragPointData[] dragPoints, bool loop = true, float accuracy = 4.0f) where TVertex : IRenderVertex, new() where TCatmullCurveFactory : ICatmullCurveFactory<TVertex>, new()
 		// 4 = maximum precision that we allow for

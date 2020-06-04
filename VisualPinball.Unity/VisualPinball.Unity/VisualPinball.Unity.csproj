@@ -183,6 +183,7 @@
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
     <Compile Include="VPT\IApi.cs" />
     <Compile Include="VPT\IEditableItemBehavior.cs" />
+    <Compile Include="VPT\IDragPointsEditable.cs" />
     <Compile Include="VPT\ItemApi.cs" />
     <Compile Include="VPT\ItemBehavior.cs" />
     <Compile Include="VPT\ItemType.cs" />
