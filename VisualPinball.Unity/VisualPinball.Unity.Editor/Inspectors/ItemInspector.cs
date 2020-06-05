@@ -2,6 +2,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Editor.Editors;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
@@ -13,7 +14,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
     {
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
-		protected DragPoints.DragPointsEditor _dragPointsEditor = new DragPoints.DragPointsEditor();
+		protected DragPointsEditor _dragPointsEditor = new DragPointsEditor();
 
 		protected virtual void OnEnable()
 		{
