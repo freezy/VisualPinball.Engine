@@ -1,4 +1,6 @@
-﻿using NLog;
+﻿// ReSharper disable ClassNeverInstantiated.Global
+
+using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -51,7 +53,6 @@ namespace VisualPinball.Unity.Physics.Collision
 				ref var colliders = ref collData.Value.Value.Colliders;
 
 				//if (rnd.NextBool()) { // swap order of contact handling randomly
-					// tslint:disable-next-line:prefer-for-of
 				for (var i = 0; i < contacts.Length; i++) {
 					var contact = contacts[i];
 					if (contact.ColliderId > -1) {
@@ -59,6 +60,7 @@ namespace VisualPinball.Unity.Physics.Collision
 						unsafe {
 							fixed (Collider.Collider* collider = &coll) {
 								switch (coll.Type) {
+
 									case ColliderType.Flipper:
 										var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
 										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);

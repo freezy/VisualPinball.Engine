@@ -62,7 +62,7 @@ using VisualPinball.Unity.VPT.Flipper;
 							switch (coll.Type) {
 
 								case ColliderType.LineSlingShot:
-									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, in ballData, collEvent.HitTime);
+									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
 
 								case ColliderType.Flipper:
