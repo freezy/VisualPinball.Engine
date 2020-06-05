@@ -57,7 +57,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DragPointsEditor\DragPointsEditor.cs" />
+    <Compile Include="Editors\DragPointsEditor.cs" />
     <Compile Include="Import\AssetHandler\AssetDatabaseHandler.cs" />
     <Compile Include="Import\AssetHandler\AssetImportHandler.cs" />
     <Compile Include="Import\AssetHandler\AssetUtility.cs" />
