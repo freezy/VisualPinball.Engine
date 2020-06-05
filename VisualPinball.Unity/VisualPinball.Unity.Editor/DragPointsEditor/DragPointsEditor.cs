@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using VisualPinball.Unity.VPT;
@@ -42,16 +42,14 @@ namespace VisualPinball.Unity.Editor.DragPoints
 				controlPoints.Add(transformedData);
 				if (EditorGUI.EndChangeCheck())
 				{
+					//Set Meshdirty to true there so it'll trigger again after Undo
+					if (editable != null)
+						editable.MeshDirty = true;
 					Undo.RecordObject(bh, "Change DragPoint Position to " + dpos.ToString());
 					dpos = wlMat.MultiplyPoint(dpos);
 					dpos -= offset;
 					dpos.z -= dpoint.CalcHeight;
 					dpoint.Vertex = dpos.ToVertex3D();
-
-					if (editable != null)
-					{
-						editable.MeshDirty = true;
-					}
 				}
 			}
 
