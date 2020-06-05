@@ -85,8 +85,9 @@ namespace VisualPinball.Unity.Physics.Collision
 
 							case ColliderType.LineSlingShot:
 								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
-								((LineSlingshotCollider*) collider)->Collide(ref ballData, in slingshotData, in collEvent,
-									ref random);
+								((LineSlingshotCollider*) collider)->Collide(
+									ref ballData, in slingshotData,
+									in collEvent, ref random);
 								break;
 
 							case ColliderType.Line:

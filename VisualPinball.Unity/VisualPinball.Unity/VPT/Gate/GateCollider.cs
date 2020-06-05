@@ -43,21 +43,21 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			// todo
 			// if (!this.isEnabled) {
 			// 	return -1.0;
 			// }
 
-			var hitTime = LineCollider.HitTestBasic(ref collEvent, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = false;
 				return hitTime;
 			}
 
-			hitTime = LineCollider.HitTestBasic(ref collEvent, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				collEvent.HitFlag = true;
 				return hitTime;
@@ -72,9 +72,7 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		public static void Collide(in BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData, in GateStaticData data)
 		{
-			var hitNormal = collEvent.HitNormal;
-
-			var dot = math.dot(hitNormal, ball.Velocity);
+			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			var h = data.Height * 0.5f;
 
 			// linear speed = ball speed
@@ -87,7 +85,7 @@ namespace VisualPinball.Unity.VPT.Gate
 
 			movementData.AngleSpeed = speed;
 			if (!collEvent.HitFlag && !data.TwoWay) {
-				movementData.AngleSpeed *= 1.0f / 8.0f;        // Give a little bounce-back.
+				movementData.AngleSpeed *= (float)(1.0 / 8.0); // Give a little bounce-back.
 				return;                                        // hit from back doesn't count if not two-way
 			}
 

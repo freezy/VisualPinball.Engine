@@ -89,7 +89,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<IMovable> Movables => new IMovable[0]
 			.Concat(Flippers.Values)
-			.Concat(Gates.Values);
+			/*.Concat(Gates.Values)*/;
 
 		public IEnumerable<IHittable> Hittables => new IHittable[0]
 			.Concat(Flippers.Values)

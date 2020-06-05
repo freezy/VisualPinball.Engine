@@ -1,10 +1,12 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -21,6 +23,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private float _zHigh;
 
 		public ColliderType Type => _header.Type;
+		public ItemType ItemType => _header.ItemType;
+		public Entity Entity => _header.Entity;
 
 		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest)
 		{
@@ -48,12 +52,12 @@ namespace VisualPinball.Unity.Physics.Collider
 			_zHigh = src.HitBBox.ZHigh;
 		}
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
-			return HitTestBasic(ref collEvent, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public static float HitTestBasic(ref CollisionEventData collEvent, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public static float HitTestBasic(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// if (!IsEnabled || ball.State.IsFrozen) {
 			// 	return -1.0f;
@@ -98,7 +102,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					if (inside
 					    || math.abs(bnv) > PhysicsConstants.ContactVel // fast velocity, return zero time
 					    || bnd <= -PhysicsConstants.PhysTouch) {
-						// zero time for rigid fast bodies
+						// zero time for rigid fast  bodies
 						hitTime = 0; // slow moving but embedded
 
 					} else {
@@ -115,14 +119,15 @@ namespace VisualPinball.Unity.Physics.Collider
 			} else {
 				//non-rigid ... target hits
 				if (bnv * bnd >= 0) {
-					// todo outside-receding || inside-approaching
-					// if (ObjType != CollisionType.Trigger // not a trigger
-					//     || !ball.Hit.IsRealBall() // is a trigger, so test:
-					//     || MathF.Abs(bnd) >= ball.Radius * 0.5 // not too close ... nor too far away
-					//     || inside == ball.Hit.VpVolObjs.Contains(Obj)) {
-					// 	// ...Ball outside and hit set or ball inside and no hit set
-					// 	return -1.0f;
-					// }
+
+					if (coll.ItemType != ItemType.Trigger               // not a trigger
+					    /*todo   || !ball.m_vpVolObjs*/
+					    // is a trigger, so test:
+					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
+					    || inside == insideOfs.Select(x => x.Value).Contains(coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
+					{
+						return -1.0f;
+					}
 
 					hitTime = 0;
 					isUnHit = !inside; // ball on outside is UnHit, otherwise it"s a Hit

@@ -42,15 +42,15 @@ namespace VisualPinball.Unity.Physics.Collider
 			_force = src.Force;
 		}
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
-			return HitTest(ref collEvent, ref this, in ball, dTime);
+			return HitTest(ref collEvent, ref this, ref insideOfs, in ball, dTime);
 		}
 
-		private static float HitTest(ref CollisionEventData collEvent, ref LineSlingshotCollider coll, in BallData ball, float dTime)
+		private static float HitTest(ref CollisionEventData collEvent, ref LineSlingshotCollider coll, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			ref var lineColl = ref UnsafeUtilityEx.As<LineSlingshotCollider, LineCollider>(ref coll);
-			return LineCollider.HitTestBasic(ref collEvent, in lineColl, in ball, dTime, true, true, true);
+			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, in ball, dTime, true, true, true);
 		}
 
 		public void Collide(ref BallData ball, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
