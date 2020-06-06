@@ -22,6 +22,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		// work around for scale handle weirdness
 		private float _scaleFactor = 1.0f;
+		// control when to rotate each axis of your custom rotation handle
+		private Matrix4x4? _pauseAxisX = null;
+		private Matrix4x4? _pauseAxisY = null;
+		private Matrix4x4? _pauseAxisZ = null;
 
 		protected virtual void OnEnable()
 		{
@@ -129,6 +133,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void HandleRotationTool()
 		{
+			var e = Event.current;
+			if (e.type == EventType.MouseDown || e.type == EventType.MouseUp) {
+				_pauseAxisX = _pauseAxisY = _pauseAxisZ = null;
+			}
 			if (_secondaryItems.Count > 0) {
 				return;
 			}
@@ -136,27 +144,58 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
+			var handleSize = HandleUtility.GetHandleSize(handlePos);
+			var currentRot = _primaryItem.GetEditorRotation();
 			switch (_primaryItem.EditorRotationType) {
 				case ItemDataTransformType.OneD: {
 					EditorGUI.BeginChangeCheck();
+					if (_transform.parent != null) {
+						Handles.matrix = Matrix4x4.TRS(handlePos, _transform.parent.transform.rotation, Vector3.one);
+					}
 					Handles.color = Handles.zAxisColor;
-					var rot = Handles.Disc(_transform.rotation, handlePos, _transform.forward, HandleUtility.GetHandleSize(handlePos), false, 10f);
+					var rot = Handles.Disc(Quaternion.AngleAxis(currentRot.x, Vector3.forward), Vector3.zero, Vector3.forward, handleSize, false, 10f);
 					if (EditorGUI.EndChangeCheck()) {
-						if (_transform.parent != null) {
-							rot = Quaternion.Inverse(_transform.parent.rotation) * rot;
-						}
 						FinishRotate(new Vector3(rot.eulerAngles.z, 0f, 0f));
 					}
 					break;
 				}
 				case ItemDataTransformType.ThreeD: {
 					EditorGUI.BeginChangeCheck();
-					Quaternion newRot = Handles.RotationHandle(_transform.rotation, handlePos);
+					var baseMatrix = Handles.matrix;
+					if (_transform.parent != null) {
+						baseMatrix = Matrix4x4.TRS(handlePos, _transform.parent.transform.rotation, Vector3.one);
+					}
+					Matrix4x4 currentRotTran = Matrix4x4.identity;
+					currentRotTran *= Matrix4x4.Rotate(Quaternion.Euler(currentRot.x, 0, 0));
+					currentRotTran *= Matrix4x4.Rotate(Quaternion.Euler(0, currentRot.y, 0));
+
+					Handles.matrix = baseMatrix * /*(_pauseAxisX ?? currentRotTran) **/ Matrix4x4.Rotate(Quaternion.Euler(0, 0, -90));
+					Handles.color = Handles.xAxisColor;
+					var rotX = Handles.Disc(Quaternion.AngleAxis(currentRot.x, Vector3.up), Vector3.zero, Vector3.up, handleSize, true, 10f);
+
+					Handles.matrix = baseMatrix * (_pauseAxisY ?? currentRotTran) * Matrix4x4.Rotate(Quaternion.Euler(0, 0, 0));
+					Handles.color = Handles.yAxisColor;
+					var rotY = Handles.Disc(Quaternion.AngleAxis(currentRot.y, Vector3.up), Vector3.zero, Vector3.up, handleSize, true, 10f);
+
+					Handles.matrix = baseMatrix * (_pauseAxisZ ?? currentRotTran) * Matrix4x4.Rotate(Quaternion.Euler(90, 0, 0));
+					Handles.color = Handles.zAxisColor;
+					var rotZ = Handles.Disc(Quaternion.AngleAxis(currentRot.z, Vector3.up), Vector3.zero, Vector3.up, handleSize, true, 10f);
+
 					if (EditorGUI.EndChangeCheck()) {
-						if (_transform.parent != null) {
-							newRot = Quaternion.Inverse(_transform.parent.rotation) * newRot;
+						// check which axis had the biggest change (they'll all change slightly due to float precision)
+						// and pause that axis' local rotation so the gizmo doesn't flip out
+						float xDiff = Math.Abs(rotX.eulerAngles.y - currentRot.x);
+						float yDiff = Math.Abs(rotY.eulerAngles.y - currentRot.y);
+						float zDiff = Math.Abs(rotZ.eulerAngles.y - currentRot.z);
+						if (_pauseAxisX == null && xDiff > yDiff && xDiff > zDiff) {
+							_pauseAxisX = currentRotTran;
+						} else if (_pauseAxisY == null && yDiff > xDiff && yDiff > zDiff) {
+							_pauseAxisY = currentRotTran;
+						} else if (_pauseAxisZ == null && zDiff > xDiff && zDiff > yDiff) {
+							_pauseAxisZ = currentRotTran;
 						}
-						FinishRotate(newRot.eulerAngles);
+
+						FinishRotate(new Vector3(rotX.eulerAngles.y, rotY.eulerAngles.y, rotZ.eulerAngles.y));
 					}
 					break;
 				}
@@ -171,18 +210,27 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
+
+			Quaternion parentRot = Quaternion.identity;
+			if (_transform.parent != null) {
+				parentRot = _transform.parent.transform.rotation;
+			}
+			Vector3 forward = parentRot * Vector3.forward;
+			Vector3 right = parentRot * Vector3.right;
+			Vector3 up = parentRot * Vector3.up;
+
 			switch (_primaryItem.EditorPositionType) {
 				case ItemDataTransformType.TwoD: {
 					EditorGUI.BeginChangeCheck();
 					Handles.color = Handles.xAxisColor;
-					var newPos = Handles.Slider(handlePos, Vector3.right);
+					var newPos = Handles.Slider(handlePos, right);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}
 
 					EditorGUI.BeginChangeCheck();
 					Handles.color = Handles.yAxisColor;
-					newPos = Handles.Slider(handlePos, Vector3.forward);
+					newPos = Handles.Slider(handlePos, up);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}
@@ -191,9 +239,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					Handles.color = Handles.zAxisColor;
 					newPos = Handles.Slider2D(
 						handlePos,
-						_transform.forward,
-						_transform.right,
-						_transform.up,
+						forward,
+						right,
+						up,
 						HandleUtility.GetHandleSize(handlePos) * 0.2f,
 						Handles.RectangleHandleCap,
 						0f);
@@ -204,7 +252,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				}
 				case ItemDataTransformType.ThreeD: {
 					EditorGUI.BeginChangeCheck();
-					Vector3 newPos = Handles.PositionHandle(handlePos, Quaternion.identity);
+					Vector3 newPos = Handles.PositionHandle(handlePos, parentRot);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishMove(newPos);
 					}
