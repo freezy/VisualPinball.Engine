@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net.Security;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -124,7 +125,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					    /*todo   || !ball.m_vpVolObjs*/
 					    // is a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
-					    || inside == insideOfs.Select(x => x.Value).Contains(coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
+					    || inside == BallInsideOf(insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
 					{
 						return -1.0f;
 					}
@@ -188,6 +189,18 @@ namespace VisualPinball.Unity.Physics.Collider
 			// if (dot <= -Threshold) {
 			// 	FireHitEvent(coll.Ball);
 			// }
+
 		}
+
+		private static bool BallInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity ball)
+		{
+			for (var i = 0; i < insideOfs.Length; i++) {
+				if (insideOfs[i].Value == ball) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 	}
 }
