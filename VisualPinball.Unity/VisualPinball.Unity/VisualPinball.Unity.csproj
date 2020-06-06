@@ -187,6 +187,7 @@
     <Compile Include="VPT\Gate\GateBehavior.cs" />
     <Compile Include="VPT\Gate\GateMovementData.cs" />
     <Compile Include="VPT\Gate\GateStaticData.cs" />
+    <Compile Include="VPT\Gate\GateWireBehavior.cs" />
     <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
     <Compile Include="VPT\IApi.cs" />
     <Compile Include="VPT\IEditableItemBehavior.cs" />
