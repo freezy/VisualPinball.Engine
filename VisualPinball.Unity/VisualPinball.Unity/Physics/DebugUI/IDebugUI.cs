@@ -13,11 +13,12 @@ namespace VisualPinball.Unity.Physics.DebugUI
 		void Init(TableBehavior tableBehavior);
 
 		/// <summary>
-		/// Called when a physics cycle has completed
+		/// Called when a physics cycle has completed.
 		/// </summary>
+		/// <param name="physicClockMilliseconds">Physics simulation clock time in miliseconds</param>
 		/// <param name="numSteps">Number of completed ticks</param>
-		/// <param name="elapsedTotalMilliseconds">Number of milliseconds since the game started</param>
-		void OnPhysicsUpdate(int numSteps, float elapsedTotalMilliseconds);
+		/// <param name="processingTimeMilliseconds">Number of milliseconds of cpu time used for physics simulation</param>	
+		void OnPhysicsUpdate(double physicClockMilliseconds, int numSteps, float processingTimeMilliseconds);
 
 		/// <summary>
 		/// Called when a flipper has been converted to an entity.

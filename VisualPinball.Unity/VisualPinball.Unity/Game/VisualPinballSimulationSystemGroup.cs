@@ -17,6 +17,7 @@ namespace VisualPinball.Unity.Game
 	public class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
+		public double CurrentPhysicsTime { get { return _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime); } }
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
