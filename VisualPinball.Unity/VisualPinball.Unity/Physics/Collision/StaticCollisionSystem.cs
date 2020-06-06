@@ -3,6 +3,7 @@
 using System;
 using Unity.Entities;
 using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
@@ -74,6 +75,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								break;
 
 							case ColliderType.Gate:
+								Debug.Log("Static collision with " + coll.Entity);
 								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
 								GateCollider.Collide(
