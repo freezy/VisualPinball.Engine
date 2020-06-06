@@ -54,11 +54,13 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public override float HitTest(Ball.Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
 		{
+			// not needed in unity ECS
 			throw new System.NotImplementedException();
 		}
 
 		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
 		{
+			// not needed in unity ECS
 			throw new System.NotImplementedException();
 		}
 	}

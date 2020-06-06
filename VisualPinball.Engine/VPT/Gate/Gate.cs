@@ -52,6 +52,7 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public IMoverObject GetMover()
 		{
+			// not needed in unity ECS
 			throw new System.NotImplementedException();
 		}
 	}
