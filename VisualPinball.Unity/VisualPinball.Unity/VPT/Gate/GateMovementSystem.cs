@@ -36,7 +36,6 @@ namespace VisualPinball.Unity.VPT.Gate
 
 				marker.Begin();
 
-
 				var rotationX = movementData.Angle - math.radians(data.AngleMin);
 				rot.Value = quaternion.RotateX(rotationX);
 
