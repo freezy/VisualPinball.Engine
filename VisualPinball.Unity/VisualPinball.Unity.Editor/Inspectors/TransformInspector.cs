@@ -100,27 +100,28 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_defaultEditor != null) {
 				return;
 			}
+
+			Tools.hidden = true;
+
 			if (_transform == null || _primaryItem == null) {
-				Tools.hidden = true;
 				return;
 			}
 
-			switch (Tools.current) {
-				case Tool.Rotate:
-					HandleRotationTool();
-					break;
+			bool dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
+			if (!dragPointEditEnabled) {
+				switch (Tools.current) {
+					case Tool.Rotate:
+						HandleRotationTool();
+						break;
 
-				case Tool.Move:
-					HandleMoveTool();
-					break;
+					case Tool.Move:
+						HandleMoveTool();
+						break;
 
-				case Tool.Scale:
-					HandleScaleTool();
-					break;
-
-				default:
-					Tools.hidden = true;
-					break;
+					case Tool.Scale:
+						HandleScaleTool();
+						break;
+				}
 			}
 
 			RebuildMeshes();
@@ -128,7 +129,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void HandleRotationTool()
 		{
-			Tools.hidden = true;
 			if (_secondaryItems.Count > 0) {
 				return;
 			}
@@ -167,7 +167,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		private void HandleMoveTool()
 		{
-			Tools.hidden = true;
 			var handlePos = _primaryItem.GetEditorPosition();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
@@ -223,7 +222,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				_scaleFactor = _primaryItem.GetEditorScale().x;
 			}
 
-			Tools.hidden = true;
 			if (_secondaryItems.Count > 0) {
 				return;
 			}

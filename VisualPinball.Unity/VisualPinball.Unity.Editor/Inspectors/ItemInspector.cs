@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		protected virtual void OnEnable()
 		{
-			_table = (target as MonoBehaviour).gameObject.GetComponentInParent<TableBehavior>();
+			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
 		}
 
 		public override void OnInspectorGUI()
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 
 			var mb = target as MonoBehaviour;
-			if (_surface == null) {
+			if (_surface == null && _table != null) {
 				string currentFieldName = field;
 				if (currentFieldName != null && _table.Table.Surfaces.ContainsKey(currentFieldName)) {
 					_surface = _table.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
