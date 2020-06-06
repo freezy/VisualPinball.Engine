@@ -1,4 +1,6 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.VPT.Gate
@@ -15,7 +17,7 @@ namespace VisualPinball.Unity.VPT.Gate
 				AngleMin = data.AngleMin,
 				AngleMax = data.AngleMax,
 				Height = data.Height,
-				Damping = data.Damping,
+				Damping = math.pow(data.Damping, PhysicsConstants.PhysFactor),
 				GravityFactor = data.GravityFactor,
 				TwoWay = data.TwoWay
 			});

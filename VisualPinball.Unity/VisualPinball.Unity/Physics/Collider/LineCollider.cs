@@ -86,10 +86,9 @@ namespace VisualPinball.Unity.Physics.Collider
 			var bcpd = (ballX - coll._v1.x) * coll._normal.x + (ballY - coll._v1.y) * coll._normal.y; // ball center to plane distance
 			var bnd = bcpd - rollingRadius;
 
-			// todo for a spinner add the ball radius otherwise the ball goes half through the spinner until it moves
-			// if (ObjType == CollisionType.Spinner || ObjType == CollisionType.Gate) {
-			// 	bnd = bcpd + rollingRadius;
-			// }
+			if (coll.ItemType == ItemType.Spinner || coll.ItemType == ItemType.Gate) {
+				bnd = bcpd + rollingRadius;
+			}
 
 			var inside = bnd <= 0; // in ball inside object volume
 			float hitTime;
