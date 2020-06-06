@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			_dragPointsEditor.OnInspectorGUI(target);
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref _ramp.data.IsVisible);
 				ItemDataField("Depth Bias", ref _ramp.data.DepthBias);

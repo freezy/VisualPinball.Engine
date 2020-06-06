@@ -56,6 +56,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 		}
 
 		//IDragPointsEditable
+		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HitHeight); }
 		public bool PointsAreLooping() { return true; }

@@ -21,6 +21,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			_dragPointsEditor.OnInspectorGUI(target);
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
 				ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible);

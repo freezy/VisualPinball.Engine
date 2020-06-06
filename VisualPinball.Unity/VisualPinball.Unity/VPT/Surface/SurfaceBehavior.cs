@@ -55,6 +55,7 @@ namespace VisualPinball.Unity.VPT.Surface
 		}
 
 		//IDragPointsEditable
+		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public Vector3 GetEditableOffset() { return new Vector3(); }
 		public bool PointsAreLooping() { return true; }

@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.VPT.Trigger
 		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
 
 		//IDragPointsEditable
+		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public Vector3 GetEditableOffset() { return new Vector3(); }
 		public bool PointsAreLooping() { return true; }
