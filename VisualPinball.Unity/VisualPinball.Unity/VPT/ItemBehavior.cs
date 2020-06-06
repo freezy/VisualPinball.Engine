@@ -53,8 +53,13 @@ namespace VisualPinball.Unity.VPT
 			if (children == null) {
 				UpdateMesh(Item.Name, gameObject, rog);
 			} else {
-				foreach (var child in children) {
+				foreach (var child in children)
+				{
 					Transform childTransform = transform.Find(child);
+					//Some ItemBehaviors don't put child into hierarchy when it's alone, but name is kept (Ramps, Surfaces)
+					if (childTransform == null) {
+					childTransform = transform;
+					}
 					if (childTransform != null) {
 						UpdateMesh(child, childTransform.gameObject, rog);
 					}
