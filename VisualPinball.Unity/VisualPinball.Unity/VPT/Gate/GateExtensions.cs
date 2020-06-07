@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.VPT.Gate
 			obj.AddComponent<ConvertToEntity>();
 
 			var wire = obj.transform.Find("Wire").gameObject;
-			wire.AddComponent<GateWireBehavior>().SetData(gate.Data);
+			wire.AddComponent<GateWireBehavior>().SetData(gate.Data, "Wire");
 
 			return ic as GateBehavior;
 		}

@@ -29,9 +29,9 @@ namespace VisualPinball.Unity.VPT
 		private bool _meshDirty;
 		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
 
-		public ItemBehavior<TItem, TData> SetData(TData d)
+		public ItemBehavior<TItem, TData> SetData(TData d, string gameObjectName = null)
 		{
-			name = d.GetName();
+			name = gameObjectName ?? d.GetName();
 			data = d;
 			return this;
 		}
