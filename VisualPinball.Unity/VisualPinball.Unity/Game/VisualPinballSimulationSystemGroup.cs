@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Game
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private BallRingCounterSystem _ballRingCounterSystem;
+		private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
 		private const TimingMode Timing = TimingMode.UnityTime;
@@ -47,12 +48,14 @@ namespace VisualPinball.Unity.Game
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_ballRingCounterSystem = World.GetOrCreateSystem<BallRingCounterSystem>();
+			_updateAnimationsSystemGroup = World.GetOrCreateSystem<UpdateAnimationsSystemGroup>();
 			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
 
 			_systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
 			_systemsToUpdate.Add(_velocitiesSystemGroup);
 			_systemsToUpdate.Add(_simulateCycleSystemGroup);
 			_systemsToUpdate.Add(_ballRingCounterSystem);
+			_systemsToUpdate.Add(_updateAnimationsSystemGroup);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
 			base.OnCreate();
 		}
@@ -90,6 +93,9 @@ namespace VisualPinball.Unity.Game
 			_ballRingCounterSystem.Update();
 
 			_currentPhysicsTime = _currentPhysicsFrameTime;
+
+			// update animations
+			_updateAnimationsSystemGroup.Update();
 
 			// transform all meshes
 			_transformMeshesSystemGroup.Update();
