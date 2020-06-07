@@ -1,6 +1,5 @@
 ﻿using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Bumper
@@ -8,20 +7,20 @@ namespace VisualPinball.Unity.VPT.Bumper
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	public class BumperRingAnimationSystem : SystemBase
 	{
-		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperRingAnimationSystem");
-
-		protected override void OnCreate()
-		{
-			_visualPinballSimulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
-		}
 
 		protected override void OnUpdate()
 		{
 			var dTime = Time.DeltaTime * 1000;
+			var marker = PerfMarker;
+
 			Entities
 				.WithName("BumperRingAnimationJob")
 				.ForEach((ref BumperRingAnimationData data) => {
+
+					// todo visibility - skip if invisible
+
+					marker.Begin();
 
 					var limit = data.DropOffset + data.HeightScale * 0.5f * data.ScaleZ;
 					if (data.IsHit) {
@@ -47,6 +46,9 @@ namespace VisualPinball.Unity.VPT.Bumper
 							}
 						}
 					}
+
+					marker.End();
+
 				}).Run();
 		}
 	}
