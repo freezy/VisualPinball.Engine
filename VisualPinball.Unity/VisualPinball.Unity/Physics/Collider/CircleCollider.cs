@@ -23,23 +23,23 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
-		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest)
+		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
 		{
 			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
+			collider.Init(src, type);
 		}
 
-		public static CircleCollider Create(HitCircle src)
+		public static CircleCollider Create(HitCircle src, ColliderType type = ColliderType.Circle)
 		{
 			var collider = default(CircleCollider);
-			collider.Init(src);
+			collider.Init(src, type);
 			return collider;
 		}
 
-		private void Init(HitCircle src)
+		private void Init(HitCircle src, ColliderType type)
 		{
-			_header.Init(ColliderType.Circle, src);
+			_header.Init(type, src);
 
 			Center = src.Center.ToUnityFloat2();
 			Radius = src.Radius;

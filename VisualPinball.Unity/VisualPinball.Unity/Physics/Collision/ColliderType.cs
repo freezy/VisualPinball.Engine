@@ -3,6 +3,7 @@
 	public enum ColliderType
 	{
 		None,
+		Bumper,
 		Circle,
 		Flipper,
 		Gate,

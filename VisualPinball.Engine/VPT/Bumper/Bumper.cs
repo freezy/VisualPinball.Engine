@@ -1,11 +1,17 @@
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
-	public class Bumper : Item<BumperData>, IRenderable
+	public class Bumper : Item<BumperData>, IRenderable, IHittable
 	{
+		public bool IsCollidable => true;
+		public EventProxy EventProxy { get; private set; }
+
 		private readonly BumperMeshGenerator _meshGenerator;
+
+		private HitObject[] _hits;
 
 		public Bumper(BumperData data) : base(data)
 		{
@@ -14,9 +20,17 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		public Bumper(BinaryReader reader, string itemName) : this(new BumperData(reader, itemName)) { }
 
+		public void SetupPlayer(Player player, Table.Table table)
+		{
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			_hits = new HitObject[] {new BumperHit(Data.Center, Data.Radius, height, height + Data.HeightScale)};
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		public HitObject[] GetHitShapes() => _hits;
 	}
 }

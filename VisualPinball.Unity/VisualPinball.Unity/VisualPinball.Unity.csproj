@@ -167,6 +167,13 @@
     <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
     <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />
     <Compile Include="VPT\Bumper\BumperBehavior.cs" />
+    <Compile Include="VPT\Bumper\BumperCollider.cs" />
+    <Compile Include="VPT\Bumper\BumperExtensions.cs" />
+    <Compile Include="VPT\Bumper\BumperRingAnimationData.cs" />
+    <Compile Include="VPT\Bumper\BumperRingBehavior.cs" />
+    <Compile Include="VPT\Bumper\BumperSkirtAnimationData.cs" />
+    <Compile Include="VPT\Bumper\BumperSkirtBehavior.cs" />
+    <Compile Include="VPT\Bumper\BumperStaticData.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperCollider.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />

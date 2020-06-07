@@ -93,6 +93,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Spinners.Values);
 
 		public IEnumerable<IHittable> Hittables => new IHittable[0]
+			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
 			.Concat(Rubbers.Values)
@@ -100,6 +101,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Surfaces.Values);
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
+			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
 			.Concat(Rubbers.Values)

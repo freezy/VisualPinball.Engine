@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Unity.Extensions;
@@ -11,9 +12,19 @@ using VisualPinball.Unity.Extensions;
 namespace VisualPinball.Unity.VPT.Bumper
 {
 	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>
+	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+			dstManager.AddComponentData(entity, new BumperStaticData {
+				Force = data.Force,
+				HitEvent = data.HitEvent,
+				Threshold = data.Threshold
+			});
+		}
 
 		protected override Engine.VPT.Bumper.Bumper GetItem()
 		{
