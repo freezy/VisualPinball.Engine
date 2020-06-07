@@ -13,6 +13,7 @@
 		Plane,
 		Point,
 		Poly3D,
+		Spinner,
 		Triangle
 	}
 }

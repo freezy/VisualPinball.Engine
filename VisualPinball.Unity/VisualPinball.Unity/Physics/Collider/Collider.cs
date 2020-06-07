@@ -5,11 +5,13 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.Spinner;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -68,6 +70,9 @@ namespace VisualPinball.Unity.Physics.Collider
 				case HitPlane hitPlane:
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
+				case SpinnerHit spinnerHit:
+					SpinnerCollider.Create(builder, spinnerHit, ref dest);
+					break;
 				case HitTriangle hitTriangle:
 					TriangleCollider.Create(builder, hitTriangle, ref dest);
 					break;
@@ -98,6 +103,8 @@ namespace VisualPinball.Unity.Physics.Collider
 						return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Poly3D:
 						return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Spinner:
+						return ((SpinnerCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
 						return ((TriangleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 

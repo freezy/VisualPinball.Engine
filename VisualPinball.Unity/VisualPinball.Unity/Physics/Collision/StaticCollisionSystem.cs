@@ -9,6 +9,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.Spinner;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -89,6 +90,16 @@ namespace VisualPinball.Unity.Physics.Collision
 								((LineSlingshotCollider*) collider)->Collide(
 									ref ballData, in slingshotData,
 									in collEvent, ref random);
+								break;
+
+							case ColliderType.Spinner:
+								var spinnerMovementData = GetComponent<SpinnerMovementData>(coll.Entity);
+								var spinnerStaticData = GetComponent<SpinnerStaticData>(coll.Entity);
+								SpinnerCollider.Collide(
+									in ballData, ref collEvent, ref spinnerMovementData,
+									in spinnerStaticData
+								);
+								SetComponent(coll.Entity, spinnerMovementData);
 								break;
 
 							case ColliderType.Line:
