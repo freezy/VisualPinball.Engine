@@ -3,10 +3,12 @@
 using System;
 using Unity.Entities;
 using Unity.Profiling;
+using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Spinner;
@@ -63,6 +65,15 @@ namespace VisualPinball.Unity.Physics.Collision
 					fixed (Collider.Collider* collider = &coll) {
 
 						switch (coll.Type) {
+							case ColliderType.Bumper:
+								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
+								var ringData = GetComponent<BumperRingAnimationData>(bumperStaticData.RingEntity);
+								var skirtData = GetComponent<BumperSkirtAnimationData>(bumperStaticData.SkirtEntity);
+								BumperCollider.Collide(ref ballData, ref collEvent, ref ringData, ref skirtData, in coll, bumperStaticData, ref random);
+								SetComponent(bumperStaticData.RingEntity, ringData);
+								SetComponent(bumperStaticData.SkirtEntity, skirtData);
+								break;
+
 							case ColliderType.Flipper:
 								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
 								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);

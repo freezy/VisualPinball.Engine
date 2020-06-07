@@ -3,6 +3,7 @@ using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Spinner;
@@ -40,6 +41,9 @@ namespace VisualPinball.Unity.Physics.Collider
 		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
 		{
 			switch (src) {
+				case BumperHit bumperHit:
+					CircleCollider.Create(builder, bumperHit, ref dest, ColliderType.Bumper);
+					break;
 				case HitCircle hitCircle:
 					CircleCollider.Create(builder, hitCircle, ref dest);
 					break;
@@ -87,6 +91,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
+					case ColliderType.Bumper:
 					case ColliderType.Circle:
 						return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Gate:

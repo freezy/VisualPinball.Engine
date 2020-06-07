@@ -171,7 +171,7 @@ namespace VisualPinball.Unity.Import
 			// add unity component
 			MonoBehaviour ic = null;
 			switch (item) {
-				case Bumper bumper:			ic = obj.AddComponent<BumperBehavior>().SetData(bumper.Data); break;
+				case Bumper bumper:			ic = bumper.SetupGameObject(obj, rog); break;
 				case Flipper flipper:		ic = flipper.SetupGameObject(obj, rog); break;
 				case Gate gate:				ic = gate.SetupGameObject(obj, rog); break;
 				case HitTarget hitTarget:	ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;

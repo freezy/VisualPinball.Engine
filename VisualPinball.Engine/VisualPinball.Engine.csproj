@@ -165,6 +165,7 @@
 		<Compile Include="VPT\Bitmap.cs" />
 		<Compile Include="VPT\Bumper\Bumper.cs" />
 		<Compile Include="VPT\Bumper\BumperData.cs" />
+		<Compile Include="VPT\Bumper\BumperHit.cs" />
 		<Compile Include="VPT\Bumper\BumperMeshGenerator.cs" />
 		<Compile Include="VPT\Collection\Collection.cs" />
 		<Compile Include="VPT\Collection\CollectionData.cs" />
