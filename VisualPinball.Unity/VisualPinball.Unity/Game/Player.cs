@@ -126,7 +126,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				_player.CreateBall(new DebugBallCreator(200f, 1000f));
+				_player.CreateBall(new DebugBallCreator(517f, 1672f, -90, 3));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 		}
@@ -145,6 +145,9 @@ namespace VisualPinball.Unity.Game
 		private float _x;
 		private float _y;
 
+		private readonly float _kickAngle;
+		private readonly float _kickForce;
+
 		public DebugBallCreator()
 		{
 			_x = -1;
@@ -155,6 +158,14 @@ namespace VisualPinball.Unity.Game
 		{
 			_x = x;
 			_y = y;
+		}
+
+		public DebugBallCreator(float x, float y, float kickAngle, float kickForce)
+		{
+			_x = x;
+			_y = y;
+			_kickAngle = kickAngle;
+			_kickForce = kickForce;
 		}
 
 		public Vertex3D GetBallCreationPosition(Table table)
@@ -168,8 +179,11 @@ namespace VisualPinball.Unity.Game
 
 		public Vertex3D GetBallCreationVelocity(Table table)
 		{
-			// no velocity
-			return new Vertex3D(0f, 0, 0);
+			return new Vertex3D(
+				MathF.Sin(_kickAngle) * _kickForce,
+				-MathF.Cos(_kickAngle) * _kickForce,
+				0
+			);
 		}
 
 		public void OnBallCreated(PlayerPhysics physics, Ball ball)

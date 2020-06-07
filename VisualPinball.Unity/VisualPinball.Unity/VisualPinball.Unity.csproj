@@ -151,6 +151,7 @@
     <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
     <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
+    <Compile Include="Physics\SystemGroup\UpdateAnimationsSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
     <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -170,10 +171,12 @@
     <Compile Include="VPT\Bumper\BumperCollider.cs" />
     <Compile Include="VPT\Bumper\BumperExtensions.cs" />
     <Compile Include="VPT\Bumper\BumperRingAnimationData.cs" />
+    <Compile Include="VPT\Bumper\BumperRingAnimationSystem.cs" />
     <Compile Include="VPT\Bumper\BumperRingBehavior.cs" />
     <Compile Include="VPT\Bumper\BumperSkirtAnimationData.cs" />
     <Compile Include="VPT\Bumper\BumperSkirtBehavior.cs" />
     <Compile Include="VPT\Bumper\BumperStaticData.cs" />
+    <Compile Include="VPT\Bumper\BumperRingMovementSystem.cs" />
     <Compile Include="VPT\Flipper\FlipperApi.cs" />
     <Compile Include="VPT\Flipper\FlipperCollider.cs" />
     <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />

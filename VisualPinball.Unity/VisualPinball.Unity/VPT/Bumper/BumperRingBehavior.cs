@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Bumper
 {
@@ -7,6 +8,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
 			var bumper = transform.parent.gameObject.GetComponent<BumperBehavior>().Item;
 			var bumperEntity = new Entity {Index = bumper.Index, Version = bumper.Version};
 
@@ -17,7 +19,18 @@ namespace VisualPinball.Unity.VPT.Bumper
 
 			// add ring data
 			dstManager.AddComponentData(entity, new BumperRingAnimationData {
-				IsHit = false
+
+				// dynamic
+				IsHit = false,
+				Offset = 0,
+				AnimateDown = false,
+				DoAnimate = false,
+
+				// static
+				DropOffset = bumper.Data.RingDropOffset,
+				HeightScale = bumper.Data.HeightScale,
+				Speed = bumper.Data.RingSpeed,
+				ScaleZ = table.GetScaleZ()
 			});
 		}
 	}
