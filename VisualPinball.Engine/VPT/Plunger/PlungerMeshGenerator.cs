@@ -1,79 +1,114 @@
-﻿using NLog;
+﻿using System.Collections.Generic;
+using NLog;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
 		private readonly PlungerData _data;
+		private PlungerDesc _desc;
 
-		private readonly float stroke;
-		private readonly float beginy;
-		private readonly float endy;
-		private readonly float inv_scale;
-		private readonly float dyPerFrame;
-		private readonly int circlePoints;
-		private readonly float springMinSpacing;
-		private readonly float cellWid;
+		private readonly float _beginY;
+		private readonly float _endY;
+		private readonly float _invScale;
+		private readonly float _dyPerFrame;
+		private readonly int _circlePoints;
+		private readonly float _springMinSpacing;
+		private readonly float _cellWid;
+		private readonly int _cFrames;
+		private readonly int _srcCells;
 
-		private float zScale;
-		private float zheight;
-		private int cframes;
-		private float springLoops;
-		private float springEndLoops;
-		private float springGauge;
-		private float springRadius;
-		private float rody;
-		private int srcCells;
-		private int indicesPerFrame;
-		private int vtsPerFrame;
-		private int lathePoints;
-		private PlungerDesc desc;
+		private float _zScale;
+		private float _zHeight;
+		private float _yTip;
+		private float _springLoops;
+		private float _springEndLoops;
+		private float _springGauge;
+		private float _springRadius;
+		private float _rodY;
+		private int _lathePoints;
+		private int _latheVts;
+		private int _springVts;
+		private int _latheIndices;
+		private int _springIndices;
 
-		private const int PLUNGER_FRAME_COUNT = 25;
-
+		private const int PlungerFrameCount = 25;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PlungerMeshGenerator(PlungerData data)
 		{
 			_data = data;
 
-			stroke = data.Stroke;
-			beginy = data.Center.Y;
-			endy = data.Center.Y - stroke;
-			cframes = (int) (stroke * (float) (PLUNGER_FRAME_COUNT / 80.0)) + 1; // 25 frames per 80 units travel
-			inv_scale = cframes > 1 ? 1.0f / (cframes - 1) : 0.0f;
-			dyPerFrame = (endy - beginy) * inv_scale;
-			circlePoints = data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
-			springLoops = 0.0f;
-			springEndLoops = 0.0f;
-			springGauge = 0.0f;
-			springRadius = 0.0f;
-			springMinSpacing = 2.2f;
-			rody = beginy + data.Height;
+			var stroke = data.Stroke;
+			_beginY = data.Center.Y;
+			_endY = data.Center.Y - stroke;
+			_cFrames = (int) (stroke * (float) (PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
+			_invScale = _cFrames > 1 ? 1.0f / (_cFrames - 1) : 0.0f;
+			_dyPerFrame = (_endY - _beginY) * _invScale;
+			_circlePoints = data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
+			_springLoops = 0.0f;
+			_springEndLoops = 0.0f;
+			_springGauge = 0.0f;
+			_springRadius = 0.0f;
+			_springMinSpacing = 2.2f;
+			_rodY = _beginY + data.Height;
 
 			// note the number of cells in the source image
-			srcCells = data.AnimFrames;
-			if (srcCells < 1) {
-				srcCells = 1;
+			_srcCells = data.AnimFrames;
+			if (_srcCells < 1) {
+				_srcCells = 1;
 			}
 
 			// figure the width in relative units (0..1) of each cell
-			cellWid = 1.0f / (float) srcCells;
+			_cellWid = 1.0f / _srcCells;
 
-			desc = GetPlungerDesc();
+			_desc = GetPlungerDesc();
 		}
 
-		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
 		{
-			zheight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
-			zScale = table.GetScaleZ();
-			desc = GetPlungerDesc();
+			_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
+			_zScale = table.GetScaleZ();
+			_desc = GetPlungerDesc();
+			_yTip = _beginY + _dyPerFrame * frame;
 
-			// calculate the frame rendering details
-			CalculateRenderDetails();
+			// todo
+			var translationMatrix = Matrix3D.Identity;
+			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
 
-			return null;
+			if (_data.Type == PlungerType.PlungerTypeFlat) {
+				var flatMesh = BuildFlatMesh(frame);
+				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+					new RenderObject(
+						"Flat",
+						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
+						material,
+						true
+					)
+				);
+
+			}
+
+			CalculateArraySizes();
+			var rodMesh = BuildRodMesh(frame);
+			var springMesh = BuildSpringMesh(rodMesh.Vertices);
+
+			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+				new RenderObject(
+					"Rod",
+					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+					material,
+					true
+				),
+				new RenderObject(
+					"Spring",
+					asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
+					material,
+					true
+				)
+			);
 		}
 
 		private PlungerDesc GetPlungerDesc()
@@ -81,67 +116,364 @@ namespace VisualPinball.Engine.VPT.Plunger
 			switch (_data.Type) {
 				case PlungerType.PlungerTypeModern:
 					return PlungerDesc.GetModern();
+
 				case PlungerType.PlungerTypeFlat:
 					return PlungerDesc.GetFlat();
+
 				case PlungerType.PlungerTypeCustom:
-					return PlungerDesc.GetCustom(_data, beginy, springMinSpacing,
-						out rody, out springGauge, out springRadius,
-						out springLoops, out springEndLoops);
+					return PlungerDesc.GetCustom(_data, _beginY, _springMinSpacing,
+						out _rodY, out _springGauge, out _springRadius,
+						out _springLoops, out _springEndLoops);
 			}
 			Logger.Warn("Unknown plunger type {0}.", _data.Type);
 			return PlungerDesc.GetModern();
 		}
 
-		private void CalculateRenderDetails()
+		private void CalculateArraySizes()
 		{
 			// get the number of lathe points from the descriptor
-			lathePoints = desc.n;
+			_lathePoints = _desc.n;
 
-			if (_data.Type == PlungerType.PlungerTypeFlat) {
-				// For the flat plunger, we render every frame as a simple
-				// flat rectangle.  This requires four vertices for the corners,
-				// and two triangles -> 6 indices.
-				vtsPerFrame = 4;
-				indicesPerFrame = 6;
+			// For all other plungers, we render one circle per lathe
+			// point.  Each circle has 'circlePoints' vertices.  We
+			// also need to render the spring:  this consists of 3
+			// spirals, where each spiral has 'springLoops' loops
+			// times 'circlePoints' vertices.
+			_latheVts = _lathePoints * _circlePoints;
+			_springVts = (int)((_springLoops + _springEndLoops) * _circlePoints) * 3;
 
-			} else {
+			// For the lathed section, we need two triangles == 6
+			// indices for every point on every lathe circle past
+			// the first.  (We connect pairs of lathe circles, so
+			// the first one doesn't count: two circles -> one set
+			// of triangles, three circles -> two sets, etc).
+			_latheIndices = 6 * _circlePoints * (_lathePoints - 1);
 
-				// For all other plungers, we render one circle per lathe
-				// point.  Each circle has 'circlePoints' vertices.  We
-				// also need to render the spring:  this consists of 3
-				// spirals, where each spiral has 'springLoops' loops
-				// times 'circlePoints' vertices.
-				var latheVts = lathePoints * circlePoints;
-				var springVts = (int)((springLoops + springEndLoops) * circlePoints) * 3;
-				vtsPerFrame = latheVts + springVts;
+			// For the spring, we need 4 triangles == 12 indices
+			// for every matching set of three vertices on the
+			// three spirals, not counting the first set (as above,
+			// we're connecting adjacent sets, so the first doesn't
+			// count).  We already counted the total number of
+			// vertices, so divide that by 3 to get the number
+			// of sets.  12*vts/3 = 4*vts.
+			//
+			// The spring only applies to the custom plunger.
+			_springIndices = 0;
+			if (_data.Type == PlungerType.PlungerTypeCustom) {
+				if ((_springIndices = 4 * _springVts - 12) < 0) {
+					_springIndices = 0;
+				}
+			}
+		}
 
-				// For the lathed section, we need two triangles == 6
-				// indices for every point on every lathe circle past
-				// the first.  (We connect pairs of lathe circles, so
-				// the first one doesn't count: two circles -> one set
-				// of triangles, three circles -> two sets, etc).
-				var latheIndices = 6 * circlePoints * (lathePoints - 1);
+		/// <summary>
+		/// Flat plunger - overlay the alpha image on a rectangular surface.
+		/// </summary>
+		/// <param name="frame">Animation frame</param>
+		/// <returns></returns>
+		private Mesh BuildFlatMesh(int frame)
+		{
+			// Figure the corner coordinates.
+			//
+			// The tip of the plunger for this frame is at 'height', which is the
+			// nominal y position (m_d.m_v.y) plus the portion of the stroke length
+			// for the current frame.  (The 0th frame is the most retracted position;
+			// the cframe-1'th frame is the most forward position.)  The base is at
+			// the nominal y position plus m_d.m_height.
+			var xLt = _data.Center.X - _data.Width;
+			var xRt = _data.Center.X + _data.Width;
+			var yTop = _yTip;
+			var yBot = _beginY + _data.Height;
 
-				// For the spring, we need 4 triangles == 12 indices
-				// for every matching set of three vertices on the
-				// three spirals, not counting the first set (as above,
-				// we're connecting adjacent sets, so the first doesn't
-				// count).  We already counted the total number of
-				// vertices, so divide that by 3 to get the number
-				// of sets.  12*vts/3 = 4*vts.
-				//
-				// The spring only applies to the custom plunger.
-				var springIndices = 0;
-				if (_data.Type == PlungerType.PlungerTypeCustom) {
-					if ((springIndices = 4 * springVts - 12) < 0) {
-						springIndices = 0;
-					}
+			// Figure the z coordinate.
+			//
+			// For the shaped plungers, the vertical extent is determined by placing
+			// the long axis at the plunger's nominal width (m_d.m_width) above the
+			// playfield (or whatever the base surface is).  Since those are modeled
+			// roughly as cylinders with the main shaft radius at about 1/4 the nominal
+			// width, the top point is at about 1.25 the nominal width and the bulk
+			// is between 1x and 1.25x the nominal width above the base surface.  To
+			// get approximately the same effect, we place our rectangular surface at
+			// 1.25x the width above the base surface.  The table author can tweak this
+			// using the ZAdjust property, which is added to the zHeight base level.
+			var z = (_zHeight + _data.Width * 1.25f) * _zScale;
+
+			// Figure out which animation cell we're using.  The source image might not
+			// (and probably does not) have the same number of cells as the frame list
+			// we're generating, since our frame count depends on the stroke length.
+			// So we need to interpolate between the image cells and the generated frames.
+			//
+			// The source image is arranged with the fully extended image in the leftmost
+			// cell and the fully retracted image in the rightmost cell.  Our frame
+			// numbering is just the reverse, so figure the cell number in right-to-left
+			// order to simplify the texture mapping calculations.
+			var cellIdx = _srcCells - 1 - (int) (frame * (float) _srcCells / _cFrames + 0.5f);
+			if (cellIdx < 0) {
+				cellIdx = 0;
+			}
+
+			// Figure the texture coordinates.
+			//
+			// The y extent (tv) maps to the top portion of the image with height
+			// proportional to the current frame's height relative to the overall height.
+			// Our frames vary in height to display the motion of the plunger.  The
+			// animation cells are all the same height, so we need to map to the
+			// proportional vertical share of the cell.  The images in the cells are
+			// top-justified, so we always start at the top of the cell.
+			//
+			// The x extent is the full width of the current cell.
+			var tuLocal = _cellWid * cellIdx;
+			var tvLocal = (yBot - yTop) / (_beginY + _data.Height - _endY);
+
+			var mesh = new Mesh("flat") {
+				Vertices = new Vertex3DNoTex2[4],
+				Indices = new[] {0, 1, 2, 2, 3, 0}
+			};
+
+			// Fill in the four corner vertices.
+			// Vertices are (in order): bottom left, top left, top right, bottom right.
+			mesh.Vertices[0] = new Vertex3DNoTex2(xLt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal, tvLocal);
+			mesh.Vertices[1] = new Vertex3DNoTex2(xLt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal, 0.0f);
+			mesh.Vertices[2] = new Vertex3DNoTex2(xRt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, 0.0f);
+			mesh.Vertices[3] = new Vertex3DNoTex2(xRt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, tvLocal);
+
+			return mesh;
+		}
+
+		/// <summary>
+		/// Build the rod mesh
+		///
+		/// Go around in a circle starting at the top, stepping through 'circlePoints'
+		/// angles along the circle. Start the texture mapping in the middle, so that
+		/// the center line of the texture maps to the center line of the top of the
+		/// cylinder surface. Work outwards on the texture to wrap it around the
+		/// cylinder.
+		/// </summary>
+		/// <param name="frame"></param>
+		/// <returns></returns>
+		private Mesh BuildRodMesh(int frame)
+		{
+			var mesh = new Mesh("rod") {
+				Vertices = new Vertex3DNoTex2[_latheVts],
+				Indices = new int[_latheIndices]
+			};
+
+			var tu = 0.51f;
+			var stepU = 1.0f / _circlePoints;
+			for (int l = 0, offset = 0; l < _circlePoints; l++, offset += _lathePoints, tu += stepU) {
+
+				// Go down the long axis, adding a vertex for each point
+				// in the descriptor list at the current lathe angle.
+				if (tu > 1.0f) {
+					tu -= 1.0f;
 				}
 
-				// the total number of indices is simply the sum of the
-				// lathe and spring indices
-				indicesPerFrame = latheIndices + springIndices;
+				var angle = (float) (MathF.PI * 2.0) / _circlePoints * l;
+				var sn = MathF.Sin(angle);
+				var cs = MathF.Cos(angle);
+
+				var pm = new Vertex3DNoTex2();
+				for (var m = 0; m < _lathePoints; m++) {
+					ref var c = ref _desc.c[m];
+
+					// get the current point's coordinates
+					var y = c.y + _yTip;
+					var r = c.r;
+					var tv = c.tv;
+
+					// the last coordinate is always the bottom of the rod
+					if (m + 1 == _lathePoints) {
+
+						// set the end point
+						y = _rodY;
+
+						// Figure the texture mapping for the rod position.  This is
+						// important because we draw the rod with varying length -
+						// the part that's pulled back beyond the 'rodY' point is
+						// hidden.  We want the texture to maintain the same apparent
+						// position and scale in each frame, so we need to figure the
+						// proportional point of the texture at our cut-off point on
+						// the object surface.
+						var ratio = frame * _invScale;
+						tv = mesh.Vertices[m - 1].Tv + (tv - mesh.Vertices[m - 1].Tv) * ratio;
+					}
+
+					// figure the point coordinates
+					pm.X = r * (sn * _data.Width) + _data.Center.X;
+					pm.Y = y;
+					pm.Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale;
+					pm.Nx = c.nx * sn;
+					pm.Ny = c.ny;
+					pm.Nz = -c.nx * cs;
+					pm.Tu = tu;
+					pm.Tv = tv;
+
+					mesh.Vertices[offset] = pm;
+				}
 			}
+
+			// set up the vertex list for the lathe circles
+			var k = 0;
+			for (int l = 0, offset = 0; l < _circlePoints; l++, offset += _lathePoints) {
+				for (var m = 0; m < _lathePoints - 1; m++) {
+					mesh.Indices[k++] = (m + offset) % _latheVts;
+					mesh.Indices[k++] = (m + offset + _lathePoints) % _latheVts;
+					mesh.Indices[k++] = (m + offset + 1 + _lathePoints) % _latheVts;
+
+					mesh.Indices[k++] = (m + offset + 1 + _lathePoints) % _latheVts;
+					mesh.Indices[k++] = (m + offset + 1) % _latheVts;
+					mesh.Indices[k++] = (m + offset) % _latheVts;
+				}
+			}
+
+			return mesh;
+		}
+
+		/// <summary>
+		/// Build the spring.
+		///
+		/// We build this as wedge shape wrapped around a spiral. So we actually
+		/// have three spirals: the front edge, the top edge, and the back edge.
+		/// The y extent is the length of the rod; the rod starts at the
+		/// second-to-last entry and ends at the last entry.
+		///
+		/// But the actual base position of the spring is fixed at the end of the
+		/// shaft, which might differ from the on-screen position of the last
+		/// point in that the rod can be visually cut off by the length adjustment.
+		///
+		/// So use the true rod base (rodY) position to figure the spring length.
+		/// </summary>
+		/// <param name="rodVertices"></param>
+		/// <returns></returns>
+		private Mesh BuildSpringMesh(IReadOnlyList<Vertex3DNoTex2> rodVertices)
+		{
+			var mesh = new Mesh("spring") {
+				Vertices = new Vertex3DNoTex2[_springVts],
+				Indices = new int[_springIndices]
+			};
+
+			var springGaugeRel = _springGauge / _data.Width;
+			var offset = _circlePoints * _lathePoints;
+
+			var y0 = rodVertices[offset - 2].Y;
+			var y1 = _rodY;
+
+			var n = (int) ((_springLoops + _springEndLoops) * _circlePoints);
+			var nEnd = (int) (_springEndLoops * _circlePoints);
+			var nMain = n - nEnd;
+			var yEnd = _springEndLoops * _springGauge * _springMinSpacing;
+
+			var dyMain = (y1 - y0 - yEnd) / (nMain - 1);
+			var dyEnd = yEnd / (nEnd - 1);
+			var dy = dyEnd;
+			var dTheta = (float) (System.Math.PI * 2.0) / (_circlePoints - 1) + MathF.PI / (n - 1);
+
+			var pm = 0;
+			for (float theta = MathF.PI, y = y0; n != 0; --n, theta += dTheta, y += dy) {
+
+				if (n == nMain) {
+					dy = dyMain;
+				}
+
+				if (theta >= (float) (System.Math.PI * 2.0)) {
+					theta -= (float) (System.Math.PI * 2.0);
+				}
+
+				var sn = MathF.Sin(theta);
+				var cs = MathF.Cos(theta);
+
+				// set the point on the front spiral
+				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
+					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					Y = y - _springGauge,
+					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					Nx = 0.0f,
+					Ny = -1.0f,
+					Nz = 0.0f,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.76f
+				};
+
+				// set the point on the top spiral
+				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
+					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) + _data.Center.X,
+					Y = y,
+					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
+					    _zScale,
+					Nx = sn,
+					Ny = 0.0f,
+					Nz = -cs,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.85f
+				};
+
+				// set the point on the back spiral
+				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
+					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					Y = y + _springGauge,
+					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					Nx = 0.0f,
+					Ny = 1.0f,
+					Nz = 0.0f,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.98f
+				};
+			}
+
+			// set up the vertex list for the spring
+			var k = 0;
+			for (var i = 0; i < mesh.Vertices.Length; i += 3) {
+
+				var v = mesh.Vertices[i + 1];
+				// Direct3D only renders faces if the vertices are in clockwise
+				// order.  We want to render the spring all the way around, so
+				// we need to use different vertex ordering for faces that are
+				// above and below the vertical midpoint on the spring.  We
+				// can use the z normal from the center spiral to determine
+				// whether we're at a top or bottom face.  Note that all of
+				// the springs in all frames have the same relative position
+				// on the spiral, so we can use the first spiral as a proxy
+				// for all of them - the only thing about the spring that
+				// varies from frame to frame is the length of the spiral.
+				if (v.Nz <= 0.0f) {
+					// top half vertices
+					mesh.Indices[k++] = offset + 0;
+					mesh.Indices[k++] = offset + 3;
+					mesh.Indices[k++] = offset + 1;
+
+					mesh.Indices[k++] = offset + 1;
+					mesh.Indices[k++] = offset + 3;
+					mesh.Indices[k++] = offset + 4;
+
+					mesh.Indices[k++] = offset + 4;
+					mesh.Indices[k++] = offset + 5;
+					mesh.Indices[k++] = offset + 2;
+
+					mesh.Indices[k++] = offset + 2;
+					mesh.Indices[k++] = offset + 1;
+					mesh.Indices[k++] = offset + 4;
+
+				} else {
+					// bottom half vertices
+					mesh.Indices[k++] = offset + 3;
+					mesh.Indices[k++] = offset + 0;
+					mesh.Indices[k++] = offset + 4;
+
+					mesh.Indices[k++] = offset + 4;
+					mesh.Indices[k++] = offset + 0;
+					mesh.Indices[k++] = offset + 1;
+
+					mesh.Indices[k++] = offset + 1;
+					mesh.Indices[k++] = offset + 2;
+					mesh.Indices[k++] = offset + 5;
+
+					mesh.Indices[k++] = offset + 5;
+					mesh.Indices[k++] = offset + 1;
+					mesh.Indices[k++] = offset + 2;
+				}
+			}
+
+			return mesh;
 		}
 	}
 }
