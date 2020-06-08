@@ -23,8 +23,11 @@ namespace VisualPinball.Unity.VPT.Bumper
 
 					marker.Begin();
 
+					var isHit = data.HitEvent;
+					data.HitEvent = false;
+
 					if (data.EnableAnimation) {
-						if (data.IsHit) {
+						if (isHit) {
 							data.DoAnimate = true;
 							UpdateSkirt(ref data);
 							data.AnimationCounter = 0.0f;

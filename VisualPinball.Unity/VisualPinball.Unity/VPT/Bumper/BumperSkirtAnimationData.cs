@@ -6,7 +6,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 	public struct BumperSkirtAnimationData : IComponentData
 	{
 		// dynamic
-		public bool IsHit;
+		public bool HitEvent;
 		public float3 BallPosition;
 		public bool EnableAnimation;
 		public float AnimationCounter;
