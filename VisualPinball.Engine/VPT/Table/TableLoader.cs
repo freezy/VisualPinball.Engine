@@ -78,6 +78,7 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.HitTarget: item = new HitTarget.HitTarget(reader, itemName); break;
 				case ItemType.Kicker: item = new Kicker.Kicker(reader, itemName); break;
 				case ItemType.Light: item = new Light.Light(reader, itemName); break;
+				case ItemType.Plunger: item = new Plunger.Plunger(reader, itemName); break;
 				case ItemType.Primitive: item = new Primitive.Primitive(reader, itemName); break;
 				case ItemType.Ramp: item = new Ramp.Ramp(reader, itemName); break;
 				case ItemType.Rubber: item = new Rubber.Rubber(reader, itemName); break;
