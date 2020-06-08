@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 
 				marker.Begin();
 
-				rot.Value = quaternion.Euler(data.Rotation.x, data.Rotation.y, 0f);
+				rot.Value = quaternion.EulerXYZ(math.radians(data.Rotation.x), math.radians(data.Rotation.y), 0f);
 
 				marker.End();
 

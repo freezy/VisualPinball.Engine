@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 				ball.Velocity += collEvent.HitNormal * data.Force; // add a chunk of velocity to drive ball away
 
 				ringData.IsHit = true;
-				skirtData.IsHit = true;
+				skirtData.HitEvent = true;
 				skirtData.BallPosition = ball.Position;
 
 				// todo event

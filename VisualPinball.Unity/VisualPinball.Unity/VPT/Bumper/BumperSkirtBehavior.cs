@@ -19,13 +19,13 @@ namespace VisualPinball.Unity.VPT.Bumper
 
 			// add ring data
 			dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-				IsHit = false,
 				BallPosition = default,
 				AnimationCounter = 0f,
 				DoAnimate = false,
 				DoUpdate = false,
-				EnableAnimation = false,
+				EnableAnimation = true,
 				Rotation = new float2(0, 0),
+				HitEvent = bumper.Data.HitEvent,
 				Center = bumper.Data.Center.ToUnityFloat2()
 			});
 		}
