@@ -160,7 +160,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// The spring only applies to the custom plunger.
 			_springIndices = 0;
 			if (_data.Type == PlungerType.PlungerTypeCustom) {
-				if ((_springIndices = 4 * _springVts - 12) < 0) {
+				_springIndices = 4 * _springVts - 12;
+				if (_springVts < 0) {
 					_springIndices = 0;
 				}
 			}
@@ -260,6 +261,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 			var tu = 0.51f;
 			var stepU = 1.0f / _circlePoints;
+			var i = 0;
 			for (int l = 0, offset = 0; l < _circlePoints; l++, offset += _lathePoints, tu += stepU) {
 
 				// Go down the long axis, adding a vertex for each point
@@ -272,7 +274,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 				var sn = MathF.Sin(angle);
 				var cs = MathF.Cos(angle);
 
-				var pm = new Vertex3DNoTex2();
 				for (var m = 0; m < _lathePoints; m++) {
 					ref var c = ref _desc.c[m];
 
@@ -298,17 +299,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 						tv = mesh.Vertices[m - 1].Tv + (tv - mesh.Vertices[m - 1].Tv) * ratio;
 					}
 
-					// figure the point coordinates
-					pm.X = r * (sn * _data.Width) + _data.Center.X;
-					pm.Y = y;
-					pm.Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale;
-					pm.Nx = c.nx * sn;
-					pm.Ny = c.ny;
-					pm.Nz = -c.nx * cs;
-					pm.Tu = tu;
-					pm.Tv = tv;
-
-					mesh.Vertices[offset] = pm;
+					mesh.Vertices[i++] = new Vertex3DNoTex2 {
+						X = r * (sn * _data.Width) + _data.Center.X,
+						Y = y,
+						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+						Nx = c.nx * sn,
+						Ny = c.ny,
+						Nz = -c.nx * cs,
+						Tu = tu,
+						Tv = tv
+					};
 				}
 			}
 
@@ -353,9 +353,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			};
 
 			var springGaugeRel = _springGauge / _data.Width;
-			var offset = _circlePoints * _lathePoints;
 
-			var y0 = rodVertices[offset - 2].Y;
+			var y0 = rodVertices[_latheVts - 2].Y;
 			var y1 = _rodY;
 
 			var n = (int) ((_springLoops + _springEndLoops) * _circlePoints);
@@ -422,9 +421,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 			// set up the vertex list for the spring
 			var k = 0;
-			for (var i = 0; i < mesh.Vertices.Length; i += 3) {
+			for (var i = 0; i < mesh.Vertices.Length - 3; i += 3) {
 
-				var v = mesh.Vertices[i + 1];
 				// Direct3D only renders faces if the vertices are in clockwise
 				// order.  We want to render the spring all the way around, so
 				// we need to use different vertex ordering for faces that are
@@ -435,42 +433,43 @@ namespace VisualPinball.Engine.VPT.Plunger
 				// on the spiral, so we can use the first spiral as a proxy
 				// for all of them - the only thing about the spring that
 				// varies from frame to frame is the length of the spiral.
-				if (v.Nz <= 0.0f) {
+				var v = mesh.Vertices[i + 1];
+				//if (v.Nz <= 0.0f) {
 					// top half vertices
-					mesh.Indices[k++] = offset + 0;
-					mesh.Indices[k++] = offset + 3;
-					mesh.Indices[k++] = offset + 1;
+					mesh.Indices[k++] = i + 0;
+					mesh.Indices[k++] = i + 3;
+					mesh.Indices[k++] = i + 1;
 
-					mesh.Indices[k++] = offset + 1;
-					mesh.Indices[k++] = offset + 3;
-					mesh.Indices[k++] = offset + 4;
+					mesh.Indices[k++] = i + 1;
+					mesh.Indices[k++] = i + 3;
+					mesh.Indices[k++] = i + 4;
 
-					mesh.Indices[k++] = offset + 4;
-					mesh.Indices[k++] = offset + 5;
-					mesh.Indices[k++] = offset + 2;
+					mesh.Indices[k++] = i + 4;
+					mesh.Indices[k++] = i + 5;
+					mesh.Indices[k++] = i + 2;
 
-					mesh.Indices[k++] = offset + 2;
-					mesh.Indices[k++] = offset + 1;
-					mesh.Indices[k++] = offset + 4;
+					mesh.Indices[k++] = i + 2;
+					mesh.Indices[k++] = i + 1;
+					mesh.Indices[k++] = i + 4;
 
-				} else {
-					// bottom half vertices
-					mesh.Indices[k++] = offset + 3;
-					mesh.Indices[k++] = offset + 0;
-					mesh.Indices[k++] = offset + 4;
-
-					mesh.Indices[k++] = offset + 4;
-					mesh.Indices[k++] = offset + 0;
-					mesh.Indices[k++] = offset + 1;
-
-					mesh.Indices[k++] = offset + 1;
-					mesh.Indices[k++] = offset + 2;
-					mesh.Indices[k++] = offset + 5;
-
-					mesh.Indices[k++] = offset + 5;
-					mesh.Indices[k++] = offset + 1;
-					mesh.Indices[k++] = offset + 2;
-				}
+				// } else {
+				// 	// bottom half vertices
+				// 	mesh.Indices[k++] = i + 3;
+				// 	mesh.Indices[k++] = i + 0;
+				// 	mesh.Indices[k++] = i + 4;
+				//
+				// 	mesh.Indices[k++] = i + 4;
+				// 	mesh.Indices[k++] = i + 0;
+				// 	mesh.Indices[k++] = i + 1;
+				//
+				// 	mesh.Indices[k++] = i + 1;
+				// 	mesh.Indices[k++] = i + 2;
+				// 	mesh.Indices[k++] = i + 5;
+				//
+				// 	mesh.Indices[k++] = i + 5;
+				// 	mesh.Indices[k++] = i + 1;
+				// 	mesh.Indices[k++] = i + 2;
+				// }
 			}
 
 			return mesh;
