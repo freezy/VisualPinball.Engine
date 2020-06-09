@@ -10,7 +10,7 @@
 		<AppDesignerFolder>Properties</AppDesignerFolder>
 		<RootNamespace>VisualPinball.Engine</RootNamespace>
 		<AssemblyName>VisualPinball.Engine</AssemblyName>
-		<TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+		<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
 		<FileAlignment>512</FileAlignment>
 		<LangVersion>7.2</LangVersion>
 	</PropertyGroup>
@@ -36,12 +36,10 @@
 		<WarningLevel>4</WarningLevel>
 	</PropertyGroup>
 	<ItemGroup>
-		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="MiniZ.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
 			<HintPath>..\.packages\MiniZ.Net.1.0.0\lib\MiniZ.Net.dll</HintPath>
 			<Private>True</Private>
 		</Reference>
-		<Reference Include="mscorlib" />
 		<Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
 			<HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
 			<Private>True</Private>
@@ -63,31 +61,6 @@
 			<Private>True</Private>
 		</Reference>
 		<Reference Include="System" />
-		<Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-			<HintPath>..\.packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
-		<Reference Include="System.Configuration" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Data" />
-		<Reference Include="System.IO.Compression" />
-		<Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-			<HintPath>..\.packages\System.Memory.4.5.3\lib\netstandard2.0\System.Memory.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
-		<Reference Include="System.Numerics" />
-		<Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-			<HintPath>..\.packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
-		<Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-			<HintPath>..\.packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
-		<Reference Include="System.Runtime.Serialization" />
-		<Reference Include="System.ServiceModel" />
-		<Reference Include="System.Transactions" />
-		<Reference Include="System.Xml" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Common\Constants.cs" />

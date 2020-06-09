@@ -7,7 +7,6 @@ using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Light
 {
-	[ExcludeFromCodeCoverage]
 	internal class LightMeshGenerator
 	{
 		private static readonly Mesh Bulb = new Mesh("Bulb", BulbMesh.Vertices, BulbMesh.Indices);
