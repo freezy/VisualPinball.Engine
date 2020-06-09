@@ -16,7 +16,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(0, table, origin, asRightHanded);
+			return _meshGenerator.GetRenderObjects(20, table, origin, asRightHanded);
 		}
 	}
 }
