@@ -23,7 +23,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private readonly float _y;
 		private readonly float _x2;
 
-
 		public PlungerHit(PlungerData data, float zHeight)
 		{
 			_data = data;
