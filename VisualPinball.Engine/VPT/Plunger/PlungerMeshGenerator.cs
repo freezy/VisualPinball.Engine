@@ -7,6 +7,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
+		public const string FlatName = "Flat";
+		public const string RodName = "Rod";
+		public const string SpringName = "Spring";
+
 		private readonly PlungerData _data;
 		private PlungerDesc _desc;
 
@@ -82,7 +86,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 				var flatMesh = BuildFlatMesh(frame);
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 					new RenderObject(
-						"Flat",
+						FlatName,
 						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
 						material,
 						true
@@ -97,13 +101,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 				new RenderObject(
-					"Rod",
+					RodName,
 					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
 					material,
 					true
 				),
 				new RenderObject(
-					"Spring",
+					SpringName,
 					asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
 					material,
 					true
