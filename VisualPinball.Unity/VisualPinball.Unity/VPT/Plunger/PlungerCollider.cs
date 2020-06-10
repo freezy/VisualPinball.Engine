@@ -1,6 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
@@ -199,8 +200,93 @@ namespace VisualPinball.Unity.VPT.Plunger
 
 		#region Collision
 
-		public static void Collide(in BallData ball, ref CollisionEventData collEvent)
+		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
+			ref PlungerMovementData movementData, in PlungerStaticData staticData, ref Random random)
 		{
+			var dot = (ball.Velocity.x - collEvent.HitVelocity.x) * collEvent.HitNormal.x
+			          + (ball.Velocity.y - collEvent.HitVelocity.y) * collEvent.HitNormal.y;
+
+			// nearly receding ... make sure of conditions
+			if (dot >= -PhysicsConstants.LowNormVel) {
+
+				// otherwise if clearly approaching .. process the collision
+				if (dot > PhysicsConstants.LowNormVel) {
+					// is this velocity clearly receding (i.e must > a minimum)
+					return;
+				}
+
+				if (collEvent.HitDistance < -PhysicsConstants.Embedded) {
+					// has ball become embedded???, give it a kick
+					dot = -PhysicsConstants.EmbedShot;
+
+				} else {
+					return;
+				}
+			}
+			//g_pplayer->m_pactiveballBC = pball; // todo Ball control most recently collided with plunger
+
+			// correct displacements, mostly from low velocity blidness, an alternative to true acceleration processing
+			var hDist = -PhysicsConstants.DispGain * collEvent.HitDistance; // distance found in hit detection
+			if (hDist > 1.0e-4f) {
+				// magnitude of jump
+				if (hDist > PhysicsConstants.DispLimit) {
+					// crossing ramps, delta noise
+					hDist = PhysicsConstants.DispLimit;
+				}
+
+				// push along norm, back to free area (use the norm, but is not correct)
+				ball.Position += hDist * collEvent.HitNormal;
+			}
+
+			// figure the basic impulse
+			var impulse = dot * -1.45f / (1.0f + 1.0f / Engine.VPT.Plunger.Plunger.PlungerMass);
+
+			// We hit the ball, so attenuate any plunger bounce we have queued up
+			// for a Fire event.  Real plungers bounce quite a bit when fired without
+			// hitting anything, but bounce much less when they hit something, since
+			// most of the momentum gets transferred out of the plunger and to the ball.
+			movementData.FireBounce *= 0.6f;
+
+			// Check for a downward collision with the tip.  This is the moving
+			// part of the plunger, so it has some special handling.
+			if (collEvent.HitVelocity.y != 0.0f) {
+				// The tip hit the ball (or vice versa).
+				//
+				// Figure the reverse impulse to the plunger.  If the ball was moving
+				// and the plunger wasn't, a little of the ball's momentum should
+				// transfer to the plunger.  (Ideally this would just fall out of the
+				// momentum calculations organically, the way it works in real life,
+				// but our physics are pretty fake here.  So we add a bit to the
+				// fakeness here to make it at least look a little more realistic.)
+				//
+				// Figure the reverse impulse as the dot product times the ball's
+				// y velocity, multiplied by the ratio between the ball's collision
+				// mass and the plunger's nominal mass.  In practice this is *almost*
+				// satisfyingly realistic, but the bump seems a little too big.  So
+				// apply a fudge factor to make it look more real.  The fudge factor
+				// isn't entirely unreasonable physically - you could look at it as
+				// accounting for the spring tension and friction.
+				const float reverseImpulseFudgeFactor = .22f;
+				movementData.ReverseImpulse = ball.Velocity.y * impulse
+					* (ball.Mass / Engine.VPT.Plunger.Plunger.PlungerMass)
+					* reverseImpulseFudgeFactor;
+			}
+
+			// update the ball speed for the impulse
+			ball.Velocity += impulse * collEvent.HitNormal;
+			ball.Velocity *= 0.999f; //friction all axiz     //!! TODO: fix this
+
+			var scatterVel =
+				staticData.ScatterVelocity *
+				0.2f; // todo g_pplayer->m_ptable->m_globalDifficulty;// apply dificulty weighting
+
+			// skip if low velocity
+			if (scatterVel > 0.0f && math.abs(ball.Velocity.y) > scatterVel) {
+				var scatter = random.NextFloat(-1f, 1f);
+				// shape quadratic distribution and scale
+				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterVel;
+				ball.Velocity.y += scatter;
+			}
 		}
 
 		#endregion
