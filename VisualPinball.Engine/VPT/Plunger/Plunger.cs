@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;
+		public const int PlungerNormalize = 100;
 
 		public readonly PlungerMeshGenerator MeshGenerator;
 

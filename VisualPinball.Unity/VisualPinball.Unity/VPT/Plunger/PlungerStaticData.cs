@@ -17,5 +17,9 @@ namespace VisualPinball.Unity.VPT.Plunger
 		public float FrameEnd;
 		public float FrameLen;
 		public float RestPosition;
+
+		// velocity
+		public bool IsAutoPlunger;
+		public float SpeedFire;
 	}
 }
