@@ -42,6 +42,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Light;
+using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Primitive;
 using VisualPinball.Unity.VPT.Ramp;
 using VisualPinball.Unity.VPT.Rubber;
@@ -129,7 +130,7 @@ namespace VisualPinball.Unity.VPT.Table
 			Restore(dispReels, table.DispReels, d => new DispReel(d));
 			Restore(flashers, table.Flashers, d => new Flasher(d));
 			Restore(lightSeqs, table.LightSeqs, d => new LightSeq(d));
-			Restore(plungers, table.Plungers, d => new Plunger(d));
+			Restore(plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
 			Restore(textBoxes, table.TextBoxes, d => new TextBox(d));
 			Restore(timers, table.Timers, d => new Timer(d));
 
@@ -141,6 +142,7 @@ namespace VisualPinball.Unity.VPT.Table
 			Restore<HitTargetBehavior, Engine.VPT.HitTarget.HitTarget, HitTargetData>(table.HitTargets);
 			Restore<KickerBehavior, Engine.VPT.Kicker.Kicker, KickerData>(table.Kickers);
 			Restore<LightBehavior, Engine.VPT.Light.Light, LightData>(table.Lights);
+			Restore<PlungerBehavior, Engine.VPT.Plunger.Plunger, PlungerData>(table.Plungers);
 			Restore<PrimitiveBehavior, Engine.VPT.Primitive.Primitive, PrimitiveData>(table.Primitives);
 			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table.Ramps);
 			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table.Rubbers);
