@@ -13,12 +13,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;
 
-		private readonly PlungerMeshGenerator _meshGenerator;
+		public readonly PlungerMeshGenerator MeshGenerator;
+
 		private HitObject[] _hitObjects;
 
 		public Plunger(PlungerData data) : base(data)
 		{
-			_meshGenerator = new PlungerMeshGenerator(data);
+			MeshGenerator = new PlungerMeshGenerator(data);
 		}
 
 		public Plunger(BinaryReader reader, string itemName) : this(new PlungerData(reader, itemName)) { }
@@ -33,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(20, table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObjects(20, table, origin, asRightHanded);
 		}
 
 		public HitObject[] GetHitShapes() => _hitObjects;

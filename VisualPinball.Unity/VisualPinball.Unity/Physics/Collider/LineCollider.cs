@@ -27,6 +27,9 @@ namespace VisualPinball.Unity.Physics.Collider
 		public ItemType ItemType => _header.ItemType;
 		public Entity Entity => _header.Entity;
 
+		public float V1y { set => _v1.y = value; }
+		public float V2y { set => _v2.y = value; }
+
 		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest)
 		{
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
@@ -207,5 +210,14 @@ namespace VisualPinball.Unity.Physics.Collider
 			return false;
 		}
 
+		public void CalcNormal()
+		{
+			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
+
+			// Set up line normal
+			var invLength = 1.0f /  math.length(vT);
+			_normal.x = vT.y * invLength;
+			_normal.y = -vT.x * invLength;
+		}
 	}
 }
