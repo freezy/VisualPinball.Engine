@@ -212,6 +212,10 @@
     <Compile Include="VPT\Light\LightBehavior.cs" />
     <Compile Include="VPT\Light\LightExtensions.cs" />
     <Compile Include="VPT\Plunger\PlungerBehavior.cs" />
+    <Compile Include="VPT\Plunger\PlungerCollider.cs" />
+    <Compile Include="VPT\Plunger\PlungerColliderData.cs" />
+    <Compile Include="VPT\Plunger\PlungerMovementData.cs" />
+    <Compile Include="VPT\Plunger\PlungerStaticData.cs" />
     <Compile Include="VPT\Primitive\PrimitiveBehavior.cs" />
     <Compile Include="VPT\Ramp\RampBehavior.cs" />
     <Compile Include="VPT\Rubber\RubberBehavior.cs" />
