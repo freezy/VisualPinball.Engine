@@ -13,12 +13,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public readonly HitLineZ[] JointEnd  = new HitLineZ[2];
 		public readonly float Position;
 		public readonly float FrameTop;
+		public readonly float FrameBottom;
+		public readonly float FrameLen;
+		public readonly float RestPos;
 
 		private readonly PlungerData _data;
 		private readonly float _zHeight;
 		private readonly float _x;
 		private readonly float _y;
 		private readonly float _x2;
+
 
 		public PlungerHit(PlungerData data, float zHeight)
 		{
@@ -29,11 +33,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_x2 = _data.Center.X + _data.Width;
 
 			FrameTop = data.Center.Y - data.Stroke;
-			var frameBottom = data.Center.Y;
-			var frameLen = frameBottom - FrameTop;
-			var restPos = data.ParkPosition;
-
-			Position = FrameTop + restPos * frameLen;
+			FrameBottom = data.Center.Y;
+			FrameLen = FrameBottom - FrameTop;
+			RestPos = data.ParkPosition;
+			Position = FrameTop + RestPos * FrameLen;
 
 			// static
 			LineSegBase = new LineSeg(new Vertex2D(_x, _y), new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight);
