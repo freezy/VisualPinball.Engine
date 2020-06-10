@@ -2,6 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Physics.Collider;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
@@ -14,7 +15,28 @@ namespace VisualPinball.Unity.VPT.Plunger
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			Convert(entity, dstManager);
 
+			dstManager.AddComponentData(entity, new PlungerStaticData {
+				MomentumXfer = data.MomentumXfer,
+				ScatterVelocity = data.ScatterVelocity
+			});
+			var hit = Item.PlungerHit;
+			dstManager.AddComponentData(entity, new PlungerColliderData {
+				JointEnd0 = LineZCollider.Create(hit.JointEnd[0]),
+				JointEnd1 = LineZCollider.Create(hit.JointEnd[1]),
+				LineSegEnd = LineCollider.Create(hit.LineSegEnd),
+				LineSegSide0 = LineCollider.Create(hit.LineSegSide[0]),
+				LineSegSide1 = LineCollider.Create(hit.LineSegSide[1])
+			});
+			dstManager.AddComponentData(entity, new PlungerMovementData {
+				FireBounce = 0f,
+				Position = hit.Position,
+				RetractMotion = false,
+				ReverseImpulse = 0f,
+				Speed = 0f,
+				TravelLimit = hit.FrameTop
+			});
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

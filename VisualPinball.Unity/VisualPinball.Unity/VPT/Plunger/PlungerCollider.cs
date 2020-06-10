@@ -14,7 +14,6 @@ namespace VisualPinball.Unity.VPT.Plunger
 		private ColliderHeader _header;
 
 		private LineCollider _lineSegBase;
-		private LineCollider _lineSegEnd;
 		private LineZCollider _jointBase0;
 		private LineZCollider _jointBase1;
 
@@ -41,7 +40,6 @@ namespace VisualPinball.Unity.VPT.Plunger
 			};
 
 			_lineSegBase = LineCollider.Create(src.LineSegBase);
-			_lineSegEnd = LineCollider.Create(src.LineSegEnd);
 			_jointBase0 = LineZCollider.Create(src.JointBase[0]);
 			_jointBase1 = LineZCollider.Create(src.JointBase[1]);
 		}
@@ -124,7 +122,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			var deltaY = movementData.Speed * xferRatio;
 
 			// check the moving bits
-			newTime = _lineSegEnd.HitTest(ref newCollEvent, ref insideOfs, in ballTmp, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegEnd, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
 			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderData.JointEnd0, in ballTmp, hitTime);

@@ -8,6 +8,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 	{
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
+		public PlungerHit PlungerHit { get; private set; }
 
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;
@@ -26,7 +27,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 		{
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			EventProxy = new EventProxy(this);
-			_hitObjects = new HitObject[] {new PlungerHit(Data, zHeight)};
+			PlungerHit = new PlungerHit(Data, zHeight);
+			_hitObjects = new HitObject[] { PlungerHit };
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
