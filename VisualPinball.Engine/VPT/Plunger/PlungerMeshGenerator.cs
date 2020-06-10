@@ -10,6 +10,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public const string RodName = "Rod";
 		public const string SpringName = "Spring";
 
+		public int NumFrames { get; }
+
 		private readonly PlungerData _data;
 		private PlungerDesc _desc;
 
@@ -20,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private readonly int _circlePoints;
 		private readonly float _springMinSpacing;
 		private readonly float _cellWid;
-		private readonly int _cFrames;
 		private readonly int _srcCells;
 
 		private float _zScale;
@@ -46,8 +47,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			var stroke = data.Stroke;
 			_beginY = data.Center.Y;
 			_endY = data.Center.Y - stroke;
-			_cFrames = (int) (stroke * (float) (PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
-			_invScale = _cFrames > 1 ? 1.0f / (_cFrames - 1) : 0.0f;
+			NumFrames = (int) (stroke * (float) (PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
+			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
 			_dyPerFrame = (_endY - _beginY) * _invScale;
 			_circlePoints = data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
 			_springLoops = 0.0f;
@@ -209,7 +210,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// cell and the fully retracted image in the rightmost cell.  Our frame
 			// numbering is just the reverse, so figure the cell number in right-to-left
 			// order to simplify the texture mapping calculations.
-			var cellIdx = _srcCells - 1 - (int) (frame * (float) _srcCells / _cFrames + 0.5f);
+			var cellIdx = _srcCells - 1 - (int) (frame * (float) _srcCells / NumFrames + 0.5f);
 			if (cellIdx < 0) {
 				cellIdx = 0;
 			}

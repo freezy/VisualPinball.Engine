@@ -4,10 +4,18 @@ namespace VisualPinball.Unity.VPT.Plunger
 {
 	public struct PlungerStaticData : IComponentData
 	{
+		// general
+		public Entity RodEntity;
+		public Entity SpringEntity;
+
+		// collision
 		public float MomentumXfer;
 		public float ScatterVelocity;
 
-		public Entity RodEntity;
-		public Entity SpringEntity;
+		// displacement
+		public float FrameStart;
+		public float FrameEnd;
+		public float FrameLen;
+		public float RestPosition;
 	}
 }

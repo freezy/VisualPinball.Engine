@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity.VPT.Plunger
@@ -19,6 +20,15 @@ namespace VisualPinball.Unity.VPT.Plunger
 			dstManager.AddComponentData(entity, new PlungerAnimationData {
 				CurrentFrame = 0
 			});
+
+			// add mesh data
+			var meshBuffer = dstManager.AddBuffer<PlungerMeshBufferElement>(entity);
+			for (var frame = 0; frame < plunger.MeshGenerator.NumFrames; frame++) {
+				var vertices = plunger.MeshGenerator.BuildSpringVertices(frame);
+				foreach (var v in vertices) {
+					meshBuffer.Add(new PlungerMeshBufferElement(new float3(v.X, v.Y, v.Z)));
+				}
+			}
 		}
 	}
 }

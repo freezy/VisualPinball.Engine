@@ -17,6 +17,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		private float _zLow;
 		private float _zHigh;
 
+		public float XyY { set => _xy.y = value; }
+
 		public static void Create(BlobBuilder builder, HitLineZ src, ref BlobPtr<Collider> dest)
 		{
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref dest);
@@ -44,7 +46,6 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			return HitTest(ref collEvent, in this, in ball, dTime);
 		}
-
 
 		public static float HitTest(ref CollisionEventData collEvent, in LineZCollider coll, in BallData ball, float dTime)
 		{

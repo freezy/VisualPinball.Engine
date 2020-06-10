@@ -67,5 +67,61 @@ namespace VisualPinball.Unity.VPT.Plunger
 		/// but it's a nice bit of added realism.
 		/// </summary>
 		public float ReverseImpulse;
+
+
+		/// <summary>
+		/// Firing mode timer.  When this is non-zero, we're in a Fire
+		/// event.
+		///
+		/// A Fire event is initiated in one of two ways:
+		///
+		///  1. The keyboard/script interface calls the Fire method
+		///  2. The mechanical plunger moves forware rapidly
+		///
+		/// In either case, we calculate the firing speed based on how
+		/// far the plunger is pulled back.  Since the plunger is basically
+		/// a spring, pulling it back and letting it go converts the
+		/// potential energy in the spring to kinetic energy in the
+		/// plunger rod; the bottom line is that the final speed of
+		/// the plunger is proportional to the spring displacement (how
+		/// far back the plunger was pulled).  So we calculate the speed
+		/// at the start of the release and allow the rod to move freely
+		/// at this speed until it strikes the ball.
+		///
+		/// Durina a Fire event, the simulated plunger is completely
+		/// disconnected from the mechanical plunger and moves under its
+		/// own power.  In principle, if we have a mechanical plunger,
+		/// we *should* be able to track the actual physical motion of
+		/// the real plunger in real time and just have the software
+		/// plunger do exactly the same thing.  But this doesn't work
+		/// in practice because real plungers move much too quickly
+		/// for our simulation and USB input to keep up with.  Our
+		/// nominal simulation time base is 10ms, and the USB input
+		/// updates at 10-30ms cycles.  (USB isn't synchronized with
+		/// our physics cycle, either, so even if the USB updates were
+		/// 10ms or faster, we still wouldn't get USB updates on every
+		/// physics cycle just because the timing wouldn't always align.)
+		/// In 20ms, a real physical plunger can shoot all the way
+		/// forward, bounce part way back, and move forward again.  The
+		/// result is aliasing.
+		///
+		/// To deal with this, we use heuristics to try to guess when the
+		/// physical plunger has been released.  When we detect that it
+		/// has, we simply disconnect the simulated plunger from the
+		/// physical plunger and let the simulated version move freely
+		/// under its own spring forces.  We ignore inputs from the analog
+		/// plunger during this interval.  The real plunger can be expected
+		/// to come to rest after a full release in about 200ms, so we
+		/// only leave this mode in effect for a limited time, at which
+		/// point we start tracking the real plunger position again.
+		/// </summary>
+		public int FireTimer;
+
+		/// <summary>
+		/// Firing speed.  When a Fire event is initiated, we calculate
+		/// the speed and store it here.  UpdateVelocities() applies this
+		/// as long as we're in fire mode.
+		/// </summary>
+		public float FireSpeed;
 	}
 }

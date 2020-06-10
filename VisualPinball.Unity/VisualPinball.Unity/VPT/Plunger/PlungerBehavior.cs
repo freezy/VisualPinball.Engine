@@ -17,11 +17,17 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			Convert(entity, dstManager);
 
+			var hit = Item.PlungerHit;
+
 			dstManager.AddComponentData(entity, new PlungerStaticData {
 				MomentumXfer = data.MomentumXfer,
-				ScatterVelocity = data.ScatterVelocity
+				ScatterVelocity = data.ScatterVelocity,
+				FrameStart = hit.FrameBottom,
+				FrameEnd = hit.FrameTop,
+				FrameLen = hit.FrameLen,
+				RestPosition = hit.RestPos
 			});
-			var hit = Item.PlungerHit;
+
 			dstManager.AddComponentData(entity, new PlungerColliderData {
 				JointEnd0 = LineZCollider.Create(hit.JointEnd[0]),
 				JointEnd1 = LineZCollider.Create(hit.JointEnd[1]),
@@ -29,13 +35,16 @@ namespace VisualPinball.Unity.VPT.Plunger
 				LineSegSide0 = LineCollider.Create(hit.LineSegSide[0]),
 				LineSegSide1 = LineCollider.Create(hit.LineSegSide[1])
 			});
+
 			dstManager.AddComponentData(entity, new PlungerMovementData {
 				FireBounce = 0f,
 				Position = hit.Position,
 				RetractMotion = false,
 				ReverseImpulse = 0f,
 				Speed = 0f,
-				TravelLimit = hit.FrameTop
+				TravelLimit = hit.FrameTop,
+				FireSpeed = 0f,
+				FireTimer = 0
 			});
 		}
 

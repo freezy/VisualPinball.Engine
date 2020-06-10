@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity.VPT.Plunger
@@ -22,7 +23,12 @@ namespace VisualPinball.Unity.VPT.Plunger
 
 			// add mesh data
 			var meshBuffer = dstManager.AddBuffer<PlungerMeshBufferElement>(entity);
-
+			for (var frame = 0; frame < plunger.MeshGenerator.NumFrames; frame++) {
+				var vertices = plunger.MeshGenerator.BuildRodVertices(frame);
+				foreach (var v in vertices) {
+					meshBuffer.Add(new PlungerMeshBufferElement(new float3(v.X, v.Y, v.Z)));
+				}
+			}
 		}
 	}
 }
