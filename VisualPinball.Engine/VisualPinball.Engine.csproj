@@ -185,6 +185,7 @@
 		<Compile Include="VPT\Plunger\PlungerCoord.cs" />
 		<Compile Include="VPT\Plunger\PlungerData.cs" />
 		<Compile Include="VPT\Plunger\PlungerDesc.cs" />
+		<Compile Include="VPT\Plunger\PlungerHit.cs" />
 		<Compile Include="VPT\Plunger\PlungerMeshGenerator.cs" />
 		<Compile Include="VPT\Primitive\Primitive.cs" />
 		<Compile Include="VPT\Primitive\PrimitiveData.cs" />
