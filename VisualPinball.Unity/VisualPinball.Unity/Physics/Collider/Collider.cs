@@ -6,12 +6,14 @@ using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using Random = Unity.Mathematics.Random;
 
@@ -74,6 +76,9 @@ namespace VisualPinball.Unity.Physics.Collider
 				case HitPlane hitPlane:
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
+				case PlungerHit plungerCollider:
+					PlungerCollider.Create(builder, plungerCollider, ref dest);
+					break;
 				case SpinnerHit spinnerHit:
 					SpinnerCollider.Create(builder, spinnerHit, ref dest);
 					break;
@@ -113,6 +118,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Triangle:
 						return ((TriangleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
 
+					case ColliderType.Plunger:
 					case ColliderType.Flipper:
 					case ColliderType.LineSlingShot:
 						throw new InvalidOperationException(coll.Type + " must be hit-tested separately!");

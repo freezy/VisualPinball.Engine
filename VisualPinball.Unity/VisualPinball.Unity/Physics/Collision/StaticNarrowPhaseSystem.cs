@@ -6,6 +6,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
  using VisualPinball.Unity.VPT.Gate;
+ using VisualPinball.Unity.VPT.Plunger;
 
  namespace VisualPinball.Unity.Physics.Collision
 {
@@ -80,6 +81,23 @@ using VisualPinball.Unity.VPT.Flipper;
 
 											SetComponent(coll.Entity, flipperHitData);
 										}
+									break;
+
+								case ColliderType.Plunger:
+									if (HasComponent<PlungerColliderData>(coll.Entity) &&
+									    HasComponent<PlungerStaticData>(coll.Entity) &&
+									    HasComponent<PlungerMovementData>(coll.Entity))
+									{
+										var plungerColliderData = GetComponent<PlungerColliderData>(coll.Entity);
+										var plungerStaticData = GetComponent<PlungerStaticData>(coll.Entity);
+										var plungerMovementData = GetComponent<PlungerMovementData>(coll.Entity);
+										newTime = ((PlungerCollider*)collider)->HitTest(
+											ref newCollEvent, ref insideOfs, ref plungerMovementData,
+											in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
+										);
+
+										SetComponent(coll.Entity, plungerMovementData);
+									}
 									break;
 
 								default:
