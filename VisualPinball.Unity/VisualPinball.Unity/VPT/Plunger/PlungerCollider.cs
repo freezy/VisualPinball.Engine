@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in BallData ball, in PlungerStaticData staticData, float dTime)
+			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, in BallData ball, float dTime)
 		{
 			var hitTime = dTime; //start time
 			var isHit = false;
