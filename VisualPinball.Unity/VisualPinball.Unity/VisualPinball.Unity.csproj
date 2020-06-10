@@ -210,11 +210,15 @@
     <Compile Include="VPT\Kicker\KickerApi.cs" />
     <Compile Include="VPT\Kicker\KickerBehavior.cs" />
     <Compile Include="VPT\Light\LightBehavior.cs" />
+    <Compile Include="VPT\Plunger\PlungerAnimationData.cs" />
     <Compile Include="VPT\Light\LightExtensions.cs" />
     <Compile Include="VPT\Plunger\PlungerBehavior.cs" />
     <Compile Include="VPT\Plunger\PlungerCollider.cs" />
     <Compile Include="VPT\Plunger\PlungerColliderData.cs" />
+    <Compile Include="VPT\Plunger\PlungerMeshBufferElement.cs" />
     <Compile Include="VPT\Plunger\PlungerMovementData.cs" />
+    <Compile Include="VPT\Plunger\PlungerRodBehavior.cs" />
+    <Compile Include="VPT\Plunger\PlungerSpringBehavior.cs" />
     <Compile Include="VPT\Plunger\PlungerStaticData.cs" />
     <Compile Include="VPT\Primitive\PrimitiveBehavior.cs" />
     <Compile Include="VPT\Ramp\RampBehavior.cs" />
