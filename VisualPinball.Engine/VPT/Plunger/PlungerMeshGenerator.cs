@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using NLog;
+﻿using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
@@ -26,7 +25,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		private float _zScale;
 		private float _zHeight;
-		private float _yTip;
 		private float _springLoops;
 		private float _springEndLoops;
 		private float _springGauge;
@@ -76,7 +74,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
 			_zScale = table.GetScaleZ();
 			_desc = GetPlungerDesc();
-			_yTip = _beginY + _dyPerFrame * frame;
 
 			// todo
 			var translationMatrix = Matrix3D.Identity;
@@ -97,7 +94,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 			CalculateArraySizes();
 			var rodMesh = BuildRodMesh(frame);
-			var springMesh = BuildSpringMesh(rodMesh.Vertices);
+			var springMesh = BuildSpringMesh(frame);
 
 			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 				new RenderObject(
@@ -187,7 +184,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// the nominal y position plus m_d.m_height.
 			var xLt = _data.Center.X - _data.Width;
 			var xRt = _data.Center.X + _data.Width;
-			var yTop = _yTip;
+			var yTop = _beginY + _dyPerFrame * frame;
 			var yBot = _beginY + _data.Height;
 
 			// Figure the z coordinate.
@@ -259,62 +256,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private Mesh BuildRodMesh(int frame)
 		{
 			var mesh = new Mesh("rod") {
-				Vertices = new Vertex3DNoTex2[_latheVts],
+				Vertices = BuildRodVertices(frame),
 				Indices = new int[_latheIndices]
 			};
-
-			var tu = 0.51f;
-			var stepU = 1.0f / _circlePoints;
-			var i = 0;
-			for (int l = 0, offset = 0; l < _circlePoints; l++, offset += _lathePoints, tu += stepU) {
-
-				// Go down the long axis, adding a vertex for each point
-				// in the descriptor list at the current lathe angle.
-				if (tu > 1.0f) {
-					tu -= 1.0f;
-				}
-
-				var angle = (float) (MathF.PI * 2.0) / _circlePoints * l;
-				var sn = MathF.Sin(angle);
-				var cs = MathF.Cos(angle);
-
-				for (var m = 0; m < _lathePoints; m++) {
-					ref var c = ref _desc.c[m];
-
-					// get the current point's coordinates
-					var y = c.y + _yTip;
-					var r = c.r;
-					var tv = c.tv;
-
-					// the last coordinate is always the bottom of the rod
-					if (m + 1 == _lathePoints) {
-
-						// set the end point
-						y = _rodY;
-
-						// Figure the texture mapping for the rod position.  This is
-						// important because we draw the rod with varying length -
-						// the part that's pulled back beyond the 'rodY' point is
-						// hidden.  We want the texture to maintain the same apparent
-						// position and scale in each frame, so we need to figure the
-						// proportional point of the texture at our cut-off point on
-						// the object surface.
-						var ratio = frame * _invScale;
-						tv = mesh.Vertices[m - 1].Tv + (tv - mesh.Vertices[m - 1].Tv) * ratio;
-					}
-
-					mesh.Vertices[i++] = new Vertex3DNoTex2 {
-						X = r * (sn * _data.Width) + _data.Center.X,
-						Y = y,
-						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
-						Nx = c.nx * sn,
-						Ny = c.ny,
-						Nz = -c.nx * cs,
-						Tu = tu,
-						Tv = tv
-					};
-				}
-			}
 
 			// set up the vertex list for the lathe circles
 			var k = 0;
@@ -333,6 +277,67 @@ namespace VisualPinball.Engine.VPT.Plunger
 			return mesh;
 		}
 
+		public Vertex3DNoTex2[] BuildRodVertices(int frame)
+		{
+			var vertices = new Vertex3DNoTex2[_latheVts];
+			var yTip = _beginY + _dyPerFrame * frame;
+
+			var tu = 0.51f;
+			var stepU = 1.0f / _circlePoints;
+			var i = 0;
+			for (var l = 0; l < _circlePoints; l++, tu += stepU) {
+
+				// Go down the long axis, adding a vertex for each point
+				// in the descriptor list at the current lathe angle.
+				if (tu > 1.0f) {
+					tu -= 1.0f;
+				}
+
+				var angle = (float) (MathF.PI * 2.0) / _circlePoints * l;
+				var sn = MathF.Sin(angle);
+				var cs = MathF.Cos(angle);
+
+				for (var m = 0; m < _lathePoints; m++) {
+					ref var c = ref _desc.c[m];
+
+					// get the current point's coordinates
+					var y = c.y + yTip;
+					var r = c.r;
+					var tv = c.tv;
+
+					// the last coordinate is always the bottom of the rod
+					if (m + 1 == _lathePoints) {
+
+						// set the end point
+						y = _rodY;
+
+						// Figure the texture mapping for the rod position.  This is
+						// important because we draw the rod with varying length -
+						// the part that's pulled back beyond the 'rodY' point is
+						// hidden.  We want the texture to maintain the same apparent
+						// position and scale in each frame, so we need to figure the
+						// proportional point of the texture at our cut-off point on
+						// the object surface.
+						var ratio = frame * _invScale;
+						tv = vertices[m - 1].Tv + (tv - vertices[m - 1].Tv) * ratio;
+					}
+
+					vertices[i++] = new Vertex3DNoTex2 {
+						X = r * (sn * _data.Width) + _data.Center.X,
+						Y = y,
+						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+						Nx = c.nx * sn,
+						Ny = c.ny,
+						Nz = -c.nx * cs,
+						Tu = tu,
+						Tv = tv
+					};
+				}
+			}
+
+			return vertices;
+		}
+
 		/// <summary>
 		/// Build the spring.
 		///
@@ -347,81 +352,14 @@ namespace VisualPinball.Engine.VPT.Plunger
 		///
 		/// So use the true rod base (rodY) position to figure the spring length.
 		/// </summary>
-		/// <param name="rodVertices"></param>
+		/// <param name="frame"></param>
 		/// <returns></returns>
-		private Mesh BuildSpringMesh(IReadOnlyList<Vertex3DNoTex2> rodVertices)
+		private Mesh BuildSpringMesh(int frame)
 		{
 			var mesh = new Mesh("spring") {
-				Vertices = new Vertex3DNoTex2[_springVts],
+				Vertices = BuildSpringVertices(frame),
 				Indices = new int[_springIndices]
 			};
-
-			var springGaugeRel = _springGauge / _data.Width;
-
-			var y0 = rodVertices[_latheVts - 2].Y;
-			var y1 = _rodY;
-
-			var n = (int) ((_springLoops + _springEndLoops) * _circlePoints);
-			var nEnd = (int) (_springEndLoops * _circlePoints);
-			var nMain = n - nEnd;
-			var yEnd = _springEndLoops * _springGauge * _springMinSpacing;
-
-			var dyMain = (y1 - y0 - yEnd) / (nMain - 1);
-			var dyEnd = yEnd / (nEnd - 1);
-			var dy = dyEnd;
-			var dTheta = (float) (System.Math.PI * 2.0) / (_circlePoints - 1) + MathF.PI / (n - 1);
-
-			var pm = 0;
-			for (float theta = MathF.PI, y = y0; n != 0; --n, theta += dTheta, y += dy) {
-
-				if (n == nMain) {
-					dy = dyMain;
-				}
-
-				if (theta >= (float) (System.Math.PI * 2.0)) {
-					theta -= (float) (System.Math.PI * 2.0);
-				}
-
-				var sn = MathF.Sin(theta);
-				var cs = MathF.Cos(theta);
-
-				// set the point on the front spiral
-				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
-					Y = y - _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
-					Nx = 0.0f,
-					Ny = -1.0f,
-					Nz = 0.0f,
-					Tu = (sn + 1.0f) * 0.5f,
-					Tv = 0.76f
-				};
-
-				// set the point on the top spiral
-				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
-					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) + _data.Center.X,
-					Y = y,
-					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
-					    _zScale,
-					Nx = sn,
-					Ny = 0.0f,
-					Nz = -cs,
-					Tu = (sn + 1.0f) * 0.5f,
-					Tv = 0.85f
-				};
-
-				// set the point on the back spiral
-				mesh.Vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
-					Y = y + _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
-					Nx = 0.0f,
-					Ny = 1.0f,
-					Nz = 0.0f,
-					Tu = (sn + 1.0f) * 0.5f,
-					Tv = 0.98f
-				};
-			}
 
 			// set up the vertex list for the spring
 			var k = 0;
@@ -477,6 +415,83 @@ namespace VisualPinball.Engine.VPT.Plunger
 			}
 
 			return mesh;
+		}
+
+		public Vertex3DNoTex2[] BuildSpringVertices(int frame)
+		{
+			var vertices = new Vertex3DNoTex2[_springVts];
+
+			var springGaugeRel = _springGauge / _data.Width;
+
+			var yTip = _beginY + _dyPerFrame * frame;
+			ref var c = ref _desc.c[_lathePoints - 2];
+			var y0 = c.y + yTip;
+			//var y0 = rodVertices[_latheVts - 2].Y;
+			var y1 = _rodY;
+
+			var n = (int) ((_springLoops + _springEndLoops) * _circlePoints);
+			var nEnd = (int) (_springEndLoops * _circlePoints);
+			var nMain = n - nEnd;
+			var yEnd = _springEndLoops * _springGauge * _springMinSpacing;
+
+			var dyMain = (y1 - y0 - yEnd) / (nMain - 1);
+			var dyEnd = yEnd / (nEnd - 1);
+			var dy = dyEnd;
+			var dTheta = (float) (System.Math.PI * 2.0) / (_circlePoints - 1) + MathF.PI / (n - 1);
+
+			var pm = 0;
+			for (float theta = MathF.PI, y = y0; n != 0; --n, theta += dTheta, y += dy) {
+
+				if (n == nMain) {
+					dy = dyMain;
+				}
+
+				if (theta >= (float) (System.Math.PI * 2.0)) {
+					theta -= (float) (System.Math.PI * 2.0);
+				}
+
+				var sn = MathF.Sin(theta);
+				var cs = MathF.Cos(theta);
+
+				// set the point on the front spiral
+				vertices[pm++] = new Vertex3DNoTex2 {
+					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					Y = y - _springGauge,
+					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					Nx = 0.0f,
+					Ny = -1.0f,
+					Nz = 0.0f,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.76f
+				};
+
+				// set the point on the top spiral
+				vertices[pm++] = new Vertex3DNoTex2 {
+					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) + _data.Center.X,
+					Y = y,
+					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
+					    _zScale,
+					Nx = sn,
+					Ny = 0.0f,
+					Nz = -cs,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.85f
+				};
+
+				// set the point on the back spiral
+				vertices[pm++] = new Vertex3DNoTex2 {
+					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					Y = y + _springGauge,
+					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					Nx = 0.0f,
+					Ny = 1.0f,
+					Nz = 0.0f,
+					Tu = (sn + 1.0f) * 0.5f,
+					Tv = 0.98f
+				};
+			}
+
+			return vertices;
 		}
 	}
 }
