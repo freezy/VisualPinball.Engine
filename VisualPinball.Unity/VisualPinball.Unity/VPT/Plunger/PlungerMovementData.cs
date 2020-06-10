@@ -8,5 +8,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		public bool RetractMotion;
 		public float TravelLimit;
 		public float Position;
+		public float FireBounce;
+		public float ReverseImpulse;
 	}
 }

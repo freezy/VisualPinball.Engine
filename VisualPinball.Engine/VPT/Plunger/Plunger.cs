@@ -10,6 +10,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public EventProxy EventProxy { get; private set; }
 
 		public const float PlungerHeight = 50.0f;
+		public const float PlungerMass = 30.0f;
+
 		private readonly PlungerMeshGenerator _meshGenerator;
 		private HitObject[] _hitObjects;
 
