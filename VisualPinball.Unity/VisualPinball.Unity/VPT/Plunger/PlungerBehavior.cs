@@ -25,7 +25,9 @@ namespace VisualPinball.Unity.VPT.Plunger
 				FrameStart = hit.FrameBottom,
 				FrameEnd = hit.FrameTop,
 				FrameLen = hit.FrameLen,
-				RestPosition = hit.RestPos
+				RestPosition = hit.RestPos,
+				IsAutoPlunger = data.AutoPlunger,
+				SpeedFire = data.SpeedFire
 			});
 
 			dstManager.AddComponentData(entity, new PlungerColliderData {
@@ -45,6 +47,18 @@ namespace VisualPinball.Unity.VPT.Plunger
 				TravelLimit = hit.FrameTop,
 				FireSpeed = 0f,
 				FireTimer = 0
+			});
+
+			dstManager.AddComponentData(entity, new PlungerVelocityData {
+				Mech0 = 0f,
+				Mech1 = 0f,
+				Mech2 = 0f,
+				PullForce = 0f,
+				InitialSpeed = 0f,
+				AutoFireTimer = 0,
+				AddRetractMotion = false,
+				RetractWaitLoop = 0,
+				MechStrength = data.MechStrength
 			});
 		}
 
