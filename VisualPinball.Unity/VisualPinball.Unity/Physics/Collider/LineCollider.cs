@@ -53,6 +53,12 @@ namespace VisualPinball.Unity.Physics.Collider
 			_zHigh = src.HitBBox.ZHigh;
 		}
 
+		public static float HitTest(ref CollisionEventData collEvent,
+			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in LineCollider coll, in BallData ball, float dTime)
+		{
+			return HitTestBasic(ref collEvent, ref insideOfs, in coll, ball, dTime, true, true, true); // normal face, lateral, rigid
+		}
+
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, true, true, true); // normal face, lateral, rigid

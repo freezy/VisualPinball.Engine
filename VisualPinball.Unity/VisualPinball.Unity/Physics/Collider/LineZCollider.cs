@@ -24,6 +24,13 @@ namespace VisualPinball.Unity.Physics.Collider
 			collider.Init(src);
 		}
 
+		public static LineZCollider Create(HitLineZ src)
+		{
+			var collider = default(LineZCollider);
+			collider.Init(src);
+			return collider;
+		}
+
 		private void Init(HitLineZ src)
 		{
 			_header.Init(ColliderType.LineZ, src);
