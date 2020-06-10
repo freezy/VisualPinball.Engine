@@ -11,6 +11,7 @@ using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using Random = Unity.Mathematics.Random;
 
@@ -101,6 +102,15 @@ namespace VisualPinball.Unity.Physics.Collision
 								((LineSlingshotCollider*) collider)->Collide(
 									ref ballData, in slingshotData,
 									in collEvent, ref random);
+								break;
+
+							case ColliderType.Plunger:
+								var plungerMovementData = GetComponent<PlungerMovementData>(coll.Entity);
+								var plungerStaticData = GetComponent<PlungerStaticData>(coll.Entity);
+								PlungerCollider.Collide(
+									ref ballData, ref collEvent, ref plungerMovementData,
+									in plungerStaticData, ref random);
+								SetComponent(coll.Entity, plungerMovementData);
 								break;
 
 							case ColliderType.Spinner:
