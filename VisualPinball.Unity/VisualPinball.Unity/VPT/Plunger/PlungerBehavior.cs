@@ -32,7 +32,8 @@ namespace VisualPinball.Unity.VPT.Plunger
 				FrameLen = hit.FrameLen,
 				RestPosition = hit.RestPos,
 				IsAutoPlunger = data.AutoPlunger,
-				SpeedFire = data.SpeedFire
+				SpeedFire = data.SpeedFire,
+				NumFrames = Item.MeshGenerator.NumFrames
 			});
 
 			dstManager.AddComponentData(entity, new PlungerColliderData {
