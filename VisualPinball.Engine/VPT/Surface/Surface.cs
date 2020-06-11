@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			EventProxy = new EventProxy(this);
 			_hits = _hitGenerator.GenerateHitObjects(EventProxy, table);

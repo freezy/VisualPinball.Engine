@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
@@ -8,8 +9,10 @@ namespace VisualPinball.Unity.VPT.Plunger
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
 			var plunger = transform.parent.gameObject.GetComponent<PlungerBehavior>().Item;
 			var plungerEntity = new Entity {Index = plunger.Index, Version = plunger.Version};
+			plunger.MeshGenerator.Init(table);
 
 			// update parent
 			var plungerStaticData = dstManager.GetComponentData<PlungerStaticData>(plungerEntity);

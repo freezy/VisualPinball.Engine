@@ -4,6 +4,7 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
@@ -17,8 +18,10 @@ namespace VisualPinball.Unity.VPT.Plunger
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
 			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, gameObject);
 
+			Item.Init(table);
 			var hit = Item.PlungerHit;
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
