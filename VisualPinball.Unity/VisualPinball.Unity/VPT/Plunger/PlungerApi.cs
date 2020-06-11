@@ -6,7 +6,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 {
 	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>
 	{
-		public bool DoRetract { get; set; } = true;
+		public bool DoRetract { get; set; } = false;
 
 		public PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
