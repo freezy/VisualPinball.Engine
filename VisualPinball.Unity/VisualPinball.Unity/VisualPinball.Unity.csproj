@@ -213,6 +213,7 @@
     <Compile Include="VPT\Light\LightExtensions.cs" />
     <Compile Include="VPT\Plunger\PlungerAnimationData.cs" />
     <Compile Include="VPT\Plunger\PlungerAnimationSystem.cs" />
+    <Compile Include="VPT\Plunger\PlungerTransformationSystem.cs" />
     <Compile Include="VPT\Plunger\PlungerApi.cs" />
     <Compile Include="VPT\Plunger\PlungerCommands.cs" />
     <Compile Include="VPT\Plunger\PlungerBehavior.cs" />

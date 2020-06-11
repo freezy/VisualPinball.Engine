@@ -5,7 +5,7 @@ using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
-	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
+	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	public class PlungerAnimationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerAnimationSystem");
@@ -13,22 +13,35 @@ namespace VisualPinball.Unity.VPT.Plunger
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
+			var animationDatas = GetComponentDataFromEntity<PlungerAnimationData>();
 
-			// Entities.WithoutBurst().ForEach((ref RenderMesh mesh, in PlungerAnimationData animationData,
-			// 	in DynamicBuffer<PlungerMeshBufferElement> vertices) =>
-			// {
-			// 	marker.Begin();
-			//
-			// 	var frame = animationData.CurrentFrame;
-			// 	var numVtx = mesh.mesh.vertices.Length;
-			// 	var startPos = frame * numVtx;
-			// 	for (var i = 0; i < numVtx; i++) {
-			// 		mesh.mesh.vertices[i] = vertices[startPos + i].Value;
-			// 	}
-			//
-			// 	marker.End();
-			//
-			// }).Run();
+			Entities
+				.WithNativeDisableParallelForRestriction(animationDatas)
+				.ForEach((in PlungerMovementData movementData, in PlungerStaticData staticData) =>
+			{
+				marker.Begin();
+
+				var rodAnimData = animationDatas[staticData.RodEntity];
+				var springAnimData = animationDatas[staticData.SpringEntity];
+
+				var frame0 = (int)((movementData.Position - staticData.FrameStart) / (staticData.FrameEnd - staticData.FrameStart) * (staticData.NumFrames - 1) + 0.5f);
+				var frame = frame0 < 0 ? 0 : frame0 >= staticData.NumFrames ? staticData.NumFrames - 1 : frame0;
+
+				if (rodAnimData.CurrentFrame != frame) {
+					rodAnimData.CurrentFrame = frame;
+					rodAnimData.IsDirty = true;
+					animationDatas[staticData.RodEntity] = rodAnimData;
+				}
+
+				if (springAnimData.CurrentFrame != frame) {
+					springAnimData.CurrentFrame = frame;
+					springAnimData.IsDirty = true;
+					animationDatas[staticData.SpringEntity] = springAnimData;
+				}
+
+				marker.End();
+
+			}).Run();
 		}
 	}
 }
