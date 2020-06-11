@@ -14,21 +14,21 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			var marker = PerfMarker;
 
-			Entities.ForEach((ref RenderMesh mesh, in PlungerAnimationData animationData,
-				in DynamicBuffer<PlungerMeshBufferElement> vertices) =>
-			{
-				marker.Begin();
-
-				var frame = animationData.CurrentFrame;
-				var numVtx = mesh.mesh.vertices.Length;
-				var startPos = frame * numVtx;
-				for (var i = 0; i < numVtx; i++) {
-					mesh.mesh.vertices[i] = vertices[startPos + i].Value;
-				}
-
-				marker.End();
-
-			}).Run();
+			// Entities.WithoutBurst().ForEach((ref RenderMesh mesh, in PlungerAnimationData animationData,
+			// 	in DynamicBuffer<PlungerMeshBufferElement> vertices) =>
+			// {
+			// 	marker.Begin();
+			//
+			// 	var frame = animationData.CurrentFrame;
+			// 	var numVtx = mesh.mesh.vertices.Length;
+			// 	var startPos = frame * numVtx;
+			// 	for (var i = 0; i < numVtx; i++) {
+			// 		mesh.mesh.vertices[i] = vertices[startPos + i].Value;
+			// 	}
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

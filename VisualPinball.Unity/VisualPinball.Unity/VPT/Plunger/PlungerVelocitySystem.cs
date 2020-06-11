@@ -247,7 +247,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 					}
 
 					// trigger a release from the apex position
-					PlungerApi.Fire(apex, ref velocityData, ref movementData, in staticData);
+					PlungerCommands.Fire(apex, ref velocityData, ref movementData, in staticData);
 
 				} else {
 					// Normal mode, and NOT firing the plunger.  In this mode, we
