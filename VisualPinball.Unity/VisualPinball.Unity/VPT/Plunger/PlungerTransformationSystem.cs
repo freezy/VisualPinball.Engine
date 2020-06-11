@@ -1,4 +1,5 @@
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Profiling;
 using Unity.Rendering;
@@ -16,22 +17,23 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			var marker = PerfMarker;
 
-			Entities.WithoutBurst().ForEach((Entity entity, in PlungerAnimationData animationData) =>
-			{
+			Entities.WithoutBurst().ForEach((Entity entity, ref PlungerAnimationData animationData) => {
+
 				if (!animationData.IsDirty) {
 					return;
 				}
+				animationData.IsDirty = false;
 
 				marker.Begin();
 
 				var meshComponent = EntityManager.GetSharedComponentData<RenderMesh>(entity);
 
 				var frame = animationData.CurrentFrame;
-				var numVtx = meshComponent.mesh.vertices.Length;
-				var startPos = frame * numVtx;
+				var count = meshComponent.mesh.vertices.Length;
+				var startPos = frame * count;
 
-				var float3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
-				var vertices = new NativeSlice<Vector3>(float3Buffer.AsNativeArray(), startPos, numVtx);
+				var vector3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
+				var vertices = new NativeSlice<Vector3>(vector3Buffer.AsNativeArray(), startPos, count);
 
 				meshComponent.mesh.SetVertices(vertices.ToArray());
 
