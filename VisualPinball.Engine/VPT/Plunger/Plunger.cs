@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Plunger(BinaryReader reader, string itemName) : this(new PlungerData(reader, itemName)) { }
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			EventProxy = new EventProxy(this);

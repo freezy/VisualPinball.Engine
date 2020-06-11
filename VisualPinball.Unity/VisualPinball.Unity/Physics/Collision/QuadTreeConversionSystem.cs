@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var table = Object.FindObjectOfType<TableBehavior>().Table;
 
 			foreach (var playable in table.Playables) {
-				playable.SetupPlayer(null, table);
+				playable.Init(table);
 			}
 
 			// index hittables

@@ -57,7 +57,7 @@ namespace VisualPinball.Engine.Game
 		private void SetupTableElements()
 		{
 			foreach (var playable in _table.Playables) {
-				playable.SetupPlayer(this, _table);
+				playable.Init(_table);
 			}
 		}
 	}

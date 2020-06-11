@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public Flipper(BinaryReader reader, string itemName) : this(new FlipperData(reader, itemName)) { }
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			EventProxy = new EventProxy(this);
 			_hit = new FlipperHit(Data, State, EventProxy, table);

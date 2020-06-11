@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public Spinner(BinaryReader reader, string itemName) : this(new SpinnerData(reader, itemName)) { }
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 
