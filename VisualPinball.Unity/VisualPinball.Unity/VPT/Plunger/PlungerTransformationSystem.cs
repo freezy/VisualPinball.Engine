@@ -1,6 +1,8 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using Unity.Rendering;
+using UnityEngine;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Plunger
@@ -14,8 +16,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			var marker = PerfMarker;
 
-			Entities.WithoutBurst().ForEach((Entity entity, in PlungerAnimationData animationData,
-				in DynamicBuffer<PlungerMeshBufferElement> vertices) =>
+			Entities.WithoutBurst().ForEach((Entity entity, in PlungerAnimationData animationData) =>
 			{
 				if (!animationData.IsDirty) {
 					return;
@@ -28,9 +29,11 @@ namespace VisualPinball.Unity.VPT.Plunger
 				var frame = animationData.CurrentFrame;
 				var numVtx = meshComponent.mesh.vertices.Length;
 				var startPos = frame * numVtx;
-				for (var i = 0; i < numVtx; i++) {
-					meshComponent.mesh.vertices[i] = vertices[startPos + i].Value;
-				}
+
+				var float3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
+				var vertices = new NativeSlice<Vector3>(float3Buffer.AsNativeArray(), startPos, numVtx);
+
+				meshComponent.mesh.SetVertices(vertices.ToArray());
 
 				marker.End();
 
