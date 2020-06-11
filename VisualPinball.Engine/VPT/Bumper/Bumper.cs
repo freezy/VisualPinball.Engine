@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		public Bumper(BinaryReader reader, string itemName) : this(new BumperData(reader, itemName)) { }
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			_hits = new HitObject[] {new BumperHit(Data.Center, Data.Radius, height, height + Data.HeightScale)};

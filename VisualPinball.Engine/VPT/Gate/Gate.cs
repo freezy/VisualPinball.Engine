@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public Gate(BinaryReader reader, string itemName) : this(new GateData(reader, itemName)) { }
 
-		public void SetupPlayer(Player player, Table.Table table)
+		public void Init(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var radAngle = MathF.DegToRad(Data.Rotation);

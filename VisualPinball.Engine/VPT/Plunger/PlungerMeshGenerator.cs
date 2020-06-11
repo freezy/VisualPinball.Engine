@@ -70,11 +70,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_desc = GetPlungerDesc();
 		}
 
-		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
+		public void Init(Table.Table table)
 		{
 			_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
 			_zScale = table.GetScaleZ();
 			_desc = GetPlungerDesc();
+		}
+
+		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
+		{
+			Init(table);
 
 			// todo
 			var translationMatrix = Matrix3D.Identity;
@@ -280,6 +285,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Vertex3DNoTex2[] BuildRodVertices(int frame)
 		{
+			if (_lathePoints == 0) {
+				CalculateArraySizes();
+			}
 			var vertices = new Vertex3DNoTex2[_latheVts];
 			var yTip = _beginY + _dyPerFrame * frame;
 
@@ -420,6 +428,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Vertex3DNoTex2[] BuildSpringVertices(int frame)
 		{
+			if (_lathePoints == 0) {
+				CalculateArraySizes();
+			}
 			var vertices = new Vertex3DNoTex2[_springVts];
 
 			var springGaugeRel = _springGauge / _data.Width;
