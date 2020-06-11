@@ -21,5 +21,8 @@ namespace VisualPinball.Unity.VPT.Plunger
 		// velocity
 		public bool IsAutoPlunger;
 		public float SpeedFire;
+
+		// mesh frame calc
+		public int NumFrames;
 	}
 }
