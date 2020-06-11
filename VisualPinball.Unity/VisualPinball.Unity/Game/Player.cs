@@ -9,13 +9,14 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
+using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Table;
 using Random = UnityEngine.Random;
 
@@ -56,6 +57,11 @@ namespace VisualPinball.Unity.Game
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
+		}
+
+		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
+		{
+			_tableApi.Plungers[plunger.Name] = new PlungerApi(plunger, entity, this);
 		}
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
@@ -128,6 +134,13 @@ namespace VisualPinball.Unity.Game
 			if (Input.GetKeyUp("n")) {
 				_player.CreateBall(new DebugBallCreator(517f, 1672f, -90, 3));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyUp(KeyCode.Return)) {
+				_tableApi.Plunger("CustomPlunger")?.PullBack();
+			}
+			if (Input.GetKeyDown(KeyCode.Return)) {
+				_tableApi.Plunger("CustomPlunger")?.Fire();
 			}
 		}
 

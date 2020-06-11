@@ -2,6 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
 
 namespace VisualPinball.Unity.VPT.Plunger
@@ -16,6 +17,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, gameObject);
 
 			var hit = Item.PlungerHit;
 

@@ -1,51 +1,60 @@
-using VisualPinball.Unity.VPT.Plunger;
+﻿using Unity.Entities;
+using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Engine.VPT.Plunger
+namespace VisualPinball.Unity.VPT.Plunger
 {
-	public class PlungerApi
+	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>
 	{
-		public static void Fire(float startPos, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData, in PlungerStaticData staticData)
+		public bool DoRetract { get; set; } = true;
+
+		public PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
-			// cancel any pull force
-			velocityData.PullForce = 0.0f;
-
-			// make sure the starting point is behind the park position
-			if (startPos < staticData.RestPosition) {
-				startPos = staticData.RestPosition;
-			}
-
-			// move immediately to the starting position
-			movementData.Position = staticData.FrameEnd + (startPos * staticData.FrameLen);
-
-			// Figure the release speed as a fraction of the
-			// fire speed property, linearly proportional to the
-			// starting distance.  Note that the release motion
-			// is upwards, so the speed is negative.
-			var dx = startPos - staticData.RestPosition;
-			const float normalize = Plunger.PlungerNormalize / 13.0f / 100.0f;
-			movementData.FireSpeed = -staticData.SpeedFire
-			              * dx * staticData.FrameLen / Plunger.PlungerMass
-			              * normalize;
-
-			// Figure the target stopping position for the
-			// bounce off of the barrel spring.  Treat this
-			// as proportional to the pull distance, but max
-			// out (i.e., go all the way to the forward travel
-			// limit, position 0.0) if the pull position is
-			// more than about halfway.
-			const float maxPull = .5f;
-			var bounceDist = (dx < maxPull ? dx / maxPull : 1.0f);
-
-			// the initial bounce will be negative, since we're moving upwards,
-			// and we calculated it as a fraction of the forward travel distance
-			// (which is the part between 0 and the rest position)
-			movementData.FireBounce = -bounceDist * staticData.RestPosition;
-
-			// enter Fire mode for long enough for the process to complete
-			movementData.FireTimer = 200;
-
-			movementData.RetractMotion = false;
 		}
 
+		public void PullBack()
+		{
+			var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
+			var velocityData = EntityManager.GetComponentData<PlungerVelocityData>(Entity);
+
+			if (DoRetract) {
+				PlungerCommands.PullBackAndRetract(Item.Data.SpeedPull, ref velocityData, ref movementData);
+
+			} else {
+				PlungerCommands.PullBack(Item.Data.SpeedPull, ref velocityData, ref movementData);
+			}
+
+			EntityManager.SetComponentData(Entity, movementData);
+			EntityManager.SetComponentData(Entity, velocityData);
+		}
+
+		public void Fire()
+		{
+			var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
+			var velocityData = EntityManager.GetComponentData<PlungerVelocityData>(Entity);
+			var staticData = EntityManager.GetComponentData<PlungerStaticData>(Entity);
+
+			// check for an auto plunger
+			if (Item.Data.AutoPlunger) {
+				// Auto Plunger - this models a "Launch Ball" button or a
+				// ROM-controlled launcher, rather than a player-operated
+				// spring plunger.  In a physical machine, this would be
+				// implemented as a solenoid kicker, so the amount of force
+				// is constant (modulo some mechanical randomness).  Simulate
+				// this by triggering a release from the maximum retracted
+				// position.
+				PlungerCommands.Fire(1f, ref velocityData, ref movementData, in staticData);
+
+			} else {
+				// Regular plunger - trigger a release from the current
+				// position, using the keyboard firing strength.
+
+				var pos = (movementData.Position - staticData.FrameEnd) / (staticData.FrameStart - staticData.FrameEnd);
+				PlungerCommands.Fire(pos, ref velocityData, ref movementData, in staticData);
+			}
+
+			EntityManager.SetComponentData(Entity, movementData);
+			EntityManager.SetComponentData(Entity, velocityData);
+		}
 	}
 }
