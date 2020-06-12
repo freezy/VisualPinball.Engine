@@ -19,6 +19,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			public Vector3 WorldPos = Vector3.zero;
 			public Vector3 ScrPos = Vector3.zero;
 			public bool IsSelected = false;
+			public bool IsFoldOut = false;
 			public int ControlId = 0;
 
 			public ControlPoint(ref DragPointData dp, int controlID)
@@ -47,7 +48,14 @@ namespace VisualPinball.Unity.Editor.Editors
 		private bool _curveTravellerVisible = false;
 		private int _curveTravellerControlPointIdx = -1;
 
+		//Inspector
+		private bool _foldoutControlPoints = false;
+		private GUIStyle _styleSelected = new GUIStyle();
+		private GUIStyle _styleLocked = new GUIStyle();
+
+		//Mesh management & Undo
 		private bool _needMeshRebuilt = false;
+		private string _pendingUndoMessage = string.Empty;
 
 		//Drop down PopupMenus
 		class MenuItems
@@ -150,21 +158,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				return true;
 			}
 
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Properties", false, 101)]
-			private static void Properties(MenuCommand command)
-			{
-				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
-					return;
-				var cpoint = editor.DragPointsEditor.GetControlPoint(command.userData);
-				if (cpoint != null)
-				{
-					editor.DragPointsEditor.PrepareUndo("Opening Dragpoint Properties");
-					DragPointEditorWindow.ShowDragPointEditorWindow(editor.DragPointsEditor, cpoint.DragPoint, cpoint.ScrPos);
-				}
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Remove Point", false, 201)]
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Remove Point", false, 101)]
 			private static void RemoveDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
@@ -187,38 +181,6 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				editor.DragPointsEditor.AddDragPointOnTraveller();
 			}
-		}
-
-		//Dragpoint Edition
-		class DragPointEditorWindow : EditorWindow
-		{
-			public static void ShowDragPointEditorWindow(DragPointsEditor editor, DragPointData dpdata, Vector2 pos)
-			{
-				DragPointEditorWindow window = GetWindow(typeof(DragPointEditorWindow)) as DragPointEditorWindow;
-				var scrPos = GUIUtility.GUIToScreenPoint(pos);
-				window.position = new Rect(scrPos.x, scrPos.y, 0, 0);
-				window._editor = editor;
-				window._dragPointData = dpdata;
-				window.Show();
-			}
-
-			void OnGUI()
-			{
-				EditorGUI.BeginChangeCheck();
-
-				GUILayout.BeginHorizontal("TextureCoord");
-				GUILayout.Label("Texture Coord");
-				_dragPointData.TextureCoord = GUILayout.HorizontalSlider(_dragPointData.TextureCoord, 0.0f, 1.0f);
-				GUILayout.EndHorizontal();
-
-				if (EditorGUI.EndChangeCheck())
-				{
-					SceneView.RepaintAll();
-				}
-			}
-
-			public DragPointsEditor _editor { get; set; }
-			public DragPointData _dragPointData { get; set; }
 		}
 
 		public DragPointData GetDragPoint(int controlId)
@@ -247,6 +209,22 @@ namespace VisualPinball.Unity.Editor.Editors
 				dpeditable.DragPointEditEnabled = !dpeditable.DragPointEditEnabled;
 				SceneView.RepaintAll();
 			}
+
+			if (dpeditable.DragPointEditEnabled)
+			{
+				if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points"))
+				{
+					foreach (var cpoint in _controlPoints)
+					{
+						EditorGUILayout.LabelField("ID [" + cpoint.ControlId.ToString() + "]");
+						EditorGUILayout.Space(10);
+						EditorGUILayout.Toggle(cpoint.DragPoint.IsLocked, "IsLocked");
+						EditorGUILayout.Toggle(cpoint.DragPoint.IsSlingshot, "IsSlingshot");
+						EditorGUILayout.Toggle(cpoint.DragPoint.IsSmooth, "IsSmooth");
+					}
+				}
+				EditorGUILayout.EndFoldoutHeaderGroup();
+			}
 		}
 
 		protected void RebuildControlPoints(IDragPointsEditable dpEditable)
@@ -268,8 +246,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				return;
 
 			_needMeshRebuilt = true;
-
-			Undo.RecordObject(_target as Behaviour, message);
+			_pendingUndoMessage = message;
 		}
 
 		public void AddDragPointOnTraveller()
@@ -431,6 +408,19 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				case EventType.Repaint:
 					{
+						if (_needMeshRebuilt)
+						{
+							//Set Meshdirty to true there so it'll trigger again after Undo
+							List<Object> recordObjs = new List<Object>();
+							if (editable != null)
+							{
+								editable.MeshDirty = true;
+								recordObjs.Add(_itemInspector);
+							}
+							recordObjs.Add(_target as Behaviour);
+							_needMeshRebuilt = false;
+							Undo.RecordObjects(recordObjs.ToArray(), _pendingUndoMessage);
+						}
 						_curveTravellerVisible = false;
 					}
 					break;
@@ -528,14 +518,6 @@ namespace VisualPinball.Unity.Editor.Editors
 					Handles.SphereHandleCap(_curveTravellerControlId, _curveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
 					_curveTravellerVisible = true;
 				}
-			}
-
-			if (_needMeshRebuilt && Event.current.type == EventType.Repaint)
-			{
-				//Set Meshdirty to true there so it'll trigger again after Undo
-				if (editable != null)
-					editable.MeshDirty = true;
-				_needMeshRebuilt = false;
 			}
 		}
 	}

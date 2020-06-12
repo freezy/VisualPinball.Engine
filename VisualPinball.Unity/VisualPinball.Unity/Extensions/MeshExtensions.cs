@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Extensions
 				normals[i] = vertex.ToUnityNormalVector3();
 				uv[i] = vertex.ToUnityUvVector2();
 			}
+			mesh.triangles = null;
 			mesh.vertices = vertices;
 			mesh.normals = normals;
 			mesh.uv = uv;
