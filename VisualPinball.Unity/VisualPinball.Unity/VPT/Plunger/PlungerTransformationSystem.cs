@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 				var startPos = frame * count;
 
 				var vector3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
-				meshComponent.mesh.SetVertices(vector3Buffer.AsNativeArray().GetSubArray(startPos, count));
+				meshComponent.mesh.SetVertices(vector3Buffer.AsNativeArray(), startPos, count);
 
 				marker.End();
 
