@@ -47,6 +47,8 @@ namespace VisualPinball.Unity.Editor.Editors
 		private bool _curveTravellerVisible = false;
 		private int _curveTravellerControlPointIdx = -1;
 
+		private bool _needMeshRebuilt = false;
+
 		//Drop down PopupMenus
 		class MenuItems
 		{
@@ -265,10 +267,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			if (_target == null)
 				return;
 
-			//Set Meshdirty to true there so it'll trigger again after Undo
-			IEditableItemBehavior editable = _target as IEditableItemBehavior;
-			if (editable != null)
-				editable.MeshDirty = true;
+			_needMeshRebuilt = true;
 
 			Undo.RecordObject(_target as Behaviour, message);
 		}
@@ -492,6 +491,8 @@ namespace VisualPinball.Unity.Editor.Editors
 					var cpoint = _controlPoints[i];
 					Handles.color = cpoint.DragPoint.IsLocked ? UnityEngine.Color.red : (cpoint.IsSelected ? UnityEngine.Color.green : UnityEngine.Color.gray);
 					Handles.SphereHandleCap(0, cpoint.WorldPos, Quaternion.identity, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius, EventType.Repaint);
+					float decal = (HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius * 0.1f);
+					Handles.Label(cpoint.WorldPos - Vector3.right * decal + Vector3.forward * decal  * 2.0f, i.ToString());
 					float dist = Vector3.Distance(_curveTravellerPosition, cpoint.WorldPos);
 					distToCPoint = Mathf.Min(distToCPoint, dist);
 				}
@@ -526,6 +527,13 @@ namespace VisualPinball.Unity.Editor.Editors
 				}
 			}
 
+			if (_needMeshRebuilt && Event.current.type == EventType.Repaint)
+			{
+				//Set Meshdirty to true there so it'll trigger again after Undo
+				if (editable != null)
+					editable.MeshDirty = true;
+				_needMeshRebuilt = false;
+			}
 		}
 	}
 }
