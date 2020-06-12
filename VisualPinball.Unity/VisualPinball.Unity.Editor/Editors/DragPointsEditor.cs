@@ -53,10 +53,6 @@ namespace VisualPinball.Unity.Editor.Editors
 		private GUIStyle _styleSelected = new GUIStyle();
 		private GUIStyle _styleLocked = new GUIStyle();
 
-		//Mesh management & Undo
-		private bool _needMeshRebuilt = false;
-		private string _pendingUndoMessage = string.Empty;
-
 		//Drop down PopupMenus
 		class MenuItems
 		{
@@ -65,8 +61,9 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			private static DragPointData RetrieveDragPoint(DragPointsEditor editor, int controlId)
 			{
-				if (editor == null)
+				if (editor == null){
 					return null;
+				}
 				return editor.GetDragPoint(controlId);
 			}
 
@@ -75,11 +72,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static void Lock(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return;
+				}
+					
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					editor.DragPointsEditor.PrepareUndo("Changing DragPoint IsLocked");
 					dpoint.IsLocked = !dpoint.IsLocked;
 				}
@@ -89,11 +87,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static bool LockValidate(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return false;
+				}
+
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsLocked", dpoint.IsLocked);
 				}
 
@@ -104,11 +103,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static void SlingShot(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return;
+				}
+
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					editor.DragPointsEditor.PrepareUndo("Changing DragPoint IsSlingshot");
 					dpoint.IsSlingshot = !dpoint.IsSlingshot;
 				}
@@ -118,11 +118,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static bool SlingshotValidate(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return false;
+				}
+
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsSlingshot", dpoint.IsSlingshot);
 				}
 
@@ -133,11 +134,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static void Smooth(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return;
+				}
+
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					editor.DragPointsEditor.PrepareUndo("Changing DragPoint IsSmooth");
 					dpoint.IsSmooth = !dpoint.IsSmooth;
 				}
@@ -147,11 +149,12 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static bool SmoothValidate(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return false;
+				}
+
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null)
-				{
+				if (dpoint != null){
 					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsSmooth", dpoint.IsSmooth);
 				}
 
@@ -162,11 +165,11 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static void RemoveDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return;
+				}
 
-				if (EditorUtility.DisplayDialog("DragPoint Removal", "Are you sure you want to remove this Dragpoint ?", "Yes", "No"))
-				{
+				if (EditorUtility.DisplayDialog("DragPoint Removal", "Are you sure you want to remove this Dragpoint ?", "Yes", "No")){
 					editor.DragPointsEditor.RemoveDragPoint(command.userData);
 				}
 			}
@@ -176,8 +179,9 @@ namespace VisualPinball.Unity.Editor.Editors
 			static void AddDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null)
+				if (editor == null || editor.DragPointsEditor == null){
 					return;
+				}
 
 				editor.DragPointsEditor.AddDragPointOnTraveller();
 			}
@@ -186,8 +190,7 @@ namespace VisualPinball.Unity.Editor.Editors
 		public DragPointData GetDragPoint(int controlId)
 		{
 			var cpoint = _controlPoints.Find(cp => cp.ControlId == controlId);
-			if (cpoint != null)
-			{
+			if (cpoint != null){
 				return cpoint.DragPoint;
 			}
 			return null;
@@ -202,7 +205,9 @@ namespace VisualPinball.Unity.Editor.Editors
 		{
 			_target = target;
 			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
-			if (dpeditable == null) return;
+			if (dpeditable == null){
+				return;
+			}
 
 			string enabledString = dpeditable.DragPointEditEnabled ? "(ON)" : "(OFF)";
 			if (GUILayout.Button($"Edit Drag Points {enabledString}")) {
@@ -210,21 +215,25 @@ namespace VisualPinball.Unity.Editor.Editors
 				SceneView.RepaintAll();
 			}
 
-			if (dpeditable.DragPointEditEnabled)
-			{
-				if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points"))
-				{
+/*			if (dpeditable.DragPointEditEnabled){
+				if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points")){
 					foreach (var cpoint in _controlPoints)
 					{
 						EditorGUILayout.LabelField("ID [" + cpoint.ControlId.ToString() + "]");
 						EditorGUILayout.Space(10);
-						EditorGUILayout.Toggle(cpoint.DragPoint.IsLocked, "IsLocked");
-						EditorGUILayout.Toggle(cpoint.DragPoint.IsSlingshot, "IsSlingshot");
-						EditorGUILayout.Toggle(cpoint.DragPoint.IsSmooth, "IsSmooth");
+						EditorGUI.BeginChangeCheck();
+						cpoint.DragPoint.IsLocked = EditorGUILayout.Toggle("IsLocked", cpoint.DragPoint.IsLocked);
+						cpoint.DragPoint.IsSlingshot =  = EditorGUILayout.Toggle("IsSlingshot", cpoint.DragPoint.IsSlingshot);
+						cpoint.DragPoint.IsSmooth = EditorGUILayout.Toggle("IsSmooth", cpoint.DragPoint.IsSmooth);
+						if (EditorGUI.EndChangeCheck())
+						{
+							PrepareUndo("Changing Properties on Dragpoint " + cpoint.ControlId.ToString());
+						}
 					}
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();
 			}
+			*/
 		}
 
 		protected void RebuildControlPoints(IDragPointsEditable dpEditable)
@@ -242,22 +251,33 @@ namespace VisualPinball.Unity.Editor.Editors
 
 		public void PrepareUndo(string message)
 		{
-			if (_target == null)
+			if (_target == null){
 				return;
+			}
 
-			_needMeshRebuilt = true;
-			_pendingUndoMessage = message;
+			//Set Meshdirty to true there so it'll trigger again after Undo
+			List<Object> recordObjs = new List<Object>();
+			IEditableItemBehavior editable = _target as IEditableItemBehavior;
+			if (editable != null)
+			{
+				editable.MeshDirty = true;
+				recordObjs.Add(_itemInspector);
+			}
+			recordObjs.Add(_target as Behaviour);
+			Undo.RecordObjects(recordObjs.ToArray(), message);
 		}
 
 		public void AddDragPointOnTraveller()
 		{
 			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
 			Behaviour bh = _target as Behaviour;
-			if (dpeditable == null || bh == null)
+			if (dpeditable == null || bh == null){
 				return;
+			}
 
-			if (_curveTravellerControlPointIdx < 0 || _curveTravellerControlPointIdx >= _controlPoints.Count)
+			if (_curveTravellerControlPointIdx < 0 || _curveTravellerControlPointIdx >= _controlPoints.Count){
 				return;
+			}
 
 			PrepareUndo("Adding Drag Point at position " + _curveTravellerPosition.ToString());
 
@@ -285,19 +305,18 @@ namespace VisualPinball.Unity.Editor.Editors
 		public void RemoveDragPoint(int controlId)
 		{
 			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
-			if (dpeditable == null)
+			if (dpeditable == null){
 				return;
+			}
+
 			var idx = _controlPoints.FindIndex(cpoint => cpoint.ControlId == controlId);
-			if (idx >= 0)
-			{
+			if (idx >= 0){
 				bool removalOK = !_controlPoints[idx].DragPoint.IsLocked;
-				if (!removalOK)
-				{
+				if (!removalOK){
 					removalOK = EditorUtility.DisplayDialog("Locked DragPoint Removal", "This Dragpoint is Locked !!\nAre you really sure you want to remove it ?", "Yes", "No");
 				}
 
-				if (removalOK)
-				{
+				if (removalOK){
 					PrepareUndo("Removing Drag Point");
 					List<DragPointData> dpoints = new List<DragPointData>(dpeditable.GetDragPoints());
 					dpoints.RemoveAt(idx);
@@ -321,11 +340,13 @@ namespace VisualPinball.Unity.Editor.Editors
 			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
 			Behaviour bh = _target as Behaviour;
 
-			if (bh == null || dpeditable == null || !dpeditable.DragPointEditEnabled)
+			if (bh == null || dpeditable == null || !dpeditable.DragPointEditEnabled){
 				return;
+			}
 
-			if (_controlPoints.Count != dpeditable.GetDragPoints().Length)
+			if (_controlPoints.Count != dpeditable.GetDragPoints().Length){
 				RebuildControlPoints(dpeditable);
+			}
 
 			Vector3 offset = dpeditable.GetEditableOffset();
 			Matrix4x4 lwMat = bh.transform.localToWorldMatrix;
@@ -344,19 +365,19 @@ namespace VisualPinball.Unity.Editor.Editors
 							cpoint.WorldPos += offset;
 							cpoint.WorldPos = lwMat.MultiplyPoint(cpoint.WorldPos);
 							cpoint.ScrPos = Handles.matrix.MultiplyPoint(cpoint.WorldPos);
-							if (cpoint.IsSelected)
-							{
-								if (cpoint.DragPoint.IsLocked)
+							if (cpoint.IsSelected){
+								if (cpoint.DragPoint.IsLocked){
 									cpoint.IsSelected = false;
-								else
+								}
+								else{
 									_selectedCP.Add(cpoint);
+								}
 							}
 							HandleUtility.AddControl(cpoint.ControlId, HandleUtility.DistanceToCircle(cpoint.ScrPos, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius * 0.5f));
 						}
 
 						//Setup PositionHandle if some control points are selected
-						if (_selectedCP.Count > 0)
-						{
+						if (_selectedCP.Count > 0){
 							_positionHandlePosition = Vector3.zero;
 							foreach (var sCp in _selectedCP)
 							{
@@ -365,21 +386,19 @@ namespace VisualPinball.Unity.Editor.Editors
 							_positionHandlePosition /= _selectedCP.Count;
 						}
 
-						if (_curveTravellerVisible)
+						if (_curveTravellerVisible){
 							HandleUtility.AddControl(_curveTravellerControlId, HandleUtility.DistanceToCircle(Handles.matrix.MultiplyPoint(_curveTravellerPosition), HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.5f));
+						}
 					}
 					break;
 
 				case EventType.MouseDown:
 					{
-						if (Event.current.button == 0)
-						{
+						if (Event.current.button == 0){
 							var nearCP = _controlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
-							if (nearCP != null && !nearCP.DragPoint.IsLocked)
-							{
+							if (nearCP != null && !nearCP.DragPoint.IsLocked){
 								bool oldSelection = nearCP.IsSelected;
-								if (!Event.current.control)
-								{
+								if (!Event.current.control)	{
 									ClearAllSelection();
 								}
 								nearCP.IsSelected = oldSelection;
@@ -387,17 +406,14 @@ namespace VisualPinball.Unity.Editor.Editors
 								Event.current.Use();
 							}
 						}
-						else if (Event.current.button == 1)
-						{
+						else if (Event.current.button == 1)	{
 							var nearCP = _controlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
-							if (nearCP != null)
-							{
+							if (nearCP != null)	{
 								MenuCommand command = new MenuCommand(_itemInspector, nearCP.ControlId);
 								EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CONTROLPOINTS_MENUPATH, command);
 								Event.current.Use();
 							}
-							else if (HandleUtility.nearestControl == _curveTravellerControlId)
-							{
+							else if (HandleUtility.nearestControl == _curveTravellerControlId){
 								MenuCommand command = new MenuCommand(_itemInspector, 0);
 								EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CURVETRAVELLER_MENUPATH, command);
 								Event.current.Use();
@@ -408,31 +424,16 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				case EventType.Repaint:
 					{
-						if (_needMeshRebuilt)
-						{
-							//Set Meshdirty to true there so it'll trigger again after Undo
-							List<Object> recordObjs = new List<Object>();
-							if (editable != null)
-							{
-								editable.MeshDirty = true;
-								recordObjs.Add(_itemInspector);
-							}
-							recordObjs.Add(_target as Behaviour);
-							_needMeshRebuilt = false;
-							Undo.RecordObjects(recordObjs.ToArray(), _pendingUndoMessage);
-						}
 						_curveTravellerVisible = false;
 					}
 					break;
 			}
 
 			//Handle the common position handler for all selected control points
-			if (_selectedCP.Count > 0)
-			{
+			if (_selectedCP.Count > 0){
 				EditorGUI.BeginChangeCheck();
 				Vector3 newHandlePos = Handles.PositionHandle(_positionHandlePosition, Quaternion.identity);
-				if (EditorGUI.EndChangeCheck())
-				{
+				if (EditorGUI.EndChangeCheck()){
 					PrepareUndo("Change DragPoint Position for " + _selectedCP.Count + " Control points.");
 
 					Vector3 deltaPosition = newHandlePos - _positionHandlePosition;
@@ -448,8 +449,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 
 			//Display Curve & handle curvetraveller
-			if (_controlPoints.Count > 3)
-			{
+			if (_controlPoints.Count > 3){
 				List<DragPointData> transformedDPoints = new List<DragPointData>();
 				foreach(var cpoint in _controlPoints)
 				{
@@ -462,8 +462,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				var areaSq = cross.LengthSq();
 				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), dpeditable.PointsAreLooping(), areaSq * 0.000001f);
 
-				if (vVertex.Length > 0)
-				{
+				if (vVertex.Length > 0){
 					float width = 10.0f;
 					Handles.color = UnityEngine.Color.blue;
 					_pathPoints.Clear();
@@ -492,22 +491,21 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				_curveTravellerControlPointIdx = -1;
 
-				if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius)
-				{
+				if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius){
 					//Find the surrounding control points for the traveller
 					int curCPIdx = 0;
 					for (int i = 0; i < _pathPoints.Count - 1; ++i)
 					{
 						Vector3 p0 = _pathPoints[i];
 						Vector3 p1 = _pathPoints[i + 1];
-						if (curCPIdx < _controlPoints.Count && p0 == _controlPoints[curCPIdx].WorldPos)
+						if (curCPIdx < _controlPoints.Count && p0 == _controlPoints[curCPIdx].WorldPos){
 							curCPIdx++;
+						}
 						Vector3 seg = p1 - p0;
 						Vector3 tSeg = _curveTravellerPosition - p0;
 						float dot = Vector3.Dot(seg.normalized, tSeg.normalized);
 						Vector3 projectedTraveller = Vector3.Project(tSeg, seg);
-						if (dot >= 0.999999f && projectedTraveller.magnitude <= seg.magnitude)
-						{
+						if (dot >= 0.999999f && projectedTraveller.magnitude <= seg.magnitude){
 							_curveTravellerControlPointIdx = curCPIdx - 1;
 							break;
 						}
