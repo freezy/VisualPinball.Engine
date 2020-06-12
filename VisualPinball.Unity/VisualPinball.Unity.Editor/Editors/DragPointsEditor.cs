@@ -329,6 +329,14 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 		}
 
+		private void ClearAllSelection()
+		{
+			foreach (var cpoint in _controlPoints)
+			{
+				cpoint.IsSelected = false;
+			}
+		}
+
 		public void OnSceneGUI(Object target)
 		{
 			_target = target;
@@ -392,18 +400,13 @@ namespace VisualPinball.Unity.Editor.Editors
 							var nearCP = _controlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 							if (nearCP != null && !nearCP.DragPoint.IsLocked)
 							{
-								if (Event.current.clickCount > 1)
+								bool oldSelection = nearCP.IsSelected;
+								if (!Event.current.control)
 								{
-									foreach(var cpoint in _controlPoints)
-									{
-										cpoint.IsSelected = false;
-									}
-									nearCP.IsSelected = true;
+									ClearAllSelection();
 								}
-								else
-								{
-									nearCP.IsSelected = !nearCP.IsSelected;
-								}
+								nearCP.IsSelected = oldSelection;
+								nearCP.IsSelected = !nearCP.IsSelected;
 								Event.current.Use();
 							}
 						}
