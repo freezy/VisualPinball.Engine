@@ -14,11 +14,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
     {
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
-		protected DragPointsEditor _dragPointsEditor = new DragPointsEditor();
+		protected DragPointsEditor _dragPointsEditor = null;
+
+		public DragPointsEditor DragPointsEditor { get { return _dragPointsEditor; } }
 
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
+			_dragPointsEditor = new DragPointsEditor(this);
 		}
 
 		public override void OnInspectorGUI()
