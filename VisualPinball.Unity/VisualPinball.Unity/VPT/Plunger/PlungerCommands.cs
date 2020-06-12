@@ -3,10 +3,11 @@ namespace VisualPinball.Unity.VPT.Plunger
 	public static class PlungerCommands
 	{
 
-		public static void PullBack(float speedPull, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData)
+		public static void PullBack(float speed, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData)
 		{
 			movementData.Speed = 0.0f;
-			velocityData.PullForce = speedPull;
+			velocityData.PullForce = speed;
+
 			// deactivate the retract code
 			velocityData.AddRetractMotion = false;
 		}
@@ -15,6 +16,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			movementData.Speed = 0.0f;
 			velocityData.PullForce = speedPull;
+
 			// deactivate the retract code
 			velocityData.AddRetractMotion = false;
 			movementData.RetractMotion = false;
@@ -32,7 +34,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			}
 
 			// move immediately to the starting position
-			movementData.Position = staticData.FrameEnd + (startPos * staticData.FrameLen);
+			movementData.Position = staticData.FrameEnd + startPos * staticData.FrameLen;
 
 			// Figure the release speed as a fraction of the
 			// fire speed property, linearly proportional to the
@@ -51,7 +53,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			// limit, position 0.0) if the pull position is
 			// more than about halfway.
 			const float maxPull = .5f;
-			var bounceDist = (dx < maxPull ? dx / maxPull : 1.0f);
+			var bounceDist = dx < maxPull ? dx / maxPull : 1.0f;
 
 			// the initial bounce will be negative, since we're moving upwards,
 			// and we calculated it as a fraction of the forward travel distance
