@@ -1,5 +1,3 @@
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Profiling;
 using Unity.Rendering;
@@ -33,9 +31,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 				var startPos = frame * count;
 
 				var vector3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
-				var vertices = new NativeSlice<Vector3>(vector3Buffer.AsNativeArray(), startPos, count);
-
-				meshComponent.mesh.SetVertices(vertices.ToArray());
+				meshComponent.mesh.SetVertices(vector3Buffer.AsNativeArray().GetSubArray(startPos, count));
 
 				marker.End();
 
