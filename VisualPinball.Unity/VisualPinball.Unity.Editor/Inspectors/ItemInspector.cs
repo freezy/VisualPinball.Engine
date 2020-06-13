@@ -104,6 +104,16 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		protected void ItemDataField(string label, ref Engine.Math.Color field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			Engine.Math.Color val = EditorGUILayout.ColorField(label, field.ToUnityColor()).ToEngineColor();
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
 		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
 		{
 			if (_surface?.name != field) {

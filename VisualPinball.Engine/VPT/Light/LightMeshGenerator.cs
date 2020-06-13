@@ -22,11 +22,11 @@ namespace VisualPinball.Engine.VPT.Light
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			if (!RenderBulb()) {
-				return new RenderObjectGroup(_data.Name, "Lightbulbs");
+				return new RenderObjectGroup(_data.Name, "Lights");
 			}
-			var meshes= GetMeshes(table, origin);
+			var meshes = GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Lightbulbs", translationMatrix,
+			return new RenderObjectGroup(_data.Name, "Lights", translationMatrix,
 				new RenderObject(
 					"Bulb",
 					asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],

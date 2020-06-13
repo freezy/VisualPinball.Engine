@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.VPT
 		{
 			name = gameObjectName ?? d.GetName();
 			data = d;
+			ItemDataChanged();
 			return this;
 		}
 
@@ -53,12 +54,11 @@ namespace VisualPinball.Unity.VPT
 			if (children == null) {
 				UpdateMesh(Item.Name, gameObject, rog);
 			} else {
-				foreach (var child in children)
-				{
+				foreach (var child in children) {
 					Transform childTransform = transform.Find(child);
 					//Some ItemBehaviors don't put child into hierarchy when it's alone, but name is kept (Ramps, Surfaces)
 					if (childTransform == null) {
-					childTransform = transform;
+						childTransform = transform;
 					}
 					if (childTransform != null) {
 						UpdateMesh(child, childTransform.gameObject, rog);
@@ -68,8 +68,11 @@ namespace VisualPinball.Unity.VPT
 			if (rog.HasChildren) {
 				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 			}
+			ItemDataChanged();
 			_meshDirty = false;
 		}
+
+		protected virtual void ItemDataChanged() {}
 
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorPosition() { return Vector3.zero; }
