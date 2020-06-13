@@ -13,6 +13,7 @@
 		<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
 		<FileAlignment>512</FileAlignment>
 		<LangVersion>7.2</LangVersion>
+		<BaseIntermediateOutputPath>.build\obj</BaseIntermediateOutputPath>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,14 +37,6 @@
 		<WarningLevel>4</WarningLevel>
 	</PropertyGroup>
 	<ItemGroup>
-		<Reference Include="MiniZ.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-			<HintPath>..\.packages\MiniZ.Net.1.0.0\lib\MiniZ.Net.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
-		<Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
-			<HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
 		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
 		  <HintPath>..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
 		  <Private>True</Private>
@@ -61,6 +54,12 @@
 			<Private>True</Private>
 		</Reference>
 		<Reference Include="System" />
+		<Reference Include="NetMiniZ, Version=1.0.2.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\.packages\NetMiniZ.1.0.2\lib\netstandard2.0\NetMiniZ.dll</HintPath>
+		</Reference>
+		<Reference Include="NetVips, Version=1.2.1.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\.packages\NetVips.1.2.1\lib\netstandard2.0\NetVips.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Include="Common\Constants.cs" />
@@ -240,11 +239,7 @@
 			<ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
 		</PropertyGroup>
 		<Error Condition="!Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
-		<Error Condition="!Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))" />
-		<Error Condition="!Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets'))" />
 	</Target>
-	<Import Project="..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" />
-	<Import Project="..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets" Condition="Exists('..\.packages\MiniZ.Net.1.0.0\build\MiniZ.Net.targets')" />
 	<!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 		   Other similar extension points exist, see Microsoft.Common.targets.
 	  <Target Name="BeforeBuild">
@@ -254,7 +249,7 @@
 	  -->
 	<Target Name="AfterBuild">
 		<ItemGroup>
-			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)MiniZ32.dll;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml;..\.packages\*\runtimes\win-x64\native\*.dll;..\.packages\*\runtimes\osx-x64\native\*.dylib" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
 	</Target>

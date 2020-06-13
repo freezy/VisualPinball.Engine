@@ -12,6 +12,7 @@
     <AssemblyName>VisualPinball.Engine.Test</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <BaseIntermediateOutputPath>.build\obj</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,9 +50,12 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
+    <Reference Include="NetVips, Version=1.2.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\.packages\NetVips.1.2.1\lib\netstandard2.0\NetVips.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="NetMiniZ, Version=1.0.2.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\.packages\NetMiniZ.1.0.2\lib\netstandard2.0\NetMiniZ.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
       <HintPath>..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
