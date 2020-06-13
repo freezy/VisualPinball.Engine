@@ -43,16 +43,16 @@ namespace VisualPinball.Unity.VPT
 				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
 				return;
 			}
-			var table = transform.GetComponentInParent<TableBehavior>().Table;
+			var table = transform.GetComponentInParent<TableBehavior>();
 			if (table == null) {
 				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
 				return;
 			}
 
-			var rog = Item.GetRenderObjects(table, Origin.Original, false);
+			var rog = Item.GetRenderObjects(table.Table, Origin.Original, false);
 			var children = Children;
 			if (children == null) {
-				UpdateMesh(Item.Name, gameObject, rog);
+				UpdateMesh(Item.Name, gameObject, rog, table);
 			} else {
 				foreach (var child in children) {
 					Transform childTransform = transform.Find(child);
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.VPT
 						childTransform = transform;
 					}
 					if (childTransform != null) {
-						UpdateMesh(child, childTransform.gameObject, rog);
+						UpdateMesh(child, childTransform.gameObject, rog, table);
 					}
 				}
 			}
@@ -113,7 +113,7 @@ namespace VisualPinball.Unity.VPT
 			}
 		}
 
-		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)
+		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableBehavior table)
 		{
 			var mr = go.GetComponent<MeshRenderer>();
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
@@ -123,6 +123,11 @@ namespace VisualPinball.Unity.VPT
 			}
 			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
 			ro.Mesh.ApplyToUnityMesh(unityMesh);
+
+			if (table != null && table.AssetHandler != null) {
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+			}
+
 			mr.enabled = true;
 		}
 

@@ -2,6 +2,7 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 #endregion
 
+using System;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
@@ -11,6 +12,7 @@ namespace VisualPinball.Engine.VPT
 	/// <summary>
 	/// A material, as seen in Visual Pinball's Material Manager.
 	/// </summary>
+	[Serializable]
 	public class Material
 	{
 		public string Name;
