@@ -62,7 +62,9 @@ namespace VisualPinball.Engine.VPT.Bumper
 		{
 			switch (origin) {
 				case Origin.Original:
-					return new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
+					var rotMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
+					var transMatrix = new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
+					return rotMatrix.Multiply(transMatrix);
 
 				case Origin.Global:
 					return Matrix3D.Identity;
@@ -76,7 +78,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 			if (_data.Center == null) {
 				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
 			}
-			var matrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
+			var matrix = Matrix3D.Identity;
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
 
 			if (_generatedScale != _data.Radius) {
