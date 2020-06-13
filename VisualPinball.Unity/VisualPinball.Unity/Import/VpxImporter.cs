@@ -81,7 +81,6 @@ namespace VisualPinball.Unity.Import
 			ImportTextures();
 			ImportMaterials(materials);
 			ImportGameItems();
-			ImportGiLights();
 
 			// set root transformation
 			go.transform.localRotation = GlobalRotation;
@@ -123,17 +122,6 @@ namespace VisualPinball.Unity.Import
 			_assetHandler.OnMeshesImported(gameObject);
 		}
 
-		private void ImportGiLights()
-		{
-			var lightsObj = new GameObject("Lights");
-			lightsObj.transform.parent = gameObject.transform;
-			foreach (var vpxLight in _table.Lights.Values.Where(l => l.Data.IsBulbLight)) {
-				var unityLight = vpxLight.ToUnityPointLight();
-				unityLight.transform.parent = lightsObj.transform;
-				unityLight.AddComponent<LightBehavior>().SetData(vpxLight.Data);
-			}
-		}
-
 		private void ImportRenderables()
 		{
 			foreach (var renderable in _renderObjects.Keys) {
@@ -171,18 +159,19 @@ namespace VisualPinball.Unity.Import
 			// add unity component
 			MonoBehaviour ic = null;
 			switch (item) {
-				case Bumper bumper:			ic = bumper.SetupGameObject(obj, rog); break;
-				case Flipper flipper:		ic = flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:				ic = gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:	ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
-				case Kicker kicker:			ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
-				case Primitive primitive:	ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
-				case Ramp ramp:				ic = obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
-				case Rubber rubber:			ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
-				case Spinner spinner:		ic = spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:		ic = surface.SetupGameObject(obj, rog); break;
-				case Table table:			ic = table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:		ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
+				case Bumper bumper:					ic = bumper.SetupGameObject(obj, rog); break;
+				case Flipper flipper:				ic = flipper.SetupGameObject(obj, rog); break;
+				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
+				case HitTarget hitTarget:			ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
+				case Kicker kicker:					ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
+				case Engine.VPT.Light.Light light:	ic = light.SetupGameObject(obj, rog); break;
+				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
+				case Ramp ramp:						ic = obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
+				case Rubber rubber:					ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
+				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
+				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
+				case Table table:					ic = table.SetupGameObject(obj, rog); break;
+				case Trigger trigger:				ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
 			}
 #if UNITY_EDITOR
 			// for convenience move item behavior to the top of the list
