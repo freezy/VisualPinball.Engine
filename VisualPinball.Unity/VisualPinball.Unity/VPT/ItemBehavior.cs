@@ -115,12 +115,15 @@ namespace VisualPinball.Unity.VPT
 
 		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog)
 		{
+			var mr = go.GetComponent<MeshRenderer>();
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
-			if (ro == null) {
+			if (ro == null || !ro.IsVisible) {
+				mr.enabled = false;
 				return;
 			}
 			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
 			ro.Mesh.ApplyToUnityMesh(unityMesh);
+			mr.enabled = true;
 		}
 
 		protected abstract string[] Children { get; }
