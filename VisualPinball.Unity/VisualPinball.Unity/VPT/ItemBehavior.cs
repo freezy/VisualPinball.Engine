@@ -114,7 +114,6 @@ namespace VisualPinball.Unity.VPT
 		{
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
 			if (ro == null) {
-				_logger.Warn("Cannot find mesh {0} in {1} {2}.", childName, typeof(TItem).Name, data.GetName());
 				return;
 			}
 			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
