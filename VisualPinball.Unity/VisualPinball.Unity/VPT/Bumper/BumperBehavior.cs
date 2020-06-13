@@ -35,6 +35,10 @@ namespace VisualPinball.Unity.VPT.Bumper
 		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
 		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
 
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0, 0);
+		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(data.Radius, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => data.Radius = scale.x;
