@@ -21,6 +21,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		public override void OnInspectorGUI()
 		{
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				MaterialField("Cap Material", ref _bumper.data.CapMaterial);
+				MaterialField("Base Material", ref _bumper.data.BaseMaterial);
+				MaterialField("Ring Material", ref _bumper.data.RingMaterial);
+				MaterialField("Skirt Material", ref _bumper.data.SocketMaterial);
 				ItemDataField("Radius", ref _bumper.data.Radius);
 				ItemDataField("Height Scale", ref _bumper.data.HeightScale);
 				ItemDataField("Orientation", ref _bumper.data.Orientation);

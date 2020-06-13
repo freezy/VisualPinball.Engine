@@ -212,6 +212,7 @@ namespace VisualPinball.Unity.Import
 		{
 			// add table component (plus other data)
 			var component = go.AddComponent<TableBehavior>();
+			component.AssetHandler = assetHandler;
 			component.SetData(table.Data);
 			foreach (var key in table.TableInfo.Keys) {
 				component.tableInfo[key] = table.TableInfo[key];

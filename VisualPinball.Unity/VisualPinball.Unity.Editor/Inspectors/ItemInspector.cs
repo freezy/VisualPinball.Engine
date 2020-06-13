@@ -12,16 +12,26 @@ namespace VisualPinball.Unity.Editor.Inspectors
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
+		public DragPointsEditor DragPointsEditor { get { return _dragPointsEditor; } }
+
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
 		protected DragPointsEditor _dragPointsEditor = null;
 
-		public DragPointsEditor DragPointsEditor { get { return _dragPointsEditor; } }
+		protected string[] _allMaterials = new string[0];
 
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
 			_dragPointsEditor = new DragPointsEditor(this);
+
+			if (_table != null && _table.data.Materials != null) {
+				_allMaterials = new string[_table.data.Materials.Length+1];
+				_allMaterials[0] = "- none -";
+				for (int i = 0; i < _table.data.Materials.Length; i++) {
+					_allMaterials[i+1] = _table.data.Materials[i].Name;
+				}
+			}
 		}
 
 		public override void OnInspectorGUI()
@@ -134,6 +144,25 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
 				field = _surface != null ? _surface.name : "";
+			}
+		}
+
+		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
+		{
+			if (_table == null) return;
+
+			int selectedIndex = 0;
+			for (int i = 0; i < _allMaterials.Length; i++) {
+				if (_allMaterials[i] == field) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allMaterials);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allMaterials.Length) {
+				FinishEdit(label, dirtyMesh);
+				field = selectedIndex == 0 ? "" : _allMaterials[selectedIndex];
 			}
 		}
 
