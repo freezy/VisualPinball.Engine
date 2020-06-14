@@ -43,7 +43,7 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Import
 {
-	public class VpxImporter : MonoBehaviour
+	public class VpxImporter : MonoBehaviour, ITextureStore
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -55,6 +55,7 @@ namespace VisualPinball.Unity.Import
 
 		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
+		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 
 		private Table _table;
 		private IAssetHandler _assetHandler;
@@ -81,7 +82,7 @@ namespace VisualPinball.Unity.Import
 
 			// import
 			ImportTextures();
-			ImportMaterials(materials);
+			//ImportMaterials(materials);
 			ImportGameItems();
 
 			// set root transformation
@@ -96,6 +97,20 @@ namespace VisualPinball.Unity.Import
 			go.AddComponent<Player>();
 		}
 
+		public void AddTexture(string name, Texture2D texture)
+		{
+			_unityTextures[name.ToLower()] = texture;
+		}
+
+		public Texture2D GetTexture(string name)
+		{
+			var lowerName = name.ToLower();
+			if (_unityTextures.ContainsKey(lowerName)) {
+				return _unityTextures[lowerName];
+			}
+			return null;
+		}
+
 		private void ImportTextures()
 		{
 			// import textures
@@ -104,6 +119,10 @@ namespace VisualPinball.Unity.Import
 				_assetHandler
 			);
 			textureImporter.ImportTextures();
+
+			foreach (var kvp in _table.Textures) {
+				AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
+			}
 		}
 
 		private void ImportMaterials(Dictionary<string, PbrMaterial> materials)
@@ -201,7 +220,8 @@ namespace VisualPinball.Unity.Import
 
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
+			//mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
+			mr.sharedMaterial = ro.Material.ToUnityMaterial(null, this);
 			mr.enabled = ro.IsVisible;
 
 			// patch
@@ -232,6 +252,9 @@ namespace VisualPinball.Unity.Import
 			component.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
 			component.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
 			component.timers = table.Timers.Values.Select(d => d.Data).ToArray();
+			foreach (var kvp in _unityTextures) {
+				component.AddTexture(kvp.Key, kvp.Value);
+			}
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),

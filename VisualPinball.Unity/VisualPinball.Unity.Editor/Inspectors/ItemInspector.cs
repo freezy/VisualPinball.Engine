@@ -18,19 +18,28 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
 		protected DragPointsEditor _dragPointsEditor = null;
-
 		protected string[] _allMaterials = new string[0];
+		protected string[] _allTextures = new string[0];
 
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
 			_dragPointsEditor = new DragPointsEditor(this);
 
-			if (_table != null && _table.data.Materials != null) {
-				_allMaterials = new string[_table.data.Materials.Length+1];
-				_allMaterials[0] = "- none -";
-				for (int i = 0; i < _table.data.Materials.Length; i++) {
-					_allMaterials[i+1] = _table.data.Materials[i].Name;
+			if (_table != null) {
+				if (_table.data.Materials != null) {
+					_allMaterials = new string[_table.data.Materials.Length + 1];
+					_allMaterials[0] = "- none -";
+					for (int i = 0; i < _table.data.Materials.Length; i++) {
+						_allMaterials[i + 1] = _table.data.Materials[i].Name;
+					}
+				}
+				if (_table.textures != null) {
+					_allTextures = new string[_table.textures.Length + 1];
+					_allTextures[0] = "- none -";
+					for (int i = 0; i < _table.textures.Length; i++) {
+						_allTextures[i + 1] = _table.textures[i].Name;
+					}
 				}
 			}
 		}
@@ -174,6 +183,25 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
 				field = ""; // don't store the none value string in our data
+			}
+		}
+
+		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
+		{
+			if (_table == null) return;
+
+			int selectedIndex = 0;
+			for (int i = 0; i < _allTextures.Length; i++) {
+				if (_allTextures[i] == field) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allTextures);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allTextures.Length) {
+				FinishEdit(label, dirtyMesh);
+				field = selectedIndex == 0 ? "" : _allTextures[selectedIndex];
 			}
 		}
 

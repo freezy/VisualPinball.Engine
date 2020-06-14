@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT
 
 		private IImageData ImageData => Data.Binary as IImageData ?? Data.Bitmap;
 
-		public bool HasTransparentFormat => Data.Bitmap != null || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
+		public bool HasTransparentFormat => Data.HasBitmap || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
 		public bool UsageNormalMap;
 
@@ -71,9 +71,9 @@ namespace VisualPinball.Engine.VPT
 				return;
 			}
 			using (var image = GetImage()) {
-				_stats = image.HasAlpha()
+				_stats = image != null && image.HasAlpha()
 					? AnalyzeAlpha()
-					: new TextureStats(image.Width * image.Height, 0, 0);
+					: new TextureStats(1, 0, 0);
 			}
 		}
 
@@ -85,8 +85,7 @@ namespace VisualPinball.Engine.VPT
 		public TextureStats GetStats()
 		{
 			if (_stats == null) {
-				Logger.Warn("Stats of texture {0} requested, but has not been analyzed.", Data.Name);
-				_stats = new TextureStats(1, 0, 0);
+				Analyze();
 			}
 			return _stats;
 		}
@@ -132,7 +131,7 @@ namespace VisualPinball.Engine.VPT
 					? Image.NewFromBuffer(Data.Binary.Data)
 					: Image.NewFromMemory(Data.Bitmap.Bytes, Width, Height, 4, Enums.BandFormat.Uchar);
 
-			} catch (VipsException e) {
+			} catch (Exception e) {
 				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));
 			}
 

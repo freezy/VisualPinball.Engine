@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Import.Job
 			// create and write materials to disk
 			foreach (var material in _materials) {
 				debug.Append(material);
-				_assetHandler.SaveMaterial(material, material.ToUnityMaterial(_assetHandler, debug));
+				_assetHandler.SaveMaterial(material, material.ToUnityMaterial(_assetHandler, null, debug));
 				debug.AppendLine("============================================================");
 			}
 
