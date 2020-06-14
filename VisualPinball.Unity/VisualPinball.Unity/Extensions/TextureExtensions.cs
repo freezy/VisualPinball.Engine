@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Extensions
 	{
 		public static Texture2D ToUnityTexture(this Engine.VPT.Texture vpTex)
 		{
-			if (vpTex.Data.Bitmap != null) {
+			if (vpTex.Data.HasBitmap) {
 				return FromBitmap(vpTex);
 			}
 			return vpTex.IsHdr ? FromHdrBinary(vpTex) : FromBinary(vpTex);
