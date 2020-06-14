@@ -25,10 +25,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
+				TextureField("Top Image", ref _targetSurf.data.Image);
+				MaterialField("Top Material", ref _targetSurf.data.TopMaterial);
 				ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible);
 				ItemDataField("Animate Slingshot", ref _targetSurf.data.SlingshotAnimation, dirtyMesh: false);
 				ItemDataField("Flipbook", ref _targetSurf.data.IsFlipbook, dirtyMesh: false);
 			}
+
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {

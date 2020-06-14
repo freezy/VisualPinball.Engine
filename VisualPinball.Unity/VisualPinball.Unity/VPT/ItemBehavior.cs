@@ -124,8 +124,8 @@ namespace VisualPinball.Unity.VPT
 			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
 			ro.Mesh.ApplyToUnityMesh(unityMesh);
 
-			if (table != null && table.AssetHandler != null) {
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+			if (table != null) {
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(null, table);
 			}
 
 			mr.enabled = true;
