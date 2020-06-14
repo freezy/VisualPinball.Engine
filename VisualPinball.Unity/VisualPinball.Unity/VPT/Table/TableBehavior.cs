@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using UnityEngine.UI;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -55,8 +56,14 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.VPT.Table
 {
+	public interface ITextureStore
+	{
+		void AddTexture(string name, Texture2D texture);
+		Texture2D GetTexture(string name);
+	}
+
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
+	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>, ITextureStore
 	{
 		public Engine.VPT.Table.Table Table => Item;
 		// TODO: exposing the asset handler here is a crutch too get material selection working,
@@ -84,6 +91,8 @@ namespace VisualPinball.Unity.VPT.Table
 
 		protected override string[] Children => null;
 
+		private Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void Awake()
@@ -106,6 +115,26 @@ namespace VisualPinball.Unity.VPT.Table
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();
+		}
+
+		public void AddTexture(string name, Texture2D texture)
+		{
+			_unityTextures[name.ToLower()] = texture;
+		}
+
+		public Texture2D GetTexture(string name)
+		{
+			var lowerName = name.ToLower();
+			if (_unityTextures.ContainsKey(lowerName)) {
+				return _unityTextures[lowerName];
+			}
+			var tableTex = Table.GetTexture(lowerName);
+			if (tableTex != null) {
+				var unityTex = tableTex.ToUnityTexture();
+				_unityTextures[lowerName] = unityTex;
+				return unityTex;
+			}
+			return null;
 		}
 
 		public Engine.VPT.Table.Table CreateTable()
@@ -163,19 +192,19 @@ namespace VisualPinball.Unity.VPT.Table
 			Logger.Info("Restoring textures...");
 			foreach (var textureData in textures) {
 				var texture = new Texture(textureData);
-				if (File.Exists(texture.GetUnityFilename(textureFolder))) {
-					if (textureData.Binary != null && textureData.Binary.Size > 0) {
-						textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-						textureData.Bitmap = null;
+				//if (File.Exists(texture.GetUnityFilename(textureFolder))) {
+				//	if (textureData.Binary != null && textureData.Binary.Size > 0) {
+				//		textureData.Binary.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+				//		textureData.Bitmap = null;
 
-					} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
-						textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
-						textureData.Binary = null;
-					}
+				//	} else if (textureData.Bitmap != null && textureData.Bitmap.Width > 0) {
+				//		textureData.Bitmap.Data = File.ReadAllBytes(texture.GetUnityFilename(textureFolder));
+				//		textureData.Binary = null;
+				//	}
 
-				} else {
-					Logger.Warn($"Cannot find {texture.GetUnityFilename(textureFolder)}.");
-				}
+				//} else {
+				//	Logger.Warn($"Cannot find {texture.GetUnityFilename(textureFolder)}.");
+				//}
 
 				table.Textures[texture.Name] = texture;
 			}
