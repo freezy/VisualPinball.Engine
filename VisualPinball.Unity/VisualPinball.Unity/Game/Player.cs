@@ -136,10 +136,10 @@ namespace VisualPinball.Unity.Game
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 
-			if (Input.GetKeyUp(KeyCode.Return)) {
+			if (Input.GetKeyDown(KeyCode.Return)) {
 				_tableApi.Plunger("CustomPlunger")?.PullBack();
 			}
-			if (Input.GetKeyDown(KeyCode.Return)) {
+			if (Input.GetKeyUp(KeyCode.Return)) {
 				_tableApi.Plunger("CustomPlunger")?.Fire();
 			}
 		}
