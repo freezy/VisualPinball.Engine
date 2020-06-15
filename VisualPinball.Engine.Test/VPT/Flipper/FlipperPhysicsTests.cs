@@ -121,7 +121,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			player.SimulateTime(2000);
 
 			// assert it's on flipper's bottom
-			ball.State.Pos.X.Should().BeInRange(393f, 401f);
+			ball.State.Pos.X.Should().BeInRange(392f, 401f);
 			ball.State.Pos.Y.Should().BeInRange(1647f, 1651f);
 		}
 
