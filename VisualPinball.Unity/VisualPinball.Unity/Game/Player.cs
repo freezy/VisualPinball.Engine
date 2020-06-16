@@ -138,9 +138,13 @@ namespace VisualPinball.Unity.Game
 
 			if (Input.GetKeyDown(KeyCode.Return)) {
 				_tableApi.Plunger("CustomPlunger")?.PullBack();
+				_tableApi.Plunger("Plunger001")?.PullBack();
+				_tableApi.Plunger("Plunger002")?.PullBack();
 			}
 			if (Input.GetKeyUp(KeyCode.Return)) {
 				_tableApi.Plunger("CustomPlunger")?.Fire();
+				_tableApi.Plunger("Plunger001")?.Fire();
+				_tableApi.Plunger("Plunger002")?.Fire();
 			}
 		}
 

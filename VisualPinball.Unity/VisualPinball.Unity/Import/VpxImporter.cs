@@ -142,7 +142,7 @@ namespace VisualPinball.Unity.Import
 			var obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
 
-			if (rog.HasOnlyChild) {
+			if (rog.HasOnlyChild && !rog.ForceChild) {
 				ImportRenderObject(item, rog.RenderObjects[0], obj);
 			} else if (rog.HasChildren) {
 				foreach (var ro in rog.RenderObjects) {
@@ -166,8 +166,8 @@ namespace VisualPinball.Unity.Import
 				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
 				case HitTarget hitTarget:			ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
 				case Kicker kicker:					ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
-				case Engine.VPT.Light.Light light:	ic = light.SetupGameObject(obj, rog); break;
-				case Plunger plunger:				ic = obj.AddComponent<PlungerBehavior>().SetData(plunger.Data); break;
+				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
+				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
 				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
 				case Ramp ramp:						ic = obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
 				case Rubber rubber:					ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
