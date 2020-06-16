@@ -32,131 +32,95 @@
             Enums values are represented in NetVips as strings. These classes contain the valid strings for each enum.
             </summary>
         </member>
-        <member name="T:NetVips.Enums.LogLevelFlags">
+        <member name="T:NetVips.Enums.Access">
             <summary>
-            Flags specifying the level of log messages.
+            The type of access an operation has to supply.
             </summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.FlagRecursion">
-            <summary>Internal flag.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.FlagFatal">
-            <summary>internal flag.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Error">
-            <summary>log level for errors.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Critical">
-            <summary>log level for critical warning messages.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Warning">
-            <summary>log level for warnings.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Message">
-            <summary>log level for messages.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Info">
-            <summary>log level for informational messages.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.Debug">
-            <summary>log level for debug messages.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.AllButFatal">
-            <summary>All log levels except fatal.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.AllButRecursion">
-            <summary>All log levels except recursion.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.All">
-            <summary>All log levels.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.FlagMask">
-            <summary>Flag mask.</summary>
-        </member>
-        <member name="F:NetVips.Enums.LogLevelFlags.LevelMask">
-            <summary>A mask including all log levels..</summary>
-        </member>
-        <member name="T:NetVips.Enums.ArgumentFlags">
-            <summary>
-            Flags we associate with each object argument.
-            </summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.NONE">
-            <summary>no flags.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.REQUIRED">
-            <summary>must be set in the constructor.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.CONSTRUCT">
-            <summary>can only be set in the constructor.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.SET_ONCE">
-            <summary>can only be set once.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.SET_ALWAYS">
-            <summary>don't do use-before-set checks.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.INPUT">
-            <summary>is an input argument (one we depend on).</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.OUTPUT">
-            <summary>is an output argument (depends on us).</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.DEPRECATED">
-            <summary>just there for back-compat, hide.</summary>
-        </member>
-        <member name="F:NetVips.Enums.ArgumentFlags.MODIFY">
-            <summary>the input argument will be modified.</summary>
-        </member>
-        <member name="T:NetVips.Enums.OperationFlags">
-            <summary>
-            Flags we associate with an <see cref="T:NetVips.Operation"/>.
-            </summary>
-        </member>
-        <member name="F:NetVips.Enums.OperationFlags.NONE">
-            <summary>no flags.</summary>
-        </member>
-        <member name="F:NetVips.Enums.OperationFlags.SEQUENTIAL">
-            <summary>can work sequentially with a small buffer.</summary>
-        </member>
-        <member name="F:NetVips.Enums.OperationFlags.SEQUENTIAL_UNBUFFERED">
-            <summary>can work sequentially without a buffer.</summary>
-        </member>
-        <member name="F:NetVips.Enums.OperationFlags.NOCACHE">
-            <summary>must not be cached.</summary>
-        </member>
-        <member name="F:NetVips.Enums.OperationFlags.DEPRECATED">
-            <summary>a compatibility thing.</summary>
-        </member>
-        <member name="T:NetVips.Enums.Signals">
-            <summary>
-            Signals that can be used on an <see cref="T:NetVips.Image"/>. See <see cref="M:NetVips.GObject.SignalConnect(System.String,System.Delegate,System.IntPtr)"/>.
-            </summary>
-        </member>
-        <member name="F:NetVips.Enums.Signals.PreEval">
-            <summary>Evaluation is starting.</summary>
             <remarks>
-            The preeval signal is emitted once before computation of <see cref="T:NetVips.Image"/>
-            starts. It's a good place to set up evaluation feedback.
+            See for example <see cref="M:NetVips.Image.Tilecache(System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.Nullable{System.Boolean},System.Nullable{System.Boolean})"/>.
             </remarks>
         </member>
-        <member name="F:NetVips.Enums.Signals.Eval">
-             <summary>Evaluation progress.</summary>
-             <remarks>
-             The eval signal is emitted once per work unit (typically a 128 x
-             128 area of pixels) during image computation.
-            
-             You can use this signal to update user-interfaces with progress
-             feedback. Beware of updating too frequently: you will usually
-             need some throttling mechanism.
-             </remarks>
+        <member name="F:NetVips.Enums.Access.Random">
+            <summary>Requests can come in any order.</summary>
         </member>
-        <member name="F:NetVips.Enums.Signals.PostEval">
-            <summary>Evaluation is ending.</summary>
+        <member name="F:NetVips.Enums.Access.Sequential">
+            <summary>
+            Means requests will be top-to-bottom, but with some
+            amount of buffering behind the read point for small non-local
+            accesses.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.Access.SequentialUnbuffered">
+            <summary>Top-to-bottom without a buffer.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Align">
+            <summary>
+            Various types of alignment.
+            </summary>
             <remarks>
-            The posteval signal is emitted once at the end of the computation
-            of <see cref="T:NetVips.Image"/>. It's a good place to shut down evaluation feedback.
+            See for example <see cref="M:NetVips.Image.Join(NetVips.Image,System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Double[],System.String)"/>.
             </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Align.Low">
+            <summary>Align on the low coordinate edge.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Align.Centre">
+            <summary>Align on the centre.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Align.High">
+            <summary>Align on the high coordinate edge.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Angle">
+            <summary>
+            Various fixed 90 degree rotation angles.
+            </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.Rot(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Angle.D0">
+            <summary>No rotate.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle.D90">
+            <summary>90 degrees clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle.D180">
+            <summary>180 degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle.D270">
+            <summary>90 degrees anti-clockwise.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Angle45">
+            <summary>
+            Various fixed 45 degree rotation angles.
+            </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.Rot45(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D0">
+            <summary>No rotate.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D45">
+            <summary>45 degrees clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D90">
+            <summary>90 degrees clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D135">
+            <summary>135 degrees clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D180">
+            <summary>180 degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D225">
+            <summary>135 degrees anti-clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D270">
+            <summary>90 degrees anti-clockwise.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Angle45.D315">
+            <summary>45 degrees anti-clockwise.</summary>
         </member>
         <member name="T:NetVips.Enums.BandFormat">
             <summary>
@@ -283,27 +247,335 @@
         <member name="F:NetVips.Enums.BlendMode.Exclusion">
             <summary>Somewhat like Difference, but lower-contrast.</summary>
         </member>
-        <member name="T:NetVips.Enums.Access">
+        <member name="T:NetVips.Enums.Coding">
             <summary>
-            The type of access an operation has to supply.
+            How pixels are coded.
             </summary>
             <remarks>
-            Attributes:
-                Random (string): Requests can come in any order.
-                Sequential (string): Means requests will be top-to-bottom, but with some
-                    amount of buffering behind the read point for small non-local
-                    accesses.
+            Normally, pixels are uncoded and can be manipulated as you would expect.
+            However some file formats code pixels for compression, and sometimes it's
+            useful to be able to manipulate images in the coded format.
             </remarks>
         </member>
-        <member name="F:NetVips.Enums.Access.Random">
-            <summary>Requests can come in any order.</summary>
+        <member name="F:NetVips.Enums.Coding.None">
+            <summary>Pixels are not coded.</summary>
         </member>
-        <member name="F:NetVips.Enums.Access.Sequential">
+        <member name="F:NetVips.Enums.Coding.Labq">
+            <summary>Pixels encode 3 float CIELAB values as 4 uchar.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Coding.Rad">
+            <summary>Pixels encode 3 float RGB as 4 uchar (Radiance coding).</summary>
+        </member>
+        <member name="T:NetVips.Enums.Combine">
             <summary>
-            Means requests will be top-to-bottom, but with some
-            amount of buffering behind the read point for small non-local
-            accesses.
+            How to combine passes.
             </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.Compass(NetVips.Image,System.Nullable{System.Int32},System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Combine.Max">
+            <summary>Take the maximum of all values.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Combine.Sum">
+            <summary>Take the sum of all values.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Combine.Min">
+            <summary>Take the minimum value.</summary>
+        </member>
+        <member name="T:NetVips.Enums.CombineMode">
+            <summary>
+            How to combine pixels.
+            </summary>
+            <remarks>
+            Operations like <see cref="M:NetVips.Image.DrawImage(NetVips.Image,System.Int32,System.Int32,System.String)"/> need to be told how to
+            combine images from two sources. See also <see cref="M:NetVips.Image.Join(NetVips.Image,System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Double[],System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.CombineMode.Set">
+            <summary>Set pixels to the new value.</summary>
+        </member>
+        <member name="F:NetVips.Enums.CombineMode.Add">
+            <summary>Add pixels.</summary>
+        </member>
+        <member name="T:NetVips.Enums.CompassDirection">
+            <summary>
+            A direction on a compass. Used for <see cref="M:NetVips.Image.Gravity(System.String,System.Int32,System.Int32,System.String,System.Double[])"/>, for example.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.Centre">
+            <summary>Centre</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.North">
+            <summary>North</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.East">
+            <summary>East</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.South">
+            <summary>South</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.West">
+            <summary>West</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.NorthEast">
+            <summary>North-east</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.SouthEast">
+            <summary>South-east</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.SouthWest">
+            <summary>South-west</summary>
+        </member>
+        <member name="F:NetVips.Enums.CompassDirection.NorthWest">
+            <summary>North-west</summary>
+        </member>
+        <member name="T:NetVips.Enums.DemandStyle">
+            <summary>
+            A hint about the kind of demand geometry VIPS images prefer.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.DemandStyle.Smalltile">
+            <summary>Demand in small (typically 64x64 pixel) tiles.</summary>
+        </member>
+        <member name="F:NetVips.Enums.DemandStyle.Fatstrip">
+            <summary>Demand in fat (typically 10 pixel high) strips.</summary>
+        </member>
+        <member name="F:NetVips.Enums.DemandStyle.Thinstrip">
+            <summary>Demand in thin (typically 1 pixel high) strips.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Direction">
+            <summary>
+            A direction.
+            </summary>
+            <remarks>
+            Operations like <see cref="M:NetVips.Image.Flip(System.String)"/> need to be told whether to flip
+            left-right or top-bottom.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Direction.Horizontal">
+            <summary>left-right.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Direction.Vertical">
+            <summary>top-bottom.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Extend">
+            <summary>
+            How to extend image edges.
+            </summary>
+            <remarks>
+            When the edges of an image are extended, you can specify how you want
+            the extension done. See <see cref="M:NetVips.Image.Embed(System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.Double[])"/>, <see cref="M:NetVips.Image.Conv(NetVips.Image,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>, <see cref="M:NetVips.Image.Affine(System.Double[],NetVips.GObject,System.Int32[],System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{System.Double},System.Double[],System.String)"/>
+            and so on.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Extend.Black">
+            <summary>New pixels are black, ie. all bits are zero.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Extend.Copy">
+            <summary>Each new pixel takes the value of the nearest edge pixel.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Extend.Repeat">
+            <summary>The image is tiled to fill the new area.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Extend.Mirror">
+            <summary>The image is reflected and tiled to reduce hash edges.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Extend.White">
+            <summary>New pixels are white, ie. all bits are set.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Extend.Background">
+            <summary>Colour set from the @background property.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignDzContainer">
+            <summary>
+            The container type of the pyramid.
+            </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.Dzsave(System.String,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Boolean},System.String,System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.String,System.Nullable{System.Int32},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Double[],System.Nullable{System.Int32})"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzContainer.Fs">
+            <summary>Write tiles to the filesystem.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzContainer.Zip">
+            <summary>Write tiles to a zip file.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzContainer.Szi">
+            <summary>Write to a szi file.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignDzDepth">
+            <summary>
+            How many pyramid layers to create.
+            </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.Dzsave(System.String,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Boolean},System.String,System.String,System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.String,System.Nullable{System.Int32},System.Nullable{System.Boolean},System.Nullable{System.Boolean},System.Double[],System.Nullable{System.Int32})"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzDepth.Onepixel">
+            <summary>Create layers down to 1x1 pixel.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzDepth.Onetile">
+            <summary>Create layers down to 1x1 tile.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzDepth.One">
+            <summary>Only create a single layer.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignDzLayout">
+            <summary>
+            What directory layout and metadata standard to use.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzLayout.Dz">
+            <summary>Use DeepZoom directory layout.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzLayout.Zoomify">
+            <summary>Use Zoomify directory layout.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzLayout.Google">
+            <summary>Use Google maps directory layout.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignDzLayout.Iiif">
+            <summary>Use IIIF directory layout.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignHeifCompression">
+            <summary>
+            The compression format to use inside a HEIF container.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignHeifCompression.Hevc">
+            <summary>x265</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignHeifCompression.Avc">
+            <summary>x264</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignHeifCompression.Jpeg">
+            <summary>JPEG</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignHeifCompression.Av1">
+            <summary>AOM</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignTiffCompression">
+            <summary>
+            The compression types supported by the tiff writer.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.None">
+            <summary>No compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Jpeg">
+            <summary>JPEG compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Deflate">
+            <summary>Deflate (zip) compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Packbits">
+            <summary>Packbits compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Ccittfax4">
+            <summary>Fax4 compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Lzw">
+            <summary>LZW compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Webp">
+            <summary>WebP compression.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffCompression.Zstd">
+            <summary>ZSTD compression.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignTiffPredictor">
+            <summary>
+            The predictor can help deflate and lzw compression.
+            The values are fixed by the tiff library.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffPredictor.None">
+            <summary>No prediction.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffPredictor.Horizontal">
+            <summary>Horizontal differencing.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffPredictor.Float">
+            <summary>Float predictor.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignTiffResunit">
+            <summary>
+            Use inches or centimeters as the resolution unit for a tiff file.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffResunit.Cm">
+            <summary>Use centimeters.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignTiffResunit.Inch">
+            <summary>Use inches.</summary>
+        </member>
+        <member name="T:NetVips.Enums.ForeignWebpPreset">
+            <summary>
+            Tune lossy encoder settings for different image types.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Default">
+            <summary>Default preset.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Picture">
+            <summary>Digital picture, like portrait, inner shot.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Photo">
+            <summary>Outdoor photograph, with natural lighting.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Drawing">
+            <summary>Hand or line drawing, with high-contrast details.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Icon">
+            <summary>Small-sized colorful images/</summary>
+        </member>
+        <member name="F:NetVips.Enums.ForeignWebpPreset.Text">
+            <summary>Text-like.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Intent">
+            <summary>
+            The rendering intent.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.IccTransform(System.String,System.String,System.String,System.Nullable{System.Boolean},System.String,System.Nullable{System.Int32})"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.Intent.Perceptual">
+            <summary>Perceptual rendering intent.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Intent.Relative">
+            <summary>Relative colorimetric rendering intent.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Intent.Saturation">
+            <summary>Saturation rendering intent.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Intent.Absolute">
+            <summary>Absolute colorimetric rendering intent.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Interesting">
+            <summary>
+            Pick the algorithm vips uses to decide image "interestingness".
+            This is used by <see cref="M:NetVips.Image.Smartcrop(System.Int32,System.Int32,System.String)"/>, for example, to decide what parts of the image to keep.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.None">
+            <summary>Do nothing.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.Centre">
+            <summary>Just take the centre.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.Entropy">
+            <summary>Use an entropy measure.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.Attention">
+            <summary>Look for features likely to draw human attention.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.Low">
+            <summary>Position the crop towards the low coordinate.</summary>
+        </member>
+        <member name="F:NetVips.Enums.Interesting.High">
+            <summary>Position the crop towards the high coordinate.</summary>
         </member>
         <member name="T:NetVips.Enums.Interpretation">
             <summary>
@@ -371,106 +643,6 @@
         <member name="F:NetVips.Enums.Interpretation.Hsv">
             <summary>Pixels are HSV.</summary>
         </member>
-        <member name="T:NetVips.Enums.Angle">
-            <summary>
-            Various fixed 90 degree rotation angles.
-            </summary>
-            <remarks>
-            See for example <see cref="M:NetVips.Image.Rot(System.String)"/>.
-            </remarks>
-        </member>
-        <member name="F:NetVips.Enums.Angle.D0">
-            <summary>No rotate.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle.D90">
-            <summary>90 degrees clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle.D180">
-            <summary>180 degrees.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle.D270">
-            <summary>90 degrees anti-clockwise.</summary>
-        </member>
-        <member name="T:NetVips.Enums.Angle45">
-            <summary>
-            Various fixed 45 degree rotation angles.
-            </summary>
-            <remarks>
-            See for example <see cref="M:NetVips.Image.Rot45(System.String)"/>.
-            </remarks>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D0">
-            <summary>No rotate.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D45">
-            <summary>45 degrees clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D90">
-            <summary>90 degrees clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D135">
-            <summary>135 degrees clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D180">
-            <summary>180 degrees.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D225">
-            <summary>135 degrees anti-clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D270">
-            <summary>90 degrees anti-clockwise.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Angle45.D315">
-            <summary>45 degrees anti-clockwise.</summary>
-        </member>
-        <member name="T:NetVips.Enums.Intent">
-            <summary>
-            The rendering intent.
-            </summary>
-            <remarks>
-            See <see cref="M:NetVips.Image.IccTransform(System.String,System.String,System.String,System.Nullable{System.Boolean},System.String,System.Nullable{System.Int32})"/>.
-            </remarks>
-        </member>
-        <member name="F:NetVips.Enums.Intent.Perceptual">
-            <summary>Perceptual rendering intent.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Intent.Relative">
-            <summary>Relative colorimetric rendering intent.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Intent.Saturation">
-            <summary>Saturation rendering intent.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Intent.Absolute">
-            <summary>Absolute colorimetric rendering intent.</summary>
-        </member>
-        <member name="T:NetVips.Enums.Extend">
-            <summary>
-            How to extend image edges.
-            </summary>
-            <remarks>
-            When the edges of an image are extended, you can specify how you want
-            the extension done. See <see cref="M:NetVips.Image.Embed(System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.Double[])"/>, <see cref="M:NetVips.Image.Conv(NetVips.Image,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>, <see cref="M:NetVips.Image.Affine(System.Double[],NetVips.GObject,System.Int32[],System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{System.Double},System.Double[],System.String)"/>
-            and so on.
-            </remarks>
-        </member>
-        <member name="F:NetVips.Enums.Extend.Black">
-            <summary>New pixels are black, ie. all bits are zero.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Extend.Copy">
-            <summary>Each new pixel takes the value of the nearest edge pixel.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Extend.Repeat">
-            <summary>The image is tiled to fill the new area.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Extend.Mirror">
-            <summary>The image is reflected and tiled to reduce hash edges.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Extend.White">
-            <summary>New pixels are white, ie. all bits are set.</summary>
-        </member>
-        <member name="F:NetVips.Enums.Extend.Background">
-            <summary>Colour set from the @background property.</summary>
-        </member>
         <member name="T:NetVips.Enums.Kernel">
             <summary>
             A resizing kernel. One of these can be given to operations like
@@ -486,11 +658,199 @@
         <member name="F:NetVips.Enums.Kernel.Cubic">
             <summary>Cubic interpolation.</summary>
         </member>
+        <member name="F:NetVips.Enums.Kernel.Mitchell">
+            <summary>TODO</summary>
+        </member>
         <member name="F:NetVips.Enums.Kernel.Lanczos2">
             <summary>Two-lobe Lanczos.</summary>
         </member>
         <member name="F:NetVips.Enums.Kernel.Lanczos3">
             <summary>Three-lobe Lanczos.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationBoolean">
+            <summary>
+            Boolean operations.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Boolean(NetVips.Image,System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationBoolean.And">
+            <summary>&amp;</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationBoolean.Or">
+            <summary>|</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationBoolean.Eor">
+            <summary>^</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationBoolean.Lshift">
+            <summary>&lt;&lt;</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationBoolean.Rshift">
+            <summary>&gt;&gt;</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationComplex">
+            <summary>
+            Operations on complex images.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Complex(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplex.Polar">
+            <summary>Convert to polar coordinates.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplex.Rect">
+            <summary>Convert to rectangular coordinates.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplex.Conj">
+            <summary>Complex conjugate.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationComplex2">
+            <summary>
+            Binary operations on complex images.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Complex2(NetVips.Image,System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplex2.CrossPhase">
+            <summary>Convert to polar coordinates.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationComplexget">
+            <summary>
+            Components of complex images.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Complexget(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplexget.Real">
+            <summary>Get real component.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationComplexget.Imag">
+            <summary>Get imaginary component.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationMath">
+            <summary>
+            Various math functions on images.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Math(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Sin">
+            <summary>sin(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Cos">
+            <summary>cos(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Tan">
+            <summary>tan(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Asin">
+            <summary>asin(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Acos">
+            <summary>acos(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Atan">
+            <summary>atan(), angles in degrees.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Log">
+            <summary>log base e.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Log10">
+            <summary>log base 10.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Exp">
+            <summary>e to the something.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath.Exp10">
+            <summary>10 to the something.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationMath2">
+            <summary>
+            Various math functions on images.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Math(System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath2.Pow">
+            <summary>pow( left, right ).</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMath2.Wop">
+            <summary>pow( right, left ).</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationMorphology">
+            <summary>
+            Morphological operations.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Morph(NetVips.Image,System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationMorphology.Erode">
+            <summary>true if all set.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationMorphology.Dilate">
+            <summary>true if one set.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationRelational">
+            <summary>
+            Various relational operations.
+            </summary>
+            <remarks>
+            See <see cref="M:NetVips.Image.Relational(NetVips.Image,System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.Equal">
+            <summary>==</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.Noteq">
+            <summary>!=</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.Less">
+            <summary>&lt;</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.Lesseq">
+            <summary>&lt;=</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.More">
+            <summary>&gt;</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRelational.Moreeq">
+            <summary>&gt;=</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationRound">
+            <summary>
+            Round operations.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRound.Rint">
+            <summary>Round to nearest.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRound.Ceil">
+            <summary>The smallest integral value not less than.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationRound.Floor">
+            <summary>Largest integral value not greater than.</summary>
+        </member>
+        <member name="T:NetVips.Enums.PCS">
+            <summary>
+            Set Profile Connection Space.
+            </summary>
+            <remarks>
+            See for example <see cref="M:NetVips.Image.IccImport(System.String,System.String,System.Nullable{System.Boolean},System.String)"/>.
+            </remarks>
+        </member>
+        <member name="F:NetVips.Enums.PCS.Lab">
+            <summary>CIE Lab space.</summary>
+        </member>
+        <member name="F:NetVips.Enums.PCS.Xyz">
+            <summary>CIE XYZ space.</summary>
         </member>
         <member name="T:NetVips.Enums.Precision">
             <summary>
@@ -509,84 +869,188 @@
         <member name="F:NetVips.Enums.Precision.Approximate">
             <summary>Compute approximate result.</summary>
         </member>
-        <member name="T:NetVips.Enums.Coding">
+        <member name="T:NetVips.Enums.RegionShrink">
             <summary>
-            How pixels are coded.
+            How to calculate the output pixels when shrinking a 2x2 region.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.RegionShrink.Mean">
+            <summary>Use the average.</summary>
+        </member>
+        <member name="F:NetVips.Enums.RegionShrink.Median">
+            <summary>Use the median.</summary>
+        </member>
+        <member name="F:NetVips.Enums.RegionShrink.Mode">
+            <summary>Use the mode.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Saveable">
+            <summary>
+            Some hints about the image saver.
+            </summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.Mono">
+            <summary>1 band (eg. CSV)</summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.Rgb">
+            <summary>1 or 3 bands (eg. PPM)</summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.Rgba">
+            <summary>1, 2, 3 or 4 bands (eg. PNG)</summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.RgbaOnly">
+            <summary>3 or 4 bands (eg. WEBP)</summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.RgbCmyk">
+            <summary>1, 3 or 4 bands (eg.JPEG)</summary>
+        </member>
+        <member name="F:NetVips.Enums.Saveable.Any">
+            <summary>Any number of bands (eg. TIFF)</summary>
+        </member>
+        <member name="T:NetVips.Enums.Size">
+            <summary>
+            Controls whether an operation should upsize, downsize, both up and downsize, or force a size.
             </summary>
             <remarks>
-            Normally, pixels are uncoded and can be manipulated as you would expect.
-            However some file formats code pixels for compression, and sometimes it's
-            useful to be able to manipulate images in the coded format.
+            See for example <see cref="M:NetVips.Image.Thumbnail(System.String,System.Int32,System.Nullable{System.Int32},System.String,System.Nullable{System.Boolean},System.String,System.Nullable{System.Boolean},System.String,System.String,System.String)"/>.
             </remarks>
         </member>
-        <member name="F:NetVips.Enums.Coding.None">
-            <summary>Pixels are not coded.</summary>
+        <member name="F:NetVips.Enums.Size.Both">
+            <summary>Size both up and down.</summary>
         </member>
-        <member name="F:NetVips.Enums.Coding.Labq">
-            <summary>Pixels encode 3 float CIELAB values as 4 uchar.</summary>
+        <member name="F:NetVips.Enums.Size.Up">
+            <summary>Only upsize.</summary>
         </member>
-        <member name="F:NetVips.Enums.Coding.Rad">
-            <summary>Pixels encode 3 float RGB as 4 uchar (Radiance coding).</summary>
+        <member name="F:NetVips.Enums.Size.Down">
+            <summary>Only downsize.</summary>
         </member>
-        <member name="T:NetVips.Enums.Direction">
+        <member name="F:NetVips.Enums.Size.Force">
+            <summary>Force size, that is, break aspect ratio.</summary>
+        </member>
+        <member name="T:NetVips.Enums.LogLevelFlags">
             <summary>
-            A direction.
+            Flags specifying the level of log messages.
             </summary>
-            <remarks>
-            Operations like <see cref="M:NetVips.Image.Flip(System.String)"/> need to be told whether to flip
-            left-right or top-bottom.
-            </remarks>
         </member>
-        <member name="F:NetVips.Enums.Direction.Horizontal">
-            <summary>left-right.</summary>
+        <member name="F:NetVips.Enums.LogLevelFlags.FlagRecursion">
+            <summary>Internal flag.</summary>
         </member>
-        <member name="F:NetVips.Enums.Direction.Vertical">
-            <summary>top-bottom.</summary>
+        <member name="F:NetVips.Enums.LogLevelFlags.FlagFatal">
+            <summary>internal flag.</summary>
         </member>
-        <member name="T:NetVips.Enums.Align">
+        <member name="F:NetVips.Enums.LogLevelFlags.Error">
+            <summary>log level for errors.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.Critical">
+            <summary>log level for critical warning messages.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.Warning">
+            <summary>log level for warnings.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.Message">
+            <summary>log level for messages.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.Info">
+            <summary>log level for informational messages.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.Debug">
+            <summary>log level for debug messages.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.AllButFatal">
+            <summary>All log levels except fatal.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.AllButRecursion">
+            <summary>All log levels except recursion.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.All">
+            <summary>All log levels.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.FlagMask">
+            <summary>Flag mask.</summary>
+        </member>
+        <member name="F:NetVips.Enums.LogLevelFlags.LevelMask">
+            <summary>A mask including all log levels..</summary>
+        </member>
+        <member name="T:NetVips.Enums.ArgumentFlags">
             <summary>
-            Various types of alignment.
+            Flags we associate with each object argument.
             </summary>
-            <remarks>
-            See <see cref="M:NetVips.Image.Join(NetVips.Image,System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Double[],System.String)"/>, for example.
-            </remarks>
         </member>
-        <member name="F:NetVips.Enums.Align.Low">
-            <summary>Align on the low coordinate edge.</summary>
+        <member name="F:NetVips.Enums.ArgumentFlags.NONE">
+            <summary>No flags.</summary>
         </member>
-        <member name="F:NetVips.Enums.Align.Centre">
-            <summary>Align on the centre.</summary>
+        <member name="F:NetVips.Enums.ArgumentFlags.REQUIRED">
+            <summary>Must be set in the constructor.</summary>
         </member>
-        <member name="F:NetVips.Enums.Align.High">
-            <summary>Align on the high coordinate edge.</summary>
+        <member name="F:NetVips.Enums.ArgumentFlags.CONSTRUCT">
+            <summary>Can only be set in the constructor.</summary>
         </member>
-        <member name="T:NetVips.Enums.Combine">
+        <member name="F:NetVips.Enums.ArgumentFlags.SET_ONCE">
+            <summary>Can only be set once.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ArgumentFlags.SET_ALWAYS">
+            <summary>Don't do use-before-set checks.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ArgumentFlags.INPUT">
+            <summary>Is an input argument (one we depend on).</summary>
+        </member>
+        <member name="F:NetVips.Enums.ArgumentFlags.OUTPUT">
+            <summary>Is an output argument (depends on us).</summary>
+        </member>
+        <member name="F:NetVips.Enums.ArgumentFlags.DEPRECATED">
+            <summary>Just there for back-compat, hide.</summary>
+        </member>
+        <member name="F:NetVips.Enums.ArgumentFlags.MODIFY">
+            <summary>The input argument will be modified.</summary>
+        </member>
+        <member name="T:NetVips.Enums.OperationFlags">
             <summary>
-            How to combine passes.
+            Flags we associate with an <see cref="T:NetVips.Operation"/>.
             </summary>
-            <remarks>
-            See for example <see cref="M:NetVips.Image.Compass(NetVips.Image,System.Nullable{System.Int32},System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})"/>.
-            </remarks>
         </member>
-        <member name="F:NetVips.Enums.Combine.Max">
-            <summary>Take the maximum of all values.</summary>
+        <member name="F:NetVips.Enums.OperationFlags.NONE">
+            <summary>No flags.</summary>
         </member>
-        <member name="F:NetVips.Enums.Combine.Sum">
-            <summary>Take the sum of all values.</summary>
+        <member name="F:NetVips.Enums.OperationFlags.SEQUENTIAL">
+            <summary>Can work sequentially with a small buffer.</summary>
         </member>
-        <member name="T:NetVips.Enums.PCS">
+        <member name="F:NetVips.Enums.OperationFlags.SEQUENTIAL_UNBUFFERED">
+            <summary>Can work sequentially without a buffer.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationFlags.NOCACHE">
+            <summary>Must not be cached.</summary>
+        </member>
+        <member name="F:NetVips.Enums.OperationFlags.DEPRECATED">
+            <summary>A compatibility thing.</summary>
+        </member>
+        <member name="T:NetVips.Enums.Signals">
             <summary>
-            Set Profile Connection Space.
+            Signals that can be used on an <see cref="T:NetVips.Image"/>. See <see cref="M:NetVips.GObject.SignalConnect(System.String,System.Delegate,System.IntPtr)"/>.
             </summary>
+        </member>
+        <member name="F:NetVips.Enums.Signals.PreEval">
+            <summary>Evaluation is starting.</summary>
             <remarks>
-            See for example <see cref="M:NetVips.Image.IccImport(System.String,System.String,System.Nullable{System.Boolean},System.String)"/>.
+            The preeval signal is emitted once before computation of <see cref="T:NetVips.Image"/>
+            starts. It's a good place to set up evaluation feedback.
             </remarks>
         </member>
-        <member name="F:NetVips.Enums.PCS.Lab">
-            <summary>CIE Lab space.</summary>
+        <member name="F:NetVips.Enums.Signals.Eval">
+             <summary>Evaluation progress.</summary>
+             <remarks>
+             The eval signal is emitted once per work unit (typically a 128 x
+             128 area of pixels) during image computation.
+            
+             You can use this signal to update user-interfaces with progress
+             feedback. Beware of updating too frequently: you will usually
+             need some throttling mechanism.
+             </remarks>
         </member>
-        <member name="F:NetVips.Enums.PCS.Xyz">
-            <summary>CIE XYZ space.</summary>
+        <member name="F:NetVips.Enums.Signals.PostEval">
+            <summary>Evaluation is ending.</summary>
+            <remarks>
+            The posteval signal is emitted once at the end of the computation
+            of <see cref="T:NetVips.Image"/>. It's a good place to shut down evaluation feedback.
+            </remarks>
         </member>
         <member name="T:NetVips.ExtensionMethods">
             <summary>
@@ -668,23 +1132,10 @@
             <summary>
             Marshals a GLib UTF8 char* to a managed string.
             </summary>
-            <param name="ptr">Pointer to the GLib string.</param>
+            <param name="utf8Str">Pointer to the GLib string.</param>
             <param name="freePtr">If set to <see langword="true"/>, free the GLib string.</param>
             <param name="size">Size of the GLib string, use 0 to read until the null character.</param>
             <returns>The managed string.</returns>
-        </member>
-        <member name="M:NetVips.ExtensionMethods.ToByteString(System.IntPtr,System.Boolean,System.Int32)">
-            <summary>
-            Marshals a C string pointer to a byte array.
-            </summary>
-            <remarks>
-            Since encoding is not specified, the string is returned as a byte array.
-            The byte array does not include the null terminator.
-            </remarks>
-            <param name="ptr">Pointer to the unmanaged string.</param>
-            <param name="freePtr">If set to <see langword="true"/> free the unmanaged memory.</param>
-            <param name="size">Size of the C string, use 0 to read until the null character.</param>
-            <returns>The string as a byte array.</returns>
         </member>
         <member name="M:NetVips.ExtensionMethods.ToReadableBytes(System.UInt64)">
             <summary>
@@ -736,6 +1187,16 @@
             <summary>
             We have to record all of the <see cref="M:NetVips.GObject.SignalConnect(System.String,System.Delegate,System.IntPtr)"/> delegates to
             prevent them from being re-located or disposed of by the garbage collector.
+            </summary>
+        </member>
+        <member name="F:NetVips.GObject.MemoryPressure">
+            <summary>
+            Hint of how much native memory is actually occupied by the object.
+            </summary>
+        </member>
+        <member name="E:NetVips.GObject.OnUnref">
+            <summary>
+            A delegate that is called when the object's reference count is decreased.
             </summary>
         </member>
         <member name="M:NetVips.GObject.#ctor(System.IntPtr)">
@@ -952,6 +1413,16 @@
              </remarks>
              <param name="gtype">Type the GValue should hold values of.</param>
         </member>
+        <member name="M:NetVips.GValue.AddMemoryPressure(System.Int64)">
+            <summary>
+            Ensure that the GC knows the true cost of the object during collection.
+            </summary>
+            <remarks>
+            If the object is actually bigger than the managed size reflects, it may
+            be a candidate for quick(er) collection.
+            </remarks>
+            <param name="bytesAllocated">The amount of unmanaged memory that has been allocated.</param>
+        </member>
         <member name="M:NetVips.GValue.Set(System.Object)">
             <summary>
             Set a GValue.
@@ -1002,11 +1473,6 @@
         <member name="T:NetVips.Image">
             <summary>
             Wrap a <see cref="T:NetVips.Internal.VipsImage"/> object.
-            </summary>
-        </member>
-        <member name="F:NetVips.Image._dataHandle">
-            <summary>
-            Secret ref for <see cref="M:NetVips.Image.NewFromMemory(System.Array,System.Int32,System.Int32,System.Int32,System.String)"/>.
             </summary>
         </member>
         <member name="T:NetVips.Image.EvalDelegate">
@@ -2338,9 +2804,6 @@
             Serves as the default hash function.
             </summary>
             <returns>A hash code for the current image.</returns>
-        </member>
-        <member name="M:NetVips.Image.Dispose(System.Boolean)">
-            <inheritdoc cref="T:NetVips.GObject"/>
         </member>
         <member name="M:NetVips.Image.Abs">
             <summary>
@@ -8983,6 +9446,19 @@
             </remarks>
             <returns>A list of operations.</returns>
         </member>
+        <member name="M:NetVips.NetVips.GetEnums">
+            <summary>
+            Get a list of enums available within the libvips library.
+            </summary>
+            <returns>A list of enums.</returns>
+        </member>
+        <member name="M:NetVips.NetVips.ValuesForEnum(System.IntPtr)">
+            <summary>
+            Get all values for a enum (GType).
+            </summary>
+            <param name="type">Type to return enum values for.</param>
+            <returns>A list of values.</returns>
+        </member>
         <member name="M:NetVips.NetVips.TypeFromName(System.String)">
             <summary>
             Return the GType for a name.
@@ -9496,6 +9972,49 @@
             Attach a finish handler.
             </summary>
         </member>
+        <member name="T:NetVips.VipsBlob">
+            <summary>
+            Manage a <see cref="T:NetVips.Internal.VipsBlob"/>.
+            </summary>
+        </member>
+        <member name="M:NetVips.VipsBlob.#ctor(System.IntPtr)">
+            <summary>
+            Initializes a new instance of the <see cref="T:NetVips.VipsBlob"/> class
+            with the specified pointer to wrap around.
+            </summary>
+            <param name="pointer">The pointer to wrap around.</param>
+        </member>
+        <member name="M:NetVips.VipsBlob.GetData(System.UIntPtr@)">
+            <summary>
+            Get the data from a <see cref="T:NetVips.Internal.VipsBlob"/>.
+            </summary>
+            <param name="length">Return number of bytes of data.</param>
+            <returns>A <see cref="T:System.IntPtr"/> containing the data.</returns>
+        </member>
+        <member name="M:NetVips.VipsBlob.ReleaseHandle">
+            <summary>
+            Decreases the reference count of the blob.
+            When its reference count drops to 0, the blob is finalized (i.e. its memory is freed).
+            </summary>
+            <returns><see langword="true"/> if the handle is released successfully; otherwise,
+            in the event of a catastrophic failure, <see langword="false"/>.</returns>
+        </member>
+        <member name="P:NetVips.VipsBlob.IsInvalid">
+            <summary>
+            Gets a value indicating whether the handle is invalid.
+            </summary>
+            <returns><see langword="true"/> if the handle is not valid; otherwise, <see langword="false"/>.</returns>
+        </member>
+        <member name="P:NetVips.VipsBlob.Length">
+            <summary>
+            Get the number of bytes of data.
+            </summary>
+        </member>
+        <member name="P:NetVips.VipsBlob.RefCount">
+            <summary>
+            Get the reference count of the blob. Handy for debugging.
+            </summary>
+        </member>
         <member name="T:NetVips.VipsException">
             <summary>
             Our own exception class which handles the libvips error buffer.
@@ -9596,17 +10115,17 @@
             Records a start time, and counts microseconds elapsed since that time.
             </summary>
         </member>
-        <member name="F:NetVips.GTimer.start">
+        <member name="F:NetVips.GTimer.Start">
             <summary>
             Monotonic start time, in microseconds.
             </summary>
         </member>
-        <member name="F:NetVips.GTimer.end">
+        <member name="F:NetVips.GTimer.End">
             <summary>
             Monotonic end time, in microseconds.
             </summary>
         </member>
-        <member name="F:NetVips.GTimer.active">
+        <member name="F:NetVips.GTimer.Active">
             <summary>
             Is the timer currently active?
             </summary>
