@@ -246,8 +246,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Fixtures~\BumperTest.obj" />
-    <Content Include="Fixtures~\BumperTest.vpx" />
     <Content Include="VisualPinball.Engine.Test.asmdef" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
