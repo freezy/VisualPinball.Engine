@@ -7,6 +7,7 @@ using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using System;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -147,22 +148,32 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
 		{
-			if (_table == null) return;
+			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
+				return;
+			}
 
 			int selectedIndex = 0;
-			for (int i = 0; i < _allMaterials.Length; i++) {
-				if (_allMaterials[i] == field) {
+			for (int i = 0; i < optionValues.Length; i++) {
+				if (optionValues[i].Equals(field)) {
 					selectedIndex = i;
 					break;
 				}
 			}
 			EditorGUI.BeginChangeCheck();
-			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allMaterials);
-			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allMaterials.Length) {
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
 				FinishEdit(label, dirtyMesh);
-				field = selectedIndex == 0 ? "" : _allMaterials[selectedIndex];
+				field = optionValues[selectedIndex];
+			}
+		}
+
+		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
+		{
+			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
+			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
+				field = ""; // don't store the none value string in our data
 			}
 		}
 
