@@ -39,6 +39,12 @@ namespace VisualPinball.Unity.VPT.Plunger
 					meshBuffer.Add(new PlungerMeshBufferElement(new float3(v.X, v.Y, v.Z)));
 				}
 			}
+
+			PostConvert(entity, dstManager, plunger.MeshGenerator);
+		}
+
+		protected virtual void PostConvert(Entity entity, EntityManager dstManager, PlungerMeshGenerator meshGenerator)
+		{
 		}
 	}
 }

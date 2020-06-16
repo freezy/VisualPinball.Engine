@@ -33,6 +33,12 @@ namespace VisualPinball.Unity.VPT.Plunger
 				var vector3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
 				meshComponent.mesh.SetVertices(vector3Buffer.AsNativeArray(), startPos, count);
 
+				// a bit dirty, but that means it's a flat mesh, hence update UVs as well.
+				if (count == 4) {
+					var uvBuffer = EntityManager.GetBuffer<PlungerUvBufferElement>(entity).Reinterpret<Vector2>();
+					meshComponent.mesh.SetUVs(0, uvBuffer.AsNativeArray(), startPos, count);
+				}
+
 				marker.End();
 
 			}).Run();

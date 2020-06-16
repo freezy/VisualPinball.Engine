@@ -228,6 +228,7 @@
     <Compile Include="VPT\Plunger\PlungerRodBehavior.cs" />
     <Compile Include="VPT\Plunger\PlungerSpringBehavior.cs" />
     <Compile Include="VPT\Plunger\PlungerStaticData.cs" />
+    <Compile Include="VPT\Plunger\PlungerUvBufferElement.cs" />
     <Compile Include="VPT\Plunger\PlungerVelocityData.cs" />
     <Compile Include="VPT\Plunger\PlungerVelocitySystem.cs" />
     <Compile Include="VPT\Primitive\PrimitiveBehavior.cs" />
