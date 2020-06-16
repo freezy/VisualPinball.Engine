@@ -67,18 +67,24 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		public static string GetFixturePath(string filename)
 		{
-			return Path.GetFullPath(Path.Combine(GetTestsPath(),
-				".." + Path.DirectorySeparatorChar,
-				".." + Path.DirectorySeparatorChar,
+			return Path.GetFullPath(Path.Combine(GetTestPath(),
 				"Fixtures~" + Path.DirectorySeparatorChar,
 				filename));
 		}
 
-		private static string GetTestsPath()
+		private static string GetTestPath()
 		{
-			return Path
-				.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase)
-				.Replace(@"file:" + Path.DirectorySeparatorChar, string.Empty);
+			var codeBase = Assembly.GetExecutingAssembly().CodeBase;
+			return codeBase.Contains("/Library/ScriptAssemblies/")
+				? Path.GetFullPath("Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test")
+				: Path.GetFullPath(
+					Path.Combine(
+						Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase)
+							.Replace(@"file:" + Path.DirectorySeparatorChar, string.Empty),
+						"..",
+						".."
+					)
+				);
 		}
 
 	}
