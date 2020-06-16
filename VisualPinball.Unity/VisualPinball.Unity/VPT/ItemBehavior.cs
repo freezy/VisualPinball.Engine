@@ -118,17 +118,23 @@ namespace VisualPinball.Unity.VPT
 			var mr = go.GetComponent<MeshRenderer>();
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
 			if (ro == null || !ro.IsVisible) {
-				mr.enabled = false;
+				if (mr != null) {
+					mr.enabled = false;
+				}
 				return;
 			}
-			var unityMesh = go.GetComponent<MeshFilter>().sharedMesh;
-			ro.Mesh.ApplyToUnityMesh(unityMesh);
-
-			if (table != null && table.AssetHandler != null) {
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+			var mf = go.GetComponent<MeshFilter>();
+			if (mf != null) {
+				var unityMesh = mf.sharedMesh;
+				ro.Mesh.ApplyToUnityMesh(unityMesh);
 			}
 
-			mr.enabled = true;
+			if (mr != null) {
+				if (table != null && table.AssetHandler != null) {
+					mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+				}
+				mr.enabled = true;
+			}
 		}
 
 		protected abstract string[] Children { get; }
