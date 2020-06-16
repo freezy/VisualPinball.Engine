@@ -37,10 +37,6 @@
 		<WarningLevel>4</WarningLevel>
 	</PropertyGroup>
 	<ItemGroup>
-		<Reference Include="NetVips, Version=1.2.0.0, Culture=neutral, PublicKeyToken=null">
-			<HintPath>..\.packages\NetVips.1.2.0-rc2\lib\net45\NetVips.dll</HintPath>
-			<Private>True</Private>
-		</Reference>
 		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
 		  <HintPath>..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
 		  <Private>True</Private>
@@ -61,6 +57,18 @@
 		<Reference Include="NetMiniZ, Version=1.0.2.0, Culture=neutral, PublicKeyToken=null">
 		  <HintPath>..\.packages\NetMiniZ.1.0.2\lib\netstandard2.0\NetMiniZ.dll</HintPath>
 		  <Private>True</Private>
+		</Reference>
+		<Reference Include="System.Buffers">
+		  <HintPath>..\.packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Runtime.CompilerServices.Unsafe">
+		  <HintPath>..\.packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Memory">
+		  <HintPath>..\.packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+		</Reference>
+		<Reference Include="NetVips, Version=1.2.2.0, Culture=neutral, PublicKeyToken=null">
+		  <HintPath>..\.packages\NetVips.1.2.2\lib\net45\NetVips.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
@@ -241,11 +249,11 @@
 			<ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
 		</PropertyGroup>
 		<Error Condition="!Exists('..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\Microsoft.Net.Compilers.Toolset.3.1.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
-		<Error Condition="!Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets'))" />
 	</Target>
-	<Import Project="..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.0-rc4\build\net45\NetVips.Native.win-x64.targets')" />
 	<Import Project="..\.packages\NetMiniZ.Native.osx-x64.1.0.2\build\netstandard2.0\NetMiniZ.Native.osx-x64.targets" Condition="Exists('..\.packages\NetMiniZ.Native.osx-x64.1.0.2\build\netstandard2.0\NetMiniZ.Native.osx-x64.targets')" />
 	<Import Project="..\.packages\NetMiniZ.Native.win-x64.1.0.2\build\netstandard2.0\NetMiniZ.Native.win-x64.targets" Condition="Exists('..\.packages\NetMiniZ.Native.win-x64.1.0.2\build\netstandard2.0\NetMiniZ.Native.win-x64.targets')" />
+	<Import Project="..\.packages\NetVips.Native.win-x64.8.9.2-build2\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\NetVips.Native.win-x64.8.9.2-build2\build\net45\NetVips.Native.win-x64.targets')" />
+	<Import Project="..\.packages\NetVips.Native.osx-x64.8.9.2-build2\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('..\.packages\NetVips.Native.osx-x64.8.9.2-build2\build\net461\NetVips.Native.osx-x64.targets')" />
 	<Target Name="AfterBuild">
 		<ItemGroup>
 			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.dylib;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
