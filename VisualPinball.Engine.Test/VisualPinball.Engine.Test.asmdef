@@ -1,15 +1,8 @@
 {
-    "name": "VisualPinball.Unity.Test",
+    "name": "VisualPinball.Engine.Test",
     "references": [
         "UnityEngine.TestRunner",
-        "Unity.Collections",
-        "Unity.Entities",
-        "Unity.Entities.Hybrid",
-        "Unity.Mathematics",
-        "Unity.Transforms",
-        "VisualPinball.Engine",
-        "VisualPinball.Engine.Test",
-        "VisualPinball.Unity"
+        "VisualPinball.Engine"
     ],
     "includePlatforms": [
         "Editor"
