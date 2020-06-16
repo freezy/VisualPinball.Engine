@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using JeremyAnsel.Media.WavefrontObj;
+﻿using JeremyAnsel.Media.WavefrontObj;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.HitTarget
 {
@@ -11,13 +9,13 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public HitTargetMeshTests(ITestOutputHelper output) : base(output)
+		public HitTargetMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
 			_obj = LoadObjFixture(ObjPath.HitTarget);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateMesh()
 		{
 			AssertObjMesh(_table, _obj, _table.HitTargets["DropTargetBeveled"]);

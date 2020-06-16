@@ -1,21 +1,22 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Sound
 {
 	public class SoundDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadSoundData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Sound);
 			ValidateSoundData(table.Sounds["fx_bumper3"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteSoundData()
 		{
 			const string tmpFileName = "ShouldWriteSoundData.vpx";
@@ -27,21 +28,21 @@ namespace VisualPinball.Engine.Test.VPT.Sound
 
 		private static void ValidateSoundData(SoundData data)
 		{
-			Assert.Equal(29, data.Balance);
-			Assert.Equal(11940, data.Data.Length);
-			Assert.Equal(28, data.Fade);
-			Assert.Equal("fx_bumper3", data.InternalName);
-			Assert.Equal(SoundOutTypes.Backglass, data.OutputTarget);
-			Assert.Equal(@"C:\VPX\sounds\fx_bumper3.wav", data.Path);
-			Assert.Equal(-37, data.Volume);
+			data.Balance.Should().Be(29);
+			data.Data.Length.Should().Be(11940);
+			data.Fade.Should().Be(28);
+			data.InternalName.Should().Be("fx_bumper3");
+			data.OutputTarget.Should().Be(SoundOutTypes.Backglass);
+			data.Path.Should().Be(@"C:\VPX\sounds\fx_bumper3.wav");
+			data.Volume.Should().Be(-37);
 
-			Assert.Equal(44100U, data.Wfx.AvgBytesPerSec);
-			Assert.Equal(16U, data.Wfx.BitsPerSample);
-			Assert.Equal(2U, data.Wfx.BlockAlign);
-			Assert.Equal(0, data.Wfx.CbSize);
-			Assert.Equal(1U, data.Wfx.Channels);
-			Assert.Equal(1U, data.Wfx.FormatTag);
-			Assert.Equal(22050U, data.Wfx.SamplesPerSec);
+			data.Wfx.AvgBytesPerSec.Should().Be(44100U);
+			data.Wfx.BitsPerSample.Should().Be(16);
+			data.Wfx.BlockAlign.Should().Be(2);
+			data.Wfx.CbSize.Should().Be(0);
+			data.Wfx.Channels.Should().Be(1);
+			data.Wfx.FormatTag.Should().Be(1);
+			data.Wfx.SamplesPerSec.Should().Be(22050U);
 		}
 	}
 }

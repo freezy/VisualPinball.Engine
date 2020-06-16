@@ -1,7 +1,6 @@
-using VisualPinball.Engine.Common;
+using FluentAssertions;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT
 {
@@ -14,38 +13,38 @@ namespace VisualPinball.Engine.Test.VPT
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Texture);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldAnalyzeAnOpaqueTexture()
 		{
 			var texture = _table.Textures["test_pattern_png"];
 			var stats = texture.GetStats();
 
-			Assert.Equal(1f, stats.Opaque);
-			Assert.Equal(0f, stats.Translucent);
-			Assert.Equal(0f, stats.Transparent);
+			stats.Opaque.Should().Be(1f);
+			stats.Translucent.Should().Be(0f);
+			stats.Transparent.Should().Be(0f);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldAnalyzeAnotherOpaqueTexture()
 		{
 			var texture = _table.Textures["test_pattern_argb"];
 			var stats = texture.GetStats();
 
-			Assert.Equal(1f, stats.Opaque);
-			Assert.Equal(0f, stats.Translucent);
-			Assert.Equal(0f, stats.Transparent);
+			stats.Opaque.Should().Be(1f);
+			stats.Translucent.Should().Be(0f);
+			stats.Transparent.Should().Be(0f);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldAnalyzeATransparentTexture()
 		{
 			var texture = _table.Textures["test_pattern_transparent"];
 			texture.Analyze();
 			var stats = texture.GetStats();
 
-			Assert.Equal(0.657285035f, stats.Opaque);
-			Assert.Equal(0.0102373762f, stats.Translucent);
-			Assert.Equal(0.33247757f, stats.Transparent);
+			stats.Opaque.Should().Be(0.657285035f);
+			stats.Translucent.Should().Be(0.0102373762f);
+			stats.Transparent.Should().Be(0.33247757f);
 		}
 	}
 }

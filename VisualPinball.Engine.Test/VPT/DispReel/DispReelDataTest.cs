@@ -1,15 +1,13 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.DispReel;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.DispReel
 {
 	public class DispReelDataTest : BaseTests
 	{
-		public DispReelDataTest(ITestOutputHelper output) : base(output) { }
-
-		[Fact]
+		[Test]
 		public void ShouldReadDispReelData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.DispReel);
@@ -17,7 +15,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			ValidateDispReel2(table.DispReels["Reel2"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteDispReelData()
 		{
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
@@ -30,59 +28,59 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 
 		private static void ValidateDispReel1(DispReelData data)
 		{
-			Assert.Equal(204, data.BackColor.Red);
-			Assert.Equal(149, data.BackColor.Green);
-			Assert.Equal(19, data.BackColor.Blue);
-			Assert.Equal(3, data.DigitRange);
-			Assert.Equal(6, data.EditorLayer);
-			Assert.Equal(42, data.Height);
-			Assert.Equal("tex_transparent", data.Image);
-			Assert.Equal(3, data.ImagesPerGridRow);
-			Assert.Equal(true, data.IsLocked);
-			Assert.Equal(true, data.IsTimerEnabled);
-			Assert.Equal(true, data.IsTransparent);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal(32, data.MotorSteps);
-			Assert.Equal(32, data.ReelCount);
-			Assert.Equal(8, data.ReelSpacing);
-			Assert.Equal("", data.Sound);
-			Assert.Equal(100, data.TimerInterval);
-			Assert.Equal(12, data.UpdateInterval);
-			Assert.Equal(true, data.UseImageGrid);
-			Assert.Equal(3.2f, data.V1.X);
-			Assert.Equal(151.6f, data.V1.Y);
-			Assert.Equal(data.V1.X + data.BoxWidth, data.V2.X);
-			Assert.Equal(data.V1.Y + data.BoxHeight, data.V2.Y);
-			Assert.Equal(12, data.Width);
-			Assert.Equal(true, data.IsTimerEnabled);
+			data.BackColor.Red.Should().Be(204);
+			data.BackColor.Green.Should().Be(149);
+			data.BackColor.Blue.Should().Be(19);
+			data.DigitRange.Should().Be(3);
+			data.EditorLayer.Should().Be(6);
+			data.Height.Should().Be(42);
+			data.Image.Should().Be("tex_transparent");
+			data.ImagesPerGridRow.Should().Be(3);
+			data.IsLocked.Should().Be(true);
+			data.IsTimerEnabled.Should().Be(true);
+			data.IsTransparent.Should().Be(true);
+			data.IsVisible.Should().Be(true);
+			data.MotorSteps.Should().Be(32);
+			data.ReelCount.Should().Be(32);
+			data.ReelSpacing.Should().Be(8);
+			data.Sound.Should().Be("");
+			data.TimerInterval.Should().Be(100);
+			data.UpdateInterval.Should().Be(12);
+			data.UseImageGrid.Should().Be(true);
+			data.V1.X.Should().Be(3.2f);
+			data.V1.Y.Should().Be(151.6f);
+			data.V2.X.Should().Be(data.V1.X + data.BoxWidth);
+			data.V2.Y.Should().Be(data.V1.Y + data.BoxHeight);
+			data.Width.Should().Be(12);
+			data.IsTimerEnabled.Should().Be(true);
 		}
 
 		private static void ValidateDispReel2(DispReelData data)
 		{
-			Assert.Equal(0, data.BackColor.Red);
-			Assert.Equal(0, data.BackColor.Green);
-			Assert.Equal(255, data.BackColor.Blue);
-			Assert.Equal(9, data.DigitRange);
-			Assert.Equal(0, data.EditorLayer);
-			Assert.Equal(40, data.Height);
-			Assert.Equal("", data.Image);
-			Assert.Equal(1, data.ImagesPerGridRow);
-			Assert.Equal(false, data.IsLocked);
-			Assert.Equal(false, data.IsTimerEnabled);
-			Assert.Equal(false, data.IsTransparent);
-			Assert.Equal(false, data.IsVisible);
-			Assert.Equal(2, data.MotorSteps);
-			Assert.Equal(5, data.ReelCount);
-			Assert.Equal(4, data.ReelSpacing);
-			Assert.Equal("", data.Sound);
-			Assert.Equal(100, data.TimerInterval);
-			Assert.Equal(50, data.UpdateInterval);
-			Assert.Equal(false, data.UseImageGrid);
-			Assert.Equal(445f, data.V1.X);
-			Assert.Equal(341f, data.V1.Y);
-			Assert.Equal(data.V1.X + data.BoxWidth, data.V2.X);
-			Assert.Equal(data.V1.Y + data.BoxHeight, data.V2.Y);
-			Assert.Equal(30, data.Width);
+			data.BackColor.Red.Should().Be(0);
+			data.BackColor.Green.Should().Be(0);
+			data.BackColor.Blue.Should().Be(255);
+			data.DigitRange.Should().Be(9);
+			data.EditorLayer.Should().Be(0);
+			data.Height.Should().Be(40);
+			data.Image.Should().Be("");
+			data.ImagesPerGridRow.Should().Be(1);
+			data.IsLocked.Should().Be(false);
+			data.IsTimerEnabled.Should().Be(false);
+			data.IsTransparent.Should().Be(false);
+			data.IsVisible.Should().Be(false);
+			data.MotorSteps.Should().Be(2);
+			data.ReelCount.Should().Be(5);
+			data.ReelSpacing.Should().Be(4);
+			data.Sound.Should().Be("");
+			data.TimerInterval.Should().Be(100);
+			data.UpdateInterval.Should().Be(50);
+			data.UseImageGrid.Should().Be(false);
+			data.V1.X.Should().Be(445f);
+			data.V1.Y.Should().Be(341f);
+			data.V2.X.Should().Be(data.V1.X + data.BoxWidth);
+			data.V2.Y.Should().Be(data.V1.Y + data.BoxHeight);
+			data.Width.Should().Be(30);
 		}
 	}
 }

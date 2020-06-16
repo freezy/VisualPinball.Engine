@@ -1,16 +1,13 @@
+using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Table;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.Physics
 {
 	public class PhysicsTests : BaseTests
 	{
-		public PhysicsTests(ITestOutputHelper output) : base(output) { }
-
-		[Fact]
+		[Test]
 		public void ShouldRunThePhysicsLoop()
 		{
 			var table = new TableBuilder()

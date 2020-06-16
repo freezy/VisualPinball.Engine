@@ -1,14 +1,10 @@
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT
 {
 	public class DebugTests : BaseTests
 	{
-		public DebugTests(ITestOutputHelper output) : base(output) { }
-
-		// [Fact]
+		// [Test]
 		// public void ShouldWriteChecksum()
 		// {
 		// 	var table = Engine.VPT.Table.Table.Load(@"..\..\VPT\blank-table.vpx");

@@ -1,12 +1,13 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Collection;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Collection
 {
 	public class CollectionDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadCollectionData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
@@ -14,7 +15,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 			ValidateTableData(data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteCollectionData()
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
@@ -26,12 +27,12 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 
 		private static void ValidateTableData(CollectionData data)
 		{
-			Assert.Equal("Flippers", data.Name);
-			Assert.Equal(false, data.FireEvents);
-			Assert.Equal(true, data.GroupElements);
-			Assert.Equal("Flipper001", data.ItemNames[0]);
-			Assert.Equal("Flipper002", data.ItemNames[1]);
-			Assert.Equal(false, data.StopSingleEvents);
+			data.Name.Should().Be("Flippers");
+			data.FireEvents.Should().Be(false);
+			data.GroupElements.Should().Be(true);
+			data.ItemNames[0].Should().Be("Flipper001");
+			data.ItemNames[1].Should().Be("Flipper002");
+			data.StopSingleEvents.Should().Be(false);
 		}
 	}
 }

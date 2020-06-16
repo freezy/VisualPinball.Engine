@@ -1,8 +1,6 @@
 ﻿using JeremyAnsel.Media.WavefrontObj;
-using NLog;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Table
 {
@@ -11,13 +9,13 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public TableMeshTests(ITestOutputHelper output) : base(output)
+		public TableMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Table);
 			_obj = LoadObjFixture(ObjPath.Table);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGeneratePlayfieldCorrectly()
 		{
 			var tableMesh = _table.GetRenderObjects(_table).RenderObjects[0].Mesh;

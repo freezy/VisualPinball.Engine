@@ -1,8 +1,7 @@
 ﻿using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
@@ -11,44 +10,44 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public RampMeshTests(ITestOutputHelper output) : base(output)
+		public RampMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
 			_obj = LoadObjFixture(ObjPath.Ramp);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateFlatWithoutWalls()
 		{
 			ShouldGenerate("FlatNone");
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateFlatWithBothWalls()
 		{
 			ShouldGenerate("Flat");
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerate1WireRamp()
 		{
 			ShouldGenerate("Wire1");
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerate2WireRamp()
 		{
 			ShouldGenerate("Wire2");
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerate3WireRamp()
 		{
 			ShouldGenerate("Wire3L");
 			ShouldGenerate("Wire3R");
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerate4WireRamp()
 		{
 			ShouldGenerate("Wire4");

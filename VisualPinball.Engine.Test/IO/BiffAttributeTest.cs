@@ -1,16 +1,16 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.IO
 {
 	public class BiffAttributeTest
 	{
-		[Fact]
+		[Test]
 		public void ShouldNotUseCountAndIndex()
 		{
 			GetAttributes<BiffAttribute>(typeof(BiffAttribute), (memberType, member, biffDataType, attr) =>
@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToStrings()
 		{
 			GetAttributes<BiffStringAttribute>(typeof(BiffStringAttribute), (memberType, member, biffDataType, attr) =>
@@ -32,7 +32,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToIntegers()
 		{
 			GetAttributes<BiffIntAttribute>(typeof(BiffIntAttribute), (memberType, member, biffDataType, attr) =>
@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToFloats()
 		{
 			GetAttributes<BiffFloatAttribute>(typeof(BiffFloatAttribute), (memberType, member, biffDataType, attr) =>
@@ -60,7 +60,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToBooleans()
 		{
 			GetAttributes<BiffBoolAttribute>(typeof(BiffBoolAttribute), (memberType, member, biffDataType, attr) =>
@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToColors()
 		{
 			GetAttributes<BiffColorAttribute>(typeof(BiffColorAttribute), (memberType, member, biffDataType, attr) =>
@@ -82,7 +82,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToVertices()
 		{
 			GetAttributes<BiffVertexAttribute>(typeof(BiffVertexAttribute), (memberType, member, biffDataType, attr) =>
@@ -93,7 +93,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToTextureBinary()
 		{
 			GetAttributes<BiffBinaryAttribute>(typeof(BiffBinaryAttribute), (memberType, member, biffDataType, attr) =>
@@ -104,7 +104,7 @@ namespace VisualPinball.Engine.Test.IO
 			});
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldBeAppliedToTextureBits()
 		{
 			GetAttributes<BiffBitsAttribute>(typeof(BiffBitsAttribute), (memberType, member, biffDataType, attr) =>

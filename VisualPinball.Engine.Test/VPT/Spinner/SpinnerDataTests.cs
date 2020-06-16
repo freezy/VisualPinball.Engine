@@ -1,21 +1,20 @@
-﻿using VisualPinball.Engine.Math;
+﻿using FluentAssertions;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Spinner
 {
 	public class SpinnerDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadSpinnerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
 			ValidateSpinnerData(table.Spinners["Data"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteSpinnerData()
 		{
 			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
@@ -27,19 +26,19 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 
 		private static void ValidateSpinnerData(SpinnerData data)
 		{
-			Assert.Equal(50.698f, data.AngleMax);
-			Assert.Equal(-12.87f, data.AngleMin);
-			Assert.Equal(494f, data.Center.X);
-			Assert.Equal(1401.62f, data.Center.Y);
-			Assert.Equal(0.6824f, data.Elasticity);
-			Assert.Equal(13.532f, data.Height);
-			Assert.Equal("", data.Image);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal(124.31f, data.Length);
-			Assert.Equal("Red", data.Material);
-			Assert.Equal(47.98f, data.Rotation);
-			Assert.Equal(true, data.ShowBracket);
-			Assert.Equal("", data.Surface);
+			data.AngleMax.Should().Be(50.698f);
+			data.AngleMin.Should().Be(-12.87f);
+			data.Center.X.Should().Be(494f);
+			data.Center.Y.Should().Be(1401.62f);
+			data.Elasticity.Should().Be(0.6824f);
+			data.Height.Should().Be(13.532f);
+			data.Image.Should().Be("");
+			data.IsVisible.Should().Be(true);
+			data.Length.Should().Be(124.31f);
+			data.Material.Should().Be("Red");
+			data.Rotation.Should().Be(47.98f);
+			data.ShowBracket.Should().Be(true);
+			data.Surface.Should().Be("");
 		}
 	}
 }

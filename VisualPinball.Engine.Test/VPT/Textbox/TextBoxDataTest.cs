@@ -1,25 +1,22 @@
-﻿using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.Test.VPT.Trigger;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.TextBox
 {
 	public class TextBoxDataTest : BaseTests
 	{
-		public TextBoxDataTest(ITestOutputHelper output) : base(output) { }
-
-		[Fact]
+		[Test]
 		public void ShouldReadTextBoxData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
 			ValidateTableData(table.TextBoxes["TextBox001"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteTextBoxData()
 		{
 			const string tmpFileName = "ShouldWriteTextBoxData.vpx";
@@ -31,25 +28,25 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 
 		private static void ValidateTableData(TextBoxData data)
 		{
-			Assert.Equal(TextAlignment.TextAlignCenter, data.Align);
-			Assert.Equal(0, data.BackColor.Red);
-			Assert.Equal(128, data.BackColor.Green);
-			Assert.Equal(128, data.BackColor.Blue);
-			Assert.Equal("BentonSans", data.Font.Name);
-			Assert.Equal(true, data.Font.Italic);
-			Assert.Equal(330000U, data.Font.Size);
-			Assert.Equal(700U, data.Font.Weight);
-			Assert.Equal(230, data.FontColor.Red);
-			Assert.Equal(132, data.FontColor.Green);
-			Assert.Equal(210, data.FontColor.Blue);
-			Assert.Equal(0.98f, data.IntensityScale);
-			Assert.Equal(false, data.IsDmd);
-			Assert.Equal(false, data.IsTransparent);
-			Assert.Equal("007", data.Text);
-			Assert.Equal(285, data.V1.X);
-			Assert.Equal(290, data.V1.Y);
-			Assert.Equal(285 + 250, data.V2.X);
-			Assert.Equal(290 + 70, data.V2.Y);
+			data.Align.Should().Be(TextAlignment.TextAlignCenter);
+			data.BackColor.Red.Should().Be(0);
+			data.BackColor.Green.Should().Be(128);
+			data.BackColor.Blue.Should().Be(128);
+			data.Font.Name.Should().Be("BentonSans");
+			data.Font.Italic.Should().Be(true);
+			data.Font.Size.Should().Be(330000U);
+			data.Font.Weight.Should().Be(700);
+			data.FontColor.Red.Should().Be(230);
+			data.FontColor.Green.Should().Be(132);
+			data.FontColor.Blue.Should().Be(210);
+			data.IntensityScale.Should().Be(0.98f);
+			data.IsDmd.Should().Be(false);
+			data.IsTransparent.Should().Be(false);
+			data.Text.Should().Be("007");
+			data.V1.X.Should().Be(285);
+			data.V1.Y.Should().Be(290);
+			data.V2.X.Should().Be(285 + 250);
+			data.V2.Y.Should().Be(290 + 70);
 		}
 	}
 }
