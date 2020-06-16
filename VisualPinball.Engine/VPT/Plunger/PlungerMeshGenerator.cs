@@ -195,6 +195,14 @@ namespace VisualPinball.Engine.VPT.Plunger
 		/// <returns></returns>
 		private Mesh BuildFlatMesh(int frame)
 		{
+			return new Mesh("flat") {
+				Vertices = BuildFlatVertices(frame),
+				Indices = new[] {0, 1, 2, 2, 3, 0}
+			};
+		}
+
+		public Vertex3DNoTex2[] BuildFlatVertices(int frame)
+		{
 			// Figure the corner coordinates.
 			//
 			// The tip of the plunger for this frame is at 'height', which is the
@@ -247,19 +255,15 @@ namespace VisualPinball.Engine.VPT.Plunger
 			var tuLocal = _cellWid * cellIdx;
 			var tvLocal = (yBot - yTop) / (_beginY + _data.Height - _endY);
 
-			var mesh = new Mesh("flat") {
-				Vertices = new Vertex3DNoTex2[4],
-				Indices = new[] {0, 1, 2, 2, 3, 0}
-			};
 
 			// Fill in the four corner vertices.
 			// Vertices are (in order): bottom left, top left, top right, bottom right.
-			mesh.Vertices[0] = new Vertex3DNoTex2(xLt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal, tvLocal);
-			mesh.Vertices[1] = new Vertex3DNoTex2(xLt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal, 0.0f);
-			mesh.Vertices[2] = new Vertex3DNoTex2(xRt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, 0.0f);
-			mesh.Vertices[3] = new Vertex3DNoTex2(xRt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, tvLocal);
-
-			return mesh;
+			return new[] {
+				new Vertex3DNoTex2(xLt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal, tvLocal),
+				new Vertex3DNoTex2(xLt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal, 0.0f),
+				new Vertex3DNoTex2(xRt, yTop, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, 0.0f),
+				new Vertex3DNoTex2(xRt, yBot, z, 0.0f, 0.0f, -1.0f, tuLocal + _cellWid, tvLocal)
+			};
 		}
 
 		/// <summary>
