@@ -17,6 +17,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Test", "VisualPinball.Unity.Test\VisualPinball.Unity.Test.csproj", "{D54D9710-FD25-47AB-973F-C8C83B26D6B7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{505CEC02-B75A-4CD7-AC6F-298BEBF9F0D5}"
+ProjectSection(SolutionItems) = preProject
+	..\package.json = ..\package.json
+	..\README.md = ..\README.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Unity|Any CPU = Debug Unity|Any CPU
