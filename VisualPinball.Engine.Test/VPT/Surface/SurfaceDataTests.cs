@@ -1,19 +1,20 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Surface;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
 	public class SurfaceDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadSurfaceData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
 			ValidateSurfaceData(table.Surfaces["TopInvisible"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteSurfaceData()
 		{
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
@@ -25,35 +26,35 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 
 		private static void ValidateSurfaceData(SurfaceData data)
 		{
-			Assert.Equal(0.6985f, data.DisableLightingBelow);
-			Assert.InRange(data.DisableLightingTop, 0.129f, 0.13f);
-			Assert.Equal(false, data.DisplayTexture); // editor only
-			Assert.Equal(10, data.DragPoints.Length);
-			Assert.Equal(0.368f, data.Elasticity);
-			Assert.Equal(0.381f, data.Friction);
-			Assert.Equal(2.7f, data.HeightBottom);
-			Assert.Equal(49.6f, data.HeightTop);
-			Assert.Equal(false, data.HitEvent);
-			Assert.Equal("", data.Image);
-			Assert.Equal(true, data.Inner); // ???
-			Assert.Equal(true, data.IsBottomSolid); // ???
-			Assert.Equal(true, data.IsCollidable);
-			Assert.Equal(false, data.IsDroppable);
-			Assert.Equal(false, data.IsFlipbook);
-			Assert.Equal(true, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsSideVisible);
-			Assert.Equal(false, data.IsTopBottomVisible);
-			Assert.Equal(true, data.OverwritePhysics);
-			Assert.Equal("", data.PhysicsMaterial);
-			Assert.Equal(0f, data.Scatter);
-			Assert.Equal("test_pattern", data.SideImage);
-			Assert.Equal("Playfield", data.SideMaterial);
-			Assert.Equal(true, data.SlingshotAnimation);
-			Assert.InRange(data.SlingshotForce, 80.22f, 80.24f);
-			Assert.Equal("", data.SlingShotMaterial);
-			Assert.Equal(0.029f, data.SlingshotThreshold);
-			Assert.Equal(2f, data.Threshold);
-			Assert.Equal("", data.TopMaterial);
+			data.DisableLightingBelow.Should().Be(0.6985f);
+			data.DisableLightingTop.Should().BeInRange(0.129f, 0.13f);
+			data.DisplayTexture.Should().Be(false); // editor only
+			data.DragPoints.Length.Should().Be(10);
+			data.Elasticity.Should().Be(0.368f);
+			data.Friction.Should().Be(0.381f);
+			data.HeightBottom.Should().Be(2.7f);
+			data.HeightTop.Should().Be(49.6f);
+			data.HitEvent.Should().Be(false);
+			data.Image.Should().Be("");
+			data.Inner.Should().Be(true); // ???
+			data.IsBottomSolid.Should().Be(true); // ???
+			data.IsCollidable.Should().Be(true);
+			data.IsDroppable.Should().Be(false);
+			data.IsFlipbook.Should().Be(false);
+			data.IsReflectionEnabled.Should().Be(true);
+			data.IsSideVisible.Should().Be(true);
+			data.IsTopBottomVisible.Should().Be(false);
+			data.OverwritePhysics.Should().Be(true);
+			data.PhysicsMaterial.Should().Be("");
+			data.Scatter.Should().Be(0f);
+			data.SideImage.Should().Be("test_pattern");
+			data.SideMaterial.Should().Be("Playfield");
+			data.SlingshotAnimation.Should().Be(true);
+			data.SlingshotForce.Should().BeInRange(80.22f, 80.24f);
+			data.SlingShotMaterial.Should().Be("");
+			data.SlingshotThreshold.Should().Be(0.029f);
+			data.Threshold.Should().Be(2f);
+			data.TopMaterial.Should().Be("");
 		}
 	}
 }

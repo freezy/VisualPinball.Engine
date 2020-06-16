@@ -1,19 +1,20 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Rubber;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Rubber
 {
 	public class RubberDataTest
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadRubberData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
 			ValidateRubberData(table.Rubbers["Rubber1"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteRubberData()
 		{
 			const string tmpFileName = "ShouldWriteRubberData.vpx";
@@ -25,27 +26,27 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 
 		private static void ValidateRubberData(RubberData data)
 		{
-			Assert.Equal(3, data.DragPoints.Length);
-			Assert.Equal(0.832f, data.Elasticity);
-			Assert.Equal(0.321f, data.ElasticityFalloff);
-			Assert.Equal(0.685f, data.Friction);
-			Assert.Equal(25.556f, data.Height);
-			Assert.Equal(false, data.HitEvent);
-			Assert.Equal(25.193f, data.HitHeight);
-			Assert.Equal("test_pattern", data.Image);
-			Assert.Equal(true, data.IsCollidable);
-			Assert.Equal(true, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal("Playfield", data.Material);
-			Assert.Equal(true, data.OverwritePhysics);
-			Assert.Equal("", data.PhysicsMaterial);
-			Assert.Equal(65.23f, data.RotX);
-			Assert.Equal(75.273f, data.RotY);
-			Assert.Equal(70.962f, data.RotZ);
-			Assert.Equal(5.225f, data.Scatter);
-			Assert.Equal(false, data.ShowInEditor);
-			Assert.Equal(true, data.StaticRendering);
-			Assert.Equal(12, data.Thickness);
+			data.DragPoints.Length.Should().Be(3);
+			data.Elasticity.Should().Be(0.832f);
+			data.ElasticityFalloff.Should().Be(0.321f);
+			data.Friction.Should().Be(0.685f);
+			data.Height.Should().Be(25.556f);
+			data.HitEvent.Should().Be(false);
+			data.HitHeight.Should().Be(25.193f);
+			data.Image.Should().Be("test_pattern");
+			data.IsCollidable.Should().Be(true);
+			data.IsReflectionEnabled.Should().Be(true);
+			data.IsVisible.Should().Be(true);
+			data.Material.Should().Be("Playfield");
+			data.OverwritePhysics.Should().Be(true);
+			data.PhysicsMaterial.Should().Be("");
+			data.RotX.Should().Be(65.23f);
+			data.RotY.Should().Be(75.273f);
+			data.RotZ.Should().Be(70.962f);
+			data.Scatter.Should().Be(5.225f);
+			data.ShowInEditor.Should().Be(false);
+			data.StaticRendering.Should().Be(true);
+			data.Thickness.Should().Be(12);
 		}
 	}
 }

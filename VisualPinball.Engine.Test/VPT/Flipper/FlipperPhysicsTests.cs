@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
+using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
@@ -11,13 +10,13 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 	{
 		private readonly Engine.VPT.Table.Table _table;
 
-		public FlipperPhysicsTests(ITestOutputHelper output) : base(output)
+		public FlipperPhysicsTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
 
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveToTheEndWhenSolenoidIsTurnedOn()
 		{
 			var player = new Player(_table).Init();
@@ -35,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			flipper.State.Angle.Should().Be(endAngleRad);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveToStartWhenSolenoidIsTurnedOff()
 		{
 			var player = new Player(_table).Init();
@@ -53,7 +52,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			flipper.State.Angle.Should().Be(startAngleRad);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveBackToEndWhenPressedWhileMoving()
 		{
 			var player = new Player(_table).Init();
@@ -82,7 +81,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			flipper.State.Angle.Should().Be(endAngleRad);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldCollideWithTheBallWhenHittingOnTheFace()
 		{
 			var player = new Player(_table).Init();
@@ -96,7 +95,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ball.State.Pos.Y.Should().BeGreaterThan(1650f);  // but still below
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldCollideWithTheBallWhenHittingOnTheEnd()
 		{
 			var player = new Player(_table).Init();
@@ -110,7 +109,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ball.State.Pos.Y.Should().BeGreaterThan(1670f);  // but still below
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldRollOnTheFlipper()
 		{
 			var player = new Player(_table).Init();
@@ -125,7 +124,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ball.State.Pos.Y.Should().BeInRange(1647f, 1651f);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveTheBallUp()
 		{
 			var player = new Player(_table).Init();
@@ -146,7 +145,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ball.State.Pos.Y.Should().BeLessThan(1550f);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldPushTheCoilDownWhenHitWithHighSpeed()
 		{
 			var player = new Player(_table).Init();
@@ -162,7 +161,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			MathF.RadToDeg(flipper.State.Angle).Should().BeLessThan(115);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveWhenHitAtTheSameTime()
 		{
 			var player = new Player(_table).Init();
@@ -182,7 +181,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			player.SimulateTime(1550);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldSlideOnTheFlipper()
 		{
 			var player = new Player(_table).Init();
@@ -207,7 +206,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ball.State.Pos.Y.Should().BeInRange(1617, 1621);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldMoveTheFlipperUpWhenHitFromBelow()
 		{
 			var player = new Player(_table).Init();

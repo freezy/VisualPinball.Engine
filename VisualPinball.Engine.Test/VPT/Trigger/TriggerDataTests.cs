@@ -1,20 +1,21 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Trigger
 {
 	public class TriggerDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadTriggerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
 			ValidateTriggerData(table.Triggers["Data"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteTriggerData()
 		{
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
@@ -26,22 +27,22 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 
 		private static void ValidateTriggerData(TriggerData data)
 		{
-			Assert.Equal(12.432f, data.AnimSpeed);
-			Assert.Equal(542.732f, data.Center.X);
-			Assert.Equal(1875.182f, data.Center.Y);
-			Assert.Equal(4, data.DragPoints.Length);
-			Assert.Equal(52.668f, data.HitHeight);
-			Assert.Equal(true, data.IsEnabled);
-			Assert.Equal(true, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal("Red", data.Material);
-			Assert.Equal(25f, data.Radius);
-			Assert.Equal(66.94f, data.Rotation);
-			Assert.Equal(1f, data.ScaleX);
-			Assert.Equal(1f, data.ScaleY);
-			Assert.Equal(TriggerShape.TriggerWireC, data.Shape);
-			Assert.Equal("", data.Surface);
-			Assert.Equal(3.628f, data.WireThickness);
+			data.AnimSpeed.Should().Be(12.432f);
+			data.Center.X.Should().Be(542.732f);
+			data.Center.Y.Should().Be(1875.182f);
+			data.DragPoints.Length.Should().Be(4);
+			data.HitHeight.Should().Be(52.668f);
+			data.IsEnabled.Should().Be(true);
+			data.IsReflectionEnabled.Should().Be(true);
+			data.IsVisible.Should().Be(true);
+			data.Material.Should().Be("Red");
+			data.Radius.Should().Be(25f);
+			data.Rotation.Should().Be(66.94f);
+			data.ScaleX.Should().Be(1f);
+			data.ScaleY.Should().Be(1f);
+			data.Shape.Should().Be(TriggerShape.TriggerWireC);
+			data.Surface.Should().Be("");
+			data.WireThickness.Should().Be(3.628f);
 		}
 	}
 }

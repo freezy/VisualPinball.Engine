@@ -1,12 +1,13 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Bumper;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
 	public class BumperDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadBumperData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
@@ -14,7 +15,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			ValidateTableData(data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteBumperData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
@@ -26,35 +27,35 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 
 		private static void ValidateTableData(BumperData data)
 		{
-			Assert.Equal("Material2", data.BaseMaterial);
-			Assert.Equal("Material1", data.CapMaterial);
-			Assert.Equal(500f, data.Center.X);
-			Assert.Equal(1250f, data.Center.Y);
-			Assert.Equal(12.2234f, data.Force);
-			Assert.Equal(80.654f, data.HeightScale);
-			Assert.Equal(true, data.HitEvent);
-			Assert.Equal(true, data.IsBaseVisible);
-			Assert.Equal(false, data.IsCapVisible);
-			Assert.Equal(true, data.IsCollidable);
-			Assert.Equal(false, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsRingVisible);
-			Assert.Equal(true, data.IsSocketVisible);
-			Assert.Equal(9.17826f, data.Orientation);
-			Assert.Equal(30.38182f, data.Radius);
-			Assert.Equal(0.005561f, data.RingDropOffset);
-			Assert.Equal("Material4", data.RingMaterial);
-			Assert.Equal(0.52098f, data.RingSpeed);
-			Assert.Equal(0.0068f, data.Scatter);
-			Assert.Equal("Material3", data.SocketMaterial);
-			Assert.Equal("", data.Surface);
-			Assert.Equal(1.00658f, data.Threshold);
+			data.BaseMaterial.Should().Be("Material2");
+			data.CapMaterial.Should().Be("Material1");
+			data.Center.X.Should().Be(500f);
+			data.Center.Y.Should().Be(1250f);
+			data.Force.Should().Be(12.2234f);
+			data.HeightScale.Should().Be(80.654f);
+			data.HitEvent.Should().Be(true);
+			data.IsBaseVisible.Should().Be(true);
+			data.IsCapVisible.Should().Be(false);
+			data.IsCollidable.Should().Be(true);
+			data.IsReflectionEnabled.Should().Be(false);
+			data.IsRingVisible.Should().Be(true);
+			data.IsSocketVisible.Should().Be(true);
+			data.Orientation.Should().Be(9.17826f);
+			data.Radius.Should().Be(30.38182f);
+			data.RingDropOffset.Should().Be(0.005561f);
+			data.RingMaterial.Should().Be("Material4");
+			data.RingSpeed.Should().Be(0.52098f);
+			data.Scatter.Should().Be(0.0068f);
+			data.SocketMaterial.Should().Be("Material3");
+			data.Surface.Should().Be("");
+			data.Threshold.Should().Be(1.00658f);
 
 
-			Assert.Equal(100f, data.TimerInterval);
-			Assert.Equal(false, data.IsTimerEnabled);
+			data.TimerInterval.Should().Be(100);
+			data.IsTimerEnabled.Should().Be(false);
 
-			Assert.Equal(0, data.EditorLayer);
-			Assert.Equal(false, data.IsLocked);
+			data.EditorLayer.Should().Be(0);
+			data.IsLocked.Should().Be(false);
 		}
 	}
 }

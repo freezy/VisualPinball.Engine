@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using JeremyAnsel.Media.WavefrontObj;
+﻿using JeremyAnsel.Media.WavefrontObj;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
@@ -11,13 +9,13 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public BumperMeshTests(ITestOutputHelper output) : base(output)
+		public BumperMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			_obj = LoadObjFixture(ObjPath.Bumper);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateMesh()
 		{
 			AssertObjMesh(_table, _obj, _table.Bumpers["Bumper2"], (item, mesh) => $"{item.Name}{mesh.Name}");

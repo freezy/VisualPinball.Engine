@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
+﻿using VisualPinball.Engine.Test.Test;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
@@ -11,13 +7,13 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly Engine.VPT.Kicker.Kicker _kicker;
 
-		public SurfacePhysicsTests(ITestOutputHelper output) : base(output)
+		public SurfacePhysicsTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
 			_kicker = _table.Kickers["BallRelease"];
 		}
 
-		// [Fact]
+		// [Test]
 		// public void ShouldMakeTheBallBounceOffTheSides()
 		// {
 		// 	var player = new Player(_table).Init();

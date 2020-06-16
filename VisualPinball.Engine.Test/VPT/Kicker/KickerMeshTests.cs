@@ -1,7 +1,6 @@
 ﻿using JeremyAnsel.Media.WavefrontObj;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Kicker
 {
@@ -10,13 +9,13 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public KickerMeshTests(ITestOutputHelper output) : base(output)
+		public KickerMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
 			_obj = LoadObjFixture(ObjPath.Kicker);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateMeshesCorrectly()
 		{
 			AssertObjMesh(_table, _obj, _table.Kickers["Cup"]);
@@ -24,7 +23,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			AssertObjMesh(_table, _obj, _table.Kickers["Gottlieb"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["Hole"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["HoleSimple"]);
-			AssertObjMesh(_table, _obj, _table.Kickers["Williams"], threshold: 0.001);
+			AssertObjMesh(_table, _obj, _table.Kickers["Williams"], threshold: 0.001f);
 			AssertObjMesh(_table, _obj, _table.Kickers["Scaled"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["Rotated"]);
 			AssertObjMesh(_table, _obj, _table.Kickers["Surface"]);

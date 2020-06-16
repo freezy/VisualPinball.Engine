@@ -1,23 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using FluentAssertions;
 using JeremyAnsel.Media.WavefrontObj;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.Test
 {
 	public abstract class MeshTests : BaseTests
 	{
-		protected MeshTests(ITestOutputHelper output) : base(output)
-		{
-		}
+		private const float Threshold = 0.0001f;
 
 		protected ObjFile LoadObjFixture(string filePath)
 		{
@@ -32,7 +28,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null, double threshold = FloatThresholdComparer.Threshold)
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null, float threshold = Threshold)
 		{
 			var targetMeshes = renderable.GetRenderObjects(table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var mesh in targetMeshes) {
@@ -40,7 +36,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, string name, Mesh[] meshes, double threshold = FloatThresholdComparer.Threshold)
+		protected static void AssertObjMesh(ObjFile objFile, string name, Mesh[] meshes, float threshold = Threshold)
 		{
 			var objGroup = objFile.Groups.First(g => g.Name == name);
 
@@ -67,7 +63,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, double threshold = FloatThresholdComparer.Threshold)
+		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, float threshold = Threshold)
 		{
 			name = name ?? mesh.Name;
 			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
@@ -92,33 +88,11 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, double threshold = FloatThresholdComparer.Threshold)
+		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold = Threshold)
 		{
-			Assert.Equal(expected.X, actual.X, new FloatThresholdComparer(threshold));
-			Assert.Equal(expected.Y, actual.Y, new FloatThresholdComparer(threshold));
-			Assert.Equal(expected.Z, actual.Z, new FloatThresholdComparer(threshold));
+			actual.X.Should().BeApproximately(expected.X, threshold);
+			actual.Y.Should().BeApproximately(expected.Y, threshold);
+			actual.Z.Should().BeApproximately(expected.Z, threshold);
 		}
-
-		private class FloatThresholdComparer : IEqualityComparer<float>
-		{
-			public const double Threshold = 0.0001;
-			private readonly double _threshold;
-
-			public FloatThresholdComparer(double threshold)
-			{
-				_threshold = threshold;
-			}
-
-			public bool Equals(float x, float y)
-			{
-				return System.Math.Abs((double)x - y) <= _threshold;
-			}
-
-			public int GetHashCode(float obj)
-			{
-				return obj.GetHashCode();
-			}
-		}
-
 	}
 }

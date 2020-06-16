@@ -1,12 +1,13 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Timer;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Timer
 {
 	public class TimerDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadTimerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
@@ -14,7 +15,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			ValidateTimerData2(table.Timers["Timer2"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteTimerData()
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
@@ -27,16 +28,16 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 
 		private static void ValidateTimerData1(TimerData data)
 		{
-			Assert.Equal(false, data.Backglass);
-			Assert.Equal(471.160583f, data.Center.X);
-			Assert.Equal(628.259277f, data.Center.Y);
-			Assert.Equal(true, data.IsTimerEnabled);
-			Assert.Equal(233, data.TimerInterval);
+			data.Backglass.Should().Be(false);
+			data.Center.X.Should().Be(471.160583f);
+			data.Center.Y.Should().Be(628.259277f);
+			data.IsTimerEnabled.Should().Be(true);
+			data.TimerInterval.Should().Be(233);
 		}
 
 		private static void ValidateTimerData2(TimerData data)
 		{
-			Assert.Equal(true, data.Backglass);
+			data.Backglass.Should().Be(true);
 		}
 	}
 }

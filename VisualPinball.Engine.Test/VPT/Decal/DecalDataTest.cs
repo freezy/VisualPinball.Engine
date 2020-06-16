@@ -1,16 +1,14 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Decal;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Decal
 {
 	public class DecalDataTest : BaseTests
 	{
-		public DecalDataTest(ITestOutputHelper output) : base(output) { }
-
-		[Fact]
+		[Test]
 		public void ShouldReadDecalData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Decal);
@@ -18,7 +16,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			ValidateDecal1(table.Decals[1].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteDecalData()
 		{
 			const string tmpFileName = "ShouldWriteDecalData.vpx";
@@ -31,48 +29,48 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 
 		private static void ValidateDecal0(DecalData data)
 		{
-			Assert.Equal(false, data.Backglass);
-			Assert.Equal(205.4f, data.Center.X);
-			Assert.Equal(540.68f, data.Center.Y);
-			Assert.Equal(60, data.Color.Red);
-			Assert.Equal(217, data.Color.Green);
-			Assert.Equal(142, data.Color.Blue);
-			Assert.Equal(DecalType.DecalImage, data.DecalType);
-			Assert.Equal("Arial Black", data.Font.Name);
-			Assert.Equal(32.5f, data.Height);
-			Assert.Equal("tex_transparent", data.Image);
-			Assert.Equal("DecalMat", data.Material);
-			Assert.Equal(45.98f, data.Rotation);
-			Assert.Equal(SizingType.AutoWidth, data.SizingType);
-			Assert.Equal("", data.Surface);
-			Assert.Equal("", data.Text);
-			Assert.Equal(false, data.VerticalText);
-			Assert.Equal(66.1165f, data.Width);
-			Assert.Equal(2, data.EditorLayer);
-			Assert.Equal(false, data.IsLocked);
+			data.Backglass.Should().Be(false);
+			data.Center.X.Should().Be(205.4f);
+			data.Center.Y.Should().Be(540.68f);
+			data.Color.Red.Should().Be(60);
+			data.Color.Green.Should().Be(217);
+			data.Color.Blue.Should().Be(142);
+			data.DecalType.Should().Be(DecalType.DecalImage);
+			data.Font.Name.Should().Be("Arial Black");
+			data.Height.Should().Be(32.5f);
+			data.Image.Should().Be("tex_transparent");
+			data.Material.Should().Be("DecalMat");
+			data.Rotation.Should().Be(45.98f);
+			data.SizingType.Should().Be(SizingType.AutoWidth);
+			data.Surface.Should().Be("");
+			data.Text.Should().Be("");
+			data.VerticalText.Should().Be(false);
+			data.Width.Should().Be(66.1165f);
+			data.EditorLayer.Should().Be(2);
+			data.IsLocked.Should().Be(false);
 		}
 
 		private static void ValidateDecal1(DecalData data)
 		{
-			Assert.Equal(true, data.Backglass);
-			Assert.Equal(509f, data.Center.X);
-			Assert.Equal(354f, data.Center.Y);
-			Assert.Equal(216, data.Color.Red);
-			Assert.Equal(63, data.Color.Green);
-			Assert.Equal(204, data.Color.Blue);
-			Assert.Equal(DecalType.DecalText, data.DecalType);
-			Assert.Equal("Fixedsys", data.Font.Name);
-			Assert.Equal(100f, data.Height);
-			Assert.Equal("", data.Image);
-			Assert.Equal("", data.Material);
-			Assert.Equal(0f, data.Rotation);
-			Assert.Equal(SizingType.ManualSize, data.SizingType);
-			Assert.Equal("", data.Surface);
-			Assert.Equal("My Decal Text", data.Text);
-			Assert.Equal(true, data.VerticalText);
-			Assert.Equal(100f, data.Width);
-			Assert.Equal(0, data.EditorLayer);
-			Assert.Equal(true, data.IsLocked);
+			data.Backglass.Should().Be(true);
+			data.Center.X.Should().Be(509f);
+			data.Center.Y.Should().Be(354f);
+			data.Color.Red.Should().Be(216);
+			data.Color.Green.Should().Be(63);
+			data.Color.Blue.Should().Be(204);
+			data.DecalType.Should().Be(DecalType.DecalText);
+			data.Font.Name.Should().Be("Fixedsys");
+			data.Height.Should().Be(100f);
+			data.Image.Should().Be("");
+			data.Material.Should().Be("");
+			data.Rotation.Should().Be(0f);
+			data.SizingType.Should().Be(SizingType.ManualSize);
+			data.Surface.Should().Be("");
+			data.Text.Should().Be("My Decal Text");
+			data.VerticalText.Should().Be(true);
+			data.Width.Should().Be(100f);
+			data.EditorLayer.Should().Be(0);
+			data.IsLocked.Should().Be(true);
 		}
 	}
 }

@@ -1,20 +1,21 @@
-﻿using VisualPinball.Engine.Test.Test;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
 	public class RampDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadRampData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
 			ValidateRampData(table.Ramps["FlatL"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteRampData()
 		{
 			const string tmpFileName = "ShouldWriteRampData.vpx";
@@ -26,43 +27,43 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 
 		private static void ValidateRampData(RampData data)
 		{
-			Assert.Equal(0.11254f, data.DepthBias);
-			Assert.Equal(3, data.DragPoints.Length);
-			Assert.Equal(0.2643f, data.Elasticity);
-			Assert.Equal(0.7125f, data.Friction);
-			Assert.Equal(2.1243f, data.HeightBottom);
-			Assert.Equal(54.1632f, data.HeightTop);
-			Assert.Equal(false, data.HitEvent);
-			Assert.Equal("test_pattern", data.Image);
-			Assert.Equal(RampImageAlignment.ImageModeWrap, data.ImageAlignment);
-			Assert.Equal(true, data.ImageWalls);
-			Assert.Equal(true, data.IsCollidable);
-			Assert.Equal(false, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal(62.2189f, data.LeftWallHeight);
-			Assert.Equal(35.2109f, data.LeftWallHeightVisible);
-			Assert.Equal("Playfield", data.Material);
-			Assert.Equal(true, data.OverwritePhysics);
-			Assert.Equal("", data.PhysicsMaterial);
-			Assert.Equal(RampType.RampTypeFlat, data.RampType);
-			Assert.Equal(62.7891f, data.RightWallHeight);
-			Assert.Equal(0f, data.RightWallHeightVisible);
-			Assert.Equal(1.2783f, data.Scatter);
-			Assert.Equal(2.3127f, data.Threshold);
-			Assert.Equal(75.289f, data.WidthBottom);
-			Assert.Equal(99.921f, data.WidthTop);
+			data.DepthBias.Should().Be(0.11254f);
+			data.DragPoints.Length.Should().Be(3);
+			data.Elasticity.Should().Be(0.2643f);
+			data.Friction.Should().Be(0.7125f);
+			data.HeightBottom.Should().Be(2.1243f);
+			data.HeightTop.Should().Be(54.1632f);
+			data.HitEvent.Should().Be(false);
+			data.Image.Should().Be("test_pattern");
+			data.ImageAlignment.Should().Be(RampImageAlignment.ImageModeWrap);
+			data.ImageWalls.Should().Be(true);
+			data.IsCollidable.Should().Be(true);
+			data.IsReflectionEnabled.Should().Be(false);
+			data.IsVisible.Should().Be(true);
+			data.LeftWallHeight.Should().Be(62.2189f);
+			data.LeftWallHeightVisible.Should().Be(35.2109f);
+			data.Material.Should().Be("Playfield");
+			data.OverwritePhysics.Should().Be(true);
+			data.PhysicsMaterial.Should().Be("");
+			data.RampType.Should().Be(RampType.RampTypeFlat);
+			data.RightWallHeight.Should().Be(62.7891f);
+			data.RightWallHeightVisible.Should().Be(0f);
+			data.Scatter.Should().Be(1.2783f);
+			data.Threshold.Should().Be(2.3127f);
+			data.WidthBottom.Should().Be(75.289f);
+			data.WidthTop.Should().Be(99.921f);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldLoadWireData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
 			var data = table.Ramps["Wire3R"].Data;
 
-			Assert.Equal(RampType.RampType3WireRight, data.RampType);
-			Assert.Equal(2.982f, data.WireDiameter);
-			Assert.Equal(50.278f, data.WireDistanceX);
-			Assert.Equal(88.381f, data.WireDistanceY);
+			data.RampType.Should().Be(RampType.RampType3WireRight);
+			data.WireDiameter.Should().Be(2.982f);
+			data.WireDistanceX.Should().Be(50.278f);
+			data.WireDistanceY.Should().Be(88.381f);
 		}
 	}
 }

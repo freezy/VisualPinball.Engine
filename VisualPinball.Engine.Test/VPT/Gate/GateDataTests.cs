@@ -1,21 +1,22 @@
-﻿using VisualPinball.Engine.Math;
+﻿using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
-using Xunit;
 
 namespace VisualPinball.Engine.Test.VPT.Gate
 {
 	public class GateDataTests
 	{
-		[Fact]
+		[Test]
 		public void ShouldReadGateData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
 			ValidateGateData(table.Gates["Data"].Data);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldWriteGateData()
 		{
 			const string tmpFileName = "ShouldWriteGateData.vpx";
@@ -25,26 +26,27 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			ValidateGateData(writtenTable.Gates["Data"].Data);
 		}
 
-		private static void ValidateGateData(GateData data) {
-			Assert.Equal(90f, MathF.RadToDeg(data.AngleMax));
-			Assert.Equal(0f, MathF.RadToDeg(data.AngleMin));
-			Assert.Equal(769f, data.Center.X);
-			Assert.Equal(1019f, data.Center.Y);
-			Assert.Equal(0.92958f, data.Damping);
-			Assert.Equal(0.1348f, data.Elasticity);
-			Assert.Equal(0.1983f, data.Friction);
-			Assert.Equal(GateType.GatePlate, data.GateType);
-			Assert.Equal(0.2198f, data.GravityFactor);
-			Assert.Equal(123.42f, data.Height);
-			Assert.Equal(true, data.IsCollidable);
-			Assert.Equal(true, data.IsReflectionEnabled);
-			Assert.Equal(true, data.IsVisible);
-			Assert.Equal(40.12f, data.Length);
-			Assert.Equal("Red", data.Material);
-			Assert.Equal(-72.212f, data.Rotation);
-			Assert.Equal(true, data.ShowBracket);
-			Assert.Equal("", data.Surface);
-			Assert.Equal(true, data.TwoWay);
+		private static void ValidateGateData(GateData data)
+		{
+			MathF.RadToDeg(data.AngleMax).Should().Be(90f);
+			MathF.RadToDeg(data.AngleMin).Should().Be(0f);
+			data.Center.X.Should().Be(769f);
+			data.Center.Y.Should().Be(1019f);
+			data.Damping.Should().Be(0.92958f);
+			data.Elasticity.Should().Be(0.1348f);
+			data.Friction.Should().Be(0.1983f);
+			data.GateType.Should().Be(GateType.GatePlate);
+			data.GravityFactor.Should().Be(0.2198f);
+			data.Height.Should().Be(123.42f);
+			data.IsCollidable.Should().Be(true);
+			data.IsReflectionEnabled.Should().Be(true);
+			data.IsVisible.Should().Be(true);
+			data.Length.Should().Be(40.12f);
+			data.Material.Should().Be("Red");
+			data.Rotation.Should().Be(-72.212f);
+			data.ShowBracket.Should().Be(true);
+			data.Surface.Should().Be("");
+			data.TwoWay.Should().Be(true);
 		}
 	}
 }

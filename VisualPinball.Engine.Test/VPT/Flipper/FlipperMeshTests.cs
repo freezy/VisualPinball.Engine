@@ -1,8 +1,7 @@
 ﻿using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
+using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
@@ -11,13 +10,13 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		private readonly Engine.VPT.Table.Table _table;
 		private readonly ObjFile _obj;
 
-		public FlipperMeshTests(ITestOutputHelper output) : base(output)
+		public FlipperMeshTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
 			_obj = LoadObjFixture(ObjPath.Flipper);
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateFatMesh()
 		{
 			var flipper = _table.Flippers["FatFlipper"];
@@ -27,7 +26,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			}
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateFatRubberMesh()
 		{
 			var flipper = _table.Flippers["FatRubberFlipper"];
@@ -37,7 +36,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			}
 		}
 
-		[Fact]
+		[Test]
 		public void ShouldGenerateFlipperOnSurfaceMesh()
 		{
 			var flipper = _table.Flippers["SurfaceFlipper"];
