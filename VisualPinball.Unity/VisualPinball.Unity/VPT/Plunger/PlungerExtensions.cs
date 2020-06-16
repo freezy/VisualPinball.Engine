@@ -12,14 +12,18 @@ namespace VisualPinball.Unity.VPT.Plunger
 			var ic = obj.AddComponent<PlungerBehavior>().SetData(plunger.Data);
 
 			var rod = obj.transform.Find(PlungerMeshGenerator.RodName);
-			var spring = obj.transform.Find(PlungerMeshGenerator.SpringName);
-
 			if (rod != null) {
 				rod.gameObject.AddComponent<PlungerRodBehavior>();
 			}
 
+			var spring = obj.transform.Find(PlungerMeshGenerator.SpringName);
 			if (spring != null) {
 				spring.gameObject.AddComponent<PlungerSpringBehavior>();
+			}
+
+			var flat = obj.transform.Find(PlungerMeshGenerator.FlatName);
+			if (flat != null) {
+				flat.gameObject.AddComponent<PlungerFlatBehavior>();
 			}
 
 			obj.AddComponent<ConvertToEntity>();

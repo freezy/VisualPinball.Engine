@@ -42,6 +42,15 @@ namespace VisualPinball.Unity.VPT.Plunger
 					}
 				}
 
+				if (animationDatas.Exists(staticData.FlatEntity)) {
+					var flatAnimData = animationDatas[staticData.FlatEntity];
+					if (flatAnimData.CurrentFrame != frame) {
+						flatAnimData.CurrentFrame = frame;
+						flatAnimData.IsDirty = true;
+						animationDatas[staticData.FlatEntity] = flatAnimData;
+					}
+				}
+
 				marker.End();
 
 			}).Run();

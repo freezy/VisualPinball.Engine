@@ -1,37 +1,20 @@
+using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
-	public class PlungerRodBehavior : MonoBehaviour, IConvertGameObjectToEntity
+	public class PlungerRodBehavior : PlungerChildBehavior
 	{
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		protected override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
 		{
-			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
-			var plunger = transform.parent.gameObject.GetComponent<PlungerBehavior>().Item;
-			var plungerEntity = new Entity {Index = plunger.Index, Version = plunger.Version};
-			plunger.MeshGenerator.Init(table);
+			staticData.RodEntity = entity;
+		}
 
-			// update parent
-			var plungerStaticData = dstManager.GetComponentData<PlungerStaticData>(plungerEntity);
-			plungerStaticData.RodEntity = entity;
-			dstManager.SetComponentData(plungerEntity, plungerStaticData);
-
-			// add animation data
-			dstManager.AddComponentData(entity, new PlungerAnimationData {
-				CurrentFrame = 0
-			});
-
-			// add mesh data
-			var meshBuffer = dstManager.AddBuffer<PlungerMeshBufferElement>(entity);
-			for (var frame = 0; frame < plunger.MeshGenerator.NumFrames; frame++) {
-				var vertices = plunger.MeshGenerator.BuildRodVertices(frame);
-				foreach (var v in vertices) {
-					meshBuffer.Add(new PlungerMeshBufferElement(new float3(v.X, v.Y, v.Z)));
-				}
-			}
+		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
+		{
+			return meshGenerator.BuildRodVertices(frame);
 		}
 	}
 }

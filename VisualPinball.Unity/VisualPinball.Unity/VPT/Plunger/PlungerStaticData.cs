@@ -7,6 +7,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		// general
 		public Entity RodEntity;
 		public Entity SpringEntity;
+		public Entity FlatEntity;
 
 		// collision
 		public float MomentumXfer;
