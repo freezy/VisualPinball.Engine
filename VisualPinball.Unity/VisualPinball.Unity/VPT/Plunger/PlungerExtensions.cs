@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
@@ -10,11 +11,16 @@ namespace VisualPinball.Unity.VPT.Plunger
 		{
 			var ic = obj.AddComponent<PlungerBehavior>().SetData(plunger.Data);
 
-			var rod = obj.transform.Find("Rod").gameObject;
-			var spring = obj.transform.Find("Spring").gameObject;
+			var rod = obj.transform.Find(PlungerMeshGenerator.RodName);
+			var spring = obj.transform.Find(PlungerMeshGenerator.SpringName);
 
-			rod.AddComponent<PlungerRodBehavior>();
-			spring.AddComponent<PlungerSpringBehavior>();
+			if (rod != null) {
+				rod.gameObject.AddComponent<PlungerRodBehavior>();
+			}
+
+			if (spring != null) {
+				spring.gameObject.AddComponent<PlungerSpringBehavior>();
+			}
 
 			obj.AddComponent<ConvertToEntity>();
 			return ic as PlungerBehavior;

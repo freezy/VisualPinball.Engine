@@ -85,6 +85,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			var translationMatrix = Matrix3D.Identity;
 			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
 
+			// flat plunger
 			if (_data.Type == PlungerType.PlungerTypeFlat) {
 				var flatMesh = BuildFlatMesh(frame);
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
@@ -94,28 +95,41 @@ namespace VisualPinball.Engine.VPT.Plunger
 						material,
 						true
 					)
-				);
-
+				) { ForceChild = true };
 			}
 
 			CalculateArraySizes();
 			var rodMesh = BuildRodMesh(frame);
-			var springMesh = BuildSpringMesh(frame);
 
+			// custom plunger
+			if (_data.Type == PlungerType.PlungerTypeCustom) {
+				var springMesh = BuildSpringMesh(frame);
+
+				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+					new RenderObject(
+						RodName,
+						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+						material,
+						true
+					),
+					new RenderObject(
+						SpringName,
+						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
+						material,
+						true
+					)
+				);
+			}
+
+			// modern plunger
 			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 				new RenderObject(
 					RodName,
 					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
 					material,
 					true
-				),
-				new RenderObject(
-					SpringName,
-					asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
-					material,
-					true
 				)
-			);
+			) { ForceChild = true };
 		}
 
 		private PlungerDesc GetPlungerDesc()

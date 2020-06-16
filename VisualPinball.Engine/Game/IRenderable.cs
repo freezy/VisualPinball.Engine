@@ -38,6 +38,7 @@ namespace VisualPinball.Engine.Game
 		public readonly RenderObject[] RenderObjects;
 		public readonly Matrix3D TransformationMatrix;
 
+		public bool ForceChild { get; set; }
 		public bool HasOnlyChild => RenderObjects.Length == 1;
 		public bool HasChildren => RenderObjects.Length > 0;
 
