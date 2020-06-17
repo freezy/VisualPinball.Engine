@@ -256,7 +256,7 @@
 	<Import Project="..\.packages\NetVips.Native.osx-x64.8.9.2-build2\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('..\.packages\NetVips.Native.osx-x64.8.9.2-build2\build\net461\NetVips.Native.osx-x64.targets')" />
 	<Target Name="AfterBuild">
 		<ItemGroup>
-			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.dylib;$(OutDir)*.xml" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
+			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.dylib" Exclude="$(OutDir)Unity*;$(OutDir)VisualPinball.*;$(OutDir)System.Runtime.CompilerServices.Unsafe.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
 	</Target>
