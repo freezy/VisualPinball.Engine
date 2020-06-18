@@ -9,6 +9,8 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D[] Rgv;
 		public readonly Vertex3D Normal;
 
+		public bool IsDegenerate => Normal.IsZero();
+
 		public HitTriangle(Vertex3D[] rgv)
 		{
 			Rgv = rgv;

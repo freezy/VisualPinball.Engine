@@ -1,19 +1,33 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Ramp
 {
-	public class Ramp : Item<RampData>, IRenderable
+	public class Ramp : Item<RampData>, IRenderable, IHittable
 	{
+		public bool IsCollidable => true;
+		public EventProxy EventProxy { get; private set; }
+		public HitObject[] GetHitShapes() => _hits;
+
 		private readonly RampMeshGenerator _meshGenerator;
+		private readonly RampHitGenerator _hitGenerator;
+		private HitObject[] _hits;
 
 		public Ramp(RampData data) : base(data)
 		{
 			_meshGenerator = new RampMeshGenerator(Data);
+			_hitGenerator = new RampHitGenerator(Data, _meshGenerator);
 		}
 
 		public Ramp(BinaryReader reader, string itemName) : this(new RampData(reader, itemName)) { }
+
+		public void Init(Table.Table table)
+		{
+			EventProxy = new EventProxy(this);
+			_hits = _hitGenerator.GenerateHitObjects(table, EventProxy);
+		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

@@ -199,6 +199,7 @@
 		<Compile Include="VPT\Primitive\PrimitiveMeshGenerator.cs" />
 		<Compile Include="VPT\Ramp\Ramp.cs" />
 		<Compile Include="VPT\Ramp\RampData.cs" />
+		<Compile Include="VPT\Ramp\RampHitGenerator.cs" />
 		<Compile Include="VPT\Ramp\RampMeshGenerator.cs" />
 		<Compile Include="VPT\Rubber\Rubber.cs" />
 		<Compile Include="VPT\Rubber\RubberData.cs" />

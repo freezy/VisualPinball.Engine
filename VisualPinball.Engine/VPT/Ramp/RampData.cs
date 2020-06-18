@@ -16,7 +16,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	[Serializable]
 	[BiffIgnore("PNTS")]
-	public class RampData : ItemData
+	public class RampData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
 
@@ -135,5 +135,14 @@ namespace VisualPinball.Engine.VPT.Ramp
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
 		#endregion
+
+		// IPhysicalData
+		public float GetElasticity() => Elasticity;
+		public float GetElasticityFalloff() => 0;
+		public float GetFriction() => Friction;
+		public float GetScatter() => Scatter;
+		public bool GetOverwritePhysics() => OverwritePhysics;
+		public bool GetIsCollidable() => IsCollidable;
+		public string GetPhysicsMaterial() => PhysicsMaterial;
 	}
 }
