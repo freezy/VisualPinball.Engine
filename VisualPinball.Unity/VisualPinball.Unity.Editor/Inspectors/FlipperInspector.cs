@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Rubber Thickness", ref _flipper.data.RubberThickness);
 				ItemDataField("Rubber Offset Height", ref _flipper.data.RubberHeight);

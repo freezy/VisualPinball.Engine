@@ -21,6 +21,8 @@ namespace VisualPinball.Unity.VPT
 		ItemDataTransformType EditorScaleType { get; }
 		Vector3 GetEditorScale();
 		void SetEditorScale(Vector3 pos);
+
+		bool IsLocked { get; set; }
 	}
 
 	public enum ItemDataTransformType

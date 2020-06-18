@@ -23,6 +23,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			_dragPointsEditor.OnInspectorGUI(target);
 
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
 				TextureField("Top Image", ref _targetSurf.data.Image);

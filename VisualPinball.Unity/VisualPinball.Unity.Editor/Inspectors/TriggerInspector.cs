@@ -22,6 +22,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			_dragPointsEditor.OnInspectorGUI(target);
 
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref _trigger.data.IsVisible);
 				ItemDataField("Wire Thickness", ref _trigger.data.WireThickness);
