@@ -1,0 +1,16 @@
+on: [push, pull_request]
+
+jobs:
+    visualpinball-engine-win:
+      runs-on: windows-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: nuget/setup-nuget@v1
+        - name: Build
+          run: |
+             nuget restore
+             dotnet build -c Release
+        - name: Test
+          run: |
+             .packages/NUnit.ConsoleRunner.3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.build/Release/VisualPinball.Engine.Test.dll
+
