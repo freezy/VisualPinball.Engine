@@ -20,5 +20,6 @@ namespace VisualPinball.Unity.VPT
 		Vector3 GetDragPointOffset(float ratio);
 		bool PointsAreLooping();
 		DragPointExposition GetDragPointExposition();
+		ItemDataTransformType GetHandleType();
 	}
 }

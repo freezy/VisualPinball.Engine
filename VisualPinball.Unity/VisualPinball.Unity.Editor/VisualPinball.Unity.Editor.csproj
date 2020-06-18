@@ -36,4 +36,51 @@
       <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Editors\DragPointsEditor.cs" />
+    <Compile Include="Import\VpxAssetImporter.cs" />
+    <Compile Include="Import\VpxAssetLazyImporter.cs" />
+    <Compile Include="Import\VpxMenuImporter.cs" />
+    <Compile Include="Inspectors\BumperInspector.cs" />
+    <Compile Include="Inspectors\FlipperInspector.cs" />
+    <Compile Include="Inspectors\GateInspector.cs" />
+    <Compile Include="Inspectors\HitTargetInspector.cs" />
+    <Compile Include="Inspectors\ItemInspector.cs" />
+    <Compile Include="Inspectors\KickerInspector.cs" />
+    <Compile Include="Inspectors\PlayerInspector.cs" />
+    <Compile Include="Inspectors\PrimitiveInspector.cs" />
+    <Compile Include="Inspectors\RampInspector.cs" />
+    <Compile Include="Inspectors\RubberInspector.cs" />
+    <Compile Include="Inspectors\SpinnerInspector.cs" />
+    <Compile Include="Inspectors\SurfaceInspector.cs" />
+    <Compile Include="Inspectors\TableInspector.cs" />
+    <Compile Include="Inspectors\TransformInspector.cs" />
+    <Compile Include="Inspectors\TriggerInspector.cs" />
+    <Compile Include="Logging.cs" />
+    <Compile Include="Utils\HandlesUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
+      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
+      <Name>VisualPinball.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj">
+      <Project>{89dc7792-2ac2-4a69-8605-d3a14cc7b6b0}</Project>
+      <Name>VisualPinball.Unity</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="VisualPinball.Unity.Editor.asmdef" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+		 Other similar extension points exist, see Microsoft.Common.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
 </Project>

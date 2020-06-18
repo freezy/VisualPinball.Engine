@@ -47,11 +47,12 @@ namespace VisualPinball.Unity.VPT.Ramp
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public DragPointData[] GetDragPoints() => data.DragPoints;
 		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HeightBottom); }
-		public Vector3 GetDragPointOffset(float ratio) { return new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio); }
-		public bool PointsAreLooping() { return false; }
-		public DragPointExposition GetDragPointExposition() { return DragPointExposition.Smooth | DragPointExposition.SlingShot; }
+		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HeightBottom);
+		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio);
+		public bool PointsAreLooping() => false;
+		public DragPointExposition GetDragPointExposition() => DragPointExposition.Smooth | DragPointExposition.SlingShot;
+		public ItemDataTransformType GetHandleType() => ItemDataTransformType.ThreeD;
 	}
 }
