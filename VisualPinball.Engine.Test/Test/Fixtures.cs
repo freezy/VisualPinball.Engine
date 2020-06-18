@@ -74,13 +74,12 @@ namespace VisualPinball.Engine.Test.Test
 
 		private static string GetTestPath()
 		{
-			var codeBase = Assembly.GetExecutingAssembly().CodeBase;
+			var codeBase = new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
 			return codeBase.Contains("/Library/ScriptAssemblies/")
 				? Path.GetFullPath("Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test")
 				: Path.GetFullPath(
 					Path.Combine(
-						Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase)
-							.Replace(@"file:" + Path.DirectorySeparatorChar, string.Empty),
+						Path.GetDirectoryName(codeBase),
 						"..",
 						".."
 					)
