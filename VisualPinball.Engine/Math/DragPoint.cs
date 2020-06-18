@@ -118,7 +118,7 @@ namespace VisualPinball.Engine.Math
 					endRenderPoint += numPoints;
 				}
 
-				var totalLength = 0.0;
+				var totalLength = 0.0f;
 				for (var l = startRenderPoint; l < endRenderPoint; ++l) {
 					var pv1 = vv[l % numPoints];
 					var pv2 = vv[(l + 1) % numPoints];
@@ -130,7 +130,7 @@ namespace VisualPinball.Engine.Math
 					totalLength += length;
 				}
 
-				var partialLength = 0.0;
+				var partialLength = 0.0f;
 				for (var l = startRenderPoint; l < endRenderPoint; ++l) {
 					var pv1 = vv[l % numPoints];
 					var pv2 = vv[(l + 1) % numPoints];
@@ -139,10 +139,10 @@ namespace VisualPinball.Engine.Math
 					var dy = pv1.GetY() - pv2.GetY();
 					var length = MathF.Sqrt(dx * dx + dy * dy);
 					if (totalLength == 0.0) {
-						totalLength = 1.0;
+						totalLength = 1.0f;
 					}
 
-					var texCoord = (float) (partialLength / totalLength);
+					var texCoord = partialLength / totalLength;
 
 					coords[l % numPoints] = texCoord * deltacoord + startTexCoord;
 					partialLength += length;

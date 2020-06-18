@@ -69,43 +69,38 @@ namespace VisualPinball.Engine.VPT.Flipper
 			var endRadius = _data.EndRadius - _data.RubberThickness;
 
 			// calc angle needed to fix P0 location
-			double sinAngle = (baseRadius - endRadius) / _data.FlipperRadius;
-			if (sinAngle > 1.0) sinAngle = 1.0;
-			if (sinAngle < -1.0) sinAngle = -1.0;
-			double fixAngle = System.Math.Asin(sinAngle);
-			double fixAngleScale = fixAngle / (System.Math.PI * 0.5); // scale (in relation to 90 deg.)
+			var sinAngle = (baseRadius - endRadius) / _data.FlipperRadius;
+			if (sinAngle > 1.0) sinAngle = 1.0f;
+			if (sinAngle < -1.0) sinAngle = -1.0f;
+			var fixAngle = MathF.Asin(sinAngle);
+			var fixAngleScale = fixAngle / (float)(System.Math.PI * 0.5); // scale (in relation to 90 deg.)
 																	  // fixAngleScale = 0.0; // note: if you force fixAngleScale = 0.0 then all will look as old version
 
 			// lambda used to apply fix
-			Action<Vertex3DNoTex2, Vertex2D, double, float, Vertex2D> ApplyFix = (Vertex3DNoTex2 vert, Vertex2D center, double midAngle, float radius, Vertex2D newCenter) => {
-				double vAngle = System.Math.Atan2(vert.Y - center.Y, vert.X - center.X);
-				double nAngle = System.Math.Atan2(vert.Ny, vert.Nx);
+			void ApplyFix(Vertex3DNoTex2 vert, Vertex2D center, float midAngle, float radius, Vertex2D newCenter)
+			{
+				var vAngle = MathF.Atan2(vert.Y - center.Y, vert.X - center.X);
+				var nAngle = MathF.Atan2(vert.Ny, vert.Nx);
 
 				// we want have angles with same sign as midAngle, fix it:
-				if (midAngle < 0.0)
-				{
-					if (vAngle > 0.0)
-						vAngle -= System.Math.PI * 2.0;
-					if (nAngle > 0.0)
-						nAngle -= System.Math.PI * 2.0;
+				if (midAngle < 0.0) {
+					if (vAngle > 0.0) vAngle -= (float) (System.Math.PI * 2.0);
+					if (nAngle > 0.0) nAngle -= (float) (System.Math.PI * 2.0);
 				}
-				else
-				{
-					if (vAngle < 0.0)
-						vAngle += System.Math.PI * 2.0;
-					if (nAngle < 0.0)
-						nAngle += System.Math.PI * 2.0;
+				else {
+					if (vAngle < 0.0) vAngle += (float) (System.Math.PI * 2.0);
+					if (nAngle < 0.0) nAngle += (float) (System.Math.PI * 2.0);
 				}
 
-				nAngle -= (vAngle - midAngle) * fixAngleScale * System.Math.Sign(midAngle);
-				vAngle -= (vAngle - midAngle) * fixAngleScale * System.Math.Sign(midAngle);
+				nAngle -= (vAngle - midAngle) * fixAngleScale * MathF.Sign(midAngle);
+				vAngle -= (vAngle - midAngle) * fixAngleScale * MathF.Sign(midAngle);
 				float nL = new Vertex2D(vert.Nx, vert.Ny).Length();
 
-				vert.X = (float)System.Math.Cos(vAngle) * radius + newCenter.X;
-				vert.Y = (float)System.Math.Sin(vAngle) * radius + newCenter.Y;
-				vert.Nx = (float)System.Math.Cos(nAngle) * nL;
-				vert.Ny = (float)System.Math.Sin(nAngle) * nL;
-			};
+				vert.X = MathF.Cos(vAngle) * radius + newCenter.X;
+				vert.Y = MathF.Sin(vAngle) * radius + newCenter.Y;
+				vert.Nx = MathF.Cos(nAngle) * nL;
+				vert.Ny = MathF.Sin(nAngle) * nL;
+			}
 
 			// base and tip
 			var baseMesh = FlipperBaseMesh.Clone(BaseName);
@@ -115,22 +110,22 @@ namespace VisualPinball.Engine.VPT.Flipper
 				{
 					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
 					{
-						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius, new Vertex2D(0, 0));
+						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)-(System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
 					}
 
 					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
 					{
-						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius, new Vertex2D(0, _data.FlipperRadius));
+						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 
 					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
 					{
-						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius, new Vertex2D(0, 0));
+						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
 					}
 
 					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
 					{
-						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius, new Vertex2D(0, _data.FlipperRadius));
+						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 				}
 			}
@@ -148,22 +143,22 @@ namespace VisualPinball.Engine.VPT.Flipper
 					{
 						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
 						{
-							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
+							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
 						}
 
 						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
 						{
-							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
+							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
 						}
 
 						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
 						{
-							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), -System.Math.PI * 0.5, baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
+							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
 						}
 
 						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
 						{
-							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), System.Math.PI * 0.5, endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
+							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
 						}
 					}
 				}

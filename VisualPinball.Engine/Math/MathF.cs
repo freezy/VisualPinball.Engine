@@ -21,6 +21,15 @@ namespace VisualPinball.Engine.Math
 		// Returns the cosine of angle /f/ in radians.
 		public static float Cos(float f) { return (float)System.Math.Cos(f); }
 
+		// Returns the arc-sine of /f/ - the angle in radians whose sine is /f/.
+		public static float Asin(float f) { return (float)System.Math.Asin(f); }
+
+		// Returns the angle in radians whose ::ref::Tan is @@y/x@@.
+		public static float Atan2(float y, float x) { return (float)System.Math.Atan2(y, x); }
+
+		// Returns the sign of /f/.
+		public static float Sign(float f) { return f >= 0F ? 1F : -1F; }
+
 		// Returns the absolute value of /f/.
 		public static float Abs(float f) { return (float)System.Math.Abs(f); }
 

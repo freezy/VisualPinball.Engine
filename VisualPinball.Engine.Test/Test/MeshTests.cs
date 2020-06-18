@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		private const float Threshold = 0.0001f;
 
-		protected ObjFile LoadObjFixture(string filePath)
+		protected static ObjFile LoadObjFixture(string filePath)
 		{
 			var lines = File
 				.ReadAllLines(filePath)
@@ -88,7 +88,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold = Threshold)
+		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold)
 		{
 			actual.X.Should().BeApproximately(expected.X, threshold);
 			actual.Y.Should().BeApproximately(expected.Y, threshold);
