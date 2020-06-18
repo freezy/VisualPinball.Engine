@@ -417,6 +417,25 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 		}
 
+		private void OnDragPointPositionChange(Vector3 newPos, params object[] plist)
+		{
+			Matrix4x4 wlMat = (Matrix4x4)plist[0];
+			Vector3 offset = (Vector3)plist[1];
+			IDragPointsEditable dpeditable = (IDragPointsEditable)plist[2];
+
+			PrepareUndo("Change DragPoint Position for " + _selectedCP.Count + " Control points.");
+
+			Vector3 deltaPosition = newPos - _positionHandlePosition;
+			foreach (var cpoint in _selectedCP)
+			{
+				cpoint.WorldPos += deltaPosition;
+				Vector3 dpos = wlMat.MultiplyPoint(cpoint.WorldPos);
+				dpos -= offset;
+				dpos -= dpeditable.GetDragPointOffset(cpoint.IndexRatio);
+				cpoint.DragPoint.Vertex = dpos.ToVertex3D();
+			}
+		}
+
 		public void OnSceneGUI(Object target)
 		{
 			_target = target;
@@ -511,21 +530,12 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			//Handle the common position handler for all selected control points
 			if (_selectedCP.Count > 0){
-				EditorGUI.BeginChangeCheck();
-				Vector3 newHandlePos = Handles.PositionHandle(_positionHandlePosition, Quaternion.identity);
-				if (EditorGUI.EndChangeCheck()){
-					PrepareUndo("Change DragPoint Position for " + _selectedCP.Count + " Control points.");
-
-					Vector3 deltaPosition = newHandlePos - _positionHandlePosition;
-					foreach (var cpoint in _selectedCP)
-					{
-						cpoint.WorldPos += deltaPosition;
-						Vector3 dpos = wlMat.MultiplyPoint(cpoint.WorldPos);
-						dpos -= offset;
-						dpos -= dpeditable.GetDragPointOffset(cpoint.IndexRatio);
-						cpoint.DragPoint.Vertex = dpos.ToVertex3D();
-					}
+				Quaternion parentRot = Quaternion.identity;
+				if (bh.transform.parent != null)
+				{
+					parentRot = bh.transform.parent.transform.rotation;
 				}
+				Utils.HandlesUtils.HandlePosition(_positionHandlePosition, dpeditable.GetHandleType(), parentRot, OnDragPointPositionChange, wlMat, offset, dpeditable);
 			}
 
 			//Display Curve & handle curvetraveller

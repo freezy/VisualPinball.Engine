@@ -31,11 +31,12 @@ namespace VisualPinball.Unity.VPT.Trigger
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() { return data.DragPoints; }
+		public DragPointData[] GetDragPoints() => data.DragPoints;
 		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(-data.Center.X, -data.Center.Y, 0.0f); }
-		public Vector3 GetDragPointOffset(float ratio) { return Vector3.zero; }
-		public bool PointsAreLooping() { return true; }
-		public DragPointExposition GetDragPointExposition() { return DragPointExposition.Smooth | DragPointExposition.SlingShot; }
+		public Vector3 GetEditableOffset() => new Vector3(-data.Center.X, -data.Center.Y, 0.0f);
+		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public bool PointsAreLooping() => true;
+		public DragPointExposition GetDragPointExposition() => DragPointExposition.Smooth | DragPointExposition.SlingShot;
+		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
 	}
 }
