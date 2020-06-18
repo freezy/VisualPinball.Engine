@@ -89,7 +89,13 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static bool SlingshotValidate(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
+				if (editor == null || editor.DragPointsEditor == null || editor.DragPointsEditor.IsItemLocked()){
+					return false;
+				}
+
+				if (!editor.DragPointsEditor.HasDragPointExposition(DragPointExposition.SlingShot))
+				{
+					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", false);
 					return false;
 				}
 
@@ -120,7 +126,14 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static bool SmoothValidate(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
+				if (editor == null || editor.DragPointsEditor == null || editor.DragPointsEditor.IsItemLocked())
+				{
+					return false;
+				}
+
+				if (!editor.DragPointsEditor.HasDragPointExposition(DragPointExposition.Smooth))
+				{
+					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSmooth", false);
 					return false;
 				}
 
@@ -136,13 +149,27 @@ namespace VisualPinball.Unity.Editor.Editors
 			private static void RemoveDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
+				if (editor == null || editor.DragPointsEditor == null)
+				{
 					return;
 				}
 
-				if (EditorUtility.DisplayDialog("DragPoint Removal", "Are you sure you want to remove this Dragpoint ?", "Yes", "No")){
+				if (EditorUtility.DisplayDialog("DragPoint Removal", "Are you sure you want to remove this Dragpoint ?", "Yes", "No"))
+				{
 					editor.DragPointsEditor.RemoveDragPoint(command.userData);
 				}
+			}
+
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Remove Point", true)]
+			private static bool RemoveDPValidate(MenuCommand command)
+			{
+				ItemInspector editor = command.context as ItemInspector;
+				if (editor == null || editor.DragPointsEditor == null || editor.DragPointsEditor.IsItemLocked())
+				{
+					return false;
+				}
+
+				return true;
 			}
 
 			//Curve Traveller
@@ -150,12 +177,33 @@ namespace VisualPinball.Unity.Editor.Editors
 			static void AddDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
+				if (editor == null || editor.DragPointsEditor == null)
+				{
 					return;
 				}
 
 				editor.DragPointsEditor.AddDragPointOnTraveller();
 			}
+		}
+
+		public bool IsItemLocked()
+		{
+			IEditableItemBehavior editable = _target as IEditableItemBehavior;
+			if (editable == null)
+			{
+				return true;
+			}
+			return editable.IsLocked;
+		}
+
+		public bool HasDragPointExposition(DragPointExposition dpExpo)
+		{
+			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
+			if (dpeditable == null)
+			{
+				return false;
+			}
+			return (dpeditable.GetDragPointExposition() & dpExpo) != DragPointExposition.None;
 		}
 
 		public DragPointData GetDragPoint(int controlId)
@@ -175,8 +223,9 @@ namespace VisualPinball.Unity.Editor.Editors
 		public void OnInspectorGUI(Object target)
 		{
 			_target = target;
+			IEditableItemBehavior editable = _target as IEditableItemBehavior;
 			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
-			if (dpeditable == null){
+			if (editable == null || dpeditable == null){
 				return;
 			}
 
@@ -186,28 +235,56 @@ namespace VisualPinball.Unity.Editor.Editors
 				SceneView.RepaintAll();
 			}
 
-/*			if (dpeditable.DragPointEditEnabled){
-				if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points")){
-					foreach (var cpoint in _controlPoints)
-					{
-						EditorGUILayout.LabelField("ID [" + cpoint.ControlId.ToString() + "]");
-						EditorGUILayout.Space(10);
-						EditorGUI.BeginChangeCheck();
-						cpoint.DragPoint.IsLocked = EditorGUILayout.Toggle("IsLocked", cpoint.DragPoint.IsLocked);
-						cpoint.DragPoint.IsSlingshot =  = EditorGUILayout.Toggle("IsSlingshot", cpoint.DragPoint.IsSlingshot);
-						cpoint.DragPoint.IsSmooth = EditorGUILayout.Toggle("IsSmooth", cpoint.DragPoint.IsSmooth);
-						if (EditorGUI.EndChangeCheck())
-						{
-							PrepareUndo("Changing Properties on Dragpoint " + cpoint.ControlId.ToString());
-						}
-					}
+			if (dpeditable.DragPointEditEnabled){
+				if (editable.IsLocked)
+				{
+					EditorGUILayout.LabelField("Drag Points are Locked");
 				}
-				EditorGUILayout.EndFoldoutHeaderGroup();
-			}*/
+				else
+				{
+					if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points"))
+					{
+						EditorGUI.indentLevel++;
+						for (int i = 0; i < _controlPoints.Count; ++i)
+						{
+							var cpoint = _controlPoints[i];
+							EditorGUILayout.LabelField($"Dragpoint [{i}] : ({cpoint.DragPoint.Vertex.X},{cpoint.DragPoint.Vertex.Y},{cpoint.DragPoint.Vertex.Z})");
+							EditorGUI.indentLevel++;
+							EditorGUI.BeginChangeCheck();
+							if (HasDragPointExposition(DragPointExposition.SlingShot))
+							{
+								cpoint.DragPoint.IsSlingshot = EditorGUILayout.Toggle("IsSlingshot", cpoint.DragPoint.IsSlingshot);
+							}
+							if (HasDragPointExposition(DragPointExposition.Smooth))
+							{
+								cpoint.DragPoint.IsSmooth = EditorGUILayout.Toggle("IsSmooth", cpoint.DragPoint.IsSmooth);
+							}
+							if (HasDragPointExposition(DragPointExposition.Texture))
+							{
+								cpoint.DragPoint.HasAutoTexture = EditorGUILayout.Toggle("HasAutoTexture", cpoint.DragPoint.HasAutoTexture);
+								cpoint.DragPoint.TextureCoord = EditorGUILayout.Slider("HasAutoTexture", cpoint.DragPoint.TextureCoord, 0.0f, 1.0f);
+							}
+							EditorGUI.indentLevel--;
+							if (EditorGUI.EndChangeCheck())
+							{
+								PrepareUndo($"Changing Properties on Dragpoint {cpoint.ControlId}");
+							}
+						}
+						EditorGUI.indentLevel--;
+					}
+					EditorGUILayout.EndFoldoutHeaderGroup();
+				}
+			}
 		}
 
 		protected void RebuildControlPoints(IDragPointsEditable dpEditable)
 		{
+			IEditableItemBehavior editable = _target as IEditableItemBehavior;
+			if (editable != null)
+			{
+				editable.MeshDirty = true;
+			}
+
 			_controlPoints.Clear();
 
 			for (int i = 0; i < dpEditable.GetDragPoints().Length; ++i)
@@ -217,6 +294,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			_positionHandleControlId = GUIUtility.GetControlID(FocusType.Passive);
 			_curveTravellerControlId = GUIUtility.GetControlID(FocusType.Passive);
+
 		}
 
 		public void RemapControlPoints(IDragPointsEditable dpEditable)
@@ -264,7 +342,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				return;
 			}
 
-			PrepareUndo("Adding Drag Point at position " + _curveTravellerPosition.ToString());
+			PrepareUndo($"Adding Drag Point at position {_curveTravellerPosition}");
 
 			//compute ratio between the two control points
 			var cp0 = _controlPoints[_curveTravellerControlPointIdx];
@@ -427,82 +505,6 @@ namespace VisualPinball.Unity.Editor.Editors
 				case EventType.Repaint:
 					{
 						_curveTravellerVisible = false;
-						//Display Curve & handle curvetraveller
-						if (_controlPoints.Count > 3)
-						{
-							List<DragPointData> transformedDPoints = new List<DragPointData>();
-							foreach (var cpoint in _controlPoints)
-							{
-								DragPointData newDp = new DragPointData(cpoint.DragPoint);
-								newDp.Vertex = cpoint.WorldPos.ToVertex3D();
-								transformedDPoints.Add(newDp);
-							}
-
-							Vector3 vAccuracy = Vector3.one;
-							vAccuracy = lwMat.MultiplyVector(vAccuracy);
-							float accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
-							accuracy *= accuracy;
-							var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), dpeditable.PointsAreLooping(), accuracy);
-
-							if (vVertex.Length > 0)
-							{
-								float width = 10.0f;
-								Handles.color = UnityEngine.Color.blue;
-								_pathPoints.Clear();
-								foreach (RenderVertex3D v in vVertex)
-								{
-									_pathPoints.Add(new Vector3(v.X, v.Y, v.Z));
-								}
-								Handles.DrawAAPolyLine(width, _pathPoints.ToArray());
-							}
-
-							//World Position of the curve traveller
-							_curveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
-
-							//Render Control Points and check traveler distance from CP
-							float distToCPoint = Mathf.Infinity;
-							for (int i = 0; i < _controlPoints.Count; ++i)
-							{
-								var cpoint = _controlPoints[i];
-								Handles.color = cpoint.DragPoint.IsLocked ? UnityEngine.Color.red : (cpoint.IsSelected ? UnityEngine.Color.green : UnityEngine.Color.gray);
-								Handles.SphereHandleCap(0, cpoint.WorldPos, Quaternion.identity, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius, EventType.Repaint);
-								float decal = (HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius * 0.1f);
-								Handles.Label(cpoint.WorldPos - Vector3.right * decal + Vector3.forward * decal * 2.0f, i.ToString());
-								float dist = Vector3.Distance(_curveTravellerPosition, cpoint.WorldPos);
-								distToCPoint = Mathf.Min(distToCPoint, dist);
-							}
-
-							_curveTravellerControlPointIdx = -1;
-
-							if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius)
-							{
-								//Find the surrounding control points for the traveller
-								int curCPIdx = 0;
-								for (int i = 0; i < _pathPoints.Count - 1; ++i)
-								{
-									Vector3 p0 = _pathPoints[i];
-									Vector3 p1 = _pathPoints[i + 1];
-									if (curCPIdx < _controlPoints.Count && p0 == _controlPoints[curCPIdx].WorldPos)
-									{
-										curCPIdx++;
-									}
-									Vector3 seg = p1 - p0;
-									Vector3 tSeg = _curveTravellerPosition - p0;
-									float dot = Vector3.Dot(seg.normalized, tSeg.normalized);
-									Vector3 projectedTraveller = Vector3.Project(tSeg, seg);
-									if (dot >= 0.999999f && projectedTraveller.magnitude <= seg.magnitude)
-									{
-										_curveTravellerControlPointIdx = curCPIdx - 1;
-										break;
-									}
-								}
-
-								SceneView.RepaintAll();
-								Handles.color = UnityEngine.Color.grey;
-								Handles.SphereHandleCap(_curveTravellerControlId, _curveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
-								_curveTravellerVisible = true;
-							}
-						}
 					}
 					break;
 			}
@@ -526,6 +528,85 @@ namespace VisualPinball.Unity.Editor.Editors
 				}
 			}
 
+			//Display Curve & handle curvetraveller
+			if (_controlPoints.Count > 3)
+			{
+				List<DragPointData> transformedDPoints = new List<DragPointData>();
+				foreach (var cpoint in _controlPoints)
+				{
+					DragPointData newDp = new DragPointData(cpoint.DragPoint);
+					newDp.Vertex = cpoint.WorldPos.ToVertex3D();
+					transformedDPoints.Add(newDp);
+				}
+
+				Vector3 vAccuracy = Vector3.one;
+				vAccuracy = lwMat.MultiplyVector(vAccuracy);
+				float accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
+				accuracy *= accuracy;
+				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), dpeditable.PointsAreLooping(), accuracy);
+
+				if (vVertex.Length > 0)
+				{
+					float width = 10.0f;
+					Handles.color = UnityEngine.Color.blue;
+					_pathPoints.Clear();
+					foreach (RenderVertex3D v in vVertex)
+					{
+						_pathPoints.Add(new Vector3(v.X, v.Y, v.Z));
+					}
+					Handles.DrawAAPolyLine(width, _pathPoints.ToArray());
+				}
+
+				//World Position of the curve traveller
+				_curveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+
+				//Render Control Points and check traveler distance from CP
+				float distToCPoint = Mathf.Infinity;
+				for (int i = 0; i < _controlPoints.Count; ++i)
+				{
+					var cpoint = _controlPoints[i];
+					Handles.color = cpoint.DragPoint.IsLocked ? UnityEngine.Color.red : (cpoint.IsSelected ? UnityEngine.Color.green : UnityEngine.Color.gray);
+					Handles.SphereHandleCap(0, cpoint.WorldPos, Quaternion.identity, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius, EventType.Repaint);
+					float decal = (HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius * 0.1f);
+					Handles.Label(cpoint.WorldPos - Vector3.right * decal + Vector3.forward * decal * 2.0f, $"{i}");
+					float dist = Vector3.Distance(_curveTravellerPosition, cpoint.WorldPos);
+					distToCPoint = Mathf.Min(distToCPoint, dist);
+				}
+
+				_curveTravellerControlPointIdx = -1;
+
+				if (!IsItemLocked())
+				{
+					if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius)
+					{
+						//Find the surrounding control points for the traveller
+						int curCPIdx = 0;
+						for (int i = 0; i < _pathPoints.Count - 1; ++i)
+						{
+							Vector3 p0 = _pathPoints[i];
+							Vector3 p1 = _pathPoints[i + 1];
+							if (curCPIdx < _controlPoints.Count && p0 == _controlPoints[curCPIdx].WorldPos)
+							{
+								curCPIdx++;
+							}
+							Vector3 seg = p1 - p0;
+							Vector3 tSeg = _curveTravellerPosition - p0;
+							float dot = Vector3.Dot(seg.normalized, tSeg.normalized);
+							Vector3 projectedTraveller = Vector3.Project(tSeg, seg);
+							if (dot >= 0.999999f && projectedTraveller.magnitude <= seg.magnitude)
+							{
+								_curveTravellerControlPointIdx = curCPIdx - 1;
+								break;
+							}
+						}
+
+						SceneView.RepaintAll();
+						Handles.color = UnityEngine.Color.grey;
+						Handles.SphereHandleCap(_curveTravellerControlId, _curveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
+						_curveTravellerVisible = true;
+					}
+				}
+			}
 		}
 
 	}

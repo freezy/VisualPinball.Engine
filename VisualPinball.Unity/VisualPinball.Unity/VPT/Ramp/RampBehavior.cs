@@ -52,5 +52,6 @@ namespace VisualPinball.Unity.VPT.Ramp
 		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HeightBottom); }
 		public Vector3 GetDragPointOffset(float ratio) { return new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio); }
 		public bool PointsAreLooping() { return false; }
+		public DragPointExposition GetDragPointExposition() { return DragPointExposition.Smooth | DragPointExposition.SlingShot; }
 	}
 }
