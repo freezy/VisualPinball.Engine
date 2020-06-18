@@ -49,7 +49,8 @@ namespace VisualPinball.Unity.VPT.Ramp
 		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(); }
+		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HeightBottom); }
+		public Vector3 GetDragPointOffset(float ratio) { return new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio); }
 		public bool PointsAreLooping() { return false; }
 	}
 }

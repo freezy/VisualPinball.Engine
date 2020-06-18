@@ -9,6 +9,7 @@ namespace VisualPinball.Unity.VPT
 		DragPointData[] GetDragPoints();
 		void SetDragPoints(DragPointData[] dpoints);
 		Vector3 GetEditableOffset();
+		Vector3 GetDragPointOffset(float ratio);
 		bool PointsAreLooping();
 	}
 }

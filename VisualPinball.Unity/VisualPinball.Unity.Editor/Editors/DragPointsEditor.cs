@@ -21,11 +21,15 @@ namespace VisualPinball.Unity.Editor.Editors
 			public bool IsSelected = false;
 			public bool IsFoldOut = false;
 			public int ControlId = 0;
+			public int Index = -1;
+			public float IndexRatio = 0.0f;
 
-			public ControlPoint(ref DragPointData dp, int controlID)
+			public ControlPoint(ref DragPointData dp, int controlID, int idx, float idxratio)
 			{
 				DragPoint = dp;
 				ControlId = controlID;
+				Index = idx;
+				IndexRatio = idxratio;
 			}
 		}
 
@@ -242,7 +246,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			for (int i = 0; i < dpEditable.GetDragPoints().Length; ++i)
 			{
-				_controlPoints.Add(new ControlPoint(ref dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive)));
+				_controlPoints.Add(new ControlPoint(ref dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive), i, (float)i / dpEditable.GetDragPoints().Length));
 			}
 
 			_positionHandleControlId = GUIUtility.GetControlID(FocusType.Passive);
@@ -290,12 +294,10 @@ namespace VisualPinball.Unity.Editor.Editors
 			List<DragPointData> dpoints = new List<DragPointData>(dpeditable.GetDragPoints());
 			DragPointData dpoint = new DragPointData(dpeditable.GetDragPoints()[_curveTravellerControlPointIdx]);
 			dpoint.IsLocked = false;
-			dpoint.CalcHeight = cp0.DragPoint.CalcHeight + ((cp1.DragPoint.CalcHeight - cp0.DragPoint.CalcHeight) * ratio);
 
 			Vector3 offset = dpeditable.GetEditableOffset();
 			Vector3 dpos = bh.transform.worldToLocalMatrix.MultiplyPoint(_curveTravellerPosition);
 			dpos -= offset;
-			dpos.z -= dpoint.CalcHeight;
 			dpoint.Vertex = dpos.ToVertex3D();
 
 			dpoints.Insert(_curveTravellerControlPointIdx + 1, dpoint);
@@ -361,8 +363,8 @@ namespace VisualPinball.Unity.Editor.Editors
 						foreach (var cpoint in _controlPoints)
 						{
 							cpoint.WorldPos = cpoint.DragPoint.Vertex.ToUnityVector3();
-							cpoint.WorldPos.z += cpoint.DragPoint.CalcHeight;
 							cpoint.WorldPos += offset;
+							cpoint.WorldPos += dpeditable.GetDragPointOffset(cpoint.IndexRatio);
 							cpoint.WorldPos = lwMat.MultiplyPoint(cpoint.WorldPos);
 							cpoint.ScrPos = Handles.matrix.MultiplyPoint(cpoint.WorldPos);
 							if (cpoint.IsSelected){
@@ -442,7 +444,7 @@ namespace VisualPinball.Unity.Editor.Editors
 						cpoint.WorldPos += deltaPosition;
 						Vector3 dpos = wlMat.MultiplyPoint(cpoint.WorldPos);
 						dpos -= offset;
-						dpos.z -= cpoint.DragPoint.CalcHeight;
+						dpos -= dpeditable.GetDragPointOffset(cpoint.IndexRatio);
 						cpoint.DragPoint.Vertex = dpos.ToVertex3D();
 					}
 				}
@@ -458,9 +460,11 @@ namespace VisualPinball.Unity.Editor.Editors
 					transformedDPoints.Add(newDp);
 				}
 
-				var cross = transformedDPoints[1].Vertex.Clone().Sub(transformedDPoints[0].Vertex).Cross(transformedDPoints[2].Vertex.Clone().Sub(transformedDPoints[0].Vertex));
-				var areaSq = cross.LengthSq();
-				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), dpeditable.PointsAreLooping(), areaSq * 0.000001f);
+				Vector3 vAccuracy = Vector3.one;
+				vAccuracy = lwMat.MultiplyVector(vAccuracy);
+				float accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
+				accuracy *= accuracy;
+				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), dpeditable.PointsAreLooping(), accuracy);
 
 				if (vVertex.Length > 0){
 					float width = 10.0f;

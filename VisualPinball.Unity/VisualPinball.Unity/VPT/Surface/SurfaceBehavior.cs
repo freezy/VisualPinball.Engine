@@ -58,7 +58,8 @@ namespace VisualPinball.Unity.VPT.Surface
 		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() { return data.DragPoints; }
 		public void SetDragPoints(DragPointData[] dpoints) { data.DragPoints = dpoints; }
-		public Vector3 GetEditableOffset() { return new Vector3(); }
+		public Vector3 GetEditableOffset() { return new Vector3(0.0f, 0.0f, data.HeightBottom); }
+		public Vector3 GetDragPointOffset(float ratio) { return Vector3.zero; }
 		public bool PointsAreLooping() { return true; }
 	}
 }
