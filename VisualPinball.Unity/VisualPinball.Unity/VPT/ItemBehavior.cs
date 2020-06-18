@@ -98,6 +98,8 @@ namespace VisualPinball.Unity.VPT
 		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
 		public virtual void SetEditorScale(Vector3 rot) { }
 
+		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
+
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Item.Index = entity.Index;

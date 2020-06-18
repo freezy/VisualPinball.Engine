@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref _spinner.data.IsVisible);
 				ItemDataField("Show Bracket", ref _spinner.data.ShowBracket);

@@ -112,23 +112,45 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 
 			bool dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
+
 			if (!dragPointEditEnabled) {
-				switch (Tools.current) {
-					case Tool.Rotate:
-						HandleRotationTool();
-						break;
+				if (_primaryItem.IsLocked)
+				{
+					HandleLockedTool();
+				}
+				else
+				{
+					switch (Tools.current)
+					{
+						case Tool.Rotate:
+							HandleRotationTool();
+							break;
 
-					case Tool.Move:
-						HandleMoveTool();
-						break;
+						case Tool.Move:
+							HandleMoveTool();
+							break;
 
-					case Tool.Scale:
-						HandleScaleTool();
-						break;
+						case Tool.Scale:
+							HandleScaleTool();
+							break;
+					}
 				}
 			}
 
 			RebuildMeshes();
+		}
+
+		private void HandleLockedTool()
+		{
+			var handlePos = _primaryItem.GetEditorPosition();
+			if (_transform.parent != null)
+			{
+				handlePos = _transform.parent.TransformPoint(handlePos);
+			}
+
+			Handles.color = UnityEngine.Color.red;
+			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
+			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
 		}
 
 		private void HandleRotationTool()

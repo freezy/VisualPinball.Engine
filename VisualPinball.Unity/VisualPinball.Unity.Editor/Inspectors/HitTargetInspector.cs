@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Drop Speed", ref _target.data.DropSpeed, dirtyMesh: false);
 				ItemDataField("Raise Delay", ref _target.data.RaiseDelay, dirtyMesh: false);

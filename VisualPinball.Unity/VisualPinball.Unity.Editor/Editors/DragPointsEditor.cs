@@ -54,8 +54,6 @@ namespace VisualPinball.Unity.Editor.Editors
 
 		//Inspector
 		private bool _foldoutControlPoints = false;
-		private GUIStyle _styleSelected = new GUIStyle();
-		private GUIStyle _styleLocked = new GUIStyle();
 
 		//Drop down PopupMenus
 		class MenuItems
@@ -72,37 +70,6 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 
 			//Drag Points
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsLocked", false, 1)]
-			private static void Lock(MenuCommand command)
-			{
-				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
-					return;
-				}
-					
-				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null){
-					editor.DragPointsEditor.PrepareUndo("Changing DragPoint IsLocked");
-					dpoint.IsLocked = !dpoint.IsLocked;
-				}
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsLocked", true)]
-			private static bool LockValidate(MenuCommand command)
-			{
-				ItemInspector editor = command.context as ItemInspector;
-				if (editor == null || editor.DragPointsEditor == null){
-					return false;
-				}
-
-				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
-				if (dpoint != null){
-					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsLocked", dpoint.IsLocked);
-				}
-
-				return true;
-			}
-
 			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSlingshot", false, 1)]
 			private static void SlingShot(MenuCommand command)
 			{
@@ -335,6 +302,24 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 		}
 
+		private void UpdateDragPointsLock()
+		{
+			IEditableItemBehavior editable = _target as IEditableItemBehavior;
+			bool lockChange = false;
+			foreach (var cpoint in _controlPoints)
+			{
+				if (cpoint.DragPoint.IsLocked != editable.IsLocked)
+				{
+					cpoint.DragPoint.IsLocked = editable.IsLocked;
+					lockChange = true;
+				}
+			}
+			if (lockChange)
+			{
+				SceneView.RepaintAll();
+			}
+		}
+
 		public void OnSceneGUI(Object target)
 		{
 			_target = target;
@@ -349,6 +334,8 @@ namespace VisualPinball.Unity.Editor.Editors
 			if (_controlPoints.Count != dpeditable.GetDragPoints().Length){
 				RebuildControlPoints(dpeditable);
 			}
+
+			UpdateDragPointsLock();
 
 			Vector3 offset = dpeditable.GetEditableOffset();
 			Matrix4x4 lwMat = bh.transform.localToWorldMatrix;
@@ -368,14 +355,11 @@ namespace VisualPinball.Unity.Editor.Editors
 							cpoint.WorldPos = lwMat.MultiplyPoint(cpoint.WorldPos);
 							cpoint.ScrPos = Handles.matrix.MultiplyPoint(cpoint.WorldPos);
 							if (cpoint.IsSelected){
-								if (cpoint.DragPoint.IsLocked){
-									cpoint.IsSelected = false;
-								}
-								else{
+								if (!cpoint.DragPoint.IsLocked){
 									_selectedCP.Add(cpoint);
 								}
 							}
-							HandleUtility.AddControl(cpoint.ControlId, HandleUtility.DistanceToCircle(cpoint.ScrPos, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius * 0.5f));
+							HandleUtility.AddControl(cpoint.ControlId, HandleUtility.DistanceToCircle(cpoint.ScrPos, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius));
 						}
 
 						//Setup PositionHandle if some control points are selected
@@ -522,5 +506,6 @@ namespace VisualPinball.Unity.Editor.Editors
 				}
 			}
 		}
+
 	}
 }

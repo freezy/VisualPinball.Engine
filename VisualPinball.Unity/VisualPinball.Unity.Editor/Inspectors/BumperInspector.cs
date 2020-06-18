@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			base.OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				MaterialField("Cap Material", ref _bumper.data.CapMaterial);
 				MaterialField("Base Material", ref _bumper.data.BaseMaterial);

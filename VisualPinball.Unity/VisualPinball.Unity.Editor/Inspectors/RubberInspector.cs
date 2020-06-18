@@ -21,6 +21,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			_dragPointsEditor.OnInspectorGUI(target);
 
+			base.OnPreInspectorGUI();
+
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				ItemDataField("Height", ref _rubber.data.Height);
 				ItemDataField("Thickness", ref _rubber.data.Thickness);

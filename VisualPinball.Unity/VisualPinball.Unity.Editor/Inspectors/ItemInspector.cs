@@ -46,6 +46,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		protected void OnPreInspectorGUI()
+		{
+			var item = target as IEditableItemBehavior;
+			if (item == null) return;
+
+			EditorGUI.BeginChangeCheck();
+			bool newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
+			if (EditorGUI.EndChangeCheck())
+			{
+				FinishEdit("IsLocked", false);
+				item.IsLocked = newLock;
+				SceneView.RepaintAll();
+			}
+		}
+
 		public override void OnInspectorGUI()
 		{
 			var item = target as IEditableItemBehavior;
