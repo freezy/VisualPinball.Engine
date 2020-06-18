@@ -36,5 +36,6 @@ namespace VisualPinball.Unity.VPT.Trigger
 		public Vector3 GetEditableOffset() { return new Vector3(-data.Center.X, -data.Center.Y, 0.0f); }
 		public Vector3 GetDragPointOffset(float ratio) { return Vector3.zero; }
 		public bool PointsAreLooping() { return true; }
+		public DragPointExposition GetDragPointExposition() { return DragPointExposition.Smooth | DragPointExposition.SlingShot; }
 	}
 }
