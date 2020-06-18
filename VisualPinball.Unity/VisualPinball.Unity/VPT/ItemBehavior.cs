@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
@@ -54,14 +54,26 @@ namespace VisualPinball.Unity.VPT
 			if (children == null) {
 				UpdateMesh(Item.Name, gameObject, rog, table);
 			} else {
-				foreach (var child in children) {
-					Transform childTransform = transform.Find(child);
-					//Some ItemBehaviors don't put child into hierarchy when it's alone, but name is kept (Ramps, Surfaces)
-					if (childTransform == null) {
-						childTransform = transform;
+
+				foreach (var child in children)
+				{
+					if (transform.childCount == 0)
+					{
+						//Find the matching  renderObject  and Update it based on base gameObject
+						var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
+						if (ro != null)
+						{
+							UpdateMesh(child, gameObject, rog);
+							break;
+						}
 					}
-					if (childTransform != null) {
-						UpdateMesh(child, childTransform.gameObject, rog, table);
+					else
+					{
+						Transform childTransform = transform.Find(child);
+						if (childTransform != null)
+						{
+							UpdateMesh(child, childTransform.gameObject, rog);
+						}
 					}
 				}
 			}
