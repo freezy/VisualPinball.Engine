@@ -32,5 +32,35 @@ namespace VisualPinball.Unity.Physics.DebugUI
 		/// </summary>
 		/// <param name="entity">Ball entity</param>
 		void OnCreateBall(Entity entity);
+
+		/// <summary>
+		/// Add new property to debug window.
+		/// If type T is not recognized it is treated as beginning of new group.
+		/// </summary>
+		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
+		/// <param name="parentIdx">index to parent. If =-1 it means root.</param>
+		/// <param name="name">Label or name of group.</param>
+		/// <param name="currentValue">Initial value.</param>
+		/// <param name="tip">Message to display as tooltip.</param>
+		/// <returns>Index of property. Use it as parentIdx or propIdx.</returns>
+		int AddProperty<T>(int parentIdx, string name, T currentValue, string tip = null);
+
+		/// <summary>
+		/// Get property value from DebugUI.
+		/// </summary>
+		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
+		/// <param name="propIdx"></param>
+		/// <param name="val">Output where new value will be writen.</param>
+		/// <returns>true if value is changed.</returns>
+		bool GetProperty<T>(int propIdx, ref T val);
+
+
+		/// <summary>
+		/// Set property value in  DebugUI.
+		/// </summary>
+		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
+		/// <param name="propIdx">Index of property.</param>
+		/// <param name="value">New value for property.</param>
+		void SetProperty<T>(int propIdx, T value);
 	}
 }
