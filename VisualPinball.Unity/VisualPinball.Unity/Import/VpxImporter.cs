@@ -21,7 +21,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Import.Job;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
@@ -58,12 +57,10 @@ namespace VisualPinball.Unity.Import
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 
 		private Table _table;
-		private IAssetHandler _assetHandler;
 
-		public void Import(string fileName, Table table, IAssetHandler assetHandler)
+		public void Import(string fileName, Table table)
 		{
 			_table = table;
-			_assetHandler = assetHandler;
 
 			var go = gameObject;
 			go.name = _table.Name;
@@ -91,7 +88,7 @@ namespace VisualPinball.Unity.Import
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			MakeSerializable(go, table, assetHandler);
+			MakeSerializable(go, table);
 
 			// finally, add the player script
 			go.AddComponent<Player>();
@@ -113,13 +110,6 @@ namespace VisualPinball.Unity.Import
 
 		private void ImportTextures()
 		{
-			// import textures
-			var textureImporter = new TextureImporter(
-				_table.Textures.Values.Concat(Texture.LocalTextures).ToArray(),
-				_assetHandler
-			);
-			textureImporter.ImportTextures();
-
 			foreach (var kvp in _table.Textures) {
 				AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
 			}
@@ -127,20 +117,12 @@ namespace VisualPinball.Unity.Import
 
 		private void ImportMaterials(Dictionary<string, PbrMaterial> materials)
 		{
-			// import materials
-			var materialImporter = new MaterialImporter(
-				materials.Values.ToArray(),
-				_assetHandler
-			);
-			materialImporter.ImportMaterials();
 		}
 
 		private void ImportGameItems()
 		{
-
 			// import game objects
 			ImportRenderables();
-			_assetHandler.OnMeshesImported(gameObject);
 		}
 
 		private void ImportRenderables()
@@ -220,27 +202,21 @@ namespace VisualPinball.Unity.Import
 
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
-			//mr.sharedMaterial = _assetHandler.LoadMaterial(ro.Material);
-			mr.sharedMaterial = ro.Material.ToUnityMaterial(null, this);
+			mr.sharedMaterial = ro.Material.ToUnityMaterial(this);
 			mr.enabled = ro.IsVisible;
 
 			// patch
 			_patcher.ApplyPatches(item, ro, obj);
-
-			// add mesh to asset
-			_assetHandler.SaveMesh(mesh, item.Name);
 		}
 
-		private void MakeSerializable(GameObject go, Table table, IAssetHandler assetHandler)
+		private void MakeSerializable(GameObject go, Table table)
 		{
 			// add table component (plus other data)
 			var component = go.AddComponent<TableBehavior>();
-			component.AssetHandler = assetHandler;
 			component.SetData(table.Data);
 			foreach (var key in table.TableInfo.Keys) {
 				component.tableInfo[key] = table.TableInfo[key];
 			}
-			component.textureFolder = assetHandler.TextureFolder;
 			component.textures = table.Textures.Values.Select(d => d.Data).ToArray();
 			component.customInfoTags = table.CustomInfoTags;
 			component.collections = table.Collections.Values.Select(c => c.Data).ToArray();

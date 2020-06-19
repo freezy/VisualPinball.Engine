@@ -5,7 +5,6 @@ using NLog;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Import.AssetHandler;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
@@ -28,10 +27,7 @@ namespace VisualPinball.Unity.Editor.Import
 			// load table
 			var table = TableLoader.LoadTable(ctx.assetPath);
 
-			// instantiate asset handler
-			var assetHandler = new AssetImportHandler(ctx);
-
-			importer.Import(Path.GetFileName(ctx.assetPath), table, assetHandler);
+			importer.Import(Path.GetFileName(ctx.assetPath), table);
 
 			ctx.AddObjectToAsset("main obj", rootGameObj);
 			ctx.SetMainObject(rootGameObj);
