@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -27,37 +28,37 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				MaterialField("Base Material", ref _bumper.data.BaseMaterial);
 				MaterialField("Ring Material", ref _bumper.data.RingMaterial);
 				MaterialField("Skirt Material", ref _bumper.data.SocketMaterial);
-				ItemDataField("Radius", ref _bumper.data.Radius);
-				ItemDataField("Height Scale", ref _bumper.data.HeightScale);
-				ItemDataField("Orientation", ref _bumper.data.Orientation);
-				ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, dirtyMesh: false);
-				ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, dirtyMesh: false);
-				ItemDataField("Reflection Enabled", ref _bumper.data.IsReflectionEnabled);
-				ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible);
-				ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible);
-				ItemDataField("Ring Visible", ref _bumper.data.IsRingVisible);
-				ItemDataField("Skirt Visible", ref _bumper.data.IsSocketVisible);
+				DataFieldUtils.ItemDataField("Radius", ref _bumper.data.Radius, FinishEdit);
+				DataFieldUtils.ItemDataField("Height Scale", ref _bumper.data.HeightScale, FinishEdit);
+				DataFieldUtils.ItemDataField("Orientation", ref _bumper.data.Orientation, FinishEdit);
+				DataFieldUtils.ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, FinishEdit, ("dirtyMesh",false));
+				DataFieldUtils.ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Reflection Enabled", ref _bumper.data.IsReflectionEnabled, FinishEdit);
+				DataFieldUtils.ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible, FinishEdit);
+				DataFieldUtils.ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible, FinishEdit);
+				DataFieldUtils.ItemDataField("Ring Visible", ref _bumper.data.IsRingVisible, FinishEdit);
+				DataFieldUtils.ItemDataField("Skirt Visible", ref _bumper.data.IsSocketVisible, FinishEdit);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _bumper.data.Center);
+				DataFieldUtils.ItemDataField("", ref _bumper.data.Center, FinishEdit);
 				SurfaceField("Surface", ref _bumper.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref _bumper.data.HitEvent, dirtyMesh: false);
-				ItemDataField("Force", ref _bumper.data.Force, dirtyMesh: false);
-				ItemDataField("Hit Threshold", ref _bumper.data.Threshold, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _bumper.data.Scatter, dirtyMesh: false);
-				ItemDataField("Collidable", ref _bumper.data.IsCollidable, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _bumper.data.HitEvent, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Force", ref _bumper.data.Force, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Hit Threshold", ref _bumper.data.Threshold, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _bumper.data.Scatter, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Collidable", ref _bumper.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _bumper.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _bumper.data.TimerInterval, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _bumper.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Interval", ref _bumper.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

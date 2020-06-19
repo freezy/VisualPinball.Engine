@@ -47,7 +47,9 @@
     <Compile Include="Inspectors\HitTargetInspector.cs" />
     <Compile Include="Inspectors\ItemInspector.cs" />
     <Compile Include="Inspectors\KickerInspector.cs" />
+    <Compile Include="Inspectors\LightInspector.cs" />
     <Compile Include="Inspectors\PlayerInspector.cs" />
+    <Compile Include="Inspectors\PlungerInspector.cs" />
     <Compile Include="Inspectors\PrimitiveInspector.cs" />
     <Compile Include="Inspectors\RampInspector.cs" />
     <Compile Include="Inspectors\RubberInspector.cs" />
@@ -58,6 +60,7 @@
     <Compile Include="Inspectors\TriggerInspector.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="Utils\HandlesUtils.cs" />
+    <Compile Include="Utils\DataFieldUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

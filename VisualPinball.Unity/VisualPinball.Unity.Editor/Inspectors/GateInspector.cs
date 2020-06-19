@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -23,36 +24,36 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Visible", ref _gate.data.IsVisible);
-				ItemDataField("Show Bracket", ref _gate.data.ShowBracket);
-				ItemDataField("Reflection Enabled", ref _gate.data.IsReflectionEnabled);
+				DataFieldUtils.ItemDataField("Visible", ref _gate.data.IsVisible, FinishEdit);
+				DataFieldUtils.ItemDataField("Show Bracket", ref _gate.data.ShowBracket, FinishEdit);
+				DataFieldUtils.ItemDataField("Reflection Enabled", ref _gate.data.IsReflectionEnabled, FinishEdit);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _gate.data.Center);
-				ItemDataField("Length", ref _gate.data.Length);
-				ItemDataField("Height", ref _gate.data.Height);
-				ItemDataField("Rotation", ref _gate.data.Rotation);
-				ItemDataField("Open Angle", ref _gate.data.AngleMax, dirtyMesh: false);
-				ItemDataField("Close Angle", ref _gate.data.AngleMin, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("", ref _gate.data.Center, FinishEdit);
+				DataFieldUtils.ItemDataField("Length", ref _gate.data.Length, FinishEdit);
+				DataFieldUtils.ItemDataField("Height", ref _gate.data.Height, FinishEdit);
+				DataFieldUtils.ItemDataField("Rotation", ref _gate.data.Rotation, FinishEdit);
+				DataFieldUtils.ItemDataField("Open Angle", ref _gate.data.AngleMax, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Close Angle", ref _gate.data.AngleMin, FinishEdit, ("dirtyMesh", false));
 				SurfaceField("Surface", ref _gate.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Elasticity", ref _gate.data.Elasticity, dirtyMesh: false);
-				ItemDataField("Friction", ref _gate.data.Friction, dirtyMesh: false);
-				ItemDataField("Damping", ref _gate.data.Damping, dirtyMesh: false);
-				ItemDataField("Gravity Factor", ref _gate.data.GravityFactor, dirtyMesh: false);
-				ItemDataField("Collidable", ref _gate.data.IsCollidable, dirtyMesh: false);
-				ItemDataField("Two Way", ref _gate.data.TwoWay, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Elasticity", ref _gate.data.Elasticity, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Friction", ref _gate.data.Friction, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Damping", ref _gate.data.Damping, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Gravity Factor", ref _gate.data.GravityFactor, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Collidable", ref _gate.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Two Way", ref _gate.data.TwoWay, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _gate.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _gate.data.TimerInterval, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _gate.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Interval", ref _gate.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

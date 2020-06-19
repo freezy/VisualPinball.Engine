@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -24,40 +25,40 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("Height", ref _rubber.data.Height);
-				ItemDataField("Thickness", ref _rubber.data.Thickness);
+				DataFieldUtils.ItemDataField("Height", ref _rubber.data.Height, FinishEdit);
+				DataFieldUtils.ItemDataField("Thickness", ref _rubber.data.Thickness, FinishEdit);
 				EditorGUILayout.LabelField("Orientation");
 				EditorGUI.indentLevel++;
-				ItemDataField("RotX", ref _rubber.data.RotX);
-				ItemDataField("RotY", ref _rubber.data.RotY);
-				ItemDataField("RotZ", ref _rubber.data.RotZ);
+				DataFieldUtils.ItemDataField("RotX", ref _rubber.data.RotX, FinishEdit);
+				DataFieldUtils.ItemDataField("RotY", ref _rubber.data.RotY, FinishEdit);
+				DataFieldUtils.ItemDataField("RotZ", ref _rubber.data.RotZ, FinishEdit);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(_rubber.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, FinishEdit, ("dirtyMesh", false));
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, FinishEdit, ("dirtyMesh", false));
 
 				EditorGUI.BeginDisabledGroup(!_rubber.data.OverwritePhysics);
-				ItemDataField("Elasticity", ref _rubber.data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref _rubber.data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref _rubber.data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _rubber.data.Scatter, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Elasticity", ref _rubber.data.Elasticity, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _rubber.data.ElasticityFalloff, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Friction", ref _rubber.data.Friction, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _rubber.data.Scatter, FinishEdit, ("dirtyMesh", false));
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Hit Height", ref _rubber.data.HitHeight, dirtyMesh: false);
-				ItemDataField("Collidable", ref _rubber.data.IsCollidable, dirtyMesh: false);
-				ItemDataField("Has Hit Event", ref _rubber.data.HitEvent, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Hit Height", ref _rubber.data.HitHeight, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Collidable", ref _rubber.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _rubber.data.HitEvent, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _rubber.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _rubber.data.TimerInterval, dirtyMesh: false);
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _rubber.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Interval", ref _rubber.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
