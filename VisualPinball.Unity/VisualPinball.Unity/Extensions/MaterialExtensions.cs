@@ -5,7 +5,7 @@ using System.Text;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.Table;
+using VisualPinball.Unity.Import;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Extensions

@@ -21,7 +21,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.Job;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
@@ -38,7 +37,6 @@ using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.VPT.Trigger;
 using Logger = NLog.Logger;
 using Player = VisualPinball.Unity.Game.Player;
-using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Import
 {
@@ -79,7 +77,6 @@ namespace VisualPinball.Unity.Import
 
 			// import
 			ImportTextures();
-			//ImportMaterials(materials);
 			ImportGameItems();
 
 			// set root transformation
@@ -113,10 +110,6 @@ namespace VisualPinball.Unity.Import
 			foreach (var kvp in _table.Textures) {
 				AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
 			}
-		}
-
-		private void ImportMaterials(Dictionary<string, PbrMaterial> materials)
-		{
 		}
 
 		private void ImportGameItems()
