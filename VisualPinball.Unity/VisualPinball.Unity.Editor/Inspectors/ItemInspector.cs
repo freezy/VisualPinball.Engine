@@ -205,6 +205,25 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
+		{
+			if (_table == null) return;
+
+			int selectedIndex = 0;
+			for (int i = 0; i < _allTextures.Length; i++) {
+				if (_allTextures[i] == field) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allTextures);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allTextures.Length) {
+				FinishEdit(label, dirtyMesh);
+				field = selectedIndex == 0 ? "" : _allTextures[selectedIndex];
+			}
+		}
+
 		private void FinishEdit(string label, bool dirtyMesh = true)
 		{
 			string undoLabel = "Edit " + label;
