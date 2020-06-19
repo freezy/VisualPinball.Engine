@@ -25,6 +25,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			public int ControlId = 0;
 			public int Index = -1;
 			public float IndexRatio = 0.0f;
+			public List<Vector3> pathPoints = new List<Vector3>();
 
 			public ControlPoint(ref DragPointData dp, int controlID, int idx, float idxratio)
 			{
@@ -40,7 +41,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 		//Control points storing & rendering
 		private List<ControlPoint> _controlPoints = new List<ControlPoint>();
-		private List<Vector3> _pathPoints = new List<Vector3>();
+		private List<Vector3> _allPathPoints = new List<Vector3>();
 
 		//Control points position Handle
 		private List<ControlPoint> _selectedCP = new List<ControlPoint>();
@@ -579,18 +580,45 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				if (vVertex.Length > 0)
 				{
-					float width = 10.0f;
-					Handles.color = UnityEngine.Color.blue;
-					_pathPoints.Clear();
+					ControlPoint curCP = null;
+					_allPathPoints.Clear();
 					foreach (RenderVertex3D v in vVertex)
 					{
-						_pathPoints.Add(new Vector3(v.X, v.Y, v.Z));
+						if (v.IsControlPoint)
+						{
+							if (curCP != null)
+							{
+								curCP.pathPoints.Add(v.ToUnityVector3());
+							}
+							curCP = _controlPoints.Find(cp => cp.WorldPos == v.ToUnityVector3());
+							if (curCP != null)
+							{
+								curCP.pathPoints.Clear();
+							}
+						}
+						curCP.pathPoints.Add(v.ToUnityVector3());
+						_allPathPoints.Add(v.ToUnityVector3());
 					}
-					Handles.DrawAAPolyLine(width, _pathPoints.ToArray());
-				}
 
-				//World Position of the curve traveller
-				_curveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					_curveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_allPathPoints.ToArray());
+
+					//Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
+					float width = 10.0f;
+					_curveTravellerControlPointIdx = -1;
+					foreach (var cp in _controlPoints)
+					{
+						if (cp.pathPoints.Count > 1)
+						{
+							Handles.color = HasDragPointExposition(DragPointExposition.SlingShot) && cp.DragPoint.IsSlingshot ? UnityEngine.Color.red : UnityEngine.Color.blue;
+							Handles.DrawAAPolyLine(width, cp.pathPoints.ToArray());
+							Vector3 closestToPath = HandleUtility.ClosestPointToPolyLine(cp.pathPoints.ToArray());
+							if (closestToPath == _curveTravellerPosition)
+							{
+								_curveTravellerControlPointIdx = cp.Index;
+							}
+						}
+					}
+				}
 
 				//Render Control Points and check traveler distance from CP
 				float distToCPoint = Mathf.Infinity;
@@ -605,33 +633,10 @@ namespace VisualPinball.Unity.Editor.Editors
 					distToCPoint = Mathf.Min(distToCPoint, dist);
 				}
 
-				_curveTravellerControlPointIdx = -1;
-
 				if (!IsItemLocked())
 				{
 					if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius)
 					{
-						//Find the surrounding control points for the traveller
-						int curCPIdx = 0;
-						for (int i = 0; i < _pathPoints.Count - 1; ++i)
-						{
-							Vector3 p0 = _pathPoints[i];
-							Vector3 p1 = _pathPoints[i + 1];
-							if (curCPIdx < _controlPoints.Count && p0 == _controlPoints[curCPIdx].WorldPos)
-							{
-								curCPIdx++;
-							}
-							Vector3 seg = p1 - p0;
-							Vector3 tSeg = _curveTravellerPosition - p0;
-							float dot = Vector3.Dot(seg.normalized, tSeg.normalized);
-							Vector3 projectedTraveller = Vector3.Project(tSeg, seg);
-							if (dot >= 0.999999f && projectedTraveller.magnitude <= seg.magnitude)
-							{
-								_curveTravellerControlPointIdx = curCPIdx - 1;
-								break;
-							}
-						}
-
 						SceneView.RepaintAll();
 						Handles.color = UnityEngine.Color.grey;
 						Handles.SphereHandleCap(_curveTravellerControlId, _curveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
