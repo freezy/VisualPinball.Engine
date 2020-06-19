@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 
 			//Drag Points
-			[MenuItem($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", false, 1)]
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSlingshot", false, 1)]
 			private static void SlingShot(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
@@ -496,12 +496,14 @@ namespace VisualPinball.Unity.Editor.Editors
 						if (Event.current.button == 0){
 							var nearCP = _controlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 							if (nearCP != null && !nearCP.DragPoint.IsLocked){
-								bool oldSelection = nearCP.IsSelected;
 								if (!Event.current.control)	{
 									ClearAllSelection();
+									nearCP.IsSelected = true;
 								}
-								nearCP.IsSelected = oldSelection;
-								nearCP.IsSelected = !nearCP.IsSelected;
+								else
+								{
+									nearCP.IsSelected = !nearCP.IsSelected;
+								}
 								Event.current.Use();
 							}
 						}
