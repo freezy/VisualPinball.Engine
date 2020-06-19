@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 
 			//Drag Points
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSlingshot", false, 1)]
+			[MenuItem($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", false, 1)]
 			private static void SlingShot(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
 				if (dpoint != null){
-					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsSlingshot", dpoint.IsSlingshot);
+					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", dpoint.IsSlingshot);
 				}
 
 				return true;
@@ -139,7 +139,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 				var dpoint = RetrieveDragPoint(editor.DragPointsEditor, command.userData);
 				if (dpoint != null){
-					Menu.SetChecked(CONTROLPOINTS_MENUPATH + "/IsSmooth", dpoint.IsSmooth);
+					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSmooth", dpoint.IsSmooth);
 				}
 
 				return true;
@@ -423,7 +423,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			Vector3 offset = (Vector3)plist[1];
 			IDragPointsEditable dpeditable = (IDragPointsEditable)plist[2];
 
-			PrepareUndo("Change DragPoint Position for " + _selectedCP.Count + " Control points.");
+			PrepareUndo($"Change DragPoint Position for {_selectedCP.Count} Control points.");
 
 			Vector3 deltaPosition = newPos - _positionHandlePosition;
 			foreach (var cpoint in _selectedCP)
