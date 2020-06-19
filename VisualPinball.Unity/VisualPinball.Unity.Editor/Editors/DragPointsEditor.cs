@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Editor.Inspectors;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
 
@@ -250,25 +252,20 @@ namespace VisualPinball.Unity.Editor.Editors
 							var cpoint = _controlPoints[i];
 							EditorGUILayout.LabelField($"Dragpoint [{i}] : ({cpoint.DragPoint.Vertex.X},{cpoint.DragPoint.Vertex.Y},{cpoint.DragPoint.Vertex.Z})");
 							EditorGUI.indentLevel++;
-							EditorGUI.BeginChangeCheck();
 							if (HasDragPointExposition(DragPointExposition.SlingShot))
 							{
-								cpoint.DragPoint.IsSlingshot = EditorGUILayout.Toggle("IsSlingshot", cpoint.DragPoint.IsSlingshot);
+								DataFieldUtils.ItemDataField("Slingshot", ref cpoint.DragPoint.IsSlingshot, FinishEdit);
 							}
 							if (HasDragPointExposition(DragPointExposition.Smooth))
 							{
-								cpoint.DragPoint.IsSmooth = EditorGUILayout.Toggle("IsSmooth", cpoint.DragPoint.IsSmooth);
+								DataFieldUtils.ItemDataField("Smooth", ref cpoint.DragPoint.IsSmooth, FinishEdit);
 							}
 							if (HasDragPointExposition(DragPointExposition.Texture))
 							{
-								cpoint.DragPoint.HasAutoTexture = EditorGUILayout.Toggle("HasAutoTexture", cpoint.DragPoint.HasAutoTexture);
-								cpoint.DragPoint.TextureCoord = EditorGUILayout.Slider("HasAutoTexture", cpoint.DragPoint.TextureCoord, 0.0f, 1.0f);
+								DataFieldUtils.ItemDataField("Has AutoTexture", ref cpoint.DragPoint.HasAutoTexture, FinishEdit);
+								DataFieldUtils.ItemDataSlider("Texture Coord", ref cpoint.DragPoint.TextureCoord, 0.0f, 1.0f, FinishEdit);
 							}
 							EditorGUI.indentLevel--;
-							if (EditorGUI.EndChangeCheck())
-							{
-								PrepareUndo($"Changing Properties on Dragpoint {cpoint.ControlId}");
-							}
 						}
 						EditorGUI.indentLevel--;
 					}
@@ -310,6 +307,29 @@ namespace VisualPinball.Unity.Editor.Editors
 					_controlPoints[i].DragPoint = dpEditable.GetDragPoints()[i];
 				}
 			}
+		}
+
+		private bool FinishEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params (string,object)[] pList)
+		{
+			if (_target == null)
+			{
+				message = "";
+				return false;
+			}
+
+			bool dirtyMesh = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh").Item2 : true;
+			message = $"[{_target?.name}] Edit {label}";
+			if (dirtyMesh)
+			{
+				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
+				var item = (_target as IEditableItemBehavior);
+				if (item != null)
+				{
+					item.MeshDirty = true;
+				}
+			}
+			recordObjs.Add(_target);
+			return true;
 		}
 
 		public void PrepareUndo(string message)
@@ -417,11 +437,11 @@ namespace VisualPinball.Unity.Editor.Editors
 			}
 		}
 
-		private void OnDragPointPositionChange(Vector3 newPos, params object[] plist)
+		private void OnDragPointPositionChange(Vector3 newPos, params (string,object)[] plist)
 		{
-			Matrix4x4 wlMat = (Matrix4x4)plist[0];
-			Vector3 offset = (Vector3)plist[1];
-			IDragPointsEditable dpeditable = (IDragPointsEditable)plist[2];
+			Matrix4x4 wlMat = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "wlMat") > 0 ? (Matrix4x4)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "wlMat").Item2 : Matrix4x4.identity;
+			Vector3 offset = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "offset") > 0 ? (Vector3)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "offset").Item2 : Vector3.zero;
+			IDragPointsEditable dpeditable = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "dpeditable") > 0 ? (IDragPointsEditable)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "dpeditable").Item2 : null;
 
 			PrepareUndo($"Change DragPoint Position for {_selectedCP.Count} Control points.");
 
@@ -537,7 +557,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				{
 					parentRot = bh.transform.parent.transform.rotation;
 				}
-				Utils.HandlesUtils.HandlePosition(_positionHandlePosition, dpeditable.GetHandleType(), parentRot, OnDragPointPositionChange, wlMat, offset, dpeditable);
+				Utils.HandlesUtils.HandlePosition(_positionHandlePosition, dpeditable.GetHandleType(), parentRot, OnDragPointPositionChange, ("wlMat",wlMat), ("offset",offset), ("dpeditable",dpeditable));
 			}
 
 			//Display Curve & handle curvetraveller

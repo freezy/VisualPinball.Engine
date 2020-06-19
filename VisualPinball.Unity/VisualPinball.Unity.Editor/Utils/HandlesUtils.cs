@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.VPT;
 
@@ -7,14 +6,14 @@ namespace VisualPinball.Unity.Editor.Utils
 {
 	class HandlesUtils
 	{
-		public delegate void OnPositionChange(Vector3 newPosition, params object[] plist);
+		public delegate void OnPositionChange(Vector3 newPosition, params (string,object)[] plist);
 
-		public static void HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, OnPositionChange onChange, params object[] plist)
+		public static void HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, OnPositionChange onChange, params (string, object)[] plist)
 		{
 			HandlePosition(position, type, rotation, 0.2f, 0.0f, onChange, plist);
 		}
 
-		public static void HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap, OnPositionChange onChange, params object[] plist)
+		public static void HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap, OnPositionChange onChange, params (string, object)[] plist)
 		{
 			Vector3 handlePos = position;
 			Vector3 forward = rotation * Vector3.forward;

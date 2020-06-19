@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -235,7 +236,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				handlePos = _transform.parent.TransformPoint(handlePos);
 				parentRot = _transform.parent.transform.rotation;
 			}
-			Utils.HandlesUtils.HandlePosition(handlePos, _primaryItem.EditorPositionType, parentRot, FinishMove, false);
+			Utils.HandlesUtils.HandlePosition(handlePos, _primaryItem.EditorPositionType, parentRot, FinishMove);
 		}
 
 		private void HandleScaleTool()
@@ -286,9 +287,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		private void FinishMove(Vector3 newPosition, object[] plist)
+		private void FinishMove(Vector3 newPosition, (string, object)[] pList)
 		{
-			bool isLocalPos = (bool)plist[0];
+			bool isLocalPos = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "isLocalPos") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "isLocalPos").Item2 : false;
 			_primaryItem.MeshDirty = true;
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
