@@ -34,7 +34,6 @@ using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
 using VisualPinball.Unity.VPT.Bumper;
@@ -66,10 +65,6 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>, ITextureStore
 	{
 		public Engine.VPT.Table.Table Table => Item;
-		// TODO: exposing the asset handler here is a crutch too get material selection working,
-		// this will break down as soon as a table is loaded by unity as an asset, or if we have 
-		// to restore due a script recompile.
-		public IAssetHandler AssetHandler { get; internal set; } = null;
 
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
 		[HideInInspector] public TextureData[] textures;
@@ -83,8 +78,6 @@ namespace VisualPinball.Unity.VPT.Table
 		[HideInInspector] public SoundData[] sounds;
 		[HideInInspector] public TextBoxData[] textBoxes;
 		[HideInInspector] public TimerData[] timers;
-
-		[HideInInspector] public string textureFolder;
 
 		[HideInInspector] public string physicsEngineId;
 		[HideInInspector] public string debugUiId;

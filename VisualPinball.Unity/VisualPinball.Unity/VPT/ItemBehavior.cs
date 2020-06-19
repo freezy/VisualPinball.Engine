@@ -130,8 +130,8 @@ namespace VisualPinball.Unity.VPT
 			}
 
 			if (mr != null) {
-				if (table != null && table.AssetHandler != null) {
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(table.AssetHandler);
+				if (table != null) {
+					mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
 				}
 				mr.enabled = true;
 			}

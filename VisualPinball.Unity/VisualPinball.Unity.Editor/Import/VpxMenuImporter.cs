@@ -6,9 +6,7 @@ using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Import.AssetHandler;
 using VisualPinball.Unity.Import;
-using VisualPinball.Unity.Import.AssetHandler;
 using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
 
@@ -72,12 +70,7 @@ namespace VisualPinball.Unity.Editor.Import
 			// load table
 			var table = TableLoader.LoadTable(path);
 
-			// instantiate asset handler
-			var assetHandler = saveLocally
-				? new AssetDatabaseHandler(table, path) as IAssetHandler
-				: new AssetMemoryHandler();
-
-			importer.Import(Path.GetFileName(path), table, assetHandler);
+			importer.Import(Path.GetFileName(path), table);
 
 			return rootGameObj;
 		}
