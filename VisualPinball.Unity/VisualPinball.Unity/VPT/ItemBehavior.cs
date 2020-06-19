@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.VPT
 						var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
 						if (ro != null)
 						{
-							UpdateMesh(child, gameObject, rog);
+							UpdateMesh(child, gameObject, rog, table);
 							break;
 						}
 					}
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.VPT
 						Transform childTransform = transform.Find(child);
 						if (childTransform != null)
 						{
-							UpdateMesh(child, childTransform.gameObject, rog);
+							UpdateMesh(child, childTransform.gameObject, rog, table);
 						}
 					}
 				}
