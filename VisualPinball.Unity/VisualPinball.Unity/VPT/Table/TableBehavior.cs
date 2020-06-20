@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using NLog;
 using UnityEngine;
-using UnityEngine.UI;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -32,7 +30,6 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
@@ -60,19 +57,7 @@ namespace VisualPinball.Unity.VPT.Table
 	{
 		public Engine.VPT.Table.Table Table => Item;
 
-		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public TextureData[] textures;
-		[HideInInspector] public CustomInfoTags customInfoTags;
-		[HideInInspector] public CollectionData[] collections;
-		[HideInInspector] public DecalData[] decals;
-		[HideInInspector] public DispReelData[] dispReels;
-		[HideInInspector] public FlasherData[] flashers;
-		[HideInInspector] public LightSeqData[] lightSeqs;
-		[HideInInspector] public PlungerData[] plungers;
-		[HideInInspector] public SoundData[] sounds;
-		[HideInInspector] public TextBoxData[] textBoxes;
-		[HideInInspector] public TimerData[] timers;
-
+		[HideInInspector] public TableSidecar sidecar;
 		[HideInInspector] public string physicsEngineId;
 		[HideInInspector] public string debugUiId;
 
@@ -93,11 +78,17 @@ namespace VisualPinball.Unity.VPT.Table
 			}
 		}
 
-		private void Start()
+		protected virtual void Start()
 		{
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(this);
 			}
+		}
+
+		protected override void OnDrawGizmos()
+		{
+			// do nothing, base class draws all child meshes for ease of selection, but
+			// that would just be everything at this level
 		}
 
 		protected override Engine.VPT.Table.Table GetItem()
@@ -146,23 +137,23 @@ namespace VisualPinball.Unity.VPT.Table
 
 			// restore table info
 			Logger.Info("Restoring table info...");
-			foreach (var k in tableInfo.Keys) {
-				table.TableInfo[k] = tableInfo[k];
+			foreach (var k in sidecar.tableInfo.Keys) {
+				table.TableInfo[k] = sidecar.tableInfo[k];
 			}
 
 			// restore custom info tags
-			table.CustomInfoTags = customInfoTags;
+			table.CustomInfoTags = sidecar.customInfoTags;
 
 			// restore game items with no game object (yet!)
 			table.Decals.Clear();
-			table.Decals.AddRange(decals.Select(d => new Decal(d)));
-			Restore(collections, table.Collections, d => new Collection(d));
-			Restore(dispReels, table.DispReels, d => new DispReel(d));
-			Restore(flashers, table.Flashers, d => new Flasher(d));
-			Restore(lightSeqs, table.LightSeqs, d => new LightSeq(d));
-			Restore(plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
-			Restore(textBoxes, table.TextBoxes, d => new TextBox(d));
-			Restore(timers, table.Timers, d => new Timer(d));
+			table.Decals.AddRange(sidecar.decals.Select(d => new Decal(d)));
+			Restore(sidecar.collections, table.Collections, d => new Collection(d));
+			Restore(sidecar.dispReels, table.DispReels, d => new DispReel(d));
+			Restore(sidecar.flashers, table.Flashers, d => new Flasher(d));
+			Restore(sidecar.lightSeqs, table.LightSeqs, d => new LightSeq(d));
+			Restore(sidecar.plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
+			Restore(sidecar.textBoxes, table.TextBoxes, d => new TextBox(d));
+			Restore(sidecar.timers, table.Timers, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
@@ -187,11 +178,11 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			var table = CreateTable();
 
-			Restore(sounds, table.Sounds, d => new Sound(d));
+			Restore(sidecar.sounds, table.Sounds, d => new Sound(d));
 
 			// restore textures
 			Logger.Info("Restoring textures...");
-			foreach (var textureData in textures) {
+			foreach (var textureData in sidecar.textures) {
 				var texture = new Texture(textureData);
 				table.Textures[texture.Name] = texture;
 			}
