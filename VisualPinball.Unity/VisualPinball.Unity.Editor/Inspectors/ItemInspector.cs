@@ -34,11 +34,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 						_allMaterials[i + 1] = _table.data.Materials[i].Name;
 					}
 				}
-				if (_table.textures != null) {
-					_allTextures = new string[_table.textures.Length + 1];
+				if (_table.sidecar.textures != null) {
+					_allTextures = new string[_table.sidecar.textures.Length + 1];
 					_allTextures[0] = "- none -";
-					for (int i = 0; i < _table.textures.Length; i++) {
-						_allTextures[i + 1] = _table.textures[i].Name;
+					for (int i = 0; i < _table.sidecar.textures.Length; i++) {
+						_allTextures[i + 1] = _table.sidecar.textures[i].Name;
 					}
 				}
 			}
