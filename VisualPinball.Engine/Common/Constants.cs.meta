@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:VisualPinball.Engine/Common/Constants.cs.meta
 guid: a07d1ba17da1efa478e72c18845d54bc
+=======
+guid: 072956061bfc0e7479f944e1ae91a4fd
+>>>>>>> remote prefab import option, make asset importer lazy and just run throug the in mem:VisualPinball.Unity/VisualPinball.Unity.Editor/Import/VpxAssetLazyImporter.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
