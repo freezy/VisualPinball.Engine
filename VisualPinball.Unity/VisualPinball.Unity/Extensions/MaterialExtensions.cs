@@ -5,7 +5,7 @@ using System.Text;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Import;
+using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Extensions
@@ -24,8 +24,15 @@ namespace VisualPinball.Unity.Extensions
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 
-		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, ITextureStore textureStore, StringBuilder debug = null)
+		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableBehavior table, StringBuilder debug = null)
 		{
+			if (table != null) {
+				var existingMat = table.GetMaterial(vpxMaterial);
+				if (existingMat != null) {
+					return existingMat;
+				}
+			}
+
 			var unityMaterial = new UnityEngine.Material(GetShader()) {
 				name = vpxMaterial.Id
 			};
@@ -61,22 +68,25 @@ namespace VisualPinball.Unity.Extensions
 			}
 
 			// map
-			if (textureStore != null && vpxMaterial.HasMap) {
+			if (table != null && vpxMaterial.HasMap) {
 				unityMaterial.SetTexture(
 					MainTex,
-					textureStore.GetTexture(vpxMaterial.Map.Name)
+					table.GetTexture(vpxMaterial.Map.Name)
 				);
 			}
 
 			// normal map
-			if (textureStore != null && vpxMaterial.HasNormalMap) {
+			if (table != null && vpxMaterial.HasNormalMap) {
 				unityMaterial.EnableKeyword("_NORMALMAP");
 				unityMaterial.SetTexture(
 					BumpMap,
-					textureStore.GetTexture(vpxMaterial.NormalMap.Name)
+					table.GetTexture(vpxMaterial.NormalMap.Name)
 				);
 			}
 
+			if (table != null) {
+				table.AddMaterial(vpxMaterial, unityMaterial);
+			}
 			return unityMaterial;
 		}
 
