@@ -56,12 +56,6 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.VPT.Table
 {
-	public interface ITextureStore
-	{
-		void AddTexture(string name, Texture2D texture);
-		Texture2D GetTexture(string name);
-	}
-
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>, ITextureStore
 	{
