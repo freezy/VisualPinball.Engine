@@ -78,6 +78,7 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// import
+			ImportTextures();
 			ImportGameItems();
 
 			// set root transformation
