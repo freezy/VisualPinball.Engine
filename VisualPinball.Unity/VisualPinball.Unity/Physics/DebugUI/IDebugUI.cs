@@ -40,19 +40,19 @@ namespace VisualPinball.Unity.Physics.DebugUI
 		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
 		/// <param name="parentIdx">index to parent. If =-1 it means root.</param>
 		/// <param name="name">Label or name of group.</param>
-		/// <param name="currentValue">Initial value.</param>
+		/// <param name="value">Initial value.</param>
 		/// <param name="tip">Message to display as tooltip.</param>
 		/// <returns>Index of property. Use it as parentIdx or propIdx.</returns>
-		int AddProperty<T>(int parentIdx, string name, T currentValue, string tip = null);
+		int AddProperty<T>(int parentIdx, string name, T value, string tip = null);
 
 		/// <summary>
 		/// Get property value from DebugUI.
 		/// </summary>
 		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
 		/// <param name="propIdx"></param>
-		/// <param name="val">Output where new value will be writen.</param>
+		/// <param name="value">Output where new value will be writen.</param>
 		/// <returns>true if value is changed.</returns>
-		bool GetProperty<T>(int propIdx, ref T val);
+		bool GetProperty<T>(int propIdx, ref T value);
 
 
 		/// <summary>
@@ -62,5 +62,16 @@ namespace VisualPinball.Unity.Physics.DebugUI
 		/// <param name="propIdx">Index of property.</param>
 		/// <param name="value">New value for property.</param>
 		void SetProperty<T>(int propIdx, T value);
+
+		/// <summary>
+		/// One line to add property (to Quick group) and sync value.
+		/// Property is recognized base on name & type. So, you can use same name for different types
+		/// </summary>
+		/// <typeparam name="T">Data type, like Vector3, float, int, ...</typeparam>
+		/// <param name="name">Label for property.</param>
+		/// <param name="value">Current value as input. Can be updated.</param>
+		/// <param name="tip">Message to display as tooltip.</param>
+		/// <returns>true if value is changed.</returns>
+		bool QuickPropertySync<T>(string name, ref T value, string tip = null);
 	}
 }
