@@ -17,16 +17,10 @@ namespace VisualPinball.Unity.Editor.Import
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		[MenuItem("Visual Pinball/Import VPX as Asset", false, 10)]
-		public static void ImportVpxEditorAsset(MenuCommand menuCommand)
-		{
-			ImportVpxEditor(menuCommand, true);
-		}
-
-		[MenuItem("Visual Pinball/Import VPX into Memory", false, 10)]
+		[MenuItem("Visual Pinball/Import VPX", false, 10)]
 		public static void ImportVpxEditorMemory(MenuCommand menuCommand)
 		{
-			ImportVpxEditor(menuCommand, false);
+			ImportVpxEditor(menuCommand);
 		}
 
 		/// <summary>
@@ -38,8 +32,7 @@ namespace VisualPinball.Unity.Editor.Import
 		/// can be saved and loaded
 		/// </summary>
 		/// <param name="menuCommand">Context provided by the Editor</param>
-		/// <param name="saveLocally">If true, import the entire table as Unity asset</param>
-		private static void ImportVpxEditor(MenuCommand menuCommand, bool saveLocally)
+		private static void ImportVpxEditor(MenuCommand menuCommand)
 		{
 			// open file dialog
 			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
@@ -47,7 +40,7 @@ namespace VisualPinball.Unity.Editor.Import
 				return;
 			}
 
-			var rootGameObj = ImportVpx(vpxPath, saveLocally);
+			var rootGameObj = ImportVpx(vpxPath);
 
 			// if an object was selected in the editor, make it its parent
 			GameObjectUtility.SetParentAndAlign(rootGameObj, menuCommand.context as GameObject);
@@ -61,7 +54,7 @@ namespace VisualPinball.Unity.Editor.Import
 			Logger.Info("[VpxImporter] Imported!");
 		}
 
-		private static GameObject ImportVpx(string path, bool saveLocally) {
+		private static GameObject ImportVpx(string path) {
 
 			// create root object
 			var rootGameObj = new GameObject();
