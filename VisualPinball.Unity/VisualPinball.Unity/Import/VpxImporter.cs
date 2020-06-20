@@ -78,6 +78,7 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// import
+			ImportTextures();
 			ImportGameItems();
 
 			// set root transformation
@@ -88,6 +89,13 @@ namespace VisualPinball.Unity.Import
 
 			// finally, add the player script
 			go.AddComponent<Player>();
+		}
+
+		private void ImportTextures()
+		{
+			foreach (var kvp in _table.Textures) {
+				_tb.AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
+			}
 		}
 
 		private void ImportGameItems()
