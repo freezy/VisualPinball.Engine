@@ -40,7 +40,7 @@ using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.Import
 {
-	public class VpxImporter : MonoBehaviour, ITextureStore
+	public class VpxImporter : MonoBehaviour
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -52,9 +52,9 @@ namespace VisualPinball.Unity.Import
 
 		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
-		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 
 		private Table _table;
+		private TableBehavior _tb;
 
 		public void Import(string fileName, Table table)
 		{
@@ -62,6 +62,8 @@ namespace VisualPinball.Unity.Import
 
 			var go = gameObject;
 			go.name = _table.Name;
+			MakeSerializable(go, table);
+
 			_patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
@@ -76,7 +78,6 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// import
-			ImportTextures();
 			ImportGameItems();
 
 			// set root transformation
@@ -85,31 +86,8 @@ namespace VisualPinball.Unity.Import
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			MakeSerializable(go, table);
-
 			// finally, add the player script
 			go.AddComponent<Player>();
-		}
-
-		public void AddTexture(string name, Texture2D texture)
-		{
-			_unityTextures[name.ToLower()] = texture;
-		}
-
-		public Texture2D GetTexture(string name)
-		{
-			var lowerName = name.ToLower();
-			if (_unityTextures.ContainsKey(lowerName)) {
-				return _unityTextures[lowerName];
-			}
-			return null;
-		}
-
-		private void ImportTextures()
-		{
-			foreach (var kvp in _table.Textures) {
-				AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
-			}
 		}
 
 		private void ImportGameItems()
@@ -195,7 +173,7 @@ namespace VisualPinball.Unity.Import
 
 			// apply material
 			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = ro.Material.ToUnityMaterial(this);
+			mr.sharedMaterial = ro.Material.ToUnityMaterial(_tb);
 			mr.enabled = ro.IsVisible;
 
 			// patch
@@ -205,29 +183,26 @@ namespace VisualPinball.Unity.Import
 		private void MakeSerializable(GameObject go, Table table)
 		{
 			// add table component (plus other data)
-			var component = go.AddComponent<TableBehavior>();
-			component.SetData(table.Data);
+			_tb = go.AddComponent<TableBehavior>();
+			_tb.SetData(table.Data);
 			foreach (var key in table.TableInfo.Keys) {
-				component.tableInfo[key] = table.TableInfo[key];
+				_tb.tableInfo[key] = table.TableInfo[key];
 			}
-			component.textures = table.Textures.Values.Select(d => d.Data).ToArray();
-			component.customInfoTags = table.CustomInfoTags;
-			component.collections = table.Collections.Values.Select(c => c.Data).ToArray();
-			component.decals = table.Decals.Select(d => d.Data).ToArray();
-			component.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
-			component.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
-			component.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
-			component.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
-			component.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
-			component.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
-			component.timers = table.Timers.Values.Select(d => d.Data).ToArray();
-			foreach (var kvp in _unityTextures) {
-				component.AddTexture(kvp.Key, kvp.Value);
-			}
+			_tb.textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			_tb.customInfoTags = table.CustomInfoTags;
+			_tb.collections = table.Collections.Values.Select(c => c.Data).ToArray();
+			_tb.decals = table.Decals.Select(d => d.Data).ToArray();
+			_tb.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
+			_tb.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
+			_tb.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
+			_tb.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
+			_tb.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
+			_tb.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
+			_tb.timers = table.Timers.Values.Select(d => d.Data).ToArray();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),
-				string.Join(", ", component.collections.Select(c => c.Name))
+				string.Join(", ", _tb.collections.Select(c => c.Name))
 			);
 		}
 	}
