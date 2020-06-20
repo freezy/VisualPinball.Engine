@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					for (int i = 0; i < _table.data.Materials.Length; i++) {
 						_allMaterials[i + 1] = _table.data.Materials[i].Name;
 					}
+					Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 				}
 				if (_table.sidecar.textures != null) {
 					_allTextures = new string[_table.sidecar.textures.Length + 1];
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					for (int i = 0; i < _table.sidecar.textures.Length; i++) {
 						_allTextures[i + 1] = _table.sidecar.textures[i].Name;
 					}
+					Array.Sort(_allTextures, 1, _allTextures.Length - 1);
 				}
 			}
 		}
