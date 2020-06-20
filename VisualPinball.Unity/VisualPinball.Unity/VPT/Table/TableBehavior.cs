@@ -184,7 +184,7 @@ namespace VisualPinball.Unity.VPT.Table
 			Logger.Info("Restoring textures...");
 			foreach (var textureData in sidecar.textures) {
 				var texture = new Texture(textureData);
-				table.Textures[texture.Name] = texture;
+				table.Textures[texture.Name.ToLower()] = texture;
 			}
 
 			Logger.Info("Table restored.");
