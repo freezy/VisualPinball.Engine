@@ -34,7 +34,6 @@ using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
 using VisualPinball.Unity.VPT.Bumper;
@@ -57,7 +56,7 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 namespace VisualPinball.Unity.VPT.Table
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>, ITextureStore
+	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
 
@@ -80,6 +79,7 @@ namespace VisualPinball.Unity.VPT.Table
 		protected override string[] Children => null;
 
 		private Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
+		private Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -121,6 +121,19 @@ namespace VisualPinball.Unity.VPT.Table
 				var unityTex = tableTex.ToUnityTexture();
 				_unityTextures[lowerName] = unityTex;
 				return unityTex;
+			}
+			return null;
+		}
+
+		public void AddMaterial(PbrMaterial vpxMat, UnityEngine.Material material)
+		{
+			_unityMaterials[vpxMat.Id] = material;
+		}
+
+		public UnityEngine.Material GetMaterial(PbrMaterial vpxMat)
+		{
+			if (_unityMaterials.ContainsKey(vpxMat.Id)) {
+				return _unityMaterials[vpxMat.Id];
 			}
 			return null;
 		}

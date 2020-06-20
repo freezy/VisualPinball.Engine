@@ -33,7 +33,6 @@ namespace VisualPinball.Engine.VPT
 		[BiffInt("SIZE", Pos = 4)]
 		public int Size;
 
-		//[NonSerialized]
 		[BiffByte("DATA", Pos = 5)]
 		public byte[] Data;
 
