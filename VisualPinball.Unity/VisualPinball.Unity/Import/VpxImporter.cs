@@ -185,24 +185,30 @@ namespace VisualPinball.Unity.Import
 			// add table component (plus other data)
 			_tb = go.AddComponent<TableBehavior>();
 			_tb.SetData(table.Data);
+
+			var sidecarGo = new GameObject("Table Sidecar");
+			sidecarGo.transform.parent = go.transform;
+			var sidecar = sidecarGo.AddComponent<TableSidecar>();
+			_tb.sidecar = sidecar;
+
 			foreach (var key in table.TableInfo.Keys) {
-				_tb.tableInfo[key] = table.TableInfo[key];
+				sidecar.tableInfo[key] = table.TableInfo[key];
 			}
-			_tb.textures = table.Textures.Values.Select(d => d.Data).ToArray();
-			_tb.customInfoTags = table.CustomInfoTags;
-			_tb.collections = table.Collections.Values.Select(c => c.Data).ToArray();
-			_tb.decals = table.Decals.Select(d => d.Data).ToArray();
-			_tb.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
-			_tb.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
-			_tb.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
-			_tb.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
-			_tb.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
-			_tb.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
-			_tb.timers = table.Timers.Values.Select(d => d.Data).ToArray();
+			sidecar.textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			sidecar.customInfoTags = table.CustomInfoTags;
+			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
+			sidecar.decals = table.Decals.Select(d => d.Data).ToArray();
+			sidecar.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
+			sidecar.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
+			sidecar.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
+			sidecar.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
+			sidecar.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
+			sidecar.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
+			sidecar.timers = table.Timers.Values.Select(d => d.Data).ToArray();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),
-				string.Join(", ", _tb.collections.Select(c => c.Name))
+				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
 		}
 	}
