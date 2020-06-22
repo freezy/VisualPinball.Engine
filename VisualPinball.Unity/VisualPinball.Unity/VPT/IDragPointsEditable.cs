@@ -5,10 +5,9 @@ namespace VisualPinball.Unity.VPT
 {
 	public enum DragPointExposition
 	{
-		None = 0,
-		Smooth = 1,
-		SlingShot = 2,
-		Texture = 4,
+		Smooth,
+		SlingShot,
+		Texture,
 	}
 
 	public interface IDragPointsEditable
@@ -19,7 +18,7 @@ namespace VisualPinball.Unity.VPT
 		Vector3 GetEditableOffset();
 		Vector3 GetDragPointOffset(float ratio);
 		bool PointsAreLooping();
-		DragPointExposition GetDragPointExposition();
+		DragPointExposition[] GetDragPointExposition();
 		ItemDataTransformType GetHandleType();
 	}
 }
