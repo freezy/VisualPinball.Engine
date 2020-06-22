@@ -34,8 +34,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
-
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DataFieldUtils.DropDownField("Type", ref _plunger.data.Type, _plungerTypeStrings, _plungerTypeValues, FinishEdit);
 				MaterialField("Material", ref _plunger.data.Material);

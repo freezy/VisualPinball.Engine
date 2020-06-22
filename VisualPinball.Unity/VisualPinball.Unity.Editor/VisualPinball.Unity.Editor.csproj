@@ -37,11 +37,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Editors\DragPointsEditor.cs" />
+    <Compile Include="Import\AssetHandler\AssetDatabaseHandler.cs" />
+    <Compile Include="Import\AssetHandler\AssetImportHandler.cs" />
+    <Compile Include="Import\AssetHandler\AssetUtility.cs" />
     <Compile Include="Import\VpxAssetImporter.cs" />
     <Compile Include="Import\VpxAssetLazyImporter.cs" />
     <Compile Include="Import\VpxMenuImporter.cs" />
     <Compile Include="Inspectors\BumperInspector.cs" />
+    <Compile Include="Inspectors\DragPointsItemInspector.cs" />
     <Compile Include="Inspectors\FlipperInspector.cs" />
     <Compile Include="Inspectors\GateInspector.cs" />
     <Compile Include="Inspectors\HitTargetInspector.cs" />

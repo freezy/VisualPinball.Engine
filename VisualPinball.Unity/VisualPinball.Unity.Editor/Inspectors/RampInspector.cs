@@ -5,7 +5,7 @@ using VisualPinball.Unity.VPT.Ramp;
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(RampBehavior))]
-	public class RampInspector : ItemInspector
+	public class RampInspector : DragPointsItemInspector
 	{
 		private RampBehavior _ramp;
 		private bool _foldoutColorsAndFormatting = true;
@@ -21,8 +21,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
-
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {

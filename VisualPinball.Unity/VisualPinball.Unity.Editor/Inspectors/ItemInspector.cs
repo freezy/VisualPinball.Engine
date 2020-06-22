@@ -2,7 +2,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Editors;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
@@ -15,18 +14,15 @@ namespace VisualPinball.Unity.Editor.Inspectors
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
-		public DragPointsEditor DragPointsEditor { get { return _dragPointsEditor; } }
-
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
-		protected DragPointsEditor _dragPointsEditor = null;
+
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
 
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
-			_dragPointsEditor = new DragPointsEditor(this);
 
 			if (_table != null) {
 				if (_table.data.Materials != null) {
@@ -81,11 +77,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (item.MeshDirty) {
 				item.RebuildMeshes();
 			}
-		}
-
-		public virtual void OnSceneGUI()
-		{
-			_dragPointsEditor.OnSceneGUI(target);
 		}
 
 		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
