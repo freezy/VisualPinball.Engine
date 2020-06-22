@@ -6,7 +6,7 @@ using VisualPinball.Unity.VPT.Surface;
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(SurfaceBehavior))]
-	public class SurfaceInspector : ItemInspector
+	public class SurfaceInspector : DragPointsItemInspector
 	{
 		private SurfaceBehavior _targetSurf;
 		private bool _foldoutColorsAndFormatting = true;
@@ -22,8 +22,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
-
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {

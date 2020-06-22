@@ -5,7 +5,7 @@ using VisualPinball.Unity.VPT.Rubber;
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(RubberBehavior))]
-	public class RubberInspector : ItemInspector
+	public class RubberInspector : DragPointsItemInspector
 	{
 		private RubberBehavior _rubber;
 		private bool _foldoutPosition = true;
@@ -20,8 +20,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
-
 			base.OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {

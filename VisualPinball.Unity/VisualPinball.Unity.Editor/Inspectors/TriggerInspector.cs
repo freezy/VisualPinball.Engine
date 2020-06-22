@@ -5,7 +5,7 @@ using VisualPinball.Unity.VPT.Trigger;
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	[CustomEditor(typeof(TriggerBehavior))]
-	public class TriggerInspector : ItemInspector
+	public class TriggerInspector : DragPointsItemInspector
 	{
 		private TriggerBehavior _trigger;
 		private bool _foldoutColorsAndFormatting = true;
@@ -21,8 +21,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			_dragPointsEditor.OnInspectorGUI(target);
-
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
