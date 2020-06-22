@@ -175,17 +175,17 @@ namespace VisualPinball.Unity.Editor.Utils
 
 		public static UnityEngine.Object ItemObjectField(string label, UnityEngine.Object field, bool allowSceneObject, OnEditionChangeDelegate onChange, params (string, object)[] pList)
 		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.ObjectField(label, field, field.GetType(), allowSceneObject);
-			if (EditorGUI.EndChangeCheck())
-			{
-				string message = "";
-				List<UnityEngine.Object> recordObjs = new List<UnityEngine.Object>();
-				if (onChange(label, out message, recordObjs, pList))
-				{
-					Undo.RecordObjects(recordObjs.ToArray(), $"{message}");
+			if (field != null) {
+				EditorGUI.BeginChangeCheck();
+				var val = EditorGUILayout.ObjectField(label, field, field.GetType(), allowSceneObject);
+				if (EditorGUI.EndChangeCheck()) {
+					string message = "";
+					List<UnityEngine.Object> recordObjs = new List<UnityEngine.Object>();
+					if (onChange(label, out message, recordObjs, pList)) {
+						Undo.RecordObjects(recordObjs.ToArray(), $"{message}");
+					}
+					return val;
 				}
-				return val;
 			}
 			return null;
 		}
