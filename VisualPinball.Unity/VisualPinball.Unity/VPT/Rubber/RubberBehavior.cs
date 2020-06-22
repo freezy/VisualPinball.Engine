@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HitHeight);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping() => true;
-		public DragPointExposition GetDragPointExposition() => DragPointExposition.Smooth;
+		public DragPointExposition[] GetDragPointExposition() => new DragPointExposition[] { DragPointExposition.Smooth };
 		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
 	}
 }

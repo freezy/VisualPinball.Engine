@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.VPT.Surface
 		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HeightBottom);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping() => true;
-		public DragPointExposition GetDragPointExposition() => DragPointExposition.Smooth | DragPointExposition.SlingShot | DragPointExposition.Texture;
+		public DragPointExposition[] GetDragPointExposition() => new DragPointExposition[] { DragPointExposition.Smooth , DragPointExposition.SlingShot , DragPointExposition.Texture };
 		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
 	}
 }

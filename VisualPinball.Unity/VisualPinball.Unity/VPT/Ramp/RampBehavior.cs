@@ -15,7 +15,7 @@ namespace VisualPinball.Unity.VPT.Ramp
 	[AddComponentMenu("Visual Pinball/Ramp")]
 	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable
 	{
-		protected override string[] Children => new []{ "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
+		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
 		protected override Engine.VPT.Ramp.Ramp GetItem()
 		{
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.VPT.Ramp
 		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HeightBottom);
 		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio);
 		public bool PointsAreLooping() => false;
-		public DragPointExposition GetDragPointExposition() => DragPointExposition.Smooth | DragPointExposition.SlingShot;
+		public DragPointExposition[] GetDragPointExposition() => new DragPointExposition[] { DragPointExposition.Smooth, DragPointExposition.SlingShot };
 		public ItemDataTransformType GetHandleType() => ItemDataTransformType.ThreeD;
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -16,18 +16,17 @@ namespace VisualPinball.Unity.Editor.Editors
 
 		public class ControlPoint
 		{
-			static public float ScreenRadius = 0.25f;
+			public static float ScreenRadius = 0.25f;
 			public DragPointData DragPoint;
 			public Vector3 WorldPos = Vector3.zero;
 			public Vector3 ScrPos = Vector3.zero;
 			public bool IsSelected = false;
-			public bool IsFoldOut = false;
-			public int ControlId = 0;
-			public int Index = -1;
-			public float IndexRatio = 0.0f;
+			public readonly int ControlId = 0;
+			public readonly int Index = -1;
+			public readonly float IndexRatio = 0.0f;
 			public List<Vector3> pathPoints = new List<Vector3>();
 
-			public ControlPoint(ref DragPointData dp, int controlID, int idx, float idxratio)
+			public ControlPoint(DragPointData dp, int controlID, int idx, float idxratio)
 			{
 				DragPoint = dp;
 				ControlId = controlID;
@@ -49,7 +48,7 @@ namespace VisualPinball.Unity.Editor.Editors
 		private Vector3 _positionHandlePosition = Vector3.zero;
 
 		//Curve Traveller 
-		static public float CurveTravellerSizeRatio = 0.75f;
+		public static float CurveTravellerSizeRatio = 0.75f;
 		private int _curveTravellerControlId = 0;
 		private Vector3 _curveTravellerPosition = Vector3.zero;
 		private bool _curveTravellerVisible = false;
@@ -177,7 +176,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			//Curve Traveller
 			[MenuItem(CURVETRAVELLER_MENUPATH + "/Add Point")]
-			static void AddDP(MenuCommand command)
+			private static void AddDP(MenuCommand command)
 			{
 				ItemInspector editor = command.context as ItemInspector;
 				if (editor == null || editor.DragPointsEditor == null)
@@ -206,7 +205,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			{
 				return false;
 			}
-			return (dpeditable.GetDragPointExposition() & dpExpo) != DragPointExposition.None;
+			return dpeditable.GetDragPointExposition().Contains(dpExpo);
 		}
 
 		public DragPointData GetDragPoint(int controlId)
@@ -287,7 +286,7 @@ namespace VisualPinball.Unity.Editor.Editors
 
 			for (int i = 0; i < dpEditable.GetDragPoints().Length; ++i)
 			{
-				_controlPoints.Add(new ControlPoint(ref dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive), i, (float)i / dpEditable.GetDragPoints().Length));
+				_controlPoints.Add(new ControlPoint(dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive), i, (float)i / dpEditable.GetDragPoints().Length));
 			}
 
 			_positionHandleControlId = GUIUtility.GetControlID(FocusType.Passive);
@@ -383,7 +382,7 @@ namespace VisualPinball.Unity.Editor.Editors
 			int newIdx = _curveTravellerControlPointIdx + 1;
 			dpoints.Insert(newIdx, dpoint);
 			dpeditable.SetDragPoints(dpoints.ToArray());
-			_controlPoints.Insert(newIdx, new ControlPoint(ref dpeditable.GetDragPoints()[newIdx], GUIUtility.GetControlID(FocusType.Passive), newIdx, (float)(newIdx) / dpeditable.GetDragPoints().Length));
+			_controlPoints.Insert(newIdx, new ControlPoint(dpeditable.GetDragPoints()[newIdx], GUIUtility.GetControlID(FocusType.Passive), newIdx, (float)(newIdx) / dpeditable.GetDragPoints().Length));
 			RemapControlPoints(dpeditable);
 		}
 
@@ -440,11 +439,17 @@ namespace VisualPinball.Unity.Editor.Editors
 
 		private void OnDragPointPositionChange(Vector3 newPos, params (string,object)[] plist)
 		{
-			Matrix4x4 wlMat = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "wlMat") > 0 ? (Matrix4x4)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "wlMat").Item2 : Matrix4x4.identity;
-			Vector3 offset = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "offset") > 0 ? (Vector3)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "offset").Item2 : Vector3.zero;
-			IDragPointsEditable dpeditable = Enumerable.Count<(string, object)>(plist, pair => pair.Item1 == "dpeditable") > 0 ? (IDragPointsEditable)Enumerable.First<(string, object)>(plist, pair => pair.Item1 == "dpeditable").Item2 : null;
+			IDragPointsEditable dpeditable = _target as IDragPointsEditable;
+			Behaviour bh = _target as Behaviour;
 
-			PrepareUndo($"Change DragPoint Position for {_selectedCP.Count} Control points.");
+			if (bh == null || dpeditable == null) {
+				return;
+			}
+
+			Vector3 offset = dpeditable.GetEditableOffset();
+			Matrix4x4 wlMat = bh.transform.worldToLocalMatrix;
+
+			PrepareUndo($"[{_target?.name}] Change DragPoint Position for {_selectedCP.Count} Control points.");
 
 			Vector3 deltaPosition = newPos - _positionHandlePosition;
 			foreach (var cpoint in _selectedCP)
@@ -558,7 +563,7 @@ namespace VisualPinball.Unity.Editor.Editors
 				{
 					parentRot = bh.transform.parent.transform.rotation;
 				}
-				Utils.HandlesUtils.HandlePosition(_positionHandlePosition, dpeditable.GetHandleType(), parentRot, OnDragPointPositionChange, ("wlMat",wlMat), ("offset",offset), ("dpeditable",dpeditable));
+				Utils.HandlesUtils.HandlePosition(_positionHandlePosition, dpeditable.GetHandleType(), parentRot, OnDragPointPositionChange);
 			}
 
 			//Display Curve & handle curvetraveller
