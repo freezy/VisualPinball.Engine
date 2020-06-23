@@ -11,6 +11,17 @@ namespace VisualPinball.Unity.Editor.Inspectors
 {
 	public abstract class DragPointsItemInspector : ItemInspector
 	{
+		public enum FlipAxes
+		{
+			X,
+			Y,
+			Z,
+		}
+
+		// A ControlPoint will map on each DragPointData exposed from the IDragPointEditable
+		// The Ispector will manage adding/removing control point & will synch DragPointdata array on the IDragPointEditable side.
+		// ControlPoint will also handle the ControlId used by Unity's Handles system.
+		// Controlpoint will keep the curve segment points starting from it
 		public class ControlPoint
 		{
 			public static float ScreenRadius = 0.25f;
@@ -34,6 +45,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		//Control points storing & rendering
 		private List<ControlPoint> _controlPoints = new List<ControlPoint>();
+
+		//DragPoints flipping
+		private Vector3 _flipAxes = Vector3.zero;
+
+		//Curve points
 		private List<Vector3> _allPathPoints = new List<Vector3>();
 
 		//Control points position Handle
@@ -163,7 +179,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 
 			//Curve Traveller
-			[MenuItem(CURVETRAVELLER_MENUPATH + "/Add Point")]
+			[MenuItem(CURVETRAVELLER_MENUPATH + "/Add Point", false, 1)]
 			private static void AddDP(MenuCommand command)
 			{
 				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
@@ -172,6 +188,42 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				}
 
 				inspector.AddDragPointOnTraveller();
+			}
+
+			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/X", false, 101)]
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/X", false, 201)]
+			private static void FlipXDP(MenuCommand command)
+			{
+				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
+				if (inspector == null) {
+					return;
+				}
+
+				inspector.FlipDragPoints(DragPointsItemInspector.FlipAxes.X);
+			}
+
+			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Y", false, 102)]
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/Y", false, 202)]
+			private static void FlipYDP(MenuCommand command)
+			{
+				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
+				if (inspector == null) {
+					return;
+				}
+
+				inspector.FlipDragPoints(DragPointsItemInspector.FlipAxes.Y);
+			}
+
+			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Z", false, 103)]
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/Z", false, 203)]
+			private static void FlipZDP(MenuCommand command)
+			{
+				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
+				if (inspector == null) {
+					return;
+				}
+
+				inspector.FlipDragPoints(DragPointsItemInspector.FlipAxes.Z);
 			}
 		}
 
@@ -195,7 +247,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public DragPointData GetDragPoint(int controlId)
 		{
-			var cpoint = _controlPoints.Find(cp => cp.ControlId == controlId);
+			var cpoint = GetControlPoint(controlId);
 			if (cpoint != null) {
 				return cpoint.DragPoint;
 			}
@@ -205,6 +257,26 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		public ControlPoint GetControlPoint(int controlId)
 		{
 			return _controlPoints.Find(cp => cp.ControlId == controlId);
+		}
+
+		public void FlipDragPoints(FlipAxes flipAxe)
+		{
+			PrepareUndo($"Flipping Drag Points on axe {flipAxe}");
+
+			float axe = (flipAxe == FlipAxes.X) ? _flipAxes.x : (flipAxe == FlipAxes.Y) ? _flipAxes.y : _flipAxes.z;
+
+			foreach (var cpoint in _controlPoints) {
+
+				float coord = (flipAxe == FlipAxes.X) ? cpoint.DragPoint.Vertex.X : (flipAxe == FlipAxes.Y) ? cpoint.DragPoint.Vertex.Y : cpoint.DragPoint.Vertex.Z;
+				coord = axe + (axe - coord);
+				if (flipAxe == FlipAxes.X) {
+					cpoint.DragPoint.Vertex.X = coord;
+				} else if (flipAxe == FlipAxes.Y) {
+					cpoint.DragPoint.Vertex.Y = coord;
+				} else {
+					cpoint.DragPoint.Vertex.Z = coord;
+				}
+			}
 		}
 
 		public override void OnInspectorGUI()
@@ -262,12 +334,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			_controlPoints.Clear();
 
 			for (int i = 0; i < dpEditable.GetDragPoints().Length; ++i) {
-				_controlPoints.Add(new ControlPoint(dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive), i, (float)i / dpEditable.GetDragPoints().Length));
+				ControlPoint cp = new ControlPoint(dpEditable.GetDragPoints()[i], GUIUtility.GetControlID(FocusType.Passive), i, (float)i / dpEditable.GetDragPoints().Length);
+				_controlPoints.Add(cp);
 			}
 
 			_positionHandleControlId = GUIUtility.GetControlID(FocusType.Passive);
 			_curveTravellerControlId = GUIUtility.GetControlID(FocusType.Passive);
-
 		}
 
 		public void RemapControlPoints(IDragPointsEditable dpEditable)
@@ -316,7 +388,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				recordObjs.Add(this);
 			}
 			recordObjs.Add(target);
-			Undo.RecordObjects(recordObjs.ToArray(), message);
+			Undo.RecordObjects(recordObjs.ToArray(), $"Item {target} : {message}");
 		}
 
 		public void AddDragPointOnTraveller()
@@ -446,9 +518,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			switch (Event.current.type) {
 				case EventType.Layout: {
 					_selectedCP.Clear();
+					_flipAxes = Vector3.zero;
+
 					//Setup Screen positions & controlID for controlpoints (in case of modification of dragpoints ccordinates outside)
 					foreach (var cpoint in _controlPoints) {
 						cpoint.WorldPos = cpoint.DragPoint.Vertex.ToUnityVector3();
+						_flipAxes += cpoint.WorldPos;
 						cpoint.WorldPos += offset;
 						cpoint.WorldPos += dpeditable.GetDragPointOffset(cpoint.IndexRatio);
 						cpoint.WorldPos = lwMat.MultiplyPoint(cpoint.WorldPos);
@@ -459,6 +534,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 							}
 						}
 						HandleUtility.AddControl(cpoint.ControlId, HandleUtility.DistanceToCircle(cpoint.ScrPos, HandleUtility.GetHandleSize(cpoint.WorldPos) * ControlPoint.ScreenRadius));
+					}
+
+					if (_controlPoints.Count > 0) {
+						_flipAxes /= _controlPoints.Count;
 					}
 
 					//Setup PositionHandle if some control points are selected
