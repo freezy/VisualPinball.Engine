@@ -1,8 +1,0 @@
-{
-	"extends": [
-		"config:base",
-		":semanticCommits",
-		":semanticCommitTypeAll(chore)",
-		"schedule:earlyMondays"
-	]
-}
