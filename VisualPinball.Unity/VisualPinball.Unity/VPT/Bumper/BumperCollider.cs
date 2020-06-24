@@ -8,9 +8,9 @@ namespace VisualPinball.Unity.VPT.Bumper
 	public static class BumperCollider
 	{
 		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
-			ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
-			in Collider collider, in BumperStaticData data, ref Random random)
-		{
+         			ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
+         			in Collider collider, in BumperStaticData data, ref Random random)
+         		{
 			// todo
 			// if (!m_enabled) return;
 

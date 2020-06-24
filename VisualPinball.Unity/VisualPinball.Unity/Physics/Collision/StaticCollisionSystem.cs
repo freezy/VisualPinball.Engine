@@ -13,6 +13,7 @@ using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
+using VisualPinball.Unity.VPT.Trigger;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -42,7 +43,8 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			Entities
 				.WithName("StaticCollisionJob")
-				.ForEach((ref BallData ballData, ref CollisionEventData collEvent) => {
+				.ForEach((ref BallData ballData, ref CollisionEventData collEvent,
+					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs) => {
 
 				// find balls with hit objects and minimum time
 				if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
@@ -53,7 +55,6 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
-
 
 				// pick collider that matched during narrowphase
 				ref var coll = ref colliders[collEvent.ColliderId].Value; // object that ball hit in trials
@@ -121,6 +122,15 @@ namespace VisualPinball.Unity.Physics.Collision
 									in spinnerStaticData
 								);
 								SetComponent(coll.Entity, spinnerMovementData);
+								break;
+
+							case ColliderType.TriggerCircle:
+							case ColliderType.TriggerLine:
+								var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
+								TriggerCollider.Collide(
+									ref ballData, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
+								);
+								SetComponent(coll.Entity, triggerAnimationData);
 								break;
 
 							case ColliderType.Line:

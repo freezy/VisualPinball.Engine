@@ -8,6 +8,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
@@ -43,6 +44,12 @@ namespace VisualPinball.Unity.Physics.Collider
 		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
 		{
 			switch (src) {
+				case TriggerHitCircle triggerHitCircle:
+					CircleCollider.Create(builder, triggerHitCircle, ref dest);
+					break;
+				case TriggerHitLineSeg triggerHitLine:
+					LineCollider.Create(builder, triggerHitLine, ref dest);
+					break;
 				case BumperHit bumperHit:
 					CircleCollider.Create(builder, bumperHit, ref dest, ColliderType.Bumper);
 					break;
@@ -117,6 +124,10 @@ namespace VisualPinball.Unity.Physics.Collider
 						return ((SpinnerCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
 						return ((TriangleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.TriggerCircle:
+						return ((CircleCollider*)collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+					case ColliderType.TriggerLine:
+						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 
 					case ColliderType.Plunger:
 					case ColliderType.Flipper:
