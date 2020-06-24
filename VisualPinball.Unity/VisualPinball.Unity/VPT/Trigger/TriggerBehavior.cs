@@ -10,6 +10,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
@@ -21,6 +22,16 @@ namespace VisualPinball.Unity.VPT.Trigger
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
+			dstManager.AddComponentData(entity, new TriggerAnimationData());
+			dstManager.AddComponentData(entity, new TriggerMovementData());
+			dstManager.AddComponentData(entity, new TriggerStaticData {
+				AnimSpeed = data.AnimSpeed,
+				Radius = data.Radius,
+				Shape = data.Shape,
+				TableScaleZ = table.GetScaleZ()
+			});
 		}
 
 		protected override Engine.VPT.Trigger.Trigger GetItem()
