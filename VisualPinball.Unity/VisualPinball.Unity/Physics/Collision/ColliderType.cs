@@ -16,6 +16,8 @@
 		Point,
 		Poly3D,
 		Spinner,
-		Triangle
+		Triangle,
+		TriggerCircle,
+		TriggerLine
 	}
 }

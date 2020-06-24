@@ -76,18 +76,13 @@ namespace VisualPinball.Unity.VPT.Ball
 			       + math.cross(ball.AngularVelocity, math.cross(ball.AngularVelocity, surfP)); // centripetal acceleration
 		}
 
-		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
-			int i;
-			var inside = false;
-			for (i = 0; i < insideOfs.Length; i++) {
+			for (var i = 0; i < insideOfs.Length; i++) {
 				if (insideOfs[i].Value == entity) {
-					inside = true;
-					break;
+					insideOfs.RemoveAt(i);
+					return;
 				}
-			}
-			if (inside) {
-				insideOfs.RemoveAt(i);
 			}
 		}
 
@@ -98,10 +93,10 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		public static bool IsOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
 		{
-			return !IsInsideOf(ref insideOfs, ref entity);
+			return !IsInsideOf(in insideOfs, in entity);
 		}
 
-		public static bool IsInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
 			for (var i = 0; i < insideOfs.Length; i++) {
 				if (insideOfs[i].Value == entity) {

@@ -30,23 +30,23 @@ namespace VisualPinball.Unity.Physics.Collider
 		public float V1y { set => _v1.y = value; }
 		public float V2y { set => _v2.y = value; }
 
-		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest)
+		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Line)
 		{
 			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
-			collider.Init(src);
+			collider.Init(src, type);
 		}
 
-		public static LineCollider Create(LineSeg src)
+		public static LineCollider Create(LineSeg src, ColliderType type = ColliderType.Line)
 		{
 			var collider = default(LineCollider);
-			collider.Init(src);
+			collider.Init(src, type);
 			return collider;
 		}
 
-		private void Init(LineSeg src)
+		private void Init(LineSeg src, ColliderType type)
 		{
-			_header.Init(ColliderType.Line, src);
+			_header.Init(type, src);
 
 			_v1 = src.V1.ToUnityFloat2();
 			_v2 = src.V2.ToUnityFloat2();
@@ -65,6 +65,12 @@ namespace VisualPinball.Unity.Physics.Collider
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
+		}
+
+		public float HitTestBasic(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime,
+			bool direction, bool lateral, bool rigid)
+		{
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, direction, lateral, rigid);
 		}
 
 		public static float HitTestBasic(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
@@ -133,7 +139,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					    /*todo   || !ball.m_vpVolObjs*/
 					    // is a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
-					    || inside == BallInsideOf(insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
+					    || inside == BallData.IsInsideOf(in insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
 					{
 						return -1.0f;
 					}
@@ -198,16 +204,6 @@ namespace VisualPinball.Unity.Physics.Collider
 			// 	FireHitEvent(coll.Ball);
 			// }
 
-		}
-
-		private static bool BallInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity ball)
-		{
-			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == ball) {
-					return true;
-				}
-			}
-			return false;
 		}
 
 		public void CalcNormal()
