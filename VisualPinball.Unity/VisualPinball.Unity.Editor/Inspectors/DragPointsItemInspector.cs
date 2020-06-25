@@ -261,6 +261,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public void FlipDragPoints(FlipAxes flipAxe)
 		{
+			IDragPointsEditable dpeditable = target as IDragPointsEditable;
+			if (dpeditable == null || (dpeditable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxe == FlipAxes.Z)) {
+				return;
+			}
+
 			PrepareUndo($"Flipping Drag Points on axe {flipAxe}");
 
 			float axe = (flipAxe == FlipAxes.X) ? _flipAxes.x : (flipAxe == FlipAxes.Y) ? _flipAxes.y : _flipAxes.z;
@@ -370,7 +375,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					recordObjs.Add(this);
 				}
 			}
-			recordObjs.Add(target);
+			recordObjs.Add(target as Behaviour);
 			return true;
 		}
 
@@ -387,7 +392,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				editable.MeshDirty = true;
 				recordObjs.Add(this);
 			}
-			recordObjs.Add(target);
+			recordObjs.Add(target as Behaviour);
 			Undo.RecordObjects(recordObjs.ToArray(), $"Item {target} : {message}");
 		}
 
