@@ -287,9 +287,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		private void FinishMove(Vector3 newPosition, (string, object)[] pList)
+		private void FinishMove(Vector3 newPosition, object[] pList)
 		{
-			bool isLocalPos = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "isLocalPos") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "isLocalPos").Item2 : false;
+			bool isLocalPos = pList.Length >= 1 ? (bool)pList[0] : false;
 			_primaryItem.MeshDirty = true;
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);

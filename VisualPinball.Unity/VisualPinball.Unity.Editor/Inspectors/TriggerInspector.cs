@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				DataFieldUtils.ItemDataField("Wire Thickness", ref _trigger.data.WireThickness, FinishEdit);
 				DataFieldUtils.ItemDataField("Star Radius", ref _trigger.data.Radius, FinishEdit);
 				DataFieldUtils.ItemDataField("Rotation", ref _trigger.data.Rotation, FinishEdit);
-				DataFieldUtils.ItemDataField("Animation Speed", ref _trigger.data.AnimSpeed, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Animation Speed", ref _trigger.data.AnimSpeed, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -39,14 +39,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				DataFieldUtils.ItemDataField("Enabled", ref _trigger.data.IsEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Hit Height", ref _trigger.data.HitHeight, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Enabled", ref _trigger.data.IsEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Hit Height", ref _trigger.data.HitHeight, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _trigger.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _trigger.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _trigger.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _trigger.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

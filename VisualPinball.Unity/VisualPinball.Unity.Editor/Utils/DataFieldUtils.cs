@@ -9,9 +9,9 @@ namespace VisualPinball.Unity.Editor.Utils
 {
 	internal class DataFieldUtils
 	{
-		public delegate bool OnEditionChangeDelegate(string label, out string message, List<UnityEngine.Object> recordObjs, params (string, object)[] pList);
+		public delegate bool OnEditionChangeDelegate(string label, out string message, List<UnityEngine.Object> recordObjs, params object[] pList);
 
-		public static bool ItemDataField(string label, ref float field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref float field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			float val = EditorGUILayout.FloatField(label, field);
@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataSlider(string label, ref float field, float leftVal, float rightVal, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataSlider(string label, ref float field, float leftVal, float rightVal, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			float val = EditorGUILayout.Slider(label, field, leftVal, rightVal);
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref int field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref int field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			int val = EditorGUILayout.IntField(label, field);
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataSlider(string label, ref int field, int leftVal, int rightVal, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataSlider(string label, ref int field, int leftVal, int rightVal, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			int val = EditorGUILayout.IntSlider(label, field, leftVal, rightVal);
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref string field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref string field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			string val = EditorGUILayout.TextField(label, field);
@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref bool field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref bool field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			bool val = EditorGUILayout.Toggle(label, field);
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref Vertex2D field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref Vertex2D field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			Vertex2D val = EditorGUILayout.Vector2Field(label, field.ToUnityVector2()).ToVertex2D();
@@ -137,7 +137,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref Vertex3D field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref Vertex3D field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			Vertex3D val = EditorGUILayout.Vector3Field(label, field.ToUnityVector3()).ToVertex3D();
@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static bool ItemDataField(string label, ref Engine.Math.Color field, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static bool ItemDataField(string label, ref Engine.Math.Color field, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			EditorGUI.BeginChangeCheck();
 			Engine.Math.Color val = EditorGUILayout.ColorField(label, field.ToUnityColor()).ToEngineColor();
@@ -173,7 +173,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return false;
 		}
 
-		public static UnityEngine.Object ItemObjectField(string label, UnityEngine.Object field, bool allowSceneObject, OnEditionChangeDelegate onChange, params (string, object)[] pList)
+		public static UnityEngine.Object ItemObjectField(string label, UnityEngine.Object field, bool allowSceneObject, OnEditionChangeDelegate onChange, params object[] pList)
 		{
 			if (field != null) {
 				EditorGUI.BeginChangeCheck();
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			return null;
 		}
 
-		public static bool DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, OnEditionChangeDelegate onChange, params (string, object)[] pList) where T : IEquatable<T>
+		public static bool DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, OnEditionChangeDelegate onChange, params object[] pList) where T : IEquatable<T>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length)
 			{

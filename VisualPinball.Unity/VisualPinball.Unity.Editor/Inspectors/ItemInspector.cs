@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			{
 				string message = "";
 				List<UnityEngine.Object> recordObjs = new List<UnityEngine.Object>();
-				if (FinishEdit("IsLocked", out message, recordObjs, ("redrawScene",true)))
+				if (FinishEdit("IsLocked", out message, recordObjs, true, true))
 				{
 					Undo.RecordObjects(recordObjs.ToArray(), $"{message}");
 				}
@@ -107,10 +107,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected bool FinishEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params (string, object)[] pList)
+		protected bool FinishEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params object[] pList)
 		{
-			bool dirtyMesh = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh").Item2 : true;
-			bool redrawScene = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "redrawScene") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "redrawScene").Item2 : false;
+			bool dirtyMesh = pList.Length >= 1 ? (bool)pList[0] : true;
+			bool redrawScene = pList.Length >= 2 ? (bool)pList[1] : false;
 
 			message = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh)

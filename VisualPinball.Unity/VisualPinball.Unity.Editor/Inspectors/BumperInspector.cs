@@ -31,8 +31,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				DataFieldUtils.ItemDataField("Radius", ref _bumper.data.Radius, FinishEdit);
 				DataFieldUtils.ItemDataField("Height Scale", ref _bumper.data.HeightScale, FinishEdit);
 				DataFieldUtils.ItemDataField("Orientation", ref _bumper.data.Orientation, FinishEdit);
-				DataFieldUtils.ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, FinishEdit, ("dirtyMesh",false));
-				DataFieldUtils.ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, FinishEdit, false);
 				DataFieldUtils.ItemDataField("Reflection Enabled", ref _bumper.data.IsReflectionEnabled, FinishEdit);
 				DataFieldUtils.ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible, FinishEdit);
 				DataFieldUtils.ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible, FinishEdit);
@@ -48,17 +48,17 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _bumper.data.HitEvent, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Force", ref _bumper.data.Force, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Hit Threshold", ref _bumper.data.Threshold, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _bumper.data.Scatter, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Collidable", ref _bumper.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _bumper.data.HitEvent, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Force", ref _bumper.data.Force, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Hit Threshold", ref _bumper.data.Threshold, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _bumper.data.Scatter, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Collidable", ref _bumper.data.IsCollidable, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _bumper.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _bumper.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _bumper.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _bumper.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

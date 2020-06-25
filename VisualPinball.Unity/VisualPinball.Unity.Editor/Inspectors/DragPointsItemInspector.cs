@@ -353,14 +353,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected bool FinishDragPointEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params (string, object)[] pList)
+		protected bool FinishDragPointEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params object[] pList)
 		{
 			if (target == null) {
 				message = "";
 				return false;
 			}
 
-			bool dirtyMesh = Enumerable.Count<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh") > 0 ? (bool)Enumerable.First<(string, object)>(pList, pair => pair.Item1 == "dirtyMesh").Item2 : true;
+			bool dirtyMesh = pList.Length >= 1 ? (bool)pList[0] : true;
 			message = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
@@ -474,7 +474,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		private void OnDragPointPositionChange(Vector3 newPos, params (string, object)[] plist)
+		private void OnDragPointPositionChange(Vector3 newPos, params object[] plist)
 		{
 			IDragPointsEditable dpeditable = target as IDragPointsEditable;
 			Behaviour bh = target as Behaviour;
