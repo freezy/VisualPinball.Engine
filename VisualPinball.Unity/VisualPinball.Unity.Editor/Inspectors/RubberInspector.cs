@@ -8,6 +8,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	public class RubberInspector : DragPointsItemInspector
 	{
 		private RubberBehavior _rubber;
+		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
@@ -21,6 +22,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		public override void OnInspectorGUI()
 		{
 			base.OnPreInspectorGUI();
+
+			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				DataFieldUtils.ItemDataField("Visible", ref _rubber.data.IsVisible, FinishEdit);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				DataFieldUtils.ItemDataField("Height", ref _rubber.data.Height, FinishEdit);
