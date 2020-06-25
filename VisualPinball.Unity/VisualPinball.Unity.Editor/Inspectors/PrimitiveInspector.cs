@@ -50,32 +50,32 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(_prim.data.IsToy || !_prim.data.IsCollidable);
 
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _prim.data.HitEvent, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _prim.data.HitEvent, FinishEdit, false);
 				EditorGUI.BeginDisabledGroup(!_prim.data.HitEvent);
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _prim.data.Threshold, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _prim.data.Threshold, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(_prim.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Physics Material", ref _prim.data.PhysicsMaterial, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Physics Material", ref _prim.data.PhysicsMaterial, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
-				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _prim.data.OverwritePhysics, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _prim.data.OverwritePhysics, FinishEdit, false);
 				EditorGUI.BeginDisabledGroup(!_prim.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Elasticity", ref _prim.data.Elasticity, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _prim.data.ElasticityFalloff, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Friction", ref _prim.data.Friction, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _prim.data.Scatter, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Elasticity", ref _prim.data.Elasticity, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _prim.data.ElasticityFalloff, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Friction", ref _prim.data.Friction, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _prim.data.Scatter, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(_prim.data.IsToy);
-				DataFieldUtils.ItemDataField("Collidable", ref _prim.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Collidable", ref _prim.data.IsCollidable, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Toy", ref _prim.data.IsToy, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Toy", ref _prim.data.IsToy, FinishEdit, false);
 
 				EditorGUI.BeginDisabledGroup(_prim.data.IsToy);
-				DataFieldUtils.ItemDataField("Reduce Polygons By", ref _prim.data.CollisionReductionFactor, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Reduce Polygons By", ref _prim.data.CollisionReductionFactor, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

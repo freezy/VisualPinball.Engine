@@ -21,26 +21,26 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DataFieldUtils.ItemDataField("Falloff", ref _light.data.Falloff, FinishEdit, ("dirtyMesh",false));
-				DataFieldUtils.ItemDataField("Intensity", ref _light.data.Intensity, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Intensity", ref _light.data.Intensity, FinishEdit, false);
 
 				EditorGUILayout.LabelField("Fade Speed");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("Up", ref _light.data.FadeSpeedUp, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Down", ref _light.data.FadeSpeedDown, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Up", ref _light.data.FadeSpeedUp, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Down", ref _light.data.FadeSpeedDown, FinishEdit, false);
 				EditorGUI.indentLevel--;
 
-				DataFieldUtils.ItemDataField("Color", ref _light.data.Color2, FinishEdit, ("dirtyMesh", false)); // Note: using color2 since that's the hot/center color in vpx
+				DataFieldUtils.ItemDataField("Color", ref _light.data.Color2, FinishEdit, false); // Note: using color2 since that's the hot/center color in vpx
 
 				EditorGUILayout.LabelField("Bulb");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("Enable", ref _light.data.IsBulbLight, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scale Mesh", ref _light.data.MeshRadius, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Enable", ref _light.data.IsBulbLight, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scale Mesh", ref _light.data.MeshRadius, FinishEdit, false);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				DataFieldUtils.ItemDataField("", ref _light.data.Center, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("", ref _light.data.Center, FinishEdit, false);
 				SurfaceField("Surface", ref _light.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

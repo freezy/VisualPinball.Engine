@@ -36,18 +36,18 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				DataFieldUtils.ItemDataField("Enabled", ref _kicker.data.IsEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Fall Through", ref _kicker.data.FallThrough, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Legacy", ref _kicker.data.LegacyMode, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _kicker.data.Scatter, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Hit Accuracy", ref _kicker.data.HitAccuracy, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Hit Height", ref _kicker.data.HitHeight, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Enabled", ref _kicker.data.IsEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Fall Through", ref _kicker.data.FallThrough, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Legacy", ref _kicker.data.LegacyMode, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _kicker.data.Scatter, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Hit Accuracy", ref _kicker.data.HitAccuracy, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Hit Height", ref _kicker.data.HitHeight, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _kicker.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _kicker.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _kicker.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _kicker.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

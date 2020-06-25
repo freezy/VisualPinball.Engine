@@ -34,21 +34,21 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				DataFieldUtils.ItemDataField("Length", ref _spinner.data.Length, FinishEdit);
 				DataFieldUtils.ItemDataField("Height", ref _spinner.data.Height, FinishEdit);
 				DataFieldUtils.ItemDataField("Rotation", ref _spinner.data.Rotation, FinishEdit);
-				DataFieldUtils.ItemDataField("Angle Max", ref _spinner.data.AngleMax, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Angle Min", ref _spinner.data.AngleMin, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Elasticity", ref _spinner.data.Elasticity, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Angle Max", ref _spinner.data.AngleMax, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Angle Min", ref _spinner.data.AngleMin, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Elasticity", ref _spinner.data.Elasticity, FinishEdit, false);
 				SurfaceField("Surface", ref _spinner.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				DataFieldUtils.ItemDataField("Damping", ref _spinner.data.Damping, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Damping", ref _spinner.data.Damping, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _spinner.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _spinner.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _spinner.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _spinner.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

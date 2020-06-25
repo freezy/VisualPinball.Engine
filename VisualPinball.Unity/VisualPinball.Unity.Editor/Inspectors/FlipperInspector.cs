@@ -54,22 +54,22 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				DataFieldUtils.ItemDataField("Mass", ref _flipper.data.Mass, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Strength", ref _flipper.data.Strength, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Elasticity", ref _flipper.data.Elasticity, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _flipper.data.ElasticityFalloff, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Friction", ref _flipper.data.Friction, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Return Strength", ref _flipper.data.Return, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Coil Ramp Up", ref _flipper.data.RampUp, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _flipper.data.Scatter, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("EOS Torque", ref _flipper.data.TorqueDamping, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("EOS Torque Angle", ref _flipper.data.TorqueDampingAngle, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Mass", ref _flipper.data.Mass, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Strength", ref _flipper.data.Strength, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Elasticity", ref _flipper.data.Elasticity, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _flipper.data.ElasticityFalloff, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Friction", ref _flipper.data.Friction, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Return Strength", ref _flipper.data.Return, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Coil Ramp Up", ref _flipper.data.RampUp, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _flipper.data.Scatter, FinishEdit, false);
+				DataFieldUtils.ItemDataField("EOS Torque", ref _flipper.data.TorqueDamping, FinishEdit, false);
+				DataFieldUtils.ItemDataField("EOS Torque Angle", ref _flipper.data.TorqueDampingAngle, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _flipper.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _flipper.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _flipper.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _flipper.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

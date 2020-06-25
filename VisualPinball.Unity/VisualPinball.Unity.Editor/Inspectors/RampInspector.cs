@@ -54,8 +54,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _ramp.data.HitEvent, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Hit Threshold", ref _ramp.data.Threshold, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Has Hit Event", ref _ramp.data.HitEvent, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Hit Threshold", ref _ramp.data.Threshold, FinishEdit, false);
 
 				EditorGUILayout.LabelField("Physical Wall");
 				EditorGUI.indentLevel++;
@@ -64,24 +64,24 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				EditorGUI.indentLevel--;
 
 				EditorGUI.BeginDisabledGroup(_ramp.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Physics Material", ref _ramp.data.PhysicsMaterial, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Physics Material", ref _ramp.data.PhysicsMaterial, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _ramp.data.OverwritePhysics, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _ramp.data.OverwritePhysics, FinishEdit, false);
 
 				EditorGUI.BeginDisabledGroup(!_ramp.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Elasticity", ref _ramp.data.Elasticity, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Friction", ref _ramp.data.Friction, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _ramp.data.Scatter, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Elasticity", ref _ramp.data.Elasticity, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Friction", ref _ramp.data.Friction, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Scatter Angle", ref _ramp.data.Scatter, FinishEdit, false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Collidable", ref _ramp.data.IsCollidable, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Collidable", ref _ramp.data.IsCollidable, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _ramp.data.IsTimerEnabled, FinishEdit, ("dirtyMesh", false));
-				DataFieldUtils.ItemDataField("Timer Interval", ref _ramp.data.TimerInterval, FinishEdit, ("dirtyMesh", false));
+				DataFieldUtils.ItemDataField("Timer Enabled", ref _ramp.data.IsTimerEnabled, FinishEdit, false);
+				DataFieldUtils.ItemDataField("Timer Interval", ref _ramp.data.TimerInterval, FinishEdit, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
