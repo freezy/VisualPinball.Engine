@@ -249,6 +249,7 @@
     <Compile Include="VPT\Table\TableApi.cs" />
     <Compile Include="VPT\Table\TableExtensions.cs" />
     <Compile Include="VPT\Table\TableBehavior.cs" />
+    <Compile Include="VPT\Table\TableSidecar.cs" />
     <Compile Include="VPT\Trigger\TriggerBehavior.cs" />
   </ItemGroup>
   <ItemGroup>
