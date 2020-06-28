@@ -6,6 +6,11 @@ using VisualPinball.Unity.Import.Job;
 
 namespace VisualPinball.Unity.Editor.Import
 {
+	/// <summary>
+	/// This component is attached to a game object when using the scripted importer for vpx files
+	/// (i.e. when you have a .vpx in the unity project itself). When the asset is then placed in
+	/// a scene, this executes the table importer flow and destroys itself.
+	/// </summary>
 	[ExecuteInEditMode]
 	public class VpxAssetLazyImporter : MonoBehaviour
 	{
@@ -16,7 +21,6 @@ namespace VisualPinball.Unity.Editor.Import
 		{
 			if (_importComplete) return;
 
-#if UNITY_EDITOR
 			var obj = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
 			if (obj == null) return;
 
@@ -26,7 +30,7 @@ namespace VisualPinball.Unity.Editor.Import
 			var importer = tableRoot.AddComponent<VpxImporter>();
 			var table = TableLoader.LoadTable(path);
 			importer.Import(Path.GetFileName(path), table);
-#endif
+
 			_importComplete = true;
 		}
 

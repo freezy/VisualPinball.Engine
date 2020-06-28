@@ -56,15 +56,16 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
-
-		[HideInInspector] public TableSidecar sidecar;
-		[HideInInspector] public string physicsEngineId;
-		[HideInInspector] public string debugUiId;
+		public TextureData[] Textures => _sidecar?.textures;
 
 		protected override string[] Children => null;
 
-		private Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
-		private Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
+		[HideInInspector] [SerializeField] public string physicsEngineId;
+		[HideInInspector] [SerializeField] public string debugUiId;
+		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
+
+		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
+		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -94,6 +95,16 @@ namespace VisualPinball.Unity.VPT.Table
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();
+		}
+
+		internal TableSidecar GetOrCreateSidecar()
+		{
+			if (_sidecar == null) {
+				var sidecarGo = new GameObject("Table Sidecar");
+				sidecarGo.transform.parent = this.transform;
+				_sidecar = sidecarGo.AddComponent<TableSidecar>();
+			}
+			return _sidecar;
 		}
 
 		public void AddTexture(string name, Texture2D texture)
@@ -137,23 +148,23 @@ namespace VisualPinball.Unity.VPT.Table
 
 			// restore table info
 			Logger.Info("Restoring table info...");
-			foreach (var k in sidecar.tableInfo.Keys) {
-				table.TableInfo[k] = sidecar.tableInfo[k];
+			foreach (var k in _sidecar.tableInfo.Keys) {
+				table.TableInfo[k] = _sidecar.tableInfo[k];
 			}
 
 			// restore custom info tags
-			table.CustomInfoTags = sidecar.customInfoTags;
+			table.CustomInfoTags = _sidecar.customInfoTags;
 
 			// restore game items with no game object (yet!)
 			table.Decals.Clear();
-			table.Decals.AddRange(sidecar.decals.Select(d => new Decal(d)));
-			Restore(sidecar.collections, table.Collections, d => new Collection(d));
-			Restore(sidecar.dispReels, table.DispReels, d => new DispReel(d));
-			Restore(sidecar.flashers, table.Flashers, d => new Flasher(d));
-			Restore(sidecar.lightSeqs, table.LightSeqs, d => new LightSeq(d));
-			Restore(sidecar.plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
-			Restore(sidecar.textBoxes, table.TextBoxes, d => new TextBox(d));
-			Restore(sidecar.timers, table.Timers, d => new Timer(d));
+			table.Decals.AddRange(_sidecar.decals.Select(d => new Decal(d)));
+			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
+			Restore(_sidecar.dispReels, table.DispReels, d => new DispReel(d));
+			Restore(_sidecar.flashers, table.Flashers, d => new Flasher(d));
+			Restore(_sidecar.lightSeqs, table.LightSeqs, d => new LightSeq(d));
+			Restore(_sidecar.plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
+			Restore(_sidecar.textBoxes, table.TextBoxes, d => new TextBox(d));
+			Restore(_sidecar.timers, table.Timers, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
@@ -178,11 +189,11 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			var table = CreateTable();
 
-			Restore(sidecar.sounds, table.Sounds, d => new Sound(d));
+			Restore(_sidecar.sounds, table.Sounds, d => new Sound(d));
 
 			// restore textures
 			Logger.Info("Restoring textures...");
-			foreach (var textureData in sidecar.textures) {
+			foreach (var textureData in _sidecar.textures) {
 				var texture = new Texture(textureData);
 				table.Textures[texture.Name.ToLower()] = texture;
 			}
