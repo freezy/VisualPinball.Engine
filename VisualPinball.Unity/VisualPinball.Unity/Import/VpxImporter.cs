@@ -194,10 +194,7 @@ namespace VisualPinball.Unity.Import
 			_tb = go.AddComponent<TableBehavior>();
 			_tb.SetData(table.Data);
 
-			var sidecarGo = new GameObject("Table Sidecar");
-			sidecarGo.transform.parent = go.transform;
-			var sidecar = sidecarGo.AddComponent<TableSidecar>();
-			_tb.sidecar = sidecar;
+			var sidecar = _tb.GetOrCreateSidecar();
 
 			foreach (var key in table.TableInfo.Keys) {
 				sidecar.tableInfo[key] = table.TableInfo[key];
