@@ -1,44 +1,29 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.28010.2048
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "VisualPinball.Engine\VisualPinball.Engine.csproj", "{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "VisualPinball.Engine\VisualPinball.Engine.csproj", "{EFE73640-F311-4109-9F3E-1573F86990BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{9902C758-AB1F-4A15-9F77-51FB08642EF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "VisualPinball.Resources\VisualPinball.Resources.csproj", "{8A259010-3234-4402-BE50-980B4887902C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "VisualPinball.Resources\VisualPinball.Resources.csproj", "{F7C27E2C-8931-46F3-968E-F1103E975074}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug Unity|Any CPU = Debug Unity|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9332A2CC-5E39-4D4F-95A3-763D4D73C63E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9902C758-AB1F-4A15-9F77-51FB08642EF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug Unity|Any CPU.Build.0 = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7C27E2C-8931-46F3-968E-F1103E975074}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1E775D85-025B-4FE2-B33B-875B6C9D0DA0}
+		{EFE73640-F311-4109-9F3E-1573F86990BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFE73640-F311-4109-9F3E-1573F86990BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFE73640-F311-4109-9F3E-1573F86990BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFE73640-F311-4109-9F3E-1573F86990BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A259010-3234-4402-BE50-980B4887902C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A259010-3234-4402-BE50-980B4887902C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A259010-3234-4402-BE50-980B4887902C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A259010-3234-4402-BE50-980B4887902C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

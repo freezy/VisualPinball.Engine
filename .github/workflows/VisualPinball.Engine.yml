@@ -12,5 +12,5 @@ jobs:
              dotnet build -c Release
         - name: Test
           run: |
-             .packages/NUnit.ConsoleRunner.3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.build/Release/VisualPinball.Engine.Test.dll
+             .packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
 

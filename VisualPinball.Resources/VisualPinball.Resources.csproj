@@ -1,100 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F7C27E2C-8931-46F3-968E-F1103E975074}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualPinball.Engine.Resources</RootNamespace>
-    <AssemblyName>VisualPinball.Resources</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>VisualPinball.Resources</Title>
+    <Description>A .NET port of Visual Pinball in C#</Description>
+    <Authors>freezy</Authors>
+    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io#&gt;</Copyright>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <InformationalVersion>0.1.0.0</InformationalVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>.build\Debug\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>.build\Release\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Meshes\BallMesh.cs" />
-    <Compile Include="Meshes\BulbMesh.cs" />
-    <Compile Include="Meshes\BulbSocket.cs" />
-    <Compile Include="Meshes\BumperBase.cs" />
-    <Compile Include="Meshes\BumperCap.cs" />
-    <Compile Include="Meshes\BumperRing.cs" />
-    <Compile Include="Meshes\BumperSocket.cs" />
-    <Compile Include="Meshes\DropTargetT2.cs" />
-    <Compile Include="Meshes\DropTargetT3.cs" />
-    <Compile Include="Meshes\DropTargetT4.cs" />
-    <Compile Include="Meshes\FlipperBase.cs" />
-    <Compile Include="Meshes\GateBracket.cs" />
-    <Compile Include="Meshes\GateLongPlate.cs" />
-    <Compile Include="Meshes\GatePlate.cs" />
-    <Compile Include="Meshes\GateWire.cs" />
-    <Compile Include="Meshes\GateWireRectangle.cs" />
-    <Compile Include="Meshes\HitTargetFatRectangle.cs" />
-    <Compile Include="Meshes\HitTargetFatSquare.cs" />
-    <Compile Include="Meshes\HitTargetRectangle.cs" />
-    <Compile Include="Meshes\HitTargetRound.cs" />
-    <Compile Include="Meshes\HitTargetT1Slim.cs" />
-    <Compile Include="Meshes\HitTargetT2Slim.cs" />
-    <Compile Include="Meshes\KickerCup.cs" />
-    <Compile Include="Meshes\KickerGottlieb.cs" />
-    <Compile Include="Meshes\KickerHole.cs" />
-    <Compile Include="Meshes\KickerPlate.cs" />
-    <Compile Include="Meshes\KickerSimpleHole.cs" />
-    <Compile Include="Meshes\KickerT1.cs" />
-    <Compile Include="Meshes\KickerWilliams.cs" />
-    <Compile Include="Meshes\SpinnerBracket.cs" />
-    <Compile Include="Meshes\SpinnerPlate.cs" />
-    <Compile Include="Meshes\TriggerButton.cs" />
-    <Compile Include="Meshes\TriggerSimple.cs" />
-    <Compile Include="Meshes\TriggerStar.cs" />
-    <Compile Include="Meshes\TriggerWireD.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resource.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Textures\BallDebug.png" />
-    <EmbeddedResource Include="Textures\BumperBase.png" />
-    <EmbeddedResource Include="Textures\BumperCap.png" />
-    <EmbeddedResource Include="Textures\BumperRing.png" />
-    <EmbeddedResource Include="Textures\BumperSkirt.png" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-		 Other similar extension points exist, see Microsoft.Common.targets.
-	<Target Name="BeforeBuild">
-	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
-
-	<Target Name="AfterBuild">
-		<ItemGroup>
-			<BuildFiles Include="$(OutDir)*.dll;$(OutDir)*.xml" />
-		</ItemGroup>
-		<Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
-	</Target>
+  <Target Name="DeployVendor" AfterTargets="CoreBuild">
+    <ItemGroup>
+      <BuildFiles Include="$(OutDir)*.dll" />
+    </ItemGroup>
+    <Message Text="DeployVendor: @(BuildFiles)" />
+    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
+  </Target>  
 </Project>

@@ -81,6 +81,7 @@ namespace VisualPinball.Engine.Test.Test
 					Path.Combine(
 						Path.GetDirectoryName(codeBase),
 						"..",
+						"..",
 						".."
 					)
 				);

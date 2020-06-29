@@ -1,111 +1,42 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Import Project="..\..\.packages\NUnit.3.12.0\build\NUnit.props" Condition="Exists('..\..\.packages\NUnit.3.12.0\build\NUnit.props')" />
-	<Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-	<PropertyGroup>
-		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-		<ProjectGuid>{D54D9710-FD25-47AB-973F-C8C83B26D6B7}</ProjectGuid>
-		<ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-		<OutputType>Library</OutputType>
-		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<RootNamespace>VisualPinball.Unity.Test</RootNamespace>
-		<AssemblyName>VisualPinball.Unity.Test</AssemblyName>
-		<TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
-		<FileAlignment>512</FileAlignment>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-		<PlatformTarget>AnyCPU</PlatformTarget>
-		<DebugSymbols>true</DebugSymbols>
-		<DebugType>full</DebugType>
-		<Optimize>false</Optimize>
-		<OutputPath>.build\bin\Debug\</OutputPath>
-		<BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-		<DefineConstants>DEBUG;TRACE</DefineConstants>
-		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>4</WarningLevel>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-		<PlatformTarget>AnyCPU</PlatformTarget>
-		<DebugType>pdbonly</DebugType>
-		<Optimize>true</Optimize>
-		<OutputPath>.build\bin\Release\</OutputPath>
-		<BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-		<DefineConstants>TRACE</DefineConstants>
-		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>4</WarningLevel>
-	</PropertyGroup>
-	<ItemGroup>
-		<Reference Include="FluentAssertions, Version=5.10.3.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a">
-		  <HintPath>..\..\.packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll</HintPath>
-		  <Private>True</Private>
-		</Reference>
-		<Reference Include="nunit.framework, Version=3.12.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
-		  <HintPath>..\..\.packages\NUnit.3.12.0\lib\net45\nunit.framework.dll</HintPath>
-		  <Private>True</Private>
-		</Reference>
-		<Reference Include="System" />
-		<Reference Include="System.Configuration" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Data" />
-		<Reference Include="System.Xml" />
-		<Reference Include="System.Xml.Linq" />
-		<Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-		  <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
-		</Reference>
-		<Reference Include="Unity.Entities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-		  <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
-		</Reference>
-		<Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-		  <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-		  <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TestRunner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-		  <HintPath>..\..\..\EntityComponentSystemSamples\UnityPhysicsSamples\Library\ScriptAssemblies\UnityEngine.TestRunner.dll</HintPath>
-		</Reference>
-	</ItemGroup>
-	<ItemGroup>
-		<Compile Include="Physics\Collider\QuadTreeTests.cs" />
-		<Compile Include="Physics\DOTS\DynamicStructTests.cs" />
-		<Compile Include="Properties\AssemblyInfo.cs" />
-		<Compile Include="VPT\Bumper\BumperCollisionTests.cs" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Include="packages.config" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj">
-	    <Project>{9902c758-ab1f-4a15-9f77-51fb08642ef6}</Project>
-	    <Name>VisualPinball.Engine.Test</Name>
-	  </ProjectReference>
-	  <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
-	    <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
-	    <Name>VisualPinball.Engine</Name>
-	  </ProjectReference>
-	  <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj">
-	    <Project>{89dc7792-2ac2-4a69-8605-d3a14cc7b6b0}</Project>
-	    <Name>VisualPinball.Unity</Name>
-	  </ProjectReference>
-	</ItemGroup>
-	<ItemGroup>
-	  <Content Include="VisualPinball.Unity.Test.asmdef" />
-	</ItemGroup>
-	<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-	<Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-	  <PropertyGroup>
-	    <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-	  </PropertyGroup>
-	  <Error Condition="!Exists('..\..\.packages\NUnit.3.12.0\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\.packages\NUnit.3.12.0\build\NUnit.props'))" />
-	</Target>
-	<!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-		 Other similar extension points exist, see Microsoft.Common.targets.
-	<Target Name="BeforeBuild">
-	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Title>VisualPinball.Unity.Test</Title>
+    <Description>A bridge between VisualPinball.Engine and Unity</Description>
+    <Authors>freezy</Authors>
+    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io#&gt;</Copyright>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <InformationalVersion>0.1.0.0</InformationalVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
+    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
+    <ProjectReference Include="..\..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities">
+      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
