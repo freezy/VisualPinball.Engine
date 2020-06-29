@@ -1,6 +1,5 @@
 ﻿
 using UnityEditor;
-using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -25,50 +24,50 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DataFieldUtils.ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible, FinishEdit);
-				DataFieldUtils.ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible, FinishEdit);
-				DataFieldUtils.ItemDataField("Animate Slingshot", ref _targetSurf.data.SlingshotAnimation, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Flipbook", ref _targetSurf.data.IsFlipbook, FinishEdit, false);
+				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
+				ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible);
+				ItemDataField("Animate Slingshot", ref _targetSurf.data.SlingshotAnimation, dirtyMesh: false);
+				ItemDataField("Flipbook", ref _targetSurf.data.IsFlipbook, dirtyMesh: false);
 			}
 
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				DataFieldUtils.ItemDataField("Top Height", ref _targetSurf.data.HeightTop, FinishEdit);
-				DataFieldUtils.ItemDataField("Bottom Height", ref _targetSurf.data.HeightBottom, FinishEdit);
+				ItemDataField("Top Height", ref _targetSurf.data.HeightTop);
+				ItemDataField("Bottom Height", ref _targetSurf.data.HeightBottom);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _targetSurf.data.HitEvent, FinishEdit, false);
+				ItemDataField("Has Hit Event", ref _targetSurf.data.HitEvent, dirtyMesh: false);
 				EditorGUI.BeginDisabledGroup(!_targetSurf.data.HitEvent);
-				DataFieldUtils.ItemDataField("Hit Threshold", ref _targetSurf.data.Threshold, FinishEdit, false);
+				ItemDataField("Hit Threshold", ref _targetSurf.data.Threshold, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Slingshot Force", ref _targetSurf.data.SlingshotForce, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Slingshot Threshold", ref _targetSurf.data.SlingshotThreshold, FinishEdit, false);
+				ItemDataField("Slingshot Force", ref _targetSurf.data.SlingshotForce, dirtyMesh: false);
+				ItemDataField("Slingshot Threshold", ref _targetSurf.data.SlingshotThreshold, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(_targetSurf.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Physics Material", ref _targetSurf.data.PhysicsMaterial, FinishEdit, false);
+				ItemDataField("Physics Material", ref _targetSurf.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _targetSurf.data.OverwritePhysics, FinishEdit, false);
+				ItemDataField("Overwrite Material Settings", ref _targetSurf.data.OverwritePhysics, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(!_targetSurf.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Elasticity", ref _targetSurf.data.Elasticity, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Friction", ref _targetSurf.data.Friction, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _targetSurf.data.Scatter, FinishEdit, false);
+				ItemDataField("Elasticity", ref _targetSurf.data.Elasticity, dirtyMesh: false);
+				ItemDataField("Friction", ref _targetSurf.data.Friction, dirtyMesh: false);
+				ItemDataField("Scatter Angle", ref _targetSurf.data.Scatter, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Can Drop", ref _targetSurf.data.IsDroppable, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Collidable", ref _targetSurf.data.IsCollidable, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Is Bottom Collidable", ref _targetSurf.data.IsBottomSolid, FinishEdit, false);
+				ItemDataField("Can Drop", ref _targetSurf.data.IsDroppable, dirtyMesh: false);
+				ItemDataField("Collidable", ref _targetSurf.data.IsCollidable, dirtyMesh: false);
+				ItemDataField("Is Bottom Collidable", ref _targetSurf.data.IsBottomSolid, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _targetSurf.data.IsTimerEnabled, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Timer Interval", ref _targetSurf.data.TimerInterval, FinishEdit, false);
+				ItemDataField("Timer Enabled", ref _targetSurf.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _targetSurf.data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

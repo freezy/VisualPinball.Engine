@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -24,45 +23,45 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DataFieldUtils.ItemDataField("Visible", ref _rubber.data.IsVisible, FinishEdit);
+				ItemDataField("Visible", ref _rubber.data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				DataFieldUtils.ItemDataField("Height", ref _rubber.data.Height, FinishEdit);
-				DataFieldUtils.ItemDataField("Thickness", ref _rubber.data.Thickness, FinishEdit);
+				ItemDataField("Height", ref _rubber.data.Height);
+				ItemDataField("Thickness", ref _rubber.data.Thickness);
 				EditorGUILayout.LabelField("Orientation");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("RotX", ref _rubber.data.RotX, FinishEdit);
-				DataFieldUtils.ItemDataField("RotY", ref _rubber.data.RotY, FinishEdit);
-				DataFieldUtils.ItemDataField("RotZ", ref _rubber.data.RotZ, FinishEdit);
+				ItemDataField("RotX", ref _rubber.data.RotX);
+				ItemDataField("RotY", ref _rubber.data.RotY);
+				ItemDataField("RotZ", ref _rubber.data.RotZ);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(_rubber.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, FinishEdit, false);
+				ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, FinishEdit, false);
+				ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(!_rubber.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Elasticity", ref _rubber.data.Elasticity, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Elasticity Falloff", ref _rubber.data.ElasticityFalloff, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Friction", ref _rubber.data.Friction, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _rubber.data.Scatter, FinishEdit, false);
+				ItemDataField("Elasticity", ref _rubber.data.Elasticity, dirtyMesh: false);
+				ItemDataField("Elasticity Falloff", ref _rubber.data.ElasticityFalloff, dirtyMesh: false);
+				ItemDataField("Friction", ref _rubber.data.Friction, dirtyMesh: false);
+				ItemDataField("Scatter Angle", ref _rubber.data.Scatter, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Hit Height", ref _rubber.data.HitHeight, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Collidable", ref _rubber.data.IsCollidable, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _rubber.data.HitEvent, FinishEdit, false);
+				ItemDataField("Hit Height", ref _rubber.data.HitHeight, dirtyMesh: false);
+				ItemDataField("Collidable", ref _rubber.data.IsCollidable, dirtyMesh: false);
+				ItemDataField("Has Hit Event", ref _rubber.data.HitEvent, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _rubber.data.IsTimerEnabled, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Timer Interval", ref _rubber.data.TimerInterval, FinishEdit, false);
+				ItemDataField("Timer Enabled", ref _rubber.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _rubber.data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

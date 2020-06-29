@@ -37,6 +37,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handle\CatmullCurveHandle.cs" />
+    <Compile Include="Handle\HandlesUtils.cs" />
     <Compile Include="Import\AssetHandler\AssetDatabaseHandler.cs" />
     <Compile Include="Import\AssetHandler\AssetImportHandler.cs" />
     <Compile Include="Import\AssetHandler\AssetUtility.cs" />
@@ -62,8 +64,6 @@
     <Compile Include="Inspectors\TransformInspector.cs" />
     <Compile Include="Inspectors\TriggerInspector.cs" />
     <Compile Include="Logging.cs" />
-    <Compile Include="Utils\HandlesUtils.cs" />
-    <Compile Include="Utils\DataFieldUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -81,6 +81,7 @@
   <ItemGroup>
     <Content Include="VisualPinball.Unity.Editor.asmdef" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 		 Other similar extension points exist, see Microsoft.Common.targets.
