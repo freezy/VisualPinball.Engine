@@ -1,7 +1,6 @@
 {
   "name": "VisualPinball.Engine",
   "references": [
-    "Unity.Mathematics"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

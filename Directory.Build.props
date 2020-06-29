@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <RestoreOutputPath>.obj</RestoreOutputPath>
+    <BaseIntermediateOutputPath>.obj</BaseIntermediateOutputPath>
+    <OutputPath>.bin/$(Configuration)</OutputPath>
+  </PropertyGroup>
+</Project>

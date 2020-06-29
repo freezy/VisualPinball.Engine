@@ -1,105 +1,33 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6A784FF4-FAC5-4BCF-9E77-E1337CE570CF}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualPinball.Unity.Editor</RootNamespace>
-    <AssemblyName>VisualPinball.Unity.Editor</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <LangVersion>7.1</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>VisualPinball.Unity.Editor</Title>
+    <Description>A bridge between VisualPinball.Engine and Unity</Description>
+    <Authors>freezy</Authors>
+    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io#&gt;</Copyright>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <InformationalVersion>0.1.0.0</InformationalVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>.build\Debug\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>.build\Release\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-      <HintPath>..\..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
-      <Private>True</Private>
+    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml" />
-    <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <Reference Include="UnityEditor">
       <HintPath>..\Vendor\.unity\UnityEditor.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Editors\DragPointsEditor.cs" />
-    <Compile Include="Import\VpxAssetImporter.cs" />
-    <Compile Include="Import\VpxAssetLazyImporter.cs" />
-    <Compile Include="Import\VpxMenuImporter.cs" />
-    <Compile Include="Inspectors\BumperInspector.cs" />
-    <Compile Include="Inspectors\FlipperInspector.cs" />
-    <Compile Include="Inspectors\GateInspector.cs" />
-    <Compile Include="Inspectors\HitTargetInspector.cs" />
-    <Compile Include="Inspectors\ItemInspector.cs" />
-    <Compile Include="Inspectors\KickerInspector.cs" />
-    <Compile Include="Inspectors\PlayerInspector.cs" />
-    <Compile Include="Inspectors\PrimitiveInspector.cs" />
-    <Compile Include="Inspectors\RampInspector.cs" />
-    <Compile Include="Inspectors\RubberInspector.cs" />
-    <Compile Include="Inspectors\SpinnerInspector.cs" />
-    <Compile Include="Inspectors\SurfaceInspector.cs" />
-    <Compile Include="Inspectors\TableInspector.cs" />
-    <Compile Include="Inspectors\TransformInspector.cs" />
-    <Compile Include="Inspectors\TriggerInspector.cs" />
-    <Compile Include="Logging.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
-      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
-      <Name>VisualPinball.Engine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj">
-      <Project>{89dc7792-2ac2-4a69-8605-d3a14cc7b6b0}</Project>
-      <Name>VisualPinball.Unity</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="VisualPinball.Unity.Editor.asmdef" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-		 Other similar extension points exist, see Microsoft.Common.targets.
-	<Target Name="BeforeBuild">
-	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
 </Project>

@@ -1,284 +1,63 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{89DC7792-2AC2-4A69-8605-D3A14CC7B6B0}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VisualPinball.Unity</RootNamespace>
-    <AssemblyName>VisualPinball.Unity</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <LangVersion>7.3</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Title>VisualPinball.Unity</Title>
+    <Description>A bridge between VisualPinball.Engine and Unity</Description>
+    <Authors>freezy</Authors>
+    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io#&gt;</Copyright>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <InformationalVersion>0.1.0.0</InformationalVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>.build\Debug\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>.build\Release\</OutputPath>
-    <BaseIntermediateOutputPath>.build\obj\</BaseIntermediateOutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-      <HintPath>..\..\.packages\NLog.4.7.0-rc1\lib\net45\NLog.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Burst.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Entities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Entities.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Entities.Hybrid.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics.Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics.Extensions.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Rendering.Hybrid, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Transforms, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
+    <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine">
       <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Extensions.Hybrid">
+      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities">
+      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities.Hybrid">
+      <HintPath>..\Vendor\.unity\Unity.Entities.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Rendering.Hybrid">
+      <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Transforms">
+      <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
+    </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Common\BlobArray.cs" />
-    <Compile Include="Common\Logging.cs" />
-    <Compile Include="Common\Math.cs" />
-    <Compile Include="Common\SerializableDictionary.cs" />
-    <Compile Include="Common\UnityTarget.cs" />
-    <Compile Include="Common\UnsafeEx.cs" />
-    <Compile Include="Extensions\ColorExtensions.cs" />
-    <Compile Include="Extensions\LightExtensions.cs" />
-    <Compile Include="Extensions\MaterialExtensions.cs" />
-    <Compile Include="Extensions\MathExtensions.cs" />
-    <Compile Include="Extensions\Matrix3DExtensions.cs" />
-    <Compile Include="Extensions\MeshExtensions.cs" />
-    <Compile Include="Extensions\TextureExtensions.cs" />
-    <Compile Include="Extensions\TransformExtensions.cs" />
-    <Compile Include="Game\Player.cs" />
-    <Compile Include="Game\VisualPinballScript.cs" />
-    <Compile Include="Game\VisualPinballSimulationSystemGroup.cs" />
-    <Compile Include="Import\AssetHandler\AssetMemoryHandler.cs" />
-    <Compile Include="Import\AssetHandler\IAssetHandler.cs" />
-    <Compile Include="Import\Job\MaterialImporter.cs" />
-    <Compile Include="Import\Job\TableLoader.cs" />
-    <Compile Include="Import\Job\TextureImporter.cs" />
-    <Compile Include="Import\MemHelper.cs" />
-    <Compile Include="Import\ScaleNormalizer.cs" />
-    <Compile Include="Import\VpxImporter.cs" />
-    <Compile Include="Physics\Collider\CircleCollider.cs" />
-    <Compile Include="Physics\Collider\Collider.cs" />
-    <Compile Include="Physics\Collider\Line3DCollider.cs" />
-    <Compile Include="Physics\Collider\LineSlingshotCollider.cs" />
-    <Compile Include="Physics\Collider\LineZCollider.cs" />
-    <Compile Include="Physics\Collider\PlaneCollider.cs" />
-    <Compile Include="Physics\Collider\PointCollider.cs" />
-    <Compile Include="Physics\Collider\LineCollider.cs" />
-    <Compile Include="Physics\Collider\Poly3DCollider.cs" />
-    <Compile Include="Physics\Collider\TriangleCollider.cs" />
-    <Compile Include="Physics\Collision\Aabb.cs" />
-    <Compile Include="Physics\Collision\DynamicCollisionSystem.cs" />
-    <Compile Include="Physics\Collision\DynamicNarrowPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\StaticBroadPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\ContactSystem.cs" />
-    <Compile Include="Physics\Collision\DynamicBroadPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\StaticCollisionSystem.cs" />
-    <Compile Include="Physics\Collision\ColliderBlob.cs" />
-    <Compile Include="Physics\Collision\KdNode.cs" />
-    <Compile Include="Physics\Collision\KdRoot.cs" />
-    <Compile Include="Physics\Collision\LineSlingshotData.cs" />
-    <Compile Include="Physics\Collision\OverlappingDynamicBufferElement.cs" />
-    <Compile Include="Physics\Collision\OverlappingStaticBufferElement.cs" />
-    <Compile Include="Physics\Collision\ColliderData.cs" />
-    <Compile Include="Physics\Collision\ColliderHeader.cs" />
-    <Compile Include="Physics\Collision\ColliderType.cs" />
-    <Compile Include="Physics\Collision\QuadTreeData.cs" />
-    <Compile Include="Physics\Collision\CollisionEventData.cs" />
-    <Compile Include="Physics\Collision\ContactBufferElement.cs" />
-    <Compile Include="Physics\Collision\ICollidable.cs" />
-    <Compile Include="Physics\Collision\ICollider.cs" />
-    <Compile Include="Physics\Collision\StaticNarrowPhaseSystem.cs" />
-    <Compile Include="Physics\Collision\PhysicsMaterialData.cs" />
-    <Compile Include="Physics\Collision\QuadTreeBlob.cs" />
-    <Compile Include="Physics\Collision\QuadTreeConversionSystem.cs" />
-    <Compile Include="Physics\Collision\QuadTree.cs" />
-    <Compile Include="Physics\DebugUI\DebugFlipperSlider.cs" />
-    <Compile Include="Physics\DebugUI\DebugFlipperState.cs" />
-    <Compile Include="Physics\DebugUI\IDebugUI.cs" />
-    <Compile Include="Physics\Engine\DefaultPhysicsEngine.cs" />
-    <Compile Include="Physics\Engine\IPhysicsEngine.cs" />
-    <Compile Include="Physics\SystemGroup\SimulateCycleSystemGroup.cs" />
-    <Compile Include="Physics\SystemGroup\CreateBallEntityCommandBufferSystem.cs" />
-    <Compile Include="Physics\SystemGroup\TransformMeshesSystemGroup.cs" />
-    <Compile Include="Physics\SystemGroup\UpdateAnimationsSystemGroup.cs" />
-    <Compile Include="Physics\SystemGroup\UpdateDisplacementSystemGroup.cs" />
-    <Compile Include="Physics\SystemGroup\UpdateVelocitiesSystemGroup.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VPT\Ball\BallApi.cs" />
-    <Compile Include="VPT\Ball\BallBehavior.cs" />
-    <Compile Include="VPT\Ball\BallCollider.cs" />
-    <Compile Include="VPT\Ball\BallData.cs" />
-    <Compile Include="VPT\Ball\BallLastPositionsBufferElement.cs" />
-    <Compile Include="VPT\Ball\BallManager.cs" />
-    <Compile Include="VPT\Ball\BallMovementSystem.cs" />
-    <Compile Include="VPT\Ball\BallRingCounterSystem.cs" />
-    <Compile Include="VPT\Ball\BallSpinHackSystem.cs" />
-    <Compile Include="VPT\Ball\BallVelocitySystem.cs" />
-    <Compile Include="VPT\Ball\BallDisplacementSystem.cs" />
-    <Compile Include="VPT\Ball\BallInsideOfBufferElement.cs" />
-    <Compile Include="VPT\Bumper\BumperBehavior.cs" />
-    <Compile Include="VPT\Bumper\BumperCollider.cs" />
-    <Compile Include="VPT\Bumper\BumperExtensions.cs" />
-    <Compile Include="VPT\Bumper\BumperRingAnimationData.cs" />
-    <Compile Include="VPT\Bumper\BumperRingAnimationSystem.cs" />
-    <Compile Include="VPT\Bumper\BumperRingBehavior.cs" />
-    <Compile Include="VPT\Bumper\BumperSkirtAnimationData.cs" />
-    <Compile Include="VPT\Bumper\BumperSkirtAnimationSystem.cs" />
-    <Compile Include="VPT\Bumper\BumperSkirtBehavior.cs" />
-    <Compile Include="VPT\Bumper\BumperSkirtMovementSystem.cs" />
-    <Compile Include="VPT\Bumper\BumperStaticData.cs" />
-    <Compile Include="VPT\Bumper\BumperRingMovementSystem.cs" />
-    <Compile Include="VPT\Flipper\FlipperApi.cs" />
-    <Compile Include="VPT\Flipper\FlipperCollider.cs" />
-    <Compile Include="VPT\Flipper\FlipperDisplacementSystem.cs" />
-    <Compile Include="VPT\Flipper\FlipperExtensions.cs" />
-    <Compile Include="VPT\Flipper\FlipperHitData.cs" />
-    <Compile Include="VPT\Flipper\FlipperStaticData.cs" />
-    <Compile Include="VPT\Flipper\FlipperMovementData.cs" />
-    <Compile Include="VPT\Flipper\FlipperRotateSystem.cs" />
-    <Compile Include="VPT\Flipper\FlipperVelocityData.cs" />
-    <Compile Include="VPT\Flipper\FlipperBehavior.cs" />
-    <Compile Include="VPT\Flipper\FlipperVelocitySystem.cs" />
-    <Compile Include="VPT\Flipper\SolenoidStateData.cs" />
-    <Compile Include="VPT\Gate\GateExtensions.cs" />
-    <Compile Include="VPT\Gate\GateMovementSystem.cs" />
-    <Compile Include="VPT\Gate\GateVelocitySystem.cs" />
-    <Compile Include="VPT\Gate\GateDisplacementSystem.cs" />
-    <Compile Include="VPT\Gate\GateCollider.cs" />
-    <Compile Include="VPT\Gate\GateBehavior.cs" />
-    <Compile Include="VPT\Gate\GateMovementData.cs" />
-    <Compile Include="VPT\Gate\GateStaticData.cs" />
-    <Compile Include="VPT\Gate\GateWireBehavior.cs" />
-    <Compile Include="VPT\HitTarget\HitTargetBehavior.cs" />
-    <Compile Include="VPT\IApi.cs" />
-    <Compile Include="VPT\IDragPointsEditable.cs" />
-    <Compile Include="VPT\IEditableItemBehavior.cs" />
-    <Compile Include="VPT\ItemApi.cs" />
-    <Compile Include="VPT\ItemBehavior.cs" />
-    <Compile Include="VPT\ItemType.cs" />
-    <Compile Include="VPT\Kicker\KickerApi.cs" />
-    <Compile Include="VPT\Kicker\KickerBehavior.cs" />
-    <Compile Include="VPT\Light\LightBehavior.cs" />
-    <Compile Include="VPT\Light\LightExtensions.cs" />
-    <Compile Include="VPT\Plunger\PlungerAnimationData.cs" />
-    <Compile Include="VPT\Plunger\PlungerAnimationSystem.cs" />
-    <Compile Include="VPT\Plunger\PlungerChildBehavior.cs" />
-    <Compile Include="VPT\Plunger\PlungerFlatBehavior.cs" />
-    <Compile Include="VPT\Plunger\PlungerTransformationSystem.cs" />
-    <Compile Include="VPT\Plunger\PlungerApi.cs" />
-    <Compile Include="VPT\Plunger\PlungerCommands.cs" />
-    <Compile Include="VPT\Plunger\PlungerBehavior.cs" />
-    <Compile Include="VPT\Plunger\PlungerCollider.cs" />
-    <Compile Include="VPT\Plunger\PlungerColliderData.cs" />
-    <Compile Include="VPT\Plunger\PlungerDisplacementSystem.cs" />
-    <Compile Include="VPT\Plunger\PlungerExtensions.cs" />
-    <Compile Include="VPT\Plunger\PlungerMeshBufferElement.cs" />
-    <Compile Include="VPT\Plunger\PlungerMovementData.cs" />
-    <Compile Include="VPT\Plunger\PlungerRodBehavior.cs" />
-    <Compile Include="VPT\Plunger\PlungerSpringBehavior.cs" />
-    <Compile Include="VPT\Plunger\PlungerStaticData.cs" />
-    <Compile Include="VPT\Plunger\PlungerUvBufferElement.cs" />
-    <Compile Include="VPT\Plunger\PlungerVelocityData.cs" />
-    <Compile Include="VPT\Plunger\PlungerVelocitySystem.cs" />
-    <Compile Include="VPT\Primitive\PrimitiveBehavior.cs" />
-    <Compile Include="VPT\Ramp\RampBehavior.cs" />
-    <Compile Include="VPT\Rubber\RubberBehavior.cs" />
-    <Compile Include="VPT\Spinner\SpinnerVelocitySystem.cs" />
-    <Compile Include="VPT\Spinner\SpinnerMovementSystem.cs" />
-    <Compile Include="VPT\Spinner\SpinnerDisplacementSystem.cs" />
-    <Compile Include="VPT\Spinner\SpinnerCollider.cs" />
-    <Compile Include="VPT\Spinner\SpinnerExtensions.cs" />
-    <Compile Include="VPT\Spinner\SpinnerBehavior.cs" />
-    <Compile Include="VPT\Spinner\SpinnerMovementData.cs" />
-    <Compile Include="VPT\Spinner\SpinnerStaticData.cs" />
-    <Compile Include="VPT\Spinner\SpinnerPlateBehavior.cs" />
-    <Compile Include="VPT\Surface\SurfaceBehavior.cs" />
-    <Compile Include="VPT\Surface\SurfaceData.cs" />
-    <Compile Include="VPT\Surface\SurfaceExtensions.cs" />
-    <Compile Include="VPT\Table\TableApi.cs" />
-    <Compile Include="VPT\Table\TableExtensions.cs" />
-    <Compile Include="VPT\Table\TableBehavior.cs" />
-    <Compile Include="VPT\Table\TableSidecar.cs" />
-    <Compile Include="VPT\Trigger\TriggerBehavior.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj">
-      <Project>{9332a2cc-5e39-4d4f-95a3-763d4d73c63e}</Project>
-      <Name>VisualPinball.Engine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualPinball.Resources\VisualPinball.Resources.csproj">
-      <Project>{f7c27e2c-8931-46f3-968e-f1103e975074}</Project>
-      <Name>VisualPinball.Resources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj">
-      <Project>{040d1234-942b-47fe-9a55-841e25a6305d}</Project>
-      <Name>VisualPinball.Unity.Patcher</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Physics\README.md" />
-    <Content Include="VisualPinball.Unity.asmdef" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-		 Other similar extension points exist, see Microsoft.Common.targets.
-	<Target Name="BeforeBuild">
-	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
 </Project>
