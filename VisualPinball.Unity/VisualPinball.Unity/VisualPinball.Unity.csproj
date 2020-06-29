@@ -16,6 +16,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="**/*.meta" Visible="false" />
+    <None Remove=".bin/*" Visible="false" />
+    <None Remove=".obj/*" Visible="false" />
+    <None Remove="obj/*" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
     <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj" />
   </ItemGroup>
