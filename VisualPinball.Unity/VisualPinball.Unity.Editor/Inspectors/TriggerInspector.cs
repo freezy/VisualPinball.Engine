@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -24,29 +23,29 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DataFieldUtils.ItemDataField("Visible", ref _trigger.data.IsVisible, FinishEdit);
-				DataFieldUtils.ItemDataField("Wire Thickness", ref _trigger.data.WireThickness, FinishEdit);
-				DataFieldUtils.ItemDataField("Star Radius", ref _trigger.data.Radius, FinishEdit);
-				DataFieldUtils.ItemDataField("Rotation", ref _trigger.data.Rotation, FinishEdit);
-				DataFieldUtils.ItemDataField("Animation Speed", ref _trigger.data.AnimSpeed, FinishEdit, false);
+				ItemDataField("Visible", ref _trigger.data.IsVisible);
+				ItemDataField("Wire Thickness", ref _trigger.data.WireThickness);
+				ItemDataField("Star Radius", ref _trigger.data.Radius);
+				ItemDataField("Rotation", ref _trigger.data.Rotation);
+				ItemDataField("Animation Speed", ref _trigger.data.AnimSpeed, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				DataFieldUtils.ItemDataField("", ref _trigger.data.Center, FinishEdit);
+				ItemDataField("", ref _trigger.data.Center);
 				SurfaceField("Surface", ref _trigger.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				DataFieldUtils.ItemDataField("Enabled", ref _trigger.data.IsEnabled, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Hit Height", ref _trigger.data.HitHeight, FinishEdit, false);
+				ItemDataField("Enabled", ref _trigger.data.IsEnabled, dirtyMesh: false);
+				ItemDataField("Hit Height", ref _trigger.data.HitHeight, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _trigger.data.IsTimerEnabled, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Timer Interval", ref _trigger.data.TimerInterval, FinishEdit, false);
+				ItemDataField("Timer Enabled", ref _trigger.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _trigger.data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

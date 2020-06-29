@@ -7,8 +7,7 @@ using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using System;
-using System.Collections.Generic;
-using VisualPinball.Unity.Editor.Utils;
+
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -42,6 +41,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					Array.Sort(_allTextures, 1, _allTextures.Length - 1);
 				}
 			}
+
 		}
 
 		protected void OnPreInspectorGUI()
@@ -49,18 +49,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			var item = (target as IEditableItemBehavior);
 			if (item == null) return;
 
-			//Cannot use DataFieldUtils there because item.IsLocked cannot be a ref;
 			EditorGUI.BeginChangeCheck();
 			bool newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
 			if (EditorGUI.EndChangeCheck())
 			{
-				string message = "";
-				List<UnityEngine.Object> recordObjs = new List<UnityEngine.Object>();
-				if (FinishEdit("IsLocked", out message, recordObjs, true, true))
-				{
-					Undo.RecordObjects(recordObjs.ToArray(), $"{message}");
-				}
+				FinishEdit("IsLocked");
 				item.IsLocked = newLock;
+				SceneView.RepaintAll();
 			}
 		}
 
@@ -79,6 +74,96 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
+		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			float val = EditorGUILayout.FloatField(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		public void ItemDataSlider(string label, ref float field, float leftVal, float rightVal, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			float val = EditorGUILayout.Slider(label, field, leftVal, rightVal);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref int field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			int val = EditorGUILayout.IntField(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		public void ItemDataSlider(string label, ref int field, int leftVal, int rightVal, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			int val = EditorGUILayout.IntSlider(label, field, leftVal, rightVal);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref string field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			string val = EditorGUILayout.TextField(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref bool field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			bool val = EditorGUILayout.Toggle(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref Vertex2D field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			Vertex2D val = EditorGUILayout.Vector2Field(label, field.ToUnityVector2()).ToVertex2D();
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref Vertex3D field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			Vertex3D val = EditorGUILayout.Vector3Field(label, field.ToUnityVector3()).ToVertex3D();
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
+		protected void ItemDataField(string label, ref Engine.Math.Color field, bool dirtyMesh = true)
+		{
+			EditorGUI.BeginChangeCheck();
+			Engine.Math.Color val = EditorGUILayout.ColorField(label, field.ToUnityColor()).ToEngineColor();
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
 		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
 		{
 			if (_surface?.name != field) {
@@ -94,41 +179,56 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				}
 			}
 
+			EditorGUI.BeginChangeCheck();
+			_surface = (SurfaceBehavior)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceBehavior), true);
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = _surface != null ? _surface.name : "";
+			}
+		}
 
-			_surface = (SurfaceBehavior)DataFieldUtils.ItemObjectField(label, _surface, true, FinishEdit);
-			field = _surface != null ? _surface.name : "";
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : System.IEquatable<T>
+		{
+			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
+				return;
+			}
+
+			int selectedIndex = 0;
+			for (int i = 0; i < optionValues.Length; i++) {
+				if (optionValues[i].Equals(field)) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
+				FinishEdit(label, dirtyMesh);
+				field = optionValues[selectedIndex];
+			}
 		}
 
 		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
 		{
-			DataFieldUtils.DropDownField(label, ref field, _allMaterials, _allMaterials, FinishEdit, ("dirtyMesh", (object)dirtyMesh));
+			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
-				field = ""; // don't store the none value string in our data
+				field = ""; // don't store the none value string in our data 
 			}
 		}
 
-		protected bool FinishEdit(string label, out string message, List<UnityEngine.Object> recordObjs, params object[] pList)
+		protected virtual void FinishEdit(string label, bool dirtyMesh = true)
 		{
-			bool dirtyMesh = pList.Length >= 1 ? (bool)pList[0] : true;
-			bool redrawScene = pList.Length >= 2 ? (bool)pList[1] : false;
-
-			message = $"[{target?.name}] Edit {label}";
-			if (dirtyMesh)
-			{
-				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
+			string undoLabel = $"[{target?.name}] Edit {label}";
+			if (dirtyMesh) {
+				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well 
 				var item = (target as IEditableItemBehavior);
-				if (item != null)
-				{
+				if (item != null) {
 					item.MeshDirty = true;
-					recordObjs.Add(this);
+					Undo.RecordObject(this, undoLabel);
 				}
 			}
-			recordObjs.Add(target);
-			if (redrawScene)
-			{
-				SceneView.RepaintAll();
-			}
-			return true;
+			Undo.RecordObject(target, undoLabel);
 		}
+
 	}
 }

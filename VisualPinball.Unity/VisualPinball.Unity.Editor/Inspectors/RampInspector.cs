@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -24,64 +23,64 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DataFieldUtils.ItemDataField("Visible", ref _ramp.data.IsVisible, FinishEdit);
-				DataFieldUtils.ItemDataField("Depth Bias", ref _ramp.data.DepthBias, FinishEdit);
-				DataFieldUtils.ItemDataField("Reflection Enabled", ref _ramp.data.IsReflectionEnabled, FinishEdit);
+				ItemDataField("Visible", ref _ramp.data.IsVisible);
+				ItemDataField("Depth Bias", ref _ramp.data.DepthBias);
+				ItemDataField("Reflection Enabled", ref _ramp.data.IsReflectionEnabled);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				DataFieldUtils.ItemDataField("Top Height", ref _ramp.data.HeightTop, FinishEdit);
-				DataFieldUtils.ItemDataField("Bottom Height", ref _ramp.data.HeightBottom, FinishEdit);
+				ItemDataField("Top Height", ref _ramp.data.HeightTop);
+				ItemDataField("Bottom Height", ref _ramp.data.HeightBottom);
 				
 				EditorGUILayout.Space(10);
-				DataFieldUtils.ItemDataField("Top Width", ref _ramp.data.WidthTop, FinishEdit);
-				DataFieldUtils.ItemDataField("Bottom Width", ref _ramp.data.WidthBottom, FinishEdit);
+				ItemDataField("Top Width", ref _ramp.data.WidthTop);
+				ItemDataField("Bottom Width", ref _ramp.data.WidthBottom);
 				
 				EditorGUILayout.Space(10);
 				EditorGUILayout.LabelField("Visible Wall");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("Left Wall", ref _ramp.data.LeftWallHeightVisible, FinishEdit);
-				DataFieldUtils.ItemDataField("Right Wall", ref _ramp.data.RightWallHeightVisible, FinishEdit);
+				ItemDataField("Left Wall", ref _ramp.data.LeftWallHeightVisible);
+				ItemDataField("Right Wall", ref _ramp.data.RightWallHeightVisible);
 				EditorGUI.indentLevel--;
 				EditorGUILayout.LabelField("Wire Ramp");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("Diameter", ref _ramp.data.WireDiameter, FinishEdit);
-				DataFieldUtils.ItemDataField("Distance X", ref _ramp.data.WireDistanceX, FinishEdit);
-				DataFieldUtils.ItemDataField("Distance Y", ref _ramp.data.WireDistanceY, FinishEdit);
+				ItemDataField("Diameter", ref _ramp.data.WireDiameter);
+				ItemDataField("Distance X", ref _ramp.data.WireDistanceX);
+				ItemDataField("Distance Y", ref _ramp.data.WireDistanceY);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				DataFieldUtils.ItemDataField("Has Hit Event", ref _ramp.data.HitEvent, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Hit Threshold", ref _ramp.data.Threshold, FinishEdit, false);
+				ItemDataField("Has Hit Event", ref _ramp.data.HitEvent, dirtyMesh: false);
+				ItemDataField("Hit Threshold", ref _ramp.data.Threshold, dirtyMesh: false);
 
 				EditorGUILayout.LabelField("Physical Wall");
 				EditorGUI.indentLevel++;
-				DataFieldUtils.ItemDataField("Left Wall", ref _ramp.data.LeftWallHeight, FinishEdit);
-				DataFieldUtils.ItemDataField("Right Wall", ref _ramp.data.RightWallHeight, FinishEdit);
+				ItemDataField("Left Wall", ref _ramp.data.LeftWallHeight);
+				ItemDataField("Right Wall", ref _ramp.data.RightWallHeight);
 				EditorGUI.indentLevel--;
 
 				EditorGUI.BeginDisabledGroup(_ramp.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Physics Material", ref _ramp.data.PhysicsMaterial, FinishEdit, false);
+				ItemDataField("Physics Material", ref _ramp.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Overwrite Material Settings", ref _ramp.data.OverwritePhysics, FinishEdit, false);
+				ItemDataField("Overwrite Material Settings", ref _ramp.data.OverwritePhysics, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(!_ramp.data.OverwritePhysics);
-				DataFieldUtils.ItemDataField("Elasticity", ref _ramp.data.Elasticity, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Friction", ref _ramp.data.Friction, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Scatter Angle", ref _ramp.data.Scatter, FinishEdit, false);
+				ItemDataField("Elasticity", ref _ramp.data.Elasticity, dirtyMesh: false);
+				ItemDataField("Friction", ref _ramp.data.Friction, dirtyMesh: false);
+				ItemDataField("Scatter Angle", ref _ramp.data.Scatter, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				DataFieldUtils.ItemDataField("Collidable", ref _ramp.data.IsCollidable, FinishEdit, false);
+				ItemDataField("Collidable", ref _ramp.data.IsCollidable, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				DataFieldUtils.ItemDataField("Timer Enabled", ref _ramp.data.IsTimerEnabled, FinishEdit, false);
-				DataFieldUtils.ItemDataField("Timer Interval", ref _ramp.data.TimerInterval, FinishEdit, false);
+				ItemDataField("Timer Enabled", ref _ramp.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _ramp.data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
