@@ -13,6 +13,12 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="**/*.meta" Visible="false" />
+    <None Remove=".bin/*" Visible="false" />
+    <None Remove=".obj/*" Visible="false" />
+    <None Remove="obj/*" Visible="false" />
+  </ItemGroup>
   <Target Name="DeployVendor" AfterTargets="CoreBuild">
     <ItemGroup>
       <BuildFiles Include="$(OutDir)*.dll" />

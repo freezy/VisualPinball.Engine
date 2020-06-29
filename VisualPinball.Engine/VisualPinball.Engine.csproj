@@ -16,6 +16,12 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="**/*.meta" Visible="false" />
+    <None Remove=".bin/*" Visible="false" />
+    <None Remove=".obj/*" Visible="false" />
+    <None Remove="obj/*" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.2" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.4" />
     <PackageReference Include="NetMiniZ" Version="1.0.2" />
