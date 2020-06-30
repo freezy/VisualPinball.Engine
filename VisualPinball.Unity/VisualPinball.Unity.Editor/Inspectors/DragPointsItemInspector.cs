@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Editor.Handle;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -15,6 +16,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		//Inspector
 		private bool _foldoutControlPoints = false;
+		static private Vector3 _storedControlPoint = Vector3.zero;
 
 		//Drop down PopupMenus
 		class MenuItems
@@ -127,6 +129,28 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				return true;
 			}
 
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Copy Point", false, 301)]
+			private static void CopyDP(MenuCommand command)
+			{
+				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
+				if (inspector == null) {
+					return;
+				}
+
+				inspector.CopyDragPoint(command.userData);
+			}
+
+			[MenuItem(CONTROLPOINTS_MENUPATH + "/Paste Point", false, 302)]
+			private static void PasteDP(MenuCommand command)
+			{
+				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
+				if (inspector == null) {
+					return;
+				}
+
+				inspector.PasteDragPoint(command.userData);
+			}
+
 			//Curve Traveller
 			[MenuItem(CURVETRAVELLER_MENUPATH + "/Add Point", false, 1)]
 			private static void AddDP(MenuCommand command)
@@ -220,6 +244,23 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			return null;
 		}
 
+
+		public void CopyDragPoint(int controlId)
+		{
+			var dp = GetDragPoint(controlId);
+			if (dp != null) {
+				_storedControlPoint = dp.Vertex.ToUnityVector3();
+			}
+		}
+		public void PasteDragPoint(int controlId)
+		{
+			var dp = GetDragPoint(controlId);
+			if (dp != null) {
+				PrepareUndo($"Paste Drag point {controlId}");
+				dp.Vertex = _storedControlPoint.ToVertex3D();
+			}
+		}
+
 		public bool IsItemLocked()
 		{
 			IEditableItemBehavior editable = target as IEditableItemBehavior;
@@ -260,7 +301,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				return;
 			}
 
-			string enabledString = dpeditable.DragPointEditEnabled ? "(ON)" : "(OFF)";
+			string enabledString = dpeditable.DragPointEditEnabled ? $"(ON), Stored Coordinates {_storedControlPoint}" : "(OFF)";
 			if (GUILayout.Button($"Edit Drag Points {enabledString}")) {
 				dpeditable.DragPointEditEnabled = !dpeditable.DragPointEditEnabled;
 				SceneView.RepaintAll();
@@ -274,7 +315,15 @@ namespace VisualPinball.Unity.Editor.Inspectors
 						EditorGUI.indentLevel++;
 						for (int i = 0; i < _catmullCurveHandle.ControlPoints.Count; ++i) {
 							var cpoint = _catmullCurveHandle.ControlPoints[i];
+							EditorGUILayout.BeginHorizontal("DragpointBar");
 							EditorGUILayout.LabelField($"Dragpoint [{i}] : ({cpoint.DragPoint.Vertex.X},{cpoint.DragPoint.Vertex.Y},{cpoint.DragPoint.Vertex.Z})");
+							if (GUILayout.Button("Copy")) {
+								CopyDragPoint(cpoint.ControlId);
+							}
+							else if (GUILayout.Button("Paste")) {
+								PasteDragPoint(cpoint.ControlId);
+							}
+							EditorGUILayout.EndHorizontal();
 							EditorGUI.indentLevel++;
 							if (HasDragPointExposition(DragPointExposition.SlingShot)) {
 								ItemDataField("Slingshot", ref cpoint.DragPoint.IsSlingshot);
