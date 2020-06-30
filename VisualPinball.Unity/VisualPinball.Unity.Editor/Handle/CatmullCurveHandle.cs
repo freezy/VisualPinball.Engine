@@ -152,7 +152,7 @@ namespace VisualPinball.Unity.Editor.Handle
 
 			//compute ratio between the two control points
 			var cp0 = _controlPoints[_curveTravellerControlPointIdx];
-			var cp1 = _controlPoints[_curveTravellerControlPointIdx + 1];
+			var cp1 = _controlPoints[_curveTravellerControlPointIdx == _controlPoints.Count - 1 ? _editable.PointsAreLooping() ? 0 : _curveTravellerControlPointIdx : _curveTravellerControlPointIdx + 1];
 			Vector3 segment = cp1.WorldPos - cp0.WorldPos;
 			float ratio = segment.magnitude > 0.0f ? (_curveTravellerPosition - cp0.WorldPos).magnitude / segment.magnitude : 0.0f;
 
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity.Editor.Handle
 			dpoints.Insert(newIdx, dpoint);
 			_editable.SetDragPoints(dpoints.ToArray());
 			_controlPoints.Insert(newIdx, new ControlPoint(_editable.GetDragPoints()[newIdx], GUIUtility.GetControlID(FocusType.Passive), newIdx, (float)(newIdx) / _editable.GetDragPoints().Length));
-			RemapControlPoints();
+			RebuildControlPoints();
 		}
 
 		public void RemoveDragPoint(int controlId)
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity.Editor.Handle
 					dpoints.RemoveAt(idx);
 					_editable.SetDragPoints(dpoints.ToArray());
 					_controlPoints.RemoveAt(idx);
-					RemapControlPoints();
+					RebuildControlPoints();
 				}
 			}
 		}
@@ -337,8 +337,8 @@ namespace VisualPinball.Unity.Editor.Handle
 				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(transformedDPoints.ToArray(), _editable.PointsAreLooping(), accuracy);
 
 				if (vVertex.Length > 0) {
+					//Fill Control points pathes
 					ControlPoint curCP = null;
-					_allPathPoints.Clear();
 					foreach (RenderVertex3D v in vVertex) {
 						if (v.IsControlPoint) {
 							if (curCP != null) {
@@ -350,7 +350,30 @@ namespace VisualPinball.Unity.Editor.Handle
 							}
 						}
 						curCP.pathPoints.Add(v.ToUnityVector3());
-						_allPathPoints.Add(v.ToUnityVector3());
+					}
+
+					//close loop if needed
+					if (_editable.PointsAreLooping()) {
+						_controlPoints[_controlPoints.Count - 1].pathPoints.Add(_controlPoints[0].pathPoints[0]);
+					}
+
+					//contruct full path 
+					_allPathPoints.Clear();
+					foreach(var cpoint in _controlPoints) {
+						//Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
+						if (!cpoint.DragPoint.IsSmooth && cpoint.pathPoints.Count == 2) {
+							Vector3 dir = cpoint.pathPoints[1] - cpoint.pathPoints[0];
+							float dist = dir.magnitude;
+							dir = Vector3.Normalize(dir);
+							List<Vector3> newPath = new List<Vector3>();
+							newPath.Add(cpoint.pathPoints[0]);
+							for (float splitDist = dist * 0.1f; splitDist < dist; splitDist += dist * 0.1f) {
+								newPath.Add(cpoint.pathPoints[0] + dir * splitDist);
+							}
+							newPath.Add(cpoint.pathPoints[1]);
+							cpoint.pathPoints = newPath;
+						}
+						_allPathPoints.AddRange(cpoint.pathPoints);
 					}
 
 					_curveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_allPathPoints.ToArray());
@@ -361,8 +384,12 @@ namespace VisualPinball.Unity.Editor.Handle
 						if (cp.pathPoints.Count > 1) {
 							Handles.color = _editable.GetDragPointExposition().Contains(DragPointExposition.SlingShot) && cp.DragPoint.IsSlingshot ? _curveSlingShotColor : _curveColor;
 							Handles.DrawAAPolyLine(_curveWidth, cp.pathPoints.ToArray());
+//							Handles.color = UnityEngine.Color.magenta;
+//							foreach(var ppoint in cp.pathPoints) {
+//								Handles.SphereHandleCap(0, ppoint, Quaternion.identity, HandleUtility.GetHandleSize(ppoint) * ControlPoint.ScreenRadius * _controlPointsSizeRatio * 0.25f, EventType.Repaint);
+//							}
 							Vector3 closestToPath = HandleUtility.ClosestPointToPolyLine(cp.pathPoints.ToArray());
-							if (closestToPath == _curveTravellerPosition) {
+							if (_curveTravellerControlPointIdx == -1 && closestToPath == _curveTravellerPosition) {
 								_curveTravellerControlPointIdx = cp.Index;
 							}
 						}
@@ -383,10 +410,10 @@ namespace VisualPinball.Unity.Editor.Handle
 
 				if (!lockHandle) {
 					if (distToCPoint > HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius) {
-						SceneView.RepaintAll();
 						Handles.color = UnityEngine.Color.grey;
 						Handles.SphereHandleCap(_curveTravellerControlId, _curveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_curveTravellerPosition) * ControlPoint.ScreenRadius * _curveTravellerSizeRatio, EventType.Repaint);
 						_curveTravellerVisible = true;
+						HandleUtility.Repaint();
 					}
 				}
 			}
