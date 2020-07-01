@@ -37,6 +37,12 @@ namespace VisualPinball.Unity.VPT
 		/// <summary>
 		/// Toggled by the inspector while enabling/disabling edition.
 		/// </summary>
+		///
+		/// <remarks>
+		/// The goal of this sitting on the authoring component is because like
+		/// that it's individually retained, whereas keeping it in the inspector
+		/// would reset it every time the inspector gets destroyed.
+		/// </remarks>
 		bool DragPointEditEnabled { get; set; }
 
 		/// <summary>
