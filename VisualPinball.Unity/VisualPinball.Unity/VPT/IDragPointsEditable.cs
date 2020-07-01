@@ -1,28 +1,80 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.VPT
 {
-	// DragPointExposition
-	// Exposed drag points feature, will enable/disable some DragPointItemInspector expositions & management
-	// Will also change some rendering on the CentralCurve (Slingshot segments)
-	public enum DragPointExposition
+	/// <summary>
+	/// Visual Pinball keeps the same data for drag points across all game
+	/// items. However, not all properties are used in every game item. <p/>
+	///
+	/// This defines the data sets that can be used in a given game item, and
+	/// thus how they are exposed in the editor.
+	/// </summary>
+	public enum DragPointExposure
 	{
-		Smooth,		
-		SlingShot,		
-		Texture,		// expose AutoTexure and texture coords.
+		/// <summary>
+		/// A drag point can be set to "smooth".
+		/// </summary>
+		Smooth,
+
+		/// <summary>
+		/// A drag point can be set as "slingshot".
+		/// </summary>
+		SlingShot,
+
+		/// <summary>
+		/// A drag point can be set as "auto texture".
+		/// </summary>
+		Texture
 	}
 
-	// IDragPointsEditable interface has to be implemented by ItemBehaviors which needs some drag-points edition support
+	/// <summary>
+	/// Abstraction for authoring components that support drag points.
+	/// </summary>
 	public interface IDragPointsEditable
 	{
-		bool DragPointEditEnabled { get; set; }			// switched by the DragPointsItemInspector while enabling/disabling edition.
-		DragPointData[] GetDragPoints();				// returns internal drag-points data to the inspector (these DragPointData will be directly accessed by the inspector).
-		void SetDragPoints(DragPointData[] dpoints);	// update internal drag-points data with a new set from the inspector (used while adding/removing drag-points).
-		Vector3 GetEditableOffset();					// returns a global offset applyied on all drag-points.
-		Vector3 GetDragPointOffset(float ratio);		// returns a per drag-point offset regarding the ratio along the curve.
-		bool PointsAreLooping();						//	tells the inspector if the drag-points are looping or not.
-		DragPointExposition[] GetDragPointExposition();	//	returns exposed drag-points features (see DragPointExposition enum)
-		ItemDataTransformType GetHandleType();			// returns the applied constrains to drag-points position edition.
+		/// <summary>
+		/// Toggled by the inspector while enabling/disabling edition.
+		/// </summary>
+		bool DragPointEditEnabled { get; set; }
+
+		/// <summary>
+		/// Returns the game item's drag point data.
+		/// </summary>
+		DragPointData[] GetDragPoints();
+
+		/// <summary>
+		/// Updates the game item's drag points (used while adding/removing drag points).
+		/// </summary>
+		void SetDragPoints(DragPointData[] dragPoints);
+
+		/// <summary>
+		/// Returns the global offset applied on all drag points.
+		/// </summary>
+		Vector3 GetEditableOffset();
+
+		/// <summary>
+		/// Returns the height offset regarding a given position along the curve.
+		/// </summary>
+		/// <param name="ratio">Position on the curve, from 0.0 to 1.0.</param>
+		/// <returns></returns>
+		Vector3 GetDragPointOffset(float ratio);
+
+		/// <summary>
+		/// Returns whether the drag points are looping or not.
+		/// </summary>
+		bool PointsAreLooping();
+
+		/// <summary>
+		/// Returns exposed drag points features
+		/// </summary>
+		IEnumerable<DragPointExposure> GetDragPointExposition();
+
+		/// <summary>
+		/// Returns the applied constrains to drag points position edition.
+		/// </summary>
+		/// <returns></returns>
+		ItemDataTransformType GetHandleType();
 	}
 }
