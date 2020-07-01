@@ -33,6 +33,23 @@ You'll then have a *Visual Pinball* menu in the Unity editor where you can
 import `.vpx` files. You'll be also able to drag and drop `.vpx` files into 
 your asset folder and Unity will create the table model directly.
 
+*Note:* OSX users will need to add the following `dllmap` entries to the Unity `config` file
+prior to launching Unity:
+
+```
+<configuration>
+        <dllmap dll="libvips-42.dll" target="libvips.42.dylib" os="osx" />
+        <dllmap dll="libglib-2.0-0.dll" target="libvips.42.dylib" os="osx" />
+        <dllmap dll="libgobject-2.0-0.dll" target="libvips.42.dylib" os="osx" />
+        .
+        .
+```
+
+The `config` file is located at:
+
+- `2019.4.1f1:` `/Applications/Unity/Hub/Editor/2019.4.1f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config`
+- `2020.1.0b12:` `/Applications/Unity/Hub/Editor/2020.1.0b12/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
+
 ## Future
 
 Unity allows extending its editor. This would allow us to use Unity as a table

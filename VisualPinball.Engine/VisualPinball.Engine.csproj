@@ -38,7 +38,7 @@
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NetVips-repacked.dll.config">
+    <None Include="NetVips.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -49,14 +49,14 @@
       <InputAssemblies Include="System.Numerics.Vectors.dll" />
       <InputAssemblies Include="System.Runtime.CompilerServices.Unsafe.dll" />      
     </ItemGroup>
-    <ILRepack OutputType="$(OutputType)" MainAssembly="NetVips.dll" InputAssemblies="@(InputAssemblies)" OutputAssembly="NetVips-repacked.dll" WorkingDirectory="$(OutDir)" />
+    <ILRepack OutputType="$(OutputType)" MainAssembly="NetVips.dll" InputAssemblies="@(InputAssemblies)" OutputAssembly="NetVips.dll" WorkingDirectory="$(OutDir)" />
   </Target>
   <Target Name="VendorDeploy" AfterTargets="ILRepack">
     <ItemGroup>
       <VendorFiles Include="$(OutDir)NLog.dll" />
       <VendorFiles Include="$(OutDir)OpenMcdf.dll" />
       <VendorFiles Include="$(OutDir)NetMiniZ.dll;$(OutDir)libminiz*.dll;$(OutDir)libminiz*.dylib" />
-      <VendorFiles Include="$(OutDir)NetVips-repacked.dll;$(OutDir)NetVips-repacked.dll.config" />
+      <VendorFiles Include="$(OutDir)NetVips.dll;$(OutDir)NetVips.dll.config" />
       <!-- NetVips win-x64 build targets specifically exclude mono and won't be in $(OutDir), so copy from packages -->
       <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" />
       <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" />
