@@ -32,8 +32,8 @@
     <PackageReference Include="NetVips.Native.osx-x64" Version="8.9.2-build3" />
     <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13" />    
   </ItemGroup>
-  <Import Project="..\.packages\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('..\.packages\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets')" />
-  <Import Project="..\.packages\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('..\.packages\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets')" />
+  <Import Project="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets')" />
+  <Import Project="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets')" />
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
@@ -58,10 +58,10 @@
       <VendorFiles Include="$(OutDir)NetMiniZ.dll;$(OutDir)libminiz*.dll;$(OutDir)libminiz*.dylib" />
       <VendorFiles Include="$(OutDir)NetVips-repacked.dll;$(OutDir)NetVips-repacked.dll.config" />
       <!-- NetVips win-x64 build targets specifically exclude mono and won't be in $(OutDir), so copy from packages -->
-      <VendorFiles Include="..\.packages\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" />
-      <VendorFiles Include="..\.packages\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" />
     </ItemGroup>
     <Message Text="VendorDeploy: @(VendorFiles)" />
     <Copy SourceFiles="@(VendorFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
-  </Target>  
+  </Target>
 </Project>
