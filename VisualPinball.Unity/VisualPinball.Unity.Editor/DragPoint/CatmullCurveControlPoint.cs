@@ -2,16 +2,15 @@
 using UnityEngine;
 using VisualPinball.Engine.Math;
 
-namespace VisualPinball.Unity.Editor.Handle
+namespace VisualPinball.Unity.Editor.DragPoint
 {
 	/// An editable drag point in Unity's editor. <p/>
 	///
 	/// The inspector manages adding/removing control points and updates the
 	/// data of IDragPointEditable.
 	///
-	/// ControlPoint also handles the ControlId used by Unity's Handles system
-	/// and
-	/// Controlpoint will keep the curve segment points starting from it
+	/// ControlPoint also manages the ControlId used by Unity's Handles system
+	/// and the points that make the path in the scene view.
 	public class ControlPoint
 	{
 		public const float ScreenRadius = 0.25f;

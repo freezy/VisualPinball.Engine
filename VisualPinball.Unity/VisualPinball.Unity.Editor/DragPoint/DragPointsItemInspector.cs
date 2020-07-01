@@ -3,203 +3,20 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Handle;
+using VisualPinball.Unity.Editor.Inspectors;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor.DragPoint
 {
 	public abstract class DragPointsItemInspector : ItemInspector
 	{
 		//Catmull Curve Handle
-		CatmullCurveHandler _catmullCurveHandler = null;
+		private CatmullCurveHandler _catmullCurveHandler;
 
 		//Inspector
-		private bool _foldoutControlPoints = false;
-		static private Vector3 _storedControlPoint = Vector3.zero;
-
-		//Drop down PopupMenus
-		class MenuItems
-		{
-			public const string CONTROLPOINTS_MENUPATH = "CONTEXT/DragPointsItemInspector/ControlPoint";
-			public const string CURVETRAVELLER_MENUPATH = "CONTEXT/DragPointsItemInspector/CurveTraveller";
-
-			private static DragPointData RetrieveDragPoint(DragPointsItemInspector inspector, int controlId)
-			{
-				if (inspector == null) {
-					return null;
-				}
-				return inspector.GetDragPoint(controlId);
-			}
-
-			//Drag Points
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSlingshot", false, 1)]
-			private static void SlingShot(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				var dpoint = RetrieveDragPoint(inspector, command.userData);
-				if (dpoint != null) {
-					inspector.PrepareUndo("Changing DragPoint IsSlingshot");
-					dpoint.IsSlingshot = !dpoint.IsSlingshot;
-				}
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSlingshot", true)]
-			private static bool SlingshotValidate(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null || inspector.IsItemLocked()) {
-					return false;
-				}
-
-				if (!inspector.HasDragPointExposition(DragPointExposition.SlingShot)) {
-					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", false);
-					return false;
-				}
-
-				var dpoint = RetrieveDragPoint(inspector, command.userData);
-				if (dpoint != null) {
-					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSlingshot", dpoint.IsSlingshot);
-				}
-
-				return true;
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSmooth", false, 1)]
-			private static void Smooth(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				var dpoint = RetrieveDragPoint(inspector, command.userData);
-				if (dpoint != null) {
-					inspector.PrepareUndo("Changing DragPoint IsSmooth");
-					dpoint.IsSmooth = !dpoint.IsSmooth;
-				}
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/IsSmooth", true)]
-			private static bool SmoothValidate(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null || inspector.IsItemLocked()) {
-					return false;
-				}
-
-				if (!inspector.HasDragPointExposition(DragPointExposition.Smooth)) {
-					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSmooth", false);
-					return false;
-				}
-
-				var dpoint = RetrieveDragPoint(inspector, command.userData);
-				if (dpoint != null) {
-					Menu.SetChecked($"{CONTROLPOINTS_MENUPATH}/IsSmooth", dpoint.IsSmooth);
-				}
-
-				return true;
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Remove Point", false, 101)]
-			private static void RemoveDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				if (EditorUtility.DisplayDialog("DragPoint Removal", "Are you sure you want to remove this Dragpoint ?", "Yes", "No")) {
-					inspector.RemoveDragPoint(command.userData);
-				}
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Remove Point", true)]
-			private static bool RemoveDPValidate(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null || inspector.IsItemLocked()) {
-					return false;
-				}
-
-				return true;
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Copy Point", false, 301)]
-			private static void CopyDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.CopyDragPoint(command.userData);
-			}
-
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Paste Point", false, 302)]
-			private static void PasteDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.PasteDragPoint(command.userData);
-			}
-
-			//Curve Traveller
-			[MenuItem(CURVETRAVELLER_MENUPATH + "/Add Point", false, 1)]
-			private static void AddDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.AddDragPointOnTraveller();
-			}
-
-			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/X", false, 101)]
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/X", false, 201)]
-			private static void FlipXDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.FlipDragPoints(FlipAxis.X);
-			}
-
-			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Y", false, 102)]
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/Y", false, 202)]
-			private static void FlipYDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.FlipDragPoints(FlipAxis.Y);
-			}
-
-			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Z", false, 103)]
-			[MenuItem(CONTROLPOINTS_MENUPATH + "/Flip Drag Points/Z", false, 203)]
-			private static void FlipZDP(MenuCommand command)
-			{
-				DragPointsItemInspector inspector = command.context as DragPointsItemInspector;
-				if (inspector == null) {
-					return;
-				}
-
-				inspector.FlipDragPoints(FlipAxis.Z);
-			}
-		}
-
+		private bool _foldoutControlPoints;
+		private static Vector3 _storedControlPoint = Vector3.zero;
 
 		protected override void OnEnable()
 		{
@@ -224,7 +41,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			Undo.postprocessModifications -= OnUndoRedoModifications;
 		}
 
-		protected void OnUndoRedoPerformed()
+		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
 			if (target is IEditableItemBehavior item) {
@@ -232,17 +49,14 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected UndoPropertyModification[] OnUndoRedoModifications(UndoPropertyModification[] modifs)
+		private static UndoPropertyModification[] OnUndoRedoModifications(UndoPropertyModification[] modifs)
 		{
 			return modifs;
 		}
 
 		public DragPointData GetDragPoint(int controlId)
 		{
-			if (_catmullCurveHandler != null) {
-				return _catmullCurveHandler.GetDragPoint(controlId);
-			}
-			return null;
+			return _catmullCurveHandler?.GetDragPoint(controlId);
 		}
 
 
@@ -416,11 +230,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 						var nearCP = _catmullCurveHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 						if (nearCP != null) {
 							MenuCommand command = new MenuCommand(this, nearCP.ControlId);
-							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CONTROLPOINTS_MENUPATH, command);
+							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
 							Event.current.Use();
 						} else if (HandleUtility.nearestControl == _catmullCurveHandler.CurveTravellerControlId) {
 							MenuCommand command = new MenuCommand(this, 0);
-							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CURVETRAVELLER_MENUPATH, command);
+							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
 							Event.current.Use();
 						}
 					}
