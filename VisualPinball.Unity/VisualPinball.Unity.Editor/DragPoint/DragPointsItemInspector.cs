@@ -14,9 +14,12 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		//Catmull Curve Handle
 		private CatmullCurveHandler _catmullCurveHandler;
 
-		//Inspector
+		/// <summary>
+		/// If true, a list of the drag points is displayed in the inspector.
+		/// </summary>
 		private bool _foldoutControlPoints;
 		private static Vector3 _storedControlPoint = Vector3.zero;
+		private static UndoPropertyModification[] OnUndoRedoModifications(UndoPropertyModification[] modifications) => modifications;
 
 		protected override void OnEnable()
 		{
@@ -41,25 +44,20 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			Undo.postprocessModifications -= OnUndoRedoModifications;
 		}
 
-		private void OnUndoRedoPerformed()
-		{
-			RemapControlPoints();
-			if (target is IEditableItemBehavior item) {
-				item.MeshDirty = true;
-			}
-		}
-
-		private static UndoPropertyModification[] OnUndoRedoModifications(UndoPropertyModification[] modifs)
-		{
-			return modifs;
-		}
-
+		/// <summary>
+		/// Returns a reference to the drag point data for a given control ID.
+		/// </summary>
+		/// <param name="controlId">Control ID of the drag point</param>
+		/// <returns>Drag point data or null if no linked data.</returns>
 		public DragPointData GetDragPoint(int controlId)
 		{
 			return _catmullCurveHandler?.GetDragPoint(controlId);
 		}
 
-
+		/// <summary>
+		/// Copies the position of a drag point.
+		/// </summary>
+		/// <param name="controlId">Control ID of the drag point</param>
 		public void CopyDragPoint(int controlId)
 		{
 			var dp = GetDragPoint(controlId);
@@ -67,88 +65,154 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				_storedControlPoint = dp.Vertex.ToUnityVector3();
 			}
 		}
+
+		/// <summary>
+		/// Sets the position of a previously copied drag point to another drag point.
+		/// </summary>
+		/// <param name="controlId">Control ID of the drag point to which the new position is applied.</param>
 		public void PasteDragPoint(int controlId)
 		{
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
-				PrepareUndo($"Paste Drag point {controlId}");
+				PrepareUndo($"Paste drag point {controlId}");
 				dp.Vertex = _storedControlPoint.ToVertex3D();
 			}
 		}
 
+		/// <summary>
+		/// Returns true if the game item is locked.
+		/// </summary>
+		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			if (editable == null) {
-				return true;
-			}
-			return editable.IsLocked;
+			return !(target is IEditableItemBehavior editable) || editable.IsLocked;
 		}
 
-		public bool HasDragPointExposition(DragPointExposition dpExpo)
+		/// <summary>
+		/// Returns whether this game item has a given drag point exposure.
+		/// </summary>
+		/// <param name="exposure">Exposure to check</param>
+		/// <returns>True if exposed, false otherwise.</returns>
+		public bool HasDragPointExposure(DragPointExposure exposure)
 		{
-			IDragPointsEditable dpeditable = target as IDragPointsEditable;
-			if (dpeditable == null) {
+			if (!(target is IDragPointsEditable editable)) {
 				return false;
 			}
-			return dpeditable.GetDragPointExposition().Contains(dpExpo);
+			return editable.GetDragPointExposition().Contains(exposure);
 		}
 
-		public void FlipDragPoints(FlipAxis flipAxe)
+		/// <summary>
+		/// Flips all drag points on a given axis.
+		/// </summary>
+		/// <param name="flipAxis">Axis to flip on</param>
+		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			IDragPointsEditable dpeditable = target as IDragPointsEditable;
-			if (dpeditable == null || (dpeditable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxe == FlipAxis.Z)) {
+			if (!(target is IDragPointsEditable editable)) {
 				return;
 			}
 
-			PrepareUndo($"Flipping Drag Points on axe {flipAxe}");
+			if (editable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
+				return;
+			}
 
-			_catmullCurveHandler.FlipDragPoints(flipAxe);
+			PrepareUndo($"Flip drag points on {flipAxis} axis");
+			_catmullCurveHandler.FlipDragPoints(flipAxis);
+		}
+
+		/// <summary>
+		/// Copies drag point data to the control points used in the editor.
+		/// </summary>
+		public void RemapControlPoints()
+		{
+			var rebuilt = _catmullCurveHandler.RemapControlPoints();
+			if (rebuilt && target is IEditableItemBehavior editable) {
+				editable.MeshDirty = true;
+			}
+		}
+
+		/// <summary>
+		/// Adds a new drag point at the traveller's current position.
+		/// </summary>
+		public void AddDragPointOnTraveller()
+		{
+			PrepareUndo($"Add drag point at position {_catmullCurveHandler.CurveTravellerPosition}");
+			_catmullCurveHandler.AddDragPointOnTraveller();
+		}
+
+		/// <summary>
+		/// Removes a drag point of a given control ID.
+		/// </summary>
+		/// <param name="controlId">Control ID of the drag point to remove.</param>
+		public void RemoveDragPoint(int controlId)
+		{
+			PrepareUndo($"Remove drag point at ID {controlId}");
+			_catmullCurveHandler.RemoveDragPoint(controlId);
+		}
+
+		/// <summary>
+		/// Sets an UNDO point before the next operation.
+		/// </summary>
+		/// <param name="message">Message to appear in the UNDO menu</param>
+		public void PrepareUndo(string message)
+		{
+			if (target == null) {
+				return;
+			}
+
+			// Set MeshDirty to true there so it'll trigger again after Undo
+			var recordObjs = new List<Object>();
+			if (target is IEditableItemBehavior editable) {
+				editable.MeshDirty = true;
+				recordObjs.Add(this);
+			}
+			recordObjs.Add(target);
+			Undo.RecordObjects(recordObjs.ToArray(), $"Item {target} : {message}");
 		}
 
 		public override void OnInspectorGUI()
 		{
 			base.OnInspectorGUI();
 
-			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			IDragPointsEditable dpeditable = target as IDragPointsEditable;
-			if (editable == null || dpeditable == null) {
+			var editable = target as IEditableItemBehavior;
+			var dragPointEditable = target as IDragPointsEditable;
+			if (editable == null || dragPointEditable == null) {
 				return;
 			}
 
-			string enabledString = dpeditable.DragPointEditEnabled ? $"(ON), Stored Coordinates {_storedControlPoint}" : "(OFF)";
+			var enabledString = dragPointEditable.DragPointEditEnabled ? $"(ON), Stored Coordinates {_storedControlPoint}" : "(OFF)";
 			if (GUILayout.Button($"Edit Drag Points {enabledString}")) {
-				dpeditable.DragPointEditEnabled = !dpeditable.DragPointEditEnabled;
+				dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
 				SceneView.RepaintAll();
 			}
 
-			if (dpeditable.DragPointEditEnabled) {
+			if (dragPointEditable.DragPointEditEnabled) {
 				if (editable.IsLocked) {
 					EditorGUILayout.LabelField("Drag Points are Locked");
 				} else {
-					if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points")) {
+					_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
+					if (_foldoutControlPoints) {
 						EditorGUI.indentLevel++;
-						for (int i = 0; i < _catmullCurveHandler.ControlPoints.Count; ++i) {
-							var cpoint = _catmullCurveHandler.ControlPoints[i];
-							EditorGUILayout.BeginHorizontal("DragpointBar");
-							EditorGUILayout.LabelField($"Dragpoint [{i}] : ({cpoint.DragPoint.Vertex.X},{cpoint.DragPoint.Vertex.Y},{cpoint.DragPoint.Vertex.Z})");
+						for (var i = 0; i < _catmullCurveHandler.ControlPoints.Count; ++i) {
+							var controlPoint = _catmullCurveHandler.ControlPoints[i];
+							EditorGUILayout.BeginHorizontal();
+							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Vertex.X},{controlPoint.DragPoint.Vertex.Y},{controlPoint.DragPoint.Vertex.Z})");
 							if (GUILayout.Button("Copy")) {
-								CopyDragPoint(cpoint.ControlId);
+								CopyDragPoint(controlPoint.ControlId);
 							}
 							else if (GUILayout.Button("Paste")) {
-								PasteDragPoint(cpoint.ControlId);
+								PasteDragPoint(controlPoint.ControlId);
 							}
 							EditorGUILayout.EndHorizontal();
 							EditorGUI.indentLevel++;
-							if (HasDragPointExposition(DragPointExposition.SlingShot)) {
-								ItemDataField("Slingshot", ref cpoint.DragPoint.IsSlingshot);
+							if (HasDragPointExposure(DragPointExposure.SlingShot)) {
+								ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
 							}
-							if (HasDragPointExposition(DragPointExposition.Smooth)) {
-								ItemDataField("Smooth", ref cpoint.DragPoint.IsSmooth);
+							if (HasDragPointExposure(DragPointExposure.Smooth)) {
+								ItemDataField("Smooth", ref controlPoint.DragPoint.IsSmooth);
 							}
-							if (HasDragPointExposition(DragPointExposition.Texture)) {
-								ItemDataField("Has AutoTexture", ref cpoint.DragPoint.HasAutoTexture);
-								ItemDataSlider("Texture Coord", ref cpoint.DragPoint.TextureCoord, 0.0f, 1.0f);
+							if (HasDragPointExposure(DragPointExposure.Texture)) {
+								ItemDataField("Has AutoTexture", ref controlPoint.DragPoint.HasAutoTexture);
+								ItemDataSlider("Texture Coord", ref controlPoint.DragPoint.TextureCoord, 0.0f, 1.0f);
 							}
 							EditorGUI.indentLevel--;
 						}
@@ -159,63 +223,33 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			}
 		}
 
-		public void RemapControlPoints()
-		{
-			var rebuilt = _catmullCurveHandler.RemapControlPoints();
-			if (rebuilt && target is IEditableItemBehavior editable) {
-				editable.MeshDirty = true;
-			}
-		}
-
-		public void PrepareUndo(string message)
-		{
-			if (target == null) {
-				return;
-			}
-
-			//Set Meshdirty to true there so it'll trigger again after Undo
-			List<Object> recordObjs = new List<Object>();
-			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			if (editable != null) {
-				editable.MeshDirty = true;
-				recordObjs.Add(this);
-			}
-			recordObjs.Add(target);
-			Undo.RecordObjects(recordObjs.ToArray(), $"Item {target} : {message}");
-		}
-
-		public void AddDragPointOnTraveller()
-		{
-			PrepareUndo($"Adding Drag Point at position {_catmullCurveHandler.CurveTravellerPosition}");
-			_catmullCurveHandler.AddDragPointOnTraveller();
-		}
-
-		public void RemoveDragPoint(int controlId)
-		{
-			PrepareUndo($"Remove Drag Point at Control Point ID : {controlId}");
-			_catmullCurveHandler.RemoveDragPoint(controlId);
-		}
-
 		private void UpdateDragPointsLock()
 		{
-			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			if (_catmullCurveHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IEditableItemBehavior editable && _catmullCurveHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				SceneView.RepaintAll();
 			}
 		}
 
 		private void OnDragPointPositionChange(Vector3 newPos)
 		{
-			PrepareUndo($"[{target?.name}] Change DragPoint Position for {_catmullCurveHandler.SelectedControlPoints.Count} Control points.");
+			PrepareUndo($"[{target?.name}] Change drag point position for {_catmullCurveHandler.SelectedControlPoints.Count} control points.");
+		}
+
+		private void OnUndoRedoPerformed()
+		{
+			RemapControlPoints();
+			if (target is IEditableItemBehavior item) {
+				item.MeshDirty = true;
+			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			IDragPointsEditable dpeditable = target as IDragPointsEditable;
-			Behaviour bh = target as Behaviour;
+			var editable = target as IEditableItemBehavior;
+			var dragPointEditable = target as IDragPointsEditable;
+			var bh = target as Behaviour;
 
-			if (bh == null || dpeditable == null || !dpeditable.DragPointEditEnabled) {
+			if (editable == null || bh == null || dragPointEditable == null || !dragPointEditable.DragPointEditEnabled) {
 				return;
 			}
 
@@ -224,22 +258,19 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 			_catmullCurveHandler.OnSceneGUI(Event.current, editable.IsLocked, OnDragPointPositionChange);
 
-			switch (Event.current.type) {
-				case EventType.MouseDown: {
-					if (Event.current.button == 1) {
-						var nearCP = _catmullCurveHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
-						if (nearCP != null) {
-							MenuCommand command = new MenuCommand(this, nearCP.ControlId);
-							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
-							Event.current.Use();
-						} else if (HandleUtility.nearestControl == _catmullCurveHandler.CurveTravellerControlId) {
-							MenuCommand command = new MenuCommand(this, 0);
-							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
-							Event.current.Use();
-						}
-					}
+			// right mouse button clicked?
+			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
+				var nearestControlPoint = _catmullCurveHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
+
+				if (nearestControlPoint != null) {
+					var command = new MenuCommand(this, nearestControlPoint.ControlId);
+					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
+
+				} else if (HandleUtility.nearestControl == _catmullCurveHandler.CurveTravellerControlId) {
+					var command = new MenuCommand(this, 0);
+					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
 				}
-				break;
+				Event.current.Use();
 			}
 		}
 	}

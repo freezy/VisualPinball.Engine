@@ -348,7 +348,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 					_curveTravellerControlPointIdx = -1;
 					foreach (var controlPoint in ControlPoints) {
 						if (controlPoint.PathPoints.Count > 1) {
-							Handles.color = _editable.GetDragPointExposition().Contains(DragPointExposition.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
+							Handles.color = _editable.GetDragPointExposition().Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
 							Handles.DrawAAPolyLine(CurveWidth, controlPoint.PathPoints.ToArray());
 							var closestToPath = HandleUtility.ClosestPointToPolyLine(controlPoint.PathPoints.ToArray());
 							if (_curveTravellerControlPointIdx == -1 && closestToPath == CurveTravellerPosition) {
