@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Unity.Editor.DragPoint;
 using VisualPinball.Unity.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor.Inspectors

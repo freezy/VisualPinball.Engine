@@ -1,5 +1,6 @@
 ﻿
 using UnityEditor;
+using VisualPinball.Unity.Editor.DragPoint;
 using VisualPinball.Unity.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor.Inspectors
