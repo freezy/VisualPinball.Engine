@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 	public abstract class DragPointsItemInspector : ItemInspector
 	{
 		//Catmull Curve Handle
-		CatmullCurveHandle _catmullCurveHandle = null;
+		CatmullCurveHandler _catmullCurveHandler = null;
 
 		//Inspector
 		private bool _foldoutControlPoints = false;
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					return;
 				}
 
-				inspector.FlipDragPoints(CatmullCurveHandle.FlipAxes.X);
+				inspector.FlipDragPoints(FlipAxis.X);
 			}
 
 			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Y", false, 102)]
@@ -184,7 +184,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					return;
 				}
 
-				inspector.FlipDragPoints(CatmullCurveHandle.FlipAxes.Y);
+				inspector.FlipDragPoints(FlipAxis.Y);
 			}
 
 			[MenuItem(CURVETRAVELLER_MENUPATH + "/Flip Drag Points/Z", false, 103)]
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					return;
 				}
 
-				inspector.FlipDragPoints(CatmullCurveHandle.FlipAxes.Z);
+				inspector.FlipDragPoints(FlipAxis.Z);
 			}
 		}
 
@@ -205,12 +205,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			base.OnEnable();
 
-			_catmullCurveHandle = new CatmullCurveHandle(target);
-			_catmullCurveHandle.CurveWidth = 10.0f;
-			_catmullCurveHandle.CurveColor = UnityEngine.Color.blue;
-			_catmullCurveHandle.CurveSlingShotColor= UnityEngine.Color.red;
-			_catmullCurveHandle.ControlPointsSizeRatio = 1.0f;
-			_catmullCurveHandle.CurveTravellerSizeRatio = 0.75f;
+			_catmullCurveHandler = new CatmullCurveHandler(target) {
+				CurveWidth = 10.0f,
+				CurveColor = UnityEngine.Color.blue,
+				CurveSlingShotColor = UnityEngine.Color.red,
+				ControlPointsSizeRatio = 1.0f,
+				CurveTravellerSizeRatio = 0.75f
+			};
 
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 			Undo.postprocessModifications += OnUndoRedoModifications;
@@ -218,7 +219,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		protected virtual void OnDisable()
 		{
-			_catmullCurveHandle = null;
+			_catmullCurveHandler = null;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 			Undo.postprocessModifications -= OnUndoRedoModifications;
 		}
@@ -238,8 +239,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public DragPointData GetDragPoint(int controlId)
 		{
-			if (_catmullCurveHandle != null) {
-				return _catmullCurveHandle.GetDragPoint(controlId);
+			if (_catmullCurveHandler != null) {
+				return _catmullCurveHandler.GetDragPoint(controlId);
 			}
 			return null;
 		}
@@ -279,16 +280,16 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			return dpeditable.GetDragPointExposition().Contains(dpExpo);
 		}
 
-		public void FlipDragPoints(CatmullCurveHandle.FlipAxes flipAxe)
+		public void FlipDragPoints(FlipAxis flipAxe)
 		{
 			IDragPointsEditable dpeditable = target as IDragPointsEditable;
-			if (dpeditable == null || (dpeditable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxe == CatmullCurveHandle.FlipAxes.Z)) {
+			if (dpeditable == null || (dpeditable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxe == FlipAxis.Z)) {
 				return;
 			}
 
 			PrepareUndo($"Flipping Drag Points on axe {flipAxe}");
 
-			_catmullCurveHandle.FlipDragPoints(flipAxe);
+			_catmullCurveHandler.FlipDragPoints(flipAxe);
 		}
 
 		public override void OnInspectorGUI()
@@ -313,8 +314,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				} else {
 					if (_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points")) {
 						EditorGUI.indentLevel++;
-						for (int i = 0; i < _catmullCurveHandle.ControlPoints.Count; ++i) {
-							var cpoint = _catmullCurveHandle.ControlPoints[i];
+						for (int i = 0; i < _catmullCurveHandler.ControlPoints.Count; ++i) {
+							var cpoint = _catmullCurveHandler.ControlPoints[i];
 							EditorGUILayout.BeginHorizontal("DragpointBar");
 							EditorGUILayout.LabelField($"Dragpoint [{i}] : ({cpoint.DragPoint.Vertex.X},{cpoint.DragPoint.Vertex.Y},{cpoint.DragPoint.Vertex.Z})");
 							if (GUILayout.Button("Copy")) {
@@ -346,11 +347,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public void RemapControlPoints()
 		{
-			if (_catmullCurveHandle.RemapControlPoints() == CatmullCurveHandle.RemapReturn.ControlPointsRebuilt) {
-				IEditableItemBehavior editable = target as IEditableItemBehavior;
-				if (editable != null) {
-					editable.MeshDirty = true;
-				}
+			var rebuilt = _catmullCurveHandler.RemapControlPoints();
+			if (rebuilt && target is IEditableItemBehavior editable) {
+				editable.MeshDirty = true;
 			}
 		}
 
@@ -373,27 +372,27 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public void AddDragPointOnTraveller()
 		{
-			PrepareUndo($"Adding Drag Point at position {_catmullCurveHandle.CurveTravellerPosition}");
-			_catmullCurveHandle.AddDragPointOnTraveller();
+			PrepareUndo($"Adding Drag Point at position {_catmullCurveHandler.CurveTravellerPosition}");
+			_catmullCurveHandler.AddDragPointOnTraveller();
 		}
 
 		public void RemoveDragPoint(int controlId)
 		{
 			PrepareUndo($"Remove Drag Point at Control Point ID : {controlId}");
-			_catmullCurveHandle.RemoveDragPoint(controlId);
+			_catmullCurveHandler.RemoveDragPoint(controlId);
 		}
 
 		private void UpdateDragPointsLock()
 		{
 			IEditableItemBehavior editable = target as IEditableItemBehavior;
-			if (_catmullCurveHandle.UpdateDragPointsLock(editable.IsLocked)) {
+			if (_catmullCurveHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				SceneView.RepaintAll();
 			}
 		}
 
 		private void OnDragPointPositionChange(Vector3 newPos)
 		{
-			PrepareUndo($"[{target?.name}] Change DragPoint Position for {_catmullCurveHandle.SelectedControlPoints.Count} Control points.");
+			PrepareUndo($"[{target?.name}] Change DragPoint Position for {_catmullCurveHandler.SelectedControlPoints.Count} Control points.");
 		}
 
 		protected virtual void OnSceneGUI()
@@ -409,17 +408,17 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			RemapControlPoints();
 			UpdateDragPointsLock();
 
-			_catmullCurveHandle.OnSceneGUI(Event.current, editable.IsLocked, OnDragPointPositionChange);
+			_catmullCurveHandler.OnSceneGUI(Event.current, editable.IsLocked, OnDragPointPositionChange);
 
 			switch (Event.current.type) {
 				case EventType.MouseDown: {
 					if (Event.current.button == 1) {
-						var nearCP = _catmullCurveHandle.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
+						var nearCP = _catmullCurveHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 						if (nearCP != null) {
 							MenuCommand command = new MenuCommand(this, nearCP.ControlId);
 							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CONTROLPOINTS_MENUPATH, command);
 							Event.current.Use();
-						} else if (HandleUtility.nearestControl == _catmullCurveHandle.CurveTravellerControlId) {
+						} else if (HandleUtility.nearestControl == _catmullCurveHandler.CurveTravellerControlId) {
 							MenuCommand command = new MenuCommand(this, 0);
 							EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), MenuItems.CURVETRAVELLER_MENUPATH, command);
 							Event.current.Use();
