@@ -2,7 +2,7 @@
 using UnityEngine;
 using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Handle
+namespace VisualPinball.Unity.Editor.DragPoint
 {
 	public static class HandlesUtils
 	{

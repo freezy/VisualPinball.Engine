@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
-using VisualPinball.Engine.Math;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.Extensions;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT;
 using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity.Editor.Handle
+namespace VisualPinball.Unity.Editor.DragPoint
 {
+	public delegate void OnDragPointPositionChange(Vector3 newPosition);
+
 	public class CatmullCurveHandler
 	{
-		public delegate void OnDragPointPositionChange(Vector3 newPosition);
-
 		/// <summary>
 		/// Authoring element
 		/// </summary>
@@ -301,7 +301,7 @@ namespace VisualPinball.Unity.Editor.Handle
 				vAccuracy = lwMat.MultiplyVector(vAccuracy);
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= accuracy;
-				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
+				var vVertex = Engine.Math.DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
 					transformedDPoints.ToArray(), _editable.PointsAreLooping(), accuracy
 				);
 
