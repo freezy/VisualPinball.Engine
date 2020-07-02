@@ -27,13 +27,16 @@
     <PackageReference Include="NetMiniZ" Version="1.0.2" />
     <PackageReference Include="NetMiniZ.Native.osx-x64" Version="1.0.2" />
     <PackageReference Include="NetMiniZ.Native.win-x64" Version="1.0.2" />
+    <PackageReference Include="NetMiniZ.Native.linux-x64" Version="1.0.2" />
     <PackageReference Include="NetVips" Version="1.2.3" />
     <PackageReference Include="NetVips.Native.win-x64" Version="8.9.2-build3" />
     <PackageReference Include="NetVips.Native.osx-x64" Version="8.9.2-build3" />
-    <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13" />
+    <PackageReference Include="NetVips.Native.linux-x64" Version="8.9.2-build3" />
+    <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13" />    
   </ItemGroup>
   <Import Project="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets')" />
   <Import Project="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets')" />
+  <Import Project="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\build\net461\NetVips.Native.linux-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\build\net461\NetVips.Native.linux-x64.targets')" />
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
@@ -55,11 +58,12 @@
     <ItemGroup>
       <VendorFiles Include="$(OutDir)NLog.dll" />
       <VendorFiles Include="$(OutDir)OpenMcdf.dll" />
-      <VendorFiles Include="$(OutDir)NetMiniZ.dll;$(OutDir)libminiz*.dll;$(OutDir)libminiz*.dylib" />
+      <VendorFiles Include="$(OutDir)NetMiniZ.dll;$(OutDir)libminiz*.dll;$(OutDir)libminiz*.dylib;$(OutDir)libminiz.so.*" />
       <VendorFiles Include="$(OutDir)NetVips.dll;$(OutDir)NetVips.dll.config" />
       <!-- NetVips win-x64 build targets specifically exclude mono and won't be in $(OutDir), so copy from packages -->
       <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" />
       <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\runtimes\linux-x64\native\*.so.*" />
     </ItemGroup>
     <Message Text="VendorDeploy: @(VendorFiles)" />
     <Copy SourceFiles="@(VendorFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
