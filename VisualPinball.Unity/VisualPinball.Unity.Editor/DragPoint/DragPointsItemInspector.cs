@@ -11,37 +11,38 @@ namespace VisualPinball.Unity.Editor.DragPoint
 {
 	public abstract class DragPointsItemInspector : ItemInspector
 	{
-		//Catmull Curve Handle
+		/// <summary>
+		/// Catmull Curve Handler
+		/// </summary>
 		public DragPointsHandler DragPointsHandler { get; private set; } = null;
 
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
 		/// </summary>
 		private bool _foldoutControlPoints;
+
+		/// <summary>
+		/// stored vector during the copy/paste process
+		/// </summary>
+		///
+		/// <remarks>
+		/// It is globally stored so it can be copy/pasted on different items
+		/// </remarks>
 		private static Vector3 _storedControlPoint = Vector3.zero;
-		private static UndoPropertyModification[] OnUndoRedoModifications(UndoPropertyModification[] modifications) => modifications;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			DragPointsHandler = new DragPointsHandler(target) {
-				CurveWidth = 10.0f,
-				CurveColor = UnityEngine.Color.blue,
-				CurveSlingShotColor = UnityEngine.Color.red,
-				ControlPointsSizeRatio = 1.0f,
-				CurveTravellerSizeRatio = 0.75f
-			};
+			DragPointsHandler = new DragPointsHandler(target);
 
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
-			Undo.postprocessModifications += OnUndoRedoModifications;
 		}
 
 		protected virtual void OnDisable()
 		{
 			DragPointsHandler = null;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
-			Undo.postprocessModifications -= OnUndoRedoModifications;
 		}
 
 		/// <summary>
@@ -256,7 +257,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			RemapControlPoints();
 			UpdateDragPointsLock();
 
-			DragPointsHandler.OnSceneGUI(Event.current, editable.IsLocked, OnDragPointPositionChange);
+			DragPointsHandler.OnSceneGUI(Event.current, OnDragPointPositionChange);
 
 			// right mouse button clicked?
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
@@ -265,11 +266,9 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				if (nearestControlPoint != null) {
 					var command = new MenuCommand(this, nearestControlPoint.ControlId);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
-					Event.current.Use();
 				} else if (DragPointsHandler.CurveTravellerVisible && HandleUtility.nearestControl == DragPointsHandler.CurveTravellerControlId) {
 					var command = new MenuCommand(this, 0);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
-					Event.current.Use();
 				}
 			}
 		}
