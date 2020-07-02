@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 {
 	public delegate void OnDragPointPositionChange(Vector3 newPosition);
 
-	public class CatmullCurveHandler
+	public class DragPointsHandler
 	{
 		/// <summary>
 		/// Authoring element
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// </summary>
 		/// <param name="target"></param>
 		/// <exception cref="ArgumentException"></exception>
-		public CatmullCurveHandler(Object target)
+		public DragPointsHandler(Object target)
 		{
 			_editable = target as IDragPointsEditable
 			            ?? throw new ArgumentException("Target must extend `IDragPointsEditable`.");
