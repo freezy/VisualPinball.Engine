@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <Title>VisualPinball.Engine.Test</Title>
     <Description>A .NET port of Visual Pinball in C#</Description>
-    <Authors>freezy</Authors>
-    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io#&gt;</Copyright>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh</Authors>
+    <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
@@ -36,5 +36,5 @@
     </ItemGroup>
     <Message Text="DeployVendor: @(VendorFiles)" />
     <Copy SourceFiles="@(VendorFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
-  </Target>  
+  </Target>
 </Project>
