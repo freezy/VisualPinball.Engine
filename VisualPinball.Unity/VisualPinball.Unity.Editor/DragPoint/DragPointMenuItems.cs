@@ -112,7 +112,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				return false;
 			}
 
-			if (inspector.CatmullCurveHandler?.ControlPoints.Count <= 2) {
+			if (inspector.DragPointsHandler?.ControlPoints.Count <= 2) {
 				Menu.SetChecked($"{ControlPointsMenuPath}/Remove Point", false);
 				return false;
 			}
