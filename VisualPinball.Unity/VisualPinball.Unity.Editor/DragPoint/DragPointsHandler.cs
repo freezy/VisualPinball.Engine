@@ -16,7 +16,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 	public class DragPointsHandler
 	{
 		/// <summary>
-		/// Authoring item 
+		/// Authoring item
 		/// </summary>
 		public IEditableItemBehavior Editable { get; private set; }
 
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <summary>
 		/// Scene view handler
 		/// </summary>
-		/// 
+		///
 		/// <remarks>
 		/// Will handle all the rendering part and update some handler's variables about curve traveller
 		/// </remarks>
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <summary>
 		/// Curve traveller handling
 		/// </summary>
-		/// 
+		///
 		/// <remarks>
 		/// CurveTravellerPosition, CurveTravellerControlPointIdx & CurveTravellerVisible will be updated by the DragPointsSceneViewHandler
 		/// </remarks>
@@ -75,10 +75,10 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		public DragPointsHandler(Object target)
 		{
 			Editable = target as IEditableItemBehavior
-						?? throw new ArgumentException("Target must extend `IEditableItemBehavior`.");
+			    ?? throw new ArgumentException("Target must extend `IEditableItemBehavior`.");
 
 			DragPointEditable = target as IDragPointsEditable
-			            ?? throw new ArgumentException("Target must extend `IDragPointsEditable`.");
+			    ?? throw new ArgumentException("Target must extend `IDragPointsEditable`.");
 
 			if (!(target is Behaviour)) {
 				throw new ArgumentException("Target must extend `Behavior`.");
