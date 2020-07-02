@@ -104,7 +104,20 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		private static bool RemoveValidate(MenuCommand command)
 		{
 			var inspector = command.context as DragPointsItemInspector;
-			return inspector != null && !inspector.IsItemLocked();
+			if (inspector == null) {
+				return false;
+			}
+
+			if (inspector.IsItemLocked()) {
+				return false;
+			}
+
+			if (inspector.CatmullCurveHandler?.ControlPoints.Count <= 2) {
+				Menu.SetChecked($"{ControlPointsMenuPath}/Remove Point", false);
+				return false;
+			}
+
+			return true;
 		}
 
 		[MenuItem(ControlPointsMenuPath + "/Copy Point", false, 301)]
