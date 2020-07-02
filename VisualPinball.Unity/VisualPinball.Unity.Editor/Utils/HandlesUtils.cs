@@ -11,41 +11,38 @@ namespace VisualPinball.Unity.Editor.Utils
 			return HandlePosition(position, type, rotation, 0.2f, 0.0f);
 		}
 
-		public static Vector3 HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap)
+		private static Vector3 HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap)
 		{
-			Vector3 forward = rotation * Vector3.forward;
-			Vector3 right = rotation * Vector3.right;
-			Vector3 up = rotation * Vector3.up;
-			Vector3 newPos = position;
+			var forward = rotation * Vector3.forward;
+			var right = rotation * Vector3.right;
+			var up = rotation * Vector3.up;
+			var newPos = position;
 
-			switch (type)
-			{
-				case ItemDataTransformType.TwoD:
-					{
-						Handles.color = Handles.xAxisColor;
-						newPos = Handles.Slider(newPos, right);
+			switch (type) {
+				case ItemDataTransformType.TwoD: {
+
+					Handles.color = Handles.xAxisColor;
+					newPos = Handles.Slider(newPos, right);
 
 					Handles.color = Handles.yAxisColor;
-						newPos = Handles.Slider(newPos, up);
+					newPos = Handles.Slider(newPos, up);
 
 					Handles.color = Handles.zAxisColor;
-						newPos = Handles.Slider2D(
-							newPos,
-							forward,
-							right,
-							up,
-							HandleUtility.GetHandleSize(position) * handleSize,
-							Handles.RectangleHandleCap,
-							snap);
-						break;
-					}
-				case ItemDataTransformType.ThreeD:
-					{
-						newPos = Handles.PositionHandle(newPos, rotation);
-						break;
-					}
-				default:
+					newPos = Handles.Slider2D(
+						newPos,
+						forward,
+						right,
+						up,
+						HandleUtility.GetHandleSize(position) * handleSize,
+						Handles.RectangleHandleCap,
+						snap);
 					break;
+				}
+
+				case ItemDataTransformType.ThreeD: {
+					newPos = Handles.PositionHandle(newPos, rotation);
+					break;
+				}
 			}
 
 			return newPos;

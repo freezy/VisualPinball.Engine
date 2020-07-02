@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Editor.DragPoint
 {
@@ -21,15 +21,14 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// </summary>
 		private readonly List<Vector3> _pathPoints = new List<Vector3>();
 
-
 		public float CurveWidth { get; set; } = 10.0f;
 
 		public float ControlPointsSizeRatio { get; set; } = 1.0f;
 		public float CurveTravellerSizeRatio { get; set; } = 1.0f;
 
-		public UnityEngine.Color CurveColor { get; set; } = UnityEngine.Color.blue;
+		public Color CurveColor { get; set; } = Color.blue;
 
-		public UnityEngine.Color CurveSlingShotColor { get; set; } = UnityEngine.Color.red;
+		public Color CurveSlingShotColor { get; set; } = Color.red;
 
 		public DragPointsSceneViewHandler(DragPointsHandler handler)
 		{
@@ -43,7 +42,6 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			}
 
 			DisplayCurve();
-
 			DisplayControlPoints();
 		}
 
@@ -100,6 +98,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 					// construct full path
 					_pathPoints.Clear();
+					const float splitRatio = 0.05f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
 						var segments = controlPointsSegments[controlPoint.Index];
@@ -108,9 +107,8 @@ namespace VisualPinball.Unity.Editor.DragPoint
 							var dist = dir.magnitude;
 							dir = Vector3.Normalize(dir);
 							var newPath = new List<Vector3> {
-							segments[0]
+								segments[0]
 							};
-							float splitRatio = 0.05f;
 							for (var splitDist = dist * splitRatio; splitDist < dist; splitDist += dist * splitRatio) {
 								newPath.Add(newPath[0] + dir * splitDist);
 							}
@@ -154,10 +152,10 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			for (var i = 0; i < _handler.ControlPoints.Count; ++i) {
 				var controlPoint = _handler.ControlPoints[i];
 				Handles.color = controlPoint.DragPoint.IsLocked
-					? UnityEngine.Color.red
+					? Color.red
 					: controlPoint.IsSelected
-						? UnityEngine.Color.green
-						: UnityEngine.Color.gray;
+						? Color.green
+						: Color.gray;
 
 				Handles.SphereHandleCap(0,
 					controlPoint.WorldPos,
@@ -174,7 +172,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			if (!_handler.Editable.IsLocked) {
 				// curve traveller is not overlapping a control point, we can draw it.
 				if (distToCPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
-					Handles.color = UnityEngine.Color.grey;
+					Handles.color = Color.grey;
 					Handles.SphereHandleCap(_handler.CurveTravellerControlId, _handler.CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
 					_handler.CurveTravellerVisible = true;
 					HandleUtility.Repaint();

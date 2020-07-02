@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		/// <summary>
 		/// Catmull Curve Handler
 		/// </summary>
-		public DragPointsHandler DragPointsHandler { get; private set; } = null;
+		public DragPointsHandler DragPointsHandler { get; private set; }
 
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
