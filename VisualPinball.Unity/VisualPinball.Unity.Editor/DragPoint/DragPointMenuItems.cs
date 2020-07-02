@@ -104,11 +104,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		private static bool RemoveValidate(MenuCommand command)
 		{
 			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
-				return false;
-			}
-
-			if (inspector.IsItemLocked()) {
+			if (inspector == null || inspector.IsItemLocked()) {
 				return false;
 			}
 
@@ -140,6 +136,17 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			}
 
 			inspector.PasteDragPoint(command.userData);
+		}
+
+		[MenuItem(ControlPointsMenuPath + "/Paste Point", true)]
+		private static bool PasteValidate(MenuCommand command)
+		{
+			var inspector = command.context as DragPointsItemInspector;
+			if (inspector == null || inspector.IsItemLocked()) {
+				return false;
+			}
+
+			return true;
 		}
 
 		//Curve Traveller
