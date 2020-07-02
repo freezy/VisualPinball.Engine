@@ -23,11 +23,6 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		public DragPointData DragPoint;
 
 		/// <summary>
-		/// Points that render the curve in the scene view
-		/// </summary>
-		public List<Vector3> PathPoints = new List<Vector3>();
-
-		/// <summary>
 		/// Position in world space
 		/// </summary>
 		public Vector3 WorldPos = Vector3.zero;
