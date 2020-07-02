@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 		public int CurveTravellerControlId { get; private set; }
 		public Vector3 CurveTravellerPosition { get; private set; } = Vector3.zero;
-		private bool _curveTravellerVisible;
+		public bool CurveTravellerVisible { get; private set; }
 		private int _curveTravellerControlPointIdx = -1;
 
 		public float CurveWidth { get; set; } = 10.0f;
@@ -262,7 +262,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 					break;
 
 				case EventType.Repaint:
-					_curveTravellerVisible = false;
+					CurveTravellerVisible = false;
 					break;
 			}
 
@@ -288,7 +288,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			}
 
 			// Display Curve & handle curve traveller
-			if (ControlPoints.Count > 3) {
+			if (ControlPoints.Count > 1) {
 				var transformedDPoints = new List<DragPointData>();
 				foreach (var controlPoint in ControlPoints) {
 					var newDp = new DragPointData(controlPoint.DragPoint) {
@@ -384,7 +384,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 					if (distToCPoint > HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius) {
 						Handles.color = UnityEngine.Color.grey;
 						Handles.SphereHandleCap(CurveTravellerControlId, CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
-						_curveTravellerVisible = true;
+						CurveTravellerVisible = true;
 						HandleUtility.Repaint();
 					}
 				}
@@ -430,7 +430,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				_positionHandlePosition /= SelectedControlPoints.Count;
 			}
 
-			if (_curveTravellerVisible) {
+			if (CurveTravellerVisible) {
 				HandleUtility.AddControl(CurveTravellerControlId,
 					HandleUtility.DistanceToCircle(Handles.matrix.MultiplyPoint(CurveTravellerPosition),
 						HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius *
