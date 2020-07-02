@@ -226,7 +226,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		private void UpdateDragPointsLock()
 		{
 			if (target is IEditableItemBehavior editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
-				SceneView.RepaintAll();
+				HandleUtility.Repaint();
 			}
 		}
 
@@ -265,12 +265,12 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				if (nearestControlPoint != null) {
 					var command = new MenuCommand(this, nearestControlPoint.ControlId);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
-
-				} else if ( DragPointsHandler.CurveTravellerVisible && HandleUtility.nearestControl == DragPointsHandler.CurveTravellerControlId) {
+					Event.current.Use();
+				} else if (DragPointsHandler.CurveTravellerVisible && HandleUtility.nearestControl == DragPointsHandler.CurveTravellerControlId) {
 					var command = new MenuCommand(this, 0);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
+					Event.current.Use();
 				}
-				Event.current.Use();
 			}
 		}
 	}

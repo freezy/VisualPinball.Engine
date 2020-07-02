@@ -6,6 +6,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
+using VisualPinball.Unity.Editor.Utils;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor.DragPoint
@@ -216,7 +217,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 					_editable.GetDragPoints()[i],
 					GUIUtility.GetControlID(FocusType.Passive),
 					i,
-					(float)i / _editable.GetDragPoints().Length
+					_editable.GetDragPoints().Length >= 2 ? (float)i / (_editable.GetDragPoints().Length-1) : 0.0f
 				);
 				ControlPoints.Add(cp);
 			}
@@ -300,7 +301,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				var vAccuracy = Vector3.one;
 				vAccuracy = lwMat.MultiplyVector(vAccuracy);
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
-				accuracy *= accuracy;
+				accuracy *= HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius;
 				var vVertex = Engine.Math.DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
 					transformedDPoints.ToArray(), _editable.PointsAreLooping(), accuracy
 				);
@@ -333,7 +334,8 @@ namespace VisualPinball.Unity.Editor.DragPoint
 							var newPath = new List<Vector3> {
 								controlPoint.PathPoints[0]
 							};
-							for (var splitDist = dist * 0.1f; splitDist < dist; splitDist += dist * 0.1f) {
+							float splitRatio = 0.05f;
+							for (var splitDist = dist * splitRatio; splitDist < dist; splitDist += dist * splitRatio) {
 								newPath.Add(controlPoint.PathPoints[0] + dir * splitDist);
 							}
 							newPath.Add(controlPoint.PathPoints[1]);
