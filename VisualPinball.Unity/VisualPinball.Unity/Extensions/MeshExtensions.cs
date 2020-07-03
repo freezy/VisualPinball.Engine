@@ -1,10 +1,29 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
+
 namespace VisualPinball.Unity.Extensions
 {
 	public static class MeshExtensions
 	{
+		public static Engine.VPT.Mesh ToVpMesh(this UnityEngine.Mesh unityMesh)
+		{
+			var vpMesh = new Engine.VPT.Mesh(unityMesh.name);
+			vpMesh.Vertices = new Engine.Math.Vertex3DNoTex2[unityMesh.vertexCount];
+			for (int i = 0; i < vpMesh.Vertices.Length; i++) {
+				var unityVertex = unityMesh.vertices[i];
+				var unityNormal = unityMesh.normals[i];
+				var unityUv = unityMesh.uv[i];
+				vpMesh.Vertices[i] = new Vertex3DNoTex2(
+					unityVertex.x, unityVertex.y, unityVertex.z,
+					unityNormal.x, unityNormal.y, unityNormal.z,
+					unityUv.x, -unityUv.y );
+			}
+			vpMesh.Indices = unityMesh.triangles;
+			return vpMesh;
+		}
+
 		public static UnityEngine.Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh, string name = null)
 		{
 			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
