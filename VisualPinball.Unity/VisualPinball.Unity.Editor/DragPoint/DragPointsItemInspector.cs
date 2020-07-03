@@ -266,6 +266,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				if (nearestControlPoint != null) {
 					var command = new MenuCommand(this, nearestControlPoint.ControlId);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
+					Event.current.Use();
 				} else if (DragPointsHandler.CurveTravellerVisible && HandleUtility.nearestControl == DragPointsHandler.CurveTravellerControlId) {
 					var command = new MenuCommand(this, 0);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
