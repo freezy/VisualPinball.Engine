@@ -48,8 +48,6 @@ namespace VisualPinball.Unity.Import
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private Patcher.Patcher.Patcher _patcher;
-
 		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
@@ -64,7 +62,7 @@ namespace VisualPinball.Unity.Import
 			go.name = _table.Name;
 			MakeSerializable(go, table);
 
-			_patcher = new Patcher.Patcher.Patcher(_table, fileName);
+			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
@@ -89,6 +87,28 @@ namespace VisualPinball.Unity.Import
 
 			// finally, add the player script
 			go.AddComponent<Player>();
+		}
+
+		public static void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj, TableBehavior table)
+		{
+			if (ro.Mesh == null) {
+				Logger.Warn($"No mesh for object {obj.name}, skipping.");
+				return;
+			}
+
+			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
+
+			// apply mesh to game object
+			var mf = obj.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply material
+			var mr = obj.AddComponent<MeshRenderer>();
+			mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
+			mr.enabled = ro.IsVisible;
+
+			// patch
+			table.Patcher.ApplyPatches(item, ro, obj);
 		}
 
 		private void ImportTextures()
@@ -123,13 +143,13 @@ namespace VisualPinball.Unity.Import
 			obj.transform.parent = parent.transform;
 
 			if (rog.HasOnlyChild && !rog.ForceChild) {
-				ImportRenderObject(item, rog.RenderObjects[0], obj);
+				ImportRenderObject(item, rog.RenderObjects[0], obj, _tb);
 			} else if (rog.HasChildren) {
 				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
-					subObj.transform.parent = obj.transform;
+					subObj.transform.SetParent(obj.transform, false);
 					subObj.layer = ChildObjectsLayer;
-					ImportRenderObject(item, ro, subObj);
+					ImportRenderObject(item, ro, subObj, _tb);
 				}
 			}
 
@@ -165,27 +185,6 @@ namespace VisualPinball.Unity.Import
 				}
 			}
 #endif
-		}
-		private void ImportRenderObject(IRenderable item, RenderObject ro, GameObject obj)
-		{
-			if (ro.Mesh == null) {
-				Logger.Warn($"No mesh for object {obj.name}, skipping.");
-				return;
-			}
-
-			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
-			// apply mesh to game object
-			var mf = obj.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
-
-			// apply material
-			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = ro.Material.ToUnityMaterial(_tb);
-			mr.enabled = ro.IsVisible;
-
-			// patch
-			_patcher.ApplyPatches(item, ro, obj);
 		}
 
 		private void MakeSerializable(GameObject go, Table table)

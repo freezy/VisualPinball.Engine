@@ -57,13 +57,13 @@ namespace VisualPinball.Unity.VPT.Table
 	{
 		public Engine.VPT.Table.Table Table => Item;
 		public TextureData[] Textures => _sidecar?.textures;
+		public Patcher.Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
 
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
-
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
 
