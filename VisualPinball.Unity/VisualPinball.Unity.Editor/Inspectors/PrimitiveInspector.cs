@@ -28,9 +28,18 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				GUILayout.BeginHorizontal();
-				if (GUILayout.Button("Import Mesh")) ImportMesh();
+				MeshImporterGui();
 				if (GUILayout.Button("Export Mesh")) ExportMesh();
 				GUILayout.EndHorizontal();
+
+				TextureField("Image", ref _prim.data.Image);
+				TextureField("Normal Map", ref _prim.data.NormalMap);
+				EditorGUI.indentLevel++;
+				ItemDataField("Object Space", ref _prim.data.ObjectSpaceNormalMap);
+				EditorGUI.indentLevel--;
+				MaterialField("Material", ref _prim.data.Material);
+
+				ItemDataField("Visible", ref _prim.data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -96,11 +105,23 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnInspectorGUI();
 		}
 
-		private void ImportMesh()
+		/// <summary>
+		/// Shows a gui to bring a unity mesh into the table data. This immediately "bakes" right in the VPX data structures
+		/// </summary>
+		private void MeshImporterGui()
 		{
-			// todo
+			EditorGUI.BeginChangeCheck();
+			var mesh = (UnityEngine.Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(UnityEngine.Mesh), false);
+			if (mesh != null && EditorGUI.EndChangeCheck()) {
+				FinishEdit("Import Mesh", true);
+				_prim.data.Use3DMesh = true;
+				_prim.data.Mesh = mesh.ToVpMesh();
+			}
 		}
 
+		/// <summary>
+		/// Pop a dialog to save the primitive's mesh as a unity asset
+		/// </summary>
 		private void ExportMesh()
 		{
 			var table = _prim.GetComponentInParent<TableBehavior>();
