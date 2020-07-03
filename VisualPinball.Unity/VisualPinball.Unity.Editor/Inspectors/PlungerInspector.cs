@@ -36,11 +36,10 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref _plunger.data.Type, _plungerTypeStrings, _plungerTypeValues);
 				MaterialField("Material", ref _plunger.data.Material);
-				// TODO: Image Fields
+				TextureField("Image", ref _plunger.data.Image);
 				ItemDataField("Flat Frames", ref _plunger.data.AnimFrames);
 				ItemDataField("Width", ref _plunger.data.Width);
 				ItemDataField("Z Adjustment", ref _plunger.data.ZAdjust);
-				ItemDataField("Reflection Enabled", ref _plunger.data.IsReflectionEnabled);
 				EditorGUILayout.LabelField("Custom Settings");
 				EditorGUI.indentLevel++;
 				ItemDataField("Rod Diameter", ref _plunger.data.RodDiam);

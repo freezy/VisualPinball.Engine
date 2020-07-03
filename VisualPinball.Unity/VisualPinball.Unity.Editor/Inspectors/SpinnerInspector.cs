@@ -24,6 +24,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref _spinner.data.IsVisible);
+				TextureField("Image", ref _spinner.data.Image);
+				MaterialField("Material", ref _spinner.data.Material);
 				ItemDataField("Show Bracket", ref _spinner.data.ShowBracket);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -12,6 +13,25 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
+		private static string[] _kickerTypeStrings = {
+			"KickerInvisible",
+			"KickerHole",
+			"KickerCup",
+			"KickerHoleSimple",
+			"KickerWilliams",
+			"KickerGottlieb",
+			"KickerCup2",
+		};
+		private static int[] _kickerTypeValues = {
+			KickerType.KickerInvisible,
+			KickerType.KickerHole,
+			KickerType.KickerCup,
+			KickerType.KickerHoleSimple,
+			KickerType.KickerWilliams,
+			KickerType.KickerGottlieb,
+			KickerType.KickerCup2,
+		};
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -23,6 +43,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				MaterialField("Material", ref _kicker.data.Material);
+				DropDownField("Display", ref _kicker.data.KickerType, _kickerTypeStrings, _kickerTypeValues);
 				ItemDataField("Radius", ref _kicker.data.Radius);
 				ItemDataField("Orientation", ref _kicker.data.Orientation);
 			}

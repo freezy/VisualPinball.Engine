@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -12,6 +13,29 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
+		private static string[] _targetTypeStrings = {
+			"DropTargetBeveled",
+			"DropTargetSimple",
+			"HitTargetRound",
+			"HitTargetRectangle",
+			"HitFatTargetRectangle",
+			"HitFatTargetSquare",
+			"DropTargetFlatSimple",
+			"HitFatTargetSlim",
+			"HitTargetSlim",
+		};
+		private static int[] _targetTypeValues = {
+			TargetType.DropTargetBeveled,
+			TargetType.DropTargetSimple,
+			TargetType.HitTargetRound,
+			TargetType.HitTargetRectangle,
+			TargetType.HitFatTargetRectangle,
+			TargetType.HitFatTargetSquare,
+			TargetType.DropTargetFlatSimple,
+			TargetType.HitFatTargetSlim,
+			TargetType.HitTargetSlim,
+		};
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -23,11 +47,13 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				DropDownField("Type", ref _target.data.TargetType, _targetTypeStrings, _targetTypeValues);
+				TextureField("Image", ref _target.data.Image);
+				MaterialField("Material", ref _target.data.Material);
 				ItemDataField("Drop Speed", ref _target.data.DropSpeed, dirtyMesh: false);
 				ItemDataField("Raise Delay", ref _target.data.RaiseDelay, dirtyMesh: false);
 				ItemDataField("Depth Bias", ref _target.data.DepthBias, dirtyMesh: false);
 				ItemDataField("Visible", ref _target.data.IsVisible);
-				ItemDataField("Reflection Enabled", ref _target.data.IsReflectionEnabled);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -52,7 +78,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				ItemDataField("Hit Threshold", ref _target.data.Threshold, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(_target.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _target.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _target.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Material Settings", ref _target.data.OverwritePhysics, dirtyMesh: false);

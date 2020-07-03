@@ -24,6 +24,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			base.OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
+				TextureField("Image", ref _rubber.data.Image);
+				MaterialField("Material", ref _rubber.data.Material);
 				ItemDataField("Visible", ref _rubber.data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -42,7 +44,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(_rubber.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _rubber.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Material Settings", ref _rubber.data.OverwritePhysics, dirtyMesh: false);
