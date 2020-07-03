@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Editor.DragPoint
 {
@@ -58,6 +60,14 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			ControlId = controlId;
 			Index = idx;
 			IndexRatio = indexRatio;
+		}
+
+		public void UpdateDragPoint(IDragPointsEditable editable, Transform transform)
+		{
+			var dragpointPos = transform.worldToLocalMatrix.MultiplyPoint(WorldPos);
+			dragpointPos -= editable.GetEditableOffset();
+			dragpointPos -= editable.GetDragPointOffset(IndexRatio);
+			DragPoint.Vertex = dragpointPos.ToVertex3D();
 		}
 	}
 }
