@@ -26,7 +26,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
+				TextureField("Top Image", ref _targetSurf.data.Image);
+				MaterialField("Top Material", ref _targetSurf.data.TopMaterial);
 				ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible);
+				TextureField("Side Image", ref _targetSurf.data.SideImage);
+				MaterialField("Side Material", ref _targetSurf.data.SideMaterial);
+				MaterialField("Slingshot Material", ref _targetSurf.data.SlingShotMaterial);
 				ItemDataField("Animate Slingshot", ref _targetSurf.data.SlingshotAnimation, dirtyMesh: false);
 				ItemDataField("Flipbook", ref _targetSurf.data.IsFlipbook, dirtyMesh: false);
 			}
@@ -49,7 +54,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				ItemDataField("Slingshot Threshold", ref _targetSurf.data.SlingshotThreshold, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(_targetSurf.data.OverwritePhysics);
-				ItemDataField("Physics Material", ref _targetSurf.data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref _targetSurf.data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Material Settings", ref _targetSurf.data.OverwritePhysics, dirtyMesh: false);

@@ -1,4 +1,5 @@
 using UnityEditor;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.Light;
 
 namespace VisualPinball.Unity.Editor.Inspectors
@@ -9,6 +10,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private LightBehavior _light;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
+		private bool _foldoutStateAndPhysics = true;
+		private bool _foldoutMisc = true;
+
+		private static string[] _lightStateStrings = { "LightStateOff", "LightStateOn", "LightStateBlinking" };
+		private static int[] _lightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
 
 		protected override void OnEnable()
 		{
@@ -41,6 +47,19 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				ItemDataField("", ref _light.data.Center, dirtyMesh: false);
 				SurfaceField("Surface", ref _light.data.Surface);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutStateAndPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutStateAndPhysics, "State & Physics")) {
+				DropDownField("State", ref _light.data.State, _lightStateStrings, _lightStateValues);
+				ItemDataField("Blink Pattern", ref _light.data.BlinkPattern, dirtyMesh: false);
+				ItemDataField("Blink Interval", ref _light.data.BlinkInterval, dirtyMesh: false);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
+				ItemDataField("Timer Enabled", ref _light.data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _light.data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

@@ -32,7 +32,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				ItemDataField("Orientation", ref _bumper.data.Orientation);
 				ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, dirtyMesh: false);
 				ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, dirtyMesh: false);
-				ItemDataField("Reflection Enabled", ref _bumper.data.IsReflectionEnabled);
 				ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible);
 				ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible);
 				ItemDataField("Ring Visible", ref _bumper.data.IsRingVisible);
