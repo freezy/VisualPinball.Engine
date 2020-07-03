@@ -131,12 +131,12 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				IsLocked = false
 			};
 
-			var offset = DragPointEditable.GetEditableOffset();
-			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
-			dragPointPosition -= offset;
-			dragPoint.Vertex = dragPointPosition.ToVertex3D();
 			var newIdx = CurveTravellerControlPointIdx + 1;
-
+			float ratio = (float)newIdx / (DragPointEditable.GetDragPoints().Length - 1);
+			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
+			dragPointPosition -= DragPointEditable.GetEditableOffset();
+			dragPointPosition -= DragPointEditable.GetDragPointOffset(ratio);
+			dragPoint.Vertex = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointEditable.GetDragPoints().ToList();
 			dragPoints.Insert(newIdx, dragPoint);
 			DragPointEditable.SetDragPoints(dragPoints.ToArray());
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 					DragPointEditable.GetDragPoints()[newIdx],
 					GUIUtility.GetControlID(FocusType.Passive),
 					newIdx,
-					(float)newIdx / DragPointEditable.GetDragPoints().Length
+					ratio
 			));
 			RebuildControlPoints();
 		}
