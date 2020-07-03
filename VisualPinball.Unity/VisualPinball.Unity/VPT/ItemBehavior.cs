@@ -6,6 +6,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -54,11 +55,8 @@ namespace VisualPinball.Unity.VPT
 			if (children == null) {
 				UpdateMesh(Item.Name, gameObject, rog, table);
 			} else {
-
-				foreach (var child in children)
-				{
-					if (transform.childCount == 0)
-					{
+				foreach (var child in children) {
+					if (transform.childCount == 0) {
 						//Find the matching  renderObject  and Update it based on base gameObject
 						var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
 						if (ro != null)
@@ -66,13 +64,19 @@ namespace VisualPinball.Unity.VPT
 							UpdateMesh(child, gameObject, rog, table);
 							break;
 						}
-					}
-					else
-					{
+					} else {
 						Transform childTransform = transform.Find(child);
-						if (childTransform != null)
-						{
+						if (childTransform != null) {
 							UpdateMesh(child, childTransform.gameObject, rog, table);
+						} else {
+							// child hasn't been created yet (i.e. ramp might have changed type)
+							var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
+							if (ro != null) {
+								var subObj = new GameObject(ro.Name);
+								subObj.transform.SetParent(this.transform, false);
+								subObj.layer = VpxImporter.ChildObjectsLayer;
+								VpxImporter.ImportRenderObject(this.Item, ro, subObj, table);
+							}
 						}
 					}
 				}
