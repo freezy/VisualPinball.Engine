@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.Common;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -16,6 +17,26 @@ namespace VisualPinball.Engine.VPT.Trigger
 		}
 
 		public HitObject[] GenerateHitObjects(Table.Table table, EventProxy events)
+		{
+			if (_data.Shape == TriggerShape.TriggerStar || _data.Shape == TriggerShape.TriggerButton) {
+				return GenerateRoundHitObjects(table, events);
+			}
+			return GenerateCurvedHitObjects(table, events);
+		}
+
+		private HitObject[] GenerateRoundHitObjects(Table.Table table, EventProxy events)
+		{
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			return new HitObject[] {
+				new TriggerHitCircle(_data.Center, _data.Radius, height, height + _data.HitHeight) {
+					Obj = events,
+					IsEnabled = _data.IsEnabled,
+					ObjType = CollisionType.Trigger
+				}
+			};
+		}
+
+		private HitObject[] GenerateCurvedHitObjects(Table.Table table, EventProxy events)
 		{
 			var hitObjects = new List<HitObject>();
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
