@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 			for (var i = 0; i < count; i++) {
 				rgv[i] = vVertex[i];
-				rgv3D[i] = new Vertex3D(rgv[i].X, rgv[i].Y, height + PhysicsConstants.PhysSkin * 2.0f);
+				rgv3D[i] = new Vertex3D(rgv[i].X, rgv[i].Y, height + (float)(PhysicsConstants.PhysSkin * 2.0));
 			}
 
 			for (var i = 0; i < count; i++) {
@@ -66,10 +66,11 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		private TriggerHitLineSeg GetLineSeg(Vertex2D pv1, Vertex2D pv2, EventProxy events, float height) {
 			return new TriggerHitLineSeg(
-				new Vertex2D(pv1.X, pv1.Y),
-				new Vertex2D(pv2.X, pv2.Y),
+				pv1.Clone(),
+				pv2.Clone(),
 				height,
-				height + MathF.Max(_data.HitHeight - 8.0f, 0) //adjust for same hit height as circular
+				height + MathF.Max(_data.HitHeight - 8.0f, 0f), // adjust for same hit height as circular
+				CollisionType.Trigger
 			) {
 				Obj = events
 			};

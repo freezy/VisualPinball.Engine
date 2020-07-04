@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Physics.Collider
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set
 				if (math.abs(bnd - Radius) < 0.05) {
 					// if ball appears in center of trigger, then assumed it was gen"ed there
-					BallData.SetInsideOf(ref insideOfs, ref _header.Entity); // special case for trigger overlaying a kicker
+					BallData.SetInsideOf(ref insideOfs, _header.Entity); // special case for trigger overlaying a kicker
 
 				} else {
 					// this will add the ball to the trigger space without a Hit

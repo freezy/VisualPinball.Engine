@@ -45,10 +45,10 @@ namespace VisualPinball.Unity.Physics.Collider
 		{
 			switch (src) {
 				case TriggerHitCircle triggerHitCircle:
-					CircleCollider.Create(builder, triggerHitCircle, ref dest);
+					CircleCollider.Create(builder, triggerHitCircle, ref dest, ColliderType.TriggerCircle);
 					break;
 				case TriggerHitLineSeg triggerHitLine:
-					LineCollider.Create(builder, triggerHitLine, ref dest);
+					LineCollider.Create(builder, triggerHitLine, ref dest, ColliderType.TriggerLine);
 					break;
 				case BumperHit bumperHit:
 					CircleCollider.Create(builder, bumperHit, ref dest, ColliderType.Bumper);

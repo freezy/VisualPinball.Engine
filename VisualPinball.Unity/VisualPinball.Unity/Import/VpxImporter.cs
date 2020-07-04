@@ -174,7 +174,7 @@ namespace VisualPinball.Unity.Import
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
 				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
 				case Table table:					ic = table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:				ic = obj.AddComponent<TriggerBehavior>().SetData(trigger.Data); break;
+				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
 			}
 #if UNITY_EDITOR
 			// for convenience move item behavior to the top of the list

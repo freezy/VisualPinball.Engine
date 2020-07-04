@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.VPT.Trigger
 				ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
 
 				if (!insideOf) {
-					insideOfs.Add(new BallInsideOfBufferElement { Value = coll.Entity });
+					BallData.SetInsideOf(ref insideOfs, coll.Entity);
 					animationData.HitEvent = true;
 
 					// todo event
