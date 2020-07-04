@@ -14,26 +14,26 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutMisc = true;
 
 		private static string[] _targetTypeStrings = {
-			"DropTargetBeveled",
-			"DropTargetSimple",
-			"HitTargetRound",
-			"HitTargetRectangle",
-			"HitFatTargetRectangle",
-			"HitFatTargetSquare",
-			"DropTargetFlatSimple",
-			"HitFatTargetSlim",
-			"HitTargetSlim",
+			"Drop Target: Beveled",
+			"Drop Target: Simple",
+			"Drop Target: Flat Simple",
+			"Hit Target: Rectangle",
+			"Hit Target: Fat Rectangle",
+			"Hit Target: Round",
+			"Hit Target: Slim",
+			"Hit Target: Fat Slim",
+			"Hit Target: Fat Square",
 		};
 		private static int[] _targetTypeValues = {
 			TargetType.DropTargetBeveled,
 			TargetType.DropTargetSimple,
-			TargetType.HitTargetRound,
+			TargetType.DropTargetFlatSimple,
 			TargetType.HitTargetRectangle,
 			TargetType.HitFatTargetRectangle,
-			TargetType.HitFatTargetSquare,
-			TargetType.DropTargetFlatSimple,
-			TargetType.HitFatTargetSlim,
+			TargetType.HitTargetRound,
 			TargetType.HitTargetSlim,
+			TargetType.HitFatTargetSlim,
+			TargetType.HitFatTargetSquare,
 		};
 
 		protected override void OnEnable()

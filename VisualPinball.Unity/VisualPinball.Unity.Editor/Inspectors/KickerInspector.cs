@@ -14,22 +14,22 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutMisc = true;
 
 		private static string[] _kickerTypeStrings = {
-			"KickerInvisible",
-			"KickerHole",
-			"KickerCup",
-			"KickerHoleSimple",
-			"KickerWilliams",
-			"KickerGottlieb",
-			"KickerCup2",
+			"Invisible",
+			"Cup",
+			"Cup 2",
+			"Hole",
+			"Hole Simple",
+			"Gottlieb",
+			"Williams",
 		};
 		private static int[] _kickerTypeValues = {
 			KickerType.KickerInvisible,
-			KickerType.KickerHole,
 			KickerType.KickerCup,
-			KickerType.KickerHoleSimple,
-			KickerType.KickerWilliams,
-			KickerType.KickerGottlieb,
 			KickerType.KickerCup2,
+			KickerType.KickerHole,
+			KickerType.KickerHoleSimple,
+			KickerType.KickerGottlieb,
+			KickerType.KickerWilliams,
 		};
 
 		protected override void OnEnable()
