@@ -167,8 +167,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 
 			if (!rigid) {
-				// todo non rigid body collision? return direction
-				//coll.HitFlag = isUnHit; // UnHit signal is receding from outside target
+				collEvent.HitFlag = isUnHit; // UnHit signal is receding from outside target
 			}
 
 			var ballRadius = ball.Radius;

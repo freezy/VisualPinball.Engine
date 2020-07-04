@@ -25,9 +25,9 @@ namespace VisualPinball.Unity.VPT.Trigger
 					data.TimeMsec = dTime;
 					var diffTimeMsec = dTime - oldTimeMsec;
 
-					var animLimit = staticData.Shape == TriggerShape.TriggerStar ? staticData.Radius * (1.0f / 5.0f) : 32.0f;
+					var animLimit = staticData.Shape == TriggerShape.TriggerStar ? staticData.Radius * (float)(1.0 / 5.0) : 32.0f;
 					if (staticData.Shape == TriggerShape.TriggerButton) {
-						animLimit = staticData.Radius * (1.0f / 10.0f);
+						animLimit = staticData.Radius * (float)(1.0 / 10.0);
 					}
 					if (staticData.Shape == TriggerShape.TriggerWireC) {
 						animLimit = 60.0f;
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.VPT.Trigger
 					}
 
 					if (data.DoAnimation) {
-						var step = diffTimeMsec *staticData.AnimSpeed * staticData.TableScaleZ;
+						var step = diffTimeMsec * staticData.AnimSpeed * staticData.TableScaleZ;
 						if (data.MoveDown) {
 							step = -step;
 						}

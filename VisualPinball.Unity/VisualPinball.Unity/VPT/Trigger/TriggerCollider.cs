@@ -1,6 +1,6 @@
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.VPT.Trigger
 	{
 		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref TriggerAnimationData animationData,
-			in Collider coll)
+			in Physics.Collider.Collider coll)
 		{
 			// todo?
 			// if (!ball.isRealBall()) {
@@ -35,6 +35,9 @@ namespace VisualPinball.Unity.VPT.Trigger
 					// todo event
 					//this.obj!.fireGroupEvent(Event.HitEventsUnhit);
 				}
+			}
+			else {
+
 			}
 		}
 	}
