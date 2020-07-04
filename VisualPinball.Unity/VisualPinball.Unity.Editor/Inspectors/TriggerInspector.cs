@@ -15,20 +15,20 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutMisc = true;
 
 		private static string[] _triggerShapeStrings = {
-			"TriggerNone",
-			"TriggerWireA",
-			"TriggerStar",
-			"TriggerWireB",
-			"TriggerButton",
-			"TriggerWireC",
-			"TriggerWireD",
+			"None",
+			"Button",
+			"Star",
+			"Wire A",
+			"Wire B",
+			"Wire C",
+			"Wire D",
 		};
 		private static int[] _triggerShapeValues = {
 			TriggerShape.TriggerNone,
-			TriggerShape.TriggerWireA,
-			TriggerShape.TriggerStar,
-			TriggerShape.TriggerWireB,
 			TriggerShape.TriggerButton,
+			TriggerShape.TriggerStar,
+			TriggerShape.TriggerWireA,
+			TriggerShape.TriggerWireB,
 			TriggerShape.TriggerWireC,
 			TriggerShape.TriggerWireD,
 		};

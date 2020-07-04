@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutStateAndPhysics = true;
 		private bool _foldoutMisc = true;
 
-		private static string[] _lightStateStrings = { "LightStateOff", "LightStateOn", "LightStateBlinking" };
+		private static string[] _lightStateStrings = { "Off", "On", "Blinking" };
 		private static int[] _lightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
 
 		protected override void OnEnable()

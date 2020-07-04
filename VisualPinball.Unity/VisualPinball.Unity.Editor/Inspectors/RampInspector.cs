@@ -15,24 +15,24 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutMisc = true;
 
 		private static string[] _rampTypeStrings = {
-			"RampTypeFlat",
-			"RampType4Wire",
-			"RampType2Wire",
-			"RampType3WireLeft",
-			"RampType3WireRight",
-			"RampType1Wire",
+			"Flat",
+			"1 Wire",
+			"2 Wire",
+			"3 Wire Left",
+			"3 Wire Right",
+			"4 Wire",
 		};
 		private static int[] _rampTypeValues = {
 			RampType.RampTypeFlat,
-			RampType.RampType4Wire,
+			RampType.RampType1Wire,
 			RampType.RampType2Wire,
 			RampType.RampType3WireLeft,
 			RampType.RampType3WireRight,
-			RampType.RampType1Wire,
+			RampType.RampType4Wire,
 		};
 		private static string[] _rampImageAlignmentStrings = {
-			"ImageModeWorld",
-			"ImageModeWrap",
+			"World",
+			"Wrap",
 		};
 		private static int[] _rampImageAlignmentValues = {
 			RampImageAlignment.ImageModeWorld,
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				DropDownField("Type", ref _ramp.data.RampType, _rampTypeStrings, _rampTypeValues);
 				TextureField("Image", ref _ramp.data.Image);
 				MaterialField("Material", ref _ramp.data.Material);
-				DropDownField("Mode", ref _ramp.data.ImageAlignment, _rampImageAlignmentStrings, _rampImageAlignmentValues);
+				DropDownField("Image Mode", ref _ramp.data.ImageAlignment, _rampImageAlignmentStrings, _rampImageAlignmentValues);
 				ItemDataField("Apply Image To Wall", ref _ramp.data.ImageWalls);
 				ItemDataField("Visible", ref _ramp.data.IsVisible);
 				ItemDataField("Depth Bias", ref _ramp.data.DepthBias);

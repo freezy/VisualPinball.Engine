@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
-		private static string[] _gateTypeStrings = { "GateWireW", "GateWireRectangle", "GatePlate", "GateLongPlate" };
+		private static string[] _gateTypeStrings = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
 		private static int[] _gateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
 
 		protected override void OnEnable()
