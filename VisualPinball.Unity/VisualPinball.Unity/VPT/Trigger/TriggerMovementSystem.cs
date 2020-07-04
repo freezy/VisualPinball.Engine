@@ -34,7 +34,8 @@ namespace VisualPinball.Unity.VPT.Trigger
 
 				marker.Begin();
 
-				translation.Value = math.transform(ltw, new float3(0f, 0f, data.HeightOffset));
+				var t = math.transform(math.inverse(ltw), translation.Value);
+				translation.Value = math.transform(ltw, new float3(t.x, t.y, data.HeightOffset));
 
 				marker.End();
 

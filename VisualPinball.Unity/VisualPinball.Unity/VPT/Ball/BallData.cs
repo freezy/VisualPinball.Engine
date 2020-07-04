@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			}
 		}
 
-		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref Entity entity)
+		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, Entity entity)
 		{
 			insideOfs.Add(new BallInsideOfBufferElement {Value = entity});
 		}
