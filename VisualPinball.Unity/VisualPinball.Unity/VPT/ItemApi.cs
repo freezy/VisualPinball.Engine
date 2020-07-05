@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Game;
 
@@ -6,6 +7,8 @@ namespace VisualPinball.Unity.VPT
 {
 	public abstract class ItemApi<T, TData> where T : Item<TData> where TData : ItemData
 	{
+		public event EventHandler Hit;
+
 		protected readonly T Item;
 		protected readonly Player Player;
 		internal readonly Entity Entity;
@@ -17,6 +20,10 @@ namespace VisualPinball.Unity.VPT
 			Item = item;
 			Entity = entity;
 			Player = player;
+		}
+		public void OnHit()
+		{
+			Hit?.Invoke(this, EventArgs.Empty);
 		}
 	}
 }

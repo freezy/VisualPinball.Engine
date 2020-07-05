@@ -1,7 +1,14 @@
+using System;
+
 namespace VisualPinball.Unity.VPT
 {
 	internal interface IApiInitializable
 	{
-		void Init();
+		void OnInit();
+	}
+
+	internal interface IApiHittable
+	{
+		void OnHit();
 	}
 }

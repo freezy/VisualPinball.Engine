@@ -10,10 +10,9 @@ using VisualPinball.Unity.Physics.Engine;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable
+	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable
 	{
 		public event EventHandler Collide;
-		public event EventHandler Hit;
 		public event EventHandler Init;
 		public event EventHandler<RotationEventArgs> LimitBos;
 		public event EventHandler<RotationEventArgs> LimitEos;
@@ -42,7 +41,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 			}
 		}
 
-		void IApiInitializable.Init()
+		void IApiInitializable.OnInit()
 		{
 			Init?.Invoke(this, EventArgs.Empty);
 		}
