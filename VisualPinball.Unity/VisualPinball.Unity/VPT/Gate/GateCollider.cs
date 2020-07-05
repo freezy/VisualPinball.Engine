@@ -1,9 +1,11 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Gate
@@ -71,7 +73,8 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		#region Collision
 
-		public static void Collide(in BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData, in GateStaticData data)
+		public static void Collide(ref BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData,
+			ref NativeQueue<HitEvent>.ParallelWriter hitEvents, in Collider coll, in Entity ballEntity, in GateStaticData data)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			var h = data.Height * 0.5f;
@@ -95,8 +98,7 @@ namespace VisualPinball.Unity.VPT.Gate
 				movementData.AngleSpeed = -movementData.AngleSpeed;
 			}
 
-			// todo
-			//this.fireHitEvent(ball);
+			Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header, in ballEntity);
 		}
 
 		#endregion

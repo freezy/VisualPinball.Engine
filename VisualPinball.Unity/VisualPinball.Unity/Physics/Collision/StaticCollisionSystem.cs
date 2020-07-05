@@ -1,11 +1,11 @@
 ﻿// ReSharper disable ConvertIfStatementToSwitchStatement
 
 using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
-using Unity.Transforms;
-using UnityEngine;
 using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Bumper;
@@ -14,7 +14,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Trigger;
-using Random = Unity.Mathematics.Random;
+using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
 {
@@ -23,12 +23,19 @@ namespace VisualPinball.Unity.Physics.Collision
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
+		private NativeQueue<HitEvent> _eventQueue;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticCollisionSystem");
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+			_eventQueue = new NativeQueue<HitEvent>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 
 		protected override void OnUpdate()
@@ -36,14 +43,16 @@ namespace VisualPinball.Unity.Physics.Collision
 			// retrieve reference to static collider data
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
-			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
+			var random = new global::Unity.Mathematics.Random((uint)Random.Range(1, 100000));
+
+			var hitEvents = _eventQueue.AsParallelWriter();
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("StaticCollisionJob")
-				.ForEach((ref BallData ballData, ref CollisionEventData collEvent,
+				.ForEach((Entity ballEntity, ref BallData ballData, ref CollisionEventData collEvent,
 					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs) => {
 
 				// find balls with hit objects and minimum time
@@ -92,8 +101,8 @@ namespace VisualPinball.Unity.Physics.Collision
 								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
 								GateCollider.Collide(
-									in ballData, ref collEvent, ref gateMovementData,
-									in gateStaticData
+									ref ballData, ref collEvent, ref gateMovementData, ref hitEvents,
+									in coll, in ballEntity, in gateStaticData
 								);
 								SetComponent(coll.Entity, gateMovementData);
 								break;
@@ -141,7 +150,7 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Point:
 							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
-								Collider.Collider.Collide(ref coll, ref ballData, collEvent, ref random);
+								Collider.Collider.Collide(ref coll, ref ballData, ref hitEvents, collEvent, in ballEntity, ref random);
 							break;
 
 							case ColliderType.None:
@@ -169,6 +178,10 @@ namespace VisualPinball.Unity.Physics.Collision
 				marker.End();
 
 			}).Run();
+
+			while (_eventQueue.TryDequeue(out var hitEvent)) {
+				// todo get item api instance out of event and invoke
+			}
 		}
 	}
 }

@@ -17,6 +17,10 @@ namespace VisualPinball.Unity.Physics.Collision
 		public Entity Entity;
 		public PhysicsMaterialData Material;
 
+		public float Threshold;
+		public bool FireEvents;
+		public bool IsEnabled;
+
 		public void Init(ColliderType type, HitObject src)
 		{
 			Type = type;
@@ -29,6 +33,9 @@ namespace VisualPinball.Unity.Physics.Collision
 				Friction = src.Friction,
 				Scatter = src.Scatter,
 			};
+			Threshold = src.Threshold;
+			FireEvents = src.FireEvents;
+			IsEnabled = src.IsEnabled;
 		}
 	}
 }
