@@ -20,6 +20,7 @@
     <None Remove=".bin/*" Visible="false" />
     <None Remove=".obj/*" Visible="false" />
     <None Remove="obj/*" Visible="false" />
+    <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.2" />
@@ -44,6 +45,12 @@
     <None Include="NetVips.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="obj\**" />
   </ItemGroup>
   <Target Name="ILRepack" AfterTargets="Build">
     <ItemGroup>
