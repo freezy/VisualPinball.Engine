@@ -57,7 +57,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 					var vert = new Vertex3D(
 						dropTargetHitPlaneVertex.X,
 						dropTargetHitPlaneVertex.Y + hitShapeOffset,
-						dropTargetHitPlaneVertex.Z);
+						dropTargetHitPlaneVertex.Z
+					);
 
 					vert.X *= _data.Size.X;
 					vert.Y *= _data.Size.Y;
