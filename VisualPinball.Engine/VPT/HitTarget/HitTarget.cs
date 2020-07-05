@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public HitTarget(HitTargetData data) : base(data)
 		{
 			_meshGenerator = new HitTargetMeshGenerator(Data);
-			_hitGenerator = new HitTargetHitGenerator(Data);
+			_hitGenerator = new HitTargetHitGenerator(Data, _meshGenerator);
 		}
 
 		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName)) { }
@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public void Init(Table.Table table)
 		{
 			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(table, EventProxy);
+			_hits = _hitGenerator.GenerateHitObjects(table);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
