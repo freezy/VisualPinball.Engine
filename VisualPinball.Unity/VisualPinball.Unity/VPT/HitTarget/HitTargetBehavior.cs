@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Unity.Extensions;
@@ -11,9 +12,14 @@ using VisualPinball.Unity.Extensions;
 namespace VisualPinball.Unity.VPT.HitTarget
 {
 	[AddComponentMenu("Visual Pinball/Hit Target")]
-	public class HitTargetBehavior : ItemBehavior<Engine.VPT.HitTarget.HitTarget, HitTargetData>
+	public class HitTargetBehavior : ItemBehavior<Engine.VPT.HitTarget.HitTarget, HitTargetData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+		}
 
 		protected override Engine.VPT.HitTarget.HitTarget GetItem()
 		{
