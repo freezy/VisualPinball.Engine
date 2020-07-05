@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,6 +14,8 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Physics.Event;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
@@ -26,8 +29,9 @@ namespace VisualPinball.Unity.Game
 	{
 		private readonly TableApi _tableApi = new TableApi();
 
-		private readonly Dictionary<int, FlipperApi> _flippers = new Dictionary<int, FlipperApi>();
-		private FlipperApi Flipper(int entityIndex) => _flippers.Values.FirstOrDefault(f => f.Entity.Index == entityIndex);
+		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
+		private readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
+		private FlipperApi Flipper(Entity entity) => _flippers.Values.FirstOrDefault(f => f.Entity == entity);
 
 		#if FLIPPER_LOG
 		public static StreamWriter DebugLog;
@@ -44,7 +48,8 @@ namespace VisualPinball.Unity.Game
 			//AttachToRoot(entity, go);
 			var flipperApi = new FlipperApi(flipper, entity, this);
 			_tableApi.Flippers[flipper.Name] = flipperApi;
-			_flippers[entity.Index] = flipperApi;
+			_flippers[entity] = flipperApi;
+			_hittables[entity] = flipperApi;
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
 			}
@@ -66,6 +71,13 @@ namespace VisualPinball.Unity.Game
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
 		{
+		}
+
+		public void OnItemHit(HitEvent hitEvent)
+		{
+			if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
+				_hittables[hitEvent.ItemEntity].OnHit();
+			}
 		}
 
 		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
@@ -102,7 +114,7 @@ namespace VisualPinball.Unity.Game
 
 			// trigger init events now
 			foreach (var i in _tableApi.Initializables) {
-				i.Init();
+				i.OnInit();
 			}
 		}
 
