@@ -193,18 +193,6 @@ namespace VisualPinball.Unity.Physics.Collider
 			return hitTime;
 		}
 
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
-		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
-
-			// todo
-			// var dot = math.dot(coll.HitNormal, ball.Velocity);
-			// if (dot <= -Threshold) {
-			// 	FireHitEvent(coll.Ball);
-			// }
-
-		}
-
 		public void CalcNormal()
 		{
 			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
