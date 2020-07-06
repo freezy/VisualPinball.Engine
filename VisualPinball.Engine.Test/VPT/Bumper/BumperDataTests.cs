@@ -55,6 +55,8 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			data.IsTimerEnabled.Should().Be(false);
 
 			data.EditorLayer.Should().Be(0);
+			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(false);
 		}
 	}
