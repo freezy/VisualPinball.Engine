@@ -11,7 +11,6 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT;
@@ -27,59 +26,68 @@ namespace VisualPinball.Unity.Game
 {
 	public class Player : MonoBehaviour
 	{
-		private readonly TableApi _tableApi = new TableApi();
-
-		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
-		private readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
-		private FlipperApi Flipper(Entity entity) => _flippers.Values.FirstOrDefault(f => f.Entity == entity);
-
+		// table related
 		private Table _table;
 		private BallManager _ballManager;
-		private Player _player;
+		private readonly TableApi _tableApi = new TableApi();
+		private readonly Dictionary<Entity, IApiInitializable> _initializables = new Dictionary<Entity, IApiInitializable>();
+		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 
+		// game items
+		private readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
+		private readonly Dictionary<Entity, KickerApi> _kickers = new Dictionary<Entity, KickerApi>();
+
+		// other shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
-			//AttachToRoot(entity, go);
 			var flipperApi = new FlipperApi(flipper, entity, this);
+
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity] = flipperApi;
 			_hittables[entity] = flipperApi;
+			_initializables[entity] = flipperApi;
+
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
 			}
-
-			// World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<FlipperSystem>().OnRotated +=
-			// 	(sender, e) => flipperApi.HandleEvent(e);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
+
 			_tableApi.Kickers[kicker.Name] = kickerApi;
+			_kickers[entity] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
 		{
-			_tableApi.Plungers[plunger.Name] = new PlungerApi(plunger, entity, this);
+			var plungerApi = new PlungerApi(plunger, entity, this);
+			_tableApi.Plungers[plunger.Name] = plungerApi;
 		}
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
 		{
-			_hittables[entity] = new SurfaceApi(item, entity, this);
+			var surfaceApi = new SurfaceApi(item, entity, this);
+			_hittables[entity] = surfaceApi;
 		}
 
 		public void RegisterRubber(Rubber item, Entity entity, GameObject go)
 		{
-			_hittables[entity] = new RubberApi(item, entity, this);
+			var rubberApi = new RubberApi(item, entity, this);
+			_hittables[entity] = rubberApi;
 		}
 
-		public void OnItemHit(HitEvent hitEvent)
+		public void OnEvent(EventData hitEvent)
 		{
-			if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
-				Debug.Log("Got a hit on entity " + hitEvent.ItemEntity);
-				_hittables[hitEvent.ItemEntity].OnHit();
+			switch (hitEvent.Type) {
+				case Event.HitEventsHit:
+					if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
+						_hittables[hitEvent.ItemEntity].OnHit();
+					}
+					break;
 			}
 		}
 
@@ -101,9 +109,6 @@ namespace VisualPinball.Unity.Game
 			var tableComponent = gameObject.GetComponent<TableBehavior>();
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
-			_player = gameObject.GetComponent<Player>();
-
-			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StaticCollisionSystem>().Player = _player;
 		}
 
 		private void Start()
@@ -115,7 +120,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			// trigger init events now
-			foreach (var i in _tableApi.Initializables) {
+			foreach (var i in _initializables.Values) {
 				i.OnInit();
 			}
 		}
@@ -137,7 +142,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("b")) {
-				_player.CreateBall(new DebugBallCreator());
+				CreateBall(new DebugBallCreator());
 				// _player.CreateBall(new DebugBallCreator(425, 1325));
 				// _player.CreateBall(new DebugBallCreator(390, 1125));
 
@@ -146,7 +151,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				_player.CreateBall(new DebugBallCreator(129f, 1450f));
+				CreateBall(new DebugBallCreator(129f, 1450f));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 

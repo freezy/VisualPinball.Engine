@@ -12,8 +12,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 {
 	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable
 	{
-		public event EventHandler Collide;
 		public event EventHandler Init;
+		public event EventHandler Hit;
+		public event EventHandler Collide;
 		public event EventHandler<RotationEventArgs> LimitBos;
 		public event EventHandler<RotationEventArgs> LimitEos;
 		public event EventHandler Timer;
@@ -41,10 +42,19 @@ namespace VisualPinball.Unity.VPT.Flipper
 			}
 		}
 
+		#region Events
+
 		void IApiInitializable.OnInit()
 		{
 			Init?.Invoke(this, EventArgs.Empty);
 		}
+
+		void IApiHittable.OnHit()
+		{
+			Hit?.Invoke(this, EventArgs.Empty);
+		}
+
+		#endregion
 	}
 
 	public class RotationEventArgs

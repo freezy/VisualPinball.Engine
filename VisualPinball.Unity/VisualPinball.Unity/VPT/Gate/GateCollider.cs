@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.VPT.Gate
 		#region Collision
 
 		public static void Collide(ref BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData,
-			ref NativeQueue<HitEvent>.ParallelWriter hitEvents, in Collider coll, in Entity ballEntity, in GateStaticData data)
+			ref NativeQueue<EventData>.ParallelWriter events, in Collider coll, in Entity ballEntity, in GateStaticData data)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			var h = data.Height * 0.5f;
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.VPT.Gate
 				movementData.AngleSpeed = -movementData.AngleSpeed;
 			}
 
-			Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header, in ballEntity);
+			Collider.FireHitEvent(ref ball, ref events, in coll.Header);
 		}
 
 		#endregion

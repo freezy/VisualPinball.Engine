@@ -15,6 +15,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Trigger;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -22,17 +23,22 @@ namespace VisualPinball.Unity.Physics.Collision
 	[DisableAutoCreation]
 	public class StaticCollisionSystem : SystemBase
 	{
-		public Player Player;
+		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
-		private NativeQueue<HitEvent> _eventQueue;
+		private NativeQueue<EventData> _eventQueue;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticCollisionSystem");
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
-			_eventQueue = new NativeQueue<HitEvent>(Allocator.Persistent);
+			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
+		}
+
+		protected override void OnStartRunning()
+		{
+			_player = Object.FindObjectOfType<Player>();
 		}
 
 		protected override void OnDestroy()
@@ -47,7 +53,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var random = new global::Unity.Mathematics.Random((uint)Random.Range(1, 100000));
 
-			var hitEvents = _eventQueue.AsParallelWriter();
+			var events = _eventQueue.AsParallelWriter();
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
@@ -103,7 +109,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
 								GateCollider.Collide(
-									ref ballData, ref collEvent, ref gateMovementData, ref hitEvents,
+									ref ballData, ref collEvent, ref gateMovementData, ref events,
 									in coll, in ballEntity, in gateStaticData
 								);
 								SetComponent(coll.Entity, gateMovementData);
@@ -152,7 +158,7 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Point:
 							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
-								Collider.Collider.Collide(ref coll, ref ballData, ref hitEvents, collEvent, in ballEntity, ref random);
+								Collider.Collider.Collide(ref coll, ref ballData, ref events, collEvent, ref random);
 							break;
 
 							case ColliderType.None:
@@ -181,8 +187,8 @@ namespace VisualPinball.Unity.Physics.Collision
 
 			}).Run();
 
-			while (_eventQueue.TryDequeue(out var hitEvent)) {
-				Player.OnItemHit(hitEvent);
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.OnEvent(eventData);
 			}
 		}
 	}
