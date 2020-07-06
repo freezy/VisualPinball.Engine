@@ -4,6 +4,7 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
@@ -21,6 +22,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	[DisableAutoCreation]
 	public class StaticCollisionSystem : SystemBase
 	{
+		public Player Player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
 		private NativeQueue<HitEvent> _eventQueue;
@@ -180,7 +182,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			}).Run();
 
 			while (_eventQueue.TryDequeue(out var hitEvent)) {
-				// todo get item api instance out of event and invoke
+				Player.OnItemHit(hitEvent);
 			}
 		}
 	}
