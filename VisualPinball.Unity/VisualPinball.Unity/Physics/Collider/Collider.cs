@@ -159,7 +159,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
 		public static unsafe void Collide(ref Collider coll, ref BallData ballData,
-			ref NativeQueue<HitEvent>.ParallelWriter hitEvents, in CollisionEventData collEvent, in Entity ballEntity,
+			ref NativeQueue<EventData>.ParallelWriter events, in CollisionEventData collEvent,
 			ref Random random)
 		{
 			fixed (Collider* collider = &coll)
@@ -170,25 +170,25 @@ namespace VisualPinball.Unity.Physics.Collider
 						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
 						break;
 					default:
-						collider->Collide(ref ballData, ref hitEvents, in collEvent, in coll, in ballEntity, ref random);
+						collider->Collide(ref ballData, ref events, in collEvent, in coll, ref random);
 						break;
 				}
 			}
 		}
 
-		private void Collide(ref BallData ball, ref NativeQueue<HitEvent>.ParallelWriter hitEvents,
-			in CollisionEventData collEvent, in Collider coll, in Entity ballEntity, ref Random random)
+		private void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			in CollisionEventData events, in Collider coll, ref Random random)
 		{
-			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			var dot = math.dot(events.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in events, in events.HitNormal, ref random);
 
 			if (dot <= -coll.Threshold) {
-				FireHitEvent(ref ball, ref hitEvents, in coll.Header, in ballEntity);
+				FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}
 		}
 
-		public static void FireHitEvent(ref BallData ball, ref NativeQueue<HitEvent>.ParallelWriter hitEvents,
-			in ColliderHeader collHeader, in Entity ballEntity)
+		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
@@ -204,10 +204,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					hitEvents.Enqueue(new HitEvent {
-						ItemEntity = collHeader.Entity,
-						BallEntity = ballEntity
-					});
+					events.Enqueue(new EventData(VisualPinball.Engine.Game.Event.HitEventsHit, collHeader.Entity));
 				}
 			}
 		}
