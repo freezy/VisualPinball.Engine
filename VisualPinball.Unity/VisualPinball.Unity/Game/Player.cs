@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -11,8 +10,10 @@ using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT;
@@ -20,6 +21,8 @@ using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
+using VisualPinball.Unity.VPT.Rubber;
+using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using Random = UnityEngine.Random;
 
@@ -71,11 +74,18 @@ namespace VisualPinball.Unity.Game
 
 		public void RegisterSurface(Surface item, Entity entity, GameObject go)
 		{
+			_hittables[entity] = new SurfaceApi(item, entity, this);
+		}
+
+		public void RegisterRubber(Rubber item, Entity entity, GameObject go)
+		{
+			_hittables[entity] = new RubberApi(item, entity, this);
 		}
 
 		public void OnItemHit(HitEvent hitEvent)
 		{
 			if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
+				Debug.Log("Got a hit on entity " + hitEvent.ItemEntity);
 				_hittables[hitEvent.ItemEntity].OnHit();
 			}
 		}
@@ -99,6 +109,9 @@ namespace VisualPinball.Unity.Game
 			_table = tableComponent.CreateTable();
 			_ballManager = new BallManager(_table);
 			_player = gameObject.GetComponent<Player>();
+
+			World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StaticCollisionSystem>().Player = _player;
+
 			#if FLIPPER_LOG
 			DebugLog = File.CreateText("flipper.log");
 			#endif

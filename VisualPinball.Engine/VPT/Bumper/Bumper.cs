@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public void Init(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			_hits = new HitObject[] {new BumperHit(Data.Center, Data.Radius, height, height + Data.HeightScale)};
+			_hits = new HitObject[] {new BumperHit(Data, height)};
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

@@ -179,11 +179,10 @@ namespace VisualPinball.Unity.Physics.Collider
 		private void Collide(ref BallData ball, ref NativeQueue<HitEvent>.ParallelWriter hitEvents,
 			in CollisionEventData collEvent, in Collider coll, in Entity ballEntity, ref Random random)
 		{
+			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			if (dot <= -coll.Threshold)
-			{
+			if (dot <= -coll.Threshold) {
 				FireHitEvent(ref ball, ref hitEvents, in coll.Header, in ballEntity);
 			}
 		}
@@ -191,7 +190,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		public static void FireHitEvent(ref BallData ball, ref NativeQueue<HitEvent>.ParallelWriter hitEvents,
 			in ColliderHeader collHeader, in Entity ballEntity)
 		{
-			if (collHeader.FireEvents && collHeader.IsEnabled) {
+			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
 				// is this the same place as last event? if same then ignore it
 				var posDiff = ball.EventPosition - ball.Position;
