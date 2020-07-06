@@ -5,7 +5,6 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.SystemGroup;
-using Profiler = UnityEngine.Profiling.Profiler;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
@@ -13,19 +12,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class FlipperVelocitySystem : SystemBase
 	{
-		#if FLIPPER_LOG
-		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
-		private VisualPinballSimulatePhysicsCycleSystemGroup _simulatePhysicsCycleSystemGroup;
-
-		private long _debugRelTimeDelta = 0;
-
-		protected override void OnCreate()
-		{
-			_simulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
-			_simulatePhysicsCycleSystemGroup = World.GetOrCreateSystem<VisualPinballSimulatePhysicsCycleSystemGroup>();
-		}
-		#endif
-
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
 
 		protected override void OnUpdate()
@@ -34,16 +20,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
 
 				marker.Begin();
-
-				#if FLIPPER_LOG
-				if (_debugRelTimeDelta == 0 && mState.AngleSpeed != 0) {
-					_debugRelTimeDelta = _simulationSystemGroup.CurPhysicsFrameTime;
-				}
-				if (mState.AngleSpeed != 0) {
-					var relTime = _simulationSystemGroup.CurPhysicsFrameTime - _debugRelTimeDelta + 1000;
-					VisualPinball.Unity.Game.Player.DebugLog.WriteLine($"{relTime},{-mState.AngleSpeed}");
-				}
-				#endif
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
