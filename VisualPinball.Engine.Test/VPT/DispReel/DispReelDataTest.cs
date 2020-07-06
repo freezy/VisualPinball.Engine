@@ -33,6 +33,8 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			data.BackColor.Blue.Should().Be(19);
 			data.DigitRange.Should().Be(3);
 			data.EditorLayer.Should().Be(6);
+			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerVisibility.Should().Be(true);
 			data.Height.Should().Be(42);
 			data.Image.Should().Be("tex_transparent");
 			data.ImagesPerGridRow.Should().Be(3);
@@ -62,6 +64,8 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			data.BackColor.Blue.Should().Be(255);
 			data.DigitRange.Should().Be(9);
 			data.EditorLayer.Should().Be(0);
+			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerVisibility.Should().Be(true);
 			data.Height.Should().Be(40);
 			data.Image.Should().Be("");
 			data.ImagesPerGridRow.Should().Be(1);
