@@ -49,6 +49,12 @@ developer and you'd like to contribute, let us know, we have a Discord channel.
 
 There are a few videos in the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651), where you can discuss as well.
 
+## Credits
+
+<a title="IntelliJ IDEA" href="https://www.jetbrains.com/idea/"><img src="https://raw.githubusercontent.com/vpdb/server/master/assets/intellij-logo-text.svg?sanitize=true" alt="IntelliJ IDEA" width="250"></a>
+
+Special thanks go to JetBrains for their awesome IDE and support of the Open Source Community!
+
 ## License
 
 GPLv2, see [LICENSE](LICENSE).
