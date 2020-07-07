@@ -8,12 +8,20 @@ namespace VisualPinball.Unity.Game
 	{
 		public virtual void OnAwake(TableApi table)
 		{
-			table.Flipper("LeftFlipper").LimitBos += (sender, args) => {
-				Debug.Log("Left flipper BOS");
+			table.Gate("Plate").LimitBos += (sender, args) => {
+				Debug.Log("Plate BOS at " + args.AngleSpeed);
 			};
 
-			table.Flipper("LeftFlipper").LimitEos += (sender, args) => {
-				Debug.Log("Left flipper EOS");
+			table.Gate("Plate").LimitEos += (sender, args) => {
+				Debug.Log("Plate EOS at " + args.AngleSpeed);
+			};
+
+			table.Gate("Plate").Init += (sender, args) => {
+				Debug.Log("Plate Init");
+			};
+
+			table.Gate("Plate").Hit += (sender, args) => {
+				Debug.Log("Plate Hit");
 			};
 		}
 	}

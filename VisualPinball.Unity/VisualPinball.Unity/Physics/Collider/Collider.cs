@@ -187,8 +187,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 		}
 
-		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			in ColliderHeader collHeader)
+		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 

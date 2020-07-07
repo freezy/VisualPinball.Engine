@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
-									in coll, in ballEntity, in gateStaticData
+									in coll, in gateStaticData
 								);
 								SetComponent(coll.Entity, gateMovementData);
 								break;
