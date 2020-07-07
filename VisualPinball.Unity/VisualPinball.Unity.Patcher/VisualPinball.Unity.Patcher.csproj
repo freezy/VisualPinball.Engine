@@ -15,9 +15,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
-    <None Remove=".bin/*" Visible="false" />
-    <None Remove=".obj/*" Visible="false" />
-    <None Remove="obj/*" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine.CoreModule">
