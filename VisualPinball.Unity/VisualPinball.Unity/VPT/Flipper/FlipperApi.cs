@@ -12,7 +12,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 {
 	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable
 	{
+		/// <summary>
+		/// Event triggered when the table is started.
+		/// </summary>
 		public event EventHandler Init;
+
 		public event EventHandler Hit;
 		public event EventHandler Collide;
 		public event EventHandler<RotationEventArgs> LimitBos;

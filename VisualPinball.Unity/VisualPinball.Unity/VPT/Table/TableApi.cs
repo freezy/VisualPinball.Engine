@@ -4,15 +4,19 @@ using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
+using VisualPinball.Unity.VPT.Rubber;
+using VisualPinball.Unity.VPT.Surface;
 
 namespace VisualPinball.Unity.VPT.Table
 {
 	public class TableApi : IApiInitializable
 	{
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
+		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
 		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
 		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
-		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
+		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
+		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 
 		/// <summary>
 		/// Event triggered before the game starts.
@@ -47,6 +51,19 @@ namespace VisualPinball.Unity.VPT.Table
 		/// <returns>Plunger or `null` if no plunger with that name exists.</returns>
 		public PlungerApi Plunger(string name) => Plungers.ContainsKey(name) ? Plungers[name] : null;
 
+		/// <summary>
+		/// Returns a rubber by name.
+		/// </summary>
+		/// <param name="name">Name of the rubber</param>
+		/// <returns>Rubber or `null` if no rubber with that name exists.</returns>
+		public RubberApi Rubber(string name) => Rubbers.ContainsKey(name) ? Rubbers[name] : null;
+
+		/// <summary>
+		/// Returns a surface (wall) by name.
+		/// </summary>
+		/// <param name="name">Name of the surface</param>
+		/// <returns>Surface or `null` if no surface with that name exists.</returns>
+		public SurfaceApi Surface(string name) => Surfaces.ContainsKey(name) ? Surfaces[name] : null;
 
 		#region Events
 
