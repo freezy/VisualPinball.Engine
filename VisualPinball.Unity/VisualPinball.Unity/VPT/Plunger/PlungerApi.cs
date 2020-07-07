@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 	{
 		public bool DoRetract { get; set; } = true;
 
-		public PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
+		internal PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 

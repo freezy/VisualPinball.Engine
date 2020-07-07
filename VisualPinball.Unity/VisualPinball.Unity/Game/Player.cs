@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using NetVips;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Kicker;
@@ -37,7 +37,6 @@ namespace VisualPinball.Unity.Game
 		// game items
 		internal readonly Dictionary<Entity, FlipperApi> Flippers = new Dictionary<Entity, FlipperApi>();
 		internal readonly Dictionary<Entity, GateApi> Gates = new Dictionary<Entity, GateApi>();
-		private readonly Dictionary<Entity, KickerApi> _kickers = new Dictionary<Entity, KickerApi>();
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -46,6 +45,8 @@ namespace VisualPinball.Unity.Game
 		{
 			_initializables.Add(_tableApi);
 		}
+
+		#region Registrations
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
@@ -76,7 +77,6 @@ namespace VisualPinball.Unity.Game
 			var kickerApi = new KickerApi(kicker, entity, this);
 
 			_tableApi.Kickers[kicker.Name] = kickerApi;
-			_kickers[entity] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -85,22 +85,28 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Plungers[plunger.Name] = plungerApi;
 		}
 
-		public void RegisterSurface(Surface item, Entity entity, GameObject go)
+		public void RegisterSurface(Surface surface, Entity entity, GameObject go)
 		{
-			var surfaceApi = new SurfaceApi(item, entity, this);
+			var surfaceApi = new SurfaceApi(surface, entity, this);
 			_hittables[entity] = surfaceApi;
+			_initializables.Add(surfaceApi);
+			_tableApi.Surfaces[surface.Name] = surfaceApi;
 		}
 
-		public void RegisterRubber(Rubber item, Entity entity, GameObject go)
+		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
 		{
-			var rubberApi = new RubberApi(item, entity, this);
+			var rubberApi = new RubberApi(rubber, entity, this);
 			_hittables[entity] = rubberApi;
+			_initializables.Add(rubberApi);
+			_tableApi.Rubbers[rubber.Name] = rubberApi;
 		}
+
+		#endregion
 
 		public void OnEvent(EventData hitEvent)
 		{
 			switch (hitEvent.Type) {
-				case Engine.Game.Event.HitEventsHit:
+				case Event.HitEventsHit:
 					if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
 						_hittables[hitEvent.ItemEntity].OnHit();
 					}
@@ -111,7 +117,7 @@ namespace VisualPinball.Unity.Game
 			}
 		}
 
-		public BallApi CreateBall(VisualPinball.Engine.Game.IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
+		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
 			// todo callback and other stuff
 			return _ballManager.CreateBall(this, ballCreator, radius, mass);
