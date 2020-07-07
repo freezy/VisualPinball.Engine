@@ -1,35 +1,48 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public struct FlipperRotatedEvent
+	public struct FlipperRotationEvent
 	{
 		public bool Direction;
 		public float AngleSpeed;
-		public int EntityIndex;
+		public Entity Entity;
 	}
 
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : SystemBase
 	{
+		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
+		private NativeQueue<FlipperRotationEvent> _eventQueue;
 
 		protected override void OnCreate()
 		{
+			_player = Object.FindObjectOfType<Player>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_eventQueue = new NativeQueue<FlipperRotationEvent>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 
 		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
+			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
 
-			Entities.WithName("FlipperDisplacementJob").ForEach((ref FlipperMovementData state, in FlipperStaticData data) => {
+			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, in FlipperStaticData data) => {
 
 				marker.Begin();
 
@@ -72,17 +85,35 @@ namespace VisualPinball.Unity.VPT.Flipper
 					state.AngleSpeed = state.AngularMomentum / data.Inertia;
 
 					if (state.EnableRotateEvent > 0) {
-						//_events.FireVoidEventParam(Event.LimitEventsEOS, angleSpeed); // send EOS event
+
+						// send EOS event
+						events.Enqueue(new FlipperRotationEvent {
+							Entity = entity,
+							AngleSpeed = angleSpeed,
+							Direction = true
+						});
 
 					} else if (state.EnableRotateEvent < 0) {
-						//_events.FireVoidEventParam(Event.LimitEventsBOS, angleSpeed); // send Beginning of Stroke/Park event
+
+						// send BOS event
+						events.Enqueue(new FlipperRotationEvent {
+							Entity = entity,
+							AngleSpeed = angleSpeed,
+							Direction = false
+						});
 					}
 
 					state.EnableRotateEvent = 0;
 				}
 
 				marker.End();
+
 			}).Run();
+
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player._flippers[eventData.Entity].OnRotationEvent(eventData);
+			}
 		}
 	}
 }

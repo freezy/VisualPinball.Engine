@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
@@ -30,15 +28,20 @@ namespace VisualPinball.Unity.Game
 		private Table _table;
 		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
-		private readonly Dictionary<Entity, IApiInitializable> _initializables = new Dictionary<Entity, IApiInitializable>();
+		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 
 		// game items
-		private readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
+		internal readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
 		private readonly Dictionary<Entity, KickerApi> _kickers = new Dictionary<Entity, KickerApi>();
 
-		// other shortcuts
+		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+
+		public Player()
+		{
+			_initializables.Add(_tableApi);
+		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
@@ -47,7 +50,7 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_flippers[entity] = flipperApi;
 			_hittables[entity] = flipperApi;
-			_initializables[entity] = flipperApi;
+			_initializables.Add(flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -83,7 +86,7 @@ namespace VisualPinball.Unity.Game
 		public void OnEvent(EventData hitEvent)
 		{
 			switch (hitEvent.Type) {
-				case Event.HitEventsHit:
+				case VisualPinball.Engine.Game.Event.HitEventsHit:
 					if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
 						_hittables[hitEvent.ItemEntity].OnHit();
 					}
@@ -91,7 +94,7 @@ namespace VisualPinball.Unity.Game
 			}
 		}
 
-		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
+		public BallApi CreateBall(VisualPinball.Engine.Game.IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
 			// todo callback and other stuff
 			return _ballManager.CreateBall(this, ballCreator, radius, mass);
@@ -120,7 +123,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			// trigger init events now
-			foreach (var i in _initializables.Values) {
+			foreach (var i in _initializables) {
 				i.OnInit();
 			}
 		}
