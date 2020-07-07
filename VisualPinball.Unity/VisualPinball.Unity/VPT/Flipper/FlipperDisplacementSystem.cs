@@ -21,8 +21,9 @@ namespace VisualPinball.Unity.VPT.Flipper
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
 		private NativeQueue<FlipperRotationEvent> _eventQueue;
+
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
 
 		protected override void OnCreate()
 		{
@@ -112,7 +113,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {
-				_player._flippers[eventData.Entity].OnRotationEvent(eventData);
+				_player.Flippers[eventData.Entity].OnRotationEvent(eventData);
 			}
 		}
 	}

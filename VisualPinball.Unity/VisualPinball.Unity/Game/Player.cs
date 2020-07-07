@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using NetVips;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Rubber;
@@ -14,6 +16,7 @@ using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
+using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
@@ -32,7 +35,8 @@ namespace VisualPinball.Unity.Game
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 
 		// game items
-		internal readonly Dictionary<Entity, FlipperApi> _flippers = new Dictionary<Entity, FlipperApi>();
+		internal readonly Dictionary<Entity, FlipperApi> Flippers = new Dictionary<Entity, FlipperApi>();
+		internal readonly Dictionary<Entity, GateApi> Gates = new Dictionary<Entity, GateApi>();
 		private readonly Dictionary<Entity, KickerApi> _kickers = new Dictionary<Entity, KickerApi>();
 
 		// shortcuts
@@ -47,14 +51,24 @@ namespace VisualPinball.Unity.Game
 		{
 			var flipperApi = new FlipperApi(flipper, entity, this);
 
+			Flippers[entity] = flipperApi;
 			_tableApi.Flippers[flipper.Name] = flipperApi;
-			_flippers[entity] = flipperApi;
 			_hittables[entity] = flipperApi;
 			_initializables.Add(flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
 			}
+		}
+
+		public void RegisterGate(Gate gate, Entity entity, GameObject go)
+		{
+			var gateApi = new GateApi(gate, entity, this);
+
+			Gates[entity] = gateApi;
+			_tableApi.Gates[gate.Name] = gateApi;
+			_hittables[entity] = gateApi;
+			_initializables.Add(gateApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -86,9 +100,12 @@ namespace VisualPinball.Unity.Game
 		public void OnEvent(EventData hitEvent)
 		{
 			switch (hitEvent.Type) {
-				case VisualPinball.Engine.Game.Event.HitEventsHit:
+				case Engine.Game.Event.HitEventsHit:
 					if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
 						_hittables[hitEvent.ItemEntity].OnHit();
+					}
+					else {
+						Debug.Log("No hittable of entity " + hitEvent.ItemEntity + " found.");
 					}
 					break;
 			}
@@ -154,7 +171,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(129f, 1450f));
+				CreateBall(new DebugBallCreator(376f, 1257f));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 

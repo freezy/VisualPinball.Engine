@@ -1,29 +1,50 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
+	public struct GateRotationEvent
+	{
+		public bool Direction;
+		public float AngleSpeed;
+		public Entity Entity;
+	}
+
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class GateDisplacementSystem : SystemBase
 	{
+		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private NativeQueue<GateRotationEvent> _eventQueue;
+
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateDisplacementSystem");
 
 		protected override void OnCreate()
 		{
+			_player = Object.FindObjectOfType<Player>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_eventQueue = new NativeQueue<GateRotationEvent>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 
 		protected override void OnUpdate()
 		{
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
+			var events = _eventQueue.AsParallelWriter();
 
 			Entities
 				.WithName("GateDisplacementJob")
-				.ForEach((ref GateMovementData movementData, in GateStaticData data) => {
+				.ForEach((Entity entity, ref GateMovementData movementData, in GateStaticData data) => {
 
 				marker.Begin();
 
@@ -35,7 +56,13 @@ namespace VisualPinball.Unity.VPT.Gate
 							movementData.Angle = data.AngleMax;
 						}
 
-						//todo this.events.fireVoidEventParm(Event.LimitEventsEOS, Math.abs(radToDeg(this.angleSpeed)));    // send EOS event
+						// send EOS event
+						events.Enqueue(new GateRotationEvent {
+							Entity = entity,
+							AngleSpeed = movementData.AngleSpeed,
+							Direction = true
+						});
+
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;
 							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
@@ -59,7 +86,13 @@ namespace VisualPinball.Unity.VPT.Gate
 				} else {
 					if (movementData.Angle > data.AngleMax) {
 						movementData.Angle = data.AngleMax;
-						// todo this.events.fireVoidEventParm(Event.LimitEventsEOS, Math.abs(radToDeg(movementData.AngleSpeed)));    // send EOS event
+
+						// send EOS event
+						events.Enqueue(new GateRotationEvent {
+							Entity = entity,
+							AngleSpeed = movementData.AngleSpeed,
+							Direction = true
+						});
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;
 							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
@@ -69,7 +102,13 @@ namespace VisualPinball.Unity.VPT.Gate
 					}
 					if (movementData.Angle < data.AngleMin) {
 						movementData.Angle = data.AngleMin;
-						// todo this.events.fireVoidEventParm(Event.LimitEventsBOS, Math.abs(radToDeg(movementData.AngleSpeed)));    // send Park event
+
+						// send Park event
+						events.Enqueue(new GateRotationEvent {
+							Entity = entity,
+							AngleSpeed = movementData.AngleSpeed,
+							Direction = false
+						});
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;
 							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
@@ -81,7 +120,13 @@ namespace VisualPinball.Unity.VPT.Gate
 				movementData.Angle += movementData.AngleSpeed * dTime;
 
 				marker.End();
+
 			}).Run();
+
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.Gates[eventData.Entity].OnRotationEvent(eventData);
+			}
 		}
 	}
 }

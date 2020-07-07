@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#endregion
 	}
 
-	public class RotationEventArgs
+	public struct RotationEventArgs
 	{
 		public float AngleSpeed;
 	}

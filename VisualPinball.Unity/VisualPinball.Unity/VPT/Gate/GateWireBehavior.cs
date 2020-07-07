@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
@@ -28,6 +29,9 @@ namespace VisualPinball.Unity.VPT.Gate
 				IsOpen = false
 			});
 
+			// register
+			var gate = transform.parent.gameObject.GetComponent<GateBehavior>().Item;
+			transform.GetComponentInParent<Player>().RegisterGate(gate, entity, gameObject);
 		}
 
 		protected override Engine.VPT.Gate.Gate GetItem()
