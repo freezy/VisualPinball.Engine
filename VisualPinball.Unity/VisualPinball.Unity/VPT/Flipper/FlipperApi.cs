@@ -33,15 +33,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		internal void HandleEvent(FlipperRotatedEvent rotatedEvent)
-		{
-			if (rotatedEvent.Direction) {
-				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
-			} else {
-				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotatedEvent.AngleSpeed });
-			}
-		}
-
 		#region Events
 
 		void IApiInitializable.OnInit()
@@ -52,6 +43,15 @@ namespace VisualPinball.Unity.VPT.Flipper
 		void IApiHittable.OnHit()
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
+		}
+
+		internal void OnRotationEvent(FlipperRotationEvent rotationEvent)
+		{
+			if (rotationEvent.Direction) {
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
+			} else {
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
+			}
 		}
 
 		#endregion
