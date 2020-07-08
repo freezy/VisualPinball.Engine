@@ -72,20 +72,27 @@ namespace VisualPinball.Engine.VPT.Table
 			itemType = reader.ReadInt32();
 			switch (itemType) {
 				case ItemType.Bumper: item = new Bumper.Bumper(reader, itemName); break;
+				case ItemType.Decal: item = new Decal.Decal(reader, itemName); break;
+				case ItemType.DispReel: item = new DispReel.DispReel(reader, itemName); break;
 				case ItemType.Flasher: item = new Flasher.Flasher(reader, itemName); break;
 				case ItemType.Flipper: item = new Flipper.Flipper(reader, itemName); break;
 				case ItemType.Gate: item = new Gate.Gate(reader, itemName); break;
 				case ItemType.HitTarget: item = new HitTarget.HitTarget(reader, itemName); break;
 				case ItemType.Kicker: item = new Kicker.Kicker(reader, itemName); break;
 				case ItemType.Light: item = new Light.Light(reader, itemName); break;
+				case ItemType.LightSeq: item = new LightSeq.LightSeq(reader, itemName); break;
 				case ItemType.Plunger: item = new Plunger.Plunger(reader, itemName); break;
 				case ItemType.Primitive: item = new Primitive.Primitive(reader, itemName); break;
 				case ItemType.Ramp: item = new Ramp.Ramp(reader, itemName); break;
 				case ItemType.Rubber: item = new Rubber.Rubber(reader, itemName); break;
 				case ItemType.Spinner: item = new Spinner.Spinner(reader, itemName); break;
 				case ItemType.Surface: item = new Surface.Surface(reader, itemName); break;
+				case ItemType.Textbox: item = new TextBox.TextBox(reader, itemName); break;
+				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
-				default: itemType = -1; break;
+				default:
+					Logger.Info("Unknown item type " + itemType);
+					itemType = -1; break;
 			}
 		}
 
