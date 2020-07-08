@@ -103,16 +103,20 @@ namespace VisualPinball.Unity.Game
 
 		#endregion
 
-		public void OnEvent(EventData hitEvent)
+		public void OnEvent(EventData eventData)
 		{
-			switch (hitEvent.Type) {
-				case Event.HitEventsHit:
-					if (_hittables.ContainsKey(hitEvent.ItemEntity)) {
-						_hittables[hitEvent.ItemEntity].OnHit();
+			switch (eventData.Type) {
+				case VisualPinball.Engine.Game.Event.HitEventsHit:
+					if (_hittables.ContainsKey(eventData.ItemEntity)) {
+						_hittables[eventData.ItemEntity].OnHit();
 					}
 					else {
-						Debug.Log("No hittable of entity " + hitEvent.ItemEntity + " found.");
+						Debug.Log("No hittable of entity " + eventData.ItemEntity + " found.");
 					}
+					break;
+
+				case VisualPinball.Engine.Game.Event.FlipperEventsCollide:
+					Flippers[eventData.ItemEntity].OnCollide(eventData.FloatParam);
 					break;
 			}
 		}
@@ -177,7 +181,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(376f, 1257f));
+				CreateBall(new DebugBallCreator(278.4076f, 1742.555f));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 

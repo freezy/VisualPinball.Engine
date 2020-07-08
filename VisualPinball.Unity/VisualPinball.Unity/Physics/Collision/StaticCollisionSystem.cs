@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Physics.Collision
 	public class StaticCollisionSystem : SystemBase
 	{
 		private Player _player;
+		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
 		private NativeQueue<EventData> _eventQueue;
@@ -31,6 +32,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 		protected override void OnCreate()
 		{
+			_visualPinballSimulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
@@ -56,6 +58,7 @@ namespace VisualPinball.Unity.Physics.Collision
 			var events = _eventQueue.AsParallelWriter();
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
+			var timeMsec = _visualPinballSimulationSystemGroup.TimeMsec;
 			var marker = PerfMarker;
 
 			Entities
@@ -97,10 +100,11 @@ namespace VisualPinball.Unity.Physics.Collision
 								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
 								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
 								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
+								var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
 
 								((FlipperCollider*) collider)->Collide(
-									ref ballData, ref collEvent, ref flipperMovementData,
-									in flipperMaterialData, in flipperVelocityData
+									ref ballData, ref collEvent, ref flipperMovementData, ref events,
+									in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
 								);
 								SetComponent(coll.Entity, flipperMovementData);
 								break;

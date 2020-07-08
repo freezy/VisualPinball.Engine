@@ -11,6 +11,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public float AngularMomentum;
 		public sbyte EnableRotateEvent;
 		public quaternion BaseRotation;
+		public uint LastHitTime;
 
 		public override string ToString()
 		{
