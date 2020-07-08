@@ -17,7 +17,9 @@ namespace VisualPinball.Unity.Game
 	public class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
-		public double CurrentPhysicsTime { get { return _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime); } }
+		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);
+
+		public uint TimeMsec;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 
@@ -76,6 +78,7 @@ namespace VisualPinball.Unity.Game
 
 			while (_currentPhysicsFrameTime < initialTimeUsec) {
 
+				TimeMsec = (uint) (Time.ElapsedTime * 1000);
 				PhysicsDiffTime = (_nextPhysicsFrameTime - _currentPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
 				// update velocities

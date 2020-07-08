@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		public event EventHandler Init;
 
 		public event EventHandler Hit;
-		public event EventHandler Collide;
+		public event EventHandler<CollideEventArgs> Collide;
 		public event EventHandler<RotationEventArgs> LimitBos;
 		public event EventHandler<RotationEventArgs> LimitEos;
 		public event EventHandler Timer;
@@ -49,12 +49,17 @@ namespace VisualPinball.Unity.VPT.Flipper
 			Hit?.Invoke(this, EventArgs.Empty);
 		}
 
+		internal void OnCollide(float flipperHit)
+		{
+			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = flipperHit });
+		}
+
 		internal void OnRotationEvent(FlipperRotationEvent rotationEvent)
 		{
 			if (rotationEvent.Direction) {
-				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
-			} else {
 				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
+			} else {
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
 			}
 		}
 
@@ -64,5 +69,10 @@ namespace VisualPinball.Unity.VPT.Flipper
 	public struct RotationEventArgs
 	{
 		public float AngleSpeed;
+	}
+
+	public struct CollideEventArgs
+	{
+		public float FlipperHit;
 	}
 }
