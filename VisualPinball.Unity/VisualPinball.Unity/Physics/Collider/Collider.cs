@@ -3,6 +3,7 @@ using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
@@ -203,7 +204,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					events.Enqueue(new EventData(VisualPinball.Engine.Game.Event.HitEventsHit, collHeader.Entity));
+					events.Enqueue(new EventData(EventType.HitEventsHit, collHeader.Entity));
 				}
 			}
 		}

@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Game
 		public void OnEvent(EventData eventData)
 		{
 			switch (eventData.Type) {
-				case VisualPinball.Engine.Game.Event.HitEventsHit:
+				case EventType.HitEventsHit:
 					if (_hittables.ContainsKey(eventData.ItemEntity)) {
 						_hittables[eventData.ItemEntity].OnHit();
 					}
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Game
 					}
 					break;
 
-				case VisualPinball.Engine.Game.Event.FlipperEventsCollide:
+				case EventType.FlipperEventsCollide:
 					Flippers[eventData.ItemEntity].OnCollide(eventData.FloatParam);
 					break;
 			}

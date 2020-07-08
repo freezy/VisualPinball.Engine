@@ -1,6 +1,6 @@
 namespace VisualPinball.Engine.Game
 {
-	public enum Event
+	public enum EventType
 	{
 		// Table
 		GameEventsKeyDown = 1000, // DISPID_GameEvents_KeyDown
