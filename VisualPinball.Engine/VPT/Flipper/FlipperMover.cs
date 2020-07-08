@@ -149,11 +149,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 				if (EnableRotateEvent > 0) {
 					Logger.Info("[{0}] Flipper is up", _data.GetName());
-					_events.FireVoidEventParam(Event.LimitEventsEOS, angleSpeed); // send EOS event
+					_events.FireVoidEventParam(EventType.LimitEventsEOS, angleSpeed); // send EOS event
 
 				} else if (EnableRotateEvent < 0) {
 					Logger.Info("[{0}] Flipper is down", _data.GetName());
-					_events.FireVoidEventParam(Event.LimitEventsBOS, angleSpeed); // send Beginning of Stroke/Park event
+					_events.FireVoidEventParam(EventType.LimitEventsBOS, angleSpeed); // send Beginning of Stroke/Park event
 				}
 
 				EnableRotateEvent = 0;

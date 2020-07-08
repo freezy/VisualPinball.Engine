@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.Physics
 
 				if (distLs > 0.25) {
 					// must be a new place if only by a little
-					Obj.FireGroupEvent(Event.SurfaceEventsSlingshot);
+					Obj.FireGroupEvent(EventType.SurfaceEventsSlingshot);
 					_slingshotAnim.TimeReset = physics.TimeMsec + 100;
 				}
 			}

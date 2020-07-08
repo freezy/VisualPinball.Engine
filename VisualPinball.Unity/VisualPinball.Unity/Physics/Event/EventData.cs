@@ -1,24 +1,28 @@
 using Unity.Entities;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity.Physics.Event
 {
 	public readonly struct EventData
 	{
-		public readonly VisualPinball.Engine.Game.Event Type;
+		public readonly EventType Type;
 		public readonly Entity ItemEntity;
 		public readonly float FloatParam;
+		public readonly bool GroupEvent;
 
-		public EventData(VisualPinball.Engine.Game.Event type, Entity itemEntity) : this()
+		public EventData(EventType type, Entity itemEntity, bool groupEvent = false) : this()
 		{
 			Type = type;
 			ItemEntity = itemEntity;
+			GroupEvent = groupEvent;
 		}
 
-		public EventData(VisualPinball.Engine.Game.Event type, Entity itemEntity, float floatParam) : this()
+		public EventData(EventType type, Entity itemEntity, float floatParam, bool groupEvent = false) : this()
 		{
 			Type = type;
 			ItemEntity = itemEntity;
 			FloatParam = floatParam;
+			GroupEvent = groupEvent;
 		}
 	}
 }

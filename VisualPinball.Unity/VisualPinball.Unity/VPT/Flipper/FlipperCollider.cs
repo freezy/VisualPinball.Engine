@@ -751,12 +751,11 @@ namespace VisualPinball.Unity.VPT.Flipper
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
-					// todo use FireGroupEvent
-					events.Enqueue(new EventData(VisualPinball.Engine.Game.Event.HitEventsHit, _header.Entity));
+					events.Enqueue(new EventData(EventType.HitEventsHit, _header.Entity, true));
 
 				} else {
 					// collision velocity (normal to face)
-					events.Enqueue(new EventData(Event.FlipperEventsCollide, _header.Entity, flipperHit));
+					events.Enqueue(new EventData(EventType.FlipperEventsCollide, _header.Entity, flipperHit));
 				}
 			}
 			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds

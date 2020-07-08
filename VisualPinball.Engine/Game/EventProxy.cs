@@ -35,18 +35,18 @@ namespace VisualPinball.Engine.Game
 			Playable = playable;
 		}
 
-		public void FireVoidEvent(Event e)
+		public void FireVoidEvent(EventType e)
 		{
 			FireDispID(e);
 		}
 
-		public void FireVoidEventParam(Event e, params dynamic[] param)
+		public void FireVoidEventParam(EventType e, params dynamic[] param)
 		{
 			FireDispID(e, param);
 			//logger().Info("[%s] fireGroupEvent(%s, %s)", this.Playable.GetName(), e, data);
 		}
 
-		public void FireGroupEvent(Event e)
+		public void FireGroupEvent(EventType e)
 		{
 			for (var i = 0; i < EventCollection.Length; i++) {
 				EventCollection[i].FireVoidEventParam(e, EventCollectionItemPos[i]);
@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.Game
 			//logger().Info("[%s] fireGroupEvent(%s)", this.Playable.GetName(), e);
 		}
 
-		private void FireDispID(Event e, params dynamic[] param)
+		private void FireDispID(EventType e, params dynamic[] param)
 		{
 			// TODO API
 			// if (isScriptable(Playable)) {
