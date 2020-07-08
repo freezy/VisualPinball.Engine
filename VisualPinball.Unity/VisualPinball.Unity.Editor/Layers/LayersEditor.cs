@@ -27,8 +27,19 @@ namespace VisualPinball.Unity.Editor.Layers
 				_treeViewState = new TreeViewState();
 
 			_treeView = new LayersTreeView(_treeViewState);
+
+			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
 		}
 
+		protected virtual void OnDisable()
+		{
+			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
+		}
+
+		private void OnVisibilityChanged()
+		{
+			_treeView.Repaint();
+		}
 
 		void OnGUI()
 		{
