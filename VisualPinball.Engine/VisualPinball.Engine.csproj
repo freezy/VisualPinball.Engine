@@ -17,26 +17,25 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
-    <None Remove=".bin/*" Visible="false" />
-    <None Remove=".obj/*" Visible="false" />
-    <None Remove="obj/*" Visible="false" />
-    <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.2" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.4" />
     <PackageReference Include="NetMiniZ" Version="1.0.2" />
-    <PackageReference Include="NetMiniZ.Native.osx-x64" Version="1.0.2" />
+    <PackageReference Include="NetMiniZ.Native.win-x86" Version="1.0.2" />
     <PackageReference Include="NetMiniZ.Native.win-x64" Version="1.0.2" />
+    <PackageReference Include="NetMiniZ.Native.osx-x64" Version="1.0.2" />
     <PackageReference Include="NetMiniZ.Native.linux-x64" Version="1.0.2" />
     <PackageReference Include="NetVips" Version="1.2.3" />
+    <PackageReference Include="NetVips.Native.win-x86" Version="8.9.2-build3" />
     <PackageReference Include="NetVips.Native.win-x64" Version="8.9.2-build3" />
     <PackageReference Include="NetVips.Native.osx-x64" Version="8.9.2-build3" />
     <PackageReference Include="NetVips.Native.linux-x64" Version="8.9.2-build3" />
     <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13" />    
   </ItemGroup>
-  <Import Project="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets')" />
+  <Import Project="$(NuGetPackageRoot)\netvips.native.win-x86\8.9.2-build3\build\net45\NetVips.Native.win-x86.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.win-x86\8.9.2-build3\build\net45\NetVips.Native.win-x86.targets')" />
   <Import Project="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\build\net45\NetVips.Native.win-x64.targets')" />
+  <Import Project="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\build\net461\NetVips.Native.osx-x64.targets')" />
   <Import Project="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\build\net461\NetVips.Native.linux-x64.targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\build\net461\NetVips.Native.linux-x64.targets')" />
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
@@ -65,14 +64,29 @@
     <ItemGroup>
       <VendorFiles Include="$(OutDir)NLog.dll" />
       <VendorFiles Include="$(OutDir)OpenMcdf.dll" />
-      <VendorFiles Include="$(OutDir)NetMiniZ.dll;$(OutDir)libminiz*.dll;$(OutDir)libminiz*.dylib;$(OutDir)libminiz.so.*" />
-      <VendorFiles Include="$(OutDir)NetVips.dll;$(OutDir)NetVips.dll.config" />
-      <!-- NetVips win-x64 build targets specifically exclude mono and won't be in $(OutDir), so copy from packages -->
-      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" />
-      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" />
-      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\runtimes\linux-x64\native\*.so.*" />
+
+      <VendorFiles Include="$(OutDir)NetVips.dll" native="win-x86" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x86\8.9.2-build3\runtimes\win-x86\native\*.dll" native="win-x86" />
+      <VendorFiles Include="$(OutDir)NetMiniZ.dll" native="win-x86" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netminiz.native.win-x86\1.0.2\runtimes\win-x86\native\*.dll" native="win-x86" />
+
+      <VendorFiles Include="$(OutDir)NetVips.dll" native="win-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" native="win-x64" />
+      <VendorFiles Include="$(OutDir)NetMiniZ.dll" native="win-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netminiz.native.win-x64\1.0.2\runtimes\win-x64\native\*.dll" native="win-x64" />
+
+      <VendorFiles Include="$(OutDir)NetVips.dll;$(OutDir)NetVips.dll.config" native="osx-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" native="osx-x64" />
+      <VendorFiles Include="$(OutDir)NetMiniZ.dll" native="osx-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netminiz.native.osx-x64\1.0.2\runtimes\osx-x64\native\*.dll" native="osx-x64" />
+
+      <VendorFiles Include="$(OutDir)NetVips.dll;$(OutDir)NetVips.dll.config" native="linux-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\runtimes\linux-x64\native\*.dylib" native="linux-x64" />
+      <VendorFiles Include="$(OutDir)NetMiniZ.dll" native="linux-x64" />
+      <VendorFiles Include="$(NuGetPackageRoot)\netminiz.native.linux-x64\1.0.2\runtimes\linux-x64\native\*.dll" native="linux-x64" />
     </ItemGroup>
     <Message Text="VendorDeploy: @(VendorFiles)" />
-    <Copy SourceFiles="@(VendorFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(VendorFiles)" Condition="'%(VendorFiles.native)' == ''" DestinationFolder="..\VisualPinball.Unity\Vendor\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(VendorFiles)" Condition="'%(VendorFiles.native)' != ''" DestinationFolder="..\VisualPinball.Unity\Vendor\%(VendorFiles.native)\" SkipUnchangedFiles="true" />
   </Target>
 </Project>
