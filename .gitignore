@@ -361,3 +361,6 @@ MigrationBackup/
 .ionide/
 
 .idea/
+
+# Vi swap files
+*.swp
