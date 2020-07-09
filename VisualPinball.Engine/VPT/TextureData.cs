@@ -96,6 +96,11 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(BinaryData)) {
+				if (obj is TextureData textureData) {
+					if (textureData.HasBitmap) {
+						return;
+					}
+				}
 				if (!(GetValue(obj) is BinaryData data)) {
 					return;
 				}
@@ -122,6 +127,11 @@ namespace VisualPinball.Engine.VPT
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
 			if (Type == typeof(Bitmap)) {
+				if (obj is TextureData textureData) {
+					if (!textureData.HasBitmap) {
+						return;
+					}
+				}
 				if (!(GetValue(obj) is Bitmap bitmap)) {
 					return;
 				}
