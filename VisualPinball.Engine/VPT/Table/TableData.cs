@@ -336,6 +336,8 @@ namespace VisualPinball.Engine.VPT.Table
 			switch (attr.Name) {
 				case "LOCK":
 				case "LAYR":
+				case "LANR":
+				case "LVIS":
 					return true;
 			}
 			return false;

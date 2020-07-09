@@ -1,4 +1,5 @@
-﻿using VisualPinball.Engine.Math;
+﻿using System.Globalization;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
@@ -76,8 +77,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 				var ts = tipShape.Trim().Split(' ');
 				ref var c = ref desc.c[i];
 
-				c.y = int.Parse(ts[0]);
-				c.r = float.Parse(ts[1]) * 0.5f;
+				c.y = int.Parse(ts[0], CultureInfo.InvariantCulture);
+				c.r = float.Parse(ts[1], CultureInfo.InvariantCulture) * 0.5f;
 
 				// each entry has to have a higher y value than the last
 				if (c.y < tipLen) {
