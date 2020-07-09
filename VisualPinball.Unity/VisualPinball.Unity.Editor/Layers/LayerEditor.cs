@@ -9,16 +9,16 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// This Editor will handle all Layers management as VPX does.
 	/// It's using a custom LayersTreeView
 	/// </summary>
-	public class LayersEditor : EditorWindow
+	public class LayerEditor : EditorWindow
 	{
 		private TreeViewState _treeViewState;
 		private TreeView _treeView;
 
 
-		[MenuItem("Visual Pinball/Layers Manager", false, 101)]
+		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
-			GetWindow<LayersEditor>("Layers Manager");
+			GetWindow<LayerEditor>("Layer Manager");
 		}
 
 		protected virtual void OnEnable()
@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (_treeViewState == null)
 				_treeViewState = new TreeViewState();
 
-			_treeView = new LayersTreeView(_treeViewState);
+			_treeView = new LayerTreeView(_treeViewState);
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
 		}
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		void DoTreeView()
 		{
-			Rect rect = GUILayoutUtility.GetRect(0, 100000, 0, 100000);
+			Rect rect = GUILayoutUtility.GetRect(0, System.Int32.MaxValue, 0, System.Int32.MaxValue);
 			_treeView.OnGUI(rect);
 		}
 

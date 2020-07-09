@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// It will then be in charge of layers management (add/remove/item assignation)
 	/// It will use the SceneVisibilityManager to synchronize layers/items visibility status & editor visibility
 	/// </summary>
-	class LayersHandler
+	class LayerHandler
 	{
 		public bool IsVisible(GameObject gameObj)
 		{

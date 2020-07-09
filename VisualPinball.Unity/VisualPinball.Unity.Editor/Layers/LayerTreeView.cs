@@ -19,12 +19,12 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// <remarks>
 	/// It a first structure draft mirroring the table structure for now, will be changed to fit the LayersHandler afterward
 	/// </remarks>
-	class LayersTreeView : TreeView
+	class LayerTreeView : TreeView
 	{
 
-		LayersHandler _layersHandler = new LayersHandler();
+		LayerHandler _layerHandler = new LayerHandler();
 
-		public LayersTreeView(TreeViewState state)
+		public LayerTreeView(TreeViewState state)
 			: base(state)
 		{
 			Reload();
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
 		{
-			var rows = GetRows() ?? new List<TreeViewItem>(200);
+			var rows = GetRows() ?? new List<TreeViewItem>();
 
 			Scene scene = SceneManager.GetSceneAt(0);
 
@@ -155,10 +155,10 @@ namespace VisualPinball.Unity.Editor.Layers
 				SelectionClick(args.item, false);
 
 			EditorGUI.BeginChangeCheck();
-			bool isVisible = _layersHandler.IsVisible(gameObject);
+			bool isVisible = _layerHandler.IsVisible(gameObject);
 			isVisible = EditorGUI.Toggle(toggleRect, isVisible);
 			if (EditorGUI.EndChangeCheck()) {
-				_layersHandler.SetVisibility(gameObject, isVisible, true);
+				_layerHandler.SetVisibility(gameObject, isVisible, true);
 			}
 
 			// Text
