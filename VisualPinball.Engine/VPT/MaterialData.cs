@@ -58,7 +58,7 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// thickness for transparent materials (0(paper thin)..1(maximum)), stupid quantization because of legacy loading/saving
 		/// </summary>
-		public int Thickness;
+		public byte Thickness;
 
 		/// <summary>
 		/// opacity (0..1)
@@ -81,7 +81,8 @@ namespace VisualPinball.Engine.VPT
 			GlossyImageLerp = reader.ReadByte();
 			reader.BaseStream.Seek(3, SeekOrigin.Current);
 			Edge = reader.ReadSingle();
-			Thickness = reader.ReadInt32();
+			Thickness = reader.ReadByte();
+			reader.BaseStream.Seek(3, SeekOrigin.Current);
 			Opacity = reader.ReadSingle();
 			OpacityActiveEdgeAlpha = reader.ReadByte();
 			reader.BaseStream.Seek(3, SeekOrigin.Current);
@@ -89,7 +90,6 @@ namespace VisualPinball.Engine.VPT
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
 			if (remainingSize > 0) {
 				throw new InvalidOperationException("There are still " + remainingSize + " bytes left to read.");
-				//reader.BaseStream.Seek(remainingSize, SeekOrigin.Current);
 			}
 		}
 
