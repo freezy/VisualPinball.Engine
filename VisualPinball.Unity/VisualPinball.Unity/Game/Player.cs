@@ -7,6 +7,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Rubber;
@@ -19,6 +20,7 @@ using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
@@ -72,6 +74,14 @@ namespace VisualPinball.Unity.Game
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
+		}
+
+		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
+		{
+			var hitTargetApi = new HitTargetApi(hitTarget, entity, this);
+			_tableApi.HitTargets[hitTarget.Name] = hitTargetApi;
+			_initializables.Add(hitTargetApi);
+			_hittables[entity] = hitTargetApi;
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -208,7 +218,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(274f, 1056f, 0, -5));
+				CreateBall(new DebugBallCreator(428f, 1350f, 0, 10));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 

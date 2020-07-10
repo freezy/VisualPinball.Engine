@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
@@ -14,6 +15,7 @@ namespace VisualPinball.Unity.VPT.Table
 	{
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
 		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
+		internal readonly Dictionary<string, HitTargetApi> HitTargets = new Dictionary<string, HitTargetApi>();
 		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
 		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
 		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
@@ -38,6 +40,13 @@ namespace VisualPinball.Unity.VPT.Table
 		/// <param name="name">Name of the gate</param>
 		/// <returns>Gate or `null` if no gate with that name exists.</returns>
 		public GateApi Gate(string name) => Gates.ContainsKey(name) ? Gates[name] : null;
+
+		/// <summary>
+		/// Returns a hit target / drop target by name.
+		/// </summary>
+		/// <param name="name">Name of the target</param>
+		/// <returns>Hit/drop target or `null` if no target with that name exists.</returns>
+		public HitTargetApi HitTarget(string name) => HitTargets.ContainsKey(name) ? HitTargets[name] : null;
 
 		/// <summary>
 		/// Returns a kicker by name.
