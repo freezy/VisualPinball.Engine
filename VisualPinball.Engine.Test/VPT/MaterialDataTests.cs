@@ -1,17 +1,31 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.Test.VPT
 {
 	public class MaterialDataTests
 	{
 		[Test]
-		public void ShouldLoadCorrectData()
+		public void ShouldReadMaterialData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
-			var material = table.GetMaterial("Material1");
+			ValidateMaterial1(table.GetMaterial("Material1"));
+		}
 
+		[Test]
+		public void ShouldWriteMaterialData()
+		{
+			const string tmpFileName = "ShouldWriteMaterialData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
+		}
+
+		private void ValidateMaterial1(Material material)
+		{
 			material.Name.Should().Be("Material1");
 			material.BaseColor.Red.Should().Be(153);
 			material.BaseColor.Green.Should().Be(62);
@@ -35,8 +49,8 @@ namespace VisualPinball.Engine.Test.VPT
 			material.Opacity.Should().Be(0.8183f);
 			material.Roughness.Should().Be(0.53628f);
 			material.ScatterAngle.Should().Be(7.4332f);
-			//material.Thickness.Should().Be(0.04705882f);
-			material.Thickness.Should().BeInRange(0.04705881f, 0.04705883f);
+			material.Thickness.Should().Be(0.654902f);
+			//material.Thickness.Should().BeInRange(0.04705881f, 0.04705883f);
 			material.WrapLighting.Should().Be(0.5492f);
 		}
 	}
