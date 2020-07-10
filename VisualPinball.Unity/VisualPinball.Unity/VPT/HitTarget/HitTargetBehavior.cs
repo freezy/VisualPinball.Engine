@@ -8,6 +8,8 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.HitTarget
 {
@@ -19,6 +21,23 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
+
+			dstManager.AddComponentData(entity, new HitTargetStaticData {
+				TargetType = data.TargetType,
+				DropSpeed = data.DropSpeed,
+				RaiseDelay = data.RaiseDelay,
+				UseHitEvent = data.UseHitEvent,
+				TableScaleZ = table.GetScaleZ()
+			});
+			dstManager.AddComponentData(entity, new HitTargetAnimationData {
+				IsDropped = data.IsDropped
+			});
+			dstManager.AddComponentData(entity, new HitTargetMovementData());
+
+			// register
+			var hitTarget = transform.GetComponent<HitTargetBehavior>().Item;
+			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
 		}
 
 		protected override Engine.VPT.HitTarget.HitTarget GetItem()
