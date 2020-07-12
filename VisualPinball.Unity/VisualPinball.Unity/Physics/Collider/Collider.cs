@@ -170,6 +170,25 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Plane:
 						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
 						break;
+					case ColliderType.Line:
+						((LineCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Circle:
+						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						break;
+					case ColliderType.LineZ:
+						((LineZCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Point:
+						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Line3D:
+						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+
+					case ColliderType.Triangle:
+
+					case ColliderType.Poly3D:
 					default:
 						collider->Collide(ref ballData, ref events, in collEvent, in coll, ref random);
 						break;
@@ -178,10 +197,10 @@ namespace VisualPinball.Unity.Physics.Collider
 		}
 
 		private void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in CollisionEventData events, in Collider coll, ref Random random)
+			in CollisionEventData collEvent, in Collider coll, ref Random random)
 		{
-			var dot = math.dot(events.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in events, in events.HitNormal, ref random);
+			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			if (dot <= -coll.Threshold) {
 				FireHitEvent(ref ball, ref hitEvents, in coll.Header);
