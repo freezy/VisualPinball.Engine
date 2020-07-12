@@ -48,6 +48,8 @@ namespace VisualPinball.Unity.Physics.Collider
 			_zLow = src.HitBBox.ZLow;
 		}
 
+		#region Narrowphase
+
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			// normal face, lateral, rigid
@@ -205,6 +207,13 @@ namespace VisualPinball.Unity.Physics.Collider
 			//coll.M_hitRigid = rigid;                         // collision type
 
 			return hitTime;
+		}
+
+		#endregion
+
+		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		{
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 		}
 	}
 }
