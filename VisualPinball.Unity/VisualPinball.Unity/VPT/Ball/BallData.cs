@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		public int Id;
 		public float3 Position;
-		public float3 EventPosition;
+		public float3 EventPosition; // m_lastEventPos
 		public float3 Velocity;
 		public float3 AngularVelocity;
 		public float3 AngularMomentum;

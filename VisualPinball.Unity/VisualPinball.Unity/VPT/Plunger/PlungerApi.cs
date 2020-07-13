@@ -1,11 +1,24 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
-	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>
+	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable
 	{
+		/// <summary>
+		/// Event triggered when the table is started.
+		/// </summary>
+		public event EventHandler Init;
+
+		public event EventHandler<StrokeEventArgs> LimitBos;
+
+		public event EventHandler<StrokeEventArgs> LimitEos;
+
+		// todo
+		public event EventHandler Timer;
+
 		public bool DoRetract { get; set; } = true;
 
 		internal PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
@@ -56,5 +69,28 @@ namespace VisualPinball.Unity.VPT.Plunger
 			EntityManager.SetComponentData(Entity, movementData);
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
+
+		#region Events
+
+		void IApiInitializable.OnInit()
+		{
+			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		internal void OnStrokeEvent(float speed, bool direction)
+		{
+			if (direction) {
+				LimitEos?.Invoke(this, new StrokeEventArgs { Speed = speed });
+			} else {
+				LimitBos?.Invoke(this, new StrokeEventArgs { Speed = speed });
+			}
+		}
+
+		#endregion
+	}
+
+	public struct StrokeEventArgs
+	{
+		public float Speed;
 	}
 }
