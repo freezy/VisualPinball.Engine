@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 
@@ -112,6 +113,29 @@ namespace VisualPinball.Engine.VPT
 		public Material(string name)
 		{
 			Name = name;
+		}
+
+		public void UpdateData()
+		{
+			MaterialData.Name = Name;
+			MaterialData.BaseColor = BaseColor.ToInt(ColorFormat.Bgr);
+			MaterialData.Glossiness = Glossiness.ToInt(ColorFormat.Bgr);
+			MaterialData.ClearCoat = ClearCoat.ToInt(ColorFormat.Bgr);
+			MaterialData.WrapLighting = WrapLighting;
+			MaterialData.Roughness = Roughness;
+			MaterialData.GlossyImageLerp = (byte)BiffFloatAttribute.QuantizeUnsigned(8, MathF.Clamp(1f - GlossyImageLerp, 0f, 1f));
+			MaterialData.Thickness =  (byte)BiffFloatAttribute.QuantizeUnsigned(8, MathF.Clamp(Thickness, 0f, 1f));
+			MaterialData.Edge = Edge;
+			MaterialData.Opacity = Opacity;
+			MaterialData.IsMetal = IsMetal ? (byte)1 : (byte)0;
+			MaterialData.OpacityActiveEdgeAlpha = IsOpacityActive ? (byte)1 : (byte)0;
+			MaterialData.OpacityActiveEdgeAlpha |= (byte)(BiffFloatAttribute.QuantizeUnsigned(7, MathF.Clamp(EdgeAlpha, 0f, 1f)) << 1);
+
+			PhysicsMaterialData.Name = Name;
+			PhysicsMaterialData.Elasticity = Elasticity;
+			PhysicsMaterialData.ElasticityFallOff = ElasticityFalloff;
+			PhysicsMaterialData.Friction = Friction;
+			PhysicsMaterialData.ScatterAngle = ScatterAngle;
 		}
 
 		public void UpdatePhysics(PhysicsMaterialData physMat)

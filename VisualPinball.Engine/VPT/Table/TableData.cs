@@ -407,6 +407,7 @@ namespace VisualPinball.Engine.VPT.Table
 					if (IsPhysics) {
 						material.PhysicsMaterialData.Write(dataWriter);
 					} else {
+						material.UpdateData();
 						material.MaterialData.Write(dataWriter);
 					}
 				}
