@@ -9,6 +9,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Physics.DebugUI;
@@ -20,6 +21,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
+using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 
@@ -37,6 +39,8 @@ namespace VisualPinball.Unity.Game
 		// game items
 		internal readonly Dictionary<Entity, FlipperApi> Flippers = new Dictionary<Entity, FlipperApi>();
 		internal readonly Dictionary<Entity, GateApi> Gates = new Dictionary<Entity, GateApi>();
+		internal readonly Dictionary<Entity, SpinnerApi> Spinners = new Dictionary<Entity, SpinnerApi>();
+		internal readonly Dictionary<Entity, PlungerApi> Plungers = new Dictionary<Entity, PlungerApi>();
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -82,7 +86,16 @@ namespace VisualPinball.Unity.Game
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
 		{
 			var plungerApi = new PlungerApi(plunger, entity, this);
+			Plungers[entity] = plungerApi;
 			_tableApi.Plungers[plunger.Name] = plungerApi;
+		}
+
+		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
+		{
+			var rubberApi = new RubberApi(rubber, entity, this);
+			_hittables[entity] = rubberApi;
+			_initializables.Add(rubberApi);
+			_tableApi.Rubbers[rubber.Name] = rubberApi;
 		}
 
 		public void RegisterSurface(Surface surface, Entity entity, GameObject go)
@@ -93,12 +106,12 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Surfaces[surface.Name] = surfaceApi;
 		}
 
-		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
+		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
 		{
-			var rubberApi = new RubberApi(rubber, entity, this);
-			_hittables[entity] = rubberApi;
-			_initializables.Add(rubberApi);
-			_tableApi.Rubbers[rubber.Name] = rubberApi;
+			var spinnerApi = new SpinnerApi(spinner, entity, this);
+			Spinners[entity] = spinnerApi;
+			_initializables.Add(spinnerApi);
+			_tableApi.Spinners[spinner.Name] = spinnerApi;
 		}
 
 		#endregion

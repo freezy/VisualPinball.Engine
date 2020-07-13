@@ -5,6 +5,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
+using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
 
 namespace VisualPinball.Unity.VPT.Table
@@ -16,6 +17,7 @@ namespace VisualPinball.Unity.VPT.Table
 		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
 		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
 		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
+		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 
 		/// <summary>
@@ -57,6 +59,13 @@ namespace VisualPinball.Unity.VPT.Table
 		/// <param name="name">Name of the rubber</param>
 		/// <returns>Rubber or `null` if no rubber with that name exists.</returns>
 		public RubberApi Rubber(string name) => Rubbers.ContainsKey(name) ? Rubbers[name] : null;
+
+		/// <summary>
+		/// Returns a spinner by name.
+		/// </summary>
+		/// <param name="name">Name of the spinner</param>
+		/// <returns>Spinner or `null` if no spinner with that name exists.</returns>
+		public SpinnerApi Spinner(string name) => Spinners.ContainsKey(name) ? Spinners[name] : null;
 
 		/// <summary>
 		/// Returns a surface (wall) by name.

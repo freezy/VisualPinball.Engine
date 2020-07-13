@@ -68,7 +68,6 @@ namespace VisualPinball.Unity.VPT.Plunger
 		/// </summary>
 		public float ReverseImpulse;
 
-
 		/// <summary>
 		/// Firing mode timer.  When this is non-zero, we're in a Fire
 		/// event.
@@ -123,5 +122,19 @@ namespace VisualPinball.Unity.VPT.Plunger
 		/// as long as we're in fire mode.
 		/// </summary>
 		public float FireSpeed;
+
+		/// <summary>
+		/// Stroke Events are armed.  We use this for a hysteresis system
+		/// for the End-of-stroke and Beginning-of-stroke events.  Any time
+		/// plunger is away from the extremes of its range of motion, we
+		/// set this flat to true.  This arms the events for the next time
+		/// we approach one of the extremes.  If we're close to one of the
+		/// ends, if this flag is true, we'll fire the corresponding event
+		/// and clear this flag.  This lets us fire the events when we're
+		/// *close* to one of the ends without having to actually reach the
+		/// exact end, and ensures that we don't fire the event repeatedly
+		/// if we stop at one of the ends for a while.
+		/// </summary>
+		public bool StrokeEventsArmed;
 	}
 }

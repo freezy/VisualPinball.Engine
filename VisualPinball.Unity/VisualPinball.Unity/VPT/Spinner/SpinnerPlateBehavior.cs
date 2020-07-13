@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Spinner
 {
@@ -25,6 +26,10 @@ namespace VisualPinball.Unity.VPT.Spinner
 				Angle = math.radians(math.clamp(0.0f, data.AngleMin, data.AngleMax)),
 				AngleSpeed = 0f
 			});
+
+			// register
+			var spinner = transform.parent.gameObject.GetComponent<SpinnerBehavior>().Item;
+			transform.GetComponentInParent<Player>().RegisterSpinner(spinner, entity, gameObject);
 		}
 
 		protected override Engine.VPT.Spinner.Spinner GetItem()
