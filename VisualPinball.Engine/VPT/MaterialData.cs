@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// use image also for the glossy layer (0(no tinting at all)..1(use image)), stupid quantization because of legacy loading/saving
 		/// </summary>
-		public int GlossyImageLerp;
+		public byte GlossyImageLerp;
 
 		/// <summary>
 		/// edge weight/brightness for glossy and clear coat (0(dark edges)..1(full fresnel))
@@ -111,8 +111,14 @@ namespace VisualPinball.Engine.VPT
 			writer.Write((byte)0x0);
 			writer.Write(Edge);
 			writer.Write(Thickness);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
 			writer.Write(Opacity);
 			writer.Write(OpacityActiveEdgeAlpha);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
+			writer.Write((byte)0x0);
 		}
 	}
 
