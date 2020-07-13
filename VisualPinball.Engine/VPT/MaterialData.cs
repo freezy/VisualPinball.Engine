@@ -88,7 +88,7 @@ namespace VisualPinball.Engine.VPT
 			reader.BaseStream.Seek(3, SeekOrigin.Current);
 
 			var remainingSize = Size - (reader.BaseStream.Position - startPos);
-			if (remainingSize > 0) {
+			if (remainingSize != 0) {
 				throw new InvalidOperationException("There are still " + remainingSize + " bytes left to read.");
 			}
 		}

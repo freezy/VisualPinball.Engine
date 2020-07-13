@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 
@@ -22,6 +23,51 @@ namespace VisualPinball.Engine.Test.VPT
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
 			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
+		}
+
+		[Test]
+		public void ShouldWriteUpdatedMaterialData()
+		{
+			const string tmpFileName = "ShouldWriteUpdatedMaterialData.vpx";
+			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
+
+			var mat = table.GetMaterial("Material1");
+			mat.Name = "MaterialUpdated";
+			mat.BaseColor = new Color(1, 2, 3, 1);
+			mat.Edge = 0.15f;
+			mat.EdgeAlpha = 0.84f;
+			mat.Elasticity = 2.34f;
+			mat.ElasticityFalloff = 4.02f;
+			mat.Friction = 6.32f;
+			mat.GlossyImageLerp = 0.23f;
+			mat.IsMetal = true;
+			mat.IsOpacityActive = false;
+			mat.Opacity = 0.32f;
+			mat.Roughness = 0.87f;
+			mat.ScatterAngle = 12.2f;
+			mat.Thickness = 0.74f;
+			mat.WrapLighting = 0.68f;
+
+			table.Save(tmpFileName);
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var material = writtenTable.GetMaterial("MaterialUpdated");
+			material.Name.Should().Be("MaterialUpdated");
+			material.BaseColor.Red.Should().Be(1);
+			material.BaseColor.Green.Should().Be(2);
+			material.BaseColor.Blue.Should().Be(3);
+			material.Edge.Should().Be(0.15f);
+			material.EdgeAlpha.Should().BeApproximately(0.84f, 0.003f);
+			material.Elasticity.Should().Be(2.34f);
+			material.ElasticityFalloff.Should().Be(4.02f);
+			material.Friction.Should().Be(6.32f);
+			material.GlossyImageLerp.Should().BeApproximately(0.23f, 0.003f);
+			material.IsMetal.Should().Be(true);
+			material.IsOpacityActive.Should().Be(false);
+			material.Opacity.Should().Be(0.32f);
+			material.Roughness.Should().Be(0.87f);
+			material.ScatterAngle.Should().Be(12.2f);
+			material.Thickness.Should().BeApproximately(0.74f, 0.003f);
+			material.WrapLighting.Should().Be(0.68f);
 		}
 
 		private void ValidateMaterial1(Material material)
