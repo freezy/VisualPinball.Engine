@@ -92,6 +92,12 @@ namespace VisualPinball.Engine.VPT
 		internal readonly MaterialData MaterialData;
 		internal PhysicsMaterialData PhysicsMaterialData;
 
+		public Material()
+		{
+			MaterialData = new MaterialData();
+			PhysicsMaterialData = new PhysicsMaterialData();
+		}
+
 		public Material(BinaryReader reader)
 		{
 			MaterialData = new MaterialData(reader);

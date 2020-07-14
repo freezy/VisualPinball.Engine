@@ -171,7 +171,7 @@ namespace VisualPinball.Engine.IO
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
 				.Select(a => a[0] as ISortableBiffRecord)
-				.Concat(UnknownRecords)
+				.Concat(UnknownRecords ?? new List<UnknownBiffRecord>())
 				.OrderBy(r => r.GetPosition());
 			foreach (var record in records) {
 				try {

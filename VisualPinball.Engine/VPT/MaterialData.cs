@@ -67,6 +67,10 @@ namespace VisualPinball.Engine.VPT
 
 		public byte OpacityActiveEdgeAlpha;
 
+		public MaterialData()
+		{
+		}
+
 		public MaterialData(BinaryReader reader)
 		{
 			var startPos = reader.BaseStream.Position;
@@ -135,6 +139,10 @@ namespace VisualPinball.Engine.VPT
 		public float ElasticityFallOff;
 		public float Friction;
 		public float ScatterAngle;
+
+		public PhysicsMaterialData()
+		{
+		}
 
 		public PhysicsMaterialData(BinaryReader reader) {
 			var startPos = reader.BaseStream.Position;
