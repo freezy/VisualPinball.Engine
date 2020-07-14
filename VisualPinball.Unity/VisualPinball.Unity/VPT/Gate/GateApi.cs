@@ -4,7 +4,7 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
-	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable, IApiHittable
+	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable, IApiHittable, IApiRotatable
 	{
 		/// <summary>
 		/// Event triggered when the table is started.
@@ -60,21 +60,22 @@ namespace VisualPinball.Unity.VPT.Gate
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit()
+		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
 		}
 
-		internal void OnRotationEvent(GateRotationEvent rotationEvent)
+		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
-			if (rotationEvent.Direction) {
-				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
+			if (direction) {
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			} else {
-				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
 		}
 
 		#endregion
+
 	}
 
 	public struct RotationEventArgs

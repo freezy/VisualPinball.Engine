@@ -109,25 +109,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {
-
-				var spinnerApi = _player.Spinners[eventData.ItemEntity];
-				// todo move this into player, so we handle the group events.
-				switch (eventData.Type) {
-					case EventType.LimitEventsEOS:
-						spinnerApi.OnRotationEvent(eventData.FloatParam, true);
-						break;
-
-					case EventType.LimitEventsBOS:
-						spinnerApi.OnRotationEvent(eventData.FloatParam, false);
-						break;
-
-					case EventType.SpinnerEventsSpin:
-						spinnerApi.OnSpinEvent();
-						break;
-
-					default:
-						throw new InvalidOperationException("Unhandled spinner event " + eventData.Type);
-				}
+				_player.OnEvent(in eventData);
 			}
 		}
 	}

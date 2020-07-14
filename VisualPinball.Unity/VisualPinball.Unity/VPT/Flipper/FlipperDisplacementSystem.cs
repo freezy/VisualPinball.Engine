@@ -3,25 +3,20 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Unity.Game;
+using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
+using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public struct FlipperRotationEvent
-	{
-		public bool Direction;
-		public float AngleSpeed;
-		public Entity Entity;
-	}
-
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class FlipperDisplacementSystem : SystemBase
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
-		private NativeQueue<FlipperRotationEvent> _eventQueue;
+		private NativeQueue<EventData> _eventQueue;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperDisplacementSystem");
 
@@ -29,7 +24,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		{
 			_player = Object.FindObjectOfType<Player>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
-			_eventQueue = new NativeQueue<FlipperRotationEvent>(Allocator.Persistent);
+			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
 
 		protected override void OnDestroy()
@@ -88,20 +83,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 					if (state.EnableRotateEvent > 0) {
 
 						// send EOS event
-						events.Enqueue(new FlipperRotationEvent {
-							Entity = entity,
-							AngleSpeed = angleSpeed,
-							Direction = true
-						});
+						events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, angleSpeed));
 
 					} else if (state.EnableRotateEvent < 0) {
 
 						// send BOS event
-						events.Enqueue(new FlipperRotationEvent {
-							Entity = entity,
-							AngleSpeed = angleSpeed,
-							Direction = false
-						});
+						events.Enqueue(new EventData(EventType.LimitEventsBOS, entity, angleSpeed));
 					}
 
 					state.EnableRotateEvent = 0;
@@ -113,7 +100,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {
-				_player.Flippers[eventData.Entity].OnRotationEvent(eventData);
+				_player.OnEvent(in eventData);
 			}
 		}
 	}

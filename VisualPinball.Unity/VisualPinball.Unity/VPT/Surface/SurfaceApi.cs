@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.VPT.Surface
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit()
+		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
 		}

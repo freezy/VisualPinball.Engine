@@ -5,7 +5,7 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
-	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable
+	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable, IApiRotatable
 	{
 		/// <summary>
 		/// Event triggered when the table is started.
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		internal void OnStrokeEvent(float speed, bool direction)
+		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
 			if (direction) {
 				LimitEos?.Invoke(this, new StrokeEventArgs { Speed = speed });

@@ -10,7 +10,8 @@ using VisualPinball.Unity.Physics.Engine;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
-	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable
+	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable,
+		IApiRotatable, IApiCollidable
 	{
 		/// <summary>
 		/// Event triggered when the table is started.
@@ -71,23 +72,23 @@ namespace VisualPinball.Unity.VPT.Flipper
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit()
+		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
 		}
 
-		internal void OnCollide(float flipperHit)
+		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
-			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = flipperHit });
+			if (direction) {
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
+			} else {
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
+			}
 		}
 
-		internal void OnRotationEvent(FlipperRotationEvent rotationEvent)
+		void IApiCollidable.OnCollide(float hit)
 		{
-			if (rotationEvent.Direction) {
-				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
-			} else {
-				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = rotationEvent.AngleSpeed });
-			}
+			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = hit });
 		}
 
 		#endregion
