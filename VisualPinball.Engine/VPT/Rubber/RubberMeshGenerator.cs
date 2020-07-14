@@ -65,7 +65,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		internal Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
-			_data.StaticRendering = true;
 			var mesh = new Mesh(_data.Name);
 			int accuracy;
 			if (table.GetDetailLevel() < 5) {
