@@ -12,6 +12,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
+		public string[] UsedMaterials => new string[] { Data.Material };
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
 		private readonly SpinnerHitGenerator _hitGenerator;

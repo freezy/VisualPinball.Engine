@@ -5,6 +5,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable
 	{
+		public string[] UsedMaterials => new string[] { Data.Material, Data.PhysicsMaterial };
+
 		private readonly HitTargetMeshGenerator _meshGenerator;
 
 		public HitTarget(HitTargetData data) : base(data)

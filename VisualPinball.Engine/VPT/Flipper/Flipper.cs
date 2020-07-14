@@ -9,6 +9,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public FlipperState State { get; }
 		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
+		public string[] UsedMaterials => new string[] { Data.Material, Data.RubberMaterial };
 
 		private readonly FlipperMeshGenerator _meshGenerator;
 		private FlipperHit _hit;

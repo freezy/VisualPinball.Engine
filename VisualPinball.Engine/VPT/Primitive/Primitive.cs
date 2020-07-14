@@ -11,6 +11,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable
 	{
+		public string[] UsedMaterials => new string[] { Data.Material, Data.PhysicsMaterial };
+
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 
 		public Primitive(PrimitiveData data) : base(data)
