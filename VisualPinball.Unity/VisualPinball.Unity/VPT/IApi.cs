@@ -9,6 +9,21 @@ namespace VisualPinball.Unity.VPT
 
 	internal interface IApiHittable
 	{
-		void OnHit();
+		void OnHit(bool isUnHit = false);
+	}
+
+	internal interface IApiRotatable
+	{
+		void OnRotate(float speed, bool direction);
+	}
+
+	internal interface IApiCollidable
+	{
+		void OnCollide(float hit);
+	}
+
+	internal interface IApiSpinnable
+	{
+		void OnSpin();
 	}
 }

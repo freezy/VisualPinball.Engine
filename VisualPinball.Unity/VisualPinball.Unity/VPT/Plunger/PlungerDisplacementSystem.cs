@@ -1,12 +1,11 @@
-using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
-using Object = UnityEngine.Object;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Plunger
@@ -119,21 +118,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {
-
-				var plungerApi = _player.Plungers[eventData.ItemEntity];
-				// todo move this into player, so we can handle the group events.
-				switch (eventData.Type) {
-					case EventType.LimitEventsEOS:
-						plungerApi.OnStrokeEvent(eventData.FloatParam, true);
-						break;
-
-					case EventType.LimitEventsBOS:
-						plungerApi.OnStrokeEvent(eventData.FloatParam, false);
-						break;
-
-					default:
-						throw new InvalidOperationException("Unhandled plunger event " + eventData.Type);
-				}
+				_player.OnEvent(in eventData);
 			}
 		}
 

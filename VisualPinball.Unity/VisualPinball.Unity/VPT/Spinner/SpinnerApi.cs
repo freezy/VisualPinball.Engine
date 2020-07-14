@@ -4,7 +4,8 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Spinner
 {
-	public class SpinnerApi : ItemApi<Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>, IApiInitializable
+	public class SpinnerApi : ItemApi<Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
+		IApiInitializable, IApiRotatable, IApiSpinnable
 	{
 		/// <summary>
 		/// Event triggered when the table is started.
@@ -31,17 +32,17 @@ namespace VisualPinball.Unity.VPT.Spinner
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		internal void OnSpinEvent()
+		void IApiSpinnable.OnSpin()
 		{
 			Spin?.Invoke(this, EventArgs.Empty);
 		}
 
-		internal void OnRotationEvent(float angleSpeed, bool direction)
+		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
 			if (direction) {
-				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = angleSpeed });
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			} else {
-				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = angleSpeed });
+				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
 		}
 

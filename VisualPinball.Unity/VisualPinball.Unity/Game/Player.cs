@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -35,12 +36,9 @@ namespace VisualPinball.Unity.Game
 		private readonly TableApi _tableApi = new TableApi();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
-
-		// game items
-		internal readonly Dictionary<Entity, FlipperApi> Flippers = new Dictionary<Entity, FlipperApi>();
-		internal readonly Dictionary<Entity, GateApi> Gates = new Dictionary<Entity, GateApi>();
-		internal readonly Dictionary<Entity, SpinnerApi> Spinners = new Dictionary<Entity, SpinnerApi>();
-		internal readonly Dictionary<Entity, PlungerApi> Plungers = new Dictionary<Entity, PlungerApi>();
+		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
+		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
+		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -56,9 +54,10 @@ namespace VisualPinball.Unity.Game
 		{
 			var flipperApi = new FlipperApi(flipper, entity, this);
 
-			Flippers[entity] = flipperApi;
 			_tableApi.Flippers[flipper.Name] = flipperApi;
 			_hittables[entity] = flipperApi;
+			_rotatables[entity] = flipperApi;
+			_collidables[entity] = flipperApi;
 			_initializables.Add(flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
@@ -70,9 +69,9 @@ namespace VisualPinball.Unity.Game
 		{
 			var gateApi = new GateApi(gate, entity, this);
 
-			Gates[entity] = gateApi;
 			_tableApi.Gates[gate.Name] = gateApi;
 			_hittables[entity] = gateApi;
+			_rotatables[entity] = gateApi;
 			_initializables.Add(gateApi);
 		}
 
@@ -86,7 +85,7 @@ namespace VisualPinball.Unity.Game
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
 		{
 			var plungerApi = new PlungerApi(plunger, entity, this);
-			Plungers[entity] = plungerApi;
+			_rotatables[entity] = plungerApi;
 			_tableApi.Plungers[plunger.Name] = plungerApi;
 		}
 
@@ -109,28 +108,38 @@ namespace VisualPinball.Unity.Game
 		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
 		{
 			var spinnerApi = new SpinnerApi(spinner, entity, this);
-			Spinners[entity] = spinnerApi;
+			_spinnables[entity] = spinnerApi;
 			_initializables.Add(spinnerApi);
 			_tableApi.Spinners[spinner.Name] = spinnerApi;
 		}
 
 		#endregion
 
-		public void OnEvent(EventData eventData)
+		public void OnEvent(in EventData eventData)
 		{
 			switch (eventData.Type) {
 				case EventType.HitEventsHit:
-					if (_hittables.ContainsKey(eventData.ItemEntity)) {
-						_hittables[eventData.ItemEntity].OnHit();
-					}
-					else {
-						Debug.Log("No hittable of entity " + eventData.ItemEntity + " found.");
-					}
+					_hittables[eventData.ItemEntity].OnHit();
+					break;
+
+				case EventType.LimitEventsBOS:
+					_rotatables[eventData.ItemEntity].OnRotate(eventData.FloatParam, false);
+					break;
+
+				case EventType.LimitEventsEOS:
+					_rotatables[eventData.ItemEntity].OnRotate(eventData.FloatParam, true);
+					break;
+
+				case EventType.SpinnerEventsSpin:
+					_spinnables[eventData.ItemEntity].OnSpin();
 					break;
 
 				case EventType.FlipperEventsCollide:
-					Flippers[eventData.ItemEntity].OnCollide(eventData.FloatParam);
+					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
 					break;
+
+				default:
+					throw new InvalidOperationException($"Unknown event {eventData.Type} for entity {eventData.ItemEntity}");
 			}
 		}
 
