@@ -9,6 +9,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		public bool IsCollidable => true;
 		public HitObject[] GetHitShapes() => _hits;
 		public EventProxy EventProxy { get; private set; }
+		public string[] UsedMaterials => new string[] { Data.Material };
 
 		private readonly TriggerMeshGenerator _meshGenerator;
 		private readonly TriggerHitGenerator _hitGenerator;
