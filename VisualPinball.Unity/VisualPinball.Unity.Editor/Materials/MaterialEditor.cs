@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Materials
@@ -40,12 +43,24 @@ namespace VisualPinball.Unity.Editor.Materials
 				_treeViewState = new TreeViewState();
 			}
 
-			_table = GameObject.FindObjectOfType<TableBehavior>();
-			_treeView = new TreeViewTest(_treeViewState, _table, MaterialSelected);
+			FindTable();
+		}
+
+		protected virtual void OnHierarchyChange()
+		{
+			// if we don't have a table, look for one when stuff in the scene changes
+			if (_table == null) {
+				FindTable();
+			}
 		}
 
 		protected virtual void OnGUI()
 		{
+			// if the table went away, clear the selected material as well
+			if (_table == null) {
+				_selectedMaterial = null;
+			}
+
 			EditorGUILayout.BeginHorizontal();
 
 			// list
@@ -185,6 +200,12 @@ namespace VisualPinball.Unity.Editor.Materials
 			}
 		}
 
+		private void FindTable()
+		{
+			_table = GameObject.FindObjectOfType<TableBehavior>();
+			_treeView = new TreeViewTest(_treeViewState, _table, MaterialSelected);
+		}
+
 		private void MaterialSelected(List<Engine.VPT.Material> selectedMaterials)
 		{
 			_selectedMaterial = null;
@@ -201,7 +222,6 @@ namespace VisualPinball.Unity.Editor.Materials
 		public event Action<List<Engine.VPT.Material>> MaterialSelected;
 
 		private TableBehavior _table;
-		private List<Engine.VPT.Material> _materials = new List<Engine.VPT.Material>();
 
 		public TreeViewTest(TreeViewState treeViewState, TableBehavior table, Action<List<Engine.VPT.Material>> materialSelected) : base(treeViewState)
 		{
@@ -213,10 +233,10 @@ namespace VisualPinball.Unity.Editor.Materials
 				new MultiColumnHeaderState.Column
 				{
 					headerContent = new GUIContent("Name"),
-					headerTextAlignment = TextAlignment.Left,
+					headerTextAlignment = UnityEngine.TextAlignment.Left,
 					canSort = true,
 					sortedAscending = true,
-					sortingArrowAlignment = TextAlignment.Right,
+					sortingArrowAlignment = UnityEngine.TextAlignment.Right,
 					width = 300,
 					minWidth = 100,
 					maxWidth = float.MaxValue,
@@ -226,10 +246,10 @@ namespace VisualPinball.Unity.Editor.Materials
 				new MultiColumnHeaderState.Column
 				{
 					headerContent = new GUIContent("In use"),
-					headerTextAlignment = TextAlignment.Left,
+					headerTextAlignment = UnityEngine.TextAlignment.Left,
 					canSort = true,
 					sortedAscending = true,
-					sortingArrowAlignment = TextAlignment.Right,
+					sortingArrowAlignment = UnityEngine.TextAlignment.Right,
 					width = 50,
 					minWidth = 50,
 					maxWidth = 50,
@@ -246,7 +266,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			this.showBorder = true;
 
 			Reload();
-			if (_materials.Count > 0) {
+			if (GetRows().Count > 0) {
 				SetSelection(new List<int> { 0 }, TreeViewSelectionOptions.FireSelectionChanged);
 			}
 		}
@@ -254,6 +274,15 @@ namespace VisualPinball.Unity.Editor.Materials
 		private void SortingChanged(MultiColumnHeader multiColumnHeader)
 		{
 			Reload();
+		}
+
+		public override void OnGUI(Rect rect)
+		{
+			// if the table went away, force a rebuild to empty out the list
+			if (_table == null && GetRows().Count > 0) {
+				Reload();
+			}
+			base.OnGUI(rect);
 		}
 
 		protected override TreeViewItem BuildRoot()
@@ -266,29 +295,56 @@ namespace VisualPinball.Unity.Editor.Materials
 			var items = new List<TreeViewItem>();
 			if (_table == null) return items;
 
-			_materials.Clear();
-			_materials.AddRange(_table.Item.Data.Materials);
-			for (int i = 0; i < _materials.Count; i++) {
-				var mat = _materials[i];
-				items.Add(new TreeViewItem { id = i, depth = 0, displayName = mat.Name });
+			// collect list of in use materials
+			List<string> inUseMaterials = new List<string>();
+			var renderables = _table.GetComponentsInChildren<IItemBehaviorWithMaterials>();
+			foreach (var renderable in renderables) {
+				var mats = renderable.UsedMaterials;
+				if (mats != null) {
+					foreach (var mat in mats) {
+						if (!string.IsNullOrEmpty(mat)) {
+							inUseMaterials.Add(mat);
+						}
+					}
+				}
+			}
+
+			// get row data for each material
+			for (int i = 0; i < _table.Item.Data.Materials.Length; i++) {
+				var mat = _table.Item.Data.Materials[i];
+				items.Add(new RowData(i, mat, inUseMaterials.Contains(mat.Name)));
 			}
 
 			var sortedColumns = this.multiColumnHeader.state.sortedColumns;
 			if (sortedColumns.Length > 0) {
-				bool ascending = multiColumnHeader.IsSortedAscending(sortedColumns[0]);
-				switch (sortedColumns[0]) {
-					case 0:
-						if (ascending) {
-							items.Sort((a, b) => {
-								return a.displayName.CompareTo(b.displayName);
-							});
-						} else {
-							items.Sort((a, b) => {
-								return b.displayName.CompareTo(a.displayName);
-							});
+				items.Sort((baseA, baseB) => {
+					var a = baseA as RowData;
+					var b = baseB as RowData;
+					// sort based on multiple columns
+					foreach (var column in sortedColumns) {
+						bool ascending = multiColumnHeader.IsSortedAscending(column);
+						// flip for descending
+						if (!ascending) {
+							var tmp = b;
+							b = a;
+							a = tmp;
 						}
-						break;
-				}
+						int compareResult = 0;
+						switch (column) {
+							case 0:
+								compareResult = a.Material.Name.CompareTo(b.Material.Name);
+								break;
+							case 1:
+								compareResult = a.InUse.CompareTo(b.InUse);
+								break;
+						}
+						// not equal in this column, then return that
+						if (compareResult != 0) {
+							return compareResult;
+						}
+					}
+					return a.CompareTo(b);
+				});
 			}
 
 			return items;
@@ -304,9 +360,13 @@ namespace VisualPinball.Unity.Editor.Materials
 		private void CellGUI(Rect cellRect, TreeViewItem item, int column)
 		{
 			CenterRectUsingSingleLineHeight(ref cellRect);
+			var rowData = item as RowData;
 			switch (column) {
 				case 0: // todo: make an enum for the columns
-					GUI.Label(cellRect, item.displayName);
+					GUI.Label(cellRect, rowData.Material.Name);
+					break;
+				case 1:
+					GUI.Label(cellRect, rowData.InUse ? "X" : "");
 					break;
 			}
 		}
@@ -314,12 +374,24 @@ namespace VisualPinball.Unity.Editor.Materials
 		protected override void SelectionChanged(IList<int> selectedIds)
 		{
 			List<Engine.VPT.Material> selectedMats = new List<Engine.VPT.Material>();
-			foreach (var id in selectedIds) {
-				if (id >= 0 && id < _materials.Count) {
-					selectedMats.Add(_materials[id]);
+			var rows = GetRows();
+			foreach (var row in rows) {
+				if (selectedIds.Contains(row.id)) {
+					selectedMats.Add((row as RowData).Material);
 				}
 			}
 			MaterialSelected?.Invoke(selectedMats);
+		}
+
+		private class RowData : TreeViewItem
+		{
+			public readonly Engine.VPT.Material Material;
+			public readonly bool InUse;
+
+			public RowData(int id, Engine.VPT.Material mat, bool inUse) : base(id, 0) {
+				Material = mat;
+				InUse = inUse;
+			}
 		}
 	}
 }

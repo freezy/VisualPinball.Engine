@@ -12,12 +12,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IItemBehaviorWithMaterials
+		where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
+		public string[] UsedMaterials => Item.UsedMaterials;
 
 		protected TableData _tableData;
 		private TItem _item;
