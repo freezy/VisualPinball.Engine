@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +7,9 @@ namespace VisualPinball.Engine.IO
 {
 	public class BiffStringAttribute : BiffAttribute
 	{
+
+		private static readonly Encoding StringEncoding = Encoding.ASCII;
+
 		/// <summary>
 		/// Wide strings have a zero byte between each character.
 		/// </summary>
@@ -45,12 +47,12 @@ namespace VisualPinball.Engine.IO
 					bytes = LengthAfterTag ? reader.ReadBytes(len) : reader.ReadBytes(len).Skip(4).ToArray();
 				}
 			}
-			return Encoding.Default.GetString(bytes);
+			return StringEncoding.GetString(bytes);
 		}
 
 		private void WriteString(BinaryWriter writer, string value)
 		{
-			var bytes = Encoding.Default.GetBytes(value ?? "");
+			var bytes = StringEncoding.GetBytes(value ?? "");
 			if (IsWideString) {
 				bytes = bytes.SelectMany(b => new byte[] {b, 0x0}).ToArray();
 			}
