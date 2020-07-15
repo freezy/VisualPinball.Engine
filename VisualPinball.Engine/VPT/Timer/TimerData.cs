@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.VPT.Timer
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.Timer);
-			Write(writer, Attributes, hashWriter);
+			WriteRecords(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

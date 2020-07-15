@@ -118,7 +118,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.Rubber);
-			Write(writer, Attributes, hashWriter);
+			WriteRecords(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

@@ -122,7 +122,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.Light);
-			Write(writer, Attributes, hashWriter);
+			WriteRecords(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

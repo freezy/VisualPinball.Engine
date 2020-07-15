@@ -130,7 +130,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write(ItemType.Ramp);
-			Write(writer, Attributes, hashWriter);
+			WriteRecords(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

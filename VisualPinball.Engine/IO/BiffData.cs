@@ -44,7 +44,9 @@ namespace VisualPinball.Engine.IO
 		public void WriteData(CFStorage gameStorage, HashWriter hashWriter = null)
 		{
 			var itemData = gameStorage.AddStream(StorageName);
-			itemData.SetData(GetBytes(hashWriter));
+			var data = GetBytes(hashWriter);
+			Logger.Info("Writing {0} bytes for {1}", data.Length, StorageName);
+			itemData.SetData(data);
 		}
 
 		private byte[] GetBytes(HashWriter hashWriter)
@@ -165,7 +167,7 @@ namespace VisualPinball.Engine.IO
 			return obj;
 		}
 
-		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
+		protected void WriteRecords(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
 		{
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
