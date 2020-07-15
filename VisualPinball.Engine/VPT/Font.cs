@@ -1,9 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT
 {
+	[Serializable]
 	public class Font
 	{
 		public string Name;

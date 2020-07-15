@@ -15,7 +15,6 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Rubber
 {
 	[Serializable]
-	[BiffIgnore("PNTS")]
 	public class RubberData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
@@ -91,6 +90,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		[BiffInt("TMIN", Pos = 7)]
 		public int TimerInterval;
+
+		[BiffTag("PNTS", Pos = 1999)]
+		public bool Points;
 
 		// IPhysicalData
 		public float GetElasticity() => Elasticity;

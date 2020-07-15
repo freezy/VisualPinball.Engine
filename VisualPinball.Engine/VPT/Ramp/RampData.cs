@@ -15,7 +15,6 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Ramp
 {
 	[Serializable]
-	[BiffIgnore("PNTS")]
 	public class RampData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
@@ -112,6 +111,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		[BiffInt("TMIN", Pos = 7)]
 		public int TimerInterval;
+
+		[BiffTag("PNTS", Pos = 1999)]
+		public bool Points;
 
 		#region BIFF
 

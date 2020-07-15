@@ -49,6 +49,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			data.ShowInEditor.Should().Be(false);
 			data.StaticRendering.Should().Be(true);
 			data.Thickness.Should().Be(12);
+			data.Points.Should().Be(true);
 		}
 
 		private static void ValidateRubberData2(RubberData data)
