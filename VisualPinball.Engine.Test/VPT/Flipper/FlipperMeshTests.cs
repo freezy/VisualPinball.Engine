@@ -32,7 +32,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			var flipper = _table.Flippers["FatRubberFlipper"];
 			var flipperMeshes = flipper.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
-				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}");
+				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", threshold: 0.00015f);
 			}
 		}
 

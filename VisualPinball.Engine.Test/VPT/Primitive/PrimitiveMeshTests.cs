@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		public void ShouldGenerateImportedMesh()
 		{
 			var bookMesh = _table.Primitives["Books"].GetRenderObjects(_table).RenderObjects[0].Mesh;
-			AssertObjMesh(_obj, bookMesh);
+			AssertObjMesh(_obj, bookMesh, threshold: 0.00015f);
 		}
 
 		[Test]
@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
 
 			var compressedMesh = table.Primitives["compressed"].GetRenderObjects(_table).RenderObjects[0].Mesh;
-			AssertObjMesh(obj, compressedMesh);
+			AssertObjMesh(obj, compressedMesh, threshold: 0.00015f);
 		}
 	}
 }
