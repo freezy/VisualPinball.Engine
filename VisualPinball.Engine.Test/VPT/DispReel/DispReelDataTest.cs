@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			data.BackColor.Blue.Should().Be(19);
 			data.DigitRange.Should().Be(3);
 			data.EditorLayer.Should().Be(6);
-			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerName.Should().Be(string.Empty);
 			data.EditorLayerVisibility.Should().Be(true);
 			data.Height.Should().Be(42);
 			data.Image.Should().Be("tex_transparent");

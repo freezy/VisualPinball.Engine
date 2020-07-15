@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 			data.Center.Y.Should().Be(503.68f);
 			data.Collection.Should().Be("Collection001");
 			data.EditorLayer.Should().Be(0);
-			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerName.Should().Be(string.Empty);
 			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(false);
 			data.IsTimerEnabled.Should().Be(true);
