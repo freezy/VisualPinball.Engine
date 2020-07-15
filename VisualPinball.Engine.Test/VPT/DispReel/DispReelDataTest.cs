@@ -64,7 +64,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			data.BackColor.Blue.Should().Be(255);
 			data.DigitRange.Should().Be(9);
 			data.EditorLayer.Should().Be(0);
-			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerName.Should().Be(string.Empty);
 			data.EditorLayerVisibility.Should().Be(true);
 			data.Height.Should().Be(40);
 			data.Image.Should().Be("");
