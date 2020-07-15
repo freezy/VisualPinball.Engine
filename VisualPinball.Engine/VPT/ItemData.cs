@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.VPT
 		public int EditorLayer;
 
 		[BiffString("LANR", Pos = 1002)]
-		public string EditorLayerName;
+		public string EditorLayerName  = string.Empty;
 
 		[BiffBool("LVIS", Pos = 1003)]
 		public bool EditorLayerVisibility = true;
