@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
-				collEvent.HitFlag = true;
+				collEvent.HitFlag = false;
 				return hitTime;
 			}
 
@@ -73,19 +73,19 @@ namespace VisualPinball.Unity.VPT.Spinner
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 
+			// hit from back doesn't count
 			if (dot < 0.0f) {
-				//hit from back doesn't count
 				return;
 			}
 
 			var h = data.Height * 0.5f;
-			//linear speed = ball speed
-			//angular speed = linear/radius (height of hit)
+			// linear speed = ball speed
+			// angular speed = linear/radius (height of hit)
 
 			// h is the height of the spinner axis;
 			// Since the spinner has no mass in our equation, the spot
 			// h -coll.m_radius will be moving a at linear rate of
-			// 'speed'.  We can calculate the angular speed from that.
+			// 'speed'. We can calculate the angular speed from that.
 
 			movementData.AngleSpeed = math.abs(dot); // use this until a better value comes along
 

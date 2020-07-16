@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 				marker.Begin();
 
-				rot.Value = quaternion.RotateX(movementData.Angle);
+				rot.Value = quaternion.RotateX(-movementData.Angle);
 
 				marker.End();
 
