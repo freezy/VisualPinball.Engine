@@ -98,11 +98,11 @@ namespace VisualPinball.Unity.VPT.Plunger
 				var strokeEventLimit = staticData.FrameLen / 50.0f;
 				var strokeEventHysteresis = strokeEventLimit * 2.0f;
 				if (movementData.StrokeEventsArmed && movementData.Position + dx > staticData.FrameStart - strokeEventLimit) {
-					events.Enqueue(new EventData(EventType.LimitEventsBOS, entity, math.abs(movementData.Speed)));
+					events.Enqueue(new EventData(EventId.LimitEventsBos, entity, math.abs(movementData.Speed)));
 					movementData.StrokeEventsArmed = false;
 
 				} else if (movementData.StrokeEventsArmed && movementData.Position + dx < staticData.FrameEnd + strokeEventLimit) {
-					events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, math.abs(movementData.Speed)));
+					events.Enqueue(new EventData(EventId.LimitEventsEos, entity, math.abs(movementData.Speed)));
 					movementData.StrokeEventsArmed = false;
 
 				} else if (movementData.Position > staticData.FrameEnd + strokeEventHysteresis && movementData.Position < staticData.FrameStart - strokeEventHysteresis) {

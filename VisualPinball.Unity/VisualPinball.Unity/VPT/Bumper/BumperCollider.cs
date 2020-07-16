@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 				skirtData.HitEvent = true;
 				skirtData.BallPosition = ball.Position;
 
-				events.Enqueue(new EventData(EventType.HitEventsHit, collider.Entity, true));
+				events.Enqueue(new EventData(EventId.HitEventsHit, collider.Entity, true));
 			}
 		}
 	}

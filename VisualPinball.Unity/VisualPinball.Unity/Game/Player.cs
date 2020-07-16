@@ -117,29 +117,29 @@ namespace VisualPinball.Unity.Game
 
 		public void OnEvent(in EventData eventData)
 		{
-			switch (eventData.Type) {
-				case EventType.HitEventsHit:
+			switch (eventData.eventId) {
+				case EventId.HitEventsHit:
 					_hittables[eventData.ItemEntity].OnHit();
 					break;
 
-				case EventType.LimitEventsBOS:
+				case EventId.LimitEventsBos:
 					_rotatables[eventData.ItemEntity].OnRotate(eventData.FloatParam, false);
 					break;
 
-				case EventType.LimitEventsEOS:
+				case EventId.LimitEventsEos:
 					_rotatables[eventData.ItemEntity].OnRotate(eventData.FloatParam, true);
 					break;
 
-				case EventType.SpinnerEventsSpin:
+				case EventId.SpinnerEventsSpin:
 					_spinnables[eventData.ItemEntity].OnSpin();
 					break;
 
-				case EventType.FlipperEventsCollide:
+				case EventId.FlipperEventsCollide:
 					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
 					break;
 
 				default:
-					throw new InvalidOperationException($"Unknown event {eventData.Type} for entity {eventData.ItemEntity}");
+					throw new InvalidOperationException($"Unknown event {eventData.eventId} for entity {eventData.ItemEntity}");
 			}
 		}
 

@@ -7,12 +7,12 @@ namespace VisualPinball.Unity.VPT.Rubber
 	public class RubberApi : ItemApi<Engine.VPT.Rubber.Rubber, Engine.VPT.Rubber.RubberData>, IApiInitializable, IApiHittable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event triggered when the ball hits the rubber.
+		/// Event emitted when the ball hits the rubber.
 		/// </summary>
 		public event EventHandler Hit;
 

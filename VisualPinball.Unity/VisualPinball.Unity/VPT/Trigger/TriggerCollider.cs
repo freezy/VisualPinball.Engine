@@ -28,13 +28,13 @@ namespace VisualPinball.Unity.VPT.Trigger
 					BallData.SetInsideOf(ref insideOfs, coll.Entity);
 					animationData.HitEvent = true;
 
-					events.Enqueue(new EventData(EventType.HitEventsHit, coll.Entity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.Entity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
 					animationData.UnHitEvent = true;
 
-					events.Enqueue(new EventData(EventType.HitEventsUnhit, coll.Entity, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.Entity, true));
 				}
 			}
 		}

@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 						movementData.Angle = angleMax;
 
 						// send EOS event
-						events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, math.abs(math.degrees(movementData.AngleSpeed))));
+						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, math.abs(math.degrees(movementData.AngleSpeed))));
 
 						if (movementData.AngleSpeed > 0.0f) {
 							movementData.AngleSpeed *= -0.005f -data.Elasticity;
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 						movementData.Angle = angleMin;
 
 						// send Park event
-						events.Enqueue(new EventData(EventType.LimitEventsBOS, entity, math.abs(math.degrees(movementData.AngleSpeed))));
+						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, math.abs(math.degrees(movementData.AngleSpeed))));
 
 						if (movementData.AngleSpeed < 0.0f) {
 							movementData.AngleSpeed *= -0.005f - data.Elasticity;
@@ -85,12 +85,12 @@ namespace VisualPinball.Unity.VPT.Spinner
 					if (movementData.AngleSpeed > 0.0f) {
 
 						if (movementData.AngleSpeed > target) {
-							events.Enqueue(new EventData(EventType.SpinnerEventsSpin, entity, true));
+							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
 						}
 
 					} else {
 						if (movementData.AngleSpeed < target) {
-							events.Enqueue(new EventData(EventType.SpinnerEventsSpin, entity, true));
+							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
 						}
 					}
 

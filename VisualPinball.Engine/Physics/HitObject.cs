@@ -101,7 +101,7 @@ namespace VisualPinball.Engine.Physics
 				if (distLs > normalDist)
 				{
 					// must be a new place if only by a little
-					Obj.FireGroupEvent(EventType.HitEventsHit);
+					Obj.FireGroupEvent(EventId.HitEventsHit);
 				}
 			}
 		}

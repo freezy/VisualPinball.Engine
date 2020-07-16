@@ -14,29 +14,29 @@ namespace VisualPinball.Unity.VPT.Flipper
 		IApiRotatable, IApiCollidable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event triggered when the flipper was touched by the ball, but did
+		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
 		/// </summary>
 		public event EventHandler Hit;
 
 		/// <summary>
-		/// Event triggered when the flipper collided with the ball.
+		/// Event emitted when the flipper collided with the ball.
 		/// </summary>
 		public event EventHandler<CollideEventArgs> Collide;
 
 		/// <summary>
-		/// Event triggered when the flipper comes to rest, i.e. moves back to
+		/// Event emitted when the flipper comes to rest, i.e. moves back to
 		/// the resting position.
 		/// </summary>
 		public event EventHandler<RotationEventArgs> LimitBos;
 
 		/// <summary>
-		/// Event triggered when the flipper reaches the end position.
+		/// Event emitted when the flipper reaches its end position.
 		/// </summary>
 		public event EventHandler<RotationEventArgs> LimitEos;
 

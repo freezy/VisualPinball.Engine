@@ -1,6 +1,6 @@
 namespace VisualPinball.Engine.Game
 {
-	public enum EventType
+	public enum EventId
 	{
 		// Table
 		GameEventsKeyDown = 1000, // DISPID_GameEvents_KeyDown
@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.Game
 		// Generic
 		HitEventsHit = 1400, // DISPID_HitEvents_Hit
 		HitEventsUnhit = 1401, // DISPID_HitEvents_Unhit
-		LimitEventsEOS = 1402, // DISPID_LimitEvents_EOS
-		LimitEventsBOS = 1403, // DISPID_LimitEvents_BOS
+		LimitEventsEos = 1402, // DISPID_LimitEvents_EOS
+		LimitEventsBos = 1403, // DISPID_LimitEvents_BOS
 	}
 }
