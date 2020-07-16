@@ -25,7 +25,7 @@ jobs:
         - name: Build
           run: |
              nuget restore
-             dotnet build -c Release -p:PlatformTarget=x86
+             dotnet build -c Release -p:Platform=x86
              ls -lart VisualPinball.Engine.Test/.bin/Release/net472
           shell: bash
         - name: Test
