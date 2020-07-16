@@ -26,4 +26,9 @@ namespace VisualPinball.Unity.VPT
 	{
 		void OnSpin();
 	}
+
+	internal interface IApiSlingshot
+	{
+		void OnSlingshot();
+	}
 }

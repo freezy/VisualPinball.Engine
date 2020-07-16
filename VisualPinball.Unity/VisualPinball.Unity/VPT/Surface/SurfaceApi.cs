@@ -4,7 +4,8 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Surface
 {
-	public class SurfaceApi : ItemApi<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IApiInitializable, IApiHittable
+	public class SurfaceApi : ItemApi<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
+		IApiInitializable, IApiHittable, IApiSlingshot
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -15,6 +16,11 @@ namespace VisualPinball.Unity.VPT.Surface
 		/// Event emitted when the ball hits the surface.
 		/// </summary>
 		public event EventHandler Hit;
+
+		/// <summary>
+		/// Event emitted when a slingshot segment was hit.
+		/// </summary>
+		public event EventHandler Slingshot;
 
 		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -30,6 +36,11 @@ namespace VisualPinball.Unity.VPT.Surface
 		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
+		}
+
+		public void OnSlingshot()
+		{
+			Slingshot?.Invoke(this, EventArgs.Empty);
 		}
 
 		#endregion

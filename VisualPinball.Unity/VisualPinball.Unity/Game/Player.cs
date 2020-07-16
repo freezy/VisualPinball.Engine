@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Game
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
+		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -101,6 +102,7 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Surfaces[surface.Name] = surfaceApi;
 			_initializables.Add(surfaceApi);
 			_hittables[entity] = surfaceApi;
+			_slingshots[entity] = surfaceApi;
 		}
 
 		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
@@ -135,6 +137,10 @@ namespace VisualPinball.Unity.Game
 
 				case EventId.FlipperEventsCollide:
 					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
+					break;
+
+				case EventId.SurfaceEventsSlingshot:
+					_slingshots[eventData.ItemEntity].OnSlingshot();
 					break;
 
 				default:
@@ -202,7 +208,7 @@ namespace VisualPinball.Unity.Game
 			}
 
 			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(278.4076f, 1742.555f));
+				CreateBall(new DebugBallCreator(274f, 1056f, 0, -5));
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 
