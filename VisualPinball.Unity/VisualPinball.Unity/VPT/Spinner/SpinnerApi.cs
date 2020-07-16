@@ -12,10 +12,34 @@ namespace VisualPinball.Unity.VPT.Spinner
 		/// </summary>
 		public event EventHandler Init;
 
+		/// <summary>
+		/// Event emitted when the spinner reaches the minimal angle.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Only emitted if min and max angle are different, otherwise
+		/// subscribe to the <see cref="Spin"/> event.
+		/// </remarks>
 		public event EventHandler<RotationEventArgs> LimitBos;
 
+		/// <summary>
+		/// Event emitted when the spinner reaches the maximal angle.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Only emitted if min and max angle are different, otherwise
+		/// subscribe to the <see cref="Spin"/> event.
+		/// </remarks>
 		public event EventHandler<RotationEventArgs> LimitEos;
 
+		/// <summary>
+		/// Event emitted when the spinner performs one spin.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Only emitted when min and max angles are the same, i.e. the spinner
+		/// is able to rotate entirely without rotated back at a given angle.
+		/// </remarks>
 		public event EventHandler Spin;
 
 		// todo
