@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.VPT.Gate
 						}
 
 						// send EOS event
-						events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, movementData.AngleSpeed));
+						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
 
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity.VPT.Gate
 						movementData.Angle = data.AngleMax;
 
 						// send EOS event
-						events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, movementData.AngleSpeed));
+						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
 
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.VPT.Gate
 						movementData.Angle = data.AngleMin;
 
 						// send Park event
-						events.Enqueue(new EventData(EventType.LimitEventsBOS, entity, movementData.AngleSpeed));
+						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, movementData.AngleSpeed));
 
 						if (!movementData.ForcedMove) {
 							movementData.AngleSpeed = -movementData.AngleSpeed;

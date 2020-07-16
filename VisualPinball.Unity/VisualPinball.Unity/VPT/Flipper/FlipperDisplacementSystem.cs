@@ -83,12 +83,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 					if (state.EnableRotateEvent > 0) {
 
 						// send EOS event
-						events.Enqueue(new EventData(EventType.LimitEventsEOS, entity, angleSpeed));
+						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, angleSpeed));
 
 					} else if (state.EnableRotateEvent < 0) {
 
 						// send BOS event
-						events.Enqueue(new EventData(EventType.LimitEventsBOS, entity, angleSpeed));
+						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, angleSpeed));
 					}
 
 					state.EnableRotateEvent = 0;

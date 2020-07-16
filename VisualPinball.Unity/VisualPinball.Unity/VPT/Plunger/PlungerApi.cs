@@ -8,12 +8,18 @@ namespace VisualPinball.Unity.VPT.Plunger
 	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable, IApiRotatable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
+		/// <summary>
+		/// Event emitted when the plunger moved back to the park position.
+		/// </summary>
 		public event EventHandler<StrokeEventArgs> LimitBos;
 
+		/// <summary>
+		/// Event emitted when the plunger was pulled back and reached its end position.
+		/// </summary>
 		public event EventHandler<StrokeEventArgs> LimitEos;
 
 		// todo

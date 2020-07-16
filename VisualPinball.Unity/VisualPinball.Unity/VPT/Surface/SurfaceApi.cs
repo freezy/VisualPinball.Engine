@@ -7,12 +7,12 @@ namespace VisualPinball.Unity.VPT.Surface
 	public class SurfaceApi : ItemApi<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IApiInitializable, IApiHittable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event triggered when the ball hits the surface.
+		/// Event emitted when the ball hits the surface.
 		/// </summary>
 		public event EventHandler Hit;
 

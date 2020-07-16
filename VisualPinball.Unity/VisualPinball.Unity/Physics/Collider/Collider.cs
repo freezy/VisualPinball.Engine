@@ -204,7 +204,7 @@ namespace VisualPinball.Unity.Physics.Collider
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					events.Enqueue(new EventData(EventType.HitEventsHit, collHeader.Entity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.Entity, true));
 				}
 			}
 		}

@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.VPT.Table
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 
 		/// <summary>
-		/// Event triggered before the game starts.
+		/// Event emitted before the game starts.
 		/// </summary>
 		public event EventHandler Init;
 

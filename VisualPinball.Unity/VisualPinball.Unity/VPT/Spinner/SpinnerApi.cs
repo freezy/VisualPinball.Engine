@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 		IApiInitializable, IApiRotatable, IApiSpinnable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 

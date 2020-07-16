@@ -7,17 +7,17 @@ namespace VisualPinball.Unity.VPT.Gate
 	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable, IApiHittable, IApiRotatable
 	{
 		/// <summary>
-		/// Event triggered when the table is started.
+		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event triggered when the ball hits the gate.
+		/// Event emitted when the ball hits the gate.
 		/// </summary>
 		///
 		/// <remarks>
-		/// For two-way gates, this is triggered twice, once when entering, and
-		/// once when leaving. For one-way gates, it's triggered once when the
+		/// For two-way gates, this is emitted twice, once when entering, and
+		/// once when leaving. For one-way gates, it's emitted once when the
 		/// ball rolls through it, but not when the gate blocks the ball. <p/>
 		///
 		/// Also note that the gate must be collidable.
@@ -25,12 +25,12 @@ namespace VisualPinball.Unity.VPT.Gate
 		public event EventHandler Hit;
 
 		/// <summary>
-		/// Event triggered when the gate passes its parked position. Only
-		/// triggered for one-way gates.
+		/// Event emitted when the gate passes its parked position. Only
+		/// emitted for one-way gates.
 		/// </summary>
 		///
 		/// <remarks>
-		/// Can be triggered multiple times, as the gate bounces a few times
+		/// Can be emitted multiple times, as the gate bounces a few times
 		/// before coming to a rest.<p/>
 		///
 		/// Note that the gate must be collidable.
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.VPT.Gate
 		public event EventHandler<RotationEventArgs> LimitBos;
 
 		/// <summary>
-		/// Event triggered when the gate rotates to its top position.
+		/// Event emitted when the gate rotates to its top position.
 		/// </summary>
 		///
 		/// <remarks>

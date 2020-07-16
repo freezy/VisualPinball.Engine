@@ -320,11 +320,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 				var flipperHit =
 					coll.HitMomentBit ? -1.0 : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0) {
-					_events.FireGroupEvent(EventType.HitEventsHit); // simple hit event
+					_events.FireGroupEvent(EventId.HitEventsHit); // simple hit event
 
 				} else {
 					// collision velocity (normal to face)
-					_events.FireVoidEventParam(EventType.FlipperEventsCollide, flipperHit);
+					_events.FireVoidEventParam(EventId.FlipperEventsCollide, flipperHit);
 				}
 			}
 

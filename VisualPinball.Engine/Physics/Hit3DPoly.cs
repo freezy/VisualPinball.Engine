@@ -79,11 +79,11 @@ namespace VisualPinball.Engine.Physics
 					ball.State.Pos.Add(addPos);     // move ball slightly forward
 					if (i < 0) {
 						ball.Hit.VpVolObjs.Add(Obj);
-						Obj.FireGroupEvent(EventType.HitEventsHit);
+						Obj.FireGroupEvent(EventId.HitEventsHit);
 
 					} else {
 						ball.Hit.VpVolObjs.RemoveAt(i);
-						Obj.FireGroupEvent(EventType.HitEventsUnhit);
+						Obj.FireGroupEvent(EventId.HitEventsUnhit);
 					}
 				}
 			}
