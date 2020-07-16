@@ -46,8 +46,9 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 				marker.Begin();
 
-				var angleMin = math.radians(data.AngleMin);
-				var angleMax = math.radians(data.AngleMax);
+				// those are already converted to radian during authoring.
+				var angleMin = data.AngleMin;
+				var angleMax = data.AngleMax;
 
 				// blocked spinner, limited motion spinner
 				if (data.AngleMin != data.AngleMax) {

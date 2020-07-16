@@ -53,12 +53,11 @@ namespace VisualPinball.Unity.Game
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
 			var flipperApi = new FlipperApi(flipper, entity, this);
-
 			_tableApi.Flippers[flipper.Name] = flipperApi;
+			_initializables.Add(flipperApi);
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;
-			_initializables.Add(flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -68,49 +67,49 @@ namespace VisualPinball.Unity.Game
 		public void RegisterGate(Gate gate, Entity entity, GameObject go)
 		{
 			var gateApi = new GateApi(gate, entity, this);
-
 			_tableApi.Gates[gate.Name] = gateApi;
+			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
-			_initializables.Add(gateApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
-
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
 		{
 			var plungerApi = new PlungerApi(plunger, entity, this);
-			_rotatables[entity] = plungerApi;
 			_tableApi.Plungers[plunger.Name] = plungerApi;
+			_initializables.Add(plungerApi);
+			_rotatables[entity] = plungerApi;
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
 		{
 			var rubberApi = new RubberApi(rubber, entity, this);
-			_hittables[entity] = rubberApi;
-			_initializables.Add(rubberApi);
 			_tableApi.Rubbers[rubber.Name] = rubberApi;
+			_initializables.Add(rubberApi);
+			_hittables[entity] = rubberApi;
 		}
 
 		public void RegisterSurface(Surface surface, Entity entity, GameObject go)
 		{
 			var surfaceApi = new SurfaceApi(surface, entity, this);
-			_hittables[entity] = surfaceApi;
-			_initializables.Add(surfaceApi);
 			_tableApi.Surfaces[surface.Name] = surfaceApi;
+			_initializables.Add(surfaceApi);
+			_hittables[entity] = surfaceApi;
 		}
 
 		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
 		{
 			var spinnerApi = new SpinnerApi(spinner, entity, this);
-			_spinnables[entity] = spinnerApi;
-			_initializables.Add(spinnerApi);
 			_tableApi.Spinners[spinner.Name] = spinnerApi;
+			_initializables.Add(spinnerApi);
+			_spinnables[entity] = spinnerApi;
+			_rotatables[entity] = spinnerApi;
 		}
 
 		#endregion
