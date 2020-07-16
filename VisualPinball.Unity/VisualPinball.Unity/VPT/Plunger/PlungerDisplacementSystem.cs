@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
-			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref PlungerMovementData movementData,
+			Entities.WithName("PlungerDisplacementJob").ForEach((Entity entity, ref PlungerMovementData movementData,
 				ref PlungerColliderData colliderData, in PlungerStaticData staticData) =>
 			{
 				marker.Begin();
