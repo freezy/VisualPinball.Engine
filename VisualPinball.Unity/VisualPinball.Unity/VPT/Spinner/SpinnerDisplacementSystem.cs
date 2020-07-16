@@ -1,12 +1,13 @@
-using System;
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
-using Object = UnityEngine.Object;
 using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Spinner
@@ -60,7 +61,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, math.abs(math.degrees(movementData.AngleSpeed))));
 
 						if (movementData.AngleSpeed > 0.0f) {
-							movementData.AngleSpeed *= -0.005f -data.Elasticity;
+							movementData.AngleSpeed *= -0.005f - data.Elasticity;
 						}
 					}
 
@@ -77,19 +78,20 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 				} else {
 
-					movementData.Angle += movementData.AngleSpeed * dTime;
-
 					var target = movementData.AngleSpeed > 0.0f
 						? movementData.Angle < math.PI ? math.PI : 3.0f * math.PI
 						: movementData.Angle < math.PI ? -math.PI : math.PI;
+
+					movementData.Angle += movementData.AngleSpeed * dTime;
+
 					if (movementData.AngleSpeed > 0.0f) {
 
-						if (movementData.AngleSpeed > target) {
+						if (movementData.Angle > target) {
 							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
 						}
 
 					} else {
-						if (movementData.AngleSpeed < target) {
+						if (movementData.Angle < target) {
 							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
 						}
 					}
