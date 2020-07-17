@@ -154,9 +154,7 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// apply transformation
-			if (rog.HasChildren) {
-				obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
-			}
+			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 
 			// add unity component
 			MonoBehaviour ic = null;
