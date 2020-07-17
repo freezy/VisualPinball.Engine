@@ -79,7 +79,7 @@ namespace VisualPinball.Unity.Editor.Materials
 					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
 					if (GUILayout.Button("Save")) {
 						Undo.RecordObject(_table, "Rename Material");
-						_selectedMaterial.Name = _renameBuffer;
+						AssignMaterialName(_selectedMaterial, _renameBuffer);
 						_renaming = false;
 						_listView.Reload();
 					}
@@ -217,6 +217,29 @@ namespace VisualPinball.Unity.Editor.Materials
 				_renaming = false;
 			}
 			Repaint();
+		}
+
+		// sets the name property of the material, checking for name collions and appending a number to avoid it
+		private void AssignMaterialName(Engine.VPT.Material material, string desiredName)
+		{
+			string acceptedName = desiredName;
+			int appendNum = 1;
+			while (IsNameInUse(material, acceptedName)) {
+				acceptedName = desiredName + appendNum;
+				appendNum++;
+			}
+			material.Name = acceptedName;
+			// TODO: find everything on the tabl using it and update the name
+		}
+
+		private bool IsNameInUse(Engine.VPT.Material ignore, string name)
+		{
+			foreach (var mat in _table.Item.Data.Materials) {
+				if (mat != ignore && name == mat.Name) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
