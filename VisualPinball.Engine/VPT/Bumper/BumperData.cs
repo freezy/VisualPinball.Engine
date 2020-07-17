@@ -115,7 +115,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Bumper);
+			writer.Write((int)ItemType.Bumper);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

@@ -87,7 +87,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Trigger);
+			writer.Write((int)ItemType.Trigger);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

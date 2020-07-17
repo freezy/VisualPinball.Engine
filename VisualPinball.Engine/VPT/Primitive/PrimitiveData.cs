@@ -173,7 +173,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Primitive);
+			writer.Write((int)ItemType.Primitive);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

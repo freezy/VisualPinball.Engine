@@ -218,7 +218,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Flipper);
+			writer.Write((int)ItemType.Flipper);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

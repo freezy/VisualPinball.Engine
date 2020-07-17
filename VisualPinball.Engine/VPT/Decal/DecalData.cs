@@ -78,7 +78,7 @@ namespace VisualPinball.Engine.VPT.Decal
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Decal);
+			writer.Write((int)ItemType.Decal);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

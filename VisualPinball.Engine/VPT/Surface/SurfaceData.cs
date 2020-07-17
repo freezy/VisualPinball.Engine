@@ -144,7 +144,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Surface);
+			writer.Write((int)ItemType.Surface);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

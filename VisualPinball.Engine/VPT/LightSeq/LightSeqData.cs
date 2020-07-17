@@ -70,7 +70,7 @@ namespace VisualPinball.Engine.VPT.LightSeq
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.LightSeq);
+			writer.Write((int)ItemType.LightSeq);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

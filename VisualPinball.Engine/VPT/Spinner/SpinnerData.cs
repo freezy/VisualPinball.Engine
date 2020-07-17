@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Spinner);
+			writer.Write((int)ItemType.Spinner);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

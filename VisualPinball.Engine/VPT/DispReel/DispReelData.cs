@@ -97,7 +97,7 @@ namespace VisualPinball.Engine.VPT.DispReel
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.DispReel);
+			writer.Write((int)ItemType.DispReel);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

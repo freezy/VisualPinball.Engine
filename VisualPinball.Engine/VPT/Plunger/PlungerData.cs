@@ -130,7 +130,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Plunger);
+			writer.Write((int)ItemType.Plunger);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

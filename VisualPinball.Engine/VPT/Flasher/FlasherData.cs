@@ -101,7 +101,7 @@ namespace VisualPinball.Engine.VPT.Flasher
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Flasher);
+			writer.Write((int)ItemType.Flasher);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

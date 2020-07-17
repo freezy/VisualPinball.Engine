@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Import.Job
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				if (job.ItemObj[i].ToInt32() > 0) {
 					var objHandle = (GCHandle) job.ItemObj[i];
-					switch (job.ItemType[i]) {
+					switch ((ItemType)job.ItemType[i]) {
 						case ItemType.Bumper: {
 							var item = objHandle.Target as Bumper;
 							table.Bumpers[item.Name] = item;
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Import.Job
 
 				// convert result back to unmanaged
 				ItemObj[index] = MemHelper.ToIntPtr(item);
-				ItemType[index] = itemType;
+				ItemType[index] = (int)itemType;
 			}
 		}
 
