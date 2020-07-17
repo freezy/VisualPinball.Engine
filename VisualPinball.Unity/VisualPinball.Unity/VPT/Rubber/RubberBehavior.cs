@@ -64,6 +64,12 @@ namespace VisualPinball.Unity.VPT.Rubber
 			data.RotZ = rot.z;
 		}
 
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+			TryRenameField(undoName, ref data.PhysicsMaterial, oldName, newName);
+		}
+
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() => data.DragPoints;

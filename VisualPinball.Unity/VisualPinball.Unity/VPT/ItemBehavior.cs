@@ -1,6 +1,7 @@
 using System.Linq;
 using NLog;
 using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -12,14 +13,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IItemBehaviorWithMaterials
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior
 		where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
-		public string[] UsedMaterials => Item.UsedMaterials;
+		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
 
 		protected TableData _tableData;
 		private TItem _item;
@@ -108,7 +109,16 @@ namespace VisualPinball.Unity.VPT
 		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
 		public virtual void SetEditorScale(Vector3 rot) { }
 
-		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
+		public virtual void HandleMaterialRenamed(string undoName, string oldName, string newName) { }
+
+		// rename helper to cut down on the boiler plate in the concrete classes
+		protected void TryRenameField(string undoName, ref string field, string oldName, string newName)
+		{
+			if (field == oldName) {
+				Undo.RecordObject(this, undoName);
+				field = newName;
+			}
+		}
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{

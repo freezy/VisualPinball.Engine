@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Materials
@@ -78,7 +79,6 @@ namespace VisualPinball.Unity.Editor.Materials
 				if (_renaming) {
 					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
 					if (GUILayout.Button("Save")) {
-						Undo.RecordObject(_table, "Rename Material");
 						AssignMaterialName(_selectedMaterial, _renameBuffer);
 						_renaming = false;
 						_listView.Reload();
@@ -222,14 +222,22 @@ namespace VisualPinball.Unity.Editor.Materials
 		// sets the name property of the material, checking for name collions and appending a number to avoid it
 		private void AssignMaterialName(Engine.VPT.Material material, string desiredName)
 		{
+			string oldName = material.Name;
 			string acceptedName = desiredName;
 			int appendNum = 1;
 			while (IsNameInUse(material, acceptedName)) {
 				acceptedName = desiredName + appendNum;
 				appendNum++;
 			}
+
+			// give each editable item a chance to update its fields
+			string undoName = "Rename Material";
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				item.HandleMaterialRenamed(undoName, oldName, acceptedName);
+			}
+			Undo.RecordObject(_table, undoName);
+
 			material.Name = acceptedName;
-			// TODO: find everything on the tabl using it and update the name
 		}
 
 		private bool IsNameInUse(Engine.VPT.Material ignore, string name)

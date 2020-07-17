@@ -87,8 +87,7 @@ namespace VisualPinball.Unity.Editor.Materials
 
 			// collect list of in use materials
 			List<string> inUseMaterials = new List<string>();
-			var renderables = _table.GetComponentsInChildren<IItemBehaviorWithMaterials>();
-			foreach (var renderable in renderables) {
+			foreach (var renderable in _table.Table.Renderables) {
 				var mats = renderable.UsedMaterials;
 				if (mats != null) {
 					foreach (var mat in mats) {
