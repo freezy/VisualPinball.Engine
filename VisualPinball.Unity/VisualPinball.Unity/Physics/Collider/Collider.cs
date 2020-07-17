@@ -36,6 +36,8 @@ namespace VisualPinball.Unity.Physics.Collider
 		public Entity Entity => Header.Entity;
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
+		public float Threshold => Header.Threshold;
+		public bool FireEvents => Header.FireEvents;
 
 		public static Collider None => new Collider
 		{

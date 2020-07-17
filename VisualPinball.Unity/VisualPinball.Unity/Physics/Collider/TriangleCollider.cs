@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public ColliderType Type => _header.Type;
 
+		public float3 Normal() => _normal;
+
 		public static void Create(BlobBuilder builder, HitTriangle src, ref BlobPtr<Collider> dest)
 		{
 			ref var trianglePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref dest);

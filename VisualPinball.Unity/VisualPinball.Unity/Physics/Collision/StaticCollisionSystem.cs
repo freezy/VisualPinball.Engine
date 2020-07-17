@@ -3,7 +3,10 @@
 using System;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Profiling;
+using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Event;
@@ -12,6 +15,7 @@ using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
+using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Trigger;
@@ -163,14 +167,28 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
 
-								// switch (coll.ItemType) {
-								// 	case ItemType.HitTarget:
-								//
-								//
-								// }
+								if (coll.Header.ItemType == ItemType.HitTarget) {
 
-								Collider.Collider.Collide(ref coll, ref ballData, ref events, collEvent, ref random);
-							break;
+									float3 normal;
+									if (coll.Type == ColliderType.Poly3D) {
+										normal = ((Poly3DCollider*) collider)->Normal();
+
+									} else if (coll.Type == ColliderType.Triangle) {
+										normal = ((TriangleCollider*) collider)->Normal();
+
+									} else {
+										normal = collEvent.HitNormal;
+									}
+
+									var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
+									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
+										in normal, in collEvent, in coll, ref random);
+									SetComponent(coll.Entity, hitTargetAnimationData);
+
+								} else {
+									Collider.Collider.Collide(ref coll, ref ballData, ref events, collEvent, ref random);
+								}
+								break;
 
 							case ColliderType.None:
 							default:
