@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 		private void Init(SpinnerHit src)
 		{
 			_header.Type = ColliderType.Spinner;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
+			_header.ItemType = src.ObjType;
 			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 			_header.Id = src.Id;
 			_header.Material = new PhysicsMaterialData {

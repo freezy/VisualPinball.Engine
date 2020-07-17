@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 			var height = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y);
 			var baseRadius = MathF.Max(data.BaseRadius, 0.01f);
-			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height);
+			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height, ItemType.Flipper);
 
 			IsInContact = false;
 			EnableRotateEvent = 0;

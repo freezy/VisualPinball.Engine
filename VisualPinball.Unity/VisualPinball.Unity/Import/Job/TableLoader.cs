@@ -132,7 +132,7 @@ namespace VisualPinball.Unity.Import.Job
 							table.Surfaces[item.Name] = item;
 							break;
 						}
-						case ItemType.Textbox: {
+						case ItemType.TextBox: {
 							var item = objHandle.Target as TextBox;
 							table.TextBoxes[item.Name] = item;
 							break;

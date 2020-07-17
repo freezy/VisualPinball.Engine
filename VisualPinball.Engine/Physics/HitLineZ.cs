@@ -1,6 +1,7 @@
 ﻿using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -9,12 +10,12 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex2D Xy;
 
-		protected HitLineZ(Vertex2D xy)
+		protected HitLineZ(Vertex2D xy, ItemType itemType) : base(itemType)
 		{
 			Xy = xy;
 		}
 
-		public HitLineZ(Vertex2D xy, float zLow, float zHigh) : this(xy)
+		public HitLineZ(Vertex2D xy, float zLow, float zHigh, ItemType itemType) : this(xy, itemType)
 		{
 			HitBBox.ZLow = zLow;
 			HitBBox.ZHigh = zHigh;

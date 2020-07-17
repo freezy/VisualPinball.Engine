@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 				rgv3D[1] = new Vertex3D(v.X, v.Y, v.Z);
 				v = mesh.Vertices[mesh.Indices[i + 1]];
 				rgv3D[2] = new Vertex3D(v.X, v.Y, v.Z);
-				hitObjects.Add(new HitTriangle(rgv3D));
+				hitObjects.Add(new HitTriangle(rgv3D, ItemType.Rubber));
 
 				hitObjects.AddRange(GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2]));
 				hitObjects.AddRange(GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1]));
@@ -43,16 +43,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
 				var v = new Vertex3D(mv.X, mv.Y, mv.Z);
-				hitObjects.Add(new HitPoint(v));
+				hitObjects.Add(new HitPoint(v, ItemType.Rubber));
 			}
 			return hitObjects.Select(obj => SetupHitObject(obj, events, table)).ToArray();
 		}
 
 		private HitObject SetupHitObject(HitObject obj, EventProxy events, Table.Table table) {
 			obj.ApplyPhysics(_data, table);
-
-			// the rubber is of type ePrimitive for triggering the event in HitTriangle::Collide()
-			obj.SetType(CollisionType.Primitive);
 
 			// hard coded threshold for now
 			obj.Threshold = 2.0f;
@@ -64,7 +61,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		private static IEnumerable<HitObject> GenerateHitEdge(Mesh mesh, EdgeSet addedEdges, int i, int j) {
 			var v1 = new Vertex3D(mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z);
 			var v2 = new Vertex3D(mesh.Vertices[j].X, mesh.Vertices[j].Y, mesh.Vertices[j].Z);
-			return addedEdges.AddHitEdge(i, j, v1, v2);
+			return addedEdges.AddHitEdge(i, j, v1, v2, ItemType.Rubber);
 		}
 	}
 }

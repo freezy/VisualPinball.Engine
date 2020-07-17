@@ -79,15 +79,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 					// NB: HitTriangle wants CCW vertices, but for rendering we have them in CW order
 					var rgv3D2 = new[] { rgv3D[i0], rgv3D[i2], rgv3D[i1] };
 
-					hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D2), true, table));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D2[0], rgv3D2[2]).Select(obj => SetupHitObject(obj, true, table)));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D2[2], rgv3D2[1]).Select(obj => SetupHitObject(obj, true, table)));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D2[1], rgv3D2[0]).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D2, ItemType.HitTarget), true, table));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D2[0], rgv3D2[2], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D2[2], rgv3D2[1], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D2[1], rgv3D2[0], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
 				}
 
 				// add collision vertices
 				for (var i = 0; i < DropTargetHitPlaneVertices.Length; ++i) {
-					hitObjects.Add(SetupHitObject(new HitPoint(rgv3D[i]), true, table));
+					hitObjects.Add(SetupHitObject(new HitPoint(rgv3D[i], ItemType.HitTarget), true, table));
 				}
 			}
 			return hitObjects.ToArray();
@@ -110,15 +110,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 					new Vertex3D(hitMesh.Vertices[i1].X, hitMesh.Vertices[i1].Y, hitMesh.Vertices[i1].Z)
 				};
 
-				hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D), setHitObject, table));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2]).Select(obj => SetupHitObject(obj, setHitObject, table)));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1]).Select(obj => SetupHitObject(obj, setHitObject, table)));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0]).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D, ItemType.HitTarget), setHitObject, table));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
 			}
 
 			// add collision vertices
 			foreach (var vertex in hitMesh.Vertices) {
-				hitObjects.Add(SetupHitObject(new HitPoint(vertex.GetVertex()), setHitObject, table));
+				hitObjects.Add(SetupHitObject(new HitPoint(vertex.GetVertex(), ItemType.HitTarget), setHitObject, table));
 			}
 
 			return hitObjects.ToArray();
@@ -127,7 +127,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		private HitObject SetupHitObject(HitObject obj, bool setHitObject, Table.Table table) {
 			obj.ApplyPhysics(_data, table);
 			obj.Threshold = _data.Threshold;
-			obj.SetType(CollisionType.HitTarget);
 			obj.FireEvents = setHitObject && _data.UseHitEvent;
 			return obj;
 		}

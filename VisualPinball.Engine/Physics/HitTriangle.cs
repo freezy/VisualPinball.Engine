@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -11,7 +12,7 @@ namespace VisualPinball.Engine.Physics
 
 		public bool IsDegenerate => Normal.IsZero();
 
-		public HitTriangle(Vertex3D[] rgv)
+		public HitTriangle(Vertex3D[] rgv, ItemType itemType) : base (itemType)
 		{
 			Rgv = rgv;
 			/* NB: due to the swapping of the order of e0 and e1,

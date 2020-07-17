@@ -28,13 +28,15 @@ namespace VisualPinball.Engine.VPT.Spinner
 						new Vertex2D(_data.Center.X + cs * halfLength, _data.Center.Y + sn * halfLength),
 						_data.Length * 0.075f,
 						height + _data.Height,
-						height + h
+						height + h,
+						ItemType.Spinner
 					),
 					new HitCircle(
 						new Vertex2D(_data.Center.X - cs * halfLength, _data.Center.Y - sn * halfLength),
 						_data.Length * 0.075f,
 						height + _data.Height,
-						height + h
+						height + h,
+						ItemType.Spinner
 					)
 				};
 			}

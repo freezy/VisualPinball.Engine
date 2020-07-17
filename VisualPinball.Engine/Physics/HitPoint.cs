@@ -1,6 +1,7 @@
 ﻿using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -9,7 +10,7 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex3D P;
 
-		public HitPoint(Vertex3D p)
+		public HitPoint(Vertex3D p, ItemType itemType) : base(itemType)
 		{
 			P = p;
 		}
