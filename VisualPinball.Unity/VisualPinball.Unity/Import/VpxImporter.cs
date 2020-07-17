@@ -189,7 +189,7 @@ namespace VisualPinball.Unity.Import
 		{
 			// add table component (plus other data)
 			_tb = go.AddComponent<TableBehavior>();
-			_tb.SetData(table.Data);
+			_tb.SetItemAndData(table);
 
 			var sidecar = _tb.GetOrCreateSidecar();
 
