@@ -11,13 +11,14 @@ namespace VisualPinball.Unity.Physics.Collider
 {
 	public struct Poly3DCollider : ICollider, ICollidable
 	{
-		private ColliderHeader _header;
 
+		private ColliderHeader _header;
 		private float3 _normal;
 		private BlobArray _rgvBlob; // read comment at Unity.Physics.BlobArray
 		public BlobArray.Accessor<float3> _rgv => new BlobArray.Accessor<float3>(ref _rgvBlob);
 
 		public ColliderType Type => _header.Type;
+		public float3 Normal() => _normal;
 
 		public static unsafe void Create(BlobBuilder builder, Hit3DPoly src, ref BlobPtr<Collider> dest)
 		{
