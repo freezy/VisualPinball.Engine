@@ -6,6 +6,7 @@ using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
@@ -64,6 +65,7 @@ namespace VisualPinball.Unity.Editor.Import
 			var table = TableLoader.LoadTable(path);
 
 			importer.Import(Path.GetFileName(path), table);
+			ProjectSettingsUtil.SetAllDefaults();
 
 			return rootGameObj;
 		}
