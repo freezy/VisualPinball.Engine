@@ -71,7 +71,9 @@ namespace VisualPinball.Unity.Editor.Materials
 			if (GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
 				AddNewMaterial();
 			}
-			GUILayout.Button("Remove", GUILayout.ExpandWidth(false));
+			if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false))) {
+				RemoveMaterial(_selectedMaterial);
+			}
 			if (GUILayout.Button("Clone", GUILayout.ExpandWidth(false))) {
 				CloneMaterial(_selectedMaterial);
 			}
@@ -275,6 +277,20 @@ namespace VisualPinball.Unity.Editor.Materials
 			AddMaterialToTable("Clone Material", newMat);
 		}
 
+		private void RemoveMaterial(Engine.VPT.Material material)
+		{
+			if (!EditorUtility.DisplayDialog("Delete Material", $"Are you sure want to delete \"{material.Name}\"?", "Delete", "Cancel")) {
+				return;
+			}
+
+			_selectedMaterial = null;
+			Undo.RecordObjects(new Object[] { this, _table }, "Remove Material");
+
+			_table.data.Materials = _table.data.Materials.Where(m => m != material).ToArray();
+
+			_listView.Reload();
+		}
+
 		private void CloneMaterial(Engine.VPT.Material material)
 		{
 			var newMat = new Engine.VPT.Material(material, GetUniqueMaterialName(material.Name));
@@ -288,12 +304,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			_forceSelectMatWithName = material.Name;
 			Undo.RecordObjects(new Object[] { this, _table }, undoName);
 
-			Engine.VPT.Material[] allMats = new Engine.VPT.Material[_table.data.Materials.Length + 1];
-			for (int i = 0; i < _table.data.Materials.Length; i++) {
-				allMats[i] = _table.data.Materials[i];
-			}
-			allMats[allMats.Length - 1] = material;
-			_table.data.Materials = allMats;
+			_table.data.Materials = _table.data.Materials.Append(material).ToArray();
 
 			_listView.Reload();
 		}
