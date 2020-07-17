@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;

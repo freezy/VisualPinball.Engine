@@ -37,11 +37,6 @@ namespace VisualPinball.Unity.Physics.Collider
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
 
-		public ItemType ItemType => Header.ItemType;
-		public float Threshold => Header.Threshold;
-		public bool FireEvents => Header.FireEvents;
-		public bool IsEnabled => Header.IsEnabled;
-
 		public static Collider None => new Collider
 		{
 			Header =
@@ -203,7 +198,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			if (dot <= -coll.Threshold) {
+			if (dot <= -coll.Header.Threshold) {
 				FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}
 		}

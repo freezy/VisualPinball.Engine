@@ -1,7 +1,4 @@
-﻿using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.VPT.Ball;
-
-namespace VisualPinball.Unity.Physics.Collision
+﻿namespace VisualPinball.Unity.Physics.Collision
 {
 	public interface ICollidable
 	{

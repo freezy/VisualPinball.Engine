@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace VisualPinball.Engine.Math
+﻿namespace VisualPinball.Engine.Math
 {
 	public class RenderVertex2D : Vertex2D, IRenderVertex
 	{

@@ -1,7 +1,5 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import;
 
 namespace VisualPinball.Unity.VPT.Light
 {

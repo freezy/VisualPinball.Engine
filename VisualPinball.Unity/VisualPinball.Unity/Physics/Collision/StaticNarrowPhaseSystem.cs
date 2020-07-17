@@ -1,11 +1,9 @@
 ﻿﻿using Unity.Entities;
  using Unity.Profiling;
- using UnityEngine.Profiling;
-using VisualPinball.Unity.Physics.Collider;
+ using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
- using VisualPinball.Unity.VPT.Gate;
  using VisualPinball.Unity.VPT.Plunger;
 
  namespace VisualPinball.Unity.Physics.Collision

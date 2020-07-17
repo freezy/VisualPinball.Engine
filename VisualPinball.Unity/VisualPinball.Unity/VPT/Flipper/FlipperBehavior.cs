@@ -7,7 +7,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Extensions;

@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Test.Physics.Collider

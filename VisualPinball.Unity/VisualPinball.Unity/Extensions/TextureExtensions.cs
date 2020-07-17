@@ -2,7 +2,6 @@
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Import;
 
 namespace VisualPinball.Unity.Extensions
 {

@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.VPT.Trigger;
 
 namespace VisualPinball.Unity.VPT.HitTarget
 {

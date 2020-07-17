@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;

@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;

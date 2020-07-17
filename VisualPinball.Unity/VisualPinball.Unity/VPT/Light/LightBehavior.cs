@@ -4,13 +4,10 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
-using System.Linq;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Import;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Light
 {

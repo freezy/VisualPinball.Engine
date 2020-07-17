@@ -1,6 +1,5 @@
 ﻿using Unity.Entities;
 using Unity.Profiling;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collision

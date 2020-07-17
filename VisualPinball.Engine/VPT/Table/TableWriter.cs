@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
 

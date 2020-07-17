@@ -1,8 +1,6 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {

@@ -1,5 +1,3 @@
-using System;
-
 namespace VisualPinball.Unity.VPT
 {
 	internal interface IApiInitializable

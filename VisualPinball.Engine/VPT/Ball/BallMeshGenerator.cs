@@ -1,6 +1,4 @@
-﻿using VisualPinball.Engine.Resources.Meshes;
-
-namespace VisualPinball.Engine.VPT.Ball
+﻿namespace VisualPinball.Engine.VPT.Ball
 {
 	public class BallMeshGenerator
 	{
