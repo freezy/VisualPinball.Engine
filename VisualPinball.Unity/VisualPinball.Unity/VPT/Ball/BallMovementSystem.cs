@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 using VisualPinball.Unity.VPT.Table;
 

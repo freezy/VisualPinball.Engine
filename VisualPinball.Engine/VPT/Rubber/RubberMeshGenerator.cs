@@ -1,7 +1,6 @@
 ﻿// ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
-using System.Numerics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;

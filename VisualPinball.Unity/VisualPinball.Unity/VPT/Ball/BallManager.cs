@@ -8,8 +8,6 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
 using Player = VisualPinball.Unity.Game.Player;
 

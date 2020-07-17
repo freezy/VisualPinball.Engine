@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Unity.Physics.Collision;
 

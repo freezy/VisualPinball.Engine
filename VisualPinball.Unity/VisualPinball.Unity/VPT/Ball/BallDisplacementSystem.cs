@@ -2,7 +2,6 @@ using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine.Profiling;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Ball

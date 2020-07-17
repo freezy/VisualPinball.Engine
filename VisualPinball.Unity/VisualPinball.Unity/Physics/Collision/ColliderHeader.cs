@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Physics.Collision
 {

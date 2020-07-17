@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Net.Security;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -10,7 +8,6 @@ using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider

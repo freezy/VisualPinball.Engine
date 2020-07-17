@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UIElements;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Extensions

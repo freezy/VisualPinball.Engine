@@ -1,12 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using NLog;
 using OpenMcdf;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
-using VisualPinball.Engine.VPT.Sound;
 
 namespace VisualPinball.Engine.VPT.Table
 {

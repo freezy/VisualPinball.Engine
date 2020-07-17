@@ -1,6 +1,5 @@
 ﻿// ReSharper disable CommentTypo
 
-using System.Linq;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;

@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT.Primitive;
 using VisualPinball.Unity.VPT.Table;

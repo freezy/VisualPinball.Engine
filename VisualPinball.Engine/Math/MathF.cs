@@ -1,6 +1,5 @@
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace VisualPinball.Engine.Math
 {

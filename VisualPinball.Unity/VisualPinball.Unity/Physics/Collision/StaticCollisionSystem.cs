@@ -8,7 +8,6 @@ using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;

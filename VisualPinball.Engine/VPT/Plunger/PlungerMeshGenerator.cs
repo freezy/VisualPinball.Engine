@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using NLog;
+﻿using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 

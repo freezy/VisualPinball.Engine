@@ -1,12 +1,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Linq;
 using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
