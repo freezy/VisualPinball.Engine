@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -23,6 +24,8 @@ namespace VisualPinball.Unity.Editor.Materials
 
 		private TableBehavior _table;
 		private Engine.VPT.Material _selectedMaterial;
+
+		[SerializeField] private string _forceSelectMatWithName;
 
 		[MenuItem("Visual Pinball/Material Manager", false, 102)]
 		public static void ShowWindow()
@@ -58,10 +61,17 @@ namespace VisualPinball.Unity.Editor.Materials
 				_selectedMaterial = null;
 			}
 
+			if (!string.IsNullOrEmpty(_forceSelectMatWithName)) {
+				_listView.SelectMaterialWithName(_forceSelectMatWithName);
+				_forceSelectMatWithName = null;
+			}
+
 			EditorGUILayout.BeginHorizontal();
 			GUILayout.Button("Add", GUILayout.ExpandWidth(false));
 			GUILayout.Button("Remove", GUILayout.ExpandWidth(false));
-			GUILayout.Button("Clone", GUILayout.ExpandWidth(false));
+			if (GUILayout.Button("Clone", GUILayout.ExpandWidth(false))) {
+				CloneMaterial(_selectedMaterial);
+			}
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.BeginHorizontal();
@@ -79,7 +89,7 @@ namespace VisualPinball.Unity.Editor.Materials
 				if (_renaming) {
 					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
 					if (GUILayout.Button("Save")) {
-						AssignMaterialName(_selectedMaterial, _renameBuffer);
+						RenameExistingMaterial(_selectedMaterial, _renameBuffer);
 						_renaming = false;
 						_listView.Reload();
 					}
@@ -213,22 +223,17 @@ namespace VisualPinball.Unity.Editor.Materials
 		{
 			_selectedMaterial = null;
 			if (selectedMaterials.Count > 0) {
-				_selectedMaterial = selectedMaterials[0]; // TODO: multi select stuff?
+				_selectedMaterial = selectedMaterials[0]; // not supporting multi select for now
 				_renaming = false;
 			}
 			Repaint();
 		}
 
 		// sets the name property of the material, checking for name collions and appending a number to avoid it
-		private void AssignMaterialName(Engine.VPT.Material material, string desiredName)
+		private void RenameExistingMaterial(Engine.VPT.Material material, string desiredName)
 		{
 			string oldName = material.Name;
-			string acceptedName = desiredName;
-			int appendNum = 1;
-			while (IsNameInUse(material, acceptedName)) {
-				acceptedName = desiredName + appendNum;
-				appendNum++;
-			}
+			string acceptedName = GetUniqueMaterialName(desiredName, material);
 
 			// give each editable item a chance to update its fields
 			string undoName = "Rename Material";
@@ -240,7 +245,18 @@ namespace VisualPinball.Unity.Editor.Materials
 			material.Name = acceptedName;
 		}
 
-		private bool IsNameInUse(Engine.VPT.Material ignore, string name)
+		private string GetUniqueMaterialName(string desiredName, Engine.VPT.Material ignore = null)
+		{
+			string acceptedName = desiredName;
+			int appendNum = 1;
+			while (IsNameInUse(acceptedName, ignore)) {
+				acceptedName = desiredName + appendNum;
+				appendNum++;
+			}
+			return acceptedName;
+		}
+
+		private bool IsNameInUse(string name, Engine.VPT.Material ignore = null)
 		{
 			foreach (var mat in _table.Item.Data.Materials) {
 				if (mat != ignore && name == mat.Name) {
@@ -248,6 +264,30 @@ namespace VisualPinball.Unity.Editor.Materials
 				}
 			}
 			return false;
+		}
+
+		private void CloneMaterial(Engine.VPT.Material material)
+		{
+			string newMatName = GetUniqueMaterialName(material.Name);
+			// use a serialized field to force material selection in the next gui pass
+			// this way undo will cause it to happen again, and if its no there anymore, just deselect any
+			_forceSelectMatWithName = newMatName;
+
+			Undo.RecordObjects(new Object[] { this, _table }, "Clone Material");
+
+			var newMat = new Engine.VPT.Material(material, newMatName);
+			AddMaterialToTable(newMat);
+			_listView.Reload();
+		}
+
+		private void AddMaterialToTable(Engine.VPT.Material material)
+		{
+			Engine.VPT.Material[] allMats = new Engine.VPT.Material[_table.data.Materials.Length + 1];
+			for (int i = 0; i < _table.data.Materials.Length; i++) {
+				allMats[i] = _table.data.Materials[i];
+			}
+			allMats[allMats.Length - 1] = material;
+			_table.data.Materials = allMats;
 		}
 	}
 }

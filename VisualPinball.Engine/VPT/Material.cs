@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 
@@ -116,9 +115,32 @@ namespace VisualPinball.Engine.VPT
 			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, MaterialData.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
-		public Material(string name)
+		public Material(string name) : this()
 		{
 			Name = name;
+		}
+
+		public Material(Material other, string name = null) : this()
+		{
+			Name = string.IsNullOrEmpty(name) ? other.Name : name;
+			WrapLighting = other.WrapLighting;
+			Roughness = other.Roughness;
+			GlossyImageLerp = other.GlossyImageLerp;
+			Thickness = other.Thickness;
+			Edge = other.Edge;
+			EdgeAlpha = other.EdgeAlpha;
+			Opacity = other.Opacity;
+			BaseColor = new Color(other.BaseColor);
+			Glossiness = new Color(other.Glossiness);
+			ClearCoat = new Color(other.ClearCoat);
+			IsMetal = other.IsMetal;
+			IsOpacityActive = other.IsOpacityActive;
+			Elasticity = other.Elasticity;
+			ElasticityFalloff = other.ElasticityFalloff;
+			Friction = other.Friction;
+			ScatterAngle = other.ScatterAngle;
+
+			UpdateData();
 		}
 
 		public void UpdateData()
