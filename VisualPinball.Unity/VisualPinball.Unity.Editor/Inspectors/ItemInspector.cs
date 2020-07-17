@@ -214,7 +214,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			int selectedIndex = 0;
 			for (int i = 0; i < _allTextures.Length; i++) {
-				if (_allTextures[i] == field) {
+				if (_allTextures[i].ToLower() == field.ToLower()) {
 					selectedIndex = i;
 					break;
 				}
