@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -67,7 +68,9 @@ namespace VisualPinball.Unity.Editor.Materials
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			GUILayout.Button("Add", GUILayout.ExpandWidth(false));
+			if (GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
+				AddNewMaterial();
+			}
 			GUILayout.Button("Remove", GUILayout.ExpandWidth(false));
 			if (GUILayout.Button("Clone", GUILayout.ExpandWidth(false))) {
 				CloneMaterial(_selectedMaterial);
@@ -266,28 +269,33 @@ namespace VisualPinball.Unity.Editor.Materials
 			return false;
 		}
 
-		private void CloneMaterial(Engine.VPT.Material material)
+		private void AddNewMaterial()
 		{
-			string newMatName = GetUniqueMaterialName(material.Name);
-			// use a serialized field to force material selection in the next gui pass
-			// this way undo will cause it to happen again, and if its no there anymore, just deselect any
-			_forceSelectMatWithName = newMatName;
-
-			Undo.RecordObjects(new Object[] { this, _table }, "Clone Material");
-
-			var newMat = new Engine.VPT.Material(material, newMatName);
-			AddMaterialToTable(newMat);
-			_listView.Reload();
+			var newMat = new Engine.VPT.Material(GetUniqueMaterialName("New Material"));
+			AddMaterialToTable("Clone Material", newMat);
 		}
 
-		private void AddMaterialToTable(Engine.VPT.Material material)
+		private void CloneMaterial(Engine.VPT.Material material)
 		{
+			var newMat = new Engine.VPT.Material(material, GetUniqueMaterialName(material.Name));
+			AddMaterialToTable("Clone Material", newMat);
+		}
+
+		private void AddMaterialToTable(string undoName, Engine.VPT.Material material)
+		{
+			// use a serialized field to force material selection in the next gui pass
+			// this way undo will cause it to happen again, and if its no there anymore, just deselect any
+			_forceSelectMatWithName = material.Name;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+
 			Engine.VPT.Material[] allMats = new Engine.VPT.Material[_table.data.Materials.Length + 1];
 			for (int i = 0; i < _table.data.Materials.Length; i++) {
 				allMats[i] = _table.data.Materials[i];
 			}
 			allMats[allMats.Length - 1] = material;
 			_table.data.Materials = allMats;
+
+			_listView.Reload();
 		}
 	}
 }

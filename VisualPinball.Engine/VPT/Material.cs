@@ -118,6 +118,11 @@ namespace VisualPinball.Engine.VPT
 		public Material(string name) : this()
 		{
 			Name = name;
+			BaseColor = new Color(255, 255, 255, 255);
+			Glossiness = new Color(0, 0, 0, 255);
+			ClearCoat = new Color(0, 0, 0, 255);
+
+			UpdateData();
 		}
 
 		public Material(Material other, string name = null) : this()
