@@ -17,6 +17,14 @@ namespace VisualPinball.Engine.Math
 
 		public int Bgr => Blue * 65536 + Green * 256 + Red;
 
+		public Color(Color other)
+		{
+			Red = other.Red;
+			Green = other.Green;
+			Blue = other.Blue;
+			Alpha = other.Alpha;
+		}
+
 		public Color(int red, int green, int blue, int alpha)
 		{
 			Red = red;

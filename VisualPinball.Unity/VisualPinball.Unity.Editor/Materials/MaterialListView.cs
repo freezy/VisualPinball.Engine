@@ -61,6 +61,18 @@ namespace VisualPinball.Unity.Editor.Materials
 			}
 		}
 
+		public void SelectMaterialWithName(string matName)
+		{
+			var rows = GetRows();
+			foreach (var row in rows) {
+				if ((row as RowData).Material.Name.ToLower() == matName.ToLower()) {
+					SetSelection(new List<int> { row.id }, TreeViewSelectionOptions.FireSelectionChanged);
+					return;
+				}
+			}
+			SetSelection(new List<int>(), TreeViewSelectionOptions.FireSelectionChanged);
+		}
+
 		private void SortingChanged(MultiColumnHeader multiColumnHeader)
 		{
 			Reload();
@@ -161,6 +173,9 @@ namespace VisualPinball.Unity.Editor.Materials
 					break;
 			}
 		}
+
+		// not supporting multi select for now
+		protected override bool CanMultiSelect(TreeViewItem item) => false;
 
 		protected override void SelectionChanged(IList<int> selectedIds)
 		{
