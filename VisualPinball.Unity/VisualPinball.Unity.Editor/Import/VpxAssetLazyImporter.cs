@@ -31,7 +31,6 @@ namespace VisualPinball.Unity.Editor.Import
 			var importer = tableRoot.AddComponent<VpxImporter>();
 			var table = TableLoader.LoadTable(path);
 			importer.Import(Path.GetFileName(path), table);
-			ProjectSettingsUtil.SetAllDefaults();
 
 			_importComplete = true;
 		}

@@ -7,10 +7,15 @@ namespace VisualPinball.Unity.Editor.Utils
 {
 	public static class ProjectSettingsUtil
     {
-		/// <summary>
-		/// Adjusts project settings to match VPE's "defaults"
-		/// </summary>
-		public static void SetAllDefaults()
+		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Forward Rendering)", false, 15)]
+		public static void RestoreRenderingDefaultsForward()
+		{
+			EnableForwardRenderingPath();
+			SetShadowMaskDefaults();
+		}
+
+		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Deferred Rendering)", false, 16)]
+		public static void RestoreRenderingDefaultsDeferred()
 		{
 			EnableDeferredRenderingPath();
 			SetShadowMaskDefaults();
@@ -27,6 +32,22 @@ namespace VisualPinball.Unity.Editor.Utils
 				tierSettings.renderingPath = RenderingPath.DeferredShading;
 				EditorGraphicsSettings.SetTierSettings(buildTarget, i, tierSettings);
 			}
+		}
+
+		/// <summary>
+		/// Enables (default) forward rendering path, and adjusts default values
+		/// </summary>
+		public static void EnableForwardRenderingPath()
+		{
+			var buildTarget = EditorUserBuildSettings.selectedBuildTargetGroup;
+			for (var i = GraphicsTier.Tier1; i <= GraphicsTier.Tier3; i++) {
+				var tierSettings = EditorGraphicsSettings.GetTierSettings(buildTarget, i);
+				tierSettings.renderingPath = RenderingPath.Forward;
+				EditorGraphicsSettings.SetTierSettings(buildTarget, i, tierSettings);
+			}
+			// This light count is a bit bonkers, but playfields are a single mesh, and
+			// with lots of inserts expected to be lit up we need a pretty high count
+			QualitySettings.pixelLightCount = 150;
 		}
 
 		/// <summary>

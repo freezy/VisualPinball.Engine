@@ -81,9 +81,7 @@ namespace VisualPinball.Unity.VPT
 					}
 				}
 			}
-			if (rog.HasChildren) {
-				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
-			}
+			transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 			ItemDataChanged();
 			_meshDirty = false;
 		}
