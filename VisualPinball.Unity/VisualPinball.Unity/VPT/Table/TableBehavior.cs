@@ -92,6 +92,11 @@ namespace VisualPinball.Unity.VPT.Table
 			// that would just be everything at this level
 		}
 
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.PlayfieldMaterial, oldName, newName);
+		}
+
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();

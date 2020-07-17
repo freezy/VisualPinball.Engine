@@ -35,5 +35,10 @@ namespace VisualPinball.Unity.VPT.Kicker
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0f, 0f);
 		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+		}
 	}
 }
