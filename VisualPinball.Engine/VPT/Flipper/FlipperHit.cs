@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public HitCircle HitCircleBase => _mover.HitCircleBase;
 
-		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table)
+		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table) : base(ItemType.Flipper)
 		{
 			data.UpdatePhysicsSettings(table);
 			_events = events;

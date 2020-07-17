@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.VPT
 		Flipper = 1,
 		Timer = 2,
 		Plunger = 3,
-		Textbox = 4,
+		TextBox = 4,
 		Bumper = 5,
 		Trigger = 6,
 		Light = 7,
@@ -33,7 +33,10 @@ namespace VisualPinball.Engine.VPT
 		Rubber = 21,
 		HitTarget = 22,
 		Count = 23,
-		Invalid = -1
+		Invalid = -1,
+
+		// VPE internal
+		Ball = 100,
 	}
 
 	public static class LightStatus

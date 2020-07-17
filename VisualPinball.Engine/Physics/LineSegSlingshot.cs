@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Engine.Physics
@@ -13,8 +14,8 @@ namespace VisualPinball.Engine.Physics
 		private readonly SlingshotAnimObject _slingshotAnim = new SlingshotAnimObject();
 		private float _eventTimeReset = 0;
 
-		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh)
-			: base(p1, p2, zLow, zHigh)
+		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType itemType)
+			: base(p1, p2, zLow, zHigh, itemType)
 		{
 			_surfaceData = surfaceData;
 		}

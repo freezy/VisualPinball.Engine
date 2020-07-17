@@ -1,6 +1,7 @@
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -10,7 +11,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D Normal;
 		public readonly float D;
 
-		public HitPlane(Vertex3D normal, float d)
+		public HitPlane(Vertex3D normal, float d) : base(ItemType.Table)
 		{
 			Normal = normal;
 			D = d;

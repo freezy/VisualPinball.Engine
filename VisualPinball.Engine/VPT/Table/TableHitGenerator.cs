@@ -22,25 +22,29 @@ namespace VisualPinball.Engine.VPT.Table
 					new Vertex2D(_data.Right, _data.Top),
 					new Vertex2D(_data.Right, _data.Bottom),
 					_data.TableHeight,
-					_data.GlassHeight
+					_data.GlassHeight,
+					ItemType.Table
 				),
 				new LineSeg(
 					new Vertex2D(_data.Left, _data.Bottom),
 					new Vertex2D(_data.Left, _data.Top),
 					_data.TableHeight,
-					_data.GlassHeight
+					_data.GlassHeight,
+					ItemType.Table
 				),
 				new LineSeg(
 					new Vertex2D(_data.Right, _data.Bottom),
 					new Vertex2D(_data.Left, _data.Bottom),
 					_data.TableHeight,
-					_data.GlassHeight
+					_data.GlassHeight,
+					ItemType.Table
 				),
 				new LineSeg(
 					new Vertex2D(_data.Left, _data.Top),
 					new Vertex2D(_data.Right, _data.Top),
 					_data.TableHeight,
-					_data.GlassHeight
+					_data.GlassHeight,
+					ItemType.Table
 				)
 			};
 
@@ -51,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Table
 				new Vertex3D(_data.Right, _data.Bottom, _data.GlassHeight),
 				new Vertex3D(_data.Left, _data.Bottom, _data.GlassHeight)
 			};
-			var hit3DPoly = new Hit3DPoly(rgv3D);
+			var hit3DPoly = new Hit3DPoly(rgv3D, ItemType.Table);
 			hit3DPoly.CalcHitBBox();
 			hitObjects.Add(hit3DPoly);
 

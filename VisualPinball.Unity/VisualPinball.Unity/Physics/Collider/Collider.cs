@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
@@ -13,12 +14,12 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
+using PhysicsMaterialData = VisualPinball.Unity.Physics.Collision.PhysicsMaterialData;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -231,35 +232,6 @@ namespace VisualPinball.Unity.Physics.Collider
 		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
-		}
-
-		public static ItemType GetItemType(string name)
-		{
-			switch (name) {
-				case CollisionType.Null: return ItemType.Null;
-				case CollisionType.Point: return ItemType.Point;
-				case CollisionType.LineSeg: return ItemType.LineSeg;
-				case CollisionType.LineSegSlingshot: return ItemType.LineSegSlingshot;
-				case CollisionType.Joint: return ItemType.Joint;
-				case CollisionType.Circle: return ItemType.Circle;
-				case CollisionType.Flipper: return ItemType.Flipper;
-				case CollisionType.Plunger: return ItemType.Plunger;
-				case CollisionType.Spinner: return ItemType.Spinner;
-				case CollisionType.Ball: return ItemType.Ball;
-				case CollisionType.Poly: return ItemType.Poly;
-				case CollisionType.Triangle: return ItemType.Triangle;
-				case CollisionType.Plane: return ItemType.Plane;
-				case CollisionType.Line: return ItemType.Line;
-				case CollisionType.Gate: return ItemType.Gate;
-				case CollisionType.TextBox: return ItemType.TextBox;
-				case CollisionType.DispReel: return ItemType.DispReel;
-				case CollisionType.LightSeq: return ItemType.LightSeq;
-				case CollisionType.Primitive: return ItemType.Primitive;
-				case CollisionType.HitTarget: return ItemType.HitTarget;
-				case CollisionType.Trigger: return ItemType.Trigger;
-				case CollisionType.Kicker: return ItemType.Kicker;
-				default: return ItemType.Null;
-			}
 		}
 
 		public static unsafe string ToString(ref Collider coll)

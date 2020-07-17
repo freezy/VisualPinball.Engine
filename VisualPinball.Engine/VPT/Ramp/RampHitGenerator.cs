@@ -111,7 +111,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				hitObjects.Add(GenerateJoint(rgv3D[0], rgv3D[2]));
 
 				//!! this is not efficient at all, use native triangle-soup directly somehow
-				ph3dpoly = new HitTriangle(rgv3D);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
 
 				if (!ph3dpoly.IsDegenerate) { // degenerate triangles happen if width is 0 at some point
 					hitObjects.Add(ph3dpoly);
@@ -129,7 +129,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				// add joint for right edge
 				hitObjects.Add(GenerateJoint(rgv3D[1], rgv3D[2]));
 
-				ph3dpoly = new HitTriangle(rgv3D);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
 				if (!ph3dpoly.IsDegenerate)
 					hitObjects.Add(ph3dpoly);
 
@@ -163,7 +163,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 					new Vertex3D(pv3.X, pv3.Y, rgHeight1[i + 1])
 				};
 
-				ph3dpoly = new HitTriangle(rgv3D);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
 				if (!ph3dpoly.IsDegenerate) {
 					hitObjects.Add(ph3dpoly);
 				}
@@ -175,7 +175,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 					new Vertex3D(pv1.X, pv1.Y, rgHeight1[i])
 				};
 
-				ph3dpoly = new HitTriangle(rgv3D);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
 				if (!ph3dpoly.IsDegenerate) {
 					hitObjects.Add(ph3dpoly);
 				}
@@ -211,7 +211,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				hitObjects.AddRange(GenerateWallLineSeg(pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv2, true, (height1 + height2) * 0.5f, height2, wallHeight));
 
 			} else {
-				hitObjects.Add(new LineSeg(pv1, pv2, height1, height2 + wallHeight));
+				hitObjects.Add(new LineSeg(pv1, pv2, height1, height2 + wallHeight, ItemType.Ramp));
 				if (pv3Exists) {
 					hitObjects.Add(GenerateJoint2D(pv1, height1, height2 + wallHeight));
 				}
@@ -219,9 +219,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return hitObjects;
 		}
 
-		private static HitLineZ GenerateJoint2D(Vertex2D p, float zLow, float zHigh) => new HitLineZ(p, zLow, zHigh);
+		private static HitLineZ GenerateJoint2D(Vertex2D p, float zLow, float zHigh) => new HitLineZ(p, zLow, zHigh, ItemType.Ramp);
 
-		private static HitLine3D GenerateJoint(Vertex3D v1, Vertex3D v2) => new HitLine3D(v1, v2);
+		private static HitLine3D GenerateJoint(Vertex3D v1, Vertex3D v2) => new HitLine3D(v1, v2, ItemType.Ramp);
 
 		private static List<HitObject> CheckJoint(HitTriangle ph3d1, HitTriangle ph3d2)
 		{
@@ -240,9 +240,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private HitObject SetupHitObject(HitObject obj, EventProxy events, Table.Table table) {
 			obj.ApplyPhysics(_data, table);
-
-			// the rubber is of type ePrimitive for triggering the event in HitTriangle::Collide()
-			obj.SetType(CollisionType.Primitive);
 
 			// hard coded threshold for now
 			obj.Threshold = _data.Threshold;

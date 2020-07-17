@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Ball
 		/// <param name="state">Dynamic ball state</param>
 		/// <param name="initialVelocity">Initial velocity</param>
 		/// <param name="tableData">Table data</param>
-		public BallHit(Ball ball, BallData data, BallState state, Vertex3D initialVelocity, TableData tableData)
+		public BallHit(Ball ball, BallData data, BallState state, Vertex3D initialVelocity, TableData tableData) : base(ItemType.Ball)
 		{
 			_id = data.Id;
 			_data = data;

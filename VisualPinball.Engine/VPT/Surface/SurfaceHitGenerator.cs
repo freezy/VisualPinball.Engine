@@ -51,10 +51,10 @@ namespace VisualPinball.Engine.VPT.Surface
 				hitObjects.AddRange(GenerateLinePolys(pv2, pv3, events, table));
 			}
 
-			hitObjects.Add(new Hit3DPoly(rgv3Dt));
+			hitObjects.Add(new Hit3DPoly(rgv3Dt, ItemType.Surface));
 
 			if (rgv3Db != null) {
-				hitObjects.Add(new Hit3DPoly(rgv3Db));
+				hitObjects.Add(new Hit3DPoly(rgv3Db, ItemType.Surface));
 			}
 
 			return hitObjects.ToArray();
@@ -70,10 +70,10 @@ namespace VisualPinball.Engine.VPT.Surface
 			var top = _data.HeightTop + table.TableHeight;
 
 			if (!pv1.IsSlingshot) {
-				linePolys.Add(new LineSeg(pv1, pv2, bottom, top));
+				linePolys.Add(new LineSeg(pv1, pv2, bottom, top, ItemType.Surface));
 
 			} else {
-				var slingLine = new LineSegSlingshot(_data, pv1, pv2, bottom, top) {
+				var slingLine = new LineSegSlingshot(_data, pv1, pv2, bottom, top, ItemType.Surface) {
 					Force = _data.SlingshotForce,
 					Obj = events,
 					FireEvents = true, Threshold = _data.Threshold
@@ -87,21 +87,21 @@ namespace VisualPinball.Engine.VPT.Surface
 
 			if (_data.HeightBottom != 0) {
 				// add lower edge as a line
-				linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, bottom), new Vertex3D(pv2.X, pv2.Y, bottom)));
+				linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, bottom), new Vertex3D(pv2.X, pv2.Y, bottom), ItemType.Surface));
 			}
 
 			// add upper edge as a line
-			linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, top), new Vertex3D(pv2.X, pv2.Y, top)));
+			linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, top), new Vertex3D(pv2.X, pv2.Y, top), ItemType.Surface));
 
 			// create vertical joint between the two line segments
-			linePolys.Add(new HitLineZ(pv1, bottom, top));
+			linePolys.Add(new HitLineZ(pv1, bottom, top, ItemType.Surface));
 
 			// add upper and lower end points of line
 			if (_data.HeightBottom != 0) {
-				linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, bottom)));
+				linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, bottom), ItemType.Surface));
 			}
 
-			linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, top)));
+			linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, top), ItemType.Surface));
 
 			return linePolys.ToArray();
 		}

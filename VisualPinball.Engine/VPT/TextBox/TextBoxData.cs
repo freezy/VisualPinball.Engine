@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.TextBox
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write((int)ItemType.Textbox);
+			writer.Write((int)ItemType.TextBox);
 			Write(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}

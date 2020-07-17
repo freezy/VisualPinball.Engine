@@ -5,7 +5,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class TriggerHitCircle : HitCircle
 	{
-		public TriggerHitCircle(Vertex2D center, float radius, float zLow, float zHigh) : base(center, radius, zLow, zHigh)
+		public TriggerHitCircle(Vertex2D center, float radius, float zLow, float zHigh) : base(center, radius, zLow, zHigh, ItemType.Trigger)
 		{
 		}
 	}

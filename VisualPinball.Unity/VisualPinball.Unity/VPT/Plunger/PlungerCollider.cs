@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		private void Init(PlungerHit src)
 		{
 			_header.Type = ColliderType.Plunger;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
+			_header.ItemType = src.ObjType;
 			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 			_header.Id = src.Id;
 			_header.Material = new PhysicsMaterialData {

@@ -2,6 +2,7 @@
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -11,7 +12,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex2D Center;
 		public readonly float Radius;
 
-		public HitCircle(Vertex2D center, float radius, float zLow, float zHigh)
+		public HitCircle(Vertex2D center, float radius, float zLow, float zHigh, ItemType itemType) : base(itemType)
 		{
 			Center = center;
 			Radius = radius;
@@ -52,8 +53,8 @@ namespace VisualPinball.Engine.Physics
 			var dv = ball.Hit.Vel.Clone();
 
 			var capsule3D = !lateral && ball.State.Pos.Z > HitBBox.ZHigh;
-			var isKicker = ObjType == CollisionType.Kicker;
-			var isKickerOrTrigger = ObjType == CollisionType.Trigger || ObjType == CollisionType.Kicker;
+			var isKicker = ObjType == ItemType.Kicker;
+			var isKickerOrTrigger = ObjType == ItemType.Trigger || ObjType == ItemType.Kicker;
 
 			float targetRadius;
 			if (capsule3D) {

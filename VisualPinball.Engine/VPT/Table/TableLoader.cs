@@ -96,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.Rubber: item = new Rubber.Rubber(reader, itemName); break;
 				case ItemType.Spinner: item = new Spinner.Spinner(reader, itemName); break;
 				case ItemType.Surface: item = new Surface.Surface(reader, itemName); break;
-				case ItemType.Textbox: item = new TextBox.TextBox(reader, itemName); break;
+				case ItemType.TextBox: item = new TextBox.TextBox(reader, itemName); break;
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
 				default:
@@ -210,7 +210,7 @@ namespace VisualPinball.Engine.VPT.Table
 						table.Surfaces[item.Name] = item;
 						break;
 					}
-					case ItemType.Textbox: {
+					case ItemType.TextBox: {
 						var item = new TextBox.TextBox(reader, itemName);
 						table.TextBoxes[item.Name] = item;
 						break;

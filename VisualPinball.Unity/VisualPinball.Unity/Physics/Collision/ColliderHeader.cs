@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Physics.Collision
@@ -24,7 +25,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		public void Init(ColliderType type, HitObject src)
 		{
 			Type = type;
-			ItemType = Collider.Collider.GetItemType(src.ObjType);
+			ItemType = src.ObjType;
 			Id = src.Id;
 			Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
 			Material = new PhysicsMaterialData {
