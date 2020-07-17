@@ -8,6 +8,7 @@ using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
@@ -162,6 +163,13 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Point:
 							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
+
+								// switch (coll.ItemType) {
+								// 	case ItemType.HitTarget:
+								//
+								//
+								// }
+
 								Collider.Collider.Collide(ref coll, ref ballData, ref events, collEvent, ref random);
 							break;
 

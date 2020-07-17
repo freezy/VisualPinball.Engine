@@ -64,12 +64,21 @@ namespace VisualPinball.Engine.VPT.Table
 			return gameItemData;
 		}
 
-		public static void LoadGameItem(byte[] itemData, int storageIndex, out int itemType, out object item)
+		public static void LoadGameItem(byte[] itemData, int storageIndex, out ItemType itemType, out object item)
 		{
 			item = null;
 			var itemName = $"GameItem{storageIndex}";
 			var reader = new BinaryReader(new MemoryStream(itemData));
-			itemType = reader.ReadInt32();
+
+			// parse to enum
+			var iItemType = reader.ReadInt32();
+			if (!Enum.IsDefined(typeof(ItemType), iItemType)) {
+				Logger.Info("Invalid item type " + iItemType);
+				itemType = ItemType.Invalid;
+				return;
+			}
+
+			itemType = (ItemType) iItemType;
 			switch (itemType) {
 				case ItemType.Bumper: item = new Bumper.Bumper(reader, itemName); break;
 				case ItemType.Decal: item = new Decal.Decal(reader, itemName); break;
@@ -91,8 +100,8 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
 				default:
-					Logger.Info("Unknown item type " + itemType);
-					itemType = -1; break;
+					Logger.Info("Unhandled item type " + itemType);
+					itemType = ItemType.Invalid; break;
 			}
 		}
 
@@ -112,7 +121,15 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 
 				var reader = new BinaryReader(new MemoryStream(itemData));
-				var itemType = reader.ReadInt32();
+
+				// parse to enum
+				var iItemType = reader.ReadInt32();
+				if (!Enum.IsDefined(typeof(ItemType), iItemType)) {
+					Logger.Info("Invalid item type " + iItemType);
+					return;
+				}
+
+				var itemType = (ItemType) iItemType;
 				switch (itemType) {
 					case ItemType.Bumper: {
 						var item = new VisualPinball.Engine.VPT.Bumper.Bumper(reader, itemName);

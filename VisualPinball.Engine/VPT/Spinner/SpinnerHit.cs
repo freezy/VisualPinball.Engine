@@ -31,8 +31,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
 			);
 
-			LineSeg0 = new LineSeg(v1, v2, height, height + (2.0f * PhysicsConstants.PhysSkin), CollisionType.Spinner);
-			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + (2.0f * PhysicsConstants.PhysSkin), CollisionType.Spinner);
+			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, CollisionType.Spinner);
+			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, CollisionType.Spinner);
 		}
 
 		public override void CalcHitBBox()
