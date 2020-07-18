@@ -313,7 +313,7 @@ namespace VisualPinball.Unity.Editor.Materials
 
 		private void CloneMaterial(Engine.VPT.Material material)
 		{
-			var newMat = new Engine.VPT.Material(material, GetUniqueMaterialName(material.Name));
+			var newMat = material.Clone(GetUniqueMaterialName(material.Name));
 			AddMaterialToTable("Clone Material", newMat);
 		}
 

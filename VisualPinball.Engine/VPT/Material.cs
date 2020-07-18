@@ -125,27 +125,29 @@ namespace VisualPinball.Engine.VPT
 			UpdateData();
 		}
 
-		public Material(Material other, string name = null) : this()
+		public Material Clone(string name = null)
 		{
-			Name = string.IsNullOrEmpty(name) ? other.Name : name;
-			WrapLighting = other.WrapLighting;
-			Roughness = other.Roughness;
-			GlossyImageLerp = other.GlossyImageLerp;
-			Thickness = other.Thickness;
-			Edge = other.Edge;
-			EdgeAlpha = other.EdgeAlpha;
-			Opacity = other.Opacity;
-			BaseColor = new Color(other.BaseColor);
-			Glossiness = new Color(other.Glossiness);
-			ClearCoat = new Color(other.ClearCoat);
-			IsMetal = other.IsMetal;
-			IsOpacityActive = other.IsOpacityActive;
-			Elasticity = other.Elasticity;
-			ElasticityFalloff = other.ElasticityFalloff;
-			Friction = other.Friction;
-			ScatterAngle = other.ScatterAngle;
-
-			UpdateData();
+			var clone = new Material {
+				Name = string.IsNullOrEmpty(name) ? Name : name,
+				WrapLighting = WrapLighting,
+				Roughness = Roughness,
+				GlossyImageLerp = GlossyImageLerp,
+				Thickness = Thickness,
+				Edge = Edge,
+				EdgeAlpha = EdgeAlpha,
+				Opacity = Opacity,
+				BaseColor = BaseColor.Clone(),
+				Glossiness = Glossiness.Clone(),
+				ClearCoat = ClearCoat.Clone(),
+				IsMetal = IsMetal,
+				IsOpacityActive = IsOpacityActive,
+				Elasticity = Elasticity,
+				ElasticityFalloff = ElasticityFalloff,
+				Friction = Friction,
+				ScatterAngle = ScatterAngle,
+			};
+			clone.UpdateData();
+			return clone;
 		}
 
 		public void UpdateData()
