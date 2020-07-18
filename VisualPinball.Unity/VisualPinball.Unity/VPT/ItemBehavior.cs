@@ -118,7 +118,9 @@ namespace VisualPinball.Unity.VPT
 		protected void TryRenameField(string undoName, ref string field, string oldName, string newName)
 		{
 			if (field == oldName) {
+#if UNITY_EDITOR
 				Undo.RecordObject(this, undoName);
+#endif
 				field = newName;
 			}
 		}

@@ -34,5 +34,8 @@
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
