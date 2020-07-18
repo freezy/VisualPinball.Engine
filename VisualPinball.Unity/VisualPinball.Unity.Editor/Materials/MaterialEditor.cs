@@ -303,6 +303,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			Undo.RecordObjects(new Object[] { this, _table }, "Remove Material");
 
 			_table.data.Materials = _table.data.Materials.Where(m => m != material).ToArray();
+			_table.data.NumMaterials = _table.data.Materials.Length;
 
 			_listView.Reload();
 		}
@@ -321,6 +322,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			Undo.RecordObjects(new Object[] { this, _table }, undoName);
 
 			_table.data.Materials = _table.data.Materials.Append(material).ToArray();
+			_table.data.NumMaterials = _table.data.Materials.Length;
 
 			_listView.Reload();
 		}
