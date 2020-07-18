@@ -14,7 +14,6 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;
 
-		private const float DropTargetLimit = 52.0f;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("HitTargetAnimationSystem");
 
 		protected override void OnCreate()
@@ -53,7 +52,7 @@ namespace VisualPinball.Unity.VPT.HitTarget
 				if (staticData.IsDropTarget) {
 					if (data.MoveAnimation) {
 						var step = staticData.DropSpeed * staticData.TableScaleZ;
-						var limit = DropTargetLimit * staticData.TableScaleZ;
+						var limit = HitTargetMovementData.DropTargetLimit * staticData.TableScaleZ;
 
 						if (data.MoveDown) {
 							step = -step;
