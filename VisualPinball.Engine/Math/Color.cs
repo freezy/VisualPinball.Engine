@@ -17,14 +17,6 @@ namespace VisualPinball.Engine.Math
 
 		public int Bgr => Blue * 65536 + Green * 256 + Red;
 
-		public Color(Color other)
-		{
-			Red = other.Red;
-			Green = other.Green;
-			Blue = other.Blue;
-			Alpha = other.Alpha;
-		}
-
 		public Color(int red, int green, int blue, int alpha)
 		{
 			Red = red;
@@ -48,6 +40,11 @@ namespace VisualPinball.Engine.Math
 					Alpha = (int)(color & 0xff000000) >> 24;
 					break;
 			}
+		}
+
+		public Color Clone()
+		{
+			return new Color(Red, Green, Blue, Alpha);
 		}
 
 		public bool IsGray()
