@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.VPT.HitTarget
 				DropSpeed = data.DropSpeed,
 				RaiseDelay = data.RaiseDelay,
 				UseHitEvent = data.UseHitEvent,
+				RotZ = data.RotZ,
 				TableScaleZ = table.GetScaleZ()
 			});
 			dstManager.AddComponentData(entity, new HitTargetAnimationData {

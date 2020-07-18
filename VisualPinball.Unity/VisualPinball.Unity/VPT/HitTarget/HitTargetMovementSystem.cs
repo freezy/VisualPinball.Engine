@@ -30,14 +30,16 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		{
 			var ltw = _baseTransform;
 			var marker = PerfMarker;
-			Entities.WithName("HitTargetMovementJob").ForEach((ref Translation translation, ref Rotation rotation, in HitTargetMovementData data) => {
+			Entities.WithName("HitTargetMovementJob").ForEach((ref Translation translation, ref Rotation rotation,
+				in HitTargetMovementData data, in HitTargetStaticData staticData) =>
+			{
 
 				marker.Begin();
 
 				var t = math.transform(math.inverse(ltw), translation.Value);
 				translation.Value = math.transform(ltw, new float3(t.x, t.y, data.ZOffset));
 
-				var localRot = quaternion.EulerXYZ(math.radians(data.XRotation), 0, 0);
+				var localRot = quaternion.EulerXYZ(math.radians(data.XRotation), math.radians(staticData.RotZ), 0);
 				var m = math.mul(float4x4.TRS(float3.zero, localRot,  new float3(1f, 1f, 1f)), ltw);
 				rotation.Value = quaternion.LookRotationSafe(
 					m.c2.xyz,
