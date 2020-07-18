@@ -7,6 +7,7 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public int TargetType;
 		public float DropSpeed;
 		public float RaiseDelay;
+		public float RotZ;
 		public bool UseHitEvent;
 
 		// table data
