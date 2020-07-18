@@ -36,11 +36,18 @@ namespace VisualPinball.Unity.VPT.HitTarget
 
 				var t = math.transform(math.inverse(ltw), translation.Value);
 				translation.Value = math.transform(ltw, new float3(t.x, t.y, data.ZOffset));
-				// rotation.Value =
+
+				var localRot = quaternion.EulerXYZ(math.radians(data.XRotation), 0, 0);
+				var m = math.mul(float4x4.TRS(float3.zero, localRot,  new float3(1f, 1f, 1f)), ltw);
+				rotation.Value = quaternion.LookRotationSafe(
+					m.c2.xyz,
+					m.c1.xyz
+				);
 
 				marker.End();
 
 			}).Run();
 		}
+
 	}
 }
