@@ -6,6 +6,7 @@ namespace VisualPinball.Unity.VPT
 	{
 		bool IsLocked { get; set; }
 		bool MeshDirty { get; set; }
+		string[] UsedMaterials { get; }
 
 		void RebuildMeshes();
 

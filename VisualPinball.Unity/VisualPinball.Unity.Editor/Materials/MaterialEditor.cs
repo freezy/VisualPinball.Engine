@@ -176,8 +176,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			EditorGUI.BeginChangeCheck();
 			float val = EditorGUILayout.FloatField(label, field);
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(_table, "Edit Material: " + label);
-				field = val;
+				FinalizeChange(label, ref field, val);
 			}
 		}
 
@@ -186,8 +185,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			EditorGUI.BeginChangeCheck();
 			float val = EditorGUILayout.Slider(new GUIContent(label, tooltip), field, min, max);
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(_table, "Edit Material: " + label);
-				field = val;
+				FinalizeChange(label, ref field, val);
 			}
 		}
 
@@ -196,8 +194,7 @@ namespace VisualPinball.Unity.Editor.Materials
 			EditorGUI.BeginChangeCheck();
 			bool val = EditorGUILayout.Toggle(new GUIContent(label, tooltip), field);
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(_table, "Edit Material: " + label);
-				field = val;
+				FinalizeChange(label, ref field, val);
 			}
 		}
 
@@ -206,9 +203,17 @@ namespace VisualPinball.Unity.Editor.Materials
 			EditorGUI.BeginChangeCheck();
 			Engine.Math.Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(_table, "Edit Material: " + label);
-				field = val;
+				FinalizeChange(label, ref field, val);
 			}
+		}
+
+		private void FinalizeChange<T>(string label, ref T field, T val)
+		{
+			string undoName = "Edit Material: " + label;
+			DirtyMeshesWithMaterial(undoName, _selectedMaterial);
+			Undo.RecordObject(_table, undoName);
+			field = val;
+			SceneView.RepaintAll();
 		}
 
 		private void UndoPerformed()
@@ -232,6 +237,17 @@ namespace VisualPinball.Unity.Editor.Materials
 				_renaming = false;
 			}
 			Repaint();
+		}
+
+		private void DirtyMeshesWithMaterial(string undoName, Engine.VPT.Material material)
+		{
+			string matName = material.Name.ToLower();
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				if (item.UsedMaterials != null && item.UsedMaterials.Any( um => um.ToLower() == matName )) {
+					item.MeshDirty = true;
+					Undo.RecordObject(item as Object, undoName);
+				}
+			}
 		}
 
 		// sets the name property of the material, checking for name collions and appending a number to avoid it

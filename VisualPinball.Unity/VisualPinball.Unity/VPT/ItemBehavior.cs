@@ -21,6 +21,7 @@ namespace VisualPinball.Unity.VPT
 
 		public TItem Item => _item ?? (_item = GetItem());
 		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
+		public string[] UsedMaterials => (Item as IRenderable)?.UsedMaterials;
 
 		protected TableData _tableData;
 		private TItem _item;
@@ -139,6 +140,10 @@ namespace VisualPinball.Unity.VPT
 
 		protected virtual void OnDrawGizmos()
 		{
+			if (_meshDirty) {
+				RebuildMeshes();
+			}
+
 			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
 			// selects the item itself first, which is most likely what the user would want
 			var mfs = this.GetComponentsInChildren<MeshFilter>();
