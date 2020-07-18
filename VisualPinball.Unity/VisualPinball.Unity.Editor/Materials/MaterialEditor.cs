@@ -253,6 +253,10 @@ namespace VisualPinball.Unity.Editor.Materials
 		// sets the name property of the material, checking for name collions and appending a number to avoid it
 		private void RenameExistingMaterial(Engine.VPT.Material material, string desiredName)
 		{
+			if (string.IsNullOrEmpty(desiredName)) { // don't allow empty names
+				return;
+			}
+
 			string oldName = material.Name;
 			string acceptedName = GetUniqueMaterialName(desiredName, material);
 
