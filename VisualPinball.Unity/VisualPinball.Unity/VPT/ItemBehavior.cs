@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.VPT
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
-		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
+		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
 		public string[] UsedMaterials => (Item as IRenderable)?.UsedMaterials;
 
 		protected TableData _tableData;
@@ -140,6 +140,8 @@ namespace VisualPinball.Unity.VPT
 
 		protected virtual void OnDrawGizmos()
 		{
+			// handle dirty whenever scene view draws just in case a field or dependant changed and our
+			// custom inspector window isn't up to process it
 			if (_meshDirty) {
 				RebuildMeshes();
 			}
