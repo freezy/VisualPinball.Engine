@@ -21,6 +21,21 @@ namespace VisualPinball.Unity.Physics.Collision
 		public bool FireEvents;
 		public bool IsEnabled;
 
+		/// <summary>
+		/// Some colliders only collide with "primitives", which aren't only
+		/// primitive game items, but can also be ramps and rubbers.
+		/// </summary>
+		///
+		/// <remarks>
+		/// That's the reason the `HitObject`'s `m_ObjType` in VPX is set to
+		/// `ePrimitive` for those game items.
+		///
+		/// Only <see cref="Hit3DPoly"/>, <see cref="HitTriangle"/> and
+		/// <see cref="HitLine3D"/> check this in order to know whether to emit
+		/// the hit event.
+		/// </remarks>
+		public bool IsPrimitive => ItemType == ItemType.Primitive || ItemType == ItemType.Ramp || ItemType == ItemType.Rubber;
+
 		public void Init(ColliderType type, HitObject src)
 		{
 			Type = type;

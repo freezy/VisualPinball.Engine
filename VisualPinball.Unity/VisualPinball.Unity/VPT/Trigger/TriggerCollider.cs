@@ -11,9 +11,27 @@ namespace VisualPinball.Unity.VPT.Trigger
 {
 	public static class TriggerCollider
 	{
+		/// <summary>
+		/// Collides without triggering the animation, which is what the
+		/// <see cref="Poly3DCollider"/> does.
+		/// </summary>
+		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Collider coll)
+		{
+			var _ = default(TriggerAnimationData);
+			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref _, in coll, false);
+		}
+
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref TriggerAnimationData animationData, in Collider coll)
+		{
+			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref animationData, in coll, true);
+		}
+
+		private static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			ref TriggerAnimationData animationData, in Collider coll, bool animate)
 		{
 			// todo?
 			// if (!ball.isRealBall()) {
@@ -26,13 +44,17 @@ namespace VisualPinball.Unity.VPT.Trigger
 
 				if (!insideOf) {
 					BallData.SetInsideOf(ref insideOfs, coll.Entity);
-					animationData.HitEvent = true;
+					if (animate) {
+						animationData.HitEvent = true;
+					}
 
 					events.Enqueue(new EventData(EventId.HitEventsHit, coll.Entity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
-					animationData.UnHitEvent = true;
+					if (animate) {
+						animationData.UnHitEvent = true;
+					}
 
 					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.Entity, true));
 				}
