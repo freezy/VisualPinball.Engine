@@ -76,17 +76,9 @@ namespace VisualPinball.Unity.Physics.Collider
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			// todo fix m_obj
-			if (/*m_obj && */_header.FireEvents && dot >= _header.Threshold) {
-
-				if (_header.ItemType == ItemType.Primitive) {
-					Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
-
-				} /*else if (m_ObjType == eHitTarget && ((HitTarget*)m_obj)->m_d.m_isDropped == false) {
-					((HitTarget*)m_obj)->m_hitEvent = true;
-					m_obj->m_currentHitThreshold = dot;
-					Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
-				}*/
+			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+				// todo m_obj->m_currentHitThreshold = dot;
+				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
 			}
 		}
 	}
