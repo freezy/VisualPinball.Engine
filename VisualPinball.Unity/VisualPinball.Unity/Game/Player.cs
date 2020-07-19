@@ -14,6 +14,7 @@ using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT;
@@ -27,6 +28,7 @@ using VisualPinball.Unity.VPT.Rubber;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
+using VisualPinball.Unity.VPT.Trigger;
 
 namespace VisualPinball.Unity.Game
 {
@@ -124,13 +126,28 @@ namespace VisualPinball.Unity.Game
 			_rotatables[entity] = spinnerApi;
 		}
 
+		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
+		{
+			var triggerApi = new TriggerApi(trigger, entity, this);
+			_tableApi.Triggers[trigger.Name] = triggerApi;
+			_initializables.Add(triggerApi);
+			_hittables[entity] = triggerApi;
+		}
+
 		#endregion
 
 		public void OnEvent(in EventData eventData)
 		{
 			switch (eventData.eventId) {
 				case EventId.HitEventsHit:
+					if (!_hittables.ContainsKey(eventData.ItemEntity)) {
+						Debug.LogError($"Cannot find entity {eventData.ItemEntity} in hittables.");
+					}
 					_hittables[eventData.ItemEntity].OnHit();
+					break;
+
+				case EventId.HitEventsUnhit:
+					_hittables[eventData.ItemEntity].OnHit(true);
 					break;
 
 				case EventId.LimitEventsBos:

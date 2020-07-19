@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
-									TriggerCollider.Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
+									TriggerCollider. Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
 
 								} else {
 									Collider.Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);
