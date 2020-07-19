@@ -100,6 +100,8 @@ namespace VisualPinball.Engine.VPT
 		public Material(BinaryReader reader)
 		{
 			MaterialData = new MaterialData(reader);
+			PhysicsMaterialData = new PhysicsMaterialData();
+
 			Name = MaterialData.Name;
 			BaseColor = new Color(MaterialData.BaseColor, ColorFormat.Bgr);
 			Glossiness = new Color(MaterialData.Glossiness, ColorFormat.Bgr);
