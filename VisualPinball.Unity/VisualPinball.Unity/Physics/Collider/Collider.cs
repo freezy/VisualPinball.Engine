@@ -19,7 +19,6 @@ using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Trigger;
 using PhysicsMaterialData = VisualPinball.Unity.Physics.Collision.PhysicsMaterialData;
 using Random = Unity.Mathematics.Random;
 
@@ -192,20 +191,8 @@ namespace VisualPinball.Unity.Physics.Collider
 						break;
 
 					default:
-						collider->Collide(ref ballData, ref events, in collEvent, in coll, ref random);
-						break;
+						throw new InvalidOperationException("Missing collider implementation for " + collider->Type);
 				}
-			}
-		}
-
-		private void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in CollisionEventData collEvent, in Collider coll, ref Random random)
-		{
-			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
-
-			if (dot <= -coll.Header.Threshold) {
-				FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}
 		}
 
