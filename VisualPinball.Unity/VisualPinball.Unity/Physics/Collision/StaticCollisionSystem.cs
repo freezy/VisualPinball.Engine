@@ -167,6 +167,7 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
 
+								// hit target
 								if (coll.Header.ItemType == ItemType.HitTarget) {
 
 									float3 normal;
@@ -185,8 +186,12 @@ namespace VisualPinball.Unity.Physics.Collision
 										in normal, in collEvent, in coll, ref random);
 									SetComponent(coll.Entity, hitTargetAnimationData);
 
+								// trigger
+								} else if (coll.Header.ItemType == ItemType.Trigger) {
+									TriggerCollider.Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
+
 								} else {
-									Collider.Collider.Collide(ref coll, ref ballData, ref events, collEvent, ref random);
+									Collider.Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);
 								}
 								break;
 

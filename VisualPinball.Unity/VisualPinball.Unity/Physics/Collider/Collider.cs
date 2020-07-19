@@ -19,6 +19,7 @@ using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
+using VisualPinball.Unity.VPT.Trigger;
 using PhysicsMaterialData = VisualPinball.Unity.Physics.Collision.PhysicsMaterialData;
 using Random = Unity.Mathematics.Random;
 
@@ -165,28 +166,31 @@ namespace VisualPinball.Unity.Physics.Collider
 			{
 				switch (collider->Type)
 				{
-					case ColliderType.Plane:
-						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+					case ColliderType.Circle:
+						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
 						break;
 					case ColliderType.Line:
 						((LineCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
-					case ColliderType.Circle:
-						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+					case ColliderType.Line3D:
+						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
 					case ColliderType.LineZ:
 						((LineZCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
+					case ColliderType.Plane:
+						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						break;
 					case ColliderType.Point:
 						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
-					case ColliderType.Line3D:
-						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+					case ColliderType.Poly3D:
+						((Poly3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
 
 					case ColliderType.Triangle:
 
-					case ColliderType.Poly3D:
+
 					default:
 						collider->Collide(ref ballData, ref events, in collEvent, in coll, ref random);
 						break;
