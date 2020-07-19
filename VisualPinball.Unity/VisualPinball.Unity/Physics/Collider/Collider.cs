@@ -187,9 +187,9 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Poly3D:
 						((Poly3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
-
 					case ColliderType.Triangle:
-
+						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
 
 					default:
 						collider->Collide(ref ballData, ref events, in collEvent, in coll, ref random);

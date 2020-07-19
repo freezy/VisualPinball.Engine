@@ -1,10 +1,12 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -38,6 +40,8 @@ namespace VisualPinball.Unity.Physics.Collider
 			_rgv2 = src.Rgv[2].ToUnityFloat3();
 			_normal = src.Normal.ToUnityFloat3();
 		}
+
+		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
@@ -127,16 +131,19 @@ namespace VisualPinball.Unity.Physics.Collider
 			return -1.0f;
 		}
 
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
-		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+		#endregion
 
-			// todo manage item-specific logic
-			// if (this.obj && this.fe && dot >= this.threshold && this.obj.onCollision) {
-			// 	var hitNormal = collEvent.HitNormal;
-			// 	var dot = -math.dot(hitNormal, ball.Velocity);
-			// 	this.obj.onCollision(this, ball, dot);
-			// }
+		// todo identical with Poly3DCollider.Collider, refactor?
+		public void Collide(ref BallData ball,  ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			in CollisionEventData collEvent, ref Random random)
+		{
+			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in _normal, ref random);
+
+			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+				// todo m_obj->m_currentHitThreshold = dot;
+				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+			}
 		}
 	}
 }
