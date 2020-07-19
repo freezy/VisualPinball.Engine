@@ -8,6 +8,7 @@ using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Rubber;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
+using VisualPinball.Unity.VPT.Trigger;
 
 namespace VisualPinball.Unity.VPT.Table
 {
@@ -21,6 +22,7 @@ namespace VisualPinball.Unity.VPT.Table
 		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
 		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
+		internal readonly Dictionary<string, TriggerApi> Triggers = new Dictionary<string, TriggerApi>();
 
 		/// <summary>
 		/// Event emitted before the game starts.
@@ -82,6 +84,13 @@ namespace VisualPinball.Unity.VPT.Table
 		/// <param name="name">Name of the surface</param>
 		/// <returns>Surface or `null` if no surface with that name exists.</returns>
 		public SurfaceApi Surface(string name) => Surfaces.ContainsKey(name) ? Surfaces[name] : null;
+
+		/// <summary>
+		/// Returns a trigger by name.
+		/// </summary>
+		/// <param name="name">Name of the trigger</param>
+		/// <returns>Trigger or `null` if no trigger with that name exists.</returns>
+		public TriggerApi Trigger(string name) => Triggers.ContainsKey(name) ? Triggers[name] : null;
 
 		#region Events
 
