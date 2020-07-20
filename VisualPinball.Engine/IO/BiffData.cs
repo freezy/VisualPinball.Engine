@@ -165,7 +165,7 @@ namespace VisualPinball.Engine.IO
 			return obj;
 		}
 
-		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
+		protected void WriteRecord(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
 		{
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
