@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.VPT.Collection
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes, hashWriter);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 
