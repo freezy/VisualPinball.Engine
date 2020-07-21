@@ -13,8 +13,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IIdentifiableItemBehavior
-		where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IIdentifiableItemBehavior, ILayerableItemBehavior where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
@@ -185,5 +184,9 @@ namespace VisualPinball.Unity.VPT
 		protected abstract TItem GetItem();
 
 		public string Name { get { return Item.Name; } set { Item.Name = value; } }
+
+		public int EditorLayer { get { return data.EditorLayer; } set { data.EditorLayer = value; } }
+		public string EditorLayerName { get { return data.EditorLayerName; } set { data.EditorLayerName = value; } }
+		public bool EditorLayerVisibility{ get { return data.EditorLayerVisibility; } set { data.EditorLayerVisibility = value; } }
 	}
 }
