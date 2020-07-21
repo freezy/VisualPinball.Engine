@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Layers
 {
@@ -13,7 +14,12 @@ namespace VisualPinball.Unity.Editor.Layers
 	{
 		private TreeViewState _treeViewState;
 		private TreeView _treeView;
+		private SearchField _searchField;
 
+		private LayerHandler _layerHandler;
+
+		private Rect _toolbarRect { get { return new Rect(20f, 10f, position.width - 40f, 20f); } }
+		private Rect _treeViewRect { get { return new Rect(20, 30, position.width - 40, position.height - 60); } }
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
@@ -26,10 +32,33 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (_treeViewState == null)
 				_treeViewState = new TreeViewState();
 
-			_treeView = new LayerTreeView(_treeViewState);
+			if (_layerHandler== null)
+				_layerHandler = new LayerHandler();
+
+			if (_searchField == null)
+				_searchField = new SearchField();
+
+			_treeView = new LayerTreeView(_treeViewState, _layerHandler.TreeModel);
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
+			OnHierarchyChange();
 		}
+
+
+		void OnHierarchyChange()
+		{
+			var all = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
+			_layerHandler.RebuildLayers(null);
+			foreach (var gameObj in all) {
+				var tableBehavior = gameObj.GetComponent<TableBehavior>();
+				if (tableBehavior != null){
+					_layerHandler.RebuildLayers(tableBehavior);
+					break;
+				}
+			}
+			_treeView.Reload();
+		}
+
 
 		protected virtual void OnDisable()
 		{
@@ -49,15 +78,12 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		void DoTreeView()
 		{
-			Rect rect = GUILayoutUtility.GetRect(0, System.Int32.MaxValue, 0, System.Int32.MaxValue);
-			_treeView.OnGUI(rect);
+			_treeView.OnGUI(_treeViewRect);
 		}
 
 		void DoToolbar()
 		{
-			GUILayout.BeginHorizontal(EditorStyles.toolbar);
-			GUILayout.FlexibleSpace();
-			GUILayout.EndHorizontal();
+			_treeView.searchString = _searchField.OnGUI(_toolbarRect, _treeView.searchString);
 		}
 
 	}
