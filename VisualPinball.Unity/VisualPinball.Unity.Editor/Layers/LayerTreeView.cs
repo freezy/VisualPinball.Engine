@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel;
+using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT.Table;
 using UnityObject = UnityEngine.Object;
 
@@ -60,5 +61,25 @@ namespace VisualPinball.Unity.Editor.Layers
 			return false;
 		}
 
-	}
+ 
+		//Layer renaming 
+		public event Action<int, string> layerRenamed = delegate { }; 
+ 
+		protected override bool CanRename(TreeViewItem item) 
+		{ 
+			if (item is TreeViewItem<LayerTreeElement> treeViewItem) { 
+				return treeViewItem.Data?.Type == LayerTreeViewElementType.Layer; 
+			} 
+			return false; 
+		} 
+ 
+		protected override void RenameEnded(RenameEndedArgs args) 
+		{ 
+			// Set the backend name and reload the tree to reflect the new model 
+			if (args.acceptedRename) { 
+				layerRenamed(args.itemID, args.newName); 
+				Reload(); 
+			} 
+		} 
+ 	}
 }
