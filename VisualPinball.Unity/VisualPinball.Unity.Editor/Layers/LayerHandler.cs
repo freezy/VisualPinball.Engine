@@ -59,24 +59,23 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			for (int i = 0; i < gameObj.transform.childCount; ++i) {
 				var child = gameObj.transform.GetChild(i).gameObject;
-				foreach (var bh in child.GetComponents<Behaviour>()) {
-					AddToLayer(bh);
-				}
+				AddToLayer(child.GetComponent<ILayerableItemBehavior>());
 				BuildLayersRecursively(child);
 			}
 		}
 
-		private void AddToLayer(Behaviour bh)
+		private void AddToLayer(ILayerableItemBehavior layerableItemBehavior)
 		{
-			if (bh is ILayerableItemBehavior layerableItemBehavior) {
-				if (layerableItemBehavior.EditorLayerName == "") {
-					layerableItemBehavior.EditorLayerName = $"Layer_{layerableItemBehavior.EditorLayer + 1}";
-				}
-				if (!_layers.ContainsKey(layerableItemBehavior.EditorLayerName)) {
-					_layers.Add(layerableItemBehavior.EditorLayerName, new List<Behaviour>());
-				}
-				_layers[layerableItemBehavior.EditorLayerName].Add(bh);
+			if (layerableItemBehavior == null) {
+				return;
 			}
+			if (layerableItemBehavior.EditorLayerName == "") {
+				layerableItemBehavior.EditorLayerName = $"Layer_{layerableItemBehavior.EditorLayer + 1}";
+			}
+			if (!_layers.ContainsKey(layerableItemBehavior.EditorLayerName)) {
+				_layers.Add(layerableItemBehavior.EditorLayerName, new List<Behaviour>());
+			}
+			_layers[layerableItemBehavior.EditorLayerName].Add((Behaviour)layerableItemBehavior);
 		}
 
 		private void RebuildTreeModel()

@@ -8,41 +8,32 @@ using VisualPinball.Unity.VPT.Table;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
-	/// Enum for different Item Types in the LayerTreeView
-	/// </summary>
-	/// <remarks>
-	/// The Item Type will change the IsVisible behavior.
-	/// It will be used also to display a specific icon per item in the treeview
-	/// </remarks>
-	enum LayerTreeViewElementType
-	{
-		Root,
-		Table,
-		Layer,
-		Item
-	}
-
-	/// <summary>
 	/// Element type used in TreeModel for the LayerTreeView
 	/// </summary>
 	/// <remarks>
 	/// Could be initialized in different ways to fit all possible LayerTreeView item types
 	/// </remarks>
-	class LayerTreeElement : TreeElement
+	internal class LayerTreeElement : TreeElement
 	{
-		public Table Table { get; }
+		/// <summary>
+		/// Name of the layer
+		/// </summary>
+		public string LayerName;
 		public ILayerableItemBehavior Item { get; }
-		public string LayerName { get; set; } 
-		public LayerTreeViewElementType Type => Table != null ? 
-			LayerTreeViewElementType.Table : Item != null ? 
-			LayerTreeViewElementType.Item : LayerName != null ? 
-			LayerTreeViewElementType.Layer : 
-			LayerTreeViewElementType.Root;
+
+		private readonly Table _table;
+
+		public LayerTreeViewElementType Type =>
+			_table != null
+				? LayerTreeViewElementType.Table
+				: Item != null
+					? LayerTreeViewElementType.Item
+					: LayerName != null ? LayerTreeViewElementType.Layer : LayerTreeViewElementType.Root;
 
 		private bool _isVisible = true;
-		public bool IsVisible 
+		public bool IsVisible
 		{
-			get { 
+			get {
 				if (Type == LayerTreeViewElementType.Item) {
 					if (Item is Behaviour behavior) {
 						_isVisible = !SceneVisibilityManager.instance.IsHidden(behavior.gameObject);
@@ -74,14 +65,14 @@ namespace VisualPinball.Unity.Editor.Layers
 						}
 					}
 				}
-			} 
+			}
 		}
 
 		public override string Name
 		{
 			get {
-				if (Table != null) {
-					return Table.Name;
+				if (_table != null) {
+					return _table.Name;
 				}
 
 				if (Item is IIdentifiableItemBehavior identifiable) {
@@ -102,7 +93,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		public LayerTreeElement(){}
 		public LayerTreeElement(Table table)
 		{
-			Table = table;
+			_table = table;
 		}
 		public LayerTreeElement(ILayerableItemBehavior item)
 		{
@@ -113,5 +104,20 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			LayerName = layerName;
 		}
+	}
+
+	/// <summary>
+	/// Enum for different Item Types in the LayerTreeView
+	/// </summary>
+	/// <remarks>
+	/// The Item Type will change the IsVisible behavior.
+	/// It will be used also to display a specific icon per item in the treeview
+	/// </remarks>
+	internal enum LayerTreeViewElementType
+	{
+		Root,
+		Table,
+		Layer,
+		Item
 	}
 }
