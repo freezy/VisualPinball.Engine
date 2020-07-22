@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT;
@@ -12,26 +11,27 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// It will then be in charge of layers management (add/remove/rename/item assignation) by listening the TreeModel changed event
 	/// When TrereModel has changed it will reupdate all BiffData related to layers
 	/// </summary>
-	class LayerHandler
+	internal class LayerHandler
 	{
-		private TableBehavior _tableBehavior = null;
+		private TableBehavior _tableBehavior;
 
 		/// <summary>
 		/// Readable version of the layers structure, will be used to build the TreeModel
 		/// </summary>
-		private Dictionary<string, List<Behaviour>> _layers = new Dictionary<string, List<Behaviour>>();
+		private readonly Dictionary<string, List<Behaviour>> _layers = new Dictionary<string, List<Behaviour>>();
 
 		/// <summary>
 		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
 		/// </summary>
-		public TreeModel<LayerTreeElement> TreeModel { get; } = null;
+		public TreeModel<LayerTreeElement> TreeModel { get; }
 
-		
+
 		public LayerHandler()
 		{
 			//Initializing the TreeModel with Root item only until a table data is set
-			List<LayerTreeElement> elementList = new List<LayerTreeElement>();
-			elementList.Add(new LayerTreeElement() { Depth = -1, Id = -1 });
+			var elementList = new List<LayerTreeElement> {
+				new LayerTreeElement {Depth = -1, Id = -1}
+			};
 			TreeModel = new TreeModel<LayerTreeElement>(elementList);
 		}
 
@@ -39,21 +39,21 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// Is called by the LayerEditor when a new TableBehavior is created/deleted
 		/// </summary>
 		/// <param name="tableBehavior"></param>
-		public void OnHierarchyChange(TableBehavior tableBehavior) 
-		{ 
-			_tableBehavior = tableBehavior; 
-			RebuildLayers(); 
-		} 
- 
-		private void RebuildLayers() 
-		{ 
-			_layers.Clear(); 
-			if (_tableBehavior != null) { 
-				BuildLayersRecursively(_tableBehavior.gameObject); 
-			} 
- 
-			RebuildTreeModel(); 
-		} 
+		public void OnHierarchyChange(TableBehavior tableBehavior)
+		{
+			_tableBehavior = tableBehavior;
+			RebuildLayers();
+		}
+
+		private void RebuildLayers()
+		{
+			_layers.Clear();
+			if (_tableBehavior != null) {
+				BuildLayersRecursively(_tableBehavior.gameObject);
+			}
+
+			RebuildTreeModel();
+		}
 
 		private void BuildLayersRecursively(GameObject gameObj)
 		{
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private void AddToLayer(Behaviour bh)
 		{
-			if (bh is VPT.ILayerableItemBehavior layerableItemBehavior) {
+			if (bh is ILayerableItemBehavior layerableItemBehavior) {
 				if (layerableItemBehavior.EditorLayerName == "") {
 					layerableItemBehavior.EditorLayerName = $"Layer_{layerableItemBehavior.EditorLayer + 1}";
 				}
@@ -83,8 +83,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			List<LayerTreeElement> elementList = new List<LayerTreeElement>();
 			elementList.Add(new LayerTreeElement() { Depth = -1, Id = -1 });
-			if (_tableBehavior != null && _tableBehavior.Table != null) { 
-				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 }; 
+			if (_tableBehavior != null && _tableBehavior.Table != null) {
+				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 };
 				elementList.Add(tableItem);
 				int layercount = 1;
 				bool allLayersVisible = true;
@@ -106,22 +106,22 @@ namespace VisualPinball.Unity.Editor.Layers
 			TreeModel.SetData(elementList);
 		}
 
-		internal void OnLayerRenamed(int itemId, string newName) 
-		{ 
-			var layerElement = TreeModel.Find(itemId); 
-			if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) { 
-				layerElement.LayerName = newName; 
-				if (layerElement.HasChildren) { 
-					foreach (var item in layerElement.Children) { 
-						var iLayerable = ((LayerTreeElement)item).Item; 
-						if (iLayerable != null){ 
-							iLayerable.EditorLayerName = newName; 
-						} 
-					} 
-				} 
-				RebuildLayers(); 
-			} 
-		} 
+		internal void OnLayerRenamed(int itemId, string newName)
+		{
+			var layerElement = TreeModel.Find(itemId);
+			if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
+				layerElement.LayerName = newName;
+				if (layerElement.HasChildren) {
+					foreach (var item in layerElement.Children) {
+						var iLayerable = ((LayerTreeElement)item).Item;
+						if (iLayerable != null){
+							iLayerable.EditorLayerName = newName;
+						}
+					}
+				}
+				RebuildLayers();
+			}
+		}
 
 	}
 }
