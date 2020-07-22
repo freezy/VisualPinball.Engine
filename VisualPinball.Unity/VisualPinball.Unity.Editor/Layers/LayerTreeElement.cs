@@ -1,7 +1,7 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel;
+using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
@@ -30,12 +30,15 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// </remarks>
 	class LayerTreeElement : TreeElement
 	{
-		public Table Table { get; private set; }
-		public ILayerableItemBehavior Item { get; private set; }
-		public string LayerName { get; private set; }
-		public LayerTreeViewElementType Type { get { return Table != null ? LayerTreeViewElementType.Table : Item != null ? LayerTreeViewElementType.Item : LayerName != null ? LayerTreeViewElementType.Layer : LayerTreeViewElementType.Root; } }
+		public Table Table { get; }
+		public ILayerableItemBehavior Item { get; }
+		public string LayerName { get; set; } 
+		public LayerTreeViewElementType Type => Table != null ? 
+			LayerTreeViewElementType.Table : Item != null ? 
+			LayerTreeViewElementType.Item : LayerName != null ? 
+			LayerTreeViewElementType.Layer : 
+			LayerTreeViewElementType.Root;
 
-		[SerializeField]
 		private bool _isVisible = true;
 		public bool IsVisible 
 		{

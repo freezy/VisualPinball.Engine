@@ -6,7 +6,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 
-namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
+namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 	/// <summary>
 	/// TreeViewItem class which will be used by your TreeViewWithTreeModel using the same TreeElement generic provided by your TreeModel
@@ -26,13 +26,12 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 	/// The TreeWiewWithTreeModel class is a TreeView which will display a provided TreeModel
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
-	internal class TreeViewWithTreeModel<T> : TreeView where T : TreeElement
+	internal class TreeViewWithTreeModel<T> : UnityEditor.IMGUI.Controls.TreeView where T : TreeElement
 	{
-		TreeModel<T> _treeModel;
 		readonly List<TreeViewItem> _rows = new List<TreeViewItem>(100);
 		public event Action treeChanged;
 
-		public TreeModel<T> TreeModel { get { return _treeModel; } }
+		public TreeModel<T> TreeModel { get; private set; }
 		public event Action<IList<TreeViewItem>>  beforeDroppingDraggedItems;
 
 
@@ -49,8 +48,8 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 
 		void Init (TreeModel<T> model)
 		{
-			_treeModel = model;
-			_treeModel.modelChanged += ModelChanged;
+			TreeModel = model;
+			TreeModel.modelChanged += ModelChanged;
 		}
 
 		void ModelChanged ()
@@ -64,12 +63,12 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 		protected override TreeViewItem BuildRoot()
 		{
 			int depthForHiddenRoot = -1;
-			return new TreeViewItem<T>(_treeModel.Root.Id, depthForHiddenRoot, _treeModel.Root.Name, _treeModel.Root);
+			return new TreeViewItem<T>(TreeModel.Root.Id, depthForHiddenRoot, TreeModel.Root.Name, TreeModel.Root);
 		}
 
 		protected override IList<TreeViewItem> BuildRows (TreeViewItem root)
 		{
-			if (_treeModel.Root == null)
+			if (TreeModel.Root == null)
 			{
 				Debug.LogError ("tree model root is null. did you call SetData()?");
 			}
@@ -77,12 +76,12 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 			_rows.Clear ();
 			if (!string.IsNullOrEmpty(searchString))
 			{
-				Search (_treeModel.Root, searchString, _rows);
+				Search (TreeModel.Root, searchString, _rows);
 			}
 			else
 			{
-				if (_treeModel.Root.HasChildren)
-					AddChildrenRecursive(_treeModel.Root, 0, _rows);
+				if (TreeModel.Root.HasChildren)
+					AddChildrenRecursive(TreeModel.Root, 0, _rows);
 			}
 
 			// We still need to setup the child parent information for the rows since this 
@@ -150,12 +149,12 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 	
 		protected override IList<int> GetAncestors (int id)
 		{
-			return _treeModel.GetAncestors(id);
+			return TreeModel.GetAncestors(id);
 		}
 
 		protected override IList<int> GetDescendantsThatHaveChildren (int id)
 		{
-			return _treeModel.GetDescendantsThatHaveChildren(id);
+			return TreeModel.GetDescendantsThatHaveChildren(id);
 		}
 
 
@@ -207,7 +206,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 				case DragAndDropPosition.OutsideItems:
 					{
 						if (args.performDrop)
-							OnDropDraggedElementsAtIndex(draggedRows, _treeModel.Root, _treeModel.Root.Children.Count);
+							OnDropDraggedElementsAtIndex(draggedRows, TreeModel.Root, TreeModel.Root.Children.Count);
 
 						return DragAndDropVisualMode.Move;
 					}
@@ -227,7 +226,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
 				draggedElements.Add (((TreeViewItem<T>) x).Data);
 		
 			var selectedIDs = draggedElements.Select (x => x.Id).ToArray();
-			_treeModel.MoveElements (parent, insertIndex, draggedElements);
+			TreeModel.MoveElements (parent, insertIndex, draggedElements);
 			SetSelection(selectedIDs, TreeViewSelectionOptions.RevealAndFrame);
 		}
 

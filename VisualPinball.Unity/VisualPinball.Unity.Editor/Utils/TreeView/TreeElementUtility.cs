@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
+namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 
 	/// <summary>

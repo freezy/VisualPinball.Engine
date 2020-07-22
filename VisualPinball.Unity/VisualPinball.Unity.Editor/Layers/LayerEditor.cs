@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.Editor.Layers
 	public class LayerEditor : EditorWindow
 	{
 		private TreeViewState _treeViewState;
-		private TreeView _treeView;
+		private LayerTreeView _treeView; 
 		private SearchField _searchField;
 
 		private LayerHandler _layerHandler;
@@ -29,16 +29,22 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		protected virtual void OnEnable()
 		{
-			if (_treeViewState == null)
+			if (_treeViewState == null) {
 				_treeViewState = new TreeViewState();
+			}
 
-			if (_layerHandler== null)
+			if (_layerHandler== null) {
 				_layerHandler = new LayerHandler();
+			}
 
-			if (_searchField == null)
+			if (_searchField == null) {
 				_searchField = new SearchField();
+			}
 
 			_treeView = new LayerTreeView(_treeViewState, _layerHandler.TreeModel);
+			_treeView.layerRenamed += _layerHandler.OnLayerRenamed; 
+ 
+			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem; 
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
 			OnHierarchyChange();
@@ -48,11 +54,11 @@ namespace VisualPinball.Unity.Editor.Layers
 		void OnHierarchyChange()
 		{
 			var all = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
-			_layerHandler.RebuildLayers(null);
+			_layerHandler.OnHierarchyChange(null);
 			foreach (var gameObj in all) {
 				var tableBehavior = gameObj.GetComponent<TableBehavior>();
 				if (tableBehavior != null){
-					_layerHandler.RebuildLayers(tableBehavior);
+					_layerHandler.OnHierarchyChange(tableBehavior);
 					break;
 				}
 			}

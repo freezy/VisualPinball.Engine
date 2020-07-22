@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel
+namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 	/// <summary>
 	/// The TreeModel is a utility class working on a list of serializable TreeElements where the order and the depth of each TreeElement define the tree structure. 

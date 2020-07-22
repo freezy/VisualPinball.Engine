@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Utils.TreeViewWithTreeModel;
+using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
@@ -14,17 +14,18 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// </summary>
 	class LayerHandler
 	{
-		/// <summary>
-		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
-		/// </summary>
-		public TreeModel<LayerTreeElement> TreeModel { get; private set; } = null;
+		private TableBehavior _tableBehavior = null;
 
 		/// <summary>
 		/// Readable version of the layers structure, will be used to build the TreeModel
 		/// </summary>
-		public Dictionary<string, List<Behaviour>> Layers { get; private set; } = new Dictionary<string, List<Behaviour>>();
+		private Dictionary<string, List<Behaviour>> _layers = new Dictionary<string, List<Behaviour>>();
 
-		public VisualPinball.Engine.VPT.Table.Table Table { get; private set; } = null;
+		/// <summary>
+		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
+		/// </summary>
+		public TreeModel<LayerTreeElement> TreeModel { get; } = null;
+
 		
 		public LayerHandler()
 		{
@@ -38,16 +39,22 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// Is called by the LayerEditor when a new TableBehavior is created/deleted
 		/// </summary>
 		/// <param name="tableBehavior"></param>
-		public void RebuildLayers(TableBehavior tableBehavior)
-		{
-			Table = tableBehavior != null ? tableBehavior.Table : null;
-			Layers.Clear();
-			if (tableBehavior != null) {
-				BuildLayersRecursively(tableBehavior.gameObject);
-			}
+		public void OnHierarchyChange(TableBehavior tableBehavior) 
+		{ 
+			_tableBehavior = tableBehavior; 
+			RebuildLayers(); 
+		} 
+ 
+		private void RebuildLayers() 
+		{ 
+			_layers.Clear(); 
+			if (_tableBehavior != null) { 
+				BuildLayersRecursively(_tableBehavior.gameObject); 
+			} 
+ 
+			RebuildTreeModel(); 
+		} 
 
-			RebuildTreeModel();
-		}
 		private void BuildLayersRecursively(GameObject gameObj)
 		{
 			for (int i = 0; i < gameObj.transform.childCount; ++i) {
@@ -65,10 +72,10 @@ namespace VisualPinball.Unity.Editor.Layers
 				if (layerableItemBehavior.EditorLayerName == "") {
 					layerableItemBehavior.EditorLayerName = $"Layer_{layerableItemBehavior.EditorLayer + 1}";
 				}
-				if (!Layers.ContainsKey(layerableItemBehavior.EditorLayerName)) {
-					Layers.Add(layerableItemBehavior.EditorLayerName, new List<Behaviour>());
+				if (!_layers.ContainsKey(layerableItemBehavior.EditorLayerName)) {
+					_layers.Add(layerableItemBehavior.EditorLayerName, new List<Behaviour>());
 				}
-				Layers[layerableItemBehavior.EditorLayerName].Add(bh);
+				_layers[layerableItemBehavior.EditorLayerName].Add(bh);
 			}
 		}
 
@@ -76,16 +83,16 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			List<LayerTreeElement> elementList = new List<LayerTreeElement>();
 			elementList.Add(new LayerTreeElement() { Depth = -1, Id = -1 });
-			if (Table != null) {
-				var tableItem = new LayerTreeElement(Table) { Depth = 0, Id = 0 };
+			if (_tableBehavior != null && _tableBehavior.Table != null) { 
+				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 }; 
 				elementList.Add(tableItem);
 				int layercount = 1;
 				bool allLayersVisible = true;
-				foreach (var layer in Layers.Keys) {
+				foreach (var layer in _layers.Keys) {
 					var layerItem = new LayerTreeElement(layer) { Depth = 1, Id = layercount++ };
 					elementList.Add(layerItem);
 					bool allItemsVisible = true;
-					foreach (var item in Layers[layer]) {
+					foreach (var item in _layers[layer]) {
 						if (item is ILayerableItemBehavior layeredItem) {
 							elementList.Add(new LayerTreeElement(layeredItem) { Depth = 2, Id = item.gameObject.GetInstanceID() });
 							allItemsVisible &= layeredItem.EditorLayerVisibility;
@@ -98,5 +105,23 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 			TreeModel.SetData(elementList);
 		}
+
+		internal void OnLayerRenamed(int itemId, string newName) 
+		{ 
+			var layerElement = TreeModel.Find(itemId); 
+			if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) { 
+				layerElement.LayerName = newName; 
+				if (layerElement.HasChildren) { 
+					foreach (var item in layerElement.Children) { 
+						var iLayerable = ((LayerTreeElement)item).Item; 
+						if (iLayerable != null){ 
+							iLayerable.EditorLayerName = newName; 
+						} 
+					} 
+				} 
+				RebuildLayers(); 
+			} 
+		} 
+
 	}
 }
