@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using VisualPinball.Unity.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor.Inspectors
