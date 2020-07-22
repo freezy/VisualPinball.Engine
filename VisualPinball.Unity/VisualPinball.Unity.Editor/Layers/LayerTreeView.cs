@@ -11,18 +11,24 @@ using UnityObject = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
-	/// This Treeview will populate VPX Layers structure as provided by the LayersHandler
+	/// Populates the VPX Layers structure as provided by the <see cref="LayerHandler"/>. <p/>
 	///
-	/// It will tell the LayersHandler any change on the layers structure (add/remove/rename/assignation)
-	/// 
+	/// It notifies the LayerHandler of any change in the layers structure, such as addition, removal, renaming,
+	/// or toggling.
 	/// </summary>
+	///
 	/// <remarks>
-	/// It a first structure draft mirroring the table structure for now, will be changed to fit the LayersHandler afterward
+	/// It a first structure draft mirroring the table structure for now, will be changed to fit the LayersHandler
+	/// afterwards.
 	/// </remarks>
 	internal class LayerTreeView : TreeViewWithTreeModel<LayerTreeElement>
 	{
-		public LayerTreeView(TreeViewState state, TreeModel<LayerTreeElement> model)
-			: base(state, model)
+		/// <summary>
+		/// Emitted when a layer is renamed.
+		/// </summary>
+		public event Action<int, string> LayerRenamed = delegate { };
+
+		public LayerTreeView(TreeModel<LayerTreeElement> model) : base(new TreeViewState(), model)
 		{
 			showBorder = true;
 			showAlternatingRowBackgrounds = true;
@@ -61,25 +67,21 @@ namespace VisualPinball.Unity.Editor.Layers
 			return false;
 		}
 
- 
-		//Layer renaming 
-		public event Action<int, string> layerRenamed = delegate { }; 
- 
-		protected override bool CanRename(TreeViewItem item) 
-		{ 
-			if (item is TreeViewItem<LayerTreeElement> treeViewItem) { 
-				return treeViewItem.Data?.Type == LayerTreeViewElementType.Layer; 
-			} 
-			return false; 
-		} 
- 
-		protected override void RenameEnded(RenameEndedArgs args) 
-		{ 
-			// Set the backend name and reload the tree to reflect the new model 
-			if (args.acceptedRename) { 
-				layerRenamed(args.itemID, args.newName); 
-				Reload(); 
-			} 
-		} 
+		protected override bool CanRename(TreeViewItem item)
+		{
+			if (item is TreeViewItem<LayerTreeElement> treeViewItem) {
+				return treeViewItem.Data?.Type == LayerTreeViewElementType.Layer;
+			}
+			return false;
+		}
+
+		protected override void RenameEnded(RenameEndedArgs args)
+		{
+			// Set the backend name and reload the tree to reflect the new model
+			if (args.acceptedRename) {
+				LayerRenamed(args.itemID, args.newName);
+				Reload();
+			}
+		}
  	}
 }

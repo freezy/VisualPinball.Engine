@@ -5,21 +5,37 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Layers
 {
-
 	/// <summary>
-	/// This Editor will handle all Layers management as VPX does.
-	/// It's using a custom LayersTreeView
+	/// The VPX layer manager window. <p/>
+	///
+	/// Apart from drawing the UI, it does the following: <ul>
+	///   <li>Dispatch changes in the hierarchy to the handler </li>
+	///   <li>Dispatch layer renaming to the handler </li>
+	///   <li>Dispatch search text to the handler </li>
+	///   <li>Trigger repaint if visibility changed in the hierarchy </li></ul>
+	///
 	/// </summary>
 	public class LayerEditor : EditorWindow
 	{
-		private TreeViewState _treeViewState;
-		private LayerTreeView _treeView; 
+		/// <summary>
+		/// The search box control. <p/>
+		///
+		/// Forwards entered text to the tree view, which does its magic automatically and filters.
+		/// </summary>
 		private SearchField _searchField;
 
+		/// <summary>
+		/// Our extended TreeView control
+		/// </summary>
+		private LayerTreeView _treeView;
+
+		/// <summary>
+		/// The handler, which bridges the table data with the tree view data.
+		/// </summary>
 		private LayerHandler _layerHandler;
 
-		private Rect _toolbarRect { get { return new Rect(20f, 10f, position.width - 40f, 20f); } }
-		private Rect _treeViewRect { get { return new Rect(20, 30, position.width - 40, position.height - 60); } }
+		private Rect ToolbarRect => new Rect(10f, 10f, position.width - 20f, 20f);
+		private Rect TreeViewRect => new Rect(10f, 30f, position.width - 20f, position.height - 40f);
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
@@ -27,12 +43,8 @@ namespace VisualPinball.Unity.Editor.Layers
 			GetWindow<LayerEditor>("Layer Manager");
 		}
 
-		protected virtual void OnEnable()
+		private void OnEnable()
 		{
-			if (_treeViewState == null) {
-				_treeViewState = new TreeViewState();
-			}
-
 			if (_layerHandler== null) {
 				_layerHandler = new LayerHandler();
 			}
@@ -41,32 +53,27 @@ namespace VisualPinball.Unity.Editor.Layers
 				_searchField = new SearchField();
 			}
 
-			_treeView = new LayerTreeView(_treeViewState, _layerHandler.TreeModel);
-			_treeView.layerRenamed += _layerHandler.OnLayerRenamed; 
- 
-			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem; 
+			_treeView = new LayerTreeView(_layerHandler.TreeModel);
+			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
+
+			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
+
+			// trigger handler update
 			OnHierarchyChange();
 		}
 
-
-		void OnHierarchyChange()
+		private void OnHierarchyChange()
 		{
-			var all = Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[];
 			_layerHandler.OnHierarchyChange(null);
-			foreach (var gameObj in all) {
-				var tableBehavior = gameObj.GetComponent<TableBehavior>();
-				if (tableBehavior != null){
-					_layerHandler.OnHierarchyChange(tableBehavior);
-					break;
-				}
+			foreach (var tableBehavior in Resources.FindObjectsOfTypeAll<TableBehavior>()) {
+				_layerHandler.OnHierarchyChange(tableBehavior);
 			}
 			_treeView.Reload();
 		}
 
-
-		protected virtual void OnDisable()
+		private void OnDisable()
 		{
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 		}
@@ -76,22 +83,20 @@ namespace VisualPinball.Unity.Editor.Layers
 			_treeView.Repaint();
 		}
 
-		void OnGUI()
+		private void OnGUI()
 		{
-			DoToolbar();
-			DoTreeView();
+			DrawToolbar();
+			DrawTreeView();
 		}
 
-		void DoTreeView()
+		private void DrawToolbar()
 		{
-			_treeView.OnGUI(_treeViewRect);
+			_treeView.searchString = _searchField.OnGUI(ToolbarRect, _treeView.searchString);
 		}
 
-		void DoToolbar()
+		private void DrawTreeView()
 		{
-			_treeView.searchString = _searchField.OnGUI(_toolbarRect, _treeView.searchString);
+			_treeView.OnGUI(TreeViewRect);
 		}
-
 	}
-
 }
