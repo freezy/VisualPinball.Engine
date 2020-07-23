@@ -16,9 +16,9 @@ namespace VisualPinball.Unity.Editor.Layers
 		private TableBehavior _tableBehavior;
 
 		/// <summary>
-		/// Readable version of the layers structure, will be used to build the TreeModel
+		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
 		/// </summary>
-		private readonly Dictionary<string, List<Behaviour>> _layers = new Dictionary<string, List<Behaviour>>();
+		private readonly Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
 		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
@@ -45,6 +45,12 @@ namespace VisualPinball.Unity.Editor.Layers
 			RebuildLayers();
 		}
 
+		/// <summary>
+		/// Recursively runs through the <see cref="TableBehavior"/>'s children and
+		/// adds the game items' <see cref="MonoBehaviour"/> to the layers map. <p/>
+		///
+		/// It also rebuilds the tree model.
+		/// </summary>
 		private void RebuildLayers()
 		{
 			_layers.Clear();
@@ -55,42 +61,53 @@ namespace VisualPinball.Unity.Editor.Layers
 			RebuildTreeModel();
 		}
 
+		/// <summary>
+		/// Recursively runs through the given <see cref="GameObject"/> and
+		/// adds its children's <see cref="MonoBehaviour"/> to the layers map.
+		/// </summary>
 		private void BuildLayersRecursively(GameObject gameObj)
 		{
-			for (int i = 0; i < gameObj.transform.childCount; ++i) {
+			for (var i = 0; i < gameObj.transform.childCount; ++i) {
 				var child = gameObj.transform.GetChild(i).gameObject;
 				AddToLayer(child.GetComponent<ILayerableItemBehavior>());
 				BuildLayersRecursively(child);
 			}
 		}
 
-		private void AddToLayer(ILayerableItemBehavior layerableItemBehavior)
+		private void AddToLayer(ILayerableItemBehavior item)
 		{
-			if (layerableItemBehavior == null) {
+			if (item == null) {
 				return;
 			}
-			if (layerableItemBehavior.EditorLayerName == "") {
-				layerableItemBehavior.EditorLayerName = $"Layer_{layerableItemBehavior.EditorLayer + 1}";
+			if (item.EditorLayerName == string.Empty) {
+				item.EditorLayerName = $"Layer_{item.EditorLayer + 1}";
 			}
-			if (!_layers.ContainsKey(layerableItemBehavior.EditorLayerName)) {
-				_layers.Add(layerableItemBehavior.EditorLayerName, new List<Behaviour>());
+			if (!_layers.ContainsKey(item.EditorLayerName)) {
+				_layers.Add(item.EditorLayerName, new List<MonoBehaviour>());
 			}
-			_layers[layerableItemBehavior.EditorLayerName].Add((Behaviour)layerableItemBehavior);
+			_layers[item.EditorLayerName].Add((MonoBehaviour)item);
 		}
 
 		private void RebuildTreeModel()
 		{
-			List<LayerTreeElement> elementList = new List<LayerTreeElement>();
-			elementList.Add(new LayerTreeElement() { Depth = -1, Id = -1 });
+			// init with root element
+			var elementList = new List<LayerTreeElement> { new LayerTreeElement { Depth = -1, Id = -1 } };
+
 			if (_tableBehavior != null && _tableBehavior.Table != null) {
+
+				// table node
 				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 };
 				elementList.Add(tableItem);
-				int layercount = 1;
-				bool allLayersVisible = true;
+
+				var layerCount = 1;
+				var allLayersVisible = true;
 				foreach (var layer in _layers.Keys) {
-					var layerItem = new LayerTreeElement(layer) { Depth = 1, Id = layercount++ };
+
+					// layer node
+					var layerItem = new LayerTreeElement(layer) { Depth = 1, Id = layerCount++ };
 					elementList.Add(layerItem);
-					bool allItemsVisible = true;
+					var allItemsVisible = true;
+
 					foreach (var item in _layers[layer]) {
 						if (item is ILayerableItemBehavior layeredItem) {
 							elementList.Add(new LayerTreeElement(layeredItem) { Depth = 2, Id = item.gameObject.GetInstanceID() });
