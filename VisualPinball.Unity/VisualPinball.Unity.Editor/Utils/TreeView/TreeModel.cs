@@ -6,20 +6,27 @@ using System.Linq;
 namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 	/// <summary>
-	/// The TreeModel is a utility class working on a list of serializable TreeElements where the order and the depth of each TreeElement define the tree structure. 
-	/// The tree representation (parent and children references) are then build internally using TreeElementUtility.ListToTree (using depth values of the elements). 
+	/// The TreeModel is a utility class working on a list of serializable TreeElements where the order and the depth
+	/// of each TreeElement define the tree structure.
+	///
+	/// The tree representation (parent and children references) are then build internally using
+	/// TreeElementUtility.ListToTree (using depth values of the elements).
+	///
 	/// Some tree manipulation helpers are provided and a modelChanged event is fired using those modification methods.
 	/// </summary>
 	/// <typeparam name="T">TreeElement derived class in the TreeModel</typeparam>
 	/// <remarks>
-	/// Note that the TreeModel itself is not serializable (in Unity we are currently limited to serializing lists/arrays) but the input list is.
-	/// The first element of the input list is required to have depth == -1 (the hiddenroot) and the rest to have depth >= 0 (otherwise an exception will be thrown)
+	/// Note that the TreeModel itself is not serializable (in Unity we are currently limited to serializing lists/arrays)
+	/// but the input list is.
+	///
+	/// The first element of the input list is required to have depth == -1 (the hiddenroot) and the rest to have
+	/// depth >= 0 (otherwise an exception will be thrown)
 	/// </remarks>
 	public class TreeModel<T> where T : TreeElement
 	{
 		private  IList<T> _data;
 		private int _maxID;
-	
+
 		public T Root { get; set; }
 		public event Action modelChanged;
 		public int numberOfDataElements
@@ -36,7 +43,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		{
 			return _data.FirstOrDefault (element => element.Id == id);
 		}
-	
+
 		public void SetData (IList<T> data)
 		{
 			Init (data);
@@ -117,7 +124,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			foreach (var element in elements)
 				if (element == Root)
 					throw new ArgumentException("It is not allowed to remove the root element");
-		
+
 			var commonAncestors = TreeElementUtility.FindCommonAncestorsWithinList (elements);
 
 			foreach (var element in commonAncestors)
@@ -178,7 +185,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 				throw new ArgumentNullException("element", "element is null");
 			if (parent == null)
 				throw new ArgumentNullException("parent", "parent is null");
-		
+
 			if (parent.Children == null)
 				parent.Children = new List<TreeElement> ();
 
@@ -209,7 +216,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			{
 				draggedItem.Parent.Children.Remove(draggedItem);	// remove from old parent
 				draggedItem.Parent = parentElement;					// set new parent
-			} 
+			}
 
 			if (parentElement.Children == null)
 				parentElement.Children = new List<TreeElement>();

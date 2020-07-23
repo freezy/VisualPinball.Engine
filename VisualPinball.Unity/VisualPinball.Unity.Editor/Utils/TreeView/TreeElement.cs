@@ -10,20 +10,20 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	/// It provides base properties to be inserted & identified in a TreeView (Id, Name, Depth)
 	/// It hosts also its hierarchical information.
 	/// </summary>
-	public class TreeElement
+	public abstract class TreeElement
 	{
 		public int Id { get; set; }
 		public virtual string Name { get; }
 		public int Depth { get; set; }
 		public TreeElement Parent { get; set; }
 		public List<TreeElement> Children { get; set; }
-		public bool HasChildren { get { return Children != null && Children.Count > 0; } }
+		public bool HasChildren => Children != null && Children.Count > 0;
 
-		public TreeElement ()
+		protected TreeElement ()
 		{
 		}
 
-		public TreeElement (string name, int depth, int id)
+		protected TreeElement (string name, int depth, int id)
 		{
 			Name = name;
 			Id = id;
