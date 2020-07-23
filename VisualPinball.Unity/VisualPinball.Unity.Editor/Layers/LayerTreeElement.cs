@@ -3,7 +3,6 @@ using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Layers
 {

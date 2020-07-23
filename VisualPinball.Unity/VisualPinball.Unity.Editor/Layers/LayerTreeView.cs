@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VisualPinball.Unity.Editor.Utils.TreeView;
-using VisualPinball.Unity.VPT.Table;
 using UnityObject = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor.Layers
@@ -60,11 +57,6 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			// Text
 			base.RowGUI(args);
-		}
-
-		protected override bool CanStartDrag(CanStartDragArgs args)
-		{
-			return false;
 		}
 
 		protected override bool CanRename(TreeViewItem item)
