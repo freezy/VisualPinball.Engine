@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
-
 
 namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
@@ -19,18 +16,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		public List<TreeElement> Children { get; set; }
 		public bool HasChildren => Children != null && Children.Count > 0;
 
-		protected TreeElement ()
-		{
-		}
-
-		protected TreeElement (string name, int depth, int id)
-		{
-			Name = name;
-			Id = id;
-			Depth = depth;
-		}
 	}
-
 }
 
 
