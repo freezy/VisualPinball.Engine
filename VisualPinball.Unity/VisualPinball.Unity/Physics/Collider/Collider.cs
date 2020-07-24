@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					case ColliderType.Plane:
 						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Poly3D:
-						return ((Poly3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((Poly3DCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Spinner:
 						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
