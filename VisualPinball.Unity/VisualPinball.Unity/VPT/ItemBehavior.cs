@@ -13,7 +13,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IIdentifiableItemBehavior
 		where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.VPT
 
 		public ItemBehavior<TItem, TData> SetData(TData d, string gameObjectName = null)
 		{
-			name = gameObjectName ?? d.GetName();
+			name = gameObjectName ?? d.Name;
 			data = d;
 			ItemDataChanged();
 			return this;
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.VPT
 			}
 			var table = transform.GetComponentInParent<TableBehavior>();
 			if (table == null) {
-				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
+				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.Name);
 				return;
 			}
 
@@ -183,5 +183,7 @@ namespace VisualPinball.Unity.VPT
 		protected abstract string[] Children { get; }
 
 		protected abstract TItem GetItem();
+
+		public string Name { get { return Item.Name; } set { Item.Name = value; } }
 	}
 }

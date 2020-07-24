@@ -16,13 +16,11 @@ namespace VisualPinball.Engine.VPT
 	[Serializable]
 	public class BinaryData : ItemData, IImageData
 	{
-		public override string GetName() => Name;
-
 		public byte[] Bytes => Data;
 		public byte[] FileContent => Data;
 
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public string Name;
+		public override string Name { get; set; }
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

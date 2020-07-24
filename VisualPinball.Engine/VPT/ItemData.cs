@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT
 		[BiffBool("LVIS", Pos = 1003)]
 		public bool EditorLayerVisibility = true;
 
-		public abstract string GetName();
+		public abstract string Name { get; set; }
 
 		protected ItemData(string storageName) : base(storageName) { }
 	}

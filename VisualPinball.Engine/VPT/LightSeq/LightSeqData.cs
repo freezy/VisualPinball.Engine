@@ -16,10 +16,8 @@ namespace VisualPinball.Engine.VPT.LightSeq
 	[Serializable]
 	public class LightSeqData : ItemData
 	{
-		public override string GetName() => Name;
-
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name;
+		public override string Name { get; set; }
 
 		[BiffString("COLC", IsWideString = true, Pos = 2)]
 		public string Collection;

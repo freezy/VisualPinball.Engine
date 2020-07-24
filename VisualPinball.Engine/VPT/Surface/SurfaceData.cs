@@ -17,10 +17,8 @@ namespace VisualPinball.Engine.VPT.Surface
 	[Serializable]
 	public class SurfaceData : ItemData, IPhysicalData
 	{
-		public override string GetName() => Name;
-
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
-		public string Name;
+		public override string Name { get; set; }
 
 		[BiffBool("HTEV", Pos = 1)]
 		public bool HitEvent = false;

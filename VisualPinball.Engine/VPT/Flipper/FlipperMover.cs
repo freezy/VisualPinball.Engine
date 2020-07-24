@@ -148,11 +148,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 				AngleSpeed = _angularMomentum / Inertia;
 
 				if (EnableRotateEvent > 0) {
-					Logger.Info("[{0}] Flipper is up", _data.GetName());
+					Logger.Info("[{0}] Flipper is up", _data.Name);
 					_events.FireVoidEventParam(EventId.LimitEventsEos, angleSpeed); // send EOS event
 
 				} else if (EnableRotateEvent < 0) {
-					Logger.Info("[{0}] Flipper is down", _data.GetName());
+					Logger.Info("[{0}] Flipper is down", _data.Name);
 					_events.FireVoidEventParam(EventId.LimitEventsBos, angleSpeed); // send Beginning of Stroke/Park event
 				}
 
