@@ -7,6 +7,7 @@
 		Circle,
 		Flipper,
 		Gate,
+		KickerCircle,
 		Line,
 		Line3D,
 		LineSlingShot,
