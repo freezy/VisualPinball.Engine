@@ -16,6 +16,7 @@ using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
+using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Trigger;
@@ -156,6 +157,10 @@ namespace VisualPinball.Unity.Physics.Collision
 									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
 								);
 								SetComponent(coll.Entity, triggerAnimationData);
+								break;
+
+							case ColliderType.KickerCircle:
+								KickerCollider.Collide(ref ballData, ref events, in collEvent, new float3[0]);
 								break;
 
 							case ColliderType.Line:
