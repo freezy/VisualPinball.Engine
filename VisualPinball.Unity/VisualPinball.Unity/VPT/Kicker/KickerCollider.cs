@@ -4,7 +4,7 @@ using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
- namespace VisualPinball.Unity.VPT.Kicker
+namespace VisualPinball.Unity.VPT.Kicker
 {
 	public static class KickerCollider
 	{
