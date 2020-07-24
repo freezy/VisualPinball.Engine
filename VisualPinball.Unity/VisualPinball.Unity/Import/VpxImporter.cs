@@ -181,7 +181,7 @@ namespace VisualPinball.Unity.Import
 				case Flipper flipper:				ic = flipper.SetupGameObject(obj, rog); break;
 				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
 				case HitTarget hitTarget:			ic = hitTarget.SetupGameObject(obj, rog); break;
-				case Kicker kicker:					ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
+				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
 				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;

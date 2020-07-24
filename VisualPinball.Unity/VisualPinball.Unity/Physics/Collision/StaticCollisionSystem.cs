@@ -160,7 +160,7 @@ namespace VisualPinball.Unity.Physics.Collision
 								break;
 
 							case ColliderType.KickerCircle:
-								KickerCollider.Collide(ref ballData, ref events, in collEvent, new float3[0]);
+								//KickerCollider.Collide(ref ballData, ref events, in collEvent, new float3[0]);
 								break;
 
 							case ColliderType.Line:
