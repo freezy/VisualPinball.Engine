@@ -9,9 +9,7 @@ namespace VisualPinball.Engine.VPT.Sound
 	[Serializable]
 	public class SoundData : ItemData
 	{
-		public override string GetName() => Name;
-
-		public string Name;
+		public override string Name { get; set; }
 		public string Path;
 		public string InternalName;
 		public WaveFormat Wfx;

@@ -18,10 +18,8 @@ namespace VisualPinball.Engine.VPT.Flasher
 	[Serializable]
 	public class FlasherData : ItemData
 	{
-		public override string GetName() => Name;
-
 		[BiffString("NAME", IsWideString = true, Pos = 10)]
-		public string Name;
+		public override string Name { get; set; }
 
 		[BiffFloat("FHEI", Pos = 1)]
 		public float Height = 50.0f;

@@ -23,6 +23,11 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
 			PopulateDropDownOptions();
+			EditorApplication.hierarchyChanged += OnHierarchyChange;
+		}
+		protected virtual void OnDisable()
+		{
+			EditorApplication.hierarchyChanged -= OnHierarchyChange;
 		}
 
 		protected void PopulateDropDownOptions()
@@ -44,6 +49,15 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					_allTextures[i + 1] = _table.Textures[i].Name;
 				}
 				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
+			}
+		}
+
+		protected virtual void OnHierarchyChange()
+		{
+			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item) {
+				if (item.Name != bh.gameObject.name) {
+					item.Name = bh.gameObject.name;
+				}
 			}
 		}
 

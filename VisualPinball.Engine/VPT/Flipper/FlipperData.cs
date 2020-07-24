@@ -21,10 +21,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 	[BiffIgnore("RTHK")]
 	public class FlipperData : ItemData
 	{
-		public override string GetName() => Name;
-
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public string Name;
+		public override string Name { get; set; }
 
 		[BiffFloat("BASR", Pos = 2)]
 		public float BaseRadius = 21.5f;
