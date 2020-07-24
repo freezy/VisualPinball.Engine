@@ -30,7 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.2" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.4" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.6" />
     <PackageReference Include="NetMiniZ" Version="1.0.4" />
     <PackageReference Include="NetMiniZ.Native" Version="1.0.4">
       <ExcludeAssets>all</ExcludeAssets>
