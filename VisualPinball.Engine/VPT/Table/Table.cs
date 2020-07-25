@@ -186,6 +186,18 @@ namespace VisualPinball.Engine.VPT.Table
 				: Textures.ContainsKey(name.ToLower()) ? Textures[name.ToLower()] : null;
 		}
 
+		public Texture RemoveTexture(string name)
+		{
+			var tex = GetTexture(name);
+			Textures.Remove(name.ToLower());
+			return tex;
+		}
+
+		public void AddTexture(string name, Texture tex)
+		{
+			Textures[name.ToLower()] = tex;
+		}
+
 		public float GetScaleZ()
 		{
 			return Data.BgScaleZ?[Data.BgCurrentSet] ?? 1.0f;

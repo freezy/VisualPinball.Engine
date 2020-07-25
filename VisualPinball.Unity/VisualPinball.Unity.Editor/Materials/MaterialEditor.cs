@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor.Materials
 
 		[SerializeField] private string _forceSelectMatWithName;
 
-		[MenuItem("Visual Pinball/Material Manager", false, 102)]
+		[MenuItem("Visual Pinball/Material Manager", false, 103)]
 		public static void ShowWindow()
 		{
 			GetWindow<MaterialEditor>("Material Manager");
