@@ -22,6 +22,7 @@ namespace VisualPinball.Unity.Physics.Collider
 		private float _zLow;
 
 		public ColliderType Type => _header.Type;
+		public Entity Entity => _header.Entity;
 
 		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
 		{

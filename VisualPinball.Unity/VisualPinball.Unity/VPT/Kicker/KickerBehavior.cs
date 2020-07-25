@@ -9,6 +9,7 @@ using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Kicker
 {
@@ -25,6 +26,16 @@ namespace VisualPinball.Unity.VPT.Kicker
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+
+			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
+			dstManager.AddComponentData(entity, new KickerStaticData {
+				Center = data.Center.ToUnityFloat2(),
+				FallThrough = data.FallThrough,
+				HitAccuracy = data.HitAccuracy,
+				LegacyMode = data.LegacyMode,
+				ZLow = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y) * table.GetScaleZ()
+			});
+			dstManager.AddComponentData(entity, new KickerCollisionData());
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, gameObject);
