@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.Spinner
 	[Serializable]
 	public class SpinnerData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;

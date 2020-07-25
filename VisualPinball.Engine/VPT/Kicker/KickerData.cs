@@ -18,8 +18,11 @@ namespace VisualPinball.Engine.VPT.Kicker
 	[Serializable]
 	public class KickerData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffInt("TYPE", Pos = 9)]
 		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;

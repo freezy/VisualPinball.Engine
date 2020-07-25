@@ -18,8 +18,11 @@ namespace VisualPinball.Engine.VPT
 	{
 		public bool HasBitmap => Bitmap != null && Bitmap.Data != null && Bitmap.Data.Length > 0;
 
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

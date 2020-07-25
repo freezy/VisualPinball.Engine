@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.Trigger
 	[Serializable]
 	public class TriggerData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
 		public DragPointData[] DragPoints;

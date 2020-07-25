@@ -16,8 +16,11 @@ namespace VisualPinball.Engine.VPT.Collection
 	[Serializable]
 	public class CollectionData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 1)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffString("ITEM", IsWideString = true, TagAll = true, Pos = 2)]
 		public string[] ItemNames;

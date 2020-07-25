@@ -32,6 +32,8 @@ namespace VisualPinball.Engine.VPT.Ball
 			// balls aren't persisted
 		}
 
-		public override string Name { get { return $"Ball{Id}"; } set { } }
+		public override string GetName() => $"Ball{Id}";
+		public override void SetName(string name) {}
+
 	}
 }

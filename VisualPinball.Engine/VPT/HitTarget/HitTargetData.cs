@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	[Serializable]
 	public class HitTargetData : ItemData, IPhysicalData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 6)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("PIDB", Pos = 20)]
 		public float DepthBias;
