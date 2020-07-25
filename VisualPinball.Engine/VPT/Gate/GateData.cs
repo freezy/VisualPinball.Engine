@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.Gate
 	[Serializable]
 	public class GateData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 18)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("GAMA", Pos = 12)]
 		public float AngleMax = MathF.PI / 2.0f;

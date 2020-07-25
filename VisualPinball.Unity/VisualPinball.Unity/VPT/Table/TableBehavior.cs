@@ -225,7 +225,7 @@ namespace VisualPinball.Unity.VPT.Table
 		private static void Restore<TItem, TData>(IEnumerable<TData> src, IDictionary<string, TItem> dest, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
 		{
 			foreach (var d in src) {
-				dest[d.Name] = create(d);
+				dest[d.GetName()] = create(d);
 			}
 		}
 	}

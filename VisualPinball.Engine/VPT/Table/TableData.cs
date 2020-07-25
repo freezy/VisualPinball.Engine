@@ -16,8 +16,12 @@ namespace VisualPinball.Engine.VPT.Table
 	[Serializable]
 	public class TableData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
+
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("LEFT", Pos = 1)]
 		public float Left;

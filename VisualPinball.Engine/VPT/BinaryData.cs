@@ -19,8 +19,11 @@ namespace VisualPinball.Engine.VPT
 		public byte[] Bytes => Data;
 		public byte[] FileContent => Data;
 
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

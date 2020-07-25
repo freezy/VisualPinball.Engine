@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 	[Serializable]
 	public class PrimitiveData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
 		public Vertex3D Position;

@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 	[Serializable]
 	public class RubberData : ItemData, IPhysicalData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffFloat("HTTP", Pos = 1)]
 		public float Height = 25f;

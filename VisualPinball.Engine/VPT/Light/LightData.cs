@@ -18,8 +18,11 @@ namespace VisualPinball.Engine.VPT.Light
 	[BiffIgnore("PNTS")]
 	public class LightData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;

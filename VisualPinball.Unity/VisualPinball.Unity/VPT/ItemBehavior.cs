@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.VPT
 
 		public ItemBehavior<TItem, TData> SetData(TData d, string gameObjectName = null)
 		{
-			name = gameObjectName ?? d.Name;
+			name = gameObjectName ?? d.GetName();
 			data = d;
 			ItemDataChanged();
 			return this;
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.VPT
 			}
 			var table = transform.GetComponentInParent<TableBehavior>();
 			if (table == null) {
-				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.Name);
+				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
 				return;
 			}
 

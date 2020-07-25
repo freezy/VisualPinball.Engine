@@ -17,8 +17,11 @@ namespace VisualPinball.Engine.VPT.DispReel
 	[Serializable]
 	public class DispReelData : ItemData
 	{
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
+
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
-		public override string Name { get; set; }
+		public string Name;
 
 		[BiffVertex("VER1", Pos = 1)]
 		public Vertex2D V1;
