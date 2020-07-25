@@ -111,6 +111,7 @@ namespace VisualPinball.Unity.VPT
 		public virtual void SetEditorScale(Vector3 rot) { }
 
 		public virtual void HandleMaterialRenamed(string undoName, string oldName, string newName) { }
+		public virtual void HandleTextureRenamed(string undoName, string oldName, string newName) { }
 
 		// rename helper to cut down on the boiler plate in the concrete classes
 		protected void TryRenameField(string undoName, ref string field, string oldName, string newName)

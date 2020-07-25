@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.VPT
 		// Called by the material editor when a rename occurs to give each item a chance
 		// to update its fields for the new name
 		void HandleMaterialRenamed(string undoName, string oldName, string newName);
+		void HandleTextureRenamed(string undoName, string oldName, string newName);
 	}
 
 	public enum ItemDataTransformType
