@@ -26,6 +26,8 @@ namespace VisualPinball.Unity.VPT.Rubber
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
+			Convert(entity, dstManager);
+
 			// register
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, gameObject);
 		}

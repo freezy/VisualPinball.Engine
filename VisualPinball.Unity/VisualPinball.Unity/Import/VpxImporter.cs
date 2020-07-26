@@ -185,8 +185,8 @@ namespace VisualPinball.Unity.Import
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
 				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
-				case Ramp ramp:						ic = obj.AddComponent<RampBehavior>().SetData(ramp.Data); break;
-				case Rubber rubber:					ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data); break;
+				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
+				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
 				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
 				case Table table:					ic = table.SetupGameObject(obj, rog); break;
