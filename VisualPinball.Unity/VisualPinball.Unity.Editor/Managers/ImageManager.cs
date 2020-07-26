@@ -20,7 +20,12 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnDataDetailGUI()
 		{
-			GUILayout.Button("Test");
+			var unityTex = _table.GetTexture(_selectedItem.Name);
+			var rect = GUILayoutUtility.GetRect(new GUIContent(""), GUIStyle.none);
+			float aspect = (float)unityTex.height / unityTex.width;
+			rect.width = Mathf.Min(unityTex.width, rect.width);
+			rect.height = rect.width * aspect;
+			GUI.DrawTexture(rect, unityTex);
 		}
 
 		protected override void RenameExistingItem(ImageListData listItem, string newName)
