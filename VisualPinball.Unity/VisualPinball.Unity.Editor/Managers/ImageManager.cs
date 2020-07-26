@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.VPT;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Managers
 {
@@ -20,6 +21,8 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnDataDetailGUI()
 		{
+			SliderField("Alpha Mask", ref _selectedItem.TextureData.AlphaTestValue, 0, 255);
+
 			var unityTex = _table.GetTexture(_selectedItem.Name);
 			var rect = GUILayoutUtility.GetRect(new GUIContent(""), GUIStyle.none);
 			float aspect = (float)unityTex.height / unityTex.width;
@@ -30,28 +33,32 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void RenameExistingItem(ImageListData listItem, string newName)
 		{
-			string oldName = listItem.Texture.Name;
+			string oldName = listItem.TextureData.Name;
 
 			// give each editable item a chance to update its fields
-			string undoName = "Rename Material";
+			string undoName = "Rename Image";
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
 				item.HandleTextureRenamed(undoName, oldName, newName);
 			}
 			Undo.RecordObject(_table, undoName);
+			OnDataChanged(undoName, listItem);
 
-			listItem.Texture.Name = newName;
+			listItem.TextureData.Name = newName;
 		}
 
 		protected override void CollectData(List<ImageListData> data)
 		{
-			foreach (var t in _table.Item.Textures) {
-				data.Add(new ImageListData { Texture = t.Value });
+			foreach (var t in _table.Textures) {
+				data.Add(new ImageListData { TextureData = t });
 			}
 		}
 
 		protected override void OnDataChanged(string undoName, ImageListData data)
 		{
-
+			// NOTE/TODO: adding the sidecar to the undo stack is nasty, there's a massive amount of
+			// data serialized there, but that's where the texture props live. we'll have to do
+			// rethink how we're storing and serializing things like the textures
+			Undo.RecordObject(_table.GetComponentInChildren<TableSidecar>(), undoName);
 		}
 	}
 }

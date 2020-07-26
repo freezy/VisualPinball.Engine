@@ -9,5 +9,6 @@ namespace VisualPinball.Unity.Editor.Managers
 		public string HeaderName;
 		public TextAlignment HeaderAlignment;
 		public int Width = 300;
+		public int Order;
 	}
 }
