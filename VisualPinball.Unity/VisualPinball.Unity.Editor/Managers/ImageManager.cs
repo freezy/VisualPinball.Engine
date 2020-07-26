@@ -8,16 +8,17 @@ namespace VisualPinball.Unity.Editor.Managers
 	/// <summary>
 	/// Editor UI for VPX images, equivalent to VPX's "Image Manager" window
 	/// </summary>
-	public class ImageEditor : ManagerWindow<ImageListData>
+	public class ImageManager : ManagerWindow<ImageListData>
 	{
+		protected override string DataTypeName => "Image";
+
 		[MenuItem("Visual Pinball/Image Manager", false, 102)]
 		public static void ShowWindow()
 		{
-			GetWindow<ImageEditor>("Image Manager");
+			GetWindow<ImageManager>("Image Manager");
 		}
 
-
-		protected override void OnItemDetailGUI()
+		protected override void OnDataDetailGUI()
 		{
 			GUILayout.Button("Test");
 		}
@@ -41,6 +42,11 @@ namespace VisualPinball.Unity.Editor.Managers
 			foreach (var t in _table.Item.Textures) {
 				data.Add(new ImageListData { Texture = t.Value });
 			}
+		}
+
+		protected override void OnDataChanged(string undoName, ImageListData data)
+		{
+
 		}
 	}
 }
