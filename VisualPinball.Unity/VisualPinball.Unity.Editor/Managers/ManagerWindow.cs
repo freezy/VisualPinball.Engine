@@ -16,10 +16,10 @@ namespace VisualPinball.Unity.Editor.Managers
 	{
 		protected virtual string DataTypeName => "";
 
-		protected abstract void OnDataDetailGUI();
-		protected abstract void RenameExistingItem(T data, string desiredName);
-		protected abstract void CollectData(List<T> data);
-		protected abstract void OnDataChanged(string undoName, T data);
+		protected virtual void OnDataDetailGUI() { }
+		protected virtual void RenameExistingItem(T data, string desiredName) { }
+		protected virtual void CollectData(List<T> data) { }
+		protected virtual void OnDataChanged(string undoName, T data) { }
 		protected virtual void AddNewData(string newName) { }
 		protected virtual void RemoveData(T data) { }
 		protected virtual void CloneData(string newName, T data) { }
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			GUILayout.FlexibleSpace();
 			var r = GUILayoutUtility.GetLastRect();
 			var listRect = new Rect(r.x, r.y, r.width, position.height - r.y);
-			_listView.OnGUI(listRect);
+			_listView?.OnGUI(listRect);
 
 			// options
 			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(300));
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity.Editor.Managers
 					}
 				} else {
 					EditorGUILayout.LabelField(_selectedItem.Name);
-					if (GUILayout.Button("Rename")) {
+					if (IsImplemented("RenameExistingItem") && GUILayout.Button("Rename")) {
 						_renaming = true;
 						_renameBuffer = _selectedItem.Name;
 					}
@@ -211,11 +211,11 @@ namespace VisualPinball.Unity.Editor.Managers
 		private void FindTable()
 		{
 			_table = GameObject.FindObjectOfType<TableBehavior>();
-
 			_data.Clear();
-			CollectData(_data);
+			if (_table != null) {
+				CollectData(_data);
+			}
 			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
-
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)

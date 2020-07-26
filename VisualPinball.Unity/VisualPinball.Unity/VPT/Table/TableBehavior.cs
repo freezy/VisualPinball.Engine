@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.VPT.Table
 			if (tex != null) {
 				Table.AddTexture(newName, tex);
 			} else {
-				Logger.Error("Could not texture for rename: " + oldName);
+				Logger.Error("Could not find texture for rename: " + oldName);
 			}
 
 			TryRenameField(undoName, ref data.Image, oldName, newName);
