@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
@@ -14,6 +15,7 @@ namespace VisualPinball.Unity.VPT.Table
 {
 	public class TableApi : IApiInitializable
 	{
+		internal readonly Dictionary<string, BumperApi> Bumpers = new Dictionary<string, BumperApi>();
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
 		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
 		internal readonly Dictionary<string, HitTargetApi> HitTargets = new Dictionary<string, HitTargetApi>();
@@ -28,6 +30,13 @@ namespace VisualPinball.Unity.VPT.Table
 		/// Event emitted before the game starts.
 		/// </summary>
 		public event EventHandler Init;
+
+		/// <summary>
+		/// Returns a bumper by name.
+		/// </summary>
+		/// <param name="name">Name of the bumper</param>
+		/// <returns>Bumper or `null` if no bumper with that name exists.</returns>
+		public BumperApi Bumper(string name) => Bumpers.ContainsKey(name) ? Bumpers[name] : null;
 
 		/// <summary>
 		/// Returns a flipper by name.

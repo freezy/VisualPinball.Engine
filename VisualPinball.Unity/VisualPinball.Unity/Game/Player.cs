@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
@@ -19,6 +20,7 @@ using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Ball;
+using VisualPinball.Unity.VPT.Bumper;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
@@ -54,6 +56,14 @@ namespace VisualPinball.Unity.Game
 		}
 
 		#region Registrations
+
+		public void RegisterBumper(Bumper bumper, Entity entity, GameObject go)
+		{
+			var bumperApi = new BumperApi(bumper, entity, this);
+			_tableApi.Bumpers[bumper.Name] = bumperApi;
+			_initializables.Add(bumperApi);
+			_hittables[entity] = bumperApi;
+		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
