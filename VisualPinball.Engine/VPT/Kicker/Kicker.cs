@@ -10,6 +10,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 	{
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
+		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 
 		private readonly KickerMeshGenerator _meshGenerator;

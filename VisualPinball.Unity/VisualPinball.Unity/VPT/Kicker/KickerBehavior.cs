@@ -4,7 +4,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Unity.Game;
@@ -28,6 +30,8 @@ namespace VisualPinball.Unity.VPT.Kicker
 			Convert(entity, dstManager);
 
 			var table = gameObject.GetComponentInParent<TableBehavior>().Item;
+			Item.Init(table);
+
 			dstManager.AddComponentData(entity, new KickerStaticData {
 				Center = data.Center.ToUnityFloat2(),
 				FallThrough = data.FallThrough,
@@ -36,6 +40,22 @@ namespace VisualPinball.Unity.VPT.Kicker
 				ZLow = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y) * table.GetScaleZ()
 			});
 			dstManager.AddComponentData(entity, new KickerCollisionData());
+
+			if (!data.LegacyMode) {
+				using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
+					ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
+					var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
+					var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
+					for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
+						var v = Item.KickerHit.HitMesh[i];
+						vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
+						normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
+					}
+
+					var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
+					dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
+				}
+			}
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, gameObject);
