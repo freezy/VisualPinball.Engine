@@ -6,6 +6,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
+using VisualPinball.Unity.VPT.Ramp;
 using VisualPinball.Unity.VPT.Rubber;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
@@ -21,6 +22,7 @@ namespace VisualPinball.Unity.VPT.Table
 		internal readonly Dictionary<string, HitTargetApi> HitTargets = new Dictionary<string, HitTargetApi>();
 		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
 		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
+		internal readonly Dictionary<string, RampApi> Ramps = new Dictionary<string, RampApi>();
 		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
 		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
@@ -72,6 +74,13 @@ namespace VisualPinball.Unity.VPT.Table
 		/// <param name="name">Name of the plunger</param>
 		/// <returns>Plunger or `null` if no plunger with that name exists.</returns>
 		public PlungerApi Plunger(string name) => Plungers.ContainsKey(name) ? Plungers[name] : null;
+
+		/// <summary>
+		/// Returns a ramp by name.
+		/// </summary>
+		/// <param name="name">Name of the ramp</param>
+		/// <returns>Ramp or `null` if no ramp with that name exists.</returns>
+		public RampApi Ramp(string name) => Ramps.ContainsKey(name) ? Ramps[name] : null;
 
 		/// <summary>
 		/// Returns a rubber by name.

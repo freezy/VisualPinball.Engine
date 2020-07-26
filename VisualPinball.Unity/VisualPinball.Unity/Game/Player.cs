@@ -11,6 +11,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
@@ -26,6 +27,7 @@ using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.HitTarget;
 using VisualPinball.Unity.VPT.Kicker;
 using VisualPinball.Unity.VPT.Plunger;
+using VisualPinball.Unity.VPT.Ramp;
 using VisualPinball.Unity.VPT.Rubber;
 using VisualPinball.Unity.VPT.Spinner;
 using VisualPinball.Unity.VPT.Surface;
@@ -110,6 +112,13 @@ namespace VisualPinball.Unity.Game
 			_tableApi.Plungers[plunger.Name] = plungerApi;
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
+		}
+
+		public void RegisterRamp(Ramp ramp, Entity entity, GameObject go)
+		{
+			var rampApi = new RampApi(ramp, entity, this);
+			_tableApi.Ramps[ramp.Name] = rampApi;
+			_initializables.Add(rampApi);
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)

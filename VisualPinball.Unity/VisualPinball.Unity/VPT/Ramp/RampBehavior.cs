@@ -5,17 +5,27 @@
 #endregion
 
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Ramp
 {
 	[AddComponentMenu("Visual Pinball/Ramp")]
-	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable
+	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			// register
+			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
+		}
 
 		protected override Engine.VPT.Ramp.Ramp GetItem()
 		{
