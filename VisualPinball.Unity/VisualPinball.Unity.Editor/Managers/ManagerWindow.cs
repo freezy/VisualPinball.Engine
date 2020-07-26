@@ -2,32 +2,29 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Editor.Images
+namespace VisualPinball.Unity.Editor.Managers
 {
 	/// <summary>
-	/// Editor UI for VPX images, equivalent to VPX's "Image Manager" window
+	/// Base class for VPX-style "Manager" windows, such as the Material Manager
 	/// </summary>
-	public class ImageEditor : EditorWindow
+	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
+	public abstract class ManagerWindow<T> : EditorWindow where T: class, IManagerListData
 	{
-		private ImageListView _listView;
-		private TreeViewState _treeViewState;
+		protected TableBehavior _table;
+		protected T _selectedItem;
 
+		private List<T> _data = new List<T>();
+		private ManagerListView<T> _listView;
+		private TreeViewState _treeViewState;
 		private bool _renaming = false;
 		private string _renameBuffer = "";
+		[SerializeField] private string _forceSelectItemWithName;
 
-		private TableBehavior _table;
-		private Engine.VPT.Texture _selectedImage;
-
-		[SerializeField] private string _forceSelectTexWithName;
-
-		[MenuItem("Visual Pinball/Image Manager", false, 102)]
-		public static void ShowWindow()
-		{
-			GetWindow<ImageEditor>("Image Manager");
-		}
+		protected abstract void OnItemDetailGUI();
+		protected abstract void RenameExistingItem(T item, string desiredName);
+		protected abstract void CollectData(List<T> data);
 
 		protected virtual void OnEnable()
 		{
@@ -52,14 +49,15 @@ namespace VisualPinball.Unity.Editor.Images
 
 		protected virtual void OnGUI()
 		{
-			// if the table went away, clear the selected material as well
+			// if the table went away, clear the selected material and list data
 			if (_table == null) {
-				_selectedImage = null;
+				_selectedItem = null;
+				_listView?.SetData(null);
 			}
 
-			if (!string.IsNullOrEmpty(_forceSelectTexWithName)) {
-				_listView.SelectTextureWithName(_forceSelectTexWithName);
-				_forceSelectTexWithName = null;
+			if (!string.IsNullOrEmpty(_forceSelectItemWithName)) {
+				_listView.SelectItemWithName(_forceSelectItemWithName);
+				_forceSelectItemWithName = null;
 			}
 
 			EditorGUILayout.BeginHorizontal();
@@ -81,12 +79,15 @@ namespace VisualPinball.Unity.Editor.Images
 
 			// options
 			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(300));
-			if (_selectedImage != null) {
+			if (_selectedItem != null) {
 				EditorGUILayout.BeginHorizontal();
 				if (_renaming) {
 					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
 					if (GUILayout.Button("Save")) {
-						RenameExistingImage(_selectedImage, _renameBuffer);
+						string newName = GetUniqueName(_renameBuffer, _selectedItem);
+						if (!string.IsNullOrEmpty(newName)) {
+							RenameExistingItem(_selectedItem, newName);
+						}
 						_renaming = false;
 						_listView.Reload();
 					}
@@ -95,17 +96,15 @@ namespace VisualPinball.Unity.Editor.Images
 						GUI.FocusControl(""); // de-focus on cancel because unity will retain previous buffer text until focus changes
 					}
 				} else {
-					EditorGUILayout.LabelField(_selectedImage.Name);
+					EditorGUILayout.LabelField(_selectedItem.Name);
 					if (GUILayout.Button("Rename")) {
 						_renaming = true;
-						_renameBuffer = _selectedImage.Name;
+						_renameBuffer = _selectedItem.Name;
 					}
 				}
 				EditorGUILayout.EndHorizontal();
 
-
-				
-				EditorGUILayout.EndFoldoutHeaderGroup();
+				OnItemDetailGUI();
 			} else {
 				EditorGUILayout.LabelField("Nothing selected");
 			}
@@ -121,43 +120,27 @@ namespace VisualPinball.Unity.Editor.Images
 			}
 		}
 
-		private void FindTable()
+		private void ItemSelected(List<T> selectedItems)
 		{
-			_table = GameObject.FindObjectOfType<TableBehavior>();
-			_listView = new ImageListView(_treeViewState, _table, ImageSelected);
-		}
-
-		private void ImageSelected(List<Engine.VPT.Texture> selectedImages)
-		{
-			_selectedImage = null;
-			if (selectedImages.Count > 0) {
-				_selectedImage = selectedImages[0]; // not supporting multi select for now
+			_selectedItem = null;
+			if (selectedItems.Count > 0) {
+				_selectedItem = selectedItems[0]; // not supporting multi select for now
 				_renaming = false;
 			}
 			Repaint();
 		}
 
-		// sets the name property of the material, checking for name collions and appending a number to avoid it
-		private void RenameExistingImage(Engine.VPT.Texture tex, string desiredName)
+		private void FindTable()
 		{
-			if (string.IsNullOrEmpty(desiredName)) { // don't allow empty names
-				return;
-			}
+			_table = GameObject.FindObjectOfType<TableBehavior>();
 
-			string oldName = tex.Name;
-			string acceptedName = GetUniqueTextureName(desiredName, tex);
+			_data.Clear();
+			CollectData(_data);
+			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
 
-			// give each editable item a chance to update its fields
-			string undoName = "Rename Material";
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
-				item.HandleTextureRenamed(undoName, oldName, acceptedName);
-			}
-			Undo.RecordObject(_table, undoName);
-
-			tex.Name = acceptedName;
 		}
 
-		private string GetUniqueTextureName(string desiredName, Engine.VPT.Texture ignore = null)
+		private string GetUniqueName(string desiredName, T ignore = null)
 		{
 			string acceptedName = desiredName;
 			int appendNum = 1;
@@ -168,16 +151,14 @@ namespace VisualPinball.Unity.Editor.Images
 			return acceptedName;
 		}
 
-		// TODO: this and mat should compare tolower
-		private bool IsNameInUse(string name, Engine.VPT.Texture ignore = null)
+		private bool IsNameInUse(string name, T ignore = null)
 		{
-			foreach (var tex in _table.Item.Textures.Values) {
-				if (tex != ignore && name == tex.Name) {
+			foreach (var item in _data) {
+				if (item != ignore && name.ToLower() == item.Name.ToLower()) {
 					return true;
 				}
 			}
 			return false;
 		}
-
 	}
 }
