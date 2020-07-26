@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Managers
@@ -12,6 +14,16 @@ namespace VisualPinball.Unity.Editor.Managers
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
 	public abstract class ManagerWindow<T> : EditorWindow where T: class, IManagerListData
 	{
+		protected virtual string DataTypeName => "";
+
+		protected abstract void OnDataDetailGUI();
+		protected abstract void RenameExistingItem(T data, string desiredName);
+		protected abstract void CollectData(List<T> data);
+		protected abstract void OnDataChanged(string undoName, T data);
+		protected virtual void AddNewData(string newName) { }
+		protected virtual void RemoveData(T data) { }
+		protected virtual void CloneData(string newName, T data) { }
+
 		protected TableBehavior _table;
 		protected T _selectedItem;
 
@@ -22,9 +34,12 @@ namespace VisualPinball.Unity.Editor.Managers
 		private string _renameBuffer = "";
 		[SerializeField] private string _forceSelectItemWithName;
 
-		protected abstract void OnItemDetailGUI();
-		protected abstract void RenameExistingItem(T item, string desiredName);
-		protected abstract void CollectData(List<T> data);
+		protected void Reload()
+		{
+			_data.Clear();
+			CollectData(_data);
+			_listView.SetData(_data);
+		}
 
 		protected virtual void OnEnable()
 		{
@@ -61,11 +76,31 @@ namespace VisualPinball.Unity.Editor.Managers
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			if (GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
-				//AddNewMaterial();
+			if (IsImplemented("AddNewData") && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
+				// use a serialized field to force list item selection in the next gui pass
+				// this way undo will cause it to happen again, and if its no there anymore, just deselect any
+				string newDataName = GetUniqueName("New " + DataTypeName);
+				string undoName = "Add " + DataTypeName;
+				_forceSelectItemWithName = newDataName;
+				Undo.RecordObjects(new Object[] { this, _table }, undoName);
+				AddNewData(newDataName);
+				Reload();
 			}
-			if (GUILayout.Button("Remove", GUILayout.ExpandWidth(false))) {
-				//RemoveMaterial(_selectedMaterial);
+			if (IsImplemented("RemoveData") && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
+				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
+					Undo.RecordObjects(new Object[] { this, _table }, "Remove " + DataTypeName);
+					RemoveData(_selectedItem);
+					_selectedItem = null;
+					Reload();
+				}
+			}
+			if (IsImplemented("CloneData") && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
+				string newDataName = GetUniqueName(_selectedItem.Name);
+				string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
+				_forceSelectItemWithName = newDataName;
+				Undo.RecordObjects(new Object[] { this, _table }, undoName);
+				CloneData(newDataName, _selectedItem);
+				Reload();
 			}
 			EditorGUILayout.EndHorizontal();
 
@@ -89,7 +124,7 @@ namespace VisualPinball.Unity.Editor.Managers
 							RenameExistingItem(_selectedItem, newName);
 						}
 						_renaming = false;
-						_listView.Reload();
+						Reload();
 					}
 					if (GUILayout.Button("Cancel")) {
 						_renaming = false;
@@ -104,7 +139,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				}
 				EditorGUILayout.EndHorizontal();
 
-				OnItemDetailGUI();
+				OnDataDetailGUI();
 			} else {
 				EditorGUILayout.LabelField("Nothing selected");
 			}
@@ -113,11 +148,54 @@ namespace VisualPinball.Unity.Editor.Managers
 			EditorGUILayout.EndHorizontal();
 		}
 
+		protected void FloatField(string label, ref float field)
+		{
+			EditorGUI.BeginChangeCheck();
+			float val = EditorGUILayout.FloatField(label, field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinalizeChange(label, ref field, val);
+			}
+		}
+
+		protected void SliderField(string label, ref float field, float min = 0f, float max = 1f, string tooltip = "")
+		{
+			EditorGUI.BeginChangeCheck();
+			float val = EditorGUILayout.Slider(new GUIContent(label, tooltip), field, min, max);
+			if (EditorGUI.EndChangeCheck()) {
+				FinalizeChange(label, ref field, val);
+			}
+		}
+
+		protected void ToggleField(string label, ref bool field, string tooltip = "")
+		{
+			EditorGUI.BeginChangeCheck();
+			bool val = EditorGUILayout.Toggle(new GUIContent(label, tooltip), field);
+			if (EditorGUI.EndChangeCheck()) {
+				FinalizeChange(label, ref field, val);
+			}
+		}
+
+		protected void ColorField(string label, ref Engine.Math.Color field, string tooltip = "")
+		{
+			EditorGUI.BeginChangeCheck();
+			Engine.Math.Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
+			if (EditorGUI.EndChangeCheck()) {
+				FinalizeChange(label, ref field, val);
+			}
+		}
+
+		protected void FinalizeChange<T>(string label, ref T field, T val)
+		{
+			string undoName = "Edit " + DataTypeName + ": " + label;
+			OnDataChanged(undoName, _selectedItem);
+			Undo.RecordObject(_table, undoName);
+			field = val;
+			SceneView.RepaintAll();
+		}
+
 		private void UndoPerformed()
 		{
-			if (_listView != null) {
-				_listView.Reload();
-			}
+			Reload();
 		}
 
 		private void ItemSelected(List<T> selectedItems)
@@ -140,6 +218,16 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		}
 
+		private bool IsNameInUse(string name, T ignore = null)
+		{
+			foreach (var item in _data) {
+				if (item != ignore && name.ToLower() == item.Name.ToLower()) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		private string GetUniqueName(string desiredName, T ignore = null)
 		{
 			string acceptedName = desiredName;
@@ -151,14 +239,11 @@ namespace VisualPinball.Unity.Editor.Managers
 			return acceptedName;
 		}
 
-		private bool IsNameInUse(string name, T ignore = null)
+		// check is a concrete class implements the given method name
+		private bool IsImplemented(string methodName)
 		{
-			foreach (var item in _data) {
-				if (item != ignore && name.ToLower() == item.Name.ToLower()) {
-					return true;
-				}
-			}
-			return false;
+			var mi = this.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			return mi != null && mi.GetBaseDefinition().DeclaringType != mi.DeclaringType;
 		}
 	}
 }
