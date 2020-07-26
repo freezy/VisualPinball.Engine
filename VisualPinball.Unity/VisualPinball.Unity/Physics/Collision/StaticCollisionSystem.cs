@@ -160,7 +160,13 @@ namespace VisualPinball.Unity.Physics.Collision
 								break;
 
 							case ColliderType.KickerCircle:
-								//KickerCollider.Collide(ref ballData, ref events, in collEvent, new float3[0]);
+								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.Entity);
+								var kickerStaticData = GetComponent<KickerStaticData>(coll.Entity);
+								var kickerMeshData = !kickerStaticData.LegacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
+								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
+									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity, false
+								);
+								SetComponent(coll.Entity, kickerCollisionData);
 								break;
 
 							case ColliderType.Line:

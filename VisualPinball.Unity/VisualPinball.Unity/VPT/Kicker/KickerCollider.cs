@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Physics.Collision;
 using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
@@ -12,13 +13,16 @@ namespace VisualPinball.Unity.VPT.Kicker
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
-			in KickerStaticData staticData, in Entity collEntity, in Entity ballEntity, in float3 hitNormal,
-			in float3[] hitMesh, in float3[] hitMeshNormals, bool hitBit, bool newBall)
+			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
+			in Entity collEntity, in Entity ballEntity, bool newBall)
 		{
 			// a previous ball already in kicker?
 			if (collData.HasBall) {
 				return;
 			}
+
+			var hitNormal = collEvent.HitNormal;
+			var hitBit = collEvent.HitFlag;
 
 			// check if kicker in ball's volume set
 			var isBallInside = BallData.IsInsideOf(in insideOfs, collEntity);
@@ -39,7 +43,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 
 					if (!hitEvent) {
 
-						DoChangeBallVelocity(ref ball, in hitNormal, in hitMesh, in hitMeshNormals);
+						DoChangeBallVelocity(ref ball, in hitNormal, in meshData);
 
 						// todo this is an ugly hack to prevent the ball stopping rapidly at the kicker bevel
 						// something with the friction calculation is wrong in the physics engine
@@ -100,13 +104,16 @@ namespace VisualPinball.Unity.VPT.Kicker
 			}
 		}
 
-		private static void DoChangeBallVelocity(ref BallData ball, in float3 hitNormal, in float3[] hitMesh, in float3[] hitMeshNormals)
+		private static void DoChangeBallVelocity(ref BallData ball, in float3 hitNormal, in ColliderMeshData meshData)
 		{
 			var minDistSqr = float.MaxValue;
 			var idx = 0u;
+			ref var hitMesh = ref meshData.Value.Value.Vertices;
+			ref var hitMeshNormals = ref meshData.Value.Value.Normals;
 			for (var t = 0; t < hitMesh.Length; t++) {
 				// find the right normal by calculating the distance from current ball position to vertex of the kicker mesh
-				var lengthSqr = math.lengthsq(ball.Position - hitMesh[t]);
+				ref var vertex = ref hitMesh[t].Vertex;
+				var lengthSqr = math.lengthsq(ball.Position - vertex);
 				if (lengthSqr < minDistSqr) {
 					minDistSqr = lengthSqr;
 					idx = (uint) t;
@@ -116,7 +123,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 			if (idx != ~0u) {
 
 				// we have the nearest vertex now use the normal and damp it so it doesn't speed up the ball velocity too much
-				var hitNorm = hitMeshNormals[idx];
+				ref var hitNorm = ref hitMeshNormals[(int)idx].Vertex;
 				var dot = -math.dot(ball.Velocity, hitNorm);
 				var reactionImpulse = ball.Mass * math.abs(dot);
 
