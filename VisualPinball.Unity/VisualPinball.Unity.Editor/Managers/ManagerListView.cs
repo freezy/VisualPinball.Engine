@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -16,13 +17,11 @@ namespace VisualPinball.Unity.Editor.Managers
 		public event Action<List<T>> ItemSelected;
 
 		private List<T> _data = new List<T>();
-		private List<MemberInfo> _columnMemberInfos = new List<MemberInfo>();
+		private List<ColumnData> _columns = new List<ColumnData>();
 
 		public ManagerListView(TreeViewState treeViewState, IEnumerable<T> data, Action<List<T>> itemSelected) : base(treeViewState)
 		{
 			ItemSelected += itemSelected;
-
-			var columns = new List<MultiColumnHeaderState.Column>();
 
 			// collect up all column attribute flagged fields and properties, then cache the associated member info
 			// and build up our column array for the list view
@@ -30,8 +29,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				if (member.MemberType == MemberTypes.Field || member.MemberType == MemberTypes.Property) {
 					var columnAttr = member.GetCustomAttribute<ManagerListColumnAttribute>();
 					if (columnAttr != null) {
-						_columnMemberInfos.Add(member);
-						columns.Add(new MultiColumnHeaderState.Column {
+						var colState = new MultiColumnHeaderState.Column {
 							headerContent = new GUIContent(columnAttr.HeaderName ?? member.Name),
 							headerTextAlignment = columnAttr.HeaderAlignment,
 							canSort = true,
@@ -42,12 +40,18 @@ namespace VisualPinball.Unity.Editor.Managers
 							maxWidth = float.MaxValue,
 							autoResize = true,
 							allowToggleVisibility = false,
+						};
+						_columns.Add(new ColumnData {
+							Order = columnAttr.Order,
+							State = colState,
+							MemberInfo = member,
 						});
 					}
 				}
 			}
+			_columns.Sort((a, b) => a.Order.CompareTo(b.Order));
 
-			var headerState = new MultiColumnHeaderState(columns.ToArray());
+			var headerState = new MultiColumnHeaderState(_columns.Select(c => c.State).ToArray());
 			this.multiColumnHeader = new MultiColumnHeader(headerState);
 			this.multiColumnHeader.SetSorting(0, true);
 			this.multiColumnHeader.sortingChanged += SortingChanged;
@@ -173,11 +177,11 @@ namespace VisualPinball.Unity.Editor.Managers
 		// use cached reflection info to get T's instance data for a given column
 		private object GetColumnValue(TreeViewItem item, int column)
 		{
-			if (column < 0 && column >= _columnMemberInfos.Count) {
+			if (column < 0 && column >= _columns.Count) {
 				return null;
 			}
 
-			var memberInfo = _columnMemberInfos[column];
+			var memberInfo = _columns[column].MemberInfo;
 			object val = null;
 			switch (memberInfo) {
 				case FieldInfo fi: val = fi.GetValue((item as RowData).Data); break;
@@ -189,6 +193,13 @@ namespace VisualPinball.Unity.Editor.Managers
 		private void SortingChanged(MultiColumnHeader multiColumnHeader)
 		{
 			Reload();
+		}
+
+		private class ColumnData
+		{
+			public int Order;
+			public MultiColumnHeaderState.Column State;
+			public MemberInfo MemberInfo;
 		}
 
 		private class RowData : TreeViewItem

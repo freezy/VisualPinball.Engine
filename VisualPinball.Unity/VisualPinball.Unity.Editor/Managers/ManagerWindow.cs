@@ -184,7 +184,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			}
 		}
 
-		protected void FinalizeChange<T>(string label, ref T field, T val)
+		protected void FinalizeChange<TField>(string label, ref TField field, TField val)
 		{
 			string undoName = "Edit " + DataTypeName + ": " + label;
 			OnDataChanged(undoName, _selectedItem);
