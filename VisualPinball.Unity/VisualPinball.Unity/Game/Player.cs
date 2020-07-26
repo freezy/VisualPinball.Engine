@@ -90,6 +90,8 @@ namespace VisualPinball.Unity.Game
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
 			_tableApi.Kickers[kicker.Name] = kickerApi;
+			_initializables.Add(kickerApi);
+			_hittables[entity] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
