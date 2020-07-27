@@ -9,10 +9,13 @@ separate DLL, called `VisualPinball.Unity`.
 
 ## Status
 
-Currently this part of VPE is about importing the meshes, textures and 
-materials correctly. You can either do a full import, meaning Unity will
-generate its own assets for an imported table, a quick import which only loads
-it into memory, or drag a `.vpx` file into Unity directly.
+There are a few Unity-related features of VPE, and there will be (a lot) more
+documentation. The main features VPE currently provides are:
+
+- Import `.vpx` files into the Unity Editor
+- Provide Visual Pinball specific features in the editor
+- Export `.vpx` from the editor
+- Nearly done porting VPX physics into Unity DOTS
 
 ![Monster Bash in Unity](mb_unity_teaser.jpg)
 
@@ -52,9 +55,9 @@ The `config` file is located at:
 
 ## Future
 
-Unity allows extending its editor. This would allow us to use Unity as a table
-editor, given VPE is able to write `.vpx` files. While the Unity editor is not
-a modelling tool, it has excellent integration with existing tools like 
+Unity allows extending its editor. This allows us to use Unity as a table
+editor and export the table back to `.vpx` files. While the Unity editor 
+is not a modelling tool, it has excellent integration with existing tools like 
 Blender, so would facilitate the workflow for table authors a lot.
 
 Since the VPX file format acts like a virtual file system, it would be possible
