@@ -67,6 +67,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		[BiffInt("ANFR", Pos = 9)]
 		public int AnimFrames;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 10)]
 		public string Material;
 

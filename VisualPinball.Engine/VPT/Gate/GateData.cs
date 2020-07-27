@@ -65,6 +65,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffBool("GSUP", Pos = 7)]
 		public bool ShowBracket = true;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
 		public string Material;
 

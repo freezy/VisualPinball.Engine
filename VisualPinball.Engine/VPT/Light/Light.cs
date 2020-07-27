@@ -8,8 +8,6 @@ namespace VisualPinball.Engine.VPT.Light
 		public const string BulbMaterialName = "__bulbMaterial";
 		public const string SocketMaterialName = "__bulbSocketMaterial";
 
-		public string[] UsedMaterials => null;
-
 		private readonly LightMeshGenerator _meshGenerator;
 
 		public Light(LightData data) : base(data)

@@ -47,15 +47,19 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffString("SIMG", Pos = 10)]
 		public string SideImage;
 
+		[MaterialReference]
 		[BiffString("SIMA", Pos = 11)]
 		public string SideMaterial;
 
+		[MaterialReference]
 		[BiffString("TOMA", Pos = 12)]
 		public string TopMaterial;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
 		public string PhysicsMaterial;
 
+		[MaterialReference]
 		[BiffString("SLMA", Pos = 13)]
 		public string SlingShotMaterial;
 

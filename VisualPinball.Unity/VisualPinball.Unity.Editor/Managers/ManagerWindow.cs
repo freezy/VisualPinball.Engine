@@ -193,6 +193,27 @@ namespace VisualPinball.Unity.Editor.Managers
 			SceneView.RepaintAll();
 		}
 
+		protected string GetMemberValue(MemberInfo mi, object instance)
+		{
+			switch (mi) {
+				case FieldInfo fi: return fi.GetValue(instance) as string;
+				case PropertyInfo pi: return pi.GetValue(instance) as string;
+			}
+			return null;
+		}
+
+		protected bool IsReferenced(List<MemberInfo> mis, object instance, string refName)
+		{
+			if (mis == null) { return false; }
+			string refNameLower = refName.ToLower();
+			foreach (var mi in mis) {
+				if (GetMemberValue(mi, instance)?.ToLower() == refNameLower) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		private void UndoPerformed()
 		{
 			Reload();

@@ -67,6 +67,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffInt("SIDS", Pos = 14)]
 		public int Sides;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 16)]
 		public string Material;
 
@@ -112,6 +113,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffBool("ISTO", Pos = 29)]
 		public bool IsToy;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 36)]
 		public string PhysicsMaterial;
 

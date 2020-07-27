@@ -25,8 +25,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
-		public string[] UsedMaterials => new string[] { Data.PlayfieldMaterial };
-
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();

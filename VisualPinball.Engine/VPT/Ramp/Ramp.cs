@@ -10,7 +10,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
 		public HitObject[] GetHitShapes() => _hits;
-		public string[] UsedMaterials => new string[] { Data.Material, Data.PhysicsMaterial };
 
 		private readonly RampMeshGenerator _meshGenerator;
 		private readonly RampHitGenerator _hitGenerator;

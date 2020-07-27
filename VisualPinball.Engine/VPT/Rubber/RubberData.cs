@@ -35,6 +35,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffBool("HTEV", Pos = 4)]
 		public bool HitEvent = false;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
@@ -77,6 +78,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffFloat("ROTZ", Pos = 20)]
 		public float RotZ = 0f;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 22)]
 		public string PhysicsMaterial;
 

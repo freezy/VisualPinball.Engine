@@ -60,9 +60,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffString("SURF", Pos = 12)]
 		public string Surface;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
 		public string Material;
 
+		[MaterialReference]
 		[BiffString("RUMA", Pos = 15)]
 		public string RubberMaterial;
 

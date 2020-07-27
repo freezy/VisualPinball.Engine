@@ -9,7 +9,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
 		public PlungerHit PlungerHit { get; private set; }
-		public string[] UsedMaterials => new string[] { Data.Material };
 
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;

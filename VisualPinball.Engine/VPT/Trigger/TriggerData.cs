@@ -41,6 +41,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		[BiffFloat("SCAY", Pos = 6)]
 		public float ScaleY = 1f;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 10)]
 		public string Material;
 

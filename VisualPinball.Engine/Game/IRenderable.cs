@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.Game
 	public interface IRenderable
 	{
 		string Name { get; }
-		string[] UsedMaterials { get; }
 
 		RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
 	}
