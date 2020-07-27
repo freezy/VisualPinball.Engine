@@ -29,6 +29,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffFloat("ROTA", Pos = 2)]
 		public float Rotation = 0f;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
 		public string Material;
 

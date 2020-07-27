@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NLog;
 using Unity.Entities;
 using UnityEditor;
@@ -21,10 +24,12 @@ namespace VisualPinball.Unity.VPT
 
 		public TItem Item => _item ?? (_item = GetItem());
 		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
-		public string[] UsedMaterials => (Item as IRenderable)?.UsedMaterials;
+		public ItemData ItemData => data;
+		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 
 		protected TableData _tableData;
 		private TItem _item;
+		private List<MemberInfo> _materialRefs;
 
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -179,6 +184,17 @@ namespace VisualPinball.Unity.VPT
 				}
 				mr.enabled = true;
 			}
+		}
+
+		private List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
+		{
+			List<MemberInfo> members = new List<MemberInfo>();
+			foreach (var member in typeof(TData).GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)) {
+				if (member.GetCustomAttribute<TAttr>() != null) {
+					members.Add(member);
+				}
+			}
+			return members;
 		}
 
 		protected abstract string[] Children { get; }

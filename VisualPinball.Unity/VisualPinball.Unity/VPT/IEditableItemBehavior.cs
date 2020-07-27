@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.VPT
 {
@@ -6,7 +9,8 @@ namespace VisualPinball.Unity.VPT
 	{
 		bool IsLocked { get; set; }
 		bool MeshDirty { get; set; }
-		string[] UsedMaterials { get; }
+		ItemData ItemData { get; }
+		List<MemberInfo> MaterialRefs { get; }
 
 		void RebuildMeshes();
 

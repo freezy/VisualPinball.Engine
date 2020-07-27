@@ -10,8 +10,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public HitObject[] GetHitShapes() => _hits;
 		public EventProxy EventProxy { get; private set; }
 
-		public string[] UsedMaterials => new [] { Data.Material, Data.PhysicsMaterial };
-
 		private readonly HitTargetMeshGenerator _meshGenerator;
 		private readonly HitTargetHitGenerator _hitGenerator;
 		private HitObject[] _hits;

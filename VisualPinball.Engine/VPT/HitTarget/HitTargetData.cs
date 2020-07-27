@@ -74,9 +74,11 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffString("IMAG", Pos = 4)]
 		public string Image;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 7)]
 		public string Material;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 26)]
 		public string PhysicsMaterial;
 

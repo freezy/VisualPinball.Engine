@@ -45,6 +45,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffFloat("KORI", Pos = 13)]
 		public float Orientation = 0.0f;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
 		public string Material;
 

@@ -83,9 +83,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffString("IMAG", Pos = 10)]
 		public string Image;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
+		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
 		public string PhysicsMaterial;
 

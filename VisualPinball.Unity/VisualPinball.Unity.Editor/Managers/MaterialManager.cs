@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Editor.Managers
@@ -57,13 +58,13 @@ namespace VisualPinball.Unity.Editor.Managers
 		{
 			// collect list of in use materials
 			List<string> inUseMaterials = new List<string>();
-			foreach (var renderable in _table.Table.Renderables) {
-				var mats = renderable.UsedMaterials;
-				if (mats != null) {
-					foreach (var mat in mats) {
-						if (!string.IsNullOrEmpty(mat)) {
-							inUseMaterials.Add(mat);
-						}
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				var matRefs = item.MaterialRefs;
+				if (matRefs == null) { continue; }
+				foreach (var matRef in matRefs) {
+					var matName = GetMemberValue(matRef, item.ItemData);
+					if (!string.IsNullOrEmpty(matName)) {
+						inUseMaterials.Add(matName);
 					}
 				}
 			}
@@ -77,9 +78,8 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnDataChanged(string undoName, MaterialListData data)
 		{
-			string matName = data.Material.Name.ToLower();
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
-				if (item.UsedMaterials != null && item.UsedMaterials.Any(um => um.ToLower() == matName)) {
+				if (IsReferenced(item.MaterialRefs, item.ItemData, data.Material.Name)) {
 					item.MeshDirty = true;
 					Undo.RecordObject(item as Object, undoName);
 				}

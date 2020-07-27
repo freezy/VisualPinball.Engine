@@ -9,7 +9,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => Data.IsCollidable;
 		public HitObject[] GetHitShapes() => _hits;
-		public string[] UsedMaterials => new string[] { Data.Material, Data.PhysicsMaterial };
 
 		private readonly RubberMeshGenerator _meshGenerator;
 		private readonly RubberHitGenerator _hitGenerator;

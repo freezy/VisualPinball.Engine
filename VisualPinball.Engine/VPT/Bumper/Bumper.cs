@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 	{
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
-		public string[] UsedMaterials => new string[] { Data.CapMaterial, Data.BaseMaterial, Data.RingMaterial, Data.SocketMaterial };
 
 		private readonly BumperMeshGenerator _meshGenerator;
 

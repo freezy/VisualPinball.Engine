@@ -29,15 +29,19 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffFloat("RADI", Pos = 2)]
 		public float Radius = 45f;
 
+		[MaterialReference]
 		[BiffString("MATR", Pos = 12)]
 		public string CapMaterial;
 
+		[MaterialReference]
 		[BiffString("RIMA", Pos = 15)]
 		public string RingMaterial;
 
+		[MaterialReference]
 		[BiffString("BAMA", Pos = 13)]
 		public string BaseMaterial;
 
+		[MaterialReference]
 		[BiffString("SKMA", Pos = 14)]
 		public string SocketMaterial;
 

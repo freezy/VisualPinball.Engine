@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.VPT.Surface
 	{
 		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => Data.IsCollidable;
-		public string[] UsedMaterials => new string[] { Data.TopMaterial, Data.SideMaterial, Data.SlingShotMaterial, Data.PhysicsMaterial };
 
 		public HitObject[] GetHitShapes() => _hits;
 
