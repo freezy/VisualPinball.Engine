@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Light
 				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
 				if (_unityLight == null) {
 					var lightObj = new GameObject("Light (Unity)");
-					lightObj.layer = VpxImporter.ChildObjectsLayer;
+					lightObj.layer = VpxConverter.ChildObjectsLayer;
 					lightObj.transform.parent = transform;
 					lightObj.transform.localPosition = Vector3.zero;
 					_unityLight = lightObj.AddComponent<UnityEngine.Light>();
