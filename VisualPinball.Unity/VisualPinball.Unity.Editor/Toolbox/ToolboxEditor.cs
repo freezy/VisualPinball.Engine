@@ -1,7 +1,8 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Import;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Toolbox
 {
@@ -16,7 +17,18 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private void OnGUI()
 		{
 			if (GUILayout.Button("New Table")) {
-				var table = new Table(new TableData());
+				var existingTable = FindObjectOfType<TableBehavior>();
+				if (existingTable == null) {
+					const string tableName = "Table1";
+					var rootGameObj = new GameObject();
+					var table = new Table(new TableData { Name = tableName});
+					var importer = rootGameObj.AddComponent<VpxImporter>();
+					importer.Import(tableName, table);
+
+				} else {
+					EditorUtility.DisplayDialog("Visual Pinball", "Sorry, cannot add multiple tables, and there already is " +
+					                            existingTable.name, "Close");
+				}
 			}
 		}
 	}
