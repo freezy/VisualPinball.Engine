@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Toolbox
 {
@@ -15,7 +16,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private void OnGUI()
 		{
 			if (GUILayout.Button("New Table")) {
-
+				var table = new Table(new TableData());
 			}
 		}
 	}
