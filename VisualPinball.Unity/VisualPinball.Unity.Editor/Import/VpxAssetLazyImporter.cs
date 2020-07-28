@@ -28,9 +28,9 @@ namespace VisualPinball.Unity.Editor.Import
 			var path = AssetDatabase.GetAssetPath(obj);
 
 			GameObject tableRoot = new GameObject(obj.name);
-			var importer = tableRoot.AddComponent<VpxImporter>();
+			var converter = tableRoot.AddComponent<VpxConverter>();
 			var table = TableLoader.LoadTable(path);
-			importer.Import(Path.GetFileName(path), table);
+			converter.Convert(Path.GetFileName(path), table);
 
 			_importComplete = true;
 		}

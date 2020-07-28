@@ -22,8 +22,9 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					const string tableName = "Table1";
 					var rootGameObj = new GameObject();
 					var table = new Table(new TableData { Name = tableName});
-					var importer = rootGameObj.AddComponent<VpxImporter>();
-					importer.Import(tableName, table);
+					var converter = rootGameObj.AddComponent<VpxConverter>();
+					converter.Convert(tableName, table);
+					DestroyImmediate(converter);
 
 				} else {
 					EditorUtility.DisplayDialog("Visual Pinball", "Sorry, cannot add multiple tables, and there already is " +
