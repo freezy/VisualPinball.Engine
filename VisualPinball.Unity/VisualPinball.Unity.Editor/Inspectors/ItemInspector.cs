@@ -15,6 +15,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
     {
 		protected TableBehavior _table;
 		protected SurfaceBehavior _surface;
+		protected string Name;
 
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
@@ -55,6 +56,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item && bh != null) {
 				if (item.Name != bh.gameObject.name) {
 					item.Name = bh.gameObject.name;
+					Name = item.Name;
 				}
 			}
 		}

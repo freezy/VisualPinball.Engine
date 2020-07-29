@@ -55,6 +55,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var surface = new Surface(surfaceData);
 				table.Surfaces[surface.Name] = surface;
 				Selection.activeGameObject = CreateRenderable(table, surface);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "Create wall");
 			}
 
 			if (GUILayout.Button("Gate")) {
