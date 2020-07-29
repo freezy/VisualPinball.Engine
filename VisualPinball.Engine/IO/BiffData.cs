@@ -27,6 +27,10 @@ namespace VisualPinball.Engine.IO
 		public readonly int StorageIndex;
 		public readonly List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
 
+		protected BiffData()
+		{
+		}
+
 		protected BiffData(string storageName)
 		{
 			StorageName = storageName;

@@ -91,6 +91,13 @@ namespace VisualPinball.Engine.VPT.Gate
 			Init(typeof(GateData), Attributes);
 		}
 
+		public GateData(string name, float x, float y)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+			Rotation = 180f;
+		}
+
 		public GateData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
