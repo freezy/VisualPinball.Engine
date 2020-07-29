@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.TreeView;
@@ -23,16 +24,13 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <summary>
 		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
 		/// </summary>
-		public TreeModel<LayerTreeElement> TreeModel { get; }
+		public LayerTreeElement TreeRoot { get; } = new LayerTreeElement { Depth = -1, Id = -1 };
+
+		public event Action TreeRebuilt;
 
 
 		public LayerHandler()
 		{
-			//Initializing the TreeModel with Root item only until a table data is set
-			var elementList = new List<LayerTreeElement> {
-				new LayerTreeElement {Depth = -1, Id = -1}
-			};
-			TreeModel = new TreeModel<LayerTreeElement>(elementList);
 		}
 
 		/// <summary>
@@ -58,7 +56,7 @@ namespace VisualPinball.Unity.Editor.Layers
 				BuildLayersRecursively(_tableBehavior.gameObject);
 			}
 
-			RebuildTreeModel();
+			RebuildTree();
 		}
 
 		/// <summary>
@@ -88,16 +86,16 @@ namespace VisualPinball.Unity.Editor.Layers
 			_layers[item.EditorLayerName].Add((MonoBehaviour)item);
 		}
 
-		private void RebuildTreeModel()
+		private void RebuildTree()
 		{
-			// init with root element
-			var elementList = new List<LayerTreeElement> { new LayerTreeElement { Depth = -1, Id = -1 } };
+			TreeRoot.Children.Clear();
 
+			// init with root element
 			if (_tableBehavior != null && _tableBehavior.Table != null) {
 
 				// table node
 				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 };
-				elementList.Add(tableItem);
+				TreeRoot.Children.Add(tableItem);
 
 				var layerCount = 1;
 				var allLayersVisible = true;
@@ -105,12 +103,12 @@ namespace VisualPinball.Unity.Editor.Layers
 
 					// layer node
 					var layerItem = new LayerTreeElement(layer) { Depth = 1, Id = layerCount++ };
-					elementList.Add(layerItem);
+					tableItem.Children.Add(layerItem);
 					var allItemsVisible = true;
 
 					foreach (var item in _layers[layer]) {
 						if (item is ILayerableItemBehavior layeredItem) {
-							elementList.Add(new LayerTreeElement(layeredItem) { Depth = 2, Id = item.gameObject.GetInstanceID() });
+							layerItem.Children.Add(new LayerTreeElement(layeredItem) { Depth = 2, Id = item.gameObject.GetInstanceID() });
 							allItemsVisible &= layeredItem.EditorLayerVisibility;
 						}
 					}
@@ -119,19 +117,20 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 				tableItem.IsVisible = allLayersVisible;
 			}
-			TreeModel.SetData(elementList);
+
+			TreeRebuilt?.Invoke();
 		}
 
 		internal void OnLayerRenamed(int itemId, string newName)
 		{
-			var layerElement = TreeModel.Find(itemId);
+			var layerElement = TreeRoot.Find<LayerTreeElement>(itemId);
 			if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
 				layerElement.LayerName = newName;
 				if (layerElement.HasChildren) {
 					foreach (var item in layerElement.Children) {
 						var iLayerable = ((LayerTreeElement)item).Item;
 						if (iLayerable != null){
-							iLayerable.EditorLayerName = newName;
+							iLayerable.EditorLayerName = layerElement.LayerName;
 						}
 					}
 				}
