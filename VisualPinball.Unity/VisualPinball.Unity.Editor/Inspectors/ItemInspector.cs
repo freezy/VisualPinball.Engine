@@ -50,9 +50,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected virtual void OnHierarchyChange()
+		private void OnHierarchyChange()
 		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item) {
+			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item && bh != null) {
 				if (item.Name != bh.gameObject.name) {
 					item.Name = bh.gameObject.name;
 				}
@@ -258,7 +258,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
-				field = ""; // don't store the none value string in our data 
+				field = ""; // don't store the none value string in our data
 			}
 		}
 
@@ -266,7 +266,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
-				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well 
+				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
 				var item = (target as IEditableItemBehavior);
 				if (item != null) {
 					item.MeshDirty = true;

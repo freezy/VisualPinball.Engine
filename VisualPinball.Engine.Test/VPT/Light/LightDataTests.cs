@@ -66,8 +66,8 @@ namespace VisualPinball.Engine.Test.VPT.Light
 
 			dragPoints[0].IsSmooth.Should().Be(false);
 			dragPoints[0].IsSlingshot.Should().Be(true);
-			dragPoints[0].Vertex.X.Should().Be(491.6666f);
-			dragPoints[0].Vertex.Y.Should().Be(376.882f);
+			dragPoints[0].Center.X.Should().Be(491.6666f);
+			dragPoints[0].Center.Y.Should().Be(376.882f);
 			dragPoints[6].IsSmooth.Should().Be(true);
 			dragPoints[7].IsSmooth.Should().Be(false);
 		}

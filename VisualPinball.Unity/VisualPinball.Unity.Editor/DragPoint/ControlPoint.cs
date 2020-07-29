@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			var dragpointPos = transform.worldToLocalMatrix.MultiplyPoint(WorldPos);
 			dragpointPos -= editable.GetEditableOffset();
 			dragpointPos -= editable.GetDragPointOffset(IndexRatio);
-			DragPoint.Vertex = dragpointPos.ToVertex3D();
+			DragPoint.Center = dragpointPos.ToVertex3D();
 		}
 	}
 }

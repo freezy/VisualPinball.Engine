@@ -18,10 +18,10 @@ namespace VisualPinball.Engine.Math
 	public class DragPointData : BiffData
 	{
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
-		public Vertex3D Vertex;
+		public Vertex3D Center;
 
 		[BiffFloat("POSZ", Pos = 2)]
-		public float PosZ { set => Vertex.Z = value; get => Vertex.Z; }
+		public float PosZ { set => Center.Z = value; get => Center.Z; }
 
 		[BiffBool("SMTH", Pos = 3)]
 		public bool IsSmooth;
@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Math
 
 		public override string ToString()
 		{
-			return $"DragPoint({Vertex.X}/{Vertex.Y}/{Vertex.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
+			return $"DragPoint({Center.X}/{Center.Y}/{Center.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
 
 		#region BIFF
@@ -55,9 +55,15 @@ namespace VisualPinball.Engine.Math
 			Init(typeof(DragPointData), Attributes);
 		}
 
+		public DragPointData(float x, float y) : base(null)
+		{
+			Center = new Vertex3D(x, y, 0f);
+			HasAutoTexture = true;
+		}
+
 		public DragPointData(DragPointData rf) : base(null)
 		{
-			Vertex = rf.Vertex;
+			Center = rf.Center;
 			PosZ = rf.PosZ;
 			IsSmooth = rf.IsSmooth;
 			IsSlingshot = rf.IsSlingshot;

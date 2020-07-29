@@ -39,19 +39,19 @@ namespace VisualPinball.Unity.VPT.Surface
 			if (data == null || data.DragPoints.Length == 0) {
 				return Vector3.zero;
 			}
-			return data.DragPoints[0].Vertex.ToUnityVector3();
+			return data.DragPoints[0].Center.ToUnityVector3();
 		}
 		public override void SetEditorPosition(Vector3 pos) {
 			if (data == null || data.DragPoints.Length == 0) {
 				return;
 			}
 
-			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Vertex);
+			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Center);
 			diff.Z = 0f;
-			data.DragPoints[0].Vertex = pos.ToVertex3D();
+			data.DragPoints[0].Center = pos.ToVertex3D();
 			for (int i = 1; i < data.DragPoints.Length; i++) {
 				var pt = data.DragPoints[i];
-				pt.Vertex = pt.Vertex.Add(diff);
+				pt.Center = pt.Center.Add(diff);
 			}
 		}
 

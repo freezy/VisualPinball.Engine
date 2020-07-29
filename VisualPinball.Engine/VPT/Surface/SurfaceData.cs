@@ -43,27 +43,27 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[TextureReference]
 		[BiffString("SIMG", Pos = 10)]
-		public string SideImage;
+		public string SideImage = string.Empty;
 
 		[MaterialReference]
 		[BiffString("SIMA", Pos = 11)]
-		public string SideMaterial;
+		public string SideMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("TOMA", Pos = 12)]
-		public string TopMaterial;
+		public string TopMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("SLMA", Pos = 13)]
-		public string SlingShotMaterial;
+		public string SlingShotMaterial = string.Empty;
 
 		[BiffFloat("HTBT", Pos = 14)]
 		public float HeightBottom = 0f;
@@ -142,6 +142,10 @@ namespace VisualPinball.Engine.VPT.Surface
 		static SurfaceData()
 		{
 			Init(typeof(SurfaceData), Attributes);
+		}
+
+		public SurfaceData() : base(null)
+		{
 		}
 
 		public SurfaceData(BinaryReader reader, string storageName) : base(storageName)

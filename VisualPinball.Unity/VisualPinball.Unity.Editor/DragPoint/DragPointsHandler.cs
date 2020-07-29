@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
 			dragPointPosition -= DragPointEditable.GetEditableOffset();
 			dragPointPosition -= DragPointEditable.GetDragPointOffset(ratio);
-			dragPoint.Vertex = dragPointPosition.ToVertex3D();
+			dragPoint.Center = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointEditable.GetDragPoints().ToList();
 			dragPoints.Insert(newIdx, dragPoint);
 			DragPointEditable.SetDragPoints(dragPoints.ToArray());
@@ -316,7 +316,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
-				controlPoint.WorldPos = controlPoint.DragPoint.Vertex.ToUnityVector3();
+				controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
 				controlPoint.WorldPos += DragPointEditable.GetEditableOffset();
 				controlPoint.WorldPos += DragPointEditable.GetDragPointOffset(controlPoint.IndexRatio);
 				controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);

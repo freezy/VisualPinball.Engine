@@ -34,6 +34,9 @@ namespace VisualPinball.Engine.Game
 	public class RenderObjectGroup
 	{
 		public readonly string Name;
+		/// <summary>
+		/// Name of the game item group this item is added under (e.g. "Flippers", "Walls", etc)
+		/// </summary>
 		public readonly string Parent;
 		public readonly RenderObject[] RenderObjects;
 		public readonly Matrix3D TransformationMatrix;
@@ -43,14 +46,6 @@ namespace VisualPinball.Engine.Game
 		public bool HasChildren => RenderObjects.Length > 0;
 
 		public RenderObject Get(string name) => RenderObjects.First(ro => ro.Name == name);
-
-		public RenderObjectGroup(string name, string parent)
-		{
-			Name = name;
-			Parent = parent;
-			RenderObjects = new RenderObject[0];
-			TransformationMatrix = Matrix3D.Identity;
-		}
 
 		public RenderObjectGroup(string name, string parent, Matrix3D matrix, params RenderObject[] renderObjects)
 		{

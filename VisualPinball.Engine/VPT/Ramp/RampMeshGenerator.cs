@@ -640,7 +640,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		private void AssignHeightToControlPoint(Vertex2D v, float height)
 		{
 			foreach (var dragPoint in _data.DragPoints) {
-				if (dragPoint.Vertex.X == v.X && dragPoint.Vertex.Y == v.Y) {
+				if (dragPoint.Center.X == v.X && dragPoint.Center.Y == v.Y) {
 					dragPoint.CalcHeight = height;
 				}
 			}

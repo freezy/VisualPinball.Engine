@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 			if (data == null || data.DragPoints.Length == 0) {
 				return Vector3.zero;
 			}
-			return data.DragPoints[0].Vertex.ToUnityVector3(data.Height);
+			return data.DragPoints[0].Center.ToUnityVector3(data.Height);
 		}
 		public override void SetEditorPosition(Vector3 pos)
 		{
@@ -48,12 +48,12 @@ namespace VisualPinball.Unity.VPT.Rubber
 
 			data.Height = pos.z;
 			pos.z = 0f;
-			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Vertex);
+			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Center);
 			diff.Z = 0f;
-			data.DragPoints[0].Vertex = pos.ToVertex3D();
+			data.DragPoints[0].Center = pos.ToVertex3D();
 			for (int i = 1; i < data.DragPoints.Length; i++) {
 				var pt = data.DragPoints[i];
-				pt.Vertex = pt.Vertex.Add(diff);
+				pt.Center = pt.Center.Add(diff);
 			}
 		}
 
