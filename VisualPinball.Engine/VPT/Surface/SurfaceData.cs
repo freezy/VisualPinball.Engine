@@ -144,8 +144,10 @@ namespace VisualPinball.Engine.VPT.Surface
 			Init(typeof(SurfaceData), Attributes);
 		}
 
-		public SurfaceData() : base(null)
+		public SurfaceData(string name, DragPointData[] dragPoints)
 		{
+			Name = name;
+			DragPoints = dragPoints;
 		}
 
 		public SurfaceData(BinaryReader reader, string storageName) : base(storageName)

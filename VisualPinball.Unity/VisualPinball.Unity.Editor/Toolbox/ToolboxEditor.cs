@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Import;
@@ -41,25 +42,33 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 			if (GUILayout.Button("Wall")) {
 				var table = Table;
-				var tb = TableBehavior;
-				var surfaceData = new SurfaceData {
-					Name = NextName(table.Surfaces, "Wall"),
-					DragPoints = new [] {
+				var surfaceData = new SurfaceData(
+					NextName(table.Surfaces, "Wall"),
+					new [] {
 						new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),
 						new DragPointData( table.Width / 2f - 50f, table.Height / 2f + 50f),
 						new DragPointData( table.Width / 2f + 50f, table.Height / 2f + 50f),
 						new DragPointData( table.Width / 2f + 50f, table.Height / 2f - 50f)
 					}
-				};
+				);
 
 				var surface = new Surface(surfaceData);
 				table.Surfaces[surface.Name] = surface;
-				Selection.activeGameObject = CreateRenderable(table, tb, surface);
+				Selection.activeGameObject = CreateRenderable(table, surface);
+			}
+
+			if (GUILayout.Button("Gate")) {
+				var table = Table;
+				var gateData = new GateData(NextName(table.Gates, "Gate"), table.Width / 2f, table.Height / 2f);
+				var gate = new Gate(gateData);
+				table.Gates[gate.Name] = gate;
+				Selection.activeGameObject = CreateRenderable(table, gate);
 			}
 		}
 
-		private static GameObject CreateRenderable(Table table, TableBehavior tb, IRenderable renderable)
+		private GameObject CreateRenderable(Table table, IRenderable renderable)
 		{
+			var tb = TableBehavior;
 			var rog = renderable.GetRenderObjects(table, Origin.Original, true);
 			return VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tb, rog), tb);
 		}
