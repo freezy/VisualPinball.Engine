@@ -1,5 +1,7 @@
 ﻿
+using System;
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Unity.Editor.DragPoint;
 using VisualPinball.Unity.VPT.Surface;
 
@@ -18,6 +20,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			base.OnEnable();
 			_targetSurf = target as SurfaceBehavior;
+			Name = _targetSurf.Item.Name;
 		}
 
 		public override void OnInspectorGUI()
@@ -78,6 +81,15 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+		}
+
+		private void OnDestroy()
+		{
+			if (Application.isEditor) {
+				if (target == null) {
+					_table.Item.Surfaces.Remove(Name);
+				}
+			}
 		}
 	}
 }
