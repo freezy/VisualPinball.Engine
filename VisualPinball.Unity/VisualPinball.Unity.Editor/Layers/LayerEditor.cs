@@ -53,8 +53,11 @@ namespace VisualPinball.Unity.Editor.Layers
 				_searchField = new SearchField();
 			}
 
-			_treeView = new LayerTreeView(_layerHandler.TreeModel);
+			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
+
+			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
+
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 

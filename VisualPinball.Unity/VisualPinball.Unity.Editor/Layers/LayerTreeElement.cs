@@ -86,6 +86,44 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
+		public override string DisplayName
+		{
+			get {
+				switch (Type) {
+					case LayerTreeViewElementType.Table: {
+						return $"{Name} [{Children.Count} layers]";
+					}
+
+					case LayerTreeViewElementType.Layer: {
+						return $"{Name} [{Children.Count} items]";
+					}
+
+					default: {
+						return base.DisplayName;
+					}
+				}
+			}
+		}
+
+		public override Texture2D Icon
+		{
+			get {
+				switch (Type) {
+					case LayerTreeViewElementType.Table: {
+						return EditorGUIUtility.FindTexture("d_winbtn_graph");
+					}
+
+					case LayerTreeViewElementType.Layer: {
+						return EditorGUIUtility.IconContent("GUILayer Icon").image as Texture2D;
+					}
+
+					default: {
+						return EditorGUIUtility.IconContent("GameObject Icon").image as Texture2D;
+					}
+				}
+			}
+		}
+
 		/// <summary>
 		/// Default CTor is for Root
 		/// </summary>

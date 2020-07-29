@@ -18,14 +18,14 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// It a first structure draft mirroring the table structure for now, will be changed to fit the LayersHandler
 	/// afterwards.
 	/// </remarks>
-	internal class LayerTreeView : TreeViewWithTreeModel<LayerTreeElement>
+	internal class LayerTreeView : TreeView<LayerTreeElement>
 	{
 		/// <summary>
 		/// Emitted when a layer is renamed.
 		/// </summary>
 		public event Action<int, string> LayerRenamed = delegate { };
 
-		public LayerTreeView(TreeModel<LayerTreeElement> model) : base(new TreeViewState(), model)
+		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
 		{
 			showBorder = true;
 			showAlternatingRowBackgrounds = true;
@@ -59,13 +59,12 @@ namespace VisualPinball.Unity.Editor.Layers
 			base.RowGUI(args);
 		}
 
-		protected override bool CanRename(TreeViewItem item)
+		internal void OnTreeRebuilt()
 		{
-			if (item is TreeViewItem<LayerTreeElement> treeViewItem) {
-				return treeViewItem.Data?.Type == LayerTreeViewElementType.Layer;
-			}
-			return false;
+			Reload();
 		}
+
+		protected override bool ValidateRename(TreeViewItem<LayerTreeElement> item) => item.Data?.Type == LayerTreeViewElementType.Layer;
 
 		protected override void RenameEnded(RenameEndedArgs args)
 		{
