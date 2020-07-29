@@ -18,7 +18,7 @@ namespace VisualPinball.Engine.Math
 				var pdp1 = dragPoints[i];
 				var pdp2 = dragPoints[i < numPoints - 1 ? i + 1 : 0];
 
-				if (pdp1.Vertex.X == pdp2.Vertex.X && pdp1.Vertex.Y == pdp2.Vertex.Y && pdp1.Vertex.Z == pdp2.Vertex.Z) {
+				if (pdp1.Center.X == pdp2.Center.X && pdp1.Center.Y == pdp2.Center.Y && pdp1.Center.Z == pdp2.Center.Z) {
 					continue; // Special case - two points coincide
 				}
 
@@ -35,17 +35,17 @@ namespace VisualPinball.Engine.Math
 				var pdp0 = dragPoints[prev];
 				var pdp3 = dragPoints[next];
 
-				var cc = CatmullCurve<TVertex>.GetInstance<TCatmullCurveFactory>(pdp0.Vertex, pdp1.Vertex, pdp2.Vertex, pdp3.Vertex);
+				var cc = CatmullCurve<TVertex>.GetInstance<TCatmullCurveFactory>(pdp0.Center, pdp1.Center, pdp2.Center, pdp3.Center);
 
 				var vertex1 = new TVertex();
 
-				vertex1.Set(pdp1.Vertex);
+				vertex1.Set(pdp1.Center);
 				vertex1.Smooth = pdp1.IsSmooth;
 				vertex1.IsSlingshot = pdp1.IsSlingshot;
 				vertex1.IsControlPoint = true;
 
 				// Properties of last point don't matter, because it won't be added to the list on this pass (it'll get added as the first point of the next curve)
-				vertex2.Set(pdp2.Vertex);
+				vertex2.Set(pdp2.Center);
 
 				vertices = RecurseSmoothLine(vertices, cc, 0.0f, 1.0f, vertex1, vertex2, accuracy);
 			}

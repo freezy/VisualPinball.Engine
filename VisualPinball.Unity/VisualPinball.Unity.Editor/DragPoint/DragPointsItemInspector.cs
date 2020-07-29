@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		{
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
-				_storedControlPoint = dp.Vertex.ToUnityVector3();
+				_storedControlPoint = dp.Center.ToUnityVector3();
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
 				PrepareUndo($"Paste drag point {controlId}");
-				dp.Vertex = _storedControlPoint.ToVertex3D();
+				dp.Center = _storedControlPoint.ToVertex3D();
 			}
 		}
 
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 						for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
 							var controlPoint = DragPointsHandler.ControlPoints[i];
 							EditorGUILayout.BeginHorizontal();
-							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Vertex.X},{controlPoint.DragPoint.Vertex.Y},{controlPoint.DragPoint.Vertex.Z})");
+							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
 							if (GUILayout.Button("Copy")) {
 								CopyDragPoint(controlPoint.ControlId);
 							}

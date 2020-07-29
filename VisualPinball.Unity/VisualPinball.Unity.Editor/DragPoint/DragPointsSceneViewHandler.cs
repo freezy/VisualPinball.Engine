@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor.DragPoint
 				var transformedDPoints = new List<DragPointData>();
 				foreach (var controlPoint in _handler.ControlPoints) {
 					var newDp = new DragPointData(controlPoint.DragPoint) {
-						Vertex = controlPoint.WorldPos.ToVertex3D()
+						Center = controlPoint.WorldPos.ToVertex3D()
 					};
 					transformedDPoints.Add(newDp);
 				}
