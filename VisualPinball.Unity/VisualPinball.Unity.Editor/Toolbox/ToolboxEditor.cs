@@ -70,6 +70,9 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			if (parent == null) {
 				parent = new GameObject(rog.Parent);
 				parent.transform.parent = tb.gameObject.transform;
+				parent.transform.localPosition = Vector3.zero;
+				parent.transform.localRotation = Quaternion.identity;
+				parent.transform.localScale = Vector3.one;
 			}
 			return parent;
 		}
