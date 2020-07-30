@@ -10,6 +10,7 @@ using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Gate
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Gate")]
 	public class GateBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>
 	{
@@ -18,6 +19,13 @@ namespace VisualPinball.Unity.VPT.Gate
 		protected override Engine.VPT.Gate.Gate GetItem()
 		{
 			return new Engine.VPT.Gate.Gate(data);
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Gates.Remove(Name);
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
