@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.Gate;
 
@@ -20,6 +21,16 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			base.OnEnable();
 			_gate = target as GateBehavior;
+			Name = _gate.Item.Name;
+		}
+
+		private void OnDestroy()
+		{
+			if (Application.isEditor) {
+				if (target == null) {
+					_table.Item.Gates.Remove(Name);
+				}
+			}
 		}
 
 		public override void OnInspectorGUI()

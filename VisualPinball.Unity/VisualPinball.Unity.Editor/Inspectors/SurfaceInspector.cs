@@ -23,6 +23,15 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			Name = _targetSurf.Item.Name;
 		}
 
+		private void OnDestroy()
+		{
+			if (Application.isEditor) {
+				if (target == null) {
+					_table.Item.Surfaces.Remove(Name);
+				}
+			}
+		}
+
 		public override void OnInspectorGUI()
 		{
 			base.OnPreInspectorGUI();
@@ -81,15 +90,6 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
-		}
-
-		private void OnDestroy()
-		{
-			if (Application.isEditor) {
-				if (target == null) {
-					_table.Item.Surfaces.Remove(Name);
-				}
-			}
 		}
 	}
 }

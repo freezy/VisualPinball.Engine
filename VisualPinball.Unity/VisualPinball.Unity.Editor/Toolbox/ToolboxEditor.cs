@@ -33,6 +33,8 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					var converter = rootGameObj.AddComponent<VpxConverter>();
 					converter.Convert(tableName, table);
 					DestroyImmediate(converter);
+					Selection.activeGameObject = rootGameObj;
+					Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 
 				} else {
 					EditorUtility.DisplayDialog("Visual Pinball", "Sorry, cannot add multiple tables, and there already is " +
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var surface = new Surface(surfaceData);
 				table.Surfaces[surface.Name] = surface;
 				Selection.activeGameObject = CreateRenderable(table, surface);
-				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "Create wall");
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Wall");
 			}
 
 			if (GUILayout.Button("Gate")) {
@@ -64,6 +66,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var gate = new Gate(gateData);
 				table.Gates[gate.Name] = gate;
 				Selection.activeGameObject = CreateRenderable(table, gate);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Gate");
 			}
 		}
 
