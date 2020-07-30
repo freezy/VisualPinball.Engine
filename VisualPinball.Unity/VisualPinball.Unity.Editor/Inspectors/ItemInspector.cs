@@ -8,7 +8,6 @@ using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using System;
 
-
 namespace VisualPinball.Unity.Editor.Inspectors
 {
 	public abstract class ItemInspector : UnityEditor.Editor
