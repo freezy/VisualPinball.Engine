@@ -12,16 +12,17 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	/// The TreeWiew class is a ImGui TreeView which will handle a provided generic TreeElement type
 	/// It will handle all TreeViewItem creation using this generic TreeElement type
 	/// You have to provide the Root element of your tree structure
-	/// It'll also fire events when the Tree has been created or updated
+	/// It'll also fire events for several base TreeView events (Tree rebuild & update, item double click...)
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
 	internal class TreeView<T> : UnityEditor.IMGUI.Controls.TreeView where T : TreeElement
 	{
 		public event Action<T> TreeRebuilt;
 		public event Action<T, IList<T>, T, int> TreeChanged;
+		public event Action<T> ItemDoubleClicked;
 
 		public T Root { get; private set; }
-		private readonly List<TreeViewItem> _rows = new List<TreeViewItem>(100);
+		private readonly List<TreeViewItem> _rows = new List<TreeViewItem>();
 
 		protected TreeView(TreeViewState state, T root) : base(state)
 		{
@@ -153,6 +154,20 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			}
 			return false;
 		}
+
+		/// <summary>
+		/// override of the DoubleClickedItem to fire registered events with the attached TreeElement
+		/// </summary>
+		/// <param name="id"></param>
+		protected override void DoubleClickedItem(int id)
+		{
+			base.DoubleClickedItem(id);
+			var item = Root.Find<T>(id);
+			if (item != null) {
+				ItemDoubleClicked?.Invoke(item);
+			}
+		}
+
 
 	}
 
