@@ -13,6 +13,7 @@ using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Flipper
 {
+	[ExecuteAlways]
 	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Flipper")]
 	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
@@ -22,6 +23,13 @@ namespace VisualPinball.Unity.VPT.Flipper
 		protected override Engine.VPT.Flipper.Flipper GetItem()
 		{
 			return new Engine.VPT.Flipper.Flipper(data);
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Flippers.Remove(Name);
+			}
 		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

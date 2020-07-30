@@ -56,18 +56,18 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 31)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[BiffString("SURF", Pos = 12)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[MaterialReference]
 		[BiffString("RUMA", Pos = 15)]
-		public string RubberMaterial;
+		public string RubberMaterial = string.Empty;
 
 		[BiffFloat("RTHF", Pos = 16.1)]
 		public float RubberThickness = 7.0f;
@@ -79,31 +79,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public float RubberWidth = 24.0f;
 
 		[BiffFloat("FORC", Pos = 9)]
-		public float Mass;
+		public float Mass = 1f;
 
 		[BiffFloat("STRG", Pos = 19)]
-		public float Strength;
+		public float Strength = 2200f;
 
 		[BiffFloat("ELAS", Pos = 20)]
-		public float Elasticity;
+		public float Elasticity = 0.8f;
 
 		[BiffFloat("ELFO", Pos = 21)]
-		public float ElasticityFalloff;
+		public float ElasticityFalloff = 0.43f;
 
 		[BiffFloat("FRIC", Pos = 22)]
-		public float Friction;
+		public float Friction = 0.6f;
 
 		[BiffFloat("FRTN", Pos = 5)]
-		public float Return;
+		public float Return = 0.058f;
 
 		[BiffFloat("RPUP", Pos = 23)]
-		public float RampUp;
+		public float RampUp = 3f;
 
 		[BiffFloat("TODA", Pos = 25)]
-		public float TorqueDamping;
+		public float TorqueDamping = 0.75f;
 
 		[BiffFloat("TDAA", Pos = 26)]
-		public float TorqueDampingAngle;
+		public float TorqueDampingAngle = 6f;
 
 		[BiffFloat("SCTR", Pos = 24)]
 		public float Scatter;
@@ -213,6 +213,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public FlipperData(string storageName) : base(storageName)
 		{
+		}
+
+		public FlipperData(string name, float x, float y)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public FlipperData(BinaryReader reader, string storageName) : this(storageName)
