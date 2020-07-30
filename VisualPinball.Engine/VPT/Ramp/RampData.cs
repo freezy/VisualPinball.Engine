@@ -82,15 +82,15 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 10)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffFloat("THRS", Pos = 18)]
 		public float Threshold;
@@ -124,6 +124,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 		static RampData()
 		{
 			Init(typeof(RampData), Attributes);
+		}
+
+		public RampData(string name, DragPointData[] dragPoints)
+		{
+			Name = name;
+			DragPoints = dragPoints;
 		}
 
 		public RampData(BinaryReader reader, string storageName) : base(storageName)

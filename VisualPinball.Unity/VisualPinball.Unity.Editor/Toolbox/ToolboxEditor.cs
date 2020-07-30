@@ -4,6 +4,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Import;
@@ -68,12 +69,30 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				Selection.activeGameObject = CreateRenderable(table, gate);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Gate");
 			}
+
+			if (GUILayout.Button("Ramp")) {
+				var table = Table;
+				var rampData = new RampData(NextName(table.Ramps, "Ramp"), new[]
+				{
+					new DragPointData(table.Width / 2f, table.Height / 2f + 200f) { HasAutoTexture = false, IsSmooth = true },
+					new DragPointData(table.Width / 2f, table.Height / 2f - 200f) { HasAutoTexture = false, IsSmooth = true },
+				}) {
+					HeightTop = 50f,
+					HeightBottom = 0f,
+					WidthTop = 60f,
+					WidthBottom = 75f
+				};
+				var ramp = new Ramp(rampData);
+				table.Ramps[ramp.Name] = ramp;
+				Selection.activeGameObject = CreateRenderable(table, ramp);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Ramp");
+			}
 		}
 
 		private GameObject CreateRenderable(Table table, IRenderable renderable)
 		{
 			var tb = TableBehavior;
-			var rog = renderable.GetRenderObjects(table, Origin.Original, true);
+			var rog = renderable.GetRenderObjects(table, Origin.Original, false);
 			return VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tb, rog), tb);
 		}
 

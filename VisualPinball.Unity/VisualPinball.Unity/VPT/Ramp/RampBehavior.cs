@@ -14,6 +14,7 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Ramp
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Ramp")]
 	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
@@ -30,6 +31,13 @@ namespace VisualPinball.Unity.VPT.Ramp
 		protected override Engine.VPT.Ramp.Ramp GetItem()
 		{
 			return new Engine.VPT.Ramp.Ramp(data);
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Ramps.Remove(Name);
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
