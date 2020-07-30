@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			// Visibility Toggle
 			Rect toggleRect = args.rowRect;
-			toggleRect.x += GetContentIndent(args.item);
+			toggleRect.x += GetContentIndent(args.item) + 4f;
 			toggleRect.width = 16f;
 
 			// Ensure row is selected before using the toggle (usability)
@@ -49,14 +49,19 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			if (args.item is TreeViewItem<LayerTreeElement> treeViewItem) {
 				EditorGUI.BeginChangeCheck();
-				bool isVisible = EditorGUI.Toggle(toggleRect, treeViewItem.Data.IsVisible);
-				if (EditorGUI.EndChangeCheck()) {
-					treeViewItem.Data.IsVisible = isVisible;
+				GUIContent guiC = new GUIContent();
+				guiC.image = treeViewItem.Data.IsVisible ? EditorGUIUtility.IconContent("scenevis_visible_hover").image : EditorGUIUtility.IconContent("scenevis_hidden_hover").image;
+				if (GUI.Button(toggleRect, guiC, GUIStyle.none)) {
+					treeViewItem.Data.IsVisible = !treeViewItem.Data.IsVisible;
 				}
-			}
 
-			// Text
-			base.RowGUI(args);
+				// Text
+				Rect textRect = args.rowRect;
+				textRect.x = toggleRect.xMax + 8f;
+				guiC.text = treeViewItem.displayName;
+				guiC.image = treeViewItem.icon;
+				EditorGUI.LabelField(textRect, guiC);
+			}
 		}
 
 		internal void OnTreeRebuilt()
