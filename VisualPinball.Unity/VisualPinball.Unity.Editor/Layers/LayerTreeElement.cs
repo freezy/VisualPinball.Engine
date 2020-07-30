@@ -7,6 +7,17 @@ using VisualPinball.Unity.VPT;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
+	/// Enum for LayerTreeElement visibility status (including children)
+	/// </summary>
+	internal enum LayerTreeElementVisibility
+	{
+		Hidden,			// Element is hidden and children also
+		Hidden_Mixed,	// Element is hidden but some children are visible
+		Visible_Mixed,	// Element is visible but some children are hidden
+		Visible			// Element is visible and children also
+	}
+
+	/// <summary>
 	/// Element type used in TreeModel for the LayerTreeView
 	/// </summary>
 	/// <remarks>
@@ -119,6 +130,40 @@ namespace VisualPinball.Unity.Editor.Layers
 
 					default: {
 						return EditorGUIUtility.IconContent("GameObject Icon").image as Texture2D;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Expose the Visibility of a LayerTreeElement, telling if all its children have the same visibility status than its own.
+		/// </summary>
+		public LayerTreeElementVisibility Visibility
+		{
+			get {
+				switch (Type) {
+					case LayerTreeViewElementType.Table:
+					case LayerTreeViewElementType.Layer: {
+						bool mixed = false;
+						foreach(var subItem in Children) {
+							if (((LayerTreeElement)subItem).IsVisible != IsVisible) {
+								mixed = true;
+								break;
+							}
+						}
+						if (mixed) {
+							return IsVisible ? LayerTreeElementVisibility.Visible_Mixed : LayerTreeElementVisibility.Hidden_Mixed;
+						} else {
+							return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;
+						}
+					}
+
+					case LayerTreeViewElementType.Item: {
+						return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;
+					}
+					
+					default: {
+						return LayerTreeElementVisibility.Hidden;
 					}
 				}
 			}

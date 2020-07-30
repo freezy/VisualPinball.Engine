@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -32,6 +33,13 @@ namespace VisualPinball.Unity.Editor.Layers
 			customFoldoutYOffset = 3f;
 		}
 
+
+		Dictionary<LayerTreeElementVisibility, Texture> _visibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
+			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
+			{ LayerTreeElementVisibility.Hidden_Mixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
+			{ LayerTreeElementVisibility.Visible_Mixed, EditorGUIUtility.IconContent("scenevis_visible-mixed_hover").image},
+			{ LayerTreeElementVisibility.Visible, EditorGUIUtility.IconContent("scenevis_visible_hover").image},
+		};
 		// Custom GUI
 		protected override void RowGUI(RowGUIArgs args)
 		{
@@ -50,7 +58,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (args.item is TreeViewItem<LayerTreeElement> treeViewItem) {
 				EditorGUI.BeginChangeCheck();
 				GUIContent guiC = new GUIContent();
-				guiC.image = treeViewItem.Data.IsVisible ? EditorGUIUtility.IconContent("scenevis_visible_hover").image : EditorGUIUtility.IconContent("scenevis_hidden_hover").image;
+				guiC.image = _visibilityToIcon[treeViewItem.Data.Visibility];
 				if (GUI.Button(toggleRect, guiC, GUIStyle.none)) {
 					treeViewItem.Data.IsVisible = !treeViewItem.Data.IsVisible;
 				}
