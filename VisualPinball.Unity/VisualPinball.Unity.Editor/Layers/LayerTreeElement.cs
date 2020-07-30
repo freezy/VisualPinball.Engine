@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Editor.Layers
 					}
 
 					case LayerTreeViewElementType.Layer: {
-						return EditorGUIUtility.IconContent("GUILayer Icon").image as Texture2D;
+						return EditorGUIUtility.IconContent("ToggleUVOverlay").image as Texture2D;
 					}
 
 					default: {
