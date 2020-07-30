@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.TreeView;
 using VisualPinball.Unity.VPT;
@@ -121,6 +122,11 @@ namespace VisualPinball.Unity.Editor.Layers
 			TreeRebuilt?.Invoke();
 		}
 
+		/// <summary>
+		/// Callback when LayerTreeView as validated a layer rename
+		/// </summary>
+		/// <param name="itemId">the id of the renamed layer TreeElement</param>
+		/// <param name="newName">the new validated name</param>
 		internal void OnLayerRenamed(int itemId, string newName)
 		{
 			var layerElement = TreeRoot.Find<LayerTreeElement>(itemId);
@@ -135,6 +141,35 @@ namespace VisualPinball.Unity.Editor.Layers
 					}
 				}
 				RebuildLayers();
+			}
+		}
+
+		/// <summary>
+		/// Callback when a TreeViewItem is double clicked
+		/// </summary>
+		/// <param name="element">the TreeElement attached to the TreeViewItem</param>
+		internal void OnItemDoubleClicked(LayerTreeElement element)
+		{
+			switch (element.Type) {
+				case LayerTreeViewElementType.Table:
+				case LayerTreeViewElementType.Layer: {
+					LayerTreeElement[] items = element.GetChildren<LayerTreeElement>(child => ((LayerTreeElement)child).Type == LayerTreeViewElementType.Item);
+					List<UnityEngine.Object> objects = new List<UnityEngine.Object>();
+					foreach(var item in items) {
+						objects.Add(EditorUtility.InstanceIDToObject(item.Id));
+					}
+					Selection.objects = objects.ToArray();
+					break;
+				}
+
+				case LayerTreeViewElementType.Item: {
+					Selection.activeObject = EditorUtility.InstanceIDToObject(element.Id);
+					break;
+				}
+
+				default: {
+					break;
+				}
 			}
 		}
 

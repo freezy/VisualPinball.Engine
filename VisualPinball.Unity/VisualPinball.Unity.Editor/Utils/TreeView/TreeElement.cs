@@ -62,6 +62,25 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 
 			return null;
 		}
+
+		public delegate bool ChildFilter(TreeElement child);
+		/// <summary>
+		/// Will gather all children from this TreeElement which pass the provided filter
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="filter">a filtering delegate</param>
+		/// <returns>an array of TreeElement casted as T type</returns>
+		public T[] GetChildren<T>(ChildFilter filter) where T : TreeElement
+		{
+			List<T> children = new List<T>();
+			foreach(var child in Children) {
+				if (filter(child)) {
+					children.Add((T)child);
+				}
+				children.AddRange(child.GetChildren<T>(filter));
+			}
+			return children.ToArray();
+		}
 	}
 }
 

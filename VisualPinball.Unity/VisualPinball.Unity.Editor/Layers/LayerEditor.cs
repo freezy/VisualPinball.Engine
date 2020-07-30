@@ -56,8 +56,9 @@ namespace VisualPinball.Unity.Editor.Layers
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
 			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;
+			
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
-
+			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked;
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
