@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.VPT
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
-		protected TableData _tableData;
+		protected Engine.VPT.Table.Table _table;
 		private TItem _item;
 		private List<MemberInfo> _materialRefs;
 		private List<MemberInfo> _textureRefs;
@@ -125,10 +125,10 @@ namespace VisualPinball.Unity.VPT
 
 		protected virtual void Awake()
 		{
-			var rootObj = gameObject.transform.GetComponentInParent<TableBehavior>();
+			var tb = gameObject.transform.GetComponentInParent<TableBehavior>();
 			// can be null in editor, shouldn't be at runtime.
-			if (rootObj != null) {
-				_tableData = rootObj.data;
+			if (tb != null) {
+				_table = tb.Table;
 			}
 		}
 

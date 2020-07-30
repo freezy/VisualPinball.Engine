@@ -86,19 +86,21 @@ namespace VisualPinball.Unity.VPT.Flipper
 				angleEnd += 0.0001f;
 			}
 
+			var tableData = _table.Data;
+
 			// model inertia of flipper as that of rod of length flipper around its end
-			var mass = data.GetFlipperMass(_tableData);
+			var mass = data.GetFlipperMass(tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
 			return new FlipperStaticData {
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = data.GetStrength(_tableData),
-				ReturnRatio = data.GetReturnRatio(_tableData),
-				TorqueDamping = data.GetTorqueDamping(_tableData),
-				TorqueDampingAngle = data.GetTorqueDampingAngle(_tableData),
-				RampUpSpeed = data.GetRampUpSpeed(_tableData),
+				Strength = data.GetStrength(tableData),
+				ReturnRatio = data.GetReturnRatio(tableData),
+				TorqueDamping = data.GetTorqueDamping(tableData),
+				TorqueDampingAngle = data.GetTorqueDampingAngle(tableData),
+				RampUpSpeed = data.GetRampUpSpeed(tableData),
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius

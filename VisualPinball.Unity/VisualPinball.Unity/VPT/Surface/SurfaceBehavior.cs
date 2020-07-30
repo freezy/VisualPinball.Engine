@@ -8,20 +8,29 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Surface
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Surface")]
-	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>, IConvertGameObjectToEntity, IDragPointsEditable
+	public class SurfaceBehavior : ItemBehavior<Engine.VPT.Surface.Surface, SurfaceData>, IConvertGameObjectToEntity, IDragPointsEditable
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
 
 		protected override Engine.VPT.Surface.Surface GetItem()
 		{
 			return new Engine.VPT.Surface.Surface(data);
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Surfaces.Remove(Name);
+			}
 		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
