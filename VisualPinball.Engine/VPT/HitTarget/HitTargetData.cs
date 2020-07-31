@@ -73,15 +73,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 4)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 7)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 26)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffInt("TRTY", Pos = 5)]
 		public int TargetType = VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
@@ -114,6 +114,12 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		static HitTargetData()
 		{
 			Init(typeof(HitTargetData), Attributes);
+		}
+
+		public HitTargetData(string name, float x, float y)
+		{
+			Name = name;
+			Position = new Vertex3D(x, y, 0f);
 		}
 
 		public HitTargetData(BinaryReader reader, string storageName) : base(storageName)
