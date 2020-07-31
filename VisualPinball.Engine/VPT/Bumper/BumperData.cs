@@ -31,19 +31,19 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 12)]
-		public string CapMaterial;
+		public string CapMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("RIMA", Pos = 15)]
-		public string RingMaterial;
+		public string RingMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("BAMA", Pos = 13)]
-		public string BaseMaterial;
+		public string BaseMaterial = string.Empty;
 
 		[MaterialReference]
 		[BiffString("SKMA", Pos = 14)]
-		public string SocketMaterial;
+		public string SocketMaterial = string.Empty;
 
 		[BiffFloat("THRS", Pos = 5)]
 		public float Threshold = 1.0f;
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public float RingDropOffset = 0.0f;
 
 		[BiffString("SURF", Pos = 16)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[BiffBool("BVIS", SkipWrite = true)]
 		[BiffBool("CAVI", Pos = 18)]
@@ -111,6 +111,12 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		public BumperData(string storageName) : base(storageName)
 		{
+		}
+
+		public BumperData(string name, float x, float y)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public BumperData(BinaryReader reader, string storageName) : this(storageName)
