@@ -6,6 +6,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Spinner;
@@ -136,6 +137,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Triggers[trigger.Name] = trigger;
 				Selection.activeGameObject = CreateRenderable(table, trigger);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Trigger");
+			}
+
+			if (GUILayout.Button("Kicker")) {
+				var table = Table;
+				var kickerData = new KickerData(NextName(table.Kickers, "Kicker"), table.Width / 2f, table.Height / 2f);
+				var kicker = new Kicker(kickerData);
+				table.Kickers[kicker.Name] = kicker;
+				Selection.activeGameObject = CreateRenderable(table, kicker);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Kicker");
 			}
 		}
 
