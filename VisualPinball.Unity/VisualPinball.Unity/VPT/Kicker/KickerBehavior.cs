@@ -15,14 +15,19 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Kicker
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Kicker")]
 	public class KickerBehavior : ItemBehavior<Engine.VPT.Kicker.Kicker, KickerData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Kicker.Kicker GetItem()
+		protected override Engine.VPT.Kicker.Kicker GetItem() => new Engine.VPT.Kicker.Kicker(data);
+
+		private void OnDestroy()
 		{
-			return new Engine.VPT.Kicker.Kicker(data);
+			if (!Application.isPlaying) {
+				_table.Kickers.Remove(Name);
+			}
 		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
