@@ -5,6 +5,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
@@ -96,6 +97,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Flippers[flipper.Name] = flipper;
 				Selection.activeGameObject = CreateRenderable(table, flipper);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Flipper");
+			}
+
+			if (GUILayout.Button("Plunger")) {
+				var table = Table;
+				var plungerData = new PlungerData(NextName(table.Plungers, "Plunger"), table.Width / 2f, table.Height / 2f);
+				var plunger = new Plunger(plungerData);
+				table.Plungers[plunger.Name] = plunger;
+				Selection.activeGameObject = CreateRenderable(table, plunger);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Plunger");
 			}
 		}
 

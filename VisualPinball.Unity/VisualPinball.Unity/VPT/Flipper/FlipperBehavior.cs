@@ -20,10 +20,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	{
 		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
-		protected override Engine.VPT.Flipper.Flipper GetItem()
-		{
-			return new Engine.VPT.Flipper.Flipper(data);
-		}
+		protected override Engine.VPT.Flipper.Flipper GetItem() => new Engine.VPT.Flipper.Flipper(data);
 
 		private void OnDestroy()
 		{

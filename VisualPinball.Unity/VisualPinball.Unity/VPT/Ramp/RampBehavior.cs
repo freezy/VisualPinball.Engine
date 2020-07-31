@@ -20,17 +20,14 @@ namespace VisualPinball.Unity.VPT.Ramp
 	{
 		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
+		protected override Engine.VPT.Ramp.Ramp GetItem() => new Engine.VPT.Ramp.Ramp(data);
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
-		}
-
-		protected override Engine.VPT.Ramp.Ramp GetItem()
-		{
-			return new Engine.VPT.Ramp.Ramp(data);
 		}
 
 		private void OnDestroy()

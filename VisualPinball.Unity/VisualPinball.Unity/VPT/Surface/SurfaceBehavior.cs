@@ -21,10 +21,7 @@ namespace VisualPinball.Unity.VPT.Surface
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
 
-		protected override Engine.VPT.Surface.Surface GetItem()
-		{
-			return new Engine.VPT.Surface.Surface(data);
-		}
+		protected override Engine.VPT.Surface.Surface GetItem() => new Engine.VPT.Surface.Surface(data);
 
 		private void OnDestroy()
 		{
