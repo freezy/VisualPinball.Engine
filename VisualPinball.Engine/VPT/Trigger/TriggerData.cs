@@ -43,10 +43,10 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 10)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[BiffString("SURF", Pos = 9)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[BiffBool("VSBL", Pos = 12)]
 		public bool IsVisible = true;
@@ -80,6 +80,12 @@ namespace VisualPinball.Engine.VPT.Trigger
 		static TriggerData()
 		{
 			Init(typeof(TriggerData), Attributes);
+		}
+
+		public TriggerData(string name, float x, float y)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public TriggerData(BinaryReader reader, string storageName) : base(storageName)
