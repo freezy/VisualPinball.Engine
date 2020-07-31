@@ -15,10 +15,20 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trigger")]
 	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
+
+		protected override Engine.VPT.Trigger.Trigger GetItem() => new Engine.VPT.Trigger.Trigger(data);
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Triggers.Remove(Name);
+			}
+		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -37,11 +47,6 @@ namespace VisualPinball.Unity.VPT.Trigger
 			// register
 			var trigger = GetComponent<TriggerBehavior>().Item;
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, gameObject);
-		}
-
-		protected override Engine.VPT.Trigger.Trigger GetItem()
-		{
-			return new Engine.VPT.Trigger.Trigger(data);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

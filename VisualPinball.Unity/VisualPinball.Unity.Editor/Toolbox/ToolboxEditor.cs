@@ -11,6 +11,7 @@ using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
 
@@ -126,6 +127,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Spinners[spinner.Name] = spinner;
 				Selection.activeGameObject = CreateRenderable(table, spinner);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Spinner");
+			}
+
+			if (GUILayout.Button("Trigger")) {
+				var table = Table;
+				var triggerData = new TriggerData(NextName(table.Triggers, "Trigger"), table.Width / 2f, table.Height / 2f);
+				var trigger = new Trigger(triggerData);
+				table.Triggers[trigger.Name] = trigger;
+				Selection.activeGameObject = CreateRenderable(table, trigger);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Trigger");
 			}
 		}
 
