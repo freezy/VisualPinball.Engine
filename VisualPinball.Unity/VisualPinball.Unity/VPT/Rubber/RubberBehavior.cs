@@ -14,14 +14,19 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Rubber
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Rubber")]
 	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Rubber.Rubber GetItem()
+		protected override Engine.VPT.Rubber.Rubber GetItem() => new Engine.VPT.Rubber.Rubber(data);
+
+		private void OnDestroy()
 		{
-			return new Engine.VPT.Rubber.Rubber(data);
+			if (!Application.isPlaying) {
+				_table.Rubbers.Remove(Name);
+			}
 		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

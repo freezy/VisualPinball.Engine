@@ -37,11 +37,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[BiffFloat("ELAS", Pos = 10)]
 		public float Elasticity;
@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 22)]
-		public string PhysicsMaterial;
+		public string PhysicsMaterial = string.Empty;
 
 		[BiffBool("OVPH", Pos = 23)]
 		public bool OverwritePhysics = false;
@@ -112,6 +112,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 		static RubberData()
 		{
 			Init(typeof(RubberData), Attributes);
+		}
+
+		public RubberData(string name)
+		{
+			Name = name;
 		}
 
 		public RubberData(BinaryReader reader, string storageName) : base(storageName)
