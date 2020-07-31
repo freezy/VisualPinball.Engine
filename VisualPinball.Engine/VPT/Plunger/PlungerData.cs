@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public float ZAdjust;
 
 		[BiffFloat("HPSL", Pos = 5)]
-		public float Stroke;
+		public float Stroke = 80f;
 
 		[BiffFloat("SPDP", Pos = 6)]
 		public float SpeedPull = 0.5f;
@@ -65,15 +65,15 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public bool AutoPlunger = false;
 
 		[BiffInt("ANFR", Pos = 9)]
-		public int AnimFrames;
+		public int AnimFrames = 1;
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 10)]
-		public string Material;
+		public string Material = string.Empty;
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 11)]
-		public string Image;
+		public string Image = string.Empty;
 
 		[BiffBool("VSBL", Pos = 20)]
 		public bool IsVisible = true;
@@ -82,7 +82,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public bool IsReflectionEnabled = true;
 
 		[BiffString("SURF", Pos = 22)]
-		public string Surface;
+		public string Surface = string.Empty;
 
 		[BiffString("TIPS", Pos = 24)]
 		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
@@ -124,6 +124,12 @@ namespace VisualPinball.Engine.VPT.Plunger
 		static PlungerData()
 		{
 			Init(typeof(PlungerData), Attributes);
+		}
+
+		public PlungerData(string name, float x, float y)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public PlungerData(BinaryReader reader, string storageName) : base(storageName)

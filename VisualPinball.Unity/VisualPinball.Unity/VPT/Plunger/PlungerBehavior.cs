@@ -8,12 +8,22 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Plunger")]
 	public class PlungerBehavior : ItemBehavior<Engine.VPT.Plunger.Plunger, PlungerData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new []{ PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName };
+		protected override string[] Children => new [] {
+			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
+		};
 
 		protected override Engine.VPT.Plunger.Plunger GetItem() => new Engine.VPT.Plunger.Plunger(data);
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Plungers.Remove(Name);
+			}
+		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

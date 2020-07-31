@@ -16,10 +16,7 @@ namespace VisualPinball.Unity.VPT.Gate
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
 
-		protected override Engine.VPT.Gate.Gate GetItem()
-		{
-			return new Engine.VPT.Gate.Gate(data);
-		}
+		protected override Engine.VPT.Gate.Gate GetItem() => new Engine.VPT.Gate.Gate(data);
 
 		private void OnDestroy()
 		{
