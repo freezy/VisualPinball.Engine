@@ -26,11 +26,9 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 		private void OnGUI()
 		{
-			if (GUILayout.Button("New Table"))
-			{
+			if (GUILayout.Button("New Table")) {
 				var existingTable = FindObjectOfType<TableBehavior>();
-				if (existingTable == null)
-				{
+				if (existingTable == null) {
 					const string tableName = "Table1";
 					var rootGameObj = new GameObject();
 					var table = new Table(new TableData {Name = tableName});
@@ -39,22 +37,19 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					DestroyImmediate(converter);
 					Selection.activeGameObject = rootGameObj;
 					Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
-				}
-				else
-				{
+
+				} else {
 					EditorUtility.DisplayDialog("Visual Pinball",
 						"Sorry, cannot add multiple tables, and there already is " +
 						existingTable.name, "Close");
 				}
 			}
 
-			if (GUILayout.Button("Wall"))
-			{
+			if (GUILayout.Button("Wall")) {
 				var table = Table;
 				var surfaceData = new SurfaceData(
 					NextName(table.Surfaces, "Wall"),
-					new[]
-					{
+					new[] {
 						new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),
 						new DragPointData(table.Width / 2f - 50f, table.Height / 2f + 50f),
 						new DragPointData(table.Width / 2f + 50f, table.Height / 2f + 50f),
@@ -68,8 +63,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Wall");
 			}
 
-			if (GUILayout.Button("Gate"))
-			{
+			if (GUILayout.Button("Gate")) {
 				var table = Table;
 				var gateData = new GateData(NextName(table.Gates, "Gate"), table.Width / 2f, table.Height / 2f);
 				var gate = new Gate(gateData);
@@ -78,17 +72,12 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Gate");
 			}
 
-			if (GUILayout.Button("Ramp"))
-			{
+			if (GUILayout.Button("Ramp")) {
 				var table = Table;
-				var rampData = new RampData(NextName(table.Ramps, "Ramp"), new[]
-				{
-					new DragPointData(table.Width / 2f, table.Height / 2f + 200f)
-						{HasAutoTexture = false, IsSmooth = true},
-					new DragPointData(table.Width / 2f, table.Height / 2f - 200f)
-						{HasAutoTexture = false, IsSmooth = true},
-				})
-				{
+				var rampData = new RampData(NextName(table.Ramps, "Ramp"), new[] {
+					new DragPointData(table.Width / 2f, table.Height / 2f + 200f) { HasAutoTexture = false, IsSmooth = true },
+					new DragPointData(table.Width / 2f, table.Height / 2f - 200f) { HasAutoTexture = false, IsSmooth = true }
+				}) {
 					HeightTop = 50f,
 					HeightBottom = 0f,
 					WidthTop = 60f,
@@ -110,7 +99,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			}
 		}
 
-		private GameObject CreateRenderable(Table table, IRenderable renderable)
+		private static GameObject CreateRenderable(Table table, IRenderable renderable)
 		{
 			var tb = TableBehavior;
 			var rog = renderable.GetRenderObjects(table, Origin.Original, false);
@@ -120,8 +109,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private static GameObject GetOrCreateParent(Component tb, RenderObjectGroup rog)
 		{
 			var parent = tb.gameObject.transform.Find(rog.Parent)?.gameObject;
-			if (parent == null)
-			{
+			if (parent == null) {
 				parent = new GameObject(rog.Parent);
 				parent.transform.parent = tb.gameObject.transform;
 				parent.transform.localPosition = Vector3.zero;
@@ -135,11 +123,9 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private static string NextName<T>(IReadOnlyDictionary<string, T> existingNames, string prefix)
 		{
 			var n = 0;
-			do
-			{
+			do {
 				var elementName = $"{prefix}{++n}";
-				if (!existingNames.ContainsKey(elementName))
-				{
+				if (!existingNames.ContainsKey(elementName)) {
 					return elementName;
 				}
 			} while (true);
