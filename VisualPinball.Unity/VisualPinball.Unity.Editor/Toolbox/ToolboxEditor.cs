@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -10,12 +11,14 @@ using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
+using Component = UnityEngine.Component;
 
 namespace VisualPinball.Unity.Editor.Toolbox
 {
@@ -164,6 +167,26 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.HitTargets[hitTarget.Name] = hitTarget;
 				Selection.activeGameObject = CreateRenderable(table, hitTarget);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Target");
+			}
+
+			if (GUILayout.Button("Rubber")) {
+				var table = Table;
+				var rubberData = new RubberData(NextName(table.Rubbers, "Rubber")) {
+					DragPoints = new[] {
+						new DragPointData(table.Width / 2f, table.Height / 2f - 50f) {IsSmooth = true },
+						new DragPointData(table.Width / 2f - 50f * Mathf.Cos(Mathf.PI / 4), table.Height / 2f - 50f * Mathf.Sin(Mathf.PI / 4)) {IsSmooth = true },
+						new DragPointData(table.Width / 2f - 50f, table.Height / 2f) {IsSmooth = true },
+						new DragPointData(table.Width / 2f - 50f * Mathf.Cos(Mathf.PI / 4), table.Height / 2f + 50f * Mathf.Sin(Mathf.PI / 4)) {IsSmooth = true },
+						new DragPointData(table.Width / 2f, table.Height / 2f + 50f) {IsSmooth = true },
+						new DragPointData(table.Width / 2f + 50f * Mathf.Cos(Mathf.PI / 4), table.Height / 2f + 50f * Mathf.Sin(Mathf.PI / 4)) {IsSmooth = true },
+						new DragPointData(table.Width / 2f + 50f, table.Height / 2f) {IsSmooth = true },
+						new DragPointData(table.Width / 2f + 50f * Mathf.Cos(Mathf.PI / 4), table.Height / 2f - 50f * Mathf.Sin(Mathf.PI / 4)) {IsSmooth = true },
+					}
+				};
+				var rubber = new Rubber(rubberData);
+				table.Rubbers[rubber.Name] = rubber;
+				Selection.activeGameObject = CreateRenderable(table, rubber);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Rubber");
 			}
 		}
 
