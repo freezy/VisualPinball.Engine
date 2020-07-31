@@ -10,14 +10,19 @@ using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Spinner
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Spinner")]
 	public class SpinnerBehavior : ItemBehavior<Engine.VPT.Spinner.Spinner, SpinnerData>
 	{
 		protected override string[] Children => new [] { "Plate", "Bracket" };
 
-		protected override Engine.VPT.Spinner.Spinner GetItem()
+		protected override Engine.VPT.Spinner.Spinner GetItem() => new Engine.VPT.Spinner.Spinner(data);
+
+		private void OnDestroy()
 		{
-			return new Engine.VPT.Spinner.Spinner(data);
+			if (!Application.isPlaying) {
+				_table.Gates.Remove(Name);
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
