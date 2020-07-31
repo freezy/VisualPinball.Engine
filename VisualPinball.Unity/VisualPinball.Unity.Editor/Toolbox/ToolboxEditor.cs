@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Plunger;
@@ -106,6 +107,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Plungers[plunger.Name] = plunger;
 				Selection.activeGameObject = CreateRenderable(table, plunger);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Plunger");
+			}
+
+			if (GUILayout.Button("Bumper")) {
+				var table = Table;
+				var bumperData = new BumperData(NextName(table.Bumpers, "Bumper"), table.Width / 2f, table.Height / 2f);
+				var bumper = new Bumper(bumperData);
+				table.Bumpers[bumper.Name] = bumper;
+				Selection.activeGameObject = CreateRenderable(table, bumper);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Bumper");
 			}
 		}
 

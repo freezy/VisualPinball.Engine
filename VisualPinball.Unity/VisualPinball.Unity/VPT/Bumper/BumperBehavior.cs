@@ -11,10 +11,20 @@ using VisualPinball.Unity.Extensions;
 
 namespace VisualPinball.Unity.VPT.Bumper
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Bumper")]
 	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
+
+		protected override Engine.VPT.Bumper.Bumper GetItem() => new Engine.VPT.Bumper.Bumper(data);
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.Bumpers.Remove(Name);
+			}
+		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -24,11 +34,6 @@ namespace VisualPinball.Unity.VPT.Bumper
 				HitEvent = data.HitEvent,
 				Threshold = data.Threshold
 			});
-		}
-
-		protected override Engine.VPT.Bumper.Bumper GetItem()
-		{
-			return new Engine.VPT.Bumper.Bumper(data);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
