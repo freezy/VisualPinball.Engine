@@ -13,10 +13,20 @@ using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.HitTarget
 {
+	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Hit Target")]
 	public class HitTargetBehavior : ItemBehavior<Engine.VPT.HitTarget.HitTarget, HitTargetData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
+
+		protected override Engine.VPT.HitTarget.HitTarget GetItem() => new Engine.VPT.HitTarget.HitTarget(data);
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				_table.HitTargets.Remove(Name);
+			}
+		}
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -39,11 +49,6 @@ namespace VisualPinball.Unity.VPT.HitTarget
 			// register
 			var hitTarget = transform.GetComponent<HitTargetBehavior>().Item;
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
-		}
-
-		protected override Engine.VPT.HitTarget.HitTarget GetItem()
-		{
-			return new Engine.VPT.HitTarget.HitTarget(data);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

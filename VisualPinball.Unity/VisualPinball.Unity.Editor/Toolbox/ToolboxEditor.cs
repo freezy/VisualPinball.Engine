@@ -6,6 +6,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Ramp;
@@ -132,7 +133,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 			if (GUILayout.Button("Trigger")) {
 				var table = Table;
-				var triggerData = new TriggerData(NextName(table.Triggers, "Trigger"), table.Width / 2f, table.Height / 2f);
+				var triggerData = new TriggerData(NextName(table.Triggers, "Trigger"), table.Width / 2f, table.Height / 2f)
+				{
+					DragPoints = new[] {
+						new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),
+						new DragPointData(table.Width / 2f - 50f, table.Height / 2f + 50f),
+						new DragPointData(table.Width / 2f + 50f, table.Height / 2f + 50f),
+						new DragPointData(table.Width / 2f + 50f, table.Height / 2f - 50f)
+					}
+				};
 				var trigger = new Trigger(triggerData);
 				table.Triggers[trigger.Name] = trigger;
 				Selection.activeGameObject = CreateRenderable(table, trigger);
@@ -146,6 +155,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Kickers[kicker.Name] = kicker;
 				Selection.activeGameObject = CreateRenderable(table, kicker);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Kicker");
+			}
+
+			if (GUILayout.Button("Target")) {
+				var table = Table;
+				var hitTargetData = new HitTargetData(NextName(table.HitTargets, "Target"), table.Width / 2f, table.Height / 2f);
+				var hitTarget = new HitTarget(hitTargetData);
+				table.HitTargets[hitTarget.Name] = hitTarget;
+				Selection.activeGameObject = CreateRenderable(table, hitTarget);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Target");
 			}
 		}
 
