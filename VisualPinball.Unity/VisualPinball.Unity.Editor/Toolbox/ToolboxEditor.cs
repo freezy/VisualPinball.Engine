@@ -8,6 +8,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Import;
@@ -116,6 +117,15 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				table.Bumpers[bumper.Name] = bumper;
 				Selection.activeGameObject = CreateRenderable(table, bumper);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Bumper");
+			}
+
+			if (GUILayout.Button("Spinner")) {
+				var table = Table;
+				var spinnerData = new SpinnerData(NextName(table.Spinners, "Spinner"), table.Width / 2f, table.Height / 2f);
+				var spinner = new Spinner(spinnerData);
+				table.Spinners[spinner.Name] = spinner;
+				Selection.activeGameObject = CreateRenderable(table, spinner);
+				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Spinner");
 			}
 		}
 
