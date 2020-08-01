@@ -42,10 +42,13 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnDataChanged(string undoName, ImageListData data)
 		{
-			// NOTE/TODO: adding the sidecar to the undo stack is nasty, there's a massive amount of
-			// data serialized there, but that's where the texture props live. we'll have to do
-			// rethink how we're storing and serializing things like the textures
-			Undo.RecordObject(_table.GetComponentInChildren<TableSidecar>(), undoName);
+			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
+			foreach (var tableTex in _table.Textures ) {
+				if (tableTex.Data == _selectedItem.TextureData) {
+					Undo.RecordObject(tableTex, undoName);
+					break;
+				}
+			}
 		}
 	}
 }
