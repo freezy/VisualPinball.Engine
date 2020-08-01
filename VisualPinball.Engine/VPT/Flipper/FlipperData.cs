@@ -54,6 +54,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 31)]
 		public string Image;
 

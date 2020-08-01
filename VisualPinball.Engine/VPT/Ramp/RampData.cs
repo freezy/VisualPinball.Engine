@@ -80,6 +80,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffFloat("RSCT", Pos = 21)]
 		public float Scatter;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 10)]
 		public string Image;
 

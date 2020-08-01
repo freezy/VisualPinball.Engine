@@ -39,6 +39,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffString("MATR", Pos = 5)]
 		public string Material;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
 		public string Image;
 

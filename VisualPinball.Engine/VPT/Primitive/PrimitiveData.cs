@@ -58,9 +58,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffFloat("RTV8", Index = 8, Pos = 11)]
 		public float[] RotAndTra = new float[9];
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 12)]
 		public string Image;
 
+		[TextureReference]
 		[BiffString("NRMA", Pos = 13)]
 		public string NormalMap;
 

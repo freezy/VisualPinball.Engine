@@ -57,6 +57,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffBool("SVIS", Pos = 11)]
 		public bool IsVisible = true;
 
+		[TextureReference]
 		[BiffString("IMGF", Pos = 14)]
 		public string Image;
 

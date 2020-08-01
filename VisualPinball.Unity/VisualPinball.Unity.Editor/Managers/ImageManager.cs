@@ -35,8 +35,22 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void CollectData(List<ImageListData> data)
 		{
+			// collect list of in use textures
+			List<string> inUseTextures = new List<string>();
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				var texRefs = item.TextureRefs;
+				if (texRefs == null) { continue; }
+				foreach (var texRef in texRefs) {
+					var texName = GetMemberValue(texRef, item.ItemData);
+					if (!string.IsNullOrEmpty(texName)) {
+						inUseTextures.Add(texName);
+					}
+				}
+			}
+
 			foreach (var t in _table.Table.Textures) {
-				data.Add(new ImageListData { TextureData = t.Value.Data });
+				var texData = t.Value.Data;
+				data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
 			}
 		}
 
@@ -47,6 +61,14 @@ namespace VisualPinball.Unity.Editor.Managers
 				if (tableTex.Data == _selectedItem.TextureData) {
 					Undo.RecordObject(tableTex, undoName);
 					break;
+				}
+			}
+
+			// update any items using this tex
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				if (IsReferenced(item.TextureRefs, item.ItemData, data.TextureData.Name)) {
+					item.MeshDirty = true;
+					Undo.RecordObject(item as Object, undoName);
 				}
 			}
 		}
