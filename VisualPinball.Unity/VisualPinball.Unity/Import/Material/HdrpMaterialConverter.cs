@@ -9,6 +9,7 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class HdrpMaterialConverter : IMaterialConverter
 	{
+		private readonly int SurfaceType = Shader.PropertyToID("_SurfaceType");
 		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private readonly int BaseColorMap = Shader.PropertyToID("_BaseColorMap");
 		private readonly int NormalMap = Shader.PropertyToID("_NormalMap");
@@ -113,7 +114,8 @@ namespace VisualPinball.Unity.Import.Material
 					break;
 
 				case Engine.VPT.BlendMode.Translucent:
-					unityMaterial.SetFloat(BlendMode, 3);
+					unityMaterial.SetFloat(SurfaceType, 1); // 1 = Transparent (TODO: find class with identifier for the value. Unity has constants SurfaceType.Opaque and SurfaceType.Transparent, but for some reason that class doesn't exist)
+					unityMaterial.SetFloat(BlendMode, 0); // 0 = Alpha (TODO: find class with identifier for the value)
 					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
 					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
 					//!!!!!!! this is normally switched off but somehow enabling it seems to resolve so many issues.. keep an eye out for weirld opacity issues
