@@ -16,15 +16,9 @@ namespace VisualPinball.Unity.Extensions
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
-		/// Lazy instantiation of the material converter
+		/// Material Converter instance for the current graphics pipeline
 		/// </summary>
-		private static readonly Lazy<IMaterialConverter> lazyMaterialConverterInstance = new Lazy<IMaterialConverter>(() => CreateMaterialConverter());
-
-		/// <summary>
-		/// Singleton Material Converter
-		/// </summary>
-		public static IMaterialConverter MaterialConverter { get { return lazyMaterialConverterInstance.Value; } }
-
+		public static IMaterialConverter MaterialConverter => CreateMaterialConverter();
 
 		/// <summary>
 		/// Create a material converter depending on the graphics pipeline

@@ -138,14 +138,9 @@ namespace VisualPinball.Unity.VPT.Ball
 		#region Material
 
 		/// <summary>
-		/// Lazy instantiation of the ball material creator
+		/// Ball material creator instance for the current graphics pipeline
 		/// </summary>
-		private static readonly Lazy<IBallMaterial> lazyBallMaterialInstance = new Lazy<IBallMaterial>(() => CreateBallMaterial());
-
-		/// <summary>
-		/// Singleton ball material creator
-		/// </summary>
-		public static IBallMaterial BallMaterial { get { return lazyBallMaterialInstance.Value; } }
+		public static IBallMaterial BallMaterial => CreateBallMaterial();
 
 		/// <summary>
 		/// Create a material converter depending on the graphics pipeline
