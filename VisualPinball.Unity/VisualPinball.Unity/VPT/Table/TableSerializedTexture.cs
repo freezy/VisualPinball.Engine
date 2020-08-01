@@ -11,9 +11,11 @@ namespace VisualPinball.Unity.VPT.Table
 	{
 		public TextureData Data;
 
-		public TableSerializedTexture(TextureData data)
+		public static TableSerializedTexture Create(TextureData data)
 		{
-			Data = data;
+			var tst = CreateInstance<TableSerializedTexture>();
+			tst.Data = data;
+			return tst;
 		}
 	}
 }
