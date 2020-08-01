@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableSidecar : MonoBehaviour
     {
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public TextureData[] textures;
+		[HideInInspector] public TableSerializedTexture[] textures;
 		[HideInInspector] public CustomInfoTags customInfoTags;
 		[HideInInspector] public CollectionData[] collections;
 		[HideInInspector] public DecalData[] decals;

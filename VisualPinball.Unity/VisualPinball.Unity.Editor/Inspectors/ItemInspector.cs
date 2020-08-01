@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				_allTextures = new string[_table.Textures.Length + 1];
 				_allTextures[0] = "- none -";
 				for (int i = 0; i < _table.Textures.Length; i++) {
-					_allTextures[i + 1] = _table.Textures[i].Name;
+					_allTextures[i + 1] = _table.Textures[i].Data.Name;
 				}
 				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
 			}

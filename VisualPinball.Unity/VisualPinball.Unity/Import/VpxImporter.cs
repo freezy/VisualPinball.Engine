@@ -214,7 +214,7 @@ namespace VisualPinball.Unity.Import
 			foreach (var key in table.TableInfo.Keys) {
 				sidecar.tableInfo[key] = table.TableInfo[key];
 			}
-			sidecar.textures = table.Textures.Values.Select(d => d.Data).ToArray();
+			sidecar.textures = table.Textures.Values.Select(d => new TableSerializedTexture(d.Data)).ToArray();
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
 			sidecar.decals = table.Decals.Select(d => d.Data).ToArray();

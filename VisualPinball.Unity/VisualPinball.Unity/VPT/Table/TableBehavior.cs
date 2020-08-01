@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
-		public TextureData[] Textures => _sidecar?.textures;
+		public TableSerializedTexture[] Textures => _sidecar?.textures;
 		public Patcher.Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -220,7 +220,7 @@ namespace VisualPinball.Unity.VPT.Table
 			// restore textures
 			Logger.Info("Restoring textures...");
 			foreach (var textureData in _sidecar.textures) {
-				var texture = new Texture(textureData);
+				var texture = new Texture(textureData.Data);
 				table.Textures[texture.Name.ToLower()] = texture;
 			}
 
