@@ -17,6 +17,7 @@ namespace VisualPinball.Unity.Editor.Managers
 	{
 		protected virtual string DataTypeName => "";
 
+		protected virtual void OnButtonBarGUI() { }
 		protected virtual void OnDataDetailGUI() { }
 		protected virtual void RenameExistingItem(T data, string desiredName) { }
 		protected virtual void CollectData(List<T> data) { }
@@ -103,6 +104,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				CloneData(newDataName, _selectedItem);
 				Reload();
 			}
+			OnButtonBarGUI();
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.BeginHorizontal();
