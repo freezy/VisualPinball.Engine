@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			// give each editable item a chance to update its fields
 			string undoName = "Rename Material";
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
-				item.HandleMaterialRenamed(undoName, oldName, newName);
+				RenameReflectedFields(undoName, item, item.MaterialRefs, oldName, newName);
 			}
 			Undo.RecordObject(_table, undoName);
 

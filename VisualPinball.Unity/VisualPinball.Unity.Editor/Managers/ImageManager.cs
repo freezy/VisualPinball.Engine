@@ -33,6 +33,20 @@ namespace VisualPinball.Unity.Editor.Managers
 			}
 		}
 
+		protected override void RenameExistingItem(ImageListData data, string newName)
+		{
+			string oldName = data.TextureData.Name;
+
+			// give each editable item a chance to update its fields
+			string undoName = "Rename Material";
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+				RenameReflectedFields(undoName, item, item.TextureRefs, oldName, newName);
+			}
+			RecordUndo(undoName, data);
+
+			data.TextureData.Name = newName;
+		}
+
 		protected override void CollectData(List<ImageListData> data)
 		{
 			// collect list of in use textures
@@ -56,19 +70,24 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnDataChanged(string undoName, ImageListData data)
 		{
-			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _table.Textures ) {
-				if (tableTex.Data == _selectedItem.TextureData) {
-					Undo.RecordObject(tableTex, undoName);
-					break;
-				}
-			}
+			RecordUndo(undoName, data);
 
 			// update any items using this tex
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
 				if (IsReferenced(item.TextureRefs, item.ItemData, data.TextureData.Name)) {
 					item.MeshDirty = true;
 					Undo.RecordObject(item as Object, undoName);
+				}
+			}
+		}
+
+		private void RecordUndo(string undoName, ImageListData data)
+		{
+			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
+			foreach (var tableTex in _table.Textures) {
+				if (tableTex.Data == _selectedItem.TextureData) {
+					Undo.RecordObject(tableTex, undoName);
+					break;
 				}
 			}
 		}

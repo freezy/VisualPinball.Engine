@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Managers
@@ -212,6 +213,20 @@ namespace VisualPinball.Unity.Editor.Managers
 				}
 			}
 			return false;
+		}
+
+		protected void RenameReflectedFields(string undoName, IEditableItemBehavior item, List<MemberInfo> mis, string oldName, string newName)
+		{
+			foreach (var mi in mis) {
+				string fieldVal = GetMemberValue(mi, item.ItemData);
+				if (fieldVal == oldName) {
+					Undo.RecordObject(item as Object, undoName);
+					switch (mi) {
+						case FieldInfo fi: fi.SetValue(item.ItemData, newName); break;
+						case PropertyInfo pi: pi.SetValue(item.ItemData, newName); break;
+					}
+				}
+			}
 		}
 
 		private void UndoPerformed()

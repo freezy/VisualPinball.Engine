@@ -42,13 +42,5 @@ namespace VisualPinball.Unity.VPT.Bumper
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(data.Radius, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => data.Radius = scale.x;
-
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.CapMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.BaseMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.RingMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.SocketMaterial, oldName, newName);
-		}
 	}
 }
