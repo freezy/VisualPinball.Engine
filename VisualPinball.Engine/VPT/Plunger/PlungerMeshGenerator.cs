@@ -10,20 +10,19 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public const string RodName = "Rod";
 		public const string SpringName = "Spring";
 
-		public int NumFrames { get; }
+		public int NumFrames { get; set; }
 
 		private readonly PlungerData _data;
 		private PlungerDesc _desc;
 
-		private readonly float _beginY;
-		private readonly float _endY;
-		private readonly float _invScale;
-		private readonly float _dyPerFrame;
-		private readonly int _circlePoints;
-		private readonly float _springMinSpacing;
-		private readonly float _cellWid;
-		private readonly int _srcCells;
-
+		private float _beginY;
+		private float _endY;
+		private float _invScale;
+		private float _dyPerFrame;
+		private int _circlePoints;
+		private float _springMinSpacing;
+		private float _cellWid;
+		private int _srcCells;
 		private float _zScale;
 		private float _zHeight;
 		private float _springLoops;
@@ -43,23 +42,27 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public PlungerMeshGenerator(PlungerData data)
 		{
 			_data = data;
+			Init(null);
+		}
 
-			var stroke = data.Stroke;
-			_beginY = data.Center.Y;
-			_endY = data.Center.Y - stroke;
-			NumFrames = (int) (stroke * (float) (PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
+		public void Init(Table.Table table)
+		{
+			var stroke = _data.Stroke;
+			_beginY = _data.Center.Y;
+			_endY = _data.Center.Y - stroke;
+			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
 			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
 			_dyPerFrame = (_endY - _beginY) * _invScale;
-			_circlePoints = data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
+			_circlePoints = _data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
 			_springLoops = 0.0f;
 			_springEndLoops = 0.0f;
 			_springGauge = 0.0f;
 			_springRadius = 0.0f;
 			_springMinSpacing = 2.2f;
-			_rodY = _beginY + data.Height;
+			_rodY = _beginY + _data.Height;
 
 			// note the number of cells in the source image
-			_srcCells = data.AnimFrames;
+			_srcCells = _data.AnimFrames;
 			if (_srcCells < 1) {
 				_srcCells = 1;
 			}
@@ -67,13 +70,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// figure the width in relative units (0..1) of each cell
 			_cellWid = 1.0f / _srcCells;
 
-			_desc = GetPlungerDesc();
-		}
-
-		public void Init(Table.Table table)
-		{
-			_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
-			_zScale = table.GetScaleZ();
+			if (table != null) {
+				_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
+				_zScale = table.GetScaleZ();
+			}
 			_desc = GetPlungerDesc();
 		}
 
