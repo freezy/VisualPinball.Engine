@@ -26,10 +26,12 @@ namespace VisualPinball.Unity.VPT
 		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
 		public ItemData ItemData => data;
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
+		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
 		protected TableData _tableData;
 		private TItem _item;
 		private List<MemberInfo> _materialRefs;
+		private List<MemberInfo> _textureRefs;
 
 		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 

@@ -11,6 +11,7 @@ namespace VisualPinball.Unity.VPT
 		bool MeshDirty { get; set; }
 		ItemData ItemData { get; }
 		List<MemberInfo> MaterialRefs { get; }
+		List<MemberInfo> TextureRefs { get; }
 
 		void RebuildMeshes();
 

@@ -71,6 +71,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		[BiffFloat("RSCT", Pos = 15)]
 		public float Scatter;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 4)]
 		public string Image;
 

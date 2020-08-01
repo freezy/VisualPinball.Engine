@@ -71,6 +71,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		[BiffString("MATR", Pos = 10)]
 		public string Material;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 11)]
 		public string Image;
 

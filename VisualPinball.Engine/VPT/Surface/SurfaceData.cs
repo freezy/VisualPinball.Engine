@@ -41,9 +41,11 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffFloat("THRS", Pos = 8)]
 		public float Threshold = 2.0f;
 
+		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
 		public string Image;
 
+		[TextureReference]
 		[BiffString("SIMG", Pos = 10)]
 		public string SideImage;
 
