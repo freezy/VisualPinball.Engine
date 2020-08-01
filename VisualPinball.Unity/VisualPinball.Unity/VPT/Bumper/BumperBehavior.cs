@@ -20,12 +20,12 @@ namespace VisualPinball.Unity.VPT.Bumper
 
 		protected override Engine.VPT.Bumper.Bumper GetItem() => new Engine.VPT.Bumper.Bumper(data);
 
-		private void OnDestroy()
+		/*private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
 				_table.Bumpers.Remove(Name);
 			}
-		}
+		}*/
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

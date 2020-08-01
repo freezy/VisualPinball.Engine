@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Game;
@@ -93,6 +94,7 @@ namespace VisualPinball.Unity.Physics.Collision
 
 						switch (coll.Type) {
 							case ColliderType.Bumper:
+								Debug.Log("Bumping into entity " + coll.Entity);
 								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
 								var ringData = GetComponent<BumperRingAnimationData>(bumperStaticData.RingEntity);
 								var skirtData = GetComponent<BumperSkirtAnimationData>(bumperStaticData.SkirtEntity);
