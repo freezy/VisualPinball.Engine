@@ -8,6 +8,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Bumper
 {
@@ -34,6 +35,8 @@ namespace VisualPinball.Unity.VPT.Bumper
 				HitEvent = data.HitEvent,
 				Threshold = data.Threshold
 			});
+
+			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, gameObject);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
