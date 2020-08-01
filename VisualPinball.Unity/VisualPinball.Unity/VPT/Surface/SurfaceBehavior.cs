@@ -55,14 +55,6 @@ namespace VisualPinball.Unity.VPT.Surface
 			}
 		}
 
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.TopMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.SideMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.SlingShotMaterial, oldName, newName);
-			TryRenameField(undoName, ref data.PhysicsMaterial, oldName, newName);
-		}
-
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
 		public DragPointData[] GetDragPoints() => data.DragPoints;

@@ -117,20 +117,6 @@ namespace VisualPinball.Unity.VPT
 		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
 		public virtual void SetEditorScale(Vector3 rot) { }
 
-		public virtual void HandleMaterialRenamed(string undoName, string oldName, string newName) { }
-		public virtual void HandleTextureRenamed(string undoName, string oldName, string newName) { }
-
-		// rename helper to cut down on the boiler plate in the concrete classes
-		protected void TryRenameField(string undoName, ref string field, string oldName, string newName)
-		{
-			if (field == oldName) {
-#if UNITY_EDITOR
-				Undo.RecordObject(this, undoName);
-#endif
-				field = newName;
-			}
-		}
-
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Item.Index = entity.Index;

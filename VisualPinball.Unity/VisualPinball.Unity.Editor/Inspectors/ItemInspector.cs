@@ -229,6 +229,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		{
 			if (_table == null) return;
 
+			// if the field is set, but the tex isn't in our list, maybe it was added after this
+			// inspector was instantiated, so re-grab our options from the table data
+			if (!string.IsNullOrEmpty(field) && !_allTextures.Contains(field)) {
+				PopulateDropDownOptions();
+			}
+
 			int selectedIndex = 0;
 			for (int i = 0; i < _allTextures.Length; i++) {
 				if (_allTextures[i].ToLower() == field.ToLower()) {

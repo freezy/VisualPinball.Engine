@@ -57,11 +57,5 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
 		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
-
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.Material, oldName, newName);
-			TryRenameField(undoName, ref data.PhysicsMaterial, oldName, newName);
-		}
 	}
 }

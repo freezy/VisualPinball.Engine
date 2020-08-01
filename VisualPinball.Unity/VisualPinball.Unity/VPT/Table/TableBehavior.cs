@@ -94,24 +94,6 @@ namespace VisualPinball.Unity.VPT.Table
 			// that would just be everything at this level
 		}
 
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.PlayfieldMaterial, oldName, newName);
-		}
-
-		public override void HandleTextureRenamed(string undoName, string oldName, string newName) {
-			// remove old name from our cache, and have the item itself update
-			_unityTextures.Remove(oldName.ToLower());
-			var tex = Table.RemoveTexture(oldName);
-			if (tex != null) {
-				Table.AddTexture(newName, tex);
-			} else {
-				Logger.Error("Could not find texture for rename: " + oldName);
-			}
-
-			TryRenameField(undoName, ref data.Image, oldName, newName);
-		}
-
 		protected override Engine.VPT.Table.Table GetItem()
 		{
 			return RecreateTable();

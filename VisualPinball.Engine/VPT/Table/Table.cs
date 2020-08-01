@@ -179,9 +179,26 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Texture GetTexture(string name)
 		{
-			return name == null
+			string lowerName = name.ToLower();
+			var tex = name == null
 				? null
-				: Textures.ContainsKey(name.ToLower()) ? Textures[name.ToLower()] : null;
+				: Textures.ContainsKey(lowerName) ? Textures[lowerName] : null;
+			
+			// double check the key matches the name
+			if (tex != null && tex.Name.ToLower() != lowerName) { tex = null; }
+			// if not found, loop over all to see if the texture key doesn't match its name anymore
+			// this is meant to be a lazy update to the container when renaming in editor
+			if (tex == null) {
+				foreach (var kvp in Textures) {
+					if (kvp.Value.Name.ToLower() == lowerName) {
+						tex = kvp.Value;
+						Textures.Remove(kvp.Key);
+						Textures[lowerName] = tex;
+						break;
+					}
+				}
+			}
+			return tex;
 		}
 
 		public Texture RemoveTexture(string name)

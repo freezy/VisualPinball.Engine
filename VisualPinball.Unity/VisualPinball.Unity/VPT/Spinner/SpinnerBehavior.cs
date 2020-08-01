@@ -35,10 +35,5 @@ namespace VisualPinball.Unity.VPT.Spinner
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(data.Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => data.Length = scale.x;
-
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.Material, oldName, newName);
-		}
 	}
 }

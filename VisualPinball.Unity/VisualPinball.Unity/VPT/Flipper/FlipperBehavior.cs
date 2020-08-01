@@ -65,12 +65,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 			data.Height = scale.z;
 		}
 
-		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
-		{
-			TryRenameField(undoName, ref data.Material, oldName, newName);
-			TryRenameField(undoName, ref data.RubberMaterial, oldName, newName);
-		}
-
 		private FlipperStaticData GetMaterialData()
 		{
 			float flipperRadius;
