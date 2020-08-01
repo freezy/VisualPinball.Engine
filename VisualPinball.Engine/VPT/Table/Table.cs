@@ -150,7 +150,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Table(TableData data) : base(data)
 		{
 			_meshGenerator = new TableMeshGenerator(Data);
-			_hitGenerator = new TableHitGenerator(Data);
+			_hitGenerator = new TableHitGenerator(this);
 		}
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }

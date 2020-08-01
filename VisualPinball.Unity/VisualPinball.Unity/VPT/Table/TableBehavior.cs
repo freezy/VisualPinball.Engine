@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;

@@ -6,11 +6,13 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class TableHitGenerator
 	{
+		private readonly Table _table;
 		private readonly TableData _data;
 
-		public TableHitGenerator(TableData data)
+		public TableHitGenerator(Table table)
 		{
-			_data = data;
+			_data = table.Data;
+			_table = table;
 		}
 
 		public IEnumerable<HitObject> GenerateHitObjects()
@@ -68,6 +70,8 @@ namespace VisualPinball.Engine.VPT.Table
 				.SetFriction(_data.GetFriction())
 				.SetElasticity(_data.GetElasticity(), _data.GetElasticityFalloff())
 				.SetScatter(MathF.DegToRad(_data.GetScatter()));
+			playfieldHit.ItemIndex = _table.Index;
+			playfieldHit.ItemVersion = _table.Version;
 			return playfieldHit;
 		}
 
@@ -75,6 +79,8 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			var glassHit = new HitPlane(new Vertex3D(0, 0, -1), _data.GlassHeight);
 			glassHit.SetElasticity(0.2f);
+			glassHit.ItemIndex = _table.Index;
+			glassHit.ItemVersion = _table.Version;
 			return glassHit;
 		}
 	}

@@ -6,10 +6,11 @@ namespace VisualPinball.Unity.VPT.Table
 {
 	public static class TableExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject go, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject obj, RenderObjectGroup rog)
 		{
-			go.AddComponent<ConvertToEntity>();
-			return null;
+			var ic = obj.AddComponent<PlayfieldBehavior>();
+			obj.AddComponent<ConvertToEntity>();
+			return ic;
 		}
 	}
 }
