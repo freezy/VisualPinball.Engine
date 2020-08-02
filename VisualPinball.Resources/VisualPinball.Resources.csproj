@@ -25,6 +25,18 @@
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Textures\BallDebug.png" />
+    <EmbeddedResource Include="Textures\BallDebug.png" />
+    <None Remove="Textures\BumperBase.png" />
+    <EmbeddedResource Include="Textures\BumperBase.png" />
+    <None Remove="Textures\BumperCap.png" />
+    <EmbeddedResource Include="Textures\BumperCap.png" />
+    <None Remove="Textures\BumperRing.png" />
+    <EmbeddedResource Include="Textures\BumperRing.png" />
+    <None Remove="Textures\BumperSkirt.png" />
+    <EmbeddedResource Include="Textures\BumperSkirt.png" />
+  </ItemGroup>
   <Target Name="DeployVendor" AfterTargets="CoreBuild">
     <ItemGroup>
       <BuildFiles Include="$(OutDir)*.dll" />

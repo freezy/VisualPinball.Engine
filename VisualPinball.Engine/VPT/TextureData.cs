@@ -10,6 +10,7 @@ using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Engine.VPT
 {

@@ -4,6 +4,7 @@ using System.Text;
 using NetVips;
 using NLog;
 using VisualPinball.Engine.Resources;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
