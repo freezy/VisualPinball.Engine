@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public bool IsEnabled = true;
 
 		[BiffBool("LEMO", Pos = 15)]
-		public bool LegacyMode = false;
+		public bool LegacyMode = true;
 
 		[BiffBool("TMON", Pos = 3)]
 		public bool IsTimerEnabled;

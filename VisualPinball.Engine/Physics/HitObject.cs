@@ -192,5 +192,11 @@ namespace VisualPinball.Engine.Physics
 
 			SetEnabled(data.GetIsCollidable());
 		}
+
+		public virtual void SetIndex(int index, int version)
+		{
+			ItemIndex = index;
+			ItemVersion = version;
+		}
 	}
 }

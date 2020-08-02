@@ -46,6 +46,13 @@ namespace VisualPinball.Engine.VPT.Gate
 			TwoWay = false;
 		}
 
+		public override void SetIndex(int index, int version)
+		{
+			base.SetIndex(index, version);
+			LineSeg0.SetIndex(index, version);
+			LineSeg1.SetIndex(index, version);
+		}
+
 		public override void CalcHitBBox()
 		{
 			LineSeg0.CalcHitBBox();

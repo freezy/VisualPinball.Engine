@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 		public float Length = 80f;
 
 		[BiffFloat("AFRC", Pos = 7)]
-		public float Damping;
+		public float Damping = 0.9879f;
 
 		[BiffFloat("SMAX", Pos = 8)]
 		public float AngleMax = 0f;
@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 		public float AngleMin = 0f;
 
 		[BiffFloat("SELA", Pos = 10)]
-		public float Elasticity;
+		public float Elasticity = 0.3f;
 
 		[BiffBool("SVIS", Pos = 11)]
 		public bool IsVisible = true;
