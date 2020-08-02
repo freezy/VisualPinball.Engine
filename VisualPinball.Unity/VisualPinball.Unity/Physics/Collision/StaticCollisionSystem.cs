@@ -94,7 +94,6 @@ namespace VisualPinball.Unity.Physics.Collision
 
 						switch (coll.Type) {
 							case ColliderType.Bumper:
-								Debug.Log("Bumping into entity " + coll.Entity);
 								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
 								var ringData = GetComponent<BumperRingAnimationData>(bumperStaticData.RingEntity);
 								var skirtData = GetComponent<BumperSkirtAnimationData>(bumperStaticData.SkirtEntity);

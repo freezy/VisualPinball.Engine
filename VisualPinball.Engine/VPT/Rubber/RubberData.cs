@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public float Height = 25f;
 
 		[BiffFloat("HTHI", Pos = 2)]
-		public float HitHeight = -1.0f;
+		public float HitHeight = 25f;
 
 		[BiffInt("WDTP", Pos = 3)]
 		public int Thickness = 8;

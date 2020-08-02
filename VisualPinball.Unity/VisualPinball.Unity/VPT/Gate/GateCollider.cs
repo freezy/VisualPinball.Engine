@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.VPT.Gate
 			_lineSeg1 = LineCollider.Create(src.LineSeg1);
 		}
 
-
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)

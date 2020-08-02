@@ -50,6 +50,19 @@ namespace VisualPinball.Engine.VPT.Plunger
 			JointEnd[1] = new HitLineZ(new Vertex2D(_x2, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
 		}
 
+		public override void SetIndex(int index, int version)
+		{
+			base.SetIndex(index, version);
+			LineSegBase.SetIndex(index, version);
+			LineSegEnd.SetIndex(index, version);
+			LineSegSide[0].SetIndex(index, version);
+			LineSegSide[1].SetIndex(index, version);
+			JointEnd[0].SetIndex(index, version);
+			JointEnd[1].SetIndex(index, version);
+			JointBase[0].SetIndex(index, version);
+			JointBase[1].SetIndex(index, version);
+		}
+
 		public override void CalcHitBBox()
 		{
 

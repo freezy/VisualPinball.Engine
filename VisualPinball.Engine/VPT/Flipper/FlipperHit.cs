@@ -31,6 +31,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 			UpdatePhysicsFromFlipper();
 		}
 
+		public override void SetIndex(int index, int version)
+		{
+			base.SetIndex(index, version);
+			HitCircleBase.SetIndex(index, version);
+		}
+
 		public override void CalcHitBBox()
 		{
 			// Allow roundoff

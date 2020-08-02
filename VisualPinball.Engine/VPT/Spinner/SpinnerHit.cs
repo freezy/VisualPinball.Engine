@@ -10,12 +10,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 		public LineSeg LineSeg0;
 		public LineSeg LineSeg1;
 
-		private readonly SpinnerData _data;
-
 		public SpinnerHit(SpinnerData data, float height) : base(ItemType.Spinner)
 		{
-			_data = data;
-
 			var halfLength = data.Length * 0.5f;
 
 			var radAngle = MathF.DegToRad(data.Rotation);
@@ -33,6 +29,13 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
 			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
+		}
+
+		public override void SetIndex(int index, int version)
+		{
+			base.SetIndex(index, version);
+			LineSeg0.SetIndex(index, version);
+			LineSeg1.SetIndex(index, version);
 		}
 
 		public override void CalcHitBBox()
