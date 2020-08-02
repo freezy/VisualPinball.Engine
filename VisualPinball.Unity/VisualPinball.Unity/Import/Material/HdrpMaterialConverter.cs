@@ -15,8 +15,10 @@ namespace VisualPinball.Unity.Import.Material
 		private readonly int NormalMap = Shader.PropertyToID("_NormalMap");
 		private readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
-		private readonly int BlendMode = Shader.PropertyToID("_BlendMode"); // TODO which values
-		private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
+		private readonly int BlendMode = Shader.PropertyToID("_BlendMode");
+        private readonly int TransparentSortPriority = Shader.PropertyToID("_TransparentSortPriority");
+        private readonly int AlphaCutoffEnable = Shader.PropertyToID("_AlphaCutoffEnable");
+        private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
 		private readonly int DstBlend = Shader.PropertyToID("_DstBlend");
 		private readonly int ZWrite = Shader.PropertyToID("_ZWrite");
 
@@ -86,46 +88,50 @@ namespace VisualPinball.Unity.Import.Material
 			return unityMaterial;
 		}
 
-		// TODO figure out the blend modes in HDRP. _ALPHABLEND_ON and _ALPHAPREMULTIPLY_ON aren't available in the HDRP shader
 		private void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
 		{
 			switch (blendMode)
 			{
 				case Engine.VPT.BlendMode.Opaque:
-					unityMaterial.SetFloat(BlendMode, 0);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
-					unityMaterial.SetInt(ZWrite, 1);
-					unityMaterial.DisableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
-					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-					unityMaterial.renderQueue = -1;
+
+					unityMaterial.SetFloat(BlendMode, 0); // 0 = Opaque; 1 = Transparent
+
+                    // render queue
+                    unityMaterial.renderQueue = -1;
+
 					break;
 
 				case Engine.VPT.BlendMode.Cutout:
-					unityMaterial.SetFloat(BlendMode, 1);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
-					unityMaterial.SetInt(ZWrite, 1);
-					unityMaterial.EnableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
-					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-					unityMaterial.renderQueue = 2450;
-					break;
+
+                    unityMaterial.SetFloat(SurfaceType, 0); // 0 = Opaque; 1 = Transparent
+                    unityMaterial.SetInt(AlphaCutoffEnable, 1);
+
+                    // render queue
+                    unityMaterial.renderQueue = 2450;
+
+                    unityMaterial.EnableKeyword("_ALPHATEST_ON");
+                    unityMaterial.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
+
+                    break;
 
 				case Engine.VPT.BlendMode.Translucent:
-					unityMaterial.SetFloat(SurfaceType, 1); // 1 = Transparent (TODO: find class with identifier for the value. Unity has constants SurfaceType.Opaque and SurfaceType.Transparent, but for some reason that class doesn't exist)
-					unityMaterial.SetFloat(BlendMode, 0); // 0 = Alpha (TODO: find class with identifier for the value)
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-					//!!!!!!! this is normally switched off but somehow enabling it seems to resolve so many issues.. keep an eye out for weirld opacity issues
-					//unityMaterial.SetInt("_ZWrite", 0);
-					unityMaterial.SetInt(ZWrite, 1);
-					unityMaterial.DisableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
-					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-					unityMaterial.renderQueue = 3000;
-					break;
+
+                    unityMaterial.SetFloat(SurfaceType, 1); // 0 = Opaque; 1 = Transparent
+                    unityMaterial.SetFloat(BlendMode, 4); // 0 = Alpha, 4 = PreMultiply
+
+					// render queue
+                    int transparentRenderQueueBase = 3000;
+                    int transparentSortingPriority = 0;
+                    unityMaterial.SetInt(TransparentSortPriority, transparentSortingPriority);
+                    unityMaterial.renderQueue = transparentRenderQueueBase + transparentSortingPriority;
+
+                    unityMaterial.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+                    unityMaterial.EnableKeyword("_BLENDMODE_PRE_MULTIPLY");
+                    unityMaterial.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+                    unityMaterial.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
+                    unityMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+
+                    break;
 
 				default:
 					throw new ArgumentOutOfRangeException();
