@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using VisualPinball.Engine.Resources;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Unity.Import.Material
 {
