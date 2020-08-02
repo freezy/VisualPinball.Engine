@@ -4,13 +4,10 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Unity.Entities;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -39,18 +36,13 @@ namespace VisualPinball.Unity.VPT
 		[HideInInspector]
 		[SerializeField]
 		private bool _meshDirty;
-		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
+		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
 
-		public ItemBehavior<TItem, TData> SetItemAndData(TItem item, string gameObjectName = null)
+		public ItemBehavior<TItem, TData> SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
-			return SetData(item.Data, gameObjectName);
-		}
-
-		public ItemBehavior<TItem, TData> SetData(TData d, string gameObjectName = null)
-		{
-			name = gameObjectName ?? d.GetName();
-			data = d;
+			data = item.Data;
+			name = gameObjectName ?? data.GetName();
 			ItemDataChanged();
 			return this;
 		}

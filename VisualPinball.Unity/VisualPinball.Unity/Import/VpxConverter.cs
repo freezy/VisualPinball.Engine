@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetData(primitive.Data); break;
+				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetItem(primitive); break;
 				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
 				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 		{
 			// add table component (plus other data)
 			_tb = go.AddComponent<TableBehavior>();
-			_tb.SetItemAndData(table);
+			_tb.SetItem(table);
 
 			var sidecar = _tb.GetOrCreateSidecar();
 

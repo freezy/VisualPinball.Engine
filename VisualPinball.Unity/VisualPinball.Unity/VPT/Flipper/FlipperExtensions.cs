@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 	{
 		public static FlipperBehavior SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<FlipperBehavior>().SetData(flipper.Data);
+			var ic = obj.AddComponent<FlipperBehavior>().SetItem(flipper);
 			obj.AddComponent<ConvertToEntity>();
 			return ic as FlipperBehavior;
 		}

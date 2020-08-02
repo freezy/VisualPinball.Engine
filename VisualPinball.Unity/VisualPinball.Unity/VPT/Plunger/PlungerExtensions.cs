@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 	{
 		public static PlungerBehavior SetupGameObject(this Engine.VPT.Plunger.Plunger plunger, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<PlungerBehavior>().SetData(plunger.Data);
+			var ic = obj.AddComponent<PlungerBehavior>().SetItem(plunger);
 
 			var rod = obj.transform.Find(PlungerMeshGenerator.RodName);
 			if (rod != null) {

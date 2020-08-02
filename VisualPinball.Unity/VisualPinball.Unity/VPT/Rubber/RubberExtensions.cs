@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 	{
 		public static RubberBehavior SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<RubberBehavior>().SetData(rubber.Data);
+			var ic = obj.AddComponent<RubberBehavior>().SetItem(rubber);
 			obj.AddComponent<ConvertToEntity>();
 			return ic as RubberBehavior;
 		}

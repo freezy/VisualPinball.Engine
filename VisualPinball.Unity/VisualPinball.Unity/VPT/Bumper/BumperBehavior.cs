@@ -12,7 +12,7 @@ using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Bumper
 {
-	[ExecuteAlways]
+	//[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Bumper")]
 	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>, IConvertGameObjectToEntity
 	{
