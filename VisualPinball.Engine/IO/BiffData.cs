@@ -12,6 +12,11 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
+	public enum StoragePrefix
+	{
+		GameItem, Collection, Sound, Image
+	}
+
 	/// <summary>
 	/// The base class of all data classes dealing with BIFF records.<p/>
 	///
@@ -23,9 +28,13 @@ namespace VisualPinball.Engine.IO
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public string StorageName;
+		public string StorageName => _storageName ?? $"{StoragePrefix}{StorageIndex}";
+
+		public readonly StoragePrefix StoragePrefix;
 		public readonly int StorageIndex;
 		public readonly List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
+		private readonly string _storageName;
+		private readonly string _storageNameDebug;
 
 		protected BiffData()
 		{
@@ -33,12 +42,18 @@ namespace VisualPinball.Engine.IO
 
 		protected BiffData(string storageName)
 		{
-			StorageName = storageName;
+			_storageNameDebug = storageName;
+			if (string.IsNullOrEmpty(storageName)) {
+				_storageName = string.Empty;
 
-			if (StorageName != null) {
-				var match = new Regex(@"\d+$").Match(StorageName);
+			} else {
+				var match = new Regex(@"^([a-zA-Z]+)(\d+)$").Match(storageName);
 				if (match.Success) {
-					int.TryParse(match.Value, out StorageIndex);
+					Enum.TryParse(match.Groups[1].Value, true, out StoragePrefix);
+					int.TryParse(match.Groups[2].Value, out StorageIndex);
+
+				} else {
+					_storageName = storageName;
 				}
 			}
 		}

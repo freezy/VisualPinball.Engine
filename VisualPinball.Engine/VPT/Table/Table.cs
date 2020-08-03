@@ -4,6 +4,7 @@ using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -87,6 +88,27 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(TextBoxes.Values.Select(i => i.Data))
 			.Concat(Timers.Values.Select(i => i.Data))
 			.Concat(Triggers.Values.Select(i => i.Data));
+
+		public int NumGameItems =>
+			Bumpers.Count +
+			Decals.Count +
+			DispReels.Count +
+			Flippers.Count +
+			Flashers.Count +
+			Gates.Count +
+			HitTargets.Count +
+			Kickers.Count +
+			Lights.Count +
+			LightSeqs.Count +
+			Plungers.Count +
+			Primitives.Count +
+			Ramps.Count +
+			Rubbers.Count +
+			Spinners.Count +
+			Surfaces.Count +
+			TextBoxes.Count +
+			Timers.Count +
+			Triggers.Count;
 
 		public IEnumerable<IMovable> Movables => new IMovable[0]
 			.Concat(Flippers.Values)
