@@ -12,7 +12,11 @@ namespace VisualPinball.Unity.Import.Material
 		private readonly int SurfaceType = Shader.PropertyToID("_SurfaceType");
 		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private readonly int BaseColorMap = Shader.PropertyToID("_BaseColorMap");
+
 		private readonly int NormalMap = Shader.PropertyToID("_NormalMap");
+		private readonly int NormalMapSpace = Shader.PropertyToID("_NormalMapSpace");
+		private readonly int NormalScale = Shader.PropertyToID("_NormalScale");
+
 		private readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
 		private readonly int BlendMode = Shader.PropertyToID("_BlendMode");
@@ -80,6 +84,10 @@ namespace VisualPinball.Unity.Import.Material
 			if (table != null && vpxMaterial.HasNormalMap)
 			{
 				unityMaterial.EnableKeyword("_NORMALMAP");
+				unityMaterial.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
+
+				unityMaterial.SetInt(NormalMapSpace, 0); // 0 = TangentSpace, 1 = ObjectSpace
+				unityMaterial.SetFloat(NormalScale, 0f); // TODO FIXME: setting the scale to 0 for now. anything above 0 makes the entire unity editor window become black which is more likely a unity bug
 
 				unityMaterial.SetTexture(
 					NormalMap,
