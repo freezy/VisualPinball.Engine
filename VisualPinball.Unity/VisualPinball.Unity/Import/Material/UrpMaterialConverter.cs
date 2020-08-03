@@ -9,12 +9,15 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class UrpMaterialConverter : IMaterialConverter
 	{
+		private readonly int Surface = Shader.PropertyToID("_Surface");
 		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 		private readonly int BaseMap = Shader.PropertyToID("_BaseMap");
-		private readonly int NormalMap = Shader.PropertyToID("_NormalMap");
+		private readonly int BumpMap = Shader.PropertyToID("_BumpMap");
 		private readonly int Metallic = Shader.PropertyToID("_Metallic");
 		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
 		private readonly int Blend = Shader.PropertyToID("_Blend");
+		private readonly int QueueOffset = Shader.PropertyToID("_QueueOffset");
+		private readonly int AlphaClip = Shader.PropertyToID("_AlphaClip");
 		private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
 		private readonly int DstBlend = Shader.PropertyToID("_DstBlend");
 		private readonly int ZWrite = Shader.PropertyToID("_ZWrite");
@@ -78,7 +81,7 @@ namespace VisualPinball.Unity.Import.Material
 			if (table != null && vpxMaterial.HasNormalMap)
 			{
 				unityMaterial.SetTexture(
-					NormalMap,
+					BumpMap,
 					table.GetTexture(vpxMaterial.NormalMap.Name)
 				);
 			}
@@ -86,44 +89,49 @@ namespace VisualPinball.Unity.Import.Material
 			return unityMaterial;
 		}
 
-		// TODO figure out the blend modes in URP. _ALPHABLEND_ON isn't available in the HDRP shader
 		private void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
 		{
 			switch (blendMode)
 			{
 				case Engine.VPT.BlendMode.Opaque:
-					unityMaterial.SetFloat(Blend, 0);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
-					unityMaterial.SetInt(ZWrite, 1);
-					unityMaterial.DisableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
-					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+
+					// properties
+					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
+
+					// render queue
 					unityMaterial.renderQueue = -1;
+
 					break;
 
 				case Engine.VPT.BlendMode.Cutout:
-					unityMaterial.SetFloat(Blend, 1);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
-					unityMaterial.SetInt(ZWrite, 1);
+
+					// keywords
 					unityMaterial.EnableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
-					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+
+					// properties
+					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetInt(AlphaClip, 1);
+
+					// render queue
 					unityMaterial.renderQueue = 2450;
+
 					break;
 
 				case Engine.VPT.BlendMode.Translucent:
-					unityMaterial.SetFloat(Blend, 3);
-					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
-					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-					//!!!!!!! this is normally switched off but somehow enabling it seems to resolve so many issues.. keep an eye out for weirld opacity issues
-					//unityMaterial.SetInt("_ZWrite", 0);
-					unityMaterial.SetInt(ZWrite, 1);
-					unityMaterial.DisableKeyword("_ALPHATEST_ON");
-					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
+
+					// keywords
 					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-					unityMaterial.renderQueue = 3000;
+
+					// properties
+					unityMaterial.SetFloat(Surface, 1); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat(Blend, 1); // 0 = Alpha, 1 = Premultiply, 2 = Additive, 3 = Multiply
+
+					// render queue
+					int transparentRenderQueueBase = 3000;
+					int transparentSortingPriority = 0;
+					unityMaterial.SetInt(QueueOffset, transparentSortingPriority);
+					unityMaterial.renderQueue = transparentRenderQueueBase + transparentSortingPriority;
+
 					break;
 
 				default:
