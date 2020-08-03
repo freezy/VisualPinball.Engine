@@ -80,6 +80,8 @@ namespace VisualPinball.Unity.Import.Material
 			// normal map
 			if (table != null && vpxMaterial.HasNormalMap)
 			{
+				unityMaterial.EnableKeyword("_NORMALMAP");
+
 				unityMaterial.SetTexture(
 					BumpMap,
 					table.GetTexture(vpxMaterial.NormalMap.Name)
