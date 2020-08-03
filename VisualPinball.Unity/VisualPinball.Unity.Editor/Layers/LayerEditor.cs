@@ -70,10 +70,7 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private void OnHierarchyChange()
 		{
-			_layerHandler.OnHierarchyChange(null);
-			foreach (var tableBehavior in Resources.FindObjectsOfTypeAll<TableBehavior>()) {
-				_layerHandler.OnHierarchyChange(tableBehavior);
-			}
+			_layerHandler.OnHierarchyChange(Object.FindObjectOfType<TableBehavior>());
 			_treeView.Reload();
 		}
 
