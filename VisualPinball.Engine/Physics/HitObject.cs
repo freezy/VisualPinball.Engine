@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Physics
 		/// </summary>
 		public float Scatter;                                                  // m_scatter
 
-		public string ObjType = CollisionType.Null;
+		public readonly ItemType ObjType;
 		public bool IsEnabled = true;                                          // m_enabled
 
 		/// <summary>
@@ -51,6 +51,11 @@ namespace VisualPinball.Engine.Physics
 
 		public int ItemIndex;
 		public int ItemVersion;
+
+		protected HitObject(ItemType objType)
+		{
+			ObjType = objType;
+		}
 
 		public abstract void CalcHitBBox();
 
@@ -96,12 +101,11 @@ namespace VisualPinball.Engine.Physics
 				ball.Hit.EventPos.Set(ball.State.Pos.X, ball.State.Pos.Y, ball.State.Pos.Z);
 
 				// hit targets when used with a captured ball have always a too small distance
-				var normalDist = (ObjType == CollisionType.HitTarget) ? 0.0 : 0.25; // magic distance
+				var normalDist = ObjType == ItemType.HitTarget ? 0.0f : 0.25f; // magic distance
 
-				if (distLs > normalDist)
-				{
+				if (distLs > normalDist) {
 					// must be a new place if only by a little
-					Obj.FireGroupEvent(Event.HitEventsHit);
+					Obj.FireGroupEvent(EventId.HitEventsHit);
 				}
 			}
 		}
@@ -129,11 +133,6 @@ namespace VisualPinball.Engine.Physics
 		public void SetEnabled(bool isEnabled)
 		{
 			IsEnabled = isEnabled;
-		}
-
-		public void SetType(string type)
-		{
-			ObjType = type;
 		}
 
 		public void DoHitTest(Ball ball, CollisionEvent coll, PlayerPhysics physics)

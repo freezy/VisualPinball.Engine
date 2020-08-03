@@ -8,6 +8,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 	{
 		public bool IsCollidable => true;
 		public EventProxy EventProxy { get; private set; }
+		public string[] UsedMaterials => new string[] { Data.CapMaterial, Data.BaseMaterial, Data.RingMaterial, Data.SocketMaterial };
 
 		private readonly BumperMeshGenerator _meshGenerator;
 
@@ -23,7 +24,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public void Init(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			_hits = new HitObject[] {new BumperHit(Data.Center, Data.Radius, height, height + Data.HeightScale)};
+			_hits = new HitObject[] {new BumperHit(Data, height)};
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

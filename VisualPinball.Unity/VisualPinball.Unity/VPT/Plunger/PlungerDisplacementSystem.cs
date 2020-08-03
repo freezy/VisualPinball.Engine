@@ -1,105 +1,125 @@
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
+using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class PlungerDisplacementSystem : SystemBase
 	{
+		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private NativeQueue<EventData> _eventQueue;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerDisplacementSystem");
 
 		protected override void OnCreate()
 		{
+			_player = Object.FindObjectOfType<Player>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 
 		protected override void OnUpdate()
 		{
+			var events = _eventQueue.AsParallelWriter();
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
-			Entities.WithName("FlipperDisplacementJob").ForEach(
-				(ref PlungerMovementData movementData, ref PlungerColliderData colliderData, in PlungerStaticData staticData) =>
+			Entities.WithName("PlungerDisplacementJob").ForEach((Entity entity, ref PlungerMovementData movementData,
+				ref PlungerColliderData colliderData, in PlungerStaticData staticData) =>
+			{
+				marker.Begin();
+
+				// figure the travel distance
+				var dx = dTime * movementData.Speed;
+
+				// figure the position change
+				movementData.Position += dx;
+
+				// apply the travel limit
+				if (movementData.Position < movementData.TravelLimit) {
+					movementData.Position = movementData.TravelLimit;
+				}
+
+				// if we're in firing mode and we've crossed the bounce position, reverse course
+				var relPos = (movementData.Position - staticData.FrameEnd) / staticData.FrameLen;
+				var bouncePos = staticData.RestPosition + movementData.FireBounce;
+				if (movementData.FireTimer != 0 && dTime != 0.0f &&
+				    (movementData.FireSpeed < 0.0f ? relPos <= bouncePos : relPos >= bouncePos))
 				{
-					marker.Begin();
+					// stop at the bounce position
+					movementData.Position = staticData.FrameEnd + bouncePos * staticData.FrameLen;
 
-					// figure the travel distance
-					var dx = dTime * movementData.Speed;
+					// reverse course at reduced speed
+					movementData.FireSpeed = -movementData.FireSpeed * 0.4f;
 
-					// figure the position change
-					movementData.Position += dx;
+					// figure the new bounce as a fraction of the previous bounce
+					movementData.FireBounce *= -0.4f;
+				}
 
-					// apply the travel limit
+				// apply the travel limit (again)
+				if (movementData.Position < movementData.TravelLimit) {
+					movementData.Position = movementData.TravelLimit;
+				}
+
+				// limit motion to the valid range
+				if (dTime != 0.0f) {
+
+					if (movementData.Position < staticData.FrameEnd) {
+						movementData.Speed = 0.0f;
+						movementData.Position = staticData.FrameEnd;
+
+					} else if (movementData.Position > staticData.FrameStart) {
+						movementData.Speed = 0.0f;
+						movementData.Position = staticData.FrameStart;
+					}
+
+					// apply the travel limit (yet again)
 					if (movementData.Position < movementData.TravelLimit) {
 						movementData.Position = movementData.TravelLimit;
 					}
+				}
 
-					// if we're in firing mode and we've crossed the bounce position, reverse course
-					var relPos = (movementData.Position - staticData.FrameEnd) / staticData.FrameLen;
-					var bouncePos = staticData.RestPosition + movementData.FireBounce;
-					if (movementData.FireTimer != 0 && dTime != 0.0f &&
-					    (movementData.FireSpeed < 0.0f ? relPos <= bouncePos : relPos >= bouncePos))
-					{
-						// stop at the bounce position
-						movementData.Position = staticData.FrameEnd + bouncePos * staticData.FrameLen;
+				// the travel limit applies to one displacement update only - reset it
+				movementData.TravelLimit = staticData.FrameEnd;
 
-						// reverse course at reduced speed
-						movementData.FireSpeed = -movementData.FireSpeed * 0.4f;
+				// fire an Start/End of Stroke events, as appropriate
+				var strokeEventLimit = staticData.FrameLen / 50.0f;
+				var strokeEventHysteresis = strokeEventLimit * 2.0f;
+				if (movementData.StrokeEventsArmed && movementData.Position + dx > staticData.FrameStart - strokeEventLimit) {
+					events.Enqueue(new EventData(EventId.LimitEventsBos, entity, math.abs(movementData.Speed)));
+					movementData.StrokeEventsArmed = false;
 
-						// figure the new bounce as a fraction of the previous bounce
-						movementData.FireBounce *= -0.4f;
-					}
+				} else if (movementData.StrokeEventsArmed && movementData.Position + dx < staticData.FrameEnd + strokeEventLimit) {
+					events.Enqueue(new EventData(EventId.LimitEventsEos, entity, math.abs(movementData.Speed)));
+					movementData.StrokeEventsArmed = false;
 
-					// apply the travel limit (again)
-					if (movementData.Position < movementData.TravelLimit) {
-						movementData.Position = movementData.TravelLimit;
-					}
+				} else if (movementData.Position > staticData.FrameEnd + strokeEventHysteresis && movementData.Position < staticData.FrameStart - strokeEventHysteresis) {
+					// away from the limits - arm the stroke events
+					movementData.StrokeEventsArmed = true;
+				}
 
-					// limit motion to the valid range
-					if (dTime != 0.0f) {
+				// update the display
+				UpdateCollider(movementData.Position, ref colliderData);
 
-						if (movementData.Position < staticData.FrameEnd) {
-							movementData.Speed = 0.0f;
-							movementData.Position = staticData.FrameEnd;
+				marker.End();
+			}).Run();
 
-						} else if (movementData.Position > staticData.FrameStart) {
-							movementData.Speed = 0.0f;
-							movementData.Position = staticData.FrameStart;
-						}
-
-						// apply the travel limit (yet again)
-						if (movementData.Position < movementData.TravelLimit) {
-							movementData.Position = movementData.TravelLimit;
-						}
-					}
-
-					// the travel limit applies to one displacement update only - reset it
-					movementData.TravelLimit = staticData.FrameEnd;
-
-					// todo fire an Start/End of Stroke events, as appropriate
-					// var strokeEventLimit = staticData.FrameLen / 50.0f;
-					// var strokeEventHysteresis = strokeEventLimit * 2.0f;
-					// if (m_strokeEventsArmed && movementData.Position + dx > staticData.FrameStart - strokeEventLimit) {
-					// 	m_plunger->FireVoidEventParm(DISPID_LimitEvents_BOS, fabsf(movementData.Speed));
-					// 	m_strokeEventsArmed = false;
-					//
-					// } else if (m_strokeEventsArmed && movementData.Position + dx < staticData.FrameEnd + strokeEventLimit) {
-					// 	m_plunger->FireVoidEventParm(DISPID_LimitEvents_EOS, fabsf(movementData.Speed));
-					// 	m_strokeEventsArmed = false;
-					// } else if (movementData.Position > staticData.FrameEnd + strokeEventHysteresis
-					//          && movementData.Position < staticData.FrameStart - strokeEventHysteresis)
-					// {
-					// 	// away from the limits - arm the stroke events
-					// 	m_strokeEventsArmed = true;
-					// }
-
-					// update the display
-					UpdateCollider(movementData.Position, ref colliderData);
-
-					marker.End();
-				}).Run();
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.OnEvent(in eventData);
+			}
 		}
 
 		private static void UpdateCollider(float len, ref PlungerColliderData colliderData)

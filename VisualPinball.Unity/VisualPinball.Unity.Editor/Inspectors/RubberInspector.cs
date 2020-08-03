@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				TextureField("Image", ref _rubber.data.Image);
 				MaterialField("Material", ref _rubber.data.Material);
 				ItemDataField("Visible", ref _rubber.data.IsVisible);
+				ItemDataField("Static", ref _rubber.data.StaticRendering);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

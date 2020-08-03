@@ -1,0 +1,42 @@
+﻿namespace VisualPinball.Engine.VPT
+{
+	/// <summary>
+	/// Identifies the type of a game item
+	/// </summary>
+	///
+	/// <remarks>
+	/// The values are how they are written and read from the .vpx file, so
+	/// they are somewhat important ;)
+	/// </remarks>
+	public enum ItemType
+	{
+		Surface = 0,
+		Flipper = 1,
+		Timer = 2,
+		Plunger = 3,
+		TextBox = 4,
+		Bumper = 5,
+		Trigger = 6,
+		Light = 7,
+		Kicker = 8,
+		Decal = 9,
+		Gate = 10,
+		Spinner = 11,
+		Ramp = 12,
+		Table = 13,
+		LightCenter = 14,
+		DragPoint = 15,
+		Collection = 16,
+		DispReel = 17,
+		LightSeq = 18,
+		Primitive = 19,
+		Flasher = 20,
+		Rubber = 21,
+		HitTarget = 22,
+		Count = 23,
+		Invalid = -1,
+
+		// VPE internal
+		Ball = 100,
+	}
+}

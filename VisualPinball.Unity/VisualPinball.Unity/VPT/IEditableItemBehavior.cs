@@ -4,7 +4,10 @@ namespace VisualPinball.Unity.VPT
 {
 	public interface IEditableItemBehavior
 	{
+		bool IsLocked { get; set; }
 		bool MeshDirty { get; set; }
+		string[] UsedMaterials { get; }
+
 		void RebuildMeshes();
 
 		// the following interfaces allow each item behavior to define which axes should
@@ -22,7 +25,9 @@ namespace VisualPinball.Unity.VPT
 		Vector3 GetEditorScale();
 		void SetEditorScale(Vector3 pos);
 
-		bool IsLocked { get; set; }
+		// Called by the material editor when a rename occurs to give each item a chance
+		// to update its fields for the new name
+		void HandleMaterialRenamed(string undoName, string oldName, string newName);
 	}
 
 	public enum ItemDataTransformType

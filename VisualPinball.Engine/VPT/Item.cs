@@ -8,7 +8,7 @@ namespace VisualPinball.Engine.VPT
 	{
 		public readonly TData Data;
 
-		public string Name => Data.GetName();
+		public string Name { get { return Data.GetName(); } set { Data.SetName(value); } }
 		public int Index { get; set; }
 		public int Version { get; set; }
 

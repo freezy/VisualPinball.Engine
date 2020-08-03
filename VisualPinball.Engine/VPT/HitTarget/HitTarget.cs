@@ -1,18 +1,35 @@
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public class HitTarget : Item<HitTargetData>, IRenderable
+	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable
 	{
+		public bool IsCollidable => true;
+		public HitObject[] GetHitShapes() => _hits;
+		public EventProxy EventProxy { get; private set; }
+
+		public string[] UsedMaterials => new [] { Data.Material, Data.PhysicsMaterial };
+
 		private readonly HitTargetMeshGenerator _meshGenerator;
+		private readonly HitTargetHitGenerator _hitGenerator;
+		private HitObject[] _hits;
 
 		public HitTarget(HitTargetData data) : base(data)
 		{
 			_meshGenerator = new HitTargetMeshGenerator(Data);
+			_hitGenerator = new HitTargetHitGenerator(Data, _meshGenerator);
 		}
 
 		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName)) { }
+
+
+		public void Init(Table.Table table)
+		{
+			EventProxy = new EventProxy(this);
+			_hits = _hitGenerator.GenerateHitObjects(table);
+		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

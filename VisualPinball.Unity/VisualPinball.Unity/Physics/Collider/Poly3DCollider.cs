@@ -6,19 +6,21 @@ using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
 {
 	public struct Poly3DCollider : ICollider, ICollidable
 	{
-		private ColliderHeader _header;
 
+		private ColliderHeader _header;
 		private float3 _normal;
 		private BlobArray _rgvBlob; // read comment at Unity.Physics.BlobArray
 		public BlobArray.Accessor<float3> _rgv => new BlobArray.Accessor<float3>(ref _rgvBlob);
 
 		public ColliderType Type => _header.Type;
+		public float3 Normal() => _normal;
 
 		public static unsafe void Create(BlobBuilder builder, Hit3DPoly src, ref BlobPtr<Collider> dest)
 		{
@@ -57,9 +59,16 @@ namespace VisualPinball.Unity.Physics.Collider
 			return -1;
 		}
 
-		// public override string ToString()
-		// {
-		// 	return $"Poly3DCollider, rgv[0] = {_rgv[0]}";
-		// }
+		public void Collide(ref BallData ball,  ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			in CollisionEventData collEvent, ref Random random)
+		{
+			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in _normal, ref random);
+
+			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+				// todo m_obj->m_currentHitThreshold = dot;
+				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+			}
+		}
 	}
 }

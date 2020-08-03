@@ -17,6 +17,7 @@ namespace VisualPinball.Engine.VPT.Timer
 	public class TimerData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 4)]
 		public string Name;
@@ -47,8 +48,8 @@ namespace VisualPinball.Engine.VPT.Timer
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Timer);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Timer);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

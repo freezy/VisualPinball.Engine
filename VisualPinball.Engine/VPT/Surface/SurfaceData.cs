@@ -15,10 +15,10 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
-	[BiffIgnore("PNTS")]
 	public class SurfaceData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
 		public string Name;
@@ -116,6 +116,8 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffInt("TMIN", Pos = 7)]
 		public int TimerInterval;
 
+		[BiffTag("PNTS", Pos = 1999)]
+		public bool Points;
 
 		// IPhysicalData
 		public float GetElasticity() => Elasticity;
@@ -143,8 +145,8 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Surface);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Surface);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

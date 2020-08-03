@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using VisualPinball.Engine.Common;
+﻿using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -11,10 +11,9 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D[] Rgv;                                      // m_rgv
 		public readonly Vertex3D Normal = new Vertex3D();                    // m_normal
 
-		public Hit3DPoly(Vertex3D[] rgv, string objType = null)
+		public Hit3DPoly(Vertex3D[] rgv, ItemType objType) : base(objType)
 		{
 			Rgv = rgv;
-			ObjType = objType;
 
 			// Newell's method for normal computation
 			for (var i = 0; i < Rgv.Length; ++i) {
@@ -60,7 +59,7 @@ namespace VisualPinball.Engine.Physics
 			var hitNormal = coll.HitNormal;
 
 			/* istanbul ignore This else seems dead code to me. The actual trigger logic is handled in TriggerHitCircle and TriggerHitLine. */
-			if (ObjType != CollisionType.Trigger) {
+			if (ObjType != ItemType.Trigger) {
 				var dot = -hitNormal.Dot(ball.Hit.Vel);
 				ball.Hit.Collide3DWall(Normal, Elasticity, ElasticityFalloff, Friction, Scatter);
 
@@ -79,11 +78,11 @@ namespace VisualPinball.Engine.Physics
 					ball.State.Pos.Add(addPos);     // move ball slightly forward
 					if (i < 0) {
 						ball.Hit.VpVolObjs.Add(Obj);
-						Obj.FireGroupEvent(Event.HitEventsHit);
+						Obj.FireGroupEvent(EventId.HitEventsHit);
 
 					} else {
 						ball.Hit.VpVolObjs.RemoveAt(i);
-						Obj.FireGroupEvent(Event.HitEventsUnhit);
+						Obj.FireGroupEvent(EventId.HitEventsUnhit);
 					}
 				}
 			}
@@ -99,7 +98,7 @@ namespace VisualPinball.Engine.Physics
 			var bnv = Normal.Dot(ball.Hit.Vel);
 
 			// return if clearly ball is receding from object
-			if (ObjType != CollisionType.Trigger && bnv > PhysicsConstants.LowNormVel) {
+			if (ObjType != ItemType.Trigger && bnv > PhysicsConstants.LowNormVel) {
 				return -1.0f;
 			}
 
@@ -111,7 +110,7 @@ namespace VisualPinball.Engine.Physics
 
 			var bUnHit = bnv > PhysicsConstants.LowNormVel;
 			var inside = bnd <= 0; // in ball inside object volume
-			var rigid = ObjType != CollisionType.Trigger;
+			var rigid = ObjType != ItemType.Trigger;
 			float hitTime;
 
 			if (rigid) {

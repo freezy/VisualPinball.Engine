@@ -6,6 +6,7 @@ using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Utils;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;

@@ -1,11 +1,14 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Common;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Flipper
@@ -29,17 +32,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 
 		private void Init(FlipperHit src)
 		{
-			_header.Type = ColliderType.Flipper;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			_header.Id = src.Id;
-			_header.Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				Scatter = src.Scatter,
-			};
-
+			_header.Init(ColliderType.Flipper, src);
 			_hitCircleBase = CircleCollider.Create(src.HitCircleBase);
 			_zLow = src.HitBBox.ZLow;
 			_zHigh = src.HitBBox.ZHigh;
@@ -622,7 +615,8 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#region Collision
 
 		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
-			in FlipperStaticData matData, in FlipperVelocityData velData)
+			ref NativeQueue<EventData>.ParallelWriter events, in FlipperStaticData matData,
+			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
 			GetRelativeVelocity(normal, ball, movementData, out var vRel, out var rB, out var rF);
@@ -751,20 +745,20 @@ namespace VisualPinball.Unity.VPT.Flipper
 				movementData.ApplyImpulse(-jt * crossF, matData.Inertia);
 			}
 
-			// todo events
-			// if (bnv < -0.25 && physics.TimeMsec - _lastHitTime > 250) {
-			// 	// limit rate to 250 milliseconds per event
-			// 	var flipperHit =
-			// 		hitData.HitMomentBit ? -1.0 : -bnv; // move event processing to end of collision handler...
-			// 	if (flipperHit < 0) {
-			// 		_events.FireGroupEvent(Event.HitEventsHit); // simple hit event
-			//
-			// 	} else {
-			// 		// collision velocity (normal to face)
-			// 		_events.FireVoidEventParam(Event.FlipperEventsCollide, flipperHit);
-			// 	}
-			// }
-			// _lastHitTime = physics.TimeMsec; // keep resetting until idle for 250 milliseconds
+			// event
+			if (bnv < -0.25f && timeMsec - movementData.LastHitTime > 250) {
+				// limit rate to 250 milliseconds per event
+				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
+				if (flipperHit < 0f) {
+					// simple hit event
+					events.Enqueue(new EventData(EventId.HitEventsHit, _header.Entity, true));
+
+				} else {
+					// collision velocity (normal to face)
+					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.Entity, flipperHit));
+				}
+			}
+			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds
 		}
 
 		#endregion

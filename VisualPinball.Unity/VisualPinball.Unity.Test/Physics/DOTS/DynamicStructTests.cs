@@ -6,8 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Test.Physics.DOTS
@@ -54,7 +53,7 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 		public void ShouldSerializePoly3DCollider()
 		{
 			var colliderBlob = ColliderBlob.CreateBlobAssetReference( new List<HitObject> {
-				new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) })
+				new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) }, ItemType.Table)
 			}, 0, 0);
 
 			ref var poly3DCollider = ref colliderBlob.Value.Colliders[0].Value;

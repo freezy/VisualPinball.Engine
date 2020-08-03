@@ -26,7 +26,6 @@ namespace VisualPinball.Engine.IO
 			var bytes = Encoding.Default.GetBytes(value);
 			if (bytes.Length == length) {
 				return bytes;
-
 			}
 
 			if (bytes.Length > length) {

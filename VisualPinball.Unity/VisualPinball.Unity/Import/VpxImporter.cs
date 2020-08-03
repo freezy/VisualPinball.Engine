@@ -154,9 +154,7 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// apply transformation
-			if (rog.HasChildren) {
-				obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
-			}
+			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 
 			// add unity component
 			MonoBehaviour ic = null;
@@ -164,7 +162,7 @@ namespace VisualPinball.Unity.Import
 				case Bumper bumper:					ic = bumper.SetupGameObject(obj, rog); break;
 				case Flipper flipper:				ic = flipper.SetupGameObject(obj, rog); break;
 				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:			ic = obj.AddComponent<HitTargetBehavior>().SetData(hitTarget.Data); break;
+				case HitTarget hitTarget:			ic = hitTarget.SetupGameObject(obj, rog); break;
 				case Kicker kicker:					ic = obj.AddComponent<KickerBehavior>().SetData(kicker.Data); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
@@ -191,7 +189,7 @@ namespace VisualPinball.Unity.Import
 		{
 			// add table component (plus other data)
 			_tb = go.AddComponent<TableBehavior>();
-			_tb.SetData(table.Data);
+			_tb.SetItemAndData(table);
 
 			var sidecar = _tb.GetOrCreateSidecar();
 

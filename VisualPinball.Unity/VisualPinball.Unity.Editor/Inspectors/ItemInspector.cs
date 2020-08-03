@@ -22,26 +22,43 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
+			PopulateDropDownOptions();
+			EditorApplication.hierarchyChanged += OnHierarchyChange;
+		}
+		protected virtual void OnDisable()
+		{
+			EditorApplication.hierarchyChanged -= OnHierarchyChange;
+		}
 
-			if (_table != null) {
-				if (_table.data.Materials != null) {
-					_allMaterials = new string[_table.data.Materials.Length + 1];
-					_allMaterials[0] = "- none -";
-					for (int i = 0; i < _table.data.Materials.Length; i++) {
-						_allMaterials[i + 1] = _table.data.Materials[i].Name;
-					}
-					Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
+		protected void PopulateDropDownOptions()
+		{
+			if (_table == null) return;
+
+			if (_table.data.Materials != null) {
+				_allMaterials = new string[_table.data.Materials.Length + 1];
+				_allMaterials[0] = "- none -";
+				for (int i = 0; i < _table.data.Materials.Length; i++) {
+					_allMaterials[i + 1] = _table.data.Materials[i].Name;
 				}
-				if (_table.Textures != null) {
-					_allTextures = new string[_table.Textures.Length + 1];
-					_allTextures[0] = "- none -";
-					for (int i = 0; i < _table.Textures.Length; i++) {
-						_allTextures[i + 1] = _table.Textures[i].Name;
-					}
-					Array.Sort(_allTextures, 1, _allTextures.Length - 1);
+				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
+			}
+			if (_table.Textures != null) {
+				_allTextures = new string[_table.Textures.Length + 1];
+				_allTextures[0] = "- none -";
+				for (int i = 0; i < _table.Textures.Length; i++) {
+					_allTextures[i + 1] = _table.Textures[i].Name;
+				}
+				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
+			}
+		}
+
+		protected virtual void OnHierarchyChange()
+		{
+			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item) {
+				if (item.Name != bh.gameObject.name) {
+					item.Name = bh.gameObject.name;
 				}
 			}
-
 		}
 
 		protected void OnPreInspectorGUI()
@@ -214,7 +231,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 			int selectedIndex = 0;
 			for (int i = 0; i < _allTextures.Length; i++) {
-				if (_allTextures[i] == field) {
+				if (_allTextures[i].ToLower() == field.ToLower()) {
 					selectedIndex = i;
 					break;
 				}
@@ -229,6 +246,12 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
 		{
+			// if the field is set, but the material isn't in our list, maybe it was added after this
+			// inspector was instantiated, so re-grab our mat options from the table data
+			if (!string.IsNullOrEmpty(field) && !_allMaterials.Contains(field)) {
+				PopulateDropDownOptions();
+			}
+
 			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
 				field = ""; // don't store the none value string in our data 

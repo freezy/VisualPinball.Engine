@@ -1,6 +1,7 @@
 using System.Linq;
 using NLog;
 using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -12,12 +13,15 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.VPT
 {
-	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IIdentifiableItemBehavior
+		where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
+		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
+		public string[] UsedMaterials => (Item as IRenderable)?.UsedMaterials;
 
 		protected TableData _tableData;
 		private TItem _item;
@@ -29,6 +33,12 @@ namespace VisualPinball.Unity.VPT
 		[SerializeField]
 		private bool _meshDirty;
 		public bool MeshDirty { get { return _meshDirty; } set { _meshDirty = value; } }
+
+		public ItemBehavior<TItem, TData> SetItemAndData(TItem item, string gameObjectName = null)
+		{
+			_item = item;
+			return SetData(item.Data, gameObjectName);
+		}
 
 		public ItemBehavior<TItem, TData> SetData(TData d, string gameObjectName = null)
 		{
@@ -81,9 +91,7 @@ namespace VisualPinball.Unity.VPT
 					}
 				}
 			}
-			if (rog.HasChildren) {
-				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
-			}
+			transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 			ItemDataChanged();
 			_meshDirty = false;
 		}
@@ -102,7 +110,18 @@ namespace VisualPinball.Unity.VPT
 		public virtual Vector3 GetEditorScale() { return Vector3.zero; }
 		public virtual void SetEditorScale(Vector3 rot) { }
 
-		public bool IsLocked { get { return data.IsLocked; } set { data.IsLocked = value; } }
+		public virtual void HandleMaterialRenamed(string undoName, string oldName, string newName) { }
+
+		// rename helper to cut down on the boiler plate in the concrete classes
+		protected void TryRenameField(string undoName, ref string field, string oldName, string newName)
+		{
+			if (field == oldName) {
+#if UNITY_EDITOR
+				Undo.RecordObject(this, undoName);
+#endif
+				field = newName;
+			}
+		}
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
@@ -121,6 +140,12 @@ namespace VisualPinball.Unity.VPT
 
 		protected virtual void OnDrawGizmos()
 		{
+			// handle dirty whenever scene view draws just in case a field or dependant changed and our
+			// custom inspector window isn't up to process it
+			if (_meshDirty) {
+				RebuildMeshes();
+			}
+
 			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
 			// selects the item itself first, which is most likely what the user would want
 			var mfs = this.GetComponentsInChildren<MeshFilter>();
@@ -158,5 +183,7 @@ namespace VisualPinball.Unity.VPT
 		protected abstract string[] Children { get; }
 
 		protected abstract TItem GetItem();
+
+		public string Name { get { return Item.Name; } set { Item.Name = value; } }
 	}
 }

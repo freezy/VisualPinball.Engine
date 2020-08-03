@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.Decal
 	public class DecalData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 7)]
 		public string Name;
@@ -78,8 +79,8 @@ namespace VisualPinball.Engine.VPT.Decal
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Decal);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Decal);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

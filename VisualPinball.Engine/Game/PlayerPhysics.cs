@@ -393,7 +393,7 @@ namespace VisualPinball.Engine.Game
 					foreach (var hitTimer in _hitTimers) {
 						if (hitTimer.Interval >= 0 && hitTimer.NextFire <= timeCur || hitTimer.Interval < 0) {
 							var curNextFire = hitTimer.NextFire;
-							hitTimer.Events.FireGroupEvent(Event.TimerEventsTimer);
+							hitTimer.Events.FireGroupEvent(EventId.TimerEventsTimer);
 							// Only add interval if the next fire time hasn't changed since the event was run.
 							if (curNextFire == hitTimer.NextFire) {
 								hitTimer.NextFire += (uint)hitTimer.Interval;

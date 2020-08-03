@@ -42,6 +42,11 @@ namespace VisualPinball.Engine.Math
 			}
 		}
 
+		public Color Clone()
+		{
+			return new Color(Red, Green, Blue, Alpha);
+		}
+
 		public bool IsGray()
 		{
 			return Red == Green && Green == Blue;
@@ -50,6 +55,17 @@ namespace VisualPinball.Engine.Math
 		public override string ToString()
 		{
 			return $"rgba({System.Math.Round(R, 3)}, {System.Math.Round(G, 3)}, {System.Math.Round(B, 3)}, {System.Math.Round(A, 3)})";
+		}
+
+		public int ToInt(ColorFormat format)
+		{
+			switch (format) {
+				case ColorFormat.Bgr:
+					return Red + (Green << 8) + (Blue << 16);
+				case ColorFormat.Argb:
+					return (Red << 16) + (Green << 8) + Blue + (Alpha << 24);
+			}
+			return 0;
 		}
 	}
 

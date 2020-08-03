@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.Gate
 	public class GateData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 18)]
 		public string Name;
@@ -96,8 +97,8 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Gate);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Gate);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

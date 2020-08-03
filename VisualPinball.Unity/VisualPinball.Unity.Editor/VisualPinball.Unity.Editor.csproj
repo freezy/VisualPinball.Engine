@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>VisualPinball.Unity.Editor</Title>
     <Description>A bridge between VisualPinball.Engine and Unity</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
@@ -33,6 +33,9 @@
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\Vendor\.unity\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

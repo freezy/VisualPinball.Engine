@@ -91,9 +91,17 @@ namespace VisualPinball.Engine.VPT
 		internal readonly MaterialData MaterialData;
 		internal PhysicsMaterialData PhysicsMaterialData;
 
+		public Material()
+		{
+			MaterialData = new MaterialData();
+			PhysicsMaterialData = new PhysicsMaterialData();
+		}
+
 		public Material(BinaryReader reader)
 		{
 			MaterialData = new MaterialData(reader);
+			PhysicsMaterialData = new PhysicsMaterialData();
+
 			Name = MaterialData.Name;
 			BaseColor = new Color(MaterialData.BaseColor, ColorFormat.Bgr);
 			Glossiness = new Color(MaterialData.Glossiness, ColorFormat.Bgr);
@@ -109,9 +117,62 @@ namespace VisualPinball.Engine.VPT
 			EdgeAlpha = BiffFloatAttribute.DequantizeUnsigned(7, MaterialData.OpacityActiveEdgeAlpha >> 1); //dequantizeUnsigned<7>(mats[i].bOpacityActiveEdgeAlpha >> 1);
 		}
 
-		public Material(string name)
+		public Material(string name) : this()
 		{
 			Name = name;
+			BaseColor = new Color(255, 255, 255, 255);
+			Glossiness = new Color(0, 0, 0, 255);
+			ClearCoat = new Color(0, 0, 0, 255);
+
+			UpdateData();
+		}
+
+		public Material Clone(string name = null)
+		{
+			var clone = new Material {
+				Name = string.IsNullOrEmpty(name) ? Name : name,
+				WrapLighting = WrapLighting,
+				Roughness = Roughness,
+				GlossyImageLerp = GlossyImageLerp,
+				Thickness = Thickness,
+				Edge = Edge,
+				EdgeAlpha = EdgeAlpha,
+				Opacity = Opacity,
+				BaseColor = BaseColor.Clone(),
+				Glossiness = Glossiness.Clone(),
+				ClearCoat = ClearCoat.Clone(),
+				IsMetal = IsMetal,
+				IsOpacityActive = IsOpacityActive,
+				Elasticity = Elasticity,
+				ElasticityFalloff = ElasticityFalloff,
+				Friction = Friction,
+				ScatterAngle = ScatterAngle,
+			};
+			clone.UpdateData();
+			return clone;
+		}
+
+		public void UpdateData()
+		{
+			MaterialData.Name = Name;
+			MaterialData.BaseColor = BaseColor.ToInt(ColorFormat.Bgr);
+			MaterialData.Glossiness = Glossiness.ToInt(ColorFormat.Bgr);
+			MaterialData.ClearCoat = ClearCoat.ToInt(ColorFormat.Bgr);
+			MaterialData.WrapLighting = WrapLighting;
+			MaterialData.Roughness = Roughness;
+			MaterialData.GlossyImageLerp = (byte)BiffFloatAttribute.QuantizeUnsigned(8, MathF.Clamp(1f - GlossyImageLerp, 0f, 1f));
+			MaterialData.Thickness =  (byte)BiffFloatAttribute.QuantizeUnsigned(8, MathF.Clamp(Thickness, 0f, 1f));
+			MaterialData.Edge = Edge;
+			MaterialData.Opacity = Opacity;
+			MaterialData.IsMetal = IsMetal ? (byte)1 : (byte)0;
+			MaterialData.OpacityActiveEdgeAlpha = IsOpacityActive ? (byte)1 : (byte)0;
+			MaterialData.OpacityActiveEdgeAlpha |= (byte)(BiffFloatAttribute.QuantizeUnsigned(7, MathF.Clamp(EdgeAlpha, 0f, 1f)) << 1);
+
+			PhysicsMaterialData.Name = Name;
+			PhysicsMaterialData.Elasticity = Elasticity;
+			PhysicsMaterialData.ElasticityFallOff = ElasticityFalloff;
+			PhysicsMaterialData.Friction = Friction;
+			PhysicsMaterialData.ScatterAngle = ScatterAngle;
 		}
 
 		public void UpdatePhysics(PhysicsMaterialData physMat)

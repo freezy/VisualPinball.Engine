@@ -19,6 +19,7 @@ namespace VisualPinball.Engine.VPT.Light
 	public class LightData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
 		public string Name;
@@ -121,8 +122,8 @@ namespace VisualPinball.Engine.VPT.Light
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Light);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Light);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

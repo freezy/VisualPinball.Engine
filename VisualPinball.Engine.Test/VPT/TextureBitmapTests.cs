@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Engine.Test.VPT
 {
@@ -45,6 +46,12 @@ namespace VisualPinball.Engine.Test.VPT
 			stats.Opaque.Should().Be(0.657285035f);
 			stats.Translucent.Should().Be(0.0102373762f);
 			stats.Transparent.Should().Be(0.33247757f);
+		}
+
+		[Test]
+		public void ShouldShipWithBallResource()
+		{
+			Resource.BallDebug.Data.Length.Should().BeGreaterThan(0);
 		}
 	}
 }

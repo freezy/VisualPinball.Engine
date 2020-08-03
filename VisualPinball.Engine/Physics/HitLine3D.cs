@@ -1,5 +1,6 @@
 ﻿using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -10,7 +11,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly float ZLow;
 		public readonly float ZHigh;
 
-		public HitLine3D(Vertex3D v1, Vertex3D v2) : base(new Vertex2D())
+		public HitLine3D(Vertex3D v1, Vertex3D v2, ItemType itemType) : base(new Vertex2D(), itemType)
 		{
 			var vLine = v2.Clone().Sub(v1);
 			vLine.Normalize();

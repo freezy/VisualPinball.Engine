@@ -7,7 +7,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Extensions;
@@ -64,6 +63,12 @@ namespace VisualPinball.Unity.VPT.Flipper
 				data.RubberWidth = scale.z * rubberWidthRatio;
 			}
 			data.Height = scale.z;
+		}
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+			TryRenameField(undoName, ref data.RubberMaterial, oldName, newName);
 		}
 
 		private FlipperStaticData GetMaterialData()

@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private readonly float _y;
 		private readonly float _x2;
 
-		public PlungerHit(PlungerData data, float zHeight)
+		public PlungerHit(PlungerData data, float zHeight) : base(ItemType.Plunger)
 		{
 			_data = data;
 			_zHeight = zHeight;
@@ -38,16 +38,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Position = FrameTop + RestPos * FrameLen;
 
 			// static
-			LineSegBase = new LineSeg(new Vertex2D(_x, _y), new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight);
-			JointBase[0] = new HitLineZ(new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight);
-			JointBase[1] = new HitLineZ(new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight);
+			LineSegBase = new LineSeg(new Vertex2D(_x, _y), new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			JointBase[0] = new HitLineZ(new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			JointBase[1] = new HitLineZ(new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
 
 			// dynamic
-			LineSegSide[0] = new LineSeg(new Vertex2D(_x + 0.0001f, Position), new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight);
-			LineSegSide[1] = new LineSeg(new Vertex2D(_x2, _y), new Vertex2D(_x2 + 0.0001f, Position), zHeight, zHeight + Plunger.PlungerHeight);
-			LineSegEnd = new LineSeg(new Vertex2D(_x2, Position), new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight);
-			JointEnd[0] = new HitLineZ(new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight);
-			JointEnd[1] = new HitLineZ(new Vertex2D(_x2, Position), zHeight, zHeight + Plunger.PlungerHeight);
+			LineSegSide[0] = new LineSeg(new Vertex2D(_x + 0.0001f, Position), new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			LineSegSide[1] = new LineSeg(new Vertex2D(_x2, _y), new Vertex2D(_x2 + 0.0001f, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			LineSegEnd = new LineSeg(new Vertex2D(_x2, Position), new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			JointEnd[0] = new HitLineZ(new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			JointEnd[1] = new HitLineZ(new Vertex2D(_x2, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
 		}
 
 		public override void CalcHitBBox()

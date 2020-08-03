@@ -32,7 +32,7 @@ namespace VisualPinball.Engine.VPT.Gate
 				_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 				_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 			};
-			var lineSeg = new LineSeg(rgv[0], rgv[1], height, height + 2.0f * PhysicsConstants.PhysSkin); //!! = ball diameter
+			var lineSeg = new LineSeg(rgv[0], rgv[1], height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Gate); //!! = ball diameter
 
 			lineSeg.SetElasticity(_gateData.Elasticity);
 			lineSeg.SetFriction(_gateData.Friction);
@@ -57,9 +57,9 @@ namespace VisualPinball.Engine.VPT.Gate
 			if (_gateData.ShowBracket) {
 				return new[] {
 					new HitCircle(_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
-						height, height + _gateData.Height),
+						height, height + _gateData.Height, ItemType.Gate),
 					new HitCircle(_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
-						height, height + _gateData.Height),
+						height, height + _gateData.Height, ItemType.Gate),
 				};
 			}
 

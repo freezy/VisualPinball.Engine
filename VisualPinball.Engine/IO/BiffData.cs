@@ -165,13 +165,13 @@ namespace VisualPinball.Engine.IO
 			return obj;
 		}
 
-		protected void Write(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
+		protected void WriteRecord(BinaryWriter writer, Dictionary<string, List<BiffAttribute>> attributes, HashWriter hashWriter)
 		{
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
 				.Select(a => a[0] as ISortableBiffRecord)
-				.Concat(UnknownRecords)
+				.Concat(UnknownRecords ?? new List<UnknownBiffRecord>())
 				.OrderBy(r => r.GetPosition());
 			foreach (var record in records) {
 				try {

@@ -25,6 +25,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
+		public string[] UsedMaterials => new string[] { Data.PlayfieldMaterial };
+
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
 		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
@@ -97,6 +99,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
+			.Concat(HitTargets.Values)
 			.Concat(Plungers.Values)
 			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)
@@ -108,6 +111,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(Bumpers.Values)
 			.Concat(Flippers.Values)
 			.Concat(Gates.Values)
+			.Concat(HitTargets.Values)
 			.Concat(Plungers.Values)
 			.Concat(Ramps.Values)
 			.Concat(Rubbers.Values)

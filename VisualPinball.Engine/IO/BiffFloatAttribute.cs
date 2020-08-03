@@ -63,10 +63,10 @@ namespace VisualPinball.Engine.IO
 			return MathF.Min(i / (float) n, 1.0f);
 		}
 
-		private static uint QuantizeUnsigned(int bits, float x)
+		public static uint QuantizeUnsigned(int bits, float x)
 		{
 			var n = (1 << bits) - 1;
-			var np1 = (1 << bits);
+			var np1 = 1 << bits;
 			return System.Math.Min((uint)(x * np1), (uint)n);
 		}
 	}

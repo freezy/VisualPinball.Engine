@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Sound
@@ -11,6 +10,7 @@ namespace VisualPinball.Engine.VPT.Sound
 	public class SoundData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		public string Name;
 		public string Path;

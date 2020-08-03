@@ -1,5 +1,3 @@
-// ReSharper disable CompareOfFloatsByEqualityOperator
-
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -11,7 +9,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class SpinnerVelocitySystem : SystemBase
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerVelocitySystem");
 
 		protected override void OnUpdate()
 		{
@@ -22,7 +20,8 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 				marker.Begin();
 
-				movementData.AngleSpeed -= math.sin(movementData.AngleSpeed) * (float)(0.0025 * PhysicsConstants.PhysFactor); // Center of gravity towards bottom of object, makes it stop vertical
+				// Center of gravity towards bottom of object, makes it stop vertical
+				movementData.AngleSpeed -= math.sin(movementData.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
 				movementData.AngleSpeed *= data.Damping;
 
 				marker.End();

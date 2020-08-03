@@ -1,9 +1,11 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Gate
@@ -26,20 +28,12 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		private void Init(GateHit src)
 		{
-			_header.Type = ColliderType.Gate;
-			_header.ItemType = Collider.GetItemType(src.ObjType);
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			_header.Id = src.Id;
-			_header.Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				Scatter = src.Scatter,
-			};
+			_header.Init(ColliderType.Gate, src);
 
 			_lineSeg0 = LineCollider.Create(src.LineSeg0);
 			_lineSeg1 = LineCollider.Create(src.LineSeg1);
 		}
+
 
 		#region Narrowphase
 
@@ -50,8 +44,7 @@ namespace VisualPinball.Unity.VPT.Gate
 			// 	return -1.0;
 			// }
 
-			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
-			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = false;
@@ -71,7 +64,8 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		#region Collision
 
-		public static void Collide(in BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData, in GateStaticData data)
+		public static void Collide(ref BallData ball, ref CollisionEventData collEvent, ref GateMovementData movementData,
+			ref NativeQueue<EventData>.ParallelWriter events, in Collider coll, in GateStaticData data)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			var h = data.Height * 0.5f;
@@ -95,8 +89,7 @@ namespace VisualPinball.Unity.VPT.Gate
 				movementData.AngleSpeed = -movementData.AngleSpeed;
 			}
 
-			// todo
-			//this.fireHitEvent(ball);
+			Collider.FireHitEvent(ref ball, ref events, in coll.Header);
 		}
 
 		#endregion

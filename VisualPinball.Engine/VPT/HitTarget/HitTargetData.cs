@@ -15,9 +15,10 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.HitTarget
 {
 	[Serializable]
-	public class HitTargetData : ItemData
+	public class HitTargetData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 6)]
 		public string Name;
@@ -119,13 +120,22 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.HitTarget);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.HitTarget);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
 		#endregion
+
+		// IPhysicalData
+		public float GetElasticity() => Elasticity;
+		public float GetElasticityFalloff() => 0;
+		public float GetFriction() => Friction;
+		public float GetScatter() => Scatter;
+		public bool GetOverwritePhysics() => OverwritePhysics;
+		public bool GetIsCollidable() => IsCollidable;
+		public string GetPhysicsMaterial() => PhysicsMaterial;
 	}
 }

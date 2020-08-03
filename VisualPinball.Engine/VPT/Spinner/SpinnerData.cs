@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 	public class SpinnerData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
 		public string Name;
@@ -81,8 +82,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Spinner);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Spinner);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

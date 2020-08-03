@@ -10,6 +10,7 @@ namespace VisualPinball.Engine.VPT.Gate
 	{
 		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
+		public string[] UsedMaterials => new string[] { Data.Material };
 
 		private readonly GateMeshGenerator _meshGenerator;
 		private readonly GateHitGenerator _hitGenerator;

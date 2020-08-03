@@ -17,6 +17,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 	public class PlungerData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 23)]
 		public string Name;
@@ -130,8 +131,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Plunger);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Plunger);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

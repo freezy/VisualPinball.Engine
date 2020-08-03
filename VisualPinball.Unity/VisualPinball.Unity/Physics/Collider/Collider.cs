@@ -1,8 +1,11 @@
 ﻿using System;
 using NLog;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
@@ -10,12 +13,13 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.VPT;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 using VisualPinball.Unity.VPT.Flipper;
 using VisualPinball.Unity.VPT.Gate;
 using VisualPinball.Unity.VPT.Plunger;
 using VisualPinball.Unity.VPT.Spinner;
+using PhysicsMaterialData = VisualPinball.Unity.Physics.Collision.PhysicsMaterialData;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -32,9 +36,13 @@ namespace VisualPinball.Unity.Physics.Collider
 		public Entity Entity => Header.Entity;
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
+		public float Threshold => Header.Threshold;
+		public bool FireEvents => Header.FireEvents;
 
-		public static Collider None => new Collider {
-			Header = {
+		public static Collider None => new Collider
+		{
+			Header =
+			{
 				Type = ColliderType.None
 			}
 		};
@@ -43,7 +51,8 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
 		{
-			switch (src) {
+			switch (src)
+			{
 				case TriggerHitCircle triggerHitCircle:
 					CircleCollider.Create(builder, triggerHitCircle, ref dest, ColliderType.TriggerCircle);
 					break;
@@ -101,33 +110,37 @@ namespace VisualPinball.Unity.Physics.Collider
 		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallData ball, float dTime)
 		{
-			fixed (Collider* collider = &coll) {
-				switch (collider->Type) {
+			fixed (Collider* collider = &coll)
+			{
+				switch (collider->Type)
+				{
 					case ColliderType.Bumper:
 					case ColliderType.Circle:
-						return ((CircleCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+						return ((CircleCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Gate:
-						return ((GateCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+						return ((GateCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Line:
-						return ((LineCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+						return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.LineZ:
-						return ((LineZCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Line3D:
-						return ((Line3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((Line3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Point:
-						return ((PointCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Plane:
-						return ((PlaneCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Poly3D:
-						return ((Poly3DCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((Poly3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Spinner:
-						return ((SpinnerCollider*)collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
-						return ((TriangleCollider*)collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.TriggerCircle:
-						return ((CircleCollider*)collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball,
+							dTime, false, false, false);
 					case ColliderType.TriggerLine:
-						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime,
+							false, false, false);
 
 					case ColliderType.Plunger:
 					case ColliderType.Flipper:
@@ -144,58 +157,69 @@ namespace VisualPinball.Unity.Physics.Collider
 		/// Most colliders use the standard Collide3DWall routine, only overrides
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
-		public static unsafe void Collide(ref Collider coll, ref BallData ballData, in CollisionEventData collEvent, ref Random random)
+		public static unsafe void Collide(ref Collider coll, ref BallData ballData,
+			ref NativeQueue<EventData>.ParallelWriter events, in CollisionEventData collEvent,
+			ref Random random)
 		{
-			fixed (Collider* collider = &coll) {
-				switch (collider->Type) {
-					case ColliderType.Plane: ((PlaneCollider*)collider)->Collide(ref ballData, in collEvent, ref random); break;
-					default:  collider->Collide(ref ballData, in collEvent, ref random); break;
+			fixed (Collider* collider = &coll)
+			{
+				switch (collider->Type)
+				{
+					case ColliderType.Circle:
+						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						break;
+					case ColliderType.Line:
+						((LineCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Line3D:
+						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.LineZ:
+						((LineZCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Plane:
+						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						break;
+					case ColliderType.Point:
+						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Poly3D:
+						((Poly3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+					case ColliderType.Triangle:
+						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						break;
+
+					default:
+						throw new InvalidOperationException("Missing collider implementation for " + collider->Type);
 				}
 			}
 		}
 
-		private void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
 		{
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
-			// todo
-			// var dot = math.dot(coll.HitNormal, ball.Velocity);
-			// if (dot <= -m_threshold) {
-			// 	FireHitEvent(coll.m_ball);
-			// }
+			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
+
+				// is this the same place as last event? if same then ignore it
+				var posDiff = ball.EventPosition - ball.Position;
+				var distLs = math.lengthsq(posDiff);
+
+				// remember last collide position
+				ball.EventPosition = ball.Position;
+
+				// hit targets when used with a captured ball have always a too small distance
+				var normalDist = collHeader.ItemType == ItemType.HitTarget ? 0.0f : 0.25f; // magic distance
+
+				// must be a new place if only by a little
+				if (distLs > normalDist) {
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.Entity, true));
+				}
+			}
 		}
 
 		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
-		}
-
-		public static ItemType GetItemType(string name)
-		{
-			switch (name) {
-				case CollisionType.Null: return ItemType.Null;
-				case CollisionType.Point: return ItemType.Point;
-				case CollisionType.LineSeg: return ItemType.LineSeg;
-				case CollisionType.LineSegSlingshot: return ItemType.LineSegSlingshot;
-				case CollisionType.Joint: return ItemType.Joint;
-				case CollisionType.Circle: return ItemType.Circle;
-				case CollisionType.Flipper: return ItemType.Flipper;
-				case CollisionType.Plunger: return ItemType.Plunger;
-				case CollisionType.Spinner: return ItemType.Spinner;
-				case CollisionType.Ball: return ItemType.Ball;
-				case CollisionType.Poly: return ItemType.Poly;
-				case CollisionType.Triangle: return ItemType.Triangle;
-				case CollisionType.Plane: return ItemType.Plane;
-				case CollisionType.Line: return ItemType.Line;
-				case CollisionType.Gate: return ItemType.Gate;
-				case CollisionType.TextBox: return ItemType.TextBox;
-				case CollisionType.DispReel: return ItemType.DispReel;
-				case CollisionType.LightSeq: return ItemType.LightSeq;
-				case CollisionType.Primitive: return ItemType.Primitive;
-				case CollisionType.HitTarget: return ItemType.HitTarget;
-				case CollisionType.Trigger: return ItemType.Trigger;
-				case CollisionType.Kicker: return ItemType.Kicker;
-				default: return ItemType.Null;
-			}
 		}
 
 		public static unsafe string ToString(ref Collider coll)

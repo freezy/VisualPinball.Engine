@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
@@ -33,9 +32,8 @@ namespace VisualPinball.Engine.VPT.Ball
 			// balls aren't persisted
 		}
 
-		public override string GetName()
-		{
-			return $"Ball{Id}";
-		}
+		public override string GetName() => $"Ball{Id}";
+		public override void SetName(string name) {}
+
 	}
 }

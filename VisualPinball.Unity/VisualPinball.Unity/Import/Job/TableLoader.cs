@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Jobs;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Decal;
@@ -51,7 +50,7 @@ namespace VisualPinball.Unity.Import.Job
 			for (var i = 0; i < table.Data.NumGameItems; i++) {
 				if (job.ItemObj[i].ToInt32() > 0) {
 					var objHandle = (GCHandle) job.ItemObj[i];
-					switch (job.ItemType[i]) {
+					switch ((ItemType)job.ItemType[i]) {
 						case ItemType.Bumper: {
 							var item = objHandle.Target as Bumper;
 							table.Bumpers[item.Name] = item;
@@ -132,7 +131,7 @@ namespace VisualPinball.Unity.Import.Job
 							table.Surfaces[item.Name] = item;
 							break;
 						}
-						case ItemType.Textbox: {
+						case ItemType.TextBox: {
 							var item = objHandle.Target as TextBox;
 							table.TextBoxes[item.Name] = item;
 							break;
@@ -190,7 +189,7 @@ namespace VisualPinball.Unity.Import.Job
 
 				// convert result back to unmanaged
 				ItemObj[index] = MemHelper.ToIntPtr(item);
-				ItemType[index] = itemType;
+				ItemType[index] = (int)itemType;
 			}
 		}
 

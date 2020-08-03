@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VPT.Plunger;
@@ -33,6 +31,8 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
+			OnPreInspectorGUI();
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref _plunger.data.Type, _plungerTypeStrings, _plungerTypeValues);
 				MaterialField("Material", ref _plunger.data.Material);

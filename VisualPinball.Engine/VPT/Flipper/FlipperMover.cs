@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 			var height = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y);
 			var baseRadius = MathF.Max(data.BaseRadius, 0.01f);
-			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height);
+			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height, ItemType.Flipper);
 
 			IsInContact = false;
 			EnableRotateEvent = 0;
@@ -148,12 +148,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 				AngleSpeed = _angularMomentum / Inertia;
 
 				if (EnableRotateEvent > 0) {
-					Logger.Info("[{0}] Flipper is up", _data.GetName());
-					_events.FireVoidEventParam(Event.LimitEventsEOS, angleSpeed); // send EOS event
+					Logger.Info("[{0}] Flipper is up", _data.Name);
+					_events.FireVoidEventParam(EventId.LimitEventsEos, angleSpeed); // send EOS event
 
 				} else if (EnableRotateEvent < 0) {
-					Logger.Info("[{0}] Flipper is down", _data.GetName());
-					_events.FireVoidEventParam(Event.LimitEventsBOS, angleSpeed); // send Beginning of Stroke/Park event
+					Logger.Info("[{0}] Flipper is down", _data.Name);
+					_events.FireVoidEventParam(EventId.LimitEventsBos, angleSpeed); // send Beginning of Stroke/Park event
 				}
 
 				EnableRotateEvent = 0;

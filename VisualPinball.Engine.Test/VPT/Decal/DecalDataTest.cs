@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			data.VerticalText.Should().Be(false);
 			data.Width.Should().Be(66.1165f);
 			data.EditorLayer.Should().Be(2);
-			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerName.Should().Be(string.Empty);
 			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(false);
 		}
@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			data.VerticalText.Should().Be(true);
 			data.Width.Should().Be(100f);
 			data.EditorLayer.Should().Be(0);
-			data.EditorLayerName.Should().Be(null);
+			data.EditorLayerName.Should().Be(string.Empty);
 			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(true);
 		}

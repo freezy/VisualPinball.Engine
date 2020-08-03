@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		private readonly SpinnerData _data;
 
-		public SpinnerHit(SpinnerData data, float height)
+		public SpinnerHit(SpinnerData data, float height) : base(ItemType.Spinner)
 		{
 			_data = data;
 
@@ -31,8 +31,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
 			);
 
-			LineSeg0 = new LineSeg(v1, v2, height, height + (2.0f * PhysicsConstants.PhysSkin), CollisionType.Spinner);
-			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + (2.0f * PhysicsConstants.PhysSkin), CollisionType.Spinner);
+			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
+			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
 		}
 
 		public override void CalcHitBBox()

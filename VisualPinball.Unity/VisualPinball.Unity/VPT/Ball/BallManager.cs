@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -6,10 +7,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Resources;
 using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Import.Material;
 using VisualPinball.Unity.Physics.Engine;
 using Player = VisualPinball.Unity.Game.Player;
 
@@ -21,11 +20,6 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		private readonly Engine.VPT.Table.Table _table;
 
-		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
-		private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
-		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
 		public BallManager(Engine.VPT.Table.Table table)
@@ -50,7 +44,7 @@ namespace VisualPinball.Unity.VPT.Ball
 				m.GetColumn(2).magnitude
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
-			var material = CreateMaterial();
+			var material = BallMaterial.CreateMaterial();
 			var mesh = GetSphereMesh();
 
 			// create ball entity
@@ -143,52 +137,30 @@ namespace VisualPinball.Unity.VPT.Ball
 
 		#region Material
 
-		private static Material CreateMaterial()
-		{
-			if (GraphicsSettings.renderPipelineAsset != null) {
-				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
-					return CreateUniversalMaterial();
-				}
+		/// <summary>
+		/// Ball material creator instance for the current graphics pipeline
+		/// </summary>
+		public static IBallMaterial BallMaterial => CreateBallMaterial();
 
-				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
-					return CreateHDMaterial();
+		/// <summary>
+		/// Create a material converter depending on the graphics pipeline
+		/// </summary>
+		/// <returns></returns>
+		private static IBallMaterial CreateBallMaterial()
+		{
+			if (GraphicsSettings.renderPipelineAsset != null)
+			{
+				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset"))
+				{
+					return new UrpBallMaterial();
+				}
+				else if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset"))
+				{
+					return new HdrpBallMaterial();
 				}
 			}
 
-			return CreateStandardMaterial();
-		}
-
-		private static Material CreateStandardMaterial()
-		{
-			var material = new Material(Shader.Find("Standard"));
-			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
-			texture.LoadImage(Resource.BallDebug.Data);
-			material.SetTexture(MainTex, texture);
-			material.SetFloat(Metallic, 1f);
-			material.SetFloat(Glossiness, 1f);
-			return material;
-		}
-
-		private static Material CreateHDMaterial()
-		{
-			return CreateScriptableMaterial("High Definition Render Pipeline/Lit");
-		}
-
-		private static Material CreateUniversalMaterial()
-		{
-			return CreateScriptableMaterial("Universal Render Pipeline/Lit");
-		}
-
-		private static Material CreateScriptableMaterial(string shaderName)
-		{
-			var material = new Material(Shader.Find(shaderName));
-			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) {name = "BallDebugTexture"};
-			texture.LoadImage(Resource.BallDebug.Data);
-			material.SetTexture(BaseMap, texture);
-			material.SetColor(BaseColor, Color.white);
-			material.SetFloat(Metallic, 0.85f);
-			material.SetFloat(Glossiness, 0.75f);
-			return material;
+			return new StandardBallMaterial();
 		}
 
 		#endregion

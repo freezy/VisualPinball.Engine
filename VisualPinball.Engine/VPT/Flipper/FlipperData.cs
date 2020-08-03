@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 	public class FlipperData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
 		public string Name;
@@ -218,8 +219,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Flipper);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Flipper);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

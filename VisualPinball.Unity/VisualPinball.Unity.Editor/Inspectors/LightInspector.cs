@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _light.data.Center, dirtyMesh: false);
+				ItemDataField("", ref _light.data.Center);
 				SurfaceField("Surface", ref _light.data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

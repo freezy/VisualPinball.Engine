@@ -17,6 +17,7 @@ namespace VisualPinball.Engine.VPT.LightSeq
 	public class LightSeqData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public string Name;
@@ -70,8 +71,8 @@ namespace VisualPinball.Engine.VPT.LightSeq
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.LightSeq);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.LightSeq);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

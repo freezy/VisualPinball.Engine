@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 	public class PrimitiveData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
 		public string Name;
@@ -173,8 +174,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Primitive);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Primitive);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

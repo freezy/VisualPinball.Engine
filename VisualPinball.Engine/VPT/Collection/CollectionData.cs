@@ -17,6 +17,7 @@ namespace VisualPinball.Engine.VPT.Collection
 	public class CollectionData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 1)]
 		public string Name;
@@ -59,7 +60,7 @@ namespace VisualPinball.Engine.VPT.Collection
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes, hashWriter);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

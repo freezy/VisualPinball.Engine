@@ -1,16 +1,19 @@
-﻿using Unity.Mathematics;
+﻿using Unity.Collections;
+using Unity.Mathematics;
+using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Bumper
 {
 	public static class BumperCollider
 	{
-		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
-         			ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
-         			in Collider collider, in BumperStaticData data, ref Random random)
-         		{
+		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
+			in Collider collider, in BumperStaticData data, ref Random random)
+		{
 			// todo
 			// if (!m_enabled) return;
 
@@ -26,8 +29,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 				skirtData.HitEvent = true;
 				skirtData.BallPosition = ball.Position;
 
-				// todo event
-				// m_pbumper->FireGroupEvent(DISPID_HitEvents_Hit);
+				events.Enqueue(new EventData(EventId.HitEventsHit, collider.Entity, true));
 			}
 		}
 	}

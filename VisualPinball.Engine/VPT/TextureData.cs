@@ -10,14 +10,17 @@ using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Engine.VPT
 {
 	[Serializable]
 	public class TextureData : ItemData
 	{
-		public override string GetName() => Name;
 		public bool HasBitmap => Bitmap != null && Bitmap.Data != null && Bitmap.Data.Length > 0;
+
+		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
 		public string Name;
@@ -75,7 +78,7 @@ namespace VisualPinball.Engine.VPT
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			Write(writer, Attributes, hashWriter);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

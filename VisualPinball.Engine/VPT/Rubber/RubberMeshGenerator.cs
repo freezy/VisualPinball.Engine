@@ -1,7 +1,6 @@
 ﻿// ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
-using System.Numerics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -65,28 +64,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		internal Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
-			_data.StaticRendering = true;
 			var mesh = new Mesh(_data.Name);
-			int accuracy;
-			if (table.GetDetailLevel() < 5) {
-				accuracy = 6;
-
-			} else if (table.GetDetailLevel() >= 5 && table.GetDetailLevel() < 8) {
-				accuracy = 8;
-
-			} else {
-				accuracy = (int)(table.GetDetailLevel() * 1.3f); // see also below
-			}
-
-			// as solid rubbers are rendered into the static buffer, always use maximum precision
-			if (_data.StaticRendering) {
-				accuracy = (int)(10.0f * 1.2f); // see also above
-			}
-
-			if (acc != -1) {
-				// hit shapes and UI display have the same, static, precision
-				accuracy = acc;
-			}
+			const int accuracy = (int)(10.0f * 1.2f); // see also above
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float) (1.0 / 1.5)) : -1.0f;
 			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, table.GetDetailLevel(), (int)splineAccuracy);

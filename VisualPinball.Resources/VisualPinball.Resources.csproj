@@ -3,18 +3,39 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>VisualPinball.Resources</Title>
     <Description>A .NET port of Visual Pinball in C#</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
+    <Platforms>x64;x86</Platforms>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Textures\BallDebug.png" />
+    <EmbeddedResource Include="Textures\BallDebug.png" />
+    <None Remove="Textures\BumperBase.png" />
+    <EmbeddedResource Include="Textures\BumperBase.png" />
+    <None Remove="Textures\BumperCap.png" />
+    <EmbeddedResource Include="Textures\BumperCap.png" />
+    <None Remove="Textures\BumperRing.png" />
+    <EmbeddedResource Include="Textures\BumperRing.png" />
+    <None Remove="Textures\BumperSkirt.png" />
+    <EmbeddedResource Include="Textures\BumperSkirt.png" />
   </ItemGroup>
   <Target Name="DeployVendor" AfterTargets="CoreBuild">
     <ItemGroup>

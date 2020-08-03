@@ -1,9 +1,12 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -53,7 +56,7 @@ namespace VisualPinball.Unity.Physics.Collider
 			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, in ball, dTime, true, true, true);
 		}
 
-		public void Collide(ref BallData ball, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -90,18 +93,20 @@ namespace VisualPinball.Unity.Physics.Collider
 
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal, ref random);
 
-			// todo event
-			// if (m_obj && m_fe && !m_psurface->m_disabled && threshold) {
-			// 	// is this the same place as last event? if same then ignore it
-			// 	const float dist_ls = (pball->m_lastEventPos - pball->m_d.m_pos).LengthSquared();
-			// 	pball->m_lastEventPos = pball->m_d.m_pos; //remember last collide position
-			//
-			// 	if (dist_ls > 0.25f) //!! magic distance, must be a new place if only by a little
-			// 	{
-			// 		((IFireEvents*) m_obj)->FireGroupEvent(DISPID_SurfaceEvents_Slingshot);
-			// 		m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;
-			// 	}
-			// }
+			if (/*m_obj &&*/ _header.FireEvents /*&& !m_psurface->m_disabled*/ && threshold) { // todo enabled
+
+				// is this the same place as last event? if same then ignore it
+				var distLs = math.lengthsq(ball.EventPosition - ball.Position);
+				ball.EventPosition = ball.Position; // remember last collide position
+
+				// !! magic distance, must be a new place if only by a little
+				if (distLs > 0.25f) {
+					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.Entity, true));
+
+					// todo slingshot animation
+					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;
+				}
+			}
 		}
 	}
 }

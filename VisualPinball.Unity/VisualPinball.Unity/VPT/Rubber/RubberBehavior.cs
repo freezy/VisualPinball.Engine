@@ -5,21 +5,29 @@
 #endregion
 
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Rubber
 {
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>, IDragPointsEditable
+	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
 		protected override Engine.VPT.Rubber.Rubber GetItem()
 		{
 			return new Engine.VPT.Rubber.Rubber(data);
+		}
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			// register
+			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, gameObject);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
@@ -54,6 +62,12 @@ namespace VisualPinball.Unity.VPT.Rubber
 			data.RotX = rot.x;
 			data.RotY = rot.y;
 			data.RotZ = rot.z;
+		}
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+			TryRenameField(undoName, ref data.PhysicsMaterial, oldName, newName);
 		}
 
 		//IDragPointsEditable

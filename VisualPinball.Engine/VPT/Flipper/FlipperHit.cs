@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public HitCircle HitCircleBase => _mover.HitCircleBase;
 
-		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table)
+		public FlipperHit(FlipperData data, FlipperState state, EventProxy events, Table.Table table) : base(ItemType.Flipper)
 		{
 			data.UpdatePhysicsSettings(table);
 			_events = events;
@@ -320,11 +320,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 				var flipperHit =
 					coll.HitMomentBit ? -1.0 : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0) {
-					_events.FireGroupEvent(Event.HitEventsHit); // simple hit event
+					_events.FireGroupEvent(EventId.HitEventsHit); // simple hit event
 
 				} else {
 					// collision velocity (normal to face)
-					_events.FireVoidEventParam(Event.FlipperEventsCollide, flipperHit);
+					_events.FireVoidEventParam(EventId.FlipperEventsCollide, flipperHit);
 				}
 			}
 

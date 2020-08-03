@@ -11,7 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		public void ShouldReadRubberData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
-			ValidateRubberData(table.Rubbers["Rubber1"].Data);
+			ValidateRubberData1(table.Rubbers["Rubber1"].Data);
+			ValidateRubberData2(table.Rubbers["Rubber2"].Data);
 		}
 
 		[Test]
@@ -21,10 +22,11 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateRubberData(writtenTable.Rubbers["Rubber1"].Data);
+			ValidateRubberData1(writtenTable.Rubbers["Rubber1"].Data);
+			ValidateRubberData2(writtenTable.Rubbers["Rubber2"].Data);
 		}
 
-		private static void ValidateRubberData(RubberData data)
+		private static void ValidateRubberData1(RubberData data)
 		{
 			data.DragPoints.Length.Should().Be(3);
 			data.Elasticity.Should().Be(0.832f);
@@ -47,6 +49,32 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			data.ShowInEditor.Should().Be(false);
 			data.StaticRendering.Should().Be(true);
 			data.Thickness.Should().Be(12);
+			data.Points.Should().Be(true);
+		}
+
+		private static void ValidateRubberData2(RubberData data)
+		{
+			data.DragPoints.Length.Should().Be(3);
+			data.Elasticity.Should().Be(0.8f);
+			data.ElasticityFalloff.Should().Be(0.3f);
+			data.Friction.Should().Be(0.6f);
+			data.Height.Should().Be(25f);
+			data.HitEvent.Should().Be(false);
+			data.HitHeight.Should().Be(25f);
+			data.Image.Should().Be("");
+			data.IsCollidable.Should().Be(false);
+			data.IsReflectionEnabled.Should().Be(true);
+			data.IsVisible.Should().Be(true);
+			data.Material.Should().Be("");
+			data.OverwritePhysics.Should().Be(true);
+			data.PhysicsMaterial.Should().Be("");
+			data.RotX.Should().Be(0f);
+			data.RotY.Should().Be(0f);
+			data.RotZ.Should().Be(0f);
+			data.Scatter.Should().Be(5f);
+			data.ShowInEditor.Should().Be(false);
+			data.StaticRendering.Should().Be(false);
+			data.Thickness.Should().Be(8);
 		}
 	}
 }

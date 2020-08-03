@@ -10,6 +10,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
+using VisualPinball.Unity.Game;
 using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.VPT.Trigger
@@ -32,6 +33,10 @@ namespace VisualPinball.Unity.VPT.Trigger
 				Shape = data.Shape,
 				TableScaleZ = table.GetScaleZ()
 			});
+
+			// register
+			var trigger = GetComponent<TriggerBehavior>().Item;
+			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, gameObject);
 		}
 
 		protected override Engine.VPT.Trigger.Trigger GetItem()
@@ -46,6 +51,11 @@ namespace VisualPinball.Unity.VPT.Trigger
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
 		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+		}
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }

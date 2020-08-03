@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Data.Common;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -31,7 +30,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 				new TriggerHitCircle(_data.Center, _data.Radius, height, height + _data.HitHeight) {
 					Obj = events,
 					IsEnabled = _data.IsEnabled,
-					ObjType = CollisionType.Trigger
 				}
 			};
 		}
@@ -57,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 				hitObjects.Add(GetLineSeg(pv2, pv3, events, height));
 			}
 
-			hitObjects.Add( new Hit3DPoly(rgv3D, CollisionType.Trigger) {
+			hitObjects.Add( new Hit3DPoly(rgv3D, ItemType.Trigger) {
 				Obj = events
 			});
 
@@ -69,8 +67,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 				pv1.Clone(),
 				pv2.Clone(),
 				height,
-				height + MathF.Max(_data.HitHeight - 8.0f, 0f), // adjust for same hit height as circular
-				CollisionType.Trigger
+				height + MathF.Max(_data.HitHeight - 8.0f, 0f) // adjust for same hit height as circular
 			) {
 				Obj = events
 			};

@@ -1,34 +1,54 @@
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.Physics.SystemGroup;
+using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity.VPT.Spinner
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class SpinnerDisplacementSystem : SystemBase
 	{
+		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private NativeQueue<EventData> _eventQueue;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerDisplacementSystem");
 
 		protected override void OnCreate()
 		{
+			_player = Object.FindObjectOfType<Player>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
 		}
 
 		protected override void OnUpdate()
 		{
+
+			var events = _eventQueue.AsParallelWriter();
+
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("SpinnerDisplacementJob")
-				.ForEach((ref SpinnerMovementData movementData, in SpinnerStaticData data) => {
+				.ForEach((Entity entity, ref SpinnerMovementData movementData, in SpinnerStaticData data) => {
 
 				marker.Begin();
 
-				var angleMin = math.radians(data.AngleMin);
-				var angleMax = math.radians(data.AngleMax);
+				// those are already converted to radian during authoring.
+				var angleMin = data.AngleMin;
+				var angleMax = data.AngleMax;
 
 				// blocked spinner, limited motion spinner
 				if (data.AngleMin != data.AngleMax) {
@@ -38,19 +58,19 @@ namespace VisualPinball.Unity.VPT.Spinner
 					if (movementData.Angle > angleMax) {
 						movementData.Angle = angleMax;
 
-						// todo event
-						//m_pspinner->FireVoidEventParm(DISPID_LimitEvents_EOS, fabsf(RADTOANG(movementData.AngleSpeed)));	// send EOS event
+						// send EOS event
+						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, math.abs(math.degrees(movementData.AngleSpeed))));
 
 						if (movementData.AngleSpeed > 0.0f) {
-							movementData.AngleSpeed *= -0.005f -data.Elasticity;
+							movementData.AngleSpeed *= -0.005f - data.Elasticity;
 						}
 					}
 
 					if (movementData.Angle < angleMin) {
 						movementData.Angle = angleMin;
 
-						// todo event
-						// m_pspinner->FireVoidEventParm(DISPID_LimitEvents_BOS, fabsf(RADTOANG(movementData.AngleSpeed)));	// send Park event
+						// send Park event
+						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, math.abs(math.degrees(movementData.AngleSpeed))));
 
 						if (movementData.AngleSpeed < 0.0f) {
 							movementData.AngleSpeed *= -0.005f - data.Elasticity;
@@ -59,23 +79,23 @@ namespace VisualPinball.Unity.VPT.Spinner
 
 				} else {
 
+					var target = movementData.AngleSpeed > 0.0f
+						? movementData.Angle < math.PI ? math.PI : 3.0f * math.PI
+						: movementData.Angle < math.PI ? -math.PI : math.PI;
+
 					movementData.Angle += movementData.AngleSpeed * dTime;
 
-					// todo event
-					// var target = movementData.AngleSpeed > 0.0f
-					// 	? movementData.Angle < math.PI ? math.PI : 3.0f * math.PI
-					// 	: movementData.Angle < math.PI ? -math.PI : math.PI;
-					// if (movementData.AngleSpeed > 0.0f) {
-					//
-					// 	if (movementData.AngleSpeed > target) {
-					// 		m_pspinner->FireGroupEvent(DISPID_SpinnerEvents_Spin);
-					// 	}
-					//
-					// } else {
-					// 	if (movementData.AngleSpeed < target) {
-					// 		m_pspinner->FireGroupEvent(DISPID_SpinnerEvents_Spin);
-					// 	}
-					// }
+					if (movementData.AngleSpeed > 0.0f) {
+
+						if (movementData.Angle > target) {
+							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
+						}
+
+					} else {
+						if (movementData.Angle < target) {
+							events.Enqueue(new EventData(EventId.SpinnerEventsSpin, entity, true));
+						}
+					}
 
 					while (movementData.Angle > 2.0f * math.PI) {
 						movementData.Angle -= 2.0f * math.PI;
@@ -89,6 +109,11 @@ namespace VisualPinball.Unity.VPT.Spinner
 				marker.End();
 
 			}).Run();
+
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.OnEvent(in eventData);
+			}
 		}
 	}
 }

@@ -1,9 +1,12 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.Physics.Collider
@@ -34,6 +37,8 @@ namespace VisualPinball.Unity.Physics.Collider
 			_matrix = src.Matrix.ToUnityFloat3x3();
 		}
 
+		#region Narrowphase
+
 		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			return HitTest(ref collEvent, ref this, in ball, dTime);
@@ -61,6 +66,20 @@ namespace VisualPinball.Unity.Physics.Collider
 			}
 
 			return hitTime;
+		}
+
+		#endregion
+
+		public void Collide(ref BallData ball,  ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			in CollisionEventData collEvent, ref Random random)
+		{
+			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+
+			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+				// todo m_obj->m_currentHitThreshold = dot;
+				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+			}
 		}
 	}
 }

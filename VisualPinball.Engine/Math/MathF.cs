@@ -1,6 +1,5 @@
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace VisualPinball.Engine.Math
 {
@@ -135,6 +134,22 @@ namespace VisualPinball.Engine.Math
 		{
 			var random = new Random();
 			return (float) random.NextDouble();
+		}
+
+		/// <summary>
+		/// Clamps a value between a minimum float and maximum float value.
+		/// </summary>
+		/// <param name="value">Value to clamp</param>
+		/// <param name="min">Minimal value</param>
+		/// <param name="max">Maximal value</param>
+		/// <returns></returns>
+		public static float Clamp(float value, float min, float max)
+		{
+			if (value < min)
+				value = min;
+			else if (value > max)
+				value = max;
+			return value;
 		}
 	}
 }

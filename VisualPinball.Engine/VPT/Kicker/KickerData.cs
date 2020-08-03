@@ -19,6 +19,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 	public class KickerData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public string Name;
@@ -79,8 +80,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Kicker);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Kicker);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

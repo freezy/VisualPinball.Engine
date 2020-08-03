@@ -1,14 +1,33 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity.VPT.Plunger
 {
-	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>
+	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable, IApiRotatable
 	{
+		/// <summary>
+		/// Event emitted when the table is started.
+		/// </summary>
+		public event EventHandler Init;
+
+		/// <summary>
+		/// Event emitted when the plunger moved back to the park position.
+		/// </summary>
+		public event EventHandler<StrokeEventArgs> LimitBos;
+
+		/// <summary>
+		/// Event emitted when the plunger was pulled back and reached its end position.
+		/// </summary>
+		public event EventHandler<StrokeEventArgs> LimitEos;
+
+		// todo
+		public event EventHandler Timer;
+
 		public bool DoRetract { get; set; } = true;
 
-		public PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
+		internal PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 
@@ -56,5 +75,28 @@ namespace VisualPinball.Unity.VPT.Plunger
 			EntityManager.SetComponentData(Entity, movementData);
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
+
+		#region Events
+
+		void IApiInitializable.OnInit()
+		{
+			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApiRotatable.OnRotate(float speed, bool direction)
+		{
+			if (direction) {
+				LimitEos?.Invoke(this, new StrokeEventArgs { Speed = speed });
+			} else {
+				LimitBos?.Invoke(this, new StrokeEventArgs { Speed = speed });
+			}
+		}
+
+		#endregion
+	}
+
+	public struct StrokeEventArgs
+	{
+		public float Speed;
 	}
 }

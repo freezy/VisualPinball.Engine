@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.DispReel
 	public class DispReelData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
 		public string Name;
@@ -97,8 +98,8 @@ namespace VisualPinball.Engine.VPT.DispReel
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.DispReel);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.DispReel);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

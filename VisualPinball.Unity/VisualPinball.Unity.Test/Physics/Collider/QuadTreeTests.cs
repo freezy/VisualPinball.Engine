@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Physics.Collider;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Physics.Collision;
 
 namespace VisualPinball.Unity.Test.Physics.Collider
@@ -17,9 +16,9 @@ namespace VisualPinball.Unity.Test.Physics.Collider
 		{
 			var bounds = new Rect3D(true);
 			var hitQuad = new HitQuadTree(new List<HitObject> {
-				new LineSeg(new Vertex2D(1f, 2f), new Vertex2D(3f, 4f), 5f, 6f),
-				new HitCircle(new Vertex2D(7f, 8f), 9f, 10f, 11f),
-				new LineSeg(new Vertex2D(12f, 13f), new Vertex2D(14f, 15f), 16f, 17f),
+				new LineSeg(new Vertex2D(1f, 2f), new Vertex2D(3f, 4f), 5f, 6f, ItemType.Table),
+				new HitCircle(new Vertex2D(7f, 8f), 9f, 10f, 11f, ItemType.Table),
+				new LineSeg(new Vertex2D(12f, 13f), new Vertex2D(14f, 15f), 16f, 17f, ItemType.Table),
 			}, bounds);
 
 			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(

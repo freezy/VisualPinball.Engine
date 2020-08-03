@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Extensions;
@@ -44,6 +43,12 @@ namespace VisualPinball.Unity.VPT.Ramp
 				var pt = data.DragPoints[i];
 				pt.Vertex = pt.Vertex.Add(diff);
 			}
+		}
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.Material, oldName, newName);
+			TryRenameField(undoName, ref data.PhysicsMaterial, oldName, newName);
 		}
 
 		//IDragPointsEditable

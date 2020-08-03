@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Unity.Physics.SystemGroup;
 
 namespace VisualPinball.Unity.VPT.Plunger

@@ -1,9 +1,9 @@
 ﻿// ReSharper disable CommentTypo
 
-using System.Linq;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex2D Normal = new Vertex2D();
 		public float Length;
 
-		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, string objType = null)
+		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType objType) : base(objType)
 		{
 			V1 = p1;
 			V2 = p2;
@@ -23,7 +23,6 @@ namespace VisualPinball.Engine.Physics
 			HitBBox.ZHigh = zHigh;
 			CalcNormal();
 			CalcHitBBox();
-			ObjType = objType;
 		}
 
 		public LineSeg SetSeg(float x1, float y1, float x2, float y2)
@@ -82,7 +81,7 @@ namespace VisualPinball.Engine.Physics
 			var bnd = bcpd - rollingRadius;
 
 			// for a spinner add the ball radius otherwise the ball goes half through the spinner until it moves
-			if (ObjType == CollisionType.Spinner || ObjType == CollisionType.Gate) {
+			if (ObjType == ItemType.Spinner || ObjType == ItemType.Gate) {
 				bnd = bcpd + rollingRadius;
 			}
 
@@ -116,7 +115,7 @@ namespace VisualPinball.Engine.Physics
 				//non-rigid ... target hits
 				if (bnv * bnd >= 0) {
 					// outside-receding || inside-approaching
-					if (ObjType != CollisionType.Trigger // not a trigger
+					if (ObjType != ItemType.Trigger // not a trigger
 					    || !ball.Hit.IsRealBall() // is a trigger, so test:
 					    || MathF.Abs(bnd) >= ball.Data.Radius * 0.5 // not too close ... nor too far away
 					    || inside == ball.Hit.VpVolObjs.Contains(Obj)) {

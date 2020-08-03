@@ -1,16 +1,37 @@
+using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Physics.Collider;
 using VisualPinball.Unity.Physics.Collision;
+using VisualPinball.Unity.Physics.Event;
 using VisualPinball.Unity.VPT.Ball;
 
 namespace VisualPinball.Unity.VPT.Trigger
 {
 	public static class TriggerCollider
 	{
-		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref TriggerAnimationData animationData,
-			in Collider coll)
+		/// <summary>
+		/// Collides without triggering the animation, which is what the
+		/// <see cref="Poly3DCollider"/> does.
+		/// </summary>
+		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Collider coll)
+		{
+			var _ = default(TriggerAnimationData);
+			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref _, in coll, false);
+		}
+
+		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			ref TriggerAnimationData animationData, in Collider coll)
+		{
+			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref animationData, in coll, true);
+		}
+
+		private static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			ref TriggerAnimationData animationData, in Collider coll, bool animate)
 		{
 			// todo?
 			// if (!ball.isRealBall()) {
@@ -18,26 +39,25 @@ namespace VisualPinball.Unity.VPT.Trigger
 			// }
 
 			var insideOf = BallData.IsInsideOf(in insideOfs, coll.Entity);
-			if (collEvent.HitFlag == insideOf) {                                            // Hit == NotAlreadyHit
-				ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
+			if (collEvent.HitFlag == insideOf) {                                         // Hit == NotAlreadyHit
+				ball.Position += PhysicsConstants.StaticTime * ball.Velocity;            // move ball slightly forward
 
 				if (!insideOf) {
 					BallData.SetInsideOf(ref insideOfs, coll.Entity);
-					animationData.HitEvent = true;
+					if (animate) {
+						animationData.HitEvent = true;
+					}
 
-					// todo event
-					//this.obj!.fireGroupEvent(Event.HitEventsHit);
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.Entity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
-					animationData.UnHitEvent = true;
+					if (animate) {
+						animationData.UnHitEvent = true;
+					}
 
-					// todo event
-					//this.obj!.fireGroupEvent(Event.HitEventsUnhit);
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.Entity, true));
 				}
-			}
-			else {
-
 			}
 		}
 	}

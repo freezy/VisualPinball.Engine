@@ -7,7 +7,6 @@ using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Game;
 using VisualPinball.Unity.Physics.SystemGroup;
-using Profiler = UnityEngine.Profiling.Profiler;
 
 namespace VisualPinball.Unity.VPT.Ball
 {

@@ -19,13 +19,14 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		public void ShouldGenerateMesh()
 		{
 			var rubberMesh = _table.Rubbers["Rubber2"].GetRenderObjects(_table).RenderObjects[0].Mesh;
-			AssertObjMesh(_obj, rubberMesh);
+			AssertObjMesh(_obj, rubberMesh, threshold: 0.00015f);
 		}
 
+		[Test]
 		public void ShouldGenerateThickMesh()
 		{
 			var rubberMesh = _table.Rubbers["Rubber1"].GetRenderObjects(_table).RenderObjects[0].Mesh;
-			AssertObjMesh(_obj, rubberMesh);
+			AssertObjMesh(_obj, rubberMesh, threshold: 0.001f);
 		}
 	}
 }

@@ -18,6 +18,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 	public class TriggerData : ItemData
 	{
 		public override string GetName() => Name;
+		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
 		public string Name;
@@ -87,8 +88,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write(ItemType.Trigger);
-			Write(writer, Attributes, hashWriter);
+			writer.Write((int)ItemType.Trigger);
+			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
 

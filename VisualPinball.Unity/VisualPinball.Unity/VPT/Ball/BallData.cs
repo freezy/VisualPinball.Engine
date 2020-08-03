@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Unity.Physics.Collision;
 
@@ -10,6 +9,7 @@ namespace VisualPinball.Unity.VPT.Ball
 	{
 		public int Id;
 		public float3 Position;
+		public float3 EventPosition; // m_lastEventPos
 		public float3 Velocity;
 		public float3 AngularVelocity;
 		public float3 AngularMomentum;

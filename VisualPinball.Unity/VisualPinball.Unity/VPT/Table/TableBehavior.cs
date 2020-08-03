@@ -65,7 +65,9 @@ namespace VisualPinball.Unity.VPT.Table
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
-		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
+		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
+		// will cache miss and get recreated as well
+		private readonly Dictionary<PbrMaterial, UnityEngine.Material> _unityMaterials = new Dictionary<PbrMaterial, UnityEngine.Material>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -90,6 +92,11 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			// do nothing, base class draws all child meshes for ease of selection, but
 			// that would just be everything at this level
+		}
+
+		public override void HandleMaterialRenamed(string undoName, string oldName, string newName)
+		{
+			TryRenameField(undoName, ref data.PlayfieldMaterial, oldName, newName);
 		}
 
 		protected override Engine.VPT.Table.Table GetItem()
@@ -129,13 +136,19 @@ namespace VisualPinball.Unity.VPT.Table
 
 		public void AddMaterial(PbrMaterial vpxMat, UnityEngine.Material material)
 		{
-			_unityMaterials[vpxMat.Id] = material;
+			UnityEngine.Material oldMaterial = null;
+			_unityMaterials.TryGetValue(vpxMat, out oldMaterial);
+
+			_unityMaterials[vpxMat] = material;
+			if (oldMaterial != null) {
+				Destroy(oldMaterial);
+			}
 		}
 
 		public UnityEngine.Material GetMaterial(PbrMaterial vpxMat)
 		{
-			if (_unityMaterials.ContainsKey(vpxMat.Id)) {
-				return _unityMaterials[vpxMat.Id];
+			if (_unityMaterials.ContainsKey(vpxMat)) {
+				return _unityMaterials[vpxMat];
 			}
 			return null;
 		}
