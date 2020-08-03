@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Import.Material
             {
                 case Engine.VPT.BlendMode.Opaque:
 
-                    unityMaterial.SetFloat(BlendMode, 0); // 0 = Opaque; 1 = Transparent
+                    unityMaterial.SetFloat(SurfaceType, 0); // 0 = Opaque; 1 = Transparent
 
                     // render queue
                     unityMaterial.renderQueue = -1;
