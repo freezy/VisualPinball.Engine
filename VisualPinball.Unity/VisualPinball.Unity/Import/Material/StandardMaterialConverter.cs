@@ -97,11 +97,13 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
 					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
 
-					// properties
-					unityMaterial.SetFloat(Mode, 0);
+					// required for the blend mode
 					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
 					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
 					unityMaterial.SetInt(ZWrite, 1);
+
+					// properties
+					unityMaterial.SetFloat(Mode, 0);
 
 					// render queue
 					unityMaterial.renderQueue = -1;
@@ -115,11 +117,13 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
 					unityMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
 
-					// properties
-					unityMaterial.SetFloat(Mode, 1);
+					// required for the blend mode
 					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
 					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.Zero);
 					unityMaterial.SetInt(ZWrite, 1);
+
+					// properties
+					unityMaterial.SetFloat(Mode, 1);
 
 					// render queue
 					unityMaterial.renderQueue = 2450;
@@ -133,13 +137,15 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.DisableKeyword("_ALPHABLEND_ON");
 					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
 
-					// properties
-					unityMaterial.SetFloat(Mode, 3);
+					// required for the blend mode
 					unityMaterial.SetInt(SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
 					unityMaterial.SetInt(DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
 					//!!!!!!! this is normally switched off but somehow enabling it seems to resolve so many issues.. keep an eye out for weirld opacity issues
 					//unityMaterial.SetInt("_ZWrite", 0);
 					unityMaterial.SetInt(ZWrite, 1);
+
+					// properties
+					unityMaterial.SetFloat(Mode, 3);
 
 					// render queue
 					unityMaterial.renderQueue = 3000;

@@ -97,6 +97,11 @@ namespace VisualPinball.Unity.Import.Material
 			{
 				case Engine.VPT.BlendMode.Opaque:
 
+					// required for the blend mode
+					unityMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+					unityMaterial.SetInt("_ZWrite", 1);
+
 					// properties
 					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
 
@@ -109,6 +114,11 @@ namespace VisualPinball.Unity.Import.Material
 
 					// keywords
 					unityMaterial.EnableKeyword("_ALPHATEST_ON");
+
+					// required for blend mode
+					unityMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+					unityMaterial.SetInt("_ZWrite", 1);
 
 					// properties
 					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
@@ -123,6 +133,11 @@ namespace VisualPinball.Unity.Import.Material
 
 					// keywords
 					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+
+					// required for blend mode
+					unityMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+					unityMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+					unityMaterial.SetInt("_ZWrite", 0);
 
 					// properties
 					unityMaterial.SetFloat(Surface, 1); // 0 = Opaque; 1 = Transparent
