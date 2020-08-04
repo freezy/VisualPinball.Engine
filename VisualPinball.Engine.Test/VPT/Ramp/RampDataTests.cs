@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		public void ShouldReadRampData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
-			ValidateRampData(table.Ramps["FlatL"].Data);
+			ValidateRampData(table.Ramp("FlatL").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateRampData(writtenTable.Ramps["FlatL"].Data);
+			ValidateRampData(writtenTable.Ramp("FlatL").Data);
 		}
 
 		private static void ValidateRampData(RampData data)
@@ -58,7 +58,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		public void ShouldLoadWireData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
-			var data = table.Ramps["Wire3R"].Data;
+			var data = table.Ramp("Wire3R").Data;
 
 			data.RampType.Should().Be(RampType.RampType3WireRight);
 			data.WireDiameter.Should().Be(2.982f);

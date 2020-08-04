@@ -102,7 +102,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
-		public BumperData(string name, float x, float y)
+		public BumperData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;
 			Center = new Vertex2D(x, y);

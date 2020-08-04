@@ -107,16 +107,16 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public bool GetIsCollidable() => IsCollidable;
 		public string GetPhysicsMaterial() => PhysicsMaterial;
 
+		public RubberData(string name) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+		}
+
 		#region BIFF
 
 		static RubberData()
 		{
 			Init(typeof(RubberData), Attributes);
-		}
-
-		public RubberData(string name)
-		{
-			Name = name;
 		}
 
 		public RubberData(BinaryReader reader, string storageName) : base(storageName)

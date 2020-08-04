@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		public void ShouldReadTriggerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
-			ValidateTriggerData(table.Triggers["Data"].Data);
+			ValidateTriggerData(table.Trigger("Data").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTriggerData(writtenTable.Triggers["Data"].Data);
+			ValidateTriggerData(writtenTable.Trigger("Data").Data);
 		}
 
 		private static void ValidateTriggerData(TriggerData data)

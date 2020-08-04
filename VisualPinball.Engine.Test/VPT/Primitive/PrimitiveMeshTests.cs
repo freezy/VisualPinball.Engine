@@ -20,28 +20,28 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Test]
 		public void ShouldGenerateImportedMesh()
 		{
-			var bookMesh = _table.Primitives["Books"].GetRenderObjects(_table).RenderObjects[0].Mesh;
+			var bookMesh = _table.Primitive("Books").GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, bookMesh, threshold: 0.00015f);
 		}
 
 		[Test]
 		public void ShouldGenerateACube()
 		{
-			var cubeMesh = _table.Primitives["Cube"].GetRenderObjects(_table).RenderObjects[0].Mesh;
+			var cubeMesh = _table.Primitive("Cube").GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, cubeMesh);
 		}
 
 		[Test]
 		public void ShouldGenerateATriangle()
 		{
-			var triangleMesh = _table.Primitives["Triangle"].GetRenderObjects(_table).RenderObjects[0].Mesh;
+			var triangleMesh = _table.Primitive("Triangle").GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, triangleMesh);
 		}
 
 		[Test]
 		public void ShouldProvideCorrectTransformationMatrices()
 		{
-			var rog = _table.Primitives["Primitive1"].GetRenderObjects(_table, Origin.Original, false);
+			var rog = _table.Primitive("Primitive1").GetRenderObjects(_table, Origin.Original, false);
 
 			rog.TransformationMatrix.GetScaling().X.Should().Be(100f);
 			rog.TransformationMatrix.GetScaling().Y.Should().Be(100f);
@@ -58,7 +58,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			var table = Engine.VPT.Table.Table.Load(VpxPath.PrimitiveCompressed);
 			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
 
-			var compressedMesh = table.Primitives["compressed"].GetRenderObjects(_table).RenderObjects[0].Mesh;
+			var compressedMesh = table.Primitive("compressed").GetRenderObjects(_table).RenderObjects[0].Mesh;
 			AssertObjMesh(obj, compressedMesh, threshold: 0.00015f);
 		}
 	}

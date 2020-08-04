@@ -11,8 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		public void ShouldReadDispReelData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.DispReel);
-			ValidateDispReel1(table.DispReels["Reel1"].Data);
-			ValidateDispReel2(table.DispReels["Reel2"].Data);
+			ValidateDispReel1(table.DispReel("Reel1").Data);
+			ValidateDispReel2(table.DispReel("Reel2").Data);
 		}
 
 		[Test]
@@ -22,8 +22,8 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			var table = Engine.VPT.Table.Table.Load(VpxPath.DispReel);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateDispReel1(writtenTable.DispReels["Reel1"].Data);
-			ValidateDispReel2(writtenTable.DispReels["Reel2"].Data);
+			ValidateDispReel1(writtenTable.DispReel("Reel1").Data);
+			ValidateDispReel2(writtenTable.DispReel("Reel2").Data);
 		}
 
 		private static void ValidateDispReel1(DispReelData data)

@@ -11,8 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		public void ShouldReadTimerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
-			ValidateTimerData1(table.Timers["Timer1"].Data);
-			ValidateTimerData2(table.Timers["Timer2"].Data);
+			ValidateTimerData1(table.Timer("Timer1").Data);
+			ValidateTimerData2(table.Timer("Timer2").Data);
 		}
 
 		[Test]
@@ -22,8 +22,8 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTimerData1(writtenTable.Timers["Timer1"].Data);
-			ValidateTimerData2(writtenTable.Timers["Timer2"].Data);
+			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
+			ValidateTimerData2(writtenTable.Timer("Timer2").Data);
 		}
 
 		private static void ValidateTimerData1(TimerData data)

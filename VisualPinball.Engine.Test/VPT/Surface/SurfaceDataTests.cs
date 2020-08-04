@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldReadSurfaceData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
-			ValidateSurfaceData(table.Surfaces["TopInvisible"].Data);
+			ValidateSurfaceData(table.Surface("TopInvisible").Data);
 		}
 
 		[Test]
@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateSurfaceData(writtenTable.Surfaces["TopInvisible"].Data);
+			ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);
 		}
 
 		private static void ValidateSurfaceData(SurfaceData data)

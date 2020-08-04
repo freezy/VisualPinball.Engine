@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 		public void ShouldReadTextBoxData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
-			ValidateTableData(table.TextBoxes["TextBox001"].Data);
+			ValidateTableData(table.TextBox("TextBox001").Data);
 		}
 
 		[Test]
@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.TextBoxes["TextBox001"].Data);
+			ValidateTableData(writtenTable.TextBox("TextBox001").Data);
 		}
 
 		private static void ValidateTableData(TextBoxData data)

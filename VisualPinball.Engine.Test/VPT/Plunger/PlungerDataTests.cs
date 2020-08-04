@@ -12,8 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		public void ShouldReadPlungerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
-			ValidatePlungerData1(table.Plungers["Plunger1"].Data);
-			ValidatePlungerData2(table.Plungers["Plunger2"].Data);
+			ValidatePlungerData1(table.Plunger("Plunger1").Data);
+			ValidatePlungerData2(table.Plunger("Plunger2").Data);
 		}
 
 		[Test]
@@ -23,8 +23,8 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidatePlungerData1(writtenTable.Plungers["Plunger1"].Data);
-			ValidatePlungerData2(writtenTable.Plungers["Plunger2"].Data);
+			ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data);
+			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);
 		}
 
 		private static void ValidatePlungerData1(PlungerData data)

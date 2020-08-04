@@ -84,18 +84,18 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffInt("TMIN", Pos = 9)]
 		public int TimerInterval;
 
+		public GateData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+			Rotation = 180f;
+		}
+
 		#region BIFF
 
 		static GateData()
 		{
 			Init(typeof(GateData), Attributes);
-		}
-
-		public GateData(string name, float x, float y)
-		{
-			Name = name;
-			Center = new Vertex2D(x, y);
-			Rotation = 180f;
 		}
 
 		public GateData(BinaryReader reader, string storageName) : base(storageName)

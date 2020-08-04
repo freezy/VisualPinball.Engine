@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldReadLightData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
-			ValidateLightData(table.Lights["Light1"].Data);
+			ValidateLightData(table.Light("Light1").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateLightData(writtenTable.Lights["Light1"].Data);
+			ValidateLightData(writtenTable.Light("Light1").Data);
 		}
 
 		private static void ValidateLightData(LightData data)
@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldLoadCorrectDragPointData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
-			var dragPoints = table.Lights["PlayfieldLight"].Data.DragPoints;
+			var dragPoints = table.Light("PlayfieldLight").Data.DragPoints;
 
 			dragPoints[0].IsSmooth.Should().Be(false);
 			dragPoints[0].IsSlingshot.Should().Be(true);

@@ -137,17 +137,17 @@ namespace VisualPinball.Engine.VPT.Surface
 		// non-persisted
 		public bool IsDisabled;
 
+		public SurfaceData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			DragPoints = dragPoints;
+		}
+
 		#region BIFF
 
 		static SurfaceData()
 		{
 			Init(typeof(SurfaceData), Attributes);
-		}
-
-		public SurfaceData(string name, DragPointData[] dragPoints)
-		{
-			Name = name;
-			DragPoints = dragPoints;
 		}
 
 		public SurfaceData(BinaryReader reader, string storageName) : base(storageName)

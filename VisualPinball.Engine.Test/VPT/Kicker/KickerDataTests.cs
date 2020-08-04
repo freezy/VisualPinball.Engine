@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		public void ShouldReadKickerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
-			ValidateKickerData(table.Kickers["Data"].Data);
+			ValidateKickerData(table.Kicker("Data").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateKickerData(writtenTable.Kickers["Data"].Data);
+			ValidateKickerData(writtenTable.Kicker("Data").Data);
 		}
 
 		private static void ValidateKickerData(KickerData data)

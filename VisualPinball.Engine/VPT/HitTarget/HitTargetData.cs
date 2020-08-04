@@ -109,17 +109,17 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetFlatSimple
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
 
+		public HitTargetData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Position = new Vertex3D(x, y, 0f);
+		}
+
 		#region BIFF
 
 		static HitTargetData()
 		{
 			Init(typeof(HitTargetData), Attributes);
-		}
-
-		public HitTargetData(string name, float x, float y)
-		{
-			Name = name;
-			Position = new Vertex3D(x, y, 0f);
 		}
 
 		public HitTargetData(BinaryReader reader, string storageName) : base(storageName)

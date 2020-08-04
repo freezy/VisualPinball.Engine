@@ -52,98 +52,79 @@ namespace VisualPinball.Unity.Import.Job
 					var objHandle = (GCHandle) job.ItemObj[i];
 					switch ((ItemType)job.ItemType[i]) {
 						case ItemType.Bumper: {
-							var item = objHandle.Target as Bumper;
-							table.Bumpers[item.Name] = item;
+							table.Add(objHandle.Target as Bumper);
 							break;
 						}
 						case ItemType.Decal: {
-							var item = objHandle.Target as Decal;
-							table.Decals.Add(item);
+							table.Add(objHandle.Target as Decal);
 							break;
 						}
 						case ItemType.DispReel: {
-							var item = objHandle.Target as DispReel;
-							table.DispReels[item.Name] = item;
+							table.Add(objHandle.Target as DispReel);
 							break;
 						}
 						case ItemType.Flasher: {
-							var item = objHandle.Target as Flasher;
-							table.Flashers[item.Name] = item;
+							table.Add(objHandle.Target as Flasher);
 							break;
 						}
 						case ItemType.Flipper: {
-							var item = objHandle.Target as Flipper;
-							table.Flippers[item.Name] = item;
+							table.Add(objHandle.Target as Flipper);
 							break;
 						}
 						case ItemType.Gate: {
-							var item = objHandle.Target as Gate;
-							table.Gates[item.Name] = item;
+							table.Add(objHandle.Target as Gate);
 							break;
 						}
 						case ItemType.HitTarget: {
-							var item = objHandle.Target as HitTarget;
-							table.HitTargets[item.Name] = item;
+							table.Add(objHandle.Target as HitTarget);
 							break;
 						}
 						case ItemType.Kicker: {
-							var item = objHandle.Target as Kicker;
-							table.Kickers[item.Name] = item;
+							table.Add(objHandle.Target as Kicker);
 							break;
 						}
 						case ItemType.Light: {
-							var item = objHandle.Target as Light;
-							table.Lights[item.Name] = item;
+							table.Add(objHandle.Target as Light);
 							break;
 						}
 						case ItemType.LightSeq: {
-							var item = objHandle.Target as LightSeq;
-							table.LightSeqs[item.Name] = item;
+							table.Add(objHandle.Target as LightSeq);
 							break;
 						}
 						case ItemType.Plunger: {
-							var item = objHandle.Target as Plunger;
-							table.Plungers[item.Name] = item;
+							table.Add(objHandle.Target as Plunger);
 							break;
 						}
 						case ItemType.Primitive: {
-							var item = objHandle.Target as Primitive;
-							table.Primitives[item.Name] = item;
+							table.Add(objHandle.Target as Primitive);
 							break;
 						}
 						case ItemType.Ramp: {
 							var item = objHandle.Target as Ramp;
-							table.Ramps[item.Name] = item;
 							break;
 						}
 						case ItemType.Rubber: {
-							var item = objHandle.Target as Rubber;
-							table.Rubbers[item.Name] = item;
+							table.Add(objHandle.Target as Rubber);
 							break;
 						}
 						case ItemType.Spinner: {
-							var item = objHandle.Target as Spinner;
-							table.Spinners[item.Name] = item;
+							table.Add(objHandle.Target as Spinner);
 							break;
 						}
 						case ItemType.Surface: {
-							var item = objHandle.Target as Surface;
-							table.Surfaces[item.Name] = item;
+							table.Add(objHandle.Target as Surface);
 							break;
 						}
 						case ItemType.TextBox: {
-							var item = objHandle.Target as TextBox;
-							table.TextBoxes[item.Name] = item;
+							table.Add(objHandle.Target as TextBox);
 							break;
 						}
 						case ItemType.Timer: {
-							var item = objHandle.Target as Timer;
-							table.Timers[item.Name] = item;
+							table.Add(objHandle.Target as Timer);
 							break;
 						}
 						case ItemType.Trigger: {
-							var item = objHandle.Target as Trigger;
-							table.Triggers[item.Name] = item;
+							table.Add(objHandle.Target as Trigger);
 							break;
 						}
 					}

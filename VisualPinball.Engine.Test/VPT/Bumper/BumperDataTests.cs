@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		public void ShouldReadBumperData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumpers["Bumper1"].Data;
+			var data = table.Bumper("Bumper1").Data;
 			ValidateTableData(data);
 		}
 
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.Bumpers["Bumper1"].Data);
+			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 		}
 
 		private static void ValidateTableData(BumperData data)

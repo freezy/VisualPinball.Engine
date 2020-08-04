@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		public void ShouldReadSpinnerData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
-			ValidateSpinnerData(table.Spinners["Data"].Data);
+			ValidateSpinnerData(table.Spinner("Data").Data);
 		}
 
 		[Test]
@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateSpinnerData(writtenTable.Spinners["Data"].Data);
+			ValidateSpinnerData(writtenTable.Spinner("Data").Data);
 		}
 
 		private static void ValidateSpinnerData(SpinnerData data)

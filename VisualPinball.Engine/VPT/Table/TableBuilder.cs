@@ -29,8 +29,7 @@ namespace VisualPinball.Engine.VPT.Table
 				Center = new Vertex2D(500, 500)
 			};
 
-			var bumper = new Bumper.Bumper(data);
-			_table.Bumpers[data.Name] = bumper;
+			_table.Add(new Bumper.Bumper(data));
 			return this;
 		}
 
@@ -40,8 +39,7 @@ namespace VisualPinball.Engine.VPT.Table
 				Name = name, Center = new Vertex2D(500, 500)
 			};
 
-			var flipper = new Flipper.Flipper(data);
-			_table.Flippers[flipper.Name] = flipper;
+			_table.Add(new Flipper.Flipper(data));
 			return this;
 		}
 

@@ -12,8 +12,8 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 		public void ShouldReadDecalData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Decal);
-			ValidateDecal0(table.Decals[0].Data);
-			ValidateDecal1(table.Decals[1].Data);
+			ValidateDecal0(table.Decal(0).Data);
+			ValidateDecal1(table.Decal(1).Data);
 		}
 
 		[Test]
@@ -23,8 +23,8 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Decal);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateDecal0(writtenTable.Decals[0].Data);
-			ValidateDecal1(writtenTable.Decals[1].Data);
+			ValidateDecal0(writtenTable.Decal(0).Data);
+			ValidateDecal1(writtenTable.Decal(1).Data);
 		}
 
 		private static void ValidateDecal0(DecalData data)

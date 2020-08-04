@@ -75,17 +75,17 @@ namespace VisualPinball.Engine.VPT.Trigger
 		[BiffInt("TMIN", Pos = 8)]
 		public int TimerInterval;
 
+		public TriggerData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+		}
+
 		#region BIFF
 
 		static TriggerData()
 		{
 			Init(typeof(TriggerData), Attributes);
-		}
-
-		public TriggerData(string name, float x, float y)
-		{
-			Name = name;
-			Center = new Vertex2D(x, y);
 		}
 
 		public TriggerData(BinaryReader reader, string storageName) : base(storageName)
