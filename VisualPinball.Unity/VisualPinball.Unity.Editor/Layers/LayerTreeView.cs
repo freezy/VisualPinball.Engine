@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <summary>
 		/// Emitted when a layer is renamed.
 		/// </summary>
-		public event Action<int, string> LayerRenamed = delegate { };
+		public event Action<LayerTreeElement, string> LayerRenamed = delegate { };
 
 		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
 		{
@@ -83,9 +83,12 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			// Set the backend name and reload the tree to reflect the new model
 			if (args.acceptedRename) {
-				LayerRenamed(args.itemID, args.newName);
-				Reload();
+				var layerElement = Root.Find<LayerTreeElement>(args.itemID);
+				if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
+					LayerRenamed(layerElement, args.newName);
+					Reload();
+				}
 			}
 		}
- 	}
+	}
 }

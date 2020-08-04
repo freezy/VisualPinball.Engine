@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
 		/// <param name="filter">a filtering delegate</param>
-		/// <returns>an array of TreeElement casted as T type</returns>
+		/// <returns>an array of TreeElement as T type</returns>
 		public T[] GetChildren<T>(ChildFilter filter) where T : TreeElement
 		{
 			List<T> children = new List<T>();
@@ -81,6 +81,13 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			}
 			return children.ToArray();
 		}
+
+		/// <summary>
+		/// Will gather all children from this TreeElement 
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <returns>an array of TreeElement as T type</returns>
+		public T[] GetChildren<T>() where T : TreeElement => GetChildren<T>(d => true);
 	}
 }
 
