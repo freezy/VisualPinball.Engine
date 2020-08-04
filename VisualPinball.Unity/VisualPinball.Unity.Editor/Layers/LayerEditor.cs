@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -34,8 +35,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </summary>
 		private LayerHandler _layerHandler;
 
-		private Rect ToolbarRect => new Rect(10f, 10f, position.width - 20f, 20f);
-		private Rect TreeViewRect => new Rect(10f, 30f, position.width - 20f, position.height - 40f);
+		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
+		private Rect TreeViewRect => new Rect(10f, SearchRect.max.y, position.width - 20f, position.height - 40f);
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
@@ -55,28 +56,58 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
-			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;
+			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;	// treeview will Reload when the layerHandler has rebuilt its Tree of LayerTreeElements
 			
-			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
-			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked;
+			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed; // LayerHandler will be notified when a renaming process is finished in the TreeView
+			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked; // LayerHandler will be notified for each TreeViewItem double-click
+
+			_treeView.ItemContextClicked += OnContextClicked; // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
-			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
+			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged; // LayerEditor will be notified of any visibility change from the SceneManagement view to update the LayerHandler
 
-			// trigger handler update
+			// trigger handler update on enable
 			OnHierarchyChange();
-		}
-
-		private void OnHierarchyChange()
-		{
-			_layerHandler.OnHierarchyChange(Object.FindObjectOfType<TableBehavior>());
-			_treeView.Reload();
 		}
 
 		private void OnDisable()
 		{
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
+		}
+
+
+		/// <summary>
+		/// Opens a popup menu when right-clicking somewhere in the TreeView
+		/// </summary>
+		/// <param name="element">the right clicked LayerTreeElement</param>
+		/// <remarks>
+		/// element is null when right-clicking on no item but within the TreeView rect
+		/// </remarks>
+		private void OnContextClicked(LayerTreeElement element)
+		{
+			var command = new MenuCommand(this, element == null ? -1 : element.Id);
+			EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), LayerEditorMenuItems.LayerMenuPath, command);
+			Event.current.Use();
+		}
+
+		public void CreateNewLayer()
+		{
+			_layerHandler.CreateNewLayer();
+		}
+
+		public void DeleteLayer(int id)
+		{
+			_layerHandler.DeleteLayer(id);
+		}
+
+		/// <summary>
+		/// Callled each time something is changed in the SceneView hierarchy (event GameObjects renaming)
+		/// </summary>
+		private void OnHierarchyChange()
+		{
+			_layerHandler.OnHierarchyChange(UnityEngine.Object.FindObjectOfType<TableBehavior>());
+			_treeView.Reload();
 		}
 
 		private void OnVisibilityChanged()
@@ -86,17 +117,8 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private void OnGUI()
 		{
-			DrawToolbar();
-			DrawTreeView();
-		}
+			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
 
-		private void DrawToolbar()
-		{
-			_treeView.searchString = _searchField.OnGUI(ToolbarRect, _treeView.searchString);
-		}
-
-		private void DrawTreeView()
-		{
 			_treeView.OnGUI(TreeViewRect);
 		}
 	}

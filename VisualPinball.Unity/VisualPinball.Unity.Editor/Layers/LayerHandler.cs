@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.TreeView;
@@ -28,11 +29,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		public LayerTreeElement TreeRoot { get; } = new LayerTreeElement { Depth = -1, Id = -1 };
 
 		public event Action TreeRebuilt;
-
-
-		public LayerHandler()
-		{
-		}
 
 		/// <summary>
 		/// Is called by the LayerEditor when a new TableBehavior is created/deleted
@@ -123,25 +119,111 @@ namespace VisualPinball.Unity.Editor.Layers
 		}
 
 		/// <summary>
-		/// Callback when LayerTreeView as validated a layer rename
+		/// Update the layer name of an ILayerableItemBehavior, managing Undo
 		/// </summary>
-		/// <param name="itemId">the id of the renamed layer TreeElement</param>
-		/// <param name="newName">the new validated name</param>
-		internal void OnLayerRenamed(int itemId, string newName)
+		/// <param name="item">the ILayerableItemBehavior to modify</param>
+		/// <param name="layerName">the new layer name</param>
+		private void SetLayerNameToItem(ILayerableItemBehavior item, string layerName)
 		{
-			var layerElement = TreeRoot.Find<LayerTreeElement>(itemId);
-			if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
-				layerElement.LayerName = newName;
-				if (layerElement.HasChildren) {
-					foreach (var item in layerElement.Children) {
-						var iLayerable = ((LayerTreeElement)item).Item;
-						if (iLayerable != null){
-							iLayerable.EditorLayerName = layerElement.LayerName;
-						}
+			if (item.EditorLayerName != layerName) {
+				Undo.RecordObject(item as UnityEngine.Object, $"Item {(item as MonoBehaviour)?.name} : Change layer name from {item.EditorLayerName} to {layerName}");
+				item.EditorLayerName = layerName;
+			}
+		}
+
+		/// <summary>
+		/// Will update recursively the BiffData EditorLayerName of all provided elements with a new layer name
+		/// </summary>
+		/// <param name="elements">an array of LayerTreeElement to parse</param>
+		/// <param name="layerName">the new layer name</param>
+		private void SetLayerNameToItems(LayerTreeElement[] elements, string layerName)
+		{
+			foreach (var element in elements) {
+				if (element.Item != null) {
+					SetLayerNameToItem(element.Item, layerName);
+					if (element.HasChildren) {
+						SetLayerNameToItems(element.GetChildren<LayerTreeElement>(), layerName);
 					}
 				}
-				RebuildLayers();
 			}
+		}
+
+		private readonly string _newLayerDefaultName = "New Layer ";
+		/// <summary>
+		/// Create a new layer with first free name formatted as "New Layer {num}"
+		/// </summary>
+		public void CreateNewLayer()
+		{
+			var newLayerNum = 0;
+			while (_layers.ContainsKey($"{_newLayerDefaultName}{newLayerNum}")) {
+				newLayerNum++;
+			}
+			_layers.Add($"{_newLayerDefaultName}{newLayerNum}", new List<MonoBehaviour>());
+			RebuildTree();
+		}
+
+		/// <summary>
+		/// Delete a layer using a TreeElement id used within TreeRoot
+		/// </summary>
+		/// <param name="id">the id of the layer TreeElement</param>
+		/// <remarks>
+		/// Cannot delete the last layer, table need at least one layer
+		/// Will transfer all items from the deleted layer to the first layer of the table
+		/// </remarks>
+		public void DeleteLayer(int id)
+		{
+			var item = TreeRoot.Find<LayerTreeElement>(id);
+			if (item != null && item.Type == LayerTreeViewElementType.Layer) {
+
+				if (_layers.Keys.Count == 1) {
+					EditorUtility.DisplayDialog("Visual Pinball", $"Cannot delete all layers", "Close");
+					return;
+				}
+
+				//Keep layer's items
+				List<MonoBehaviour> items;
+				if (_layers.TryGetValue(item.LayerName, out items)) {
+					_layers.Remove(item.LayerName);
+					var firstLayer = _layers.Keys.First();
+					if (firstLayer != null) {
+						SetLayerNameToItems(item.GetChildren<LayerTreeElement>(), firstLayer);
+						_layers[firstLayer].AddRange(items);
+						_layers[firstLayer].Sort((baseA, baseB) => baseA.name.CompareTo(baseB.name));
+						RebuildTree();
+					}
+				}
+			}
+		}
+		
+		/// <summary>
+		/// Callback when LayerTreeView as validated a layer rename
+		/// </summary>
+		/// <param name="element">the the renamed layer TreeElement</param>
+		/// <param name="newName">the new validated name</param>
+		internal void OnLayerRenamed(LayerTreeElement element, string newName)
+		{
+			if (element.LayerName == newName) {
+				return;
+			}
+
+			//Check if there is not already a layers with thr same name
+			if (_layers.ContainsKey(newName)) {
+				EditorUtility.DisplayDialog("Visual Pinball", $"There is already a layer named {newName}.\nFind another layer name.", "Close");
+				return;
+			}
+
+			//Rename in _layers
+			List<MonoBehaviour> items = null;
+			if (_layers.TryGetValue(element.LayerName, out items)) {
+				_layers.Remove(element.LayerName);
+				_layers[newName] = items;
+			}
+			element.LayerName = newName;
+			//Update layer name for all items within this layer
+			if (element.HasChildren) {
+				SetLayerNameToItems(element.GetChildren<LayerTreeElement>(), newName);
+			}
+			RebuildTree();
 		}
 
 		/// <summary>
