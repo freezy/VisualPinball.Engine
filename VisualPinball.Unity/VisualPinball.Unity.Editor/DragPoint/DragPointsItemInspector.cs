@@ -33,14 +33,13 @@ namespace VisualPinball.Unity.Editor.DragPoint
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
 			DragPointsHandler = new DragPointsHandler(target);
-
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 		}
 
-		protected virtual void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			DragPointsHandler = null;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
