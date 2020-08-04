@@ -67,17 +67,17 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
+		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+		}
+
 		#region BIFF
 
 		static KickerData()
 		{
 			Init(typeof(KickerData), Attributes);
-		}
-
-		public KickerData(string name, float x, float y)
-		{
-			Name = name;
-			Center = new Vertex2D(x, y);
 		}
 
 		public KickerData(BinaryReader reader, string storageName) : base(storageName)

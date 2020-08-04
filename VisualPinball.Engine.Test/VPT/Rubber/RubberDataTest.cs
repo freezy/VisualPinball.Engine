@@ -11,8 +11,8 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		public void ShouldReadRubberData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
-			ValidateRubberData1(table.Rubbers["Rubber1"].Data);
-			ValidateRubberData2(table.Rubbers["Rubber2"].Data);
+			ValidateRubberData1(table.Rubber("Rubber1").Data);
+			ValidateRubberData2(table.Rubber("Rubber2").Data);
 		}
 
 		[Test]
@@ -22,8 +22,8 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateRubberData1(writtenTable.Rubbers["Rubber1"].Data);
-			ValidateRubberData2(writtenTable.Rubbers["Rubber2"].Data);
+			ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);
+			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
 		}
 
 		private static void ValidateRubberData1(RubberData data)

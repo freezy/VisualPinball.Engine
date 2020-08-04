@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldReadGateData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
-			ValidateGateData(table.Gates["Data"].Data);
+			ValidateGateData(table.Gate("Data").Data);
 		}
 
 		[Test]
@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateGateData(writtenTable.Gates["Data"].Data);
+			ValidateGateData(writtenTable.Gate("Data").Data);
 		}
 
 		private static void ValidateGateData(GateData data)

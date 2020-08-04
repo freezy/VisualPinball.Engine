@@ -20,7 +20,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveToTheEndWhenSolenoidIsTurnedOn()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["FlipperR"];
+			var flipper = _table.Flipper("FlipperR");
 			var startAngleRad = MathF.DegToRad(flipper.Data.StartAngle);
 			var endAngleRad = MathF.DegToRad(flipper.Data.EndAngle);
 
@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveToStartWhenSolenoidIsTurnedOff()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["FlipperR"];
+			var flipper = _table.Flipper("FlipperR");
 			var startAngleRad = MathF.DegToRad(flipper.Data.StartAngle);
 
 			// move up
@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveBackToEndWhenPressedWhileMoving()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["FlipperR"];
+			var flipper = _table.Flipper("FlipperR");
 			var startAngleRad = MathF.DegToRad(flipper.Data.StartAngle);
 			var endAngleRad = MathF.DegToRad(flipper.Data.EndAngle);
 
@@ -128,7 +128,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveTheBallUp()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["DefaultFlipper"];
+			var flipper = _table.Flipper("DefaultFlipper");
 
 			// put ball on top of flipper
 			var ball = CreateBall(player, 310, 1590, 0);
@@ -149,7 +149,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldPushTheCoilDownWhenHitWithHighSpeed()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["DefaultFlipper"];
+			var flipper = _table.Flipper("DefaultFlipper");
 			CreateBall(player, 395, 1547, 0, 0, 20);
 
 			// assert initial flipper position
@@ -165,7 +165,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveWhenHitAtTheSameTime()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["DefaultFlipper"];
+			var flipper = _table.Flipper("DefaultFlipper");
 
 			// shoot ball onto flipper and flip at the same time
 			var ball = CreateBall(player, 420, 1550, 0, 0, 5);
@@ -210,7 +210,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldMoveTheFlipperUpWhenHitFromBelow()
 		{
 			var player = new Player(_table).Init();
-			var flipper = _table.Flippers["DefaultFlipper"];
+			var flipper = _table.Flipper("DefaultFlipper");
 
 			// shoot ball from below onto flipper
 			CreateBall(player, 374, 1766, 0, 0, -10);

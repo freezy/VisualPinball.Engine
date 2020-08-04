@@ -29,9 +29,13 @@ namespace VisualPinball.Engine.VPT
 		public abstract string GetName();
 		public abstract void SetName(string name);
 
-		protected ItemData() { }
+		protected ItemData(StoragePrefix prefix) : base(prefix)
+		{
+		}
 
-		protected ItemData(string storageName) : base(storageName) { }
+		protected ItemData(string storageName) : base(storageName)
+		{
+		}
 	}
 
 	public interface IPhysicalData

@@ -18,18 +18,18 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		[Test]
 		public void ShouldGenerateMesh()
 		{
-			AssertObjMesh(_table, _obj, _table.HitTargets["DropTargetBeveled"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["DropTargetFlatSimple"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["DropTargetSimple"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["Data"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["HitFatTargetSlim"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["HitFatTargetSquare"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["HitTargetRect"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["HitTargetRound"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["HitTargetSlim"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["ScaledTarget"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["RotatedTarget"]);
-			AssertObjMesh(_table, _obj, _table.HitTargets["DroppedTarget"]);
+			AssertObjMesh(_table, _obj, _table.HitTarget("DropTargetBeveled"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("DropTargetFlatSimple"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("DropTargetSimple"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("Data"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("HitFatTargetSlim"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("HitFatTargetSquare"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("HitTargetRect"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("HitTargetRound"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("HitTargetSlim"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("ScaledTarget"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("RotatedTarget"));
+			AssertObjMesh(_table, _obj, _table.HitTarget("DroppedTarget"));
 		}
 	}
 }

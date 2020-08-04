@@ -70,17 +70,17 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
+		public SpinnerData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+		}
+
 		#region BIFF
 
 		static SpinnerData()
 		{
 			Init(typeof(SpinnerData), Attributes);
-		}
-
-		public SpinnerData(string name, float x, float y)
-		{
-			Name = name;
-			Center = new Vertex2D(x, y);
 		}
 
 		public SpinnerData(BinaryReader reader, string storageName) : base(storageName)

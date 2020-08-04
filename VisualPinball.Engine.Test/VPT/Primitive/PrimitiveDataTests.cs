@@ -12,7 +12,7 @@
 		public void ShouldReadPrimitiveData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
-			ValidatePrimitiveData(table.Primitives["Cube"].Data);
+			ValidatePrimitiveData(table.Primitive("Cube").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidatePrimitiveData(writtenTable.Primitives["Cube"].Data);
+			ValidatePrimitiveData(writtenTable.Primitive("Cube").Data);
 		}
 
 		private static void ValidatePrimitiveData(PrimitiveData data)

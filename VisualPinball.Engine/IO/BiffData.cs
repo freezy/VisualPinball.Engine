@@ -31,18 +31,17 @@ namespace VisualPinball.Engine.IO
 		public string StorageName => _storageName ?? $"{StoragePrefix}{StorageIndex}";
 
 		public readonly StoragePrefix StoragePrefix;
-		public readonly int StorageIndex;
+		public int StorageIndex;
 		public readonly List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
 		private readonly string _storageName;
-		private readonly string _storageNameDebug;
 
-		protected BiffData()
+		protected BiffData(StoragePrefix prefix)
 		{
+			StoragePrefix = prefix;
 		}
 
 		protected BiffData(string storageName)
 		{
-			_storageNameDebug = storageName;
 			if (string.IsNullOrEmpty(storageName)) {
 				_storageName = string.Empty;
 

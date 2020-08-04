@@ -119,17 +119,17 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Color Color = new Color(0x4c4c4cf, ColorFormat.Bgr);
 
+		public PlungerData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
+		}
+
 		#region BIFF
 
 		static PlungerData()
 		{
 			Init(typeof(PlungerData), Attributes);
-		}
-
-		public PlungerData(string name, float x, float y)
-		{
-			Name = name;
-			Center = new Vertex2D(x, y);
 		}
 
 		public PlungerData(BinaryReader reader, string storageName) : base(storageName)

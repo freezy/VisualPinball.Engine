@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 
 		private void ShouldGenerate(string name)
 		{
-			var ramp = _table.Ramps[name];
+			var ramp = _table.Ramp(name);
 			var rampMeshes = ramp.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 #if WIN64
 			var threshold = 0.0001f;

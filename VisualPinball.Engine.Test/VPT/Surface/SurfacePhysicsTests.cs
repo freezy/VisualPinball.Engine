@@ -10,7 +10,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public SurfacePhysicsTests()
 		{
 			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
-			_kicker = _table.Kickers["BallRelease"];
+			_kicker = _table.Kicker("BallRelease");
 		}
 
 		// [Test]

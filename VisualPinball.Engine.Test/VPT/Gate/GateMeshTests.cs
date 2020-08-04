@@ -21,18 +21,18 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldGenerateBracketMeshes()
 		{
 			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
-			AssertObjMesh(_table, _obj, _table.Gates["LongPlate"], GetName, 0.00015f);
-			AssertObjMesh(_table, _obj, _table.Gates["Plate"], GetName);
-			AssertObjMesh(_table, _obj, _table.Gates["WireRectangle"], GetName);
-			AssertObjMesh(_table, _obj, _table.Gates["WireW"], GetName, 0.00015f);
-			AssertObjMesh(_table, _obj, _table.Gates["TransformedGate"], GetName);
-			AssertObjMesh(_table, _obj, _table.Gates["SurfaceGate"], GetName);
+			AssertObjMesh(_table, _obj, _table.Gate("LongPlate"), GetName, 0.00015f);
+			AssertObjMesh(_table, _obj, _table.Gate("Plate"), GetName);
+			AssertObjMesh(_table, _obj, _table.Gate("WireRectangle"), GetName);
+			AssertObjMesh(_table, _obj, _table.Gate("WireW"), GetName, 0.00015f);
+			AssertObjMesh(_table, _obj, _table.Gate("TransformedGate"), GetName);
+			AssertObjMesh(_table, _obj, _table.Gate("SurfaceGate"), GetName);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshWithoutBracket()
 		{
-			AssertObjMesh(_obj, _table.Gates["NoBracketGate"].GetRenderObjects(_table).RenderObjects[0].Mesh, "NoBracketGateWire");
+			AssertObjMesh(_obj, _table.Gate("NoBracketGate").GetRenderObjects(_table).RenderObjects[0].Mesh, "NoBracketGateWire");
 			AssertNoObjMesh(_obj, "NoBracketGateBracket");
 		}
 

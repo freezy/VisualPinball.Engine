@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		public void ShouldReadHitTargetData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
-			ValidateHitTargetData(table.HitTargets["Data"].Data);
+			ValidateHitTargetData(table.HitTarget("Data").Data);
 		}
 
 		[Test]
@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateHitTargetData(writtenTable.HitTargets["Data"].Data);
+			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
 		}
 
 		private static void ValidateHitTargetData(HitTargetData data)

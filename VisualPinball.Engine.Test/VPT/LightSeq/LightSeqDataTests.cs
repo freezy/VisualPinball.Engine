@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		public void ShouldReadLightSeqData()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
-			ValidateLightSeqData(table.LightSeqs["LightSeq001"].Data);
+			ValidateLightSeqData(table.LightSeq("LightSeq001").Data);
 		}
 
 		[Test]
@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateLightSeqData(writtenTable.LightSeqs["LightSeq001"].Data);
+			ValidateLightSeqData(writtenTable.LightSeq("LightSeq001").Data);
 		}
 
 		private static void ValidateLightSeqData(LightSeqData data)

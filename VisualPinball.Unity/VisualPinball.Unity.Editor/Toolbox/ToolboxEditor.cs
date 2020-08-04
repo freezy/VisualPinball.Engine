@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 			if (GUILayout.Button("Trigger")) {
 				var table = Table;
-				var triggerData = new TriggerData(NextName(table.Triggers, "Trigger"), table.Width / 2f, table.Height / 2f)
+				var triggerData = new TriggerData(table.NumGameItems + 1, NextName(table.Triggers, "Trigger"), table.Width / 2f, table.Height / 2f)
 				{
 					DragPoints = new[] {
 						new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),

@@ -11,7 +11,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		public void ShouldReadLayerDataVPX1060()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumpers["Bumper1"].Data;
+			var data = table.Bumper("Bumper1").Data;
 			ValidateTableDataVPX1060(data);
 		}
 
@@ -19,7 +19,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		public void ShouldReadLayerDataVPX1070()
 		{
 			var table = Engine.VPT.Table.Table.Load(VpxPath.BumperVPX1070);
-			var data = table.Bumpers["Bumper1"].Data;
+			var data = table.Bumper("Bumper1").Data;
 			ValidateTableDataVPX1070(data);
 		}
 
@@ -28,11 +28,11 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
 			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumpers["Bumper1"].Data;
+			var data = table.Bumper("Bumper1").Data;
 			data.EditorLayerName = "Layer_1";
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableDataVPX1070(writtenTable.Bumpers["Bumper1"].Data);
+			ValidateTableDataVPX1070(writtenTable.Bumper("Bumper1").Data);
 		}
 
 		private static void ValidateTableDataVPX1060(BumperData data)
