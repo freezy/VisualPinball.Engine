@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Plungers.Remove(Name);
+				_table.Remove<Engine.VPT.Plunger.Plunger>(Name);
 			}
 		}
 

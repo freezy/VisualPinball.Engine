@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.VPT.Gate
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Gates.Remove(Name);
+				_table.Remove<Engine.VPT.Gate.Gate>(Name);
 			}
 		}
 

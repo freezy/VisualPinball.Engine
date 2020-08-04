@@ -8,10 +8,14 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Decal;
+using VisualPinball.Engine.VPT.DispReel;
+using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -19,6 +23,8 @@ using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
+using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT.Bumper;
@@ -217,14 +223,14 @@ namespace VisualPinball.Unity
 
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
-			sidecar.decals = table.Decals.Select(d => d.Data).ToArray();
-			sidecar.dispReels = table.DispReels.Values.Select(d => d.Data).ToArray();
-			sidecar.flashers = table.Flashers.Values.Select(d => d.Data).ToArray();
-			sidecar.lightSeqs = table.LightSeqs.Values.Select(d => d.Data).ToArray();
-			sidecar.plungers = table.Plungers.Values.Select(d => d.Data).ToArray();
+			sidecar.decals = table.GetAllData<Decal, DecalData>();
+			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
+			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
+			sidecar.lightSeqs = table.GetAllData<LightSeq, LightSeqData>();
+			sidecar.plungers = table.GetAllData<Plunger, PlungerData>();
 			sidecar.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
-			sidecar.textBoxes = table.TextBoxes.Values.Select(d => d.Data).ToArray();
-			sidecar.timers = table.Timers.Values.Select(d => d.Data).ToArray();
+			sidecar.textBoxes = table.GetAllData<TextBox, TextBoxData>();
+			sidecar.timers = table.GetAllData<Timer, TimerData>();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),

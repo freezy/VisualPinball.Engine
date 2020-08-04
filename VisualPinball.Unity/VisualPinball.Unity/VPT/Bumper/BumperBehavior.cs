@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Bumpers.Remove(Name);
+				_table.Remove<Engine.VPT.Bumper.Bumper>(Name);
 			}
 		}
 
