@@ -59,8 +59,11 @@ namespace VisualPinball.Unity.Import
 			_table = table;
 
 			var go = gameObject;
-			go.name = _table.Name;
+			
 			MakeSerializable(go, table);
+
+			// set the gameobject name; this needs to happen after MakeSerializable because the name is set there as well
+			go.name = "Table [" + _table.InfoName + "]";
 
 			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
