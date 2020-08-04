@@ -67,6 +67,8 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged; // LayerEditor will be notified of any visibility change from the SceneManagement view to update the LayerHandler
 
+			Undo.undoRedoPerformed += OnUndoRedoPerformed; // LayerEditor will ask LayerHandler to rebuild its layers structure after performing an Undo/Redo
+
 			// trigger handler update on enable
 			OnHierarchyChange();
 		}
@@ -74,8 +76,13 @@ namespace VisualPinball.Unity.Editor.Layers
 		private void OnDisable()
 		{
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
+			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
 
+		private void OnUndoRedoPerformed()
+		{
+			OnHierarchyChange();
+		}
 
 		/// <summary>
 		/// Opens a popup menu when right-clicking somewhere in the TreeView

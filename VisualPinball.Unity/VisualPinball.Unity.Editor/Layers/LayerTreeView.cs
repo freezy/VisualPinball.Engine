@@ -72,6 +72,9 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
+		/// <summary>
+		/// Triggered by the LayerHandler tree rebuild, will have to recreate the TreeViewItems structure
+		/// </summary>
 		internal void OnTreeRebuilt()
 		{
 			Reload();
