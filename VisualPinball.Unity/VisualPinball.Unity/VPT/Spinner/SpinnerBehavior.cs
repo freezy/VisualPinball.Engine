@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Spinners.Remove(Name);
+				_table.Remove<Engine.VPT.Spinner.Spinner>(Name);
 			}
 		}
 

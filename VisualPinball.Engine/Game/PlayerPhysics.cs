@@ -141,7 +141,7 @@ namespace VisualPinball.Engine.Game
 			_hitTopGlass = _table.GenerateGlassHit();
 
 			// index flippers
-			_flipperMovers = _table.Flippers.Values.Select(f => f.FlipperMover).ToArray();
+			_flipperMovers = _table.GetAll<Flipper>().Select(f => f.FlipperMover).ToArray();
 		}
 
 		private void InitOcTree(Table table)

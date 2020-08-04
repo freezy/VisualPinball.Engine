@@ -184,31 +184,30 @@ namespace VisualPinball.Unity.VPT.Table
 			table.SetTextureContainer(_sidecar.textures);
 
 			// restore game items with no game object (yet!)
-			table.Decals.Clear();
-			table.Decals.AddRange(_sidecar.decals.Select(d => new Decal(d)));
+			table.SetAll(_sidecar.decals.Select(d => new Decal(d)));
 			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
-			Restore(_sidecar.dispReels, table.DispReels, d => new DispReel(d));
-			Restore(_sidecar.flashers, table.Flashers, d => new Flasher(d));
-			Restore(_sidecar.lightSeqs, table.LightSeqs, d => new LightSeq(d));
-			Restore(_sidecar.plungers, table.Plungers, d => new Engine.VPT.Plunger.Plunger(d));
-			Restore(_sidecar.textBoxes, table.TextBoxes, d => new TextBox(d));
-			Restore(_sidecar.timers, table.Timers, d => new Timer(d));
+			Restore(_sidecar.dispReels, table, d => new DispReel(d));
+			Restore(_sidecar.flashers, table, d => new Flasher(d));
+			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
+			Restore(_sidecar.plungers, table, d => new Engine.VPT.Plunger.Plunger(d));
+			Restore(_sidecar.textBoxes, table, d => new TextBox(d));
+			Restore(_sidecar.timers, table, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
-			Restore<BumperBehavior, Engine.VPT.Bumper.Bumper, BumperData>(table.Bumpers);
-			Restore<FlipperBehavior, Engine.VPT.Flipper.Flipper, FlipperData>(table.Flippers);
-			Restore<GateBehavior, Engine.VPT.Gate.Gate, GateData>(table.Gates);
-			Restore<HitTargetBehavior, Engine.VPT.HitTarget.HitTarget, HitTargetData>(table.HitTargets);
-			Restore<KickerBehavior, Engine.VPT.Kicker.Kicker, KickerData>(table.Kickers);
-			Restore<LightBehavior, Engine.VPT.Light.Light, LightData>(table.Lights);
-			Restore<PlungerBehavior, Engine.VPT.Plunger.Plunger, PlungerData>(table.Plungers);
-			Restore<PrimitiveBehavior, Engine.VPT.Primitive.Primitive, PrimitiveData>(table.Primitives);
-			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table.Ramps);
-			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table.Rubbers);
-			Restore<SpinnerBehavior, Engine.VPT.Spinner.Spinner, SpinnerData>(table.Spinners);
-			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, SurfaceData>(table.Surfaces);
-			Restore<TriggerBehavior, Engine.VPT.Trigger.Trigger, TriggerData>(table.Triggers);
+			Restore<BumperBehavior, Engine.VPT.Bumper.Bumper, BumperData>(table);
+			Restore<FlipperBehavior, Engine.VPT.Flipper.Flipper, FlipperData>(table);
+			Restore<GateBehavior, Engine.VPT.Gate.Gate, GateData>(table);
+			Restore<HitTargetBehavior, Engine.VPT.HitTarget.HitTarget, HitTargetData>(table);
+			Restore<KickerBehavior, Engine.VPT.Kicker.Kicker, KickerData>(table);
+			Restore<LightBehavior, Engine.VPT.Light.Light, LightData>(table);
+			Restore<PlungerBehavior, Engine.VPT.Plunger.Plunger, PlungerData>(table);
+			Restore<PrimitiveBehavior, Engine.VPT.Primitive.Primitive, PrimitiveData>(table);
+			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table);
+			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table);
+			Restore<SpinnerBehavior, Engine.VPT.Spinner.Spinner, SpinnerData>(table);
+			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, SurfaceData>(table);
+			Restore<TriggerBehavior, Engine.VPT.Trigger.Trigger, TriggerData>(table);
 
 			return table;
 		}
@@ -223,10 +222,10 @@ namespace VisualPinball.Unity.VPT.Table
 			return table;
 		}
 
-		private void Restore<TComp, TItem, TData>(IDictionary<string, TItem> dest) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemBehavior<TItem, TData>
+		private void Restore<TComp, TItem, TData>(Engine.VPT.Table.Table table) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemBehavior<TItem, TData>
 		{
 			foreach (var component in GetComponentsInChildren<TComp>(true)) {
-				dest[component.name] = component.Item;
+				table.Add(component.Item);
 			}
 		}
 
@@ -234,6 +233,13 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			foreach (var d in src) {
 				dest[d.GetName()] = create(d);
+			}
+		}
+
+		private static void Restore<TItem, TData>(IEnumerable<TData> src, Engine.VPT.Table.Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
+		{
+			foreach (var d in src) {
+				table.Add(create(d));
 			}
 		}
 	}

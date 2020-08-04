@@ -7,6 +7,7 @@ using VisualPinball.Unity.VPT.Surface;
 using VisualPinball.Unity.VPT.Table;
 using VisualPinball.Unity.Extensions;
 using System;
+using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor.Inspectors
 {
@@ -187,7 +188,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			var mb = target as MonoBehaviour;
 			if (_surface == null && _table != null) {
 				string currentFieldName = field;
-				if (currentFieldName != null && _table.Table.Surfaces.ContainsKey(currentFieldName)) {
+				if (currentFieldName != null && _table.Table.Has<Surface>(currentFieldName)) {
 					_surface = _table.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}

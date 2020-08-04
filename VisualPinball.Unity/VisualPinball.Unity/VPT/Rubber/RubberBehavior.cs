@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.VPT.Rubber
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Rubbers.Remove(Name);
+				_table.Remove<Engine.VPT.Rubber.Rubber>(Name);
 			}
 		}
 

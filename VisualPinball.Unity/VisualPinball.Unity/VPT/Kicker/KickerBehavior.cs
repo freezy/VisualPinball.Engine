@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Kickers.Remove(Name);
+				_table.Remove<Engine.VPT.Kicker.Kicker>(Name);
 			}
 		}
 

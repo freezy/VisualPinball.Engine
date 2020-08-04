@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -73,25 +74,77 @@ namespace VisualPinball.Engine.VPT.Table
 		public Timer.Timer Timer(string name) => _timers[name];
 		public Trigger.Trigger Trigger(string name) => _triggers[name];
 
-		public void Add(Bumper.Bumper item) => AddItem(item.Name, item, _bumpers);
-		public void Add(Decal.Decal item) => AddItem(item, _decals);
-		public void Add(DispReel.DispReel item) => AddItem(item.Name, item, _dispReels);
-		public void Add(Flipper.Flipper item) => AddItem(item.Name, item, _flippers);
-		public void Add(Gate.Gate item) => AddItem(item.Name, item, _gates);
-		public void Add(HitTarget.HitTarget item) => AddItem(item.Name, item, _hitTargets);
-		public void Add(Kicker.Kicker item) => AddItem(item.Name, item, _kickers);
-		public void Add(Light.Light item) => AddItem(item.Name, item, _lights);
-		public void Add(LightSeq.LightSeq item) => AddItem(item.Name, item, _lightSeqs);
-		public void Add(Plunger.Plunger item) => AddItem(item.Name, item, _plungers);
-		public void Add(Flasher.Flasher item) => AddItem(item.Name, item, _flashers);
-		public void Add(Primitive.Primitive item) => AddItem(item.Name, item, _primitives);
-		public void Add(Ramp.Ramp item) => AddItem(item.Name, item, _ramps);
-		public void Add(Rubber.Rubber item) => AddItem(item.Name, item, _rubbers);
-		public void Add(Spinner.Spinner item) => AddItem(item.Name, item, _spinners);
-		public void Add(Surface.Surface item) => AddItem(item.Name, item, _surfaces);
-		public void Add(TextBox.TextBox item) => AddItem(item.Name, item, _textBoxes);
-		public void Add(Timer.Timer item) => AddItem(item.Name, item, _timers);
-		public void Add(Trigger.Trigger item) => AddItem(item.Name, item, _triggers);
+		public void Add<T>(T item) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			if (dict != null) {
+				AddItem(item.Name, item, dict);
+
+			} else {
+				var list = GetItemList<T>();
+				if (list != null) {
+					AddItem(item, list);
+
+				} else {
+					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
+				}
+			}
+		}
+
+		public void SetAll<T>(IEnumerable<T> items) where T : IItem
+		{
+			var list = GetItemList<T>();
+			if (list == null) {
+				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
+			}
+			list.Clear();
+			list.AddRange(items);
+		}
+
+		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
+
+		public string GetNewName<T>(string prefix) where T : IItem
+		{
+			var n = 0;
+			var dict = GetItemDictionary<T>();
+			do {
+				var elementName = $"{prefix}{++n}";
+				if (!dict.ContainsKey(elementName)) {
+					return elementName;
+				}
+			} while (true);
+		}
+
+		public void Remove<T>(string name) where T : IItem
+		{
+			GetItemDictionary<T>().Remove(name);
+		}
+
+		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.Select(d => d.Data).ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.Select(d => d.Data).ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
+		public TItem[] GetAll<TItem>() where TItem : IItem
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
 
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
 			.Concat(_bumpers.Values)
@@ -189,6 +242,90 @@ namespace VisualPinball.Engine.VPT.Table
 		private static void AddItem<TItem>(TItem item, ICollection<TItem> d)
 		{
 			d.Add(item);
+		}
+
+		private Dictionary<string, T> GetItemDictionary<T>() where T : IItem
+		{
+			if (typeof(T) == typeof(VPT.Bumper.Bumper)) {
+				return _bumpers as Dictionary<string, T>;
+			}
+			if (typeof(T) == typeof(VPT.DispReel.DispReel)) {
+				return _dispReels as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Flipper.Flipper)) {
+				return _flippers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Gate.Gate)) {
+				return _gates as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.HitTarget.HitTarget)) {
+				return _hitTargets as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Kicker.Kicker)) {
+				return _kickers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Light.Light)) {
+				return _lights as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.LightSeq.LightSeq)) {
+				return _lightSeqs as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Plunger.Plunger)) {
+				return _plungers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Flasher.Flasher)) {
+				return _flashers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Primitive.Primitive)) {
+				return _primitives as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Ramp.Ramp)) {
+				return _ramps as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Rubber.Rubber)) {
+				return _rubbers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Spinner.Spinner)) {
+				return _spinners as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Surface.Surface)) {
+				return _surfaces as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.TextBox.TextBox)) {
+				return _textBoxes as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Timer.Timer)) {
+				return _timers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Trigger.Trigger)) {
+				return _triggers as Dictionary<string, T>;
+			}
+
+			return null;
+		}
+
+		private List<T> GetItemList<T>() {
+			if (typeof(T) == typeof(VPT.Decal.Decal)) {
+				return _decals as List<T>;
+			}
+
+			return null;
 		}
 
 		#endregion
