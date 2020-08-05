@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Import
 		private Table _table;
 		private TableBehavior _tb;
 
-		public void Import(string fileName, Table table)
+		public void Import(string fileName, Table table, bool applyPatch = true, string tableName = null)
 		{
 			_table = table;
 
@@ -63,9 +63,22 @@ namespace VisualPinball.Unity.Import
 			MakeSerializable(go, table);
 
 			// set the gameobject name; this needs to happen after MakeSerializable because the name is set there as well
-			go.name = _table.Data.Name;
+			if( string.IsNullOrEmpty( tableName))
+			{
+				go.name = _table.Name;
+			}
+			else
+			{
+				go.name = tableName
+					.Replace("%TABLENAME%", _table.Name)
+					.Replace("%INFONAME%", _table.InfoName);
+			}
 
-			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
+
+			if (applyPatch)
+			{
+				_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
+			}
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
