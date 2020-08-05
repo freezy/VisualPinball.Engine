@@ -95,14 +95,14 @@ namespace VisualPinball.Unity.Editor.Layers
 
 				var layerCount = 1;
 				var allLayersVisible = true;
-				foreach (var layer in _layers.Keys) {
+				foreach (var pair in _layers.OrderBy(key=> key.Key)) {
 
 					// layer node
-					var layerItem = new LayerTreeElement(layer) { Id = layerCount++ };
+					var layerItem = new LayerTreeElement(pair.Key) { Id = layerCount++ };
 					tableItem.AddChild(layerItem);
 					var allItemsVisible = true;
 
-					foreach (var item in _layers[layer]) {
+					foreach (var item in pair.Value.OrderBy(behaviour => behaviour.name)) {
 						if (item is ILayerableItemBehavior layeredItem) {
 							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
 							allItemsVisible &= layeredItem.EditorLayerVisibility;
