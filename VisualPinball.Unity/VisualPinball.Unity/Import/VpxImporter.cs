@@ -53,10 +53,15 @@ namespace VisualPinball.Unity.Import
 
 		private Table _table;
 		private TableBehavior _tb;
+		private bool _applyPatch = true;
 
 		public void Import(string fileName, Table table, bool applyPatch = true, string tableName = null)
 		{
 			_table = table;
+
+			// TODO: implement disabling patching; not so obvious because of the static methods being used for the import
+			if( !applyPatch)
+				Logger.Warn("Disabling patch import not implemented yet!");
 
 			var go = gameObject;
 
@@ -75,10 +80,7 @@ namespace VisualPinball.Unity.Import
 			}
 
 
-			if (applyPatch)
-			{
-				_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
-			}
+			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
