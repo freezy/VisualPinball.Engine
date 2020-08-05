@@ -9,23 +9,6 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class HdrpMaterialConverter : IMaterialConverter
 	{
-		private readonly int SurfaceType = Shader.PropertyToID("_SurfaceType");
-		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-		private readonly int BaseColorMap = Shader.PropertyToID("_BaseColorMap");
-
-		private readonly int NormalMap = Shader.PropertyToID("_NormalMap");
-		private readonly int NormalMapSpace = Shader.PropertyToID("_NormalMapSpace");
-		private readonly int NormalScale = Shader.PropertyToID("_NormalScale");
-
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
-		private readonly int BlendMode = Shader.PropertyToID("_BlendMode");
-		private readonly int TransparentSortPriority = Shader.PropertyToID("_TransparentSortPriority");
-		private readonly int AlphaCutoffEnable = Shader.PropertyToID("_AlphaCutoffEnable");
-		private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
-		private readonly int DstBlend = Shader.PropertyToID("_DstBlend");
-		private readonly int ZWrite = Shader.PropertyToID("_ZWrite");
-
 		public Shader GetShader()
 		{
 			return Shader.Find("HDRP/Lit");
@@ -48,7 +31,14 @@ namespace VisualPinball.Unity.Import.Material
 				debug?.AppendLine("Color manipulation performed, brightness reduced.");
 				col.r = col.g = col.b = 0.8f;
 			}
-			unityMaterial.SetColor(BaseColor, col);
+
+			// alpha for color depending on blend mode
+			ApplyBlendMode(unityMaterial, vpxMaterial.MapBlendMode);
+			if (vpxMaterial.MapBlendMode == Engine.VPT.BlendMode.Translucent)
+			{
+				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
+			}
+			unityMaterial.SetColor("_BaseColor", col);
 
 			// validate IsMetal. if true, set the metallic value.
 			// found VPX authors setting metallic as well as translucent at the
@@ -56,28 +46,17 @@ namespace VisualPinball.Unity.Import.Material
 			// to check if this value is true and also if opacity <= 1.
 			if (vpxMaterial.IsMetal && (!vpxMaterial.IsOpacityActive || vpxMaterial.Opacity >= 1))
 			{
-				unityMaterial.SetFloat(Metallic, 1f);
+				unityMaterial.SetFloat("_Metallic", 1f);
 				debug?.AppendLine("Metallic set to 1.");
 			}
 
 			// roughness / glossiness
-			unityMaterial.SetFloat(Smoothness, vpxMaterial.Roughness);
-
-			// blend mode
-			ApplyBlendMode(unityMaterial, vpxMaterial.MapBlendMode);
-			if (vpxMaterial.MapBlendMode == Engine.VPT.BlendMode.Translucent)
-			{
-				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
-				unityMaterial.SetColor(BaseColor, col);
-			}
+			unityMaterial.SetFloat("_Smoothness", vpxMaterial.Roughness);
 
 			// map
 			if (table != null && vpxMaterial.HasMap)
 			{
-				unityMaterial.SetTexture(
-					BaseColorMap,
-					table.GetTexture(vpxMaterial.Map.Name)
-				);
+				unityMaterial.SetTexture("_BaseColorMap",table.GetTexture(vpxMaterial.Map.Name));
 			}
 
 			// normal map
@@ -86,20 +65,32 @@ namespace VisualPinball.Unity.Import.Material
 				unityMaterial.EnableKeyword("_NORMALMAP");
 				unityMaterial.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
 
-				unityMaterial.SetInt(NormalMapSpace, 0); // 0 = TangentSpace, 1 = ObjectSpace
-				unityMaterial.SetFloat(NormalScale, 0f); // TODO FIXME: setting the scale to 0 for now. anything above 0 makes the entire unity editor window become black which is more likely a unity bug
+				unityMaterial.SetInt("_NormalMapSpace", 0); // 0 = TangentSpace, 1 = ObjectSpace
+				unityMaterial.SetFloat("_NormalScale", 0f); // TODO FIXME: setting the scale to 0 for now. anything above 0 makes the entire unity editor window become black which is more likely a unity bug
 
-				unityMaterial.SetTexture(
-					NormalMap,
-					table.GetTexture(vpxMaterial.NormalMap.Name)
-				);
+				unityMaterial.SetTexture( "_NormalMap", table.GetTexture(vpxMaterial.NormalMap.Name));
 			}
+
+			// GI hack. This is a necessary step, see respective code in BaseUnlitGUI.cs of the HDRP source
+			SetupMainTexForAlphaTestGI(unityMaterial, "_BaseColorMap", "_BaseColor");
 
 			return unityMaterial;
 		}
 
 		private void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
 		{
+			// disable shader passes
+			unityMaterial.SetShaderPassEnabled("DistortionVectors", false);
+			unityMaterial.SetShaderPassEnabled("MOTIONVECTORS", false);
+			unityMaterial.SetShaderPassEnabled("TransparentDepthPrepass", false);
+			unityMaterial.SetShaderPassEnabled("TransparentDepthPostpass", false);
+			unityMaterial.SetShaderPassEnabled("TransparentBackface", false);
+
+			// reset existing blend modes, will be enabled explicitly
+			unityMaterial.DisableKeyword("_BLENDMODE_ALPHA");
+			unityMaterial.DisableKeyword("_BLENDMODE_ADD");
+			unityMaterial.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
+
 			switch (blendMode)
 			{
 				case Engine.VPT.BlendMode.Opaque:
@@ -110,7 +101,8 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 1);
 
 					// properties
-					unityMaterial.SetFloat(SurfaceType, 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_SurfaceType", 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_AlphaCutoffEnable", 0);
 
 					// render queue
 					unityMaterial.renderQueue = -1;
@@ -118,6 +110,9 @@ namespace VisualPinball.Unity.Import.Material
 					break;
 
 				case Engine.VPT.BlendMode.Cutout:
+
+					// set render type
+					unityMaterial.SetOverrideTag("RenderType", "TransparentCutout");
 
 					// keywords
 					unityMaterial.EnableKeyword("_ALPHATEST_ON");
@@ -129,8 +124,8 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 1);
 
 					// properties
-					unityMaterial.SetFloat(SurfaceType, 0); // 0 = Opaque; 1 = Transparent
-					unityMaterial.SetInt(AlphaCutoffEnable, 1);
+					unityMaterial.SetFloat("_SurfaceType", 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_AlphaCutoffEnable", 1);
 
 					// render queue
 					unityMaterial.renderQueue = 2450;
@@ -138,6 +133,9 @@ namespace VisualPinball.Unity.Import.Material
 					break;
 
 				case Engine.VPT.BlendMode.Translucent:
+
+					// set render type
+					unityMaterial.SetOverrideTag("RenderType", "Transparent");
 
 					// keywords
 					unityMaterial.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
@@ -152,19 +150,42 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 0);
 
 					// properties
-					unityMaterial.SetFloat(SurfaceType, 1); // 0 = Opaque; 1 = Transparent
-					unityMaterial.SetFloat(BlendMode, 4); // 0 = Alpha, 1 = Additive, 4 = PreMultiply
+					unityMaterial.SetFloat("_SurfaceType", 1); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_BlendMode", 4); // 0 = Alpha, 1 = Additive, 4 = PreMultiply
 
 					// render queue
 					int transparentRenderQueueBase = 3000;
 					int transparentSortingPriority = 0;
-					unityMaterial.SetInt(TransparentSortPriority, transparentSortingPriority);
+					unityMaterial.SetInt("_TransparentSortPriority", transparentSortingPriority);
 					unityMaterial.renderQueue = transparentRenderQueueBase + transparentSortingPriority;
 
 					break;
 
 				default:
 					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		// This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
+		// Since we don't have those parameters in our shaders we need to provide a "fake" useless version of them with the right values for the GI to work.
+		public static void SetupMainTexForAlphaTestGI(UnityEngine.Material unityMaterial, string colorMapPropertyName, string colorPropertyName)
+		{
+			if (unityMaterial.HasProperty(colorMapPropertyName))
+			{
+				var mainTex = unityMaterial.GetTexture(colorMapPropertyName);
+				unityMaterial.SetTexture("_MainTex", mainTex);
+			}
+
+			if (unityMaterial.HasProperty(colorPropertyName))
+			{
+				var color = unityMaterial.GetColor(colorPropertyName);
+				unityMaterial.SetColor("_Color", color);
+			}
+
+			if (unityMaterial.HasProperty("_AlphaCutoff"))
+			{
+				var cutoff = unityMaterial.GetFloat("_AlphaCutoff");
+				unityMaterial.SetFloat("_Cutoff", cutoff);
 			}
 		}
 	}

@@ -9,24 +9,10 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class UrpMaterialConverter : IMaterialConverter
 	{
-		private readonly int Surface = Shader.PropertyToID("_Surface");
-		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-		private readonly int BaseMap = Shader.PropertyToID("_BaseMap");
-		private readonly int BumpMap = Shader.PropertyToID("_BumpMap");
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
-		private readonly int Blend = Shader.PropertyToID("_Blend");
-		private readonly int QueueOffset = Shader.PropertyToID("_QueueOffset");
-		private readonly int AlphaClip = Shader.PropertyToID("_AlphaClip");
-		private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
-		private readonly int DstBlend = Shader.PropertyToID("_DstBlend");
-		private readonly int ZWrite = Shader.PropertyToID("_ZWrite");
-
 		public Shader GetShader()
 		{
 			return Shader.Find("Universal Render Pipeline/Lit");
 		}
-
 
 		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableBehavior table, StringBuilder debug = null)
 		{
@@ -45,7 +31,15 @@ namespace VisualPinball.Unity.Import.Material
 				debug?.AppendLine("Color manipulation performed, brightness reduced.");
 				col.r = col.g = col.b = 0.8f;
 			}
-			unityMaterial.SetColor(BaseColor, col);
+
+			// alpha for color depending on blend mode
+			ApplyBlendMode(unityMaterial, vpxMaterial.MapBlendMode);
+			if (vpxMaterial.MapBlendMode == Engine.VPT.BlendMode.Translucent)
+			{
+				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
+			}
+
+			unityMaterial.SetColor("_BaseColor", col);
 
 			// validate IsMetal. if true, set the metallic value.
 			// found VPX authors setting metallic as well as translucent at the
@@ -53,28 +47,18 @@ namespace VisualPinball.Unity.Import.Material
 			// to check if this value is true and also if opacity <= 1.
 			if (vpxMaterial.IsMetal && (!vpxMaterial.IsOpacityActive || vpxMaterial.Opacity >= 1))
 			{
-				unityMaterial.SetFloat(Metallic, 1f);
+				unityMaterial.SetFloat("_Metallic", 1f);
 				debug?.AppendLine("Metallic set to 1.");
 			}
 
 			// roughness / glossiness
-			unityMaterial.SetFloat(Smoothness, vpxMaterial.Roughness);
+			unityMaterial.SetFloat("_Smoothness", vpxMaterial.Roughness);
 
-			// blend mode
-			ApplyBlendMode(unityMaterial, vpxMaterial.MapBlendMode);
-			if (vpxMaterial.MapBlendMode == Engine.VPT.BlendMode.Translucent)
-			{
-				col.a = Mathf.Min(1, Mathf.Max(0, vpxMaterial.Opacity));
-				unityMaterial.SetColor(BaseColor, col);
-			}
 
 			// map
 			if (table != null && vpxMaterial.HasMap)
 			{
-				unityMaterial.SetTexture(
-					BaseMap,
-					table.GetTexture(vpxMaterial.Map.Name)
-				);
+				unityMaterial.SetTexture( "_BaseMap", table.GetTexture(vpxMaterial.Map.Name));
 			}
 
 			// normal map
@@ -82,9 +66,7 @@ namespace VisualPinball.Unity.Import.Material
 			{
 				unityMaterial.EnableKeyword("_NORMALMAP");
 
-				unityMaterial.SetTexture(
-					BumpMap,
-					table.GetTexture(vpxMaterial.NormalMap.Name)
+				unityMaterial.SetTexture( "_BumpMap", table.GetTexture(vpxMaterial.NormalMap.Name)
 				);
 			}
 
@@ -93,9 +75,13 @@ namespace VisualPinball.Unity.Import.Material
 
 		private void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
 		{
+
 			switch (blendMode)
 			{
 				case Engine.VPT.BlendMode.Opaque:
+
+					// set render type
+					unityMaterial.SetOverrideTag("RenderType", "Opaque");
 
 					// required for the blend mode
 					unityMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
@@ -103,7 +89,7 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 1);
 
 					// properties
-					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_Surface", 0); // 0 = Opaque; 1 = Transparent
 
 					// render queue
 					unityMaterial.renderQueue = -1;
@@ -111,6 +97,9 @@ namespace VisualPinball.Unity.Import.Material
 					break;
 
 				case Engine.VPT.BlendMode.Cutout:
+
+					// set render type
+					unityMaterial.SetOverrideTag("RenderType", "TransparentCutout");
 
 					// keywords
 					unityMaterial.EnableKeyword("_ALPHATEST_ON");
@@ -121,8 +110,8 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 1);
 
 					// properties
-					unityMaterial.SetFloat(Surface, 0); // 0 = Opaque; 1 = Transparent
-					unityMaterial.SetInt(AlphaClip, 1);
+					unityMaterial.SetFloat("_Surface", 0); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetInt("_AlphaClip", 1);
 
 					// render queue
 					unityMaterial.renderQueue = 2450;
@@ -130,6 +119,12 @@ namespace VisualPinball.Unity.Import.Material
 					break;
 
 				case Engine.VPT.BlendMode.Translucent:
+
+					// disable shader passes
+					unityMaterial.SetShaderPassEnabled("SHADOWCASTER", false);
+
+					// set render type
+					unityMaterial.SetOverrideTag("RenderType", "Transparent");
 
 					// keywords
 					unityMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
@@ -140,13 +135,13 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetInt("_ZWrite", 0);
 
 					// properties
-					unityMaterial.SetFloat(Surface, 1); // 0 = Opaque; 1 = Transparent
-					unityMaterial.SetFloat(Blend, 1); // 0 = Alpha, 1 = Premultiply, 2 = Additive, 3 = Multiply
+					unityMaterial.SetFloat("_Surface", 1); // 0 = Opaque; 1 = Transparent
+					unityMaterial.SetFloat("_Blend", 1); // 0 = Alpha, 1 = Premultiply, 2 = Additive, 3 = Multiply
 
 					// render queue
 					int transparentRenderQueueBase = 3000;
 					int transparentSortingPriority = 0;
-					unityMaterial.SetInt(QueueOffset, transparentSortingPriority);
+					unityMaterial.SetInt("_QueueOffset", transparentSortingPriority);
 					unityMaterial.renderQueue = transparentRenderQueueBase + transparentSortingPriority;
 
 					break;
