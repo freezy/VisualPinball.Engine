@@ -52,7 +52,6 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (_tableBehavior != null) {
 				BuildLayersRecursively(_tableBehavior.gameObject);
 			}
-
 			RebuildTree();
 		}
 
@@ -91,21 +90,21 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (_tableBehavior != null && _tableBehavior.Table != null) {
 
 				// table node
-				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Depth = 0, Id = 0 };
-				TreeRoot.Children.Add(tableItem);
+				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Id = 0 };
+				TreeRoot.AddChild(tableItem);
 
 				var layerCount = 1;
 				var allLayersVisible = true;
 				foreach (var layer in _layers.Keys) {
 
 					// layer node
-					var layerItem = new LayerTreeElement(layer) { Depth = 1, Id = layerCount++ };
-					tableItem.Children.Add(layerItem);
+					var layerItem = new LayerTreeElement(layer) { Id = layerCount++ };
+					tableItem.AddChild(layerItem);
 					var allItemsVisible = true;
 
 					foreach (var item in _layers[layer]) {
 						if (item is ILayerableItemBehavior layeredItem) {
-							layerItem.Children.Add(new LayerTreeElement(layeredItem) { Depth = 2, Id = item.gameObject.GetInstanceID() });
+							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
 							allItemsVisible &= layeredItem.EditorLayerVisibility;
 						}
 					}
@@ -224,6 +223,14 @@ namespace VisualPinball.Unity.Editor.Layers
 				SetLayerNameToItems(element.GetChildren<LayerTreeElement>(), newName);
 			}
 			RebuildTree();
+		}
+
+		internal void OnItemsDropped(LayerTreeElement[] droppedElements, LayerTreeElement newParent)
+		{
+			foreach(var element in droppedElements) {
+				element.ReParent(newParent);
+			}
+			RebuildLayers();
 		}
 
 		/// <summary>

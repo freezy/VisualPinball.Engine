@@ -186,6 +186,19 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			LayerName = layerName;
 		}
+
+		public override void ReParent(TreeElement newParent)
+		{
+			base.ReParent(newParent);
+			if (Type == LayerTreeViewElementType.Item) {
+				if (newParent is LayerTreeElement layerParent) {
+					if (Item is MonoBehaviour bh) {
+						Undo.RecordObject(bh, $"{bh.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
+					}
+					Item.EditorLayerName = layerParent.LayerName;
+				}
+			}
+		}
 	}
 
 	/// <summary>
