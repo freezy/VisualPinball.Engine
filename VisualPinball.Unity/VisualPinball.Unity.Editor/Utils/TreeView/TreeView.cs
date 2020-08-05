@@ -213,8 +213,6 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			DragAndDrop.paths = idStrList.ToArray();
 
 			DragAndDrop.StartDrag($"{args.draggedItemIDs.Count} tree item(s)");
-
-			Reload();
 		}
 
 		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;

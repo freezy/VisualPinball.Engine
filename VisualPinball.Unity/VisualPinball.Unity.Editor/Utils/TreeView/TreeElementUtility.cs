@@ -8,10 +8,55 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 
 	/// <summary>
 	/// TreeElementUtility and TreeElement are useful helper classes for backend tree data structures.
-	/// See tests at the bottom for examples of how to use.
 	/// </summary>
 	public static class TreeElementUtility
 	{
+		/// <summary>
+		/// This helper try to find an element with the provided id in this TreeElement's hierarchy, including itself
+		/// </summary>
+		/// <typeparam name="T">a TreeElement generic class</typeparam>
+		/// <param name="id">the id of the searched element</param>
+		/// <returns>casted TreeElement as T, or null if not found</returns>
+		public static T Find<T>(this TreeElement element, int id) where T : TreeElement
+		{
+			if (element.Id == id) {
+				return (T)element;
+			}
+
+			foreach (var child in element.Children) {
+				var itFound = child.Find<T>(id);
+				if (itFound != null) {
+					return itFound;
+				}
+			}
+			return null;
+		}
+
+		public delegate bool ChildFilter<T>(T child) where T : TreeElement;
+		/// <summary>
+		/// Will gather all children from this TreeElement which pass the provided filter
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="filter">a filtering delegate</param>
+		/// <returns>an array of TreeElement as T type</returns>
+		public static T[] GetChildren<T>(this TreeElement element, ChildFilter<T> filter) where T : TreeElement
+		{
+			List<T> children = new List<T>();
+			foreach (var child in element.Children) {
+				if (filter(child as T)) {
+					children.Add(child as T);
+				}
+				children.AddRange(child.GetChildren<T>(filter));
+			}
+			return children.ToArray();
+		}
+
+		/// <summary>
+		/// Will gather all children from this TreeElement 
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <returns>an array of TreeElement as T type</returns>
+		public static T[] GetChildren<T>(this TreeElement element) where T : TreeElement => GetChildren<T>(element, d => true);
 
 		/// <summary>
 		/// Will contruct a hierarchical tree from a flat sorted list of TreeElements

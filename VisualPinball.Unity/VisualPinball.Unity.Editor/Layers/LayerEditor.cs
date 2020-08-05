@@ -36,6 +36,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		private LayerHandler _layerHandler;
 
 		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
+
 		private Rect TreeViewRect => new Rect(10f, SearchRect.max.y, position.width - 20f, position.height - 40f);
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
@@ -60,7 +61,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed; // LayerHandler will be notified when a renaming process is finished in the TreeView
 			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked; // LayerHandler will be notified for each TreeViewItem double-click
-			_treeView.ItemsDropped += _layerHandler.OnItemsDropped;
+			_treeView.ItemsDropped += _layerHandler.OnItemsDropped; // LayerHandler will be notified when items are dropped after a DragDrop process
 
 			_treeView.ItemContextClicked += OnContextClicked; // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
 
@@ -99,12 +100,17 @@ namespace VisualPinball.Unity.Editor.Layers
 			Event.current.Use();
 		}
 
-		public void CreateNewLayer()
+		internal void CreateNewLayer()
 		{
 			_layerHandler.CreateNewLayer();
 		}
 
-		public void DeleteLayer(int id)
+		internal bool ValidateDeleteLayer(int id)
+		{
+			return _layerHandler.GetElementType(id) == LayerTreeViewElementType.Layer;
+		}
+
+		internal void DeleteLayer(int id)
 		{
 			_layerHandler.DeleteLayer(id);
 		}
