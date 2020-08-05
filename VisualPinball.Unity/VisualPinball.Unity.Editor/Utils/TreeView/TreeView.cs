@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		public event Action<T> ItemContextClicked;
 
 		public T Root { get; private set; }
-		private readonly List<TreeViewItem> _rows = new List<TreeViewItem>();
+		protected readonly List<TreeViewItem> _rows = new List<TreeViewItem>();
 
 		protected TreeView(TreeViewState state, T root) : base(state)
 		{
@@ -143,7 +143,6 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		/// <param name="item">The evaluated TreeViewItem, already using the derived TreeElement generic</param>
 		/// <returns>true if this item can be renamed, false otherwise</returns>
 		protected virtual bool ValidateRename(TreeViewItem<T> item) => true;
-
 		protected override bool CanRename(TreeViewItem item)
 		{
 			if (item is TreeViewItem<T> treeViewItem) {
@@ -194,6 +193,40 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			}
 		}
 
+		protected virtual bool ValidateStartDrag(T[] elements) => false;
+		protected override bool CanStartDrag(CanStartDragArgs args)
+		{
+			List<T> elements = new List<T>();
+			elements.AddRange(Root.GetChildren<T>(element => element.Id == args.draggedItem?.id).ToList<T>());
+			elements.AddRange(Root.GetChildren<T>(element => args.draggedItemIDs.Contains(element.Id)).ToList<T>());
+			return ValidateStartDrag(elements.ToArray());
+		}
+
+		protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
+		{
+			DragAndDrop.PrepareStartDrag();
+
+			List<string> idStrList = new List<string>();
+			foreach (var id in args.draggedItemIDs) {
+				idStrList.Add(id.ToString());
+			}
+			DragAndDrop.paths = idStrList.ToArray();
+
+			DragAndDrop.StartDrag($"{args.draggedItemIDs.Count} tree item(s)");
+
+			Reload();
+		}
+
+		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;
+		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
+		{
+			List<int> idList = new List<int>();
+			foreach (var idStr in DragAndDrop.paths) {
+				idList.Add(Int32.Parse(idStr));
+			}
+			var elements = Root.GetChildren<T>(element => idList.Contains(element.Id));
+			return HandleElementsDragAndDrop(args, elements.ToArray());
+		}
 
 	}
 

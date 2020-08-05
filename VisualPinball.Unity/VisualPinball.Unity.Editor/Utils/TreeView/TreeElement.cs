@@ -88,6 +88,33 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
 		/// <returns>an array of TreeElement as T type</returns>
 		public T[] GetChildren<T>() where T : TreeElement => GetChildren<T>(d => true);
+
+		public void AddChild(TreeElement child)
+		{
+			AddChildren(new TreeElement[] { child });
+		}
+		public void AddChildren(TreeElement[] children)
+		{
+			foreach(var child in children) {
+				child.ReParent(this);
+			}
+		}
+
+		public virtual void ReParent(TreeElement newParent)
+		{
+			Parent?.Children.Remove(this);
+			newParent.Children.Add(this);
+			Parent = newParent;
+			UpdateDepth();
+		}
+
+		private void UpdateDepth()
+		{
+			Depth = Parent != null ? Parent.Depth + 1 : 0;
+			foreach (var child in Children) {
+				child.UpdateDepth();
+			}
+		}
 	}
 }
 

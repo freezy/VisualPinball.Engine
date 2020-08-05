@@ -60,6 +60,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed; // LayerHandler will be notified when a renaming process is finished in the TreeView
 			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked; // LayerHandler will be notified for each TreeViewItem double-click
+			_treeView.ItemsDropped += _layerHandler.OnItemsDropped;
 
 			_treeView.ItemContextClicked += OnContextClicked; // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
 

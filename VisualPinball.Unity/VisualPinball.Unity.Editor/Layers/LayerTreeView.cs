@@ -24,7 +24,11 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <summary>
 		/// Emitted when a layer is renamed.
 		/// </summary>
-		public event Action<LayerTreeElement, string> LayerRenamed = delegate { };
+		public event Action<LayerTreeElement, string> LayerRenamed;
+
+		public event Action<LayerTreeElement[], LayerTreeElement> ItemsDropped;
+
+		private bool _isLayerAssign = false;
 
 		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
 		{
@@ -88,8 +92,65 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (args.acceptedRename) {
 				var layerElement = Root.Find<LayerTreeElement>(args.itemID);
 				if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
-					LayerRenamed(layerElement, args.newName);
+					LayerRenamed?.Invoke(layerElement, args.newName);
 					Reload();
+				}
+			}
+		}
+
+		protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
+		{
+			if (_isLayerAssign) {
+				//Only show Layers while dragging Items
+				_rows.Clear();
+
+				var layers = Root.GetChildren<LayerTreeElement>(element => ((LayerTreeElement)element).Type == LayerTreeViewElementType.Layer);
+				foreach (var layer in layers) {
+					_rows.Add(new TreeViewItem<LayerTreeElement>(layer.Id, 0, layer));
+				}
+				SetupParentsAndChildrenFromDepths(root, _rows);
+				return _rows;
+			} else {
+				return base.BuildRows(root);
+			}
+		}
+
+		protected override bool ValidateStartDrag(LayerTreeElement[] elements)
+		{
+			if (elements.Length == 0) {
+				return false;
+			}
+			foreach(var element in elements) {
+				if (element.Type != LayerTreeViewElementType.Item) {
+					return false;
+				}
+			}
+			_isLayerAssign = true;
+			return true;
+		}
+
+		protected override DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, LayerTreeElement[] elements)
+		{
+			if (args.performDrop) {
+				if (args.dragAndDropPosition == DragAndDropPosition.UponItem) {
+					if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
+						_isLayerAssign = false;
+						ItemsDropped?.Invoke(elements, layerTreeItem.Data);
+					}
+				}
+				return DragAndDropVisualMode.None;
+			} else {
+				switch (args.dragAndDropPosition) {
+					default:
+					case DragAndDropPosition.BetweenItems:
+					case DragAndDropPosition.OutsideItems:
+						return DragAndDropVisualMode.Move;
+					case DragAndDropPosition.UponItem: {
+						if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
+							return (layerTreeItem.Data.Type == LayerTreeViewElementType.Layer ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected);
+						}
+						return DragAndDropVisualMode.Move;
+					}
 				}
 			}
 		}
