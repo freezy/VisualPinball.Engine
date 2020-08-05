@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				);
 
 				var surface = new Surface(surfaceData);
-				table.Add(surface);
+				table.Add(surface, true);
 				Selection.activeGameObject = CreateRenderable(table, surface);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Wall");
 			}
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var gateData = new GateData(table.GetNewName<Gate>("Gate"), table.Width / 2f, table.Height / 2f);
 				var gate = new Gate(gateData);
-				table.Add(gate);
+				table.Add(gate, true);
 				Selection.activeGameObject = CreateRenderable(table, gate);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Gate");
 			}
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					WidthBottom = 75f
 				};
 				var ramp = new Ramp(rampData);
-				table.Add(ramp);
+				table.Add(ramp, true);
 				Selection.activeGameObject = CreateRenderable(table, ramp);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Ramp");
 			}
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var flipperData = new FlipperData(table.GetNewName<Flipper>("Flipper"), table.Width / 2f, table.Height / 2f);
 				var flipper = new Flipper(flipperData);
-				table.Add(flipper);
+				table.Add(flipper, true);
 				Selection.activeGameObject = CreateRenderable(table, flipper);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Flipper");
 			}
@@ -111,7 +111,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var plungerData = new PlungerData(table.GetNewName<Plunger>("Plunger"), table.Width / 2f, table.Height / 2f);
 				var plunger = new Plunger(plungerData);
-				table.Add(plunger);
+				table.Add(plunger, true);
 				Selection.activeGameObject = CreateRenderable(table, plunger);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Plunger");
 			}
@@ -120,7 +120,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var bumperData = new BumperData(table.GetNewName<Bumper>("Bumper"), table.Width / 2f, table.Height / 2f);
 				var bumper = new Bumper(bumperData);
-				table.Add(bumper);
+				table.Add(bumper, true);
 				Selection.activeGameObject = CreateRenderable(table, bumper);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Bumper");
 			}
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var spinnerData = new SpinnerData(table.GetNewName<Spinner>("Spinner"), table.Width / 2f, table.Height / 2f);
 				var spinner = new Spinner(spinnerData);
-				table.Add(spinner);
+				table.Add(spinner, true);
 				Selection.activeGameObject = CreateRenderable(table, spinner);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Spinner");
 			}
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					}
 				};
 				var trigger = new Trigger(triggerData);
-				table.Add(trigger);
+				table.Add(trigger, true);
 				Selection.activeGameObject = CreateRenderable(table, trigger);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Trigger");
 			}
@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var kickerData = new KickerData(table.GetNewName<Kicker>("Kicker"), table.Width / 2f, table.Height / 2f);
 				var kicker = new Kicker(kickerData);
-				table.Add(kicker);
+				table.Add(kicker, true);
 				Selection.activeGameObject = CreateRenderable(table, kicker);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Kicker");
 			}
@@ -164,7 +164,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				var table = Table;
 				var hitTargetData = new HitTargetData(table.GetNewName<HitTarget>("Target"), table.Width / 2f, table.Height / 2f);
 				var hitTarget = new HitTarget(hitTargetData);
-				table.Add(hitTarget);
+				table.Add(hitTarget, true);
 				Selection.activeGameObject = CreateRenderable(table, hitTarget);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Target");
 			}
@@ -184,7 +184,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 					}
 				};
 				var rubber = new Rubber(rubberData);
-				table.Add(rubber);
+				table.Add(rubber, true);
 				Selection.activeGameObject = CreateRenderable(table, rubber);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Rubber");
 			}

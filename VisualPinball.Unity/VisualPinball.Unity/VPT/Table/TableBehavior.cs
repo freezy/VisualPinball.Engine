@@ -184,7 +184,7 @@ namespace VisualPinball.Unity.VPT.Table
 			table.SetTextureContainer(_sidecar.textures);
 
 			// restore game items with no game object (yet!)
-			table.SetAll(_sidecar.decals.Select(d => new Decal(d)));
+			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
 			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));

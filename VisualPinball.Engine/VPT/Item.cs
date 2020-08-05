@@ -11,6 +11,7 @@ namespace VisualPinball.Engine.VPT
 		public string Name { get => Data.GetName(); set => Data.SetName(value); }
 		public int Index { get; set; }
 		public int Version { get; set; }
+		public int StorageIndex { get => Data.StorageIndex; set => Data.StorageIndex = value; }
 
 		public Item(TData data)
 		{
@@ -21,5 +22,7 @@ namespace VisualPinball.Engine.VPT
 	public interface IItem
 	{
 		string Name { get; }
+
+		int StorageIndex { get; set; }
 	}
 }

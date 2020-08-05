@@ -121,6 +121,8 @@ namespace VisualPinball.Unity.VPT
 			// can be null in editor, shouldn't be at runtime.
 			if (tb != null) {
 				_table = tb.Table;
+			} else {
+				_logger.Warn("Could not find root table node.");
 			}
 		}
 
