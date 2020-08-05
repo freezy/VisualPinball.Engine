@@ -10,9 +10,8 @@ using VisualPinball.Unity.VPT.Table;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
-	/// This handler will construct a layer structure from the table loaded data and store it into a TreeModel.
-	/// It will then be in charge of layers management (add/remove/rename/item assignation) by listening the TreeModel changed event
-	/// When TrereModel has changed it will reupdate all BiffData related to layers
+	/// This handler will construct a layer structure from the table loaded data and store it into a LayerTreeElement tree structure.
+	/// It will then be in charge of layers management (add/remove/rename/item assignation) by listening several events from the <see cref="LayerTreeView"/>
 	/// </summary>
 	internal class LayerHandler
 	{
@@ -24,14 +23,26 @@ namespace VisualPinball.Unity.Editor.Layers
 		private readonly Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
-		/// TreeModel used by the LayerTreeView, will be built based on the Layers structure
+		/// TreeModel used by the <see cref="LayerTreeView"/>, will be built based on the Layers structure
 		/// </summary>
 		public LayerTreeElement TreeRoot { get; } = new LayerTreeElement { Depth = -1, Id = -1 };
 
+		internal LayerTreeViewElementType GetElementType(int id)
+		{
+			var element = TreeRoot.Find<LayerTreeElement>(id);
+			if (element != null) {
+				return element.Type;
+			}
+			return LayerTreeViewElementType.Root;
+		}
+
+		/// <summary>
+		/// this event is fired each time the Tree structure has been updated based on the data gathered from layer BiffData
+		/// </summary>
 		public event Action TreeRebuilt;
 
 		/// <summary>
-		/// Is called by the LayerEditor when a new TableBehavior is created/deleted
+		/// Is called by the <see cref="LayerEditor"/> when a new TableBehavior is created/deleted
 		/// </summary>
 		/// <param name="tableBehavior"></param>
 		public void OnHierarchyChange(TableBehavior tableBehavior)
@@ -94,24 +105,18 @@ namespace VisualPinball.Unity.Editor.Layers
 				TreeRoot.AddChild(tableItem);
 
 				var layerCount = 1;
-				var allLayersVisible = true;
 				foreach (var pair in _layers.OrderBy(key=> key.Key)) {
 
 					// layer node
 					var layerItem = new LayerTreeElement(pair.Key) { Id = layerCount++ };
 					tableItem.AddChild(layerItem);
-					var allItemsVisible = true;
 
 					foreach (var item in pair.Value.OrderBy(behaviour => behaviour.name)) {
 						if (item is ILayerableItemBehavior layeredItem) {
 							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
-							allItemsVisible &= layeredItem.EditorLayerVisibility;
 						}
 					}
-					layerItem.IsVisible = allItemsVisible;
-					allLayersVisible &= layerItem.IsVisible;
 				}
-				tableItem.IsVisible = allLayersVisible;
 			}
 
 			TreeRebuilt?.Invoke();
@@ -125,7 +130,9 @@ namespace VisualPinball.Unity.Editor.Layers
 		private void SetLayerNameToItem(ILayerableItemBehavior item, string layerName)
 		{
 			if (item.EditorLayerName != layerName) {
-				Undo.RecordObject(item as UnityEngine.Object, $"Item {(item as MonoBehaviour)?.name} : Change layer name from {item.EditorLayerName} to {layerName}");
+				if (item is MonoBehaviour behaviour) {
+					Undo.RecordObject(behaviour, $"Item {behaviour.name} : Change layer name from {item.EditorLayerName} to {layerName}");
+				}
 				item.EditorLayerName = layerName;
 			}
 		}
@@ -171,26 +178,22 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </remarks>
 		public void DeleteLayer(int id)
 		{
-			var item = TreeRoot.Find<LayerTreeElement>(id);
-			if (item != null && item.Type == LayerTreeViewElementType.Layer) {
+			var layeritem = TreeRoot.Find<LayerTreeElement>(id);
+			if (layeritem != null && layeritem.Type == LayerTreeViewElementType.Layer) {
 
 				if (_layers.Keys.Count == 1) {
 					EditorUtility.DisplayDialog("Visual Pinball", $"Cannot delete all layers", "Close");
 					return;
 				}
 
-				//Keep layer's items
-				List<MonoBehaviour> items;
-				if (_layers.TryGetValue(item.LayerName, out items)) {
-					_layers.Remove(item.LayerName);
-					var firstLayer = _layers.Keys.First();
-					if (firstLayer != null) {
-						SetLayerNameToItems(item.GetChildren<LayerTreeElement>(), firstLayer);
-						_layers[firstLayer].AddRange(items);
-						_layers[firstLayer].Sort((baseA, baseB) => baseA.name.CompareTo(baseB.name));
-						RebuildTree();
-					}
+				//Keep layer's items and put them in the first layer
+				var items = layeritem.GetChildren<LayerTreeElement>();
+				_layers.Remove(layeritem.LayerName);
+				var firstLayer = TreeRoot.GetChildren<LayerTreeElement>(e => e.Type == LayerTreeViewElementType.Layer)[0];
+				foreach (var item in items) {
+					item.ReParent(firstLayer);
 				}
+				RebuildLayers();
 			}
 		}
 		
@@ -242,7 +245,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			switch (element.Type) {
 				case LayerTreeViewElementType.Table:
 				case LayerTreeViewElementType.Layer: {
-					LayerTreeElement[] items = element.GetChildren<LayerTreeElement>(child => ((LayerTreeElement)child).Type == LayerTreeViewElementType.Item);
+					LayerTreeElement[] items = element.GetChildren<LayerTreeElement>(child => child.Type == LayerTreeViewElementType.Item);
 					List<UnityEngine.Object> objects = new List<UnityEngine.Object>();
 					foreach(var item in items) {
 						objects.Add(EditorUtility.InstanceIDToObject(item.Id));

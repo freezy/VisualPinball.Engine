@@ -28,8 +28,6 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		public event Action<LayerTreeElement[], LayerTreeElement> ItemsDropped;
 
-		private bool _isLayerAssign = false;
-
 		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
 		{
 			showBorder = true;
@@ -98,23 +96,6 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
-		{
-			if (_isLayerAssign) {
-				//Only show Layers while dragging Items
-				_rows.Clear();
-
-				var layers = Root.GetChildren<LayerTreeElement>(element => ((LayerTreeElement)element).Type == LayerTreeViewElementType.Layer);
-				foreach (var layer in layers) {
-					_rows.Add(new TreeViewItem<LayerTreeElement>(layer.Id, 0, layer));
-				}
-				SetupParentsAndChildrenFromDepths(root, _rows);
-				return _rows;
-			} else {
-				return base.BuildRows(root);
-			}
-		}
-
 		protected override bool ValidateStartDrag(LayerTreeElement[] elements)
 		{
 			if (elements.Length == 0) {
@@ -125,7 +106,6 @@ namespace VisualPinball.Unity.Editor.Layers
 					return false;
 				}
 			}
-			_isLayerAssign = true;
 			return true;
 		}
 
@@ -134,10 +114,10 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (args.performDrop) {
 				if (args.dragAndDropPosition == DragAndDropPosition.UponItem) {
 					if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
-						_isLayerAssign = false;
 						ItemsDropped?.Invoke(elements, layerTreeItem.Data);
 					}
 				}
+				Reload();
 				return DragAndDropVisualMode.None;
 			} else {
 				switch (args.dragAndDropPosition) {

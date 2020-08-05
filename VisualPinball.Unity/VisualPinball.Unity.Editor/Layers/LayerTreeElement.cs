@@ -45,8 +45,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
-					if (Item is Behaviour behavior) {
-						_isVisible = !SceneVisibilityManager.instance.IsHidden(behavior.gameObject);
+					if (Item is Behaviour behaviour) {
+						_isVisible = !SceneVisibilityManager.instance.IsHidden(behaviour.gameObject);
 					}
 					else {
 						_isVisible = false;
@@ -58,13 +58,17 @@ namespace VisualPinball.Unity.Editor.Layers
 			set {
 				_isVisible = value;
 				if (Type == LayerTreeViewElementType.Item) {
+					var behaviour = Item as MonoBehaviour;
+					if (behaviour != null) {
+						Undo.RecordObject(behaviour, $"{behaviour.name} : Switch visibility to {_isVisible}.");
+					}
 					Item.EditorLayerVisibility = _isVisible;
-					if (Item is Behaviour behavior) {
+					if (behaviour != null) {
 						if (_isVisible) {
-							SceneVisibilityManager.instance.Show(behavior.gameObject, true);
+							SceneVisibilityManager.instance.Show(behaviour.gameObject, true);
 						}
 						else {
-							SceneVisibilityManager.instance.Hide(behavior.gameObject, true);
+							SceneVisibilityManager.instance.Hide(behaviour.gameObject, true);
 						}
 					}
 				}
@@ -192,8 +196,8 @@ namespace VisualPinball.Unity.Editor.Layers
 			base.ReParent(newParent);
 			if (Type == LayerTreeViewElementType.Item) {
 				if (newParent is LayerTreeElement layerParent) {
-					if (Item is MonoBehaviour bh) {
-						Undo.RecordObject(bh, $"{bh.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
+					if (Item is MonoBehaviour behaviour) {
+						Undo.RecordObject(behaviour, $"{behaviour.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
 					}
 					Item.EditorLayerName = layerParent.LayerName;
 				}
