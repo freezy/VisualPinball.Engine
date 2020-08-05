@@ -74,78 +74,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public Timer.Timer Timer(string name) => _timers[name];
 		public Trigger.Trigger Trigger(string name) => _triggers[name];
 
-		public void Add<T>(T item) where T : IItem
-		{
-			var dict = GetItemDictionary<T>();
-			if (dict != null) {
-				AddItem(item.Name, item, dict);
-
-			} else {
-				var list = GetItemList<T>();
-				if (list != null) {
-					AddItem(item, list);
-
-				} else {
-					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
-				}
-			}
-		}
-
-		public void SetAll<T>(IEnumerable<T> items) where T : IItem
-		{
-			var list = GetItemList<T>();
-			if (list == null) {
-				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
-			}
-			list.Clear();
-			list.AddRange(items);
-		}
-
-		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
-
-		public string GetNewName<T>(string prefix) where T : IItem
-		{
-			var n = 0;
-			var dict = GetItemDictionary<T>();
-			do {
-				var elementName = $"{prefix}{++n}";
-				if (!dict.ContainsKey(elementName)) {
-					return elementName;
-				}
-			} while (true);
-		}
-
-		public void Remove<T>(string name) where T : IItem
-		{
-			GetItemDictionary<T>().Remove(name);
-		}
-
-		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
-		{
-			var dict = GetItemDictionary<TItem>();
-			if (dict != null) {
-				return dict.Values.Select(d => d.Data).ToArray();
-			}
-			var list = GetItemList<TItem>();
-			if (list != null) {
-				return list.Select(d => d.Data).ToArray();
-			}
-			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
-		}
-
-		public TItem[] GetAll<TItem>() where TItem : IItem
-		{
-			var dict = GetItemDictionary<TItem>();
-			if (dict != null) {
-				return dict.Values.ToArray();
-			}
-			var list = GetItemList<TItem>();
-			if (list != null) {
-				return list.ToArray();
-			}
-			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
-		}
-
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
@@ -182,27 +110,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public int NumGameItems =>
-			_bumpers.Count +
-			_decals.Count +
-			_dispReels.Count +
-			_flippers.Count +
-			_flashers.Count +
-			_gates.Count +
-			_hitTargets.Count +
-			_kickers.Count +
-			_lights.Count +
-			_lightSeqs.Count +
-			_plungers.Count +
-			_primitives.Count +
-			_ramps.Count +
-			_rubbers.Count +
-			_spinners.Count +
-			_surfaces.Count +
-			_textBoxes.Count +
-			_timers.Count +
-			_triggers.Count;
-
 		public IEnumerable<IMovable> Movables => new IMovable[0]
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
@@ -234,13 +141,21 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		private static void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d)
+		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool computeStorageIndices) where TItem : IItem
 		{
+			if (computeStorageIndices) {
+				item.StorageIndex = GameItems.Count();
+				Data.NumGameItems = item.StorageIndex + 1;
+			}
 			d[name] = item;
+
 		}
 
-		private static void AddItem<TItem>(TItem item, ICollection<TItem> d)
+		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool computeStorageIndices) where TItem : IItem
 		{
+			if (computeStorageIndices) {
+				item.StorageIndex = GameItems.Count();
+			}
 			d.Add(item);
 		}
 
@@ -329,6 +244,131 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		#endregion
+
+		/// <summary>
+		/// Adds a game item to the table.
+		/// </summary>
+		/// <param name="item">Game item instance</param>
+		/// <param name="computeStorageIndices">If set, computes the storage indices. Only needed when adding game items via the editor.</param>
+		/// <typeparam name="T">Game item type</typeparam>
+		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
+		public void Add<T>(T item, bool computeStorageIndices = false) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			if (dict != null) {
+				AddItem(item.Name, item, dict, computeStorageIndices);
+
+			} else {
+				var list = GetItemList<T>();
+				if (list != null) {
+					AddItem(item, list, computeStorageIndices);
+
+				} else {
+					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Replaces all game items of a list with new game items.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This only applied to Decals, because they are the only game items
+		/// that don't have a name.
+		/// </remarks>
+		/// <param name="items">New list of game items</param>
+		/// <typeparam name="T">Game item type (only Decals)</typeparam>
+		/// <exception cref="ArgumentException">If not decals</exception>
+		public void ReplaceAll<T>(IEnumerable<T> items) where T : IItem
+		{
+			var list = GetItemList<T>();
+			if (list == null) {
+				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
+			}
+			list.Clear();
+			list.AddRange(items);
+		}
+
+		/// <summary>
+		/// Checks whether a game item of a given type exists.
+		/// </summary>
+		/// <param name="name">Name of the game item</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		/// <returns>True if the game item exists, false otherwise</returns>
+		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
+
+
+		/// <summary>
+		/// Returns all game items of a given type.
+		/// </summary>
+		/// <typeparam name="TItem">Game item type</typeparam>
+		/// <returns>All game items stored in the table</returns>
+		/// <exception cref="ArgumentException">If invalid game type</exception>
+		public TItem[] GetAll<TItem>() where TItem : IItem
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
+		/// <summary>
+		/// Computes a new name for a game item.
+		/// </summary>
+		/// <param name="prefix">Prefix</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		/// <returns>New name, a concatenation of the prefix and the next free index</returns>
+		public string GetNewName<T>(string prefix) where T : IItem
+		{
+			var n = 0;
+			var dict = GetItemDictionary<T>();
+			do {
+				var elementName = $"{prefix}{++n}";
+				if (!dict.ContainsKey(elementName)) {
+					return elementName;
+				}
+			} while (true);
+		}
+
+		/// <summary>
+		/// Removes a game item from the table.
+		/// </summary>
+		/// <param name="name">Name of the game item</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		public void Remove<T>(string name) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			var removedStorageIndex = dict[name].StorageIndex;
+			var gameItems = GameItems;
+			foreach (var gameItem in gameItems) {
+				if (gameItem.StorageIndex > removedStorageIndex) {
+					gameItem.StorageIndex--;
+				}
+			}
+
+			Data.NumGameItems = gameItems.Count() - 1;
+			dict.Remove(name);
+		}
+
+		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
+		{
+			var dict = GetItemDictionary<TItem>();
+			if (dict != null) {
+				return dict.Values.Select(d => d.Data).ToArray();
+			}
+			var list = GetItemList<TItem>();
+			if (list != null) {
+				return list.Select(d => d.Data).ToArray();
+			}
+			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
