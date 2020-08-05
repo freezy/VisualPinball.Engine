@@ -17,9 +17,9 @@ namespace VisualPinball.Unity.Editor.Import
 		/// </summary>
 		/// <param name="vpxPath"></param>
 		/// <param name="parent"></param>
-		public static void Import( string vpxPath, GameObject parent)
+		public static void Import( string vpxPath, GameObject parent, bool applyPatch = true, string tableName = null)
 		{
-			var rootGameObj = ImportVpx(vpxPath);
+			var rootGameObj = ImportVpx(vpxPath, applyPatch, tableName);
 
 			// if an object was selected in the editor, make it its parent
 			GameObjectUtility.SetParentAndAlign(rootGameObj, parent);
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor.Import
 			Logger.Info("Imported {0}", vpxPath);
 		}
 
-		private static GameObject ImportVpx(string path)
+		private static GameObject ImportVpx(string path, bool applyPatch, string tableName)
 		{
 			// create root object
 			var rootGameObj = new GameObject();
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Editor.Import
 			// load table
 			var table = TableLoader.LoadTable(path);
 
-			importer.Import(Path.GetFileName(path), table);
+			importer.Import(Path.GetFileName(path), table, applyPatch, tableName);
 
 			return rootGameObj;
 		}
