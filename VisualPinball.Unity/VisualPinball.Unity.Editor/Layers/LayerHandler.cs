@@ -123,22 +123,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		}
 		#endregion
 
-		#region MenuItems helpers
-		/// <summary>
-		/// Helper for MenuItems to validate Layer Deletion menu availability
-		/// </summary>
-		/// <param name="id">id provided by the MenuItems system</param>
-		/// <returns>the element type or Root if element was not found</returns>
-		internal LayerTreeViewElementType GetElementType(int id)
-		{
-			var element = TreeRoot.Find<LayerTreeElement>(id);
-			if (element != null) {
-				return element.Type;
-			}
-			return LayerTreeViewElementType.Root;
-		}
-		#endregion
-
 		#region Layer renaming
 		/// <summary>
 		/// Update the layer name of an ILayerableItemBehavior, managing Undo
