@@ -296,11 +296,7 @@ namespace VisualPinball.Unity.Editor.Layers
 				case LayerTreeViewElementType.Table:
 				case LayerTreeViewElementType.Layer: {
 					LayerTreeElement[] items = element.GetChildren<LayerTreeElement>(child => child.Type == LayerTreeViewElementType.Item);
-					List<UnityEngine.Object> objects = new List<UnityEngine.Object>();
-					foreach(var item in items) {
-						objects.Add(EditorUtility.InstanceIDToObject(item.Id));
-					}
-					Selection.objects = objects.ToArray();
+					Selection.objects = items.Select(item => EditorUtility.InstanceIDToObject(item.Id)).ToArray();
 					break;
 				}
 

@@ -194,23 +194,14 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
 		{
 			DragAndDrop.PrepareStartDrag();
-
-			List<string> idStrList = new List<string>();
-			foreach (var id in args.draggedItemIDs) {
-				idStrList.Add(id.ToString());
-			}
-			DragAndDrop.paths = idStrList.ToArray();
-
+			DragAndDrop.paths = args.draggedItemIDs.Select<int, string>(e => e.ToString()).ToArray();
 			DragAndDrop.StartDrag($"{args.draggedItemIDs.Count} tree item(s)");
 		}
 
 		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;
 		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
 		{
-			List<int> idList = new List<int>();
-			foreach (var idStr in DragAndDrop.paths) {
-				idList.Add(Int32.Parse(idStr));
-			}
+			var idList = DragAndDrop.paths.Select<string, int>(e => Int32.Parse(e));
 			var elements = Root.GetChildren<T>(element => idList.Contains(element.Id));
 			return HandleElementsDragAndDrop(args, elements.ToArray());
 		}
