@@ -21,7 +21,15 @@ namespace VisualPinball.Engine.VPT.Kicker
 			_meshGenerator = new KickerMeshGenerator(Data);
 		}
 
-		public Kicker(BinaryReader reader, string itemName) : this(new KickerData(reader, itemName)) { }
+		public Kicker(BinaryReader reader, string itemName) : this(new KickerData(reader, itemName))
+		{
+		}
+
+		public static Kicker GetDefault(Table.Table table)
+		{
+			var kickerData = new KickerData(table.GetNewName<Kicker>("Kicker"), table.Width / 2f, table.Height / 2f);
+			return new Kicker(kickerData);
+		}
 
 
 		public void Init(Table.Table table)

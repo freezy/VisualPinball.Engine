@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Rubber
@@ -20,7 +21,26 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_hitGenerator = new RubberHitGenerator(Data, _meshGenerator);
 		}
 
-		public Rubber(BinaryReader reader, string itemName) : this(new RubberData(reader, itemName)) { }
+		public Rubber(BinaryReader reader, string itemName) : this(new RubberData(reader, itemName))
+		{
+		}
+
+		public static Rubber GetDefault(Table.Table table)
+		{
+			var rubberData = new RubberData(table.GetNewName<Rubber>("Rubber")) {
+				DragPoints = new[] {
+					new DragPointData(table.Width / 2f, table.Height / 2f - 50f) {IsSmooth = true },
+					new DragPointData(table.Width / 2f - 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(table.Width / 2f - 50f, table.Height / 2f) {IsSmooth = true },
+					new DragPointData(table.Width / 2f - 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(table.Width / 2f, table.Height / 2f + 50f) {IsSmooth = true },
+					new DragPointData(table.Width / 2f + 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(table.Width / 2f + 50f, table.Height / 2f) {IsSmooth = true },
+					new DragPointData(table.Width / 2f + 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+				}
+			};
+			return new Rubber(rubberData);
+		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
