@@ -22,9 +22,10 @@ namespace VisualPinball.Unity.Patcher.Patcher.Tables
 			unityMat.SetTexture("_NormalMap", null);
 			unityMat.DisableKeyword("_NORMALMAP");
 		}
-		
+
 		[NameMatch("PLeftFlipper")]
 		[NameMatch("PRightFlipper")]
+		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
 			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
