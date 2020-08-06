@@ -37,14 +37,14 @@ namespace VisualPinball.Unity.Editor.Import
 		{
 			// create root object
 			var rootGameObj = new GameObject();
-			var importer = rootGameObj.AddComponent<VpxImporter>();
+			var importer = rootGameObj.AddComponent<VpxConverter>();
 
 			// load table
 			var table = TableLoader.LoadTable(path);
 
 			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", table.InfoName, table.InfoAuthorName);
 
-			importer.Import(Path.GetFileName(path), table, applyPatch, tableName);
+			importer.Convert(Path.GetFileName(path), table, applyPatch, tableName);
 
 			return rootGameObj;
 		}

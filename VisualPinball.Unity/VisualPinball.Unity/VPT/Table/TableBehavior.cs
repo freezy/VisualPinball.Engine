@@ -77,9 +77,8 @@ namespace VisualPinball.Unity.VPT.Table
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected override void Awake()
+		protected void Awake()
 		{
-			base.Awake();
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
 			EngineProvider<IPhysicsEngine>.Get().Init(this);
 			if (!string.IsNullOrEmpty(debugUiId)) {

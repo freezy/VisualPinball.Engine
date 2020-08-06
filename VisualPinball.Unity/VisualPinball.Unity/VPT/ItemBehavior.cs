@@ -25,7 +25,10 @@ namespace VisualPinball.Unity.VPT
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
-		protected Engine.VPT.Table.Table _table;
+		private Engine.VPT.Table.Table _table;
+
+		protected Engine.VPT.Table.Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableBehavior>().Item);
+
 		private TItem _item;
 		private List<MemberInfo> _materialRefs;
 		private List<MemberInfo> _textureRefs;
@@ -113,17 +116,6 @@ namespace VisualPinball.Unity.VPT
 		{
 			Item.Index = entity.Index;
 			Item.Version = entity.Version;
-		}
-
-		protected virtual void Awake()
-		{
-			var tb = gameObject.transform.GetComponentInParent<TableBehavior>();
-			// can be null in editor, shouldn't be at runtime.
-			if (tb != null) {
-				_table = tb.Table;
-			} else {
-				_logger.Warn("Could not find root table node.");
-			}
 		}
 
 		protected virtual void OnDrawGizmos()
