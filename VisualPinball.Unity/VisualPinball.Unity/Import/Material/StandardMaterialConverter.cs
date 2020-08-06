@@ -9,15 +9,19 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class StandardMaterialConverter : IMaterialConverter
 	{
-		private readonly int Color = Shader.PropertyToID("_Color");
-		private readonly int MainTex = Shader.PropertyToID("_MainTex");
-		private readonly int BumpMap = Shader.PropertyToID("_BumpMap");
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Glossiness = Shader.PropertyToID("_Glossiness");
-		private readonly int Mode = Shader.PropertyToID("_Mode");
-		private readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
-		private readonly int DstBlend = Shader.PropertyToID("_DstBlend");
-		private readonly int ZWrite = Shader.PropertyToID("_ZWrite");
+		#region Shader Properties
+
+		private static readonly int Color = Shader.PropertyToID("_Color");
+		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
+		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
+		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
+		private static readonly int Mode = Shader.PropertyToID("_Mode");
+		private static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
+		private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
+		private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
+
+		#endregion
 
 		public Shader GetShader()
 		{
@@ -86,7 +90,7 @@ namespace VisualPinball.Unity.Import.Material
 			return unityMaterial;
 		}
 
-		private void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
+		private static void ApplyBlendMode(UnityEngine.Material unityMaterial, BlendMode blendMode)
 		{
 			switch (blendMode)
 			{

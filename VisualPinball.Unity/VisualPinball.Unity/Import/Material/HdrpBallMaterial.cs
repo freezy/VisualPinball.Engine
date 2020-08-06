@@ -5,10 +5,14 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class HdrpBallMaterial : IBallMaterial
 	{
-		private readonly int BaseColorMap = Shader.PropertyToID("_BaseColorMap");
-		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
+		#region Shader Properties
+
+		private static readonly int BaseColorMap = Shader.PropertyToID("_BaseColorMap");
+		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
+		private static readonly int Smoothness = Shader.PropertyToID("_Smoothness");
+
+		#endregion
 
 		public Shader GetShader()
 		{

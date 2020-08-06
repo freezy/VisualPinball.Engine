@@ -5,9 +5,13 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class StandardBallMaterial : IBallMaterial
 	{
-		private readonly int MainTex = Shader.PropertyToID("_MainTex");
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Glossiness = Shader.PropertyToID("_Glossiness");
+		#region Shader Properties
+
+		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
+		private static readonly int Glossiness = Shader.PropertyToID("_Glossiness");
+
+		#endregion
 
 		public Shader GetShader()
 		{
