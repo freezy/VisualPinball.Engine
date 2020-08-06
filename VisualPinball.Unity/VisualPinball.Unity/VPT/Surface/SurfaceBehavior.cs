@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.VPT.Surface
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Remove<Engine.VPT.Surface.Surface>(Name);
+				Table.Remove<Engine.VPT.Surface.Surface>(Name);
 			}
 		}
 

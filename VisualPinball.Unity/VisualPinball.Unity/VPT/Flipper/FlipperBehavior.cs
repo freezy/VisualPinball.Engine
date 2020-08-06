@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Remove<Engine.VPT.Flipper.Flipper>(Name);
+				Table.Remove<Engine.VPT.Flipper.Flipper>(Name);
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 				angleEnd += 0.0001f;
 			}
 
-			var tableData = _table.Data;
+			var tableData = Table.Data;
 
 			// model inertia of flipper as that of rod of length flipper around its end
 			var mass = data.GetFlipperMass(tableData);

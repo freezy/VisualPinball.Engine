@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.VPT.Trigger
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Remove<Engine.VPT.Trigger.Trigger>(Name);
+				Table.Remove<Engine.VPT.Trigger.Trigger>(Name);
 			}
 		}
 

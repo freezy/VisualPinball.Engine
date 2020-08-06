@@ -102,7 +102,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			int i = 0;
 			foreach (var texture in _table.Textures.Values) {
-				texture.Data.StorageName = $"Image{i++}";
+				texture.Data.StorageIndex = i++;
 				texture.Data.WriteData(_gameStorage);
 			}
 		}

@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.VPT.HitTarget
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Remove<Engine.VPT.HitTarget.HitTarget>(Name);
+				Table.Remove<Engine.VPT.HitTarget.HitTarget>(Name);
 			}
 		}
 

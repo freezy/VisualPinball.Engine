@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.VPT.Ramp
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				_table.Remove<Engine.VPT.Ramp.Ramp>(Name);
+				Table.Remove<Engine.VPT.Ramp.Ramp>(Name);
 			}
 		}
 
