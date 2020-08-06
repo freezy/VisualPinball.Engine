@@ -17,12 +17,6 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		[MenuItem(LayerMenuPath + "/New Layer", true)]
-		private static bool CreateNewLayerValidate(MenuCommand command)
-		{
-			return command.userData == -1;
-		}
-
 		[MenuItem(LayerMenuPath + "/Delete Layer", false, 2)]
 		private static void DeleteLayer(MenuCommand command)
 		{
