@@ -12,39 +12,50 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	public static class TreeElementUtility
 	{
 		#region TreeElement Helpers       
+		public delegate bool ChildFilter<T>(T child) where T : TreeElement;
+
 		/// <summary>
 		/// This helper try to find an element with the provided id in this TreeElement's hierarchy, including itself
 		/// </summary>
 		/// <typeparam name="T">a TreeElement generic class</typeparam>
+		/// <param name="element">the root element for the search</param>
 		/// <param name="id">the id of the searched element</param>
 		/// <returns>casted TreeElement as T, or null if not found</returns>
-		public static T Find<T>(this TreeElement element, int id) where T : TreeElement
+		public static T Find<T>(this TreeElement element, ChildFilter<T> filter) where T : TreeElement
 		{
-			if (element.Id == id) {
+			if (filter.Invoke(element as T)) {
 				return (T)element;
 			}
 
 			foreach (var child in element.Children) {
-				var itFound = child.Find<T>(id);
+				var itFound = child.Find<T>(filter);
 				if (itFound != null) {
 					return itFound;
 				}
 			}
 			return null;
 		}
+		/// <summary>
+		/// Find helper to search an element within provided TreeElement hierarchy based on its Id
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="element">the root element for the search</param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static T Find<T>(this TreeElement element, int id) where T : TreeElement => Find<T>(element, d => d.Id == id);
 
-		public delegate bool ChildFilter<T>(T child) where T : TreeElement;
 		/// <summary>
 		/// Will gather all children from this TreeElement which pass the provided filter
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="element">the root element for the parsing</param>
 		/// <param name="filter">a filtering delegate</param>
 		/// <returns>an array of TreeElement as T type</returns>
 		public static T[] GetChildren<T>(this TreeElement element, ChildFilter<T> filter) where T : TreeElement
 		{
 			List<T> children = new List<T>();
 			foreach (var child in element.Children) {
-				if (filter(child as T)) {
+				if (filter.Invoke(child as T)) {
 					children.Add(child as T);
 				}
 				children.AddRange(child.GetChildren<T>(filter));
@@ -56,6 +67,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		/// Will gather all children from this TreeElement 
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="element">the root element for the parsing</param>
 		/// <returns>an array of TreeElement as T type</returns>
 		public static T[] GetChildren<T>(this TreeElement element) where T : TreeElement => GetChildren<T>(element, d => true);
 		#endregion

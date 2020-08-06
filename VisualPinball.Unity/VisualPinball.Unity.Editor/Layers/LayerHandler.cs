@@ -11,7 +11,7 @@ namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
 	/// This handler will construct a layer structure from the table loaded data and store it into a LayerTreeElement tree structure.
-	/// It will then be in charge of layers management (add/remove/rename/item assignation) by listening several events from the <see cref="LayerTreeView"/>
+	/// It will then be in charge of layers management (add/remove/rename/item assignment) by listening several events from the <see cref="LayerTreeView"/>
 	/// </summary>
 	internal class LayerHandler
 	{
@@ -24,6 +24,11 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
 		/// </summary>
 		private readonly Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
+		
+		/// <summary>
+		/// Expose the list of current layer names (used by <see cref="LayerEditor"/> for populating context menu)
+		/// </summary>
+		public string[] Layers => _layers.Keys.ToArray();
 
 		/// <summary>
 		/// TreeModel used by the <see cref="LayerTreeView"/>, will be built based on the Layers structure
@@ -204,14 +209,16 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <summary>
 		/// Create a new layer with first free name formatted as "New Layer {num}"
 		/// </summary>
-		public void CreateNewLayer()
+		public string CreateNewLayer()
 		{
 			var newLayerNum = 0;
 			while (_layers.ContainsKey($"{_newLayerDefaultName}{newLayerNum}")) {
 				newLayerNum++;
 			}
-			_layers.Add($"{_newLayerDefaultName}{newLayerNum}", new List<MonoBehaviour>());
+			string newLayerName = $"{_newLayerDefaultName}{newLayerNum}";
+			_layers.Add(newLayerName, new List<MonoBehaviour>());
 			RebuildTree();
+			return newLayerName;
 		}
 
 		/// <summary>
@@ -247,11 +254,35 @@ namespace VisualPinball.Unity.Editor.Layers
 		#region Items drag&drop
 		internal void OnItemsDropped(LayerTreeElement[] droppedElements, LayerTreeElement newParent)
 		{
-			foreach(var element in droppedElements) {
-				element.ReParent(newParent);
+			AssignToLayer(droppedElements, newParent);
+		}
+		#endregion
+
+		#region Layer assignement
+		private void AssignToLayer(LayerTreeElement[] elements, LayerTreeElement layer)
+		{
+			if (layer.Type != LayerTreeViewElementType.Layer) {
+				return;
+			}
+
+			foreach (var element in elements) {
+				if (element.Type == LayerTreeViewElementType.Item) {
+					element.ReParent(layer);
+				}
 			}
 			RebuildLayers();
 		}
+
+		internal void AssignToLayer(LayerTreeElement[] elements, string layerName)
+		{
+			if (string.IsNullOrEmpty(layerName)) {
+				layerName = CreateNewLayer();
+			}
+
+			var layer = TreeRoot.Find<LayerTreeElement>(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
+			AssignToLayer(elements, layer);
+		}
+
 		#endregion
 
 		#region Items selection

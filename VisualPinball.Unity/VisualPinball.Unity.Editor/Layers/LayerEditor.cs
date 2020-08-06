@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -92,32 +93,64 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		#region MenuItems callbacks & helpers
 		/// <summary>
+		/// This context will pass information for Layer assignment menu items (can only pass an object as userData)
+		/// </summary>
+		private class LayerAssignMenuContext
+		{
+			public LayerTreeElement[] Elements;
+			public string Layer;
+		}
+
+		/// <summary>
 		/// Opens a popup menu when right-clicking somewhere in the TreeView
 		/// </summary>
-		/// <param name="element">the right clicked LayerTreeElement</param>
-		/// <remarks>
-		/// element is null when right-clicking on no item but within the TreeView rect
-		/// </remarks>
-		private void OnContextClicked(LayerTreeElement element)
+		/// <param name="elements">the current selection in the TreeView</param>
+		private void OnContextClicked(LayerTreeElement[] elements)
 		{
-			var command = new MenuCommand(this, element == null ? -1 : element.Id);
-			EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), LayerEditorMenuItems.LayerMenuPath, command);
-			Event.current.Use();
+			GenericMenu menu = new GenericMenu();
+
+			menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer);
+			if (elements.Length == 1 && elements[0].Type == LayerTreeViewElementType.Layer) {
+				menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, elements[0]);
+			} else {
+				menu.AddDisabledItem(new GUIContent($"Delete Layer"), false);
+			}
+
+			if (elements.Length > 0) {
+				bool onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
+				menu.AddSeparator("");
+				if (onlyItems) {
+					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToNewLayer, new LayerAssignMenuContext() { Elements = elements });
+
+					foreach (var layer in _layerHandler.Layers) {
+						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToNewLayer, new LayerAssignMenuContext() { Elements = elements, Layer = layer });
+					}
+				} else {
+					menu.AddDisabledItem(new GUIContent("Select only game items to enable layer assignment"));
+				}
+			}
+
+			menu.ShowAsContext();
 		}
-		internal void CreateNewLayer()
+
+		private void CreateNewLayer()
 		{
 			_layerHandler.CreateNewLayer();
 		}
 
-		internal bool ValidateDeleteLayer(int id)
+		private void DeleteLayer(object element)
 		{
-			return _layerHandler.GetElementType(id) == LayerTreeViewElementType.Layer;
+			_layerHandler.DeleteLayer((element as LayerTreeElement).Id);
 		}
 
-		internal void DeleteLayer(int id)
+		private void AssignToNewLayer(object context)
 		{
-			_layerHandler.DeleteLayer(id);
+			LayerAssignMenuContext assignContext = context as LayerAssignMenuContext;
+			if (assignContext != null) {
+				_layerHandler.AssignToLayer(assignContext.Elements, assignContext.Layer);
+			}
 		}
+
 		#endregion
 
 		#region Unity Scene management callbacks
