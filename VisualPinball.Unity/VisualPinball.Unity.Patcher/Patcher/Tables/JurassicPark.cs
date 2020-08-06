@@ -1,6 +1,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
+using UnityEditor;
 using VisualPinball.Unity.Patcher.Matcher.Item;
 using VisualPinball.Unity.Patcher.Matcher.Table;
 
@@ -21,6 +22,31 @@ namespace VisualPinball.Unity.Patcher.Patcher.Tables
 			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
 			unityMat.SetTexture("_NormalMap", null);
 			unityMat.DisableKeyword("_NORMALMAP");
+		}
+		
+		[NameMatch("PLeftFlipper")]
+		[NameMatch("PRightFlipper")]
+		public void SetAlphaCutOffEnabled(GameObject gameObject)
+		{
+			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
+			unityMat.SetFloat("_AlphaCutoffEnable", 1);
+			unityMat.EnableKeyword("_ALPHATEST_ON");
+		}
+
+		[NameMatch("Primitive_Plastics")]
+		public void SetOpaque(GameObject gameObject)
+		{
+			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
+
+			unityMat.SetFloat("_SurfaceType", 0);
+
+			unityMat.SetFloat("_DstBlend", 0);
+			unityMat.SetFloat("_ZWrite", 1);
+
+			unityMat.DisableKeyword("_ALPHATEST_ON");
+			unityMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+			unityMat.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
+			unityMat.DisableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
 		}
 	}
 }
