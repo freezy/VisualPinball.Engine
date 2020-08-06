@@ -127,6 +127,10 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetFloat("_SurfaceType", 0); // 0 = Opaque; 1 = Transparent
 					unityMaterial.SetFloat("_AlphaCutoffEnable", 1);
 
+					unityMaterial.SetFloat("_ZTestDepthEqualForOpaque", 3);
+					unityMaterial.SetFloat("_ZTestModeDistortion", 4);
+					unityMaterial.SetFloat("_ZTestGBuffer", 3);
+
 					// render queue
 					unityMaterial.renderQueue = 2450;
 
@@ -138,6 +142,7 @@ namespace VisualPinball.Unity.Import.Material
 					unityMaterial.SetOverrideTag("RenderType", "Transparent");
 
 					// keywords
+					//unityMaterial.EnableKeyword("_ALPHATEST_ON"); // required for _AlphaCutoffEnable
 					unityMaterial.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
 					unityMaterial.EnableKeyword("_BLENDMODE_PRE_MULTIPLY");
 					unityMaterial.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
@@ -151,6 +156,7 @@ namespace VisualPinball.Unity.Import.Material
 
 					// properties
 					unityMaterial.SetFloat("_SurfaceType", 1); // 0 = Opaque; 1 = Transparent
+					//unityMaterial.SetFloat("_AlphaCutoffEnable", 1); // enable keyword _ALPHATEST_ON if this is required
 					unityMaterial.SetFloat("_BlendMode", 4); // 0 = Alpha, 1 = Additive, 4 = PreMultiply
 
 					// render queue
