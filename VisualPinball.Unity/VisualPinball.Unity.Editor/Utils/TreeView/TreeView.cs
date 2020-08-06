@@ -19,9 +19,8 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	{
 		#region Events
 		public event Action<T> TreeRebuilt;
-		public event Action<T, IList<T>, T, int> TreeChanged;
 		public event Action<T> ItemDoubleClicked;
-		public event Action<T> ItemContextClicked;
+		public event Action<T[]> ItemContextClicked;
 		#endregion
 
 		public T Root { get; private set; }
@@ -163,23 +162,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		protected override void ContextClicked()
 		{
 			base.ContextClicked();
-			ItemContextClicked?.Invoke(null);
-		}
-
-		/// <summary>
-		/// Called when a right click is made on a TreeViewItem
-		/// </summary>
-		/// <param name="id">the TreeViewItem id</param>
-		/// <remarks>
-		/// if no Action consume the Event.current, a ContextClicked will be called afterward
-		/// </remarks>
-		protected override void ContextClickedItem(int id)
-		{
-			base.ContextClickedItem(id);
-			var item = Root.Find<T>(id);
-			if (item != null) {
-				ItemContextClicked?.Invoke(item);
-			}
+			var itemsId = GetSelection();
+			var elements = Root.GetChildren<T>(e => itemsId.Contains(e.Id));
+			ItemContextClicked?.Invoke(elements);
 		}
 
 		/// <summary>
