@@ -44,19 +44,19 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		#region Parenting Helpers
 		public void AddChild(TreeElement child)
 		{
-			AddChildren(new TreeElement[] { child });
+			child?.ReParent(this);
 		}
 		public void AddChildren(TreeElement[] children)
 		{
 			foreach(var child in children) {
-				child.ReParent(this);
+				child?.ReParent(this);
 			}
 		}
 
 		public virtual void ReParent(TreeElement newParent)
 		{
 			Parent?.Children.Remove(this);
-			newParent.Children.Add(this);
+			newParent?.Children.Add(this);
 			Parent = newParent;
 			UpdateDepth();
 		}
