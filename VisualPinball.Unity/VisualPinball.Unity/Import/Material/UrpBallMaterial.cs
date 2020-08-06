@@ -5,10 +5,14 @@ namespace VisualPinball.Unity.Import.Material
 {
 	public class UrpBallMaterial : IBallMaterial
 	{
-		private readonly int BaseMap = Shader.PropertyToID("_BaseMap");
-		private readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-		private readonly int Metallic = Shader.PropertyToID("_Metallic");
-		private readonly int Smoothness = Shader.PropertyToID("_Smoothness");
+		#region Shader Properties
+
+		private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
+		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+		private static readonly int Metallic = Shader.PropertyToID("_Metallic");
+		private static readonly int Smoothness = Shader.PropertyToID("_Smoothness");
+
+		#endregion
 
 		public Shader GetShader()
 		{
