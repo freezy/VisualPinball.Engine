@@ -15,6 +15,9 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// </summary>
 	internal class LayerHandler
 	{
+		/// <summary>
+		/// Attached <see cref="TableBehavior"/>, Set by calling OnHierarchyChange
+		/// </summary>
 		private TableBehavior _tableBehavior;
 
 		/// <summary>
@@ -26,15 +29,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// TreeModel used by the <see cref="LayerTreeView"/>, will be built based on the Layers structure
 		/// </summary>
 		public LayerTreeElement TreeRoot { get; } = new LayerTreeElement { Depth = -1, Id = -1 };
-
-		internal LayerTreeViewElementType GetElementType(int id)
-		{
-			var element = TreeRoot.Find<LayerTreeElement>(id);
-			if (element != null) {
-				return element.Type;
-			}
-			return LayerTreeViewElementType.Root;
-		}
 
 		/// <summary>
 		/// this event is fired each time the Tree structure has been updated based on the data gathered from layer BiffData
@@ -51,6 +45,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			RebuildLayers();
 		}
 
+		#region Layers & Tree construction
 		/// <summary>
 		/// Recursively runs through the <see cref="TableBehavior"/>'s children and
 		/// adds the game items' <see cref="MonoBehaviour"/> to the layers map. <p/>
@@ -121,7 +116,25 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			TreeRebuilt?.Invoke();
 		}
+		#endregion
 
+		#region MenuItems helpers
+		/// <summary>
+		/// Helper for MenuItems to validate Layer Deletion menu availability
+		/// </summary>
+		/// <param name="id">id provided by the MenuItems system</param>
+		/// <returns>the element type or Root if element was not found</returns>
+		internal LayerTreeViewElementType GetElementType(int id)
+		{
+			var element = TreeRoot.Find<LayerTreeElement>(id);
+			if (element != null) {
+				return element.Type;
+			}
+			return LayerTreeViewElementType.Root;
+		}
+		#endregion
+
+		#region Layer renaming
 		/// <summary>
 		/// Update the layer name of an ILayerableItemBehavior, managing Undo
 		/// </summary>
@@ -154,6 +167,39 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
+		/// <summary>
+		/// Callback when LayerTreeView as validated a layer rename
+		/// </summary>
+		/// <param name="element">the the renamed layer TreeElement</param>
+		/// <param name="newName">the new validated name</param>
+		internal void OnLayerRenamed(LayerTreeElement element, string newName)
+		{
+			if (element.LayerName == newName) {
+				return;
+			}
+
+			//Check if there is not already a layers with thr same name
+			if (_layers.ContainsKey(newName)) {
+				EditorUtility.DisplayDialog("Visual Pinball", $"There is already a layer named {newName}.\nFind another layer name.", "Close");
+				return;
+			}
+
+			//Rename in _layers
+			List<MonoBehaviour> items = null;
+			if (_layers.TryGetValue(element.LayerName, out items)) {
+				_layers.Remove(element.LayerName);
+				_layers[newName] = items;
+			}
+			element.LayerName = newName;
+			//Update layer name for all items within this layer
+			if (element.HasChildren) {
+				SetLayerNameToItems(element.GetChildren<LayerTreeElement>(), newName);
+			}
+			RebuildTree();
+		}
+		#endregion
+
+		#region layer add/remove
 		private readonly string _newLayerDefaultName = "New Layer ";
 		/// <summary>
 		/// Create a new layer with first free name formatted as "New Layer {num}"
@@ -196,38 +242,9 @@ namespace VisualPinball.Unity.Editor.Layers
 				RebuildLayers();
 			}
 		}
-		
-		/// <summary>
-		/// Callback when LayerTreeView as validated a layer rename
-		/// </summary>
-		/// <param name="element">the the renamed layer TreeElement</param>
-		/// <param name="newName">the new validated name</param>
-		internal void OnLayerRenamed(LayerTreeElement element, string newName)
-		{
-			if (element.LayerName == newName) {
-				return;
-			}
+		#endregion
 
-			//Check if there is not already a layers with thr same name
-			if (_layers.ContainsKey(newName)) {
-				EditorUtility.DisplayDialog("Visual Pinball", $"There is already a layer named {newName}.\nFind another layer name.", "Close");
-				return;
-			}
-
-			//Rename in _layers
-			List<MonoBehaviour> items = null;
-			if (_layers.TryGetValue(element.LayerName, out items)) {
-				_layers.Remove(element.LayerName);
-				_layers[newName] = items;
-			}
-			element.LayerName = newName;
-			//Update layer name for all items within this layer
-			if (element.HasChildren) {
-				SetLayerNameToItems(element.GetChildren<LayerTreeElement>(), newName);
-			}
-			RebuildTree();
-		}
-
+		#region Items drag&drop
 		internal void OnItemsDropped(LayerTreeElement[] droppedElements, LayerTreeElement newParent)
 		{
 			foreach(var element in droppedElements) {
@@ -235,7 +252,9 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 			RebuildLayers();
 		}
+		#endregion
 
+		#region Items selection
 		/// <summary>
 		/// Callback when a TreeViewItem is double clicked
 		/// </summary>
@@ -264,6 +283,7 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 			}
 		}
+		#endregion
 
 	}
 }

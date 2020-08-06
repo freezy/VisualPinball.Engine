@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -41,7 +42,7 @@ namespace VisualPinball.Unity.Editor.Layers
 					: LayerName != null ? LayerTreeViewElementType.Layer : LayerTreeViewElementType.Root;
 
 		private bool _isVisible = true;
-		public bool IsVisible
+		public bool IsVisible 
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
@@ -120,24 +121,13 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		public override Texture2D Icon
-		{
-			get {
-				switch (Type) {
-					case LayerTreeViewElementType.Table: {
-						return EditorGUIUtility.FindTexture("d_winbtn_graph");
-					}
-
-					case LayerTreeViewElementType.Layer: {
-						return EditorGUIUtility.IconContent("ToggleUVOverlay").image as Texture2D;
-					}
-
-					default: {
-						return EditorGUIUtility.IconContent("GameObject Icon").image as Texture2D;
-					}
-				}
-			}
-		}
+		internal static Dictionary<LayerTreeViewElementType, Texture> _typeToIcon = new Dictionary<LayerTreeViewElementType, Texture>() {
+			{ LayerTreeViewElementType.Root, null},
+			{ LayerTreeViewElementType.Table, EditorGUIUtility.IconContent("d_winbtn_graph").image},
+			{ LayerTreeViewElementType.Layer, EditorGUIUtility.IconContent("ToggleUVOverlay").image},
+			{ LayerTreeViewElementType.Item, EditorGUIUtility.IconContent("GameObject Icon").image},
+		};
+		public override Texture2D Icon => _typeToIcon[Type] as Texture2D;
 
 		/// <summary>
 		/// Expose the Visibility of a LayerTreeElement, telling if all its children have the same visibility status than its own.
@@ -173,6 +163,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
+		#region CTors
 		/// <summary>
 		/// Default CTor is for Root
 		/// </summary>
@@ -190,17 +181,19 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			LayerName = layerName;
 		}
+		#endregion
 
 		public override void ReParent(TreeElement newParent)
 		{
 			base.ReParent(newParent);
-			if (Type == LayerTreeViewElementType.Item) {
-				if (newParent is LayerTreeElement layerParent) {
-					if (Item is MonoBehaviour behaviour) {
-						Undo.RecordObject(behaviour, $"{behaviour.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
-					}
-					Item.EditorLayerName = layerParent.LayerName;
+			//Update Layer BiffData when reparenting an Item on a Layer
+			if (Type == LayerTreeViewElementType.Item && 
+					newParent is LayerTreeElement layerParent && 
+					layerParent.Type == LayerTreeViewElementType.Layer) {
+				if (Item is MonoBehaviour behaviour) {
+					Undo.RecordObject(behaviour, $"{behaviour.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
 				}
+				Item.EditorLayerName = layerParent.LayerName;
 			}
 		}
 	}

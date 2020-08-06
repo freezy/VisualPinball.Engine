@@ -17,10 +17,12 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
 	internal class TreeView<T> : UnityEditor.IMGUI.Controls.TreeView where T : TreeElement
 	{
+		#region Events
 		public event Action<T> TreeRebuilt;
 		public event Action<T, IList<T>, T, int> TreeChanged;
 		public event Action<T> ItemDoubleClicked;
 		public event Action<T> ItemContextClicked;
+		#endregion
 
 		public T Root { get; private set; }
 		protected readonly List<TreeViewItem> _rows = new List<TreeViewItem>();
@@ -48,13 +50,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			Reload();
 		}
 
-		private void HierachyChanged(IList<TreeViewItem<T>> itemsMoved, TreeViewItem<T> newParent, int insertionIndex)
-		{
-			IList<T> elementsMoved = new List<T>(itemsMoved.Select(it => it.Data));
-			TreeChanged?.Invoke(Root, elementsMoved, newParent.Data, insertionIndex);
-			Reload();
-		}
-
+		#region TreeViewItem management
 		protected override TreeViewItem BuildRoot()
 			=> new TreeViewItem<T>(Root.Id, -1, Root);
 
@@ -96,7 +92,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 				}
 			}
 		}
+		#endregion
 
+		#region Search
 		/// <summary>
 		/// Thi virtual method let your derived TreeView class validate wether or not an element should be kept while using search feature
 		/// </summary>
@@ -136,7 +134,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		{
 			rows.Sort ((x,y) => EditorUtility.NaturalCompare (x.displayName, y.displayName)); // sort by displayName by default, can be overriden for multicolumn solutions
 		}
+		#endregion
 
+		#region Item Renaming
 		/// <summary>
 		/// This virtual method let your derived TreeView class to validate if a TreeViewItem can be renamed
 		/// </summary>
@@ -154,7 +154,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			}
 			return false;
 		}
+		#endregion
 
+		#region Item Clicking
 		/// <summary>
 		/// Called when a right click is made into the TreeView rect but not on any item
 		/// </summary>
@@ -192,7 +194,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 				ItemDoubleClicked?.Invoke(item);
 			}
 		}
+		#endregion
 
+		#region Drag & Drop
 		protected virtual bool ValidateStartDrag(T[] elements) => false;
 		protected override bool CanStartDrag(CanStartDragArgs args)
 		{
@@ -225,7 +229,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			var elements = Root.GetChildren<T>(element => idList.Contains(element.Id));
 			return HandleElementsDragAndDrop(args, elements.ToArray());
 		}
-
+		#endregion 
 	}
 
 	/// <summary>
