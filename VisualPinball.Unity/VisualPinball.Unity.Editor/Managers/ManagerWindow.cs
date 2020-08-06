@@ -22,9 +22,9 @@ namespace VisualPinball.Unity.Editor.Managers
 		protected virtual void RenameExistingItem(T data, string desiredName) { }
 		protected virtual void CollectData(List<T> data) { }
 		protected virtual void OnDataChanged(string undoName, T data) { }
-		protected virtual void AddNewData(string newName) { }
-		protected virtual void RemoveData(T data) { }
-		protected virtual void CloneData(string newName, T data) { }
+		protected virtual void AddNewData(string undoName, string newName) { }
+		protected virtual void RemoveData(string undoName, T data) { }
+		protected virtual void CloneData(string undoName, string newName, T data) { }
 
 		protected TableBehavior _table;
 		protected T _selectedItem;
@@ -85,13 +85,14 @@ namespace VisualPinball.Unity.Editor.Managers
 				string undoName = "Add " + DataTypeName;
 				_forceSelectItemWithName = newDataName;
 				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				AddNewData(newDataName);
+				AddNewData(undoName, newDataName);
 				Reload();
 			}
 			if (IsImplemented("RemoveData") && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
-					Undo.RecordObjects(new Object[] { this, _table }, "Remove " + DataTypeName);
-					RemoveData(_selectedItem);
+					string undoName = "Remove " + DataTypeName;
+					Undo.RecordObjects(new Object[] { this, _table }, undoName);
+					RemoveData(undoName, _selectedItem);
 					_selectedItem = null;
 					Reload();
 				}
@@ -101,7 +102,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
 				_forceSelectItemWithName = newDataName;
 				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				CloneData(newDataName, _selectedItem);
+				CloneData(undoName, newDataName, _selectedItem);
 				Reload();
 			}
 			OnButtonBarGUI();

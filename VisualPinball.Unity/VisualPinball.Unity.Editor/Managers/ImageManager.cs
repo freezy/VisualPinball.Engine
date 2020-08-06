@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
 
@@ -59,6 +60,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void RenameExistingItem(ImageListData data, string newName)
 		{
+			_table.Textures.SetNameMapDirty();
 			string oldName = data.TextureData.Name;
 
 			// give each editable item a chance to update its fields
@@ -86,8 +88,8 @@ namespace VisualPinball.Unity.Editor.Managers
 				}
 			}
 
-			foreach (var t in _table.Table.Textures) {
-				var texData = t.Value.Data;
+			foreach (var t in _table.Textures) {
+				var texData = t.Data;
 				data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
 			}
 		}
@@ -95,6 +97,18 @@ namespace VisualPinball.Unity.Editor.Managers
 		protected override void OnDataChanged(string undoName, ImageListData data)
 		{
 			OnDataChanged(undoName, data.TextureData);
+		}
+
+		protected override void AddNewData(string undoName, string newName) {
+			_table.Textures.SetNameMapDirty();
+			var sidecar = _table.GetComponentInChildren<TableSidecar>();
+			if (sidecar != null) {
+				Undo.RecordObject(sidecar, undoName);
+			}
+
+			var newTex = new Engine.VPT.Texture(newName);
+			_table.Textures.Add(newTex);
+			_table.Item.Data.NumTextures = _table.Textures.Count;
 		}
 
 		private void OnDataChanged(string undoName, TextureData textureData)
@@ -115,7 +129,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			if (_table == null) { return; }
 
 			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _table.Textures) {
+			foreach (var tableTex in _table.Textures.SerializedObjects) {
 				if (tableTex.Data == textureData) {
 					Undo.RecordObject(tableTex, undoName);
 					break;
@@ -125,8 +139,8 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		private void UpdateAllImages()
 		{
-			foreach (var t in _table.Table.Textures) {
-				ReplaceImageFromPath(t.Value.Data, t.Value.Data.Path);
+			foreach (var t in _table.Textures) {
+				ReplaceImageFromPath(t.Data, t.Data.Path);
 			}
 		}
 
@@ -149,6 +163,14 @@ namespace VisualPinball.Unity.Editor.Managers
 
 			textureData.Binary.Data = newBytes;
 			textureData.Binary.Size = newBytes.Length;
+			textureData.Path = path;
+
+			// update size values assuming we loaded alright
+			var unityTex = _table.GetTexture(textureData.Name);
+			if (unityTex != null) {
+				textureData.Width = unityTex.width;
+				textureData.Height = unityTex.height;
+			}
 		}
 
 		private void ReplaceImageFromAsset(TextureData textureData, UnityEngine.Texture2D tex)

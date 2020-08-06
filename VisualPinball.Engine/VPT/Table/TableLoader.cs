@@ -243,7 +243,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
-					table.Textures[texture.Name.ToLower()] = texture;
+					table.Textures.Add(texture);
 				}
 			}
 		}
