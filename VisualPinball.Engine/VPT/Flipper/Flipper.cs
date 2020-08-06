@@ -19,7 +19,15 @@ namespace VisualPinball.Engine.VPT.Flipper
 			State = new FlipperState(Data.Name, data.IsVisible, data.StartAngle, data.Center.Clone(), data.Material, data.Image, data.RubberMaterial);
 		}
 
-		public Flipper(BinaryReader reader, string itemName) : this(new FlipperData(reader, itemName)) { }
+		public Flipper(BinaryReader reader, string itemName) : this(new FlipperData(reader, itemName))
+		{
+		}
+
+		public static Flipper GetDefault(Table.Table table)
+		{
+			var flipperData = new FlipperData(table.GetNewName<Flipper>("Flipper"), table.Width / 2f, table.Height / 2f);
+			return new Flipper(flipperData);
+		}
 
 		public void Init(Table.Table table)
 		{

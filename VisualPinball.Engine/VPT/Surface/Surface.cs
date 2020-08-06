@@ -1,5 +1,6 @@
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Surface
@@ -21,7 +22,23 @@ namespace VisualPinball.Engine.VPT.Surface
 			_hitGenerator = new SurfaceHitGenerator(Data);
 		}
 
-		public Surface(BinaryReader reader, string itemName) : this(new SurfaceData(reader, itemName)) { }
+		public Surface(BinaryReader reader, string itemName) : this(new SurfaceData(reader, itemName))
+		{
+		}
+
+		public static Surface GetDefault(Table.Table table)
+		{
+			var surfaceData = new SurfaceData(
+				table.GetNewName<Surface>("Wall"),
+				new[] {
+					new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),
+					new DragPointData(table.Width / 2f - 50f, table.Height / 2f + 50f),
+					new DragPointData(table.Width / 2f + 50f, table.Height / 2f + 50f),
+					new DragPointData(table.Width / 2f + 50f, table.Height / 2f - 50f)
+				}
+			);
+			return new Surface(surfaceData);
+		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

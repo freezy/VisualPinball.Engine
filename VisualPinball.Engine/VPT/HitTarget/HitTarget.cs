@@ -20,8 +20,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			_hitGenerator = new HitTargetHitGenerator(Data, _meshGenerator);
 		}
 
-		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName)) { }
+		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName))
+		{
+		}
 
+		public static HitTarget GetDefault(Table.Table table)
+		{
+			var hitTargetData = new HitTargetData(table.GetNewName<HitTarget>("Target"), table.Width / 2f, table.Height / 2f);
+			return new HitTarget(hitTargetData);
+		}
 
 		public void Init(Table.Table table)
 		{

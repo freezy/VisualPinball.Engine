@@ -1,5 +1,6 @@
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Trigger
@@ -20,7 +21,23 @@ namespace VisualPinball.Engine.VPT.Trigger
 			_hitGenerator = new TriggerHitGenerator(Data);
 		}
 
-		public Trigger(BinaryReader reader, string itemName) : this(new TriggerData(reader, itemName)) { }
+		public Trigger(BinaryReader reader, string itemName) : this(new TriggerData(reader, itemName))
+		{
+		}
+
+		public static Trigger GetDefault(Table.Table table)
+		{
+			var triggerData = new TriggerData(table.GetNewName<Trigger>("Trigger"), table.Width / 2f, table.Height / 2f)
+			{
+				DragPoints = new[] {
+					new DragPointData(table.Width / 2f - 50f, table.Height / 2f - 50f),
+					new DragPointData(table.Width / 2f - 50f, table.Height / 2f + 50f),
+					new DragPointData(table.Width / 2f + 50f, table.Height / 2f + 50f),
+					new DragPointData(table.Width / 2f + 50f, table.Height / 2f - 50f)
+				}
+			};
+			return new Trigger(triggerData);
+		}
 
 		public void Init(Table.Table table)
 		{
