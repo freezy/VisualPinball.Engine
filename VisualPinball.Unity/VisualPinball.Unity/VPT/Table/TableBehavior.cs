@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.VPT.Table
 	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
-		public TableSerializedTexture[] Textures => _sidecar?.textures;
+		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public Patcher.Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -175,6 +175,9 @@ namespace VisualPinball.Unity.VPT.Table
 			// restore custom info tags
 			table.CustomInfoTags = _sidecar.customInfoTags;
 
+			// replace texture container
+			table.SetTextureContainer(_sidecar.textures);
+
 			// restore game items with no game object (yet!)
 			table.Decals.Clear();
 			table.Decals.AddRange(_sidecar.decals.Select(d => new Decal(d)));
@@ -210,13 +213,6 @@ namespace VisualPinball.Unity.VPT.Table
 			var table = CreateTable();
 
 			Restore(_sidecar.sounds, table.Sounds, d => new Sound(d));
-
-			// restore textures
-			Logger.Info("Restoring textures...");
-			foreach (var textureData in _sidecar.textures) {
-				var texture = new Texture(textureData.Data);
-				table.Textures[texture.Name.ToLower()] = texture;
-			}
 
 			Logger.Info("Table restored.");
 			return table;

@@ -46,6 +46,12 @@ namespace VisualPinball.Engine.VPT
 		[BiffBits("BITS", Pos = 6)]
 		public Bitmap Bitmap; // originally "PdsBuffer";
 
+		public TextureData(string name) : base(name)
+		{
+			Name = name;
+			Binary = new BinaryData(name);
+		}
+
 		public TextureData(Resource res) : base(res.Name)
 		{
 			Name = res.Name;

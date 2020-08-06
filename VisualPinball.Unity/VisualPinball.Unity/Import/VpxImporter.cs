@@ -94,7 +94,6 @@ namespace VisualPinball.Unity.Import
 			}
 
 			// import
-			ImportTextures();
 			ImportGameItems();
 
 			// set root transformation
@@ -127,13 +126,6 @@ namespace VisualPinball.Unity.Import
 
 			// patch
 			table.Patcher.ApplyPatches(item, ro, obj);
-		}
-
-		private void ImportTextures()
-		{
-			foreach (var kvp in _table.Textures) {
-				_tb.AddTexture(kvp.Key, kvp.Value.ToUnityTexture());
-			}
 		}
 
 		private void ImportGameItems()
@@ -214,7 +206,14 @@ namespace VisualPinball.Unity.Import
 			foreach (var key in table.TableInfo.Keys) {
 				sidecar.tableInfo[key] = table.TableInfo[key];
 			}
-			sidecar.textures = table.Textures.Values.Select(d => TableSerializedTexture.Create(d.Data)).ToArray();
+
+			// copy each texture ref into the sidecar's serialized storage
+			foreach (var tex in table.Textures) {
+				sidecar.textures.Add(tex);
+			}
+			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
+			table.SetTextureContainer(sidecar.textures);
+
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
 			sidecar.decals = table.Decals.Select(d => d.Data).ToArray();

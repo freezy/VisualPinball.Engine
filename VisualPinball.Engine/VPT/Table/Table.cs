@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
-		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 
@@ -177,40 +177,18 @@ namespace VisualPinball.Engine.VPT.Table
 				: Data.Materials.FirstOrDefault(m => m.Name == name);
 		}
 
+		public void SetTextureContainer(ITableResourceContainer<Texture> container)
+		{
+			Textures = container;
+		}
+
 		public Texture GetTexture(string name)
 		{
 			string lowerName = name.ToLower();
 			var tex = name == null
 				? null
-				: Textures.ContainsKey(lowerName) ? Textures[lowerName] : null;
-			
-			// double check the key matches the name
-			if (tex != null && tex.Name.ToLower() != lowerName) { tex = null; }
-			// if not found, loop over all to see if the texture key doesn't match its name anymore
-			// this is meant to be a lazy update to the container when renaming in editor
-			if (tex == null) {
-				foreach (var kvp in Textures) {
-					if (kvp.Value.Name.ToLower() == lowerName) {
-						tex = kvp.Value;
-						Textures.Remove(kvp.Key);
-						Textures[lowerName] = tex;
-						break;
-					}
-				}
-			}
+				: Textures[lowerName];
 			return tex;
-		}
-
-		public Texture RemoveTexture(string name)
-		{
-			var tex = GetTexture(name);
-			Textures.Remove(name.ToLower());
-			return tex;
-		}
-
-		public void AddTexture(string name, Texture tex)
-		{
-			Textures[name.ToLower()] = tex;
 		}
 
 		public float GetScaleZ()

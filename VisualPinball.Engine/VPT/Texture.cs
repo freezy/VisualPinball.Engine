@@ -59,6 +59,11 @@ namespace VisualPinball.Engine.VPT
 
 		private TextureStats _stats;
 
+		public Texture(string name) : base(new TextureData(name))
+		{
+			Name = name;
+		}
+
 		public Texture(TextureData data) : base(data) { }
 
 		public Texture(BinaryReader reader, string itemName) : this(new TextureData(reader, itemName)) { }
