@@ -111,6 +111,18 @@ namespace VisualPinball.Unity.Editor.Managers
 			_table.Item.Data.NumTextures = _table.Textures.Count;
 		}
 
+		protected override void RemoveData(string undoName, ImageListData data)
+		{
+			_table.Textures.SetNameMapDirty();
+			var sidecar = _table.GetComponentInChildren<TableSidecar>();
+			if (sidecar != null) {
+				Undo.RecordObject(sidecar, undoName);
+			}
+
+			_table.Textures.Remove(data.Name);
+			_table.Item.Data.NumTextures = _table.Textures.Count;
+		}
+
 		private void OnDataChanged(string undoName, TextureData textureData)
 		{
 			RecordUndo(undoName, textureData);
