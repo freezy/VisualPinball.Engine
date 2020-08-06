@@ -22,10 +22,12 @@ namespace VisualPinball.Unity.Editor.Layers
 	internal class LayerTreeView : TreeView<LayerTreeElement>
 	{
 		/// <summary>
-		/// Emitted when a layer is renamed.
+		/// Event emitted when a layer is renamed, used by <see cref="LayerHandler"/>.
 		/// </summary>
 		public event Action<LayerTreeElement, string> LayerRenamed;
-
+		/// <summary>
+		/// Event emitted on Items dropping validation, used by <see cref="LayerHandler"/>.
+		/// </summary>
 		public event Action<LayerTreeElement[], LayerTreeElement> ItemsDropped;
 
 		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
@@ -36,7 +38,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		}
 
 
-		Dictionary<LayerTreeElementVisibility, Texture> _visibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
+		#region Row GUI
+		internal static Dictionary<LayerTreeElementVisibility, Texture> _visibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
 			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
 			{ LayerTreeElementVisibility.Hidden_Mixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
 			{ LayerTreeElementVisibility.Visible_Mixed, EditorGUIUtility.IconContent("scenevis_visible-mixed_hover").image},
@@ -73,6 +76,8 @@ namespace VisualPinball.Unity.Editor.Layers
 				EditorGUI.LabelField(textRect, guiC);
 			}
 		}
+		#endregion
+
 
 		/// <summary>
 		/// Triggered by the LayerHandler tree rebuild, will have to recreate the TreeViewItems structure
@@ -82,6 +87,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			Reload();
 		}
 
+		#region Items renaming
 		protected override bool ValidateRename(TreeViewItem<LayerTreeElement> item) => item.Data?.Type == LayerTreeViewElementType.Layer;
 
 		protected override void RenameEnded(RenameEndedArgs args)
@@ -95,7 +101,9 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 			}
 		}
+		#endregion
 
+		#region Items drag&drop
 		protected override bool ValidateStartDrag(LayerTreeElement[] elements)
 		{
 			if (elements.Length == 0) {
@@ -121,10 +129,13 @@ namespace VisualPinball.Unity.Editor.Layers
 				return DragAndDropVisualMode.None;
 			} else {
 				switch (args.dragAndDropPosition) {
-					default:
+					default: {
+						return DragAndDropVisualMode.None;
+					}
 					case DragAndDropPosition.BetweenItems:
-					case DragAndDropPosition.OutsideItems:
-						return DragAndDropVisualMode.Move;
+					case DragAndDropPosition.OutsideItems: {
+						return DragAndDropVisualMode.Rejected;
+					}
 					case DragAndDropPosition.UponItem: {
 						if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
 							return (layerTreeItem.Data.Type == LayerTreeViewElementType.Layer ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected);
@@ -134,5 +145,7 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 			}
 		}
+		#endregion
+
 	}
 }

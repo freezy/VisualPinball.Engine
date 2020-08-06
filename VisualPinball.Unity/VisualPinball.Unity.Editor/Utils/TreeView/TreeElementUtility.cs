@@ -11,6 +11,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	/// </summary>
 	public static class TreeElementUtility
 	{
+		#region TreeElement Helpers       
 		/// <summary>
 		/// This helper try to find an element with the provided id in this TreeElement's hierarchy, including itself
 		/// </summary>
@@ -57,7 +58,9 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
 		/// <returns>an array of TreeElement as T type</returns>
 		public static T[] GetChildren<T>(this TreeElement element) where T : TreeElement => GetChildren<T>(element, d => true);
+		#endregion
 
+		#region Tree structure helpers
 		/// <summary>
 		/// Will contruct a hierarchical tree from a flat sorted list of TreeElements
 		/// </summary>
@@ -153,6 +156,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			if (list.Count > 1 && list[1].Depth != 0)
 				throw new ArgumentException("Input list item at index 1 is assumed to have a depth of 0", "list");
 		}
+		#endregion
 	}
 
 }

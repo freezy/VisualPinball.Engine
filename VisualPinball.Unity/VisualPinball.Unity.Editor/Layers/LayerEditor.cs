@@ -35,10 +35,16 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </summary>
 		private LayerHandler _layerHandler;
 
+		/// <summary>
+		/// Rects used for Editor UI partitionning
+		/// </summary>
+		/// <remarks>
+		/// These properties are re-evaluated each time because window width/height could change.
+		/// </remarks>
 		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
-
 		private Rect TreeViewRect => new Rect(10f, SearchRect.max.y, position.width - 20f, position.height - 40f);
 
+		#region Editor Window creation
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
@@ -80,12 +86,11 @@ namespace VisualPinball.Unity.Editor.Layers
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
+		#endregion
 
-		private void OnUndoRedoPerformed()
-		{
-			OnHierarchyChange();
-		}
 
+
+		#region MenuItems callbacks & helpers
 		/// <summary>
 		/// Opens a popup menu when right-clicking somewhere in the TreeView
 		/// </summary>
@@ -99,7 +104,6 @@ namespace VisualPinball.Unity.Editor.Layers
 			EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), LayerEditorMenuItems.LayerMenuPath, command);
 			Event.current.Use();
 		}
-
 		internal void CreateNewLayer()
 		{
 			_layerHandler.CreateNewLayer();
@@ -114,7 +118,9 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			_layerHandler.DeleteLayer(id);
 		}
+		#endregion
 
+		#region Unity Scene management callbacks
 		/// <summary>
 		/// Callled each time something is changed in the SceneView hierarchy (event GameObjects renaming)
 		/// </summary>
@@ -124,16 +130,30 @@ namespace VisualPinball.Unity.Editor.Layers
 			_treeView.Reload();
 		}
 
+		/// <summary>
+		/// Called when the visibility has changed due to <see cref="SceneVisibilityManager"/> operation.
+		/// </summary>
 		private void OnVisibilityChanged()
 		{
 			_treeView.Repaint();
 		}
 
+		/// <summary>
+		/// Called when <see cref="Undo"/> operations are finished after Undo/Redo
+		/// </summary>
+		private void OnUndoRedoPerformed()
+		{
+			OnHierarchyChange();
+		}
+		#endregion
+
+		#region Editor UI
 		private void OnGUI()
 		{
 			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
 
 			_treeView.OnGUI(TreeViewRect);
 		}
+		#endregion
 	}
 }

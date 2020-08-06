@@ -41,6 +41,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 		public List<TreeElement> Children { get; set; } = new List<TreeElement>();
 		public bool HasChildren => Children != null && Children.Count > 0;
 
+		#region Parenting Helpers
 		public void AddChild(TreeElement child)
 		{
 			AddChildren(new TreeElement[] { child });
@@ -67,6 +68,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 				child.UpdateDepth();
 			}
 		}
+		#endregion
 	}
 }
 
