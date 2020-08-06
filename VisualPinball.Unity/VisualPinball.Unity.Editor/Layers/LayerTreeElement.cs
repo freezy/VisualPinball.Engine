@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -138,14 +139,7 @@ namespace VisualPinball.Unity.Editor.Layers
 				switch (Type) {
 					case LayerTreeViewElementType.Table:
 					case LayerTreeViewElementType.Layer: {
-						bool mixed = false;
-						foreach(var subItem in Children) {
-							if (((LayerTreeElement)subItem).IsVisible != IsVisible) {
-								mixed = true;
-								break;
-							}
-						}
-						if (mixed) {
+						if (Children.Any(e => ((LayerTreeElement)e).IsVisible != IsVisible)) {
 							return IsVisible ? LayerTreeElementVisibility.Visible_Mixed : LayerTreeElementVisibility.Hidden_Mixed;
 						} else {
 							return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;

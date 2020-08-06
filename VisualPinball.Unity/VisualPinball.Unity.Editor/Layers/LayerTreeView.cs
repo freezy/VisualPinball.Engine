@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -109,10 +110,8 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (elements.Length == 0) {
 				return false;
 			}
-			foreach(var element in elements) {
-				if (element.Type != LayerTreeViewElementType.Item) {
-					return false;
-				}
+			if (elements.Any(e => e.Type != LayerTreeViewElementType.Item)) {
+				return false;
 			}
 			return true;
 		}
