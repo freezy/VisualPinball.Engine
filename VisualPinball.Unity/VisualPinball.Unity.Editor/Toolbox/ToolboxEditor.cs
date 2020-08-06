@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -18,14 +16,19 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
-using Component = UnityEngine.Component;
 
 namespace VisualPinball.Unity.Editor.Toolbox
 {
 	public class ToolboxEditor : EditorWindow
 	{
-		private static Table Table => TableBehavior == null ? null : TableBehavior.Item;
 		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
+
+		private static Table Table {
+			get {
+				var tb = TableBehavior;
+				return tb == null ? null : tb.Item;
+			}
+		}
 
 		[MenuItem("Visual Pinball/Toolbox", false, 100)]
 		public static void ShowWindow()
@@ -52,6 +55,10 @@ namespace VisualPinball.Unity.Editor.Toolbox
 						"Sorry, cannot add multiple tables, and there already is " +
 						existingTable.name, "Close");
 				}
+			}
+
+			if (TableBehavior == null) {
+				GUI.enabled = false;
 			}
 
 			if (GUILayout.Button("Wall")) {
@@ -188,6 +195,8 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				Selection.activeGameObject = CreateRenderable(table, rubber);
 				Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, "New Rubber");
 			}
+
+			GUI.enabled = true;
 		}
 
 		private static GameObject CreateRenderable(Table table, IRenderable renderable)

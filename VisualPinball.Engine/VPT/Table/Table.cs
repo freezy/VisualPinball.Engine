@@ -141,9 +141,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool computeStorageIndices) where TItem : IItem
+		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
-			if (computeStorageIndices) {
+			if (updateStorageIndices) {
 				item.StorageIndex = GameItems.Count();
 				Data.NumGameItems = item.StorageIndex + 1;
 			}
@@ -151,9 +151,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		}
 
-		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool computeStorageIndices) where TItem : IItem
+		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
-			if (computeStorageIndices) {
+			if (updateStorageIndices) {
 				item.StorageIndex = GameItems.Count();
 			}
 			d.Add(item);
@@ -249,19 +249,19 @@ namespace VisualPinball.Engine.VPT.Table
 		/// Adds a game item to the table.
 		/// </summary>
 		/// <param name="item">Game item instance</param>
-		/// <param name="computeStorageIndices">If set, computes the storage indices. Only needed when adding game items via the editor.</param>
+		/// <param name="updateStorageIndices">If set, re-computes the storage indices. Only needed when adding game items via the editor.</param>
 		/// <typeparam name="T">Game item type</typeparam>
 		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
-		public void Add<T>(T item, bool computeStorageIndices = false) where T : IItem
+		public void Add<T>(T item, bool updateStorageIndices = false) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
 			if (dict != null) {
-				AddItem(item.Name, item, dict, computeStorageIndices);
+				AddItem(item.Name, item, dict, updateStorageIndices);
 
 			} else {
 				var list = GetItemList<T>();
 				if (list != null) {
-					AddItem(item, list, computeStorageIndices);
+					AddItem(item, list, updateStorageIndices);
 
 				} else {
 					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
