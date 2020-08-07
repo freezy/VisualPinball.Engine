@@ -90,8 +90,18 @@ namespace VisualPinball.Unity.Editor.Import
 				VpxImportWizardSettings.VpxPath = EditorGUILayout.TextField("VPX File", VpxImportWizardSettings.VpxPath);
 				if (GUILayout.Button("Select File", GUILayout.Width(100)))
 				{
+					// get the initial directory from the vpx path
+					string initialDirectory = null;
+					if( !string.IsNullOrEmpty(VpxImportWizardSettings.VpxPath))
+					{
+						string vpxDirectory = Path.GetDirectoryName(VpxImportWizardSettings.VpxPath);
+						if( Directory.Exists( vpxDirectory)) {
+							initialDirectory = vpxDirectory;
+						}
+					}
+
 					// open file dialog
-					var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
+					var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", initialDirectory, new[] { "Visual Pinball Table Files", "vpx" });
 					if (vpxPath.Length != 0 && File.Exists(vpxPath))
 					{
 						VpxImportWizardSettings.VpxPath = vpxPath;
