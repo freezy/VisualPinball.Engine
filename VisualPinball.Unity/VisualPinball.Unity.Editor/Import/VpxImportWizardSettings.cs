@@ -10,7 +10,7 @@ namespace VisualPinball.Unity.Editor.Import
 	{
 		public static bool ApplyPatch
 		{
-			get => EditorPrefs.GetBool("ApplyPatch", false);
+			get => EditorPrefs.GetBool("ApplyPatch", true);
 			set => EditorPrefs.SetBool("ApplyPatch", value);
 		}
 
@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor.Import
 
 		public static string TableName
 		{
-			get => EditorPrefs.GetString("TableName", "");
+			get => EditorPrefs.GetString("TableName", "%TABLENAME%");
 			set => EditorPrefs.SetString("TableName", value);
 		}
 
@@ -34,8 +34,8 @@ namespace VisualPinball.Unity.Editor.Import
 		public static void Reset()
 		{
 			VpxPath = "";
-			ApplyPatch = false;
-			TableName = "";
+			ApplyPatch = true;
+			TableName = "%TABLENAME%";
 		}
 	}
 }
