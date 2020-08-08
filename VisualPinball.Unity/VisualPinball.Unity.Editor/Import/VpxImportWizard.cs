@@ -146,7 +146,7 @@ namespace VisualPinball.Unity.Editor.Import
 					}
 					else
 					{
-						Logger.Error(String.Format("VPX file not found: {0}", VpxImportWizardSettings.VpxPath));
+						Logger.Error("VPX file not found: {0}", VpxImportWizardSettings.VpxPath);
 					}
 				}
 				EditorGUILayout.EndHorizontal();
