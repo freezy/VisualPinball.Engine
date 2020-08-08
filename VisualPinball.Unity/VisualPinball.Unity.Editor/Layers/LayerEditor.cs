@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -10,7 +9,10 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// <summary>
 	/// The VPX layer manager window. <p/>
 	///
-	/// Apart from drawing the UI, it does the following: <ul>
+	/// It does mostly coordination. The main logic is implemented in <see cref="LayerHandler"/>,
+	/// and tree view of the layers in <see cref="LayerTreeView"/>.
+	///
+	/// So apart from drawing the UI, it does the following: <ul>
 	///   <li>Dispatch changes in the hierarchy to the handler </li>
 	///   <li>Dispatch layer renaming to the handler </li>
 	///   <li>Dispatch search text to the handler </li>
@@ -37,7 +39,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		private LayerHandler _layerHandler;
 
 		/// <summary>
-		/// Rects used for Editor UI partitionning
+		/// Rects used for Editor UI partitioning
 		/// </summary>
 		/// <remarks>
 		/// These properties are re-evaluated each time because window width/height could change.
@@ -45,7 +47,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
 		private Rect TreeViewRect => new Rect(10f, SearchRect.max.y, position.width - 20f, position.height - 40f);
 
-		#region Editor Window creation
+		#region Editor Window
+
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
@@ -64,19 +67,19 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
-			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;	// treeview will Reload when the layerHandler has rebuilt its Tree of LayerTreeElements
-			
-			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed; // LayerHandler will be notified when a renaming process is finished in the TreeView
-			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked; // LayerHandler will be notified for each TreeViewItem double-click
-			_treeView.ItemsDropped += _layerHandler.OnItemsDropped; // LayerHandler will be notified when items are dropped after a DragDrop process
+			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;              // treeview will Reload when the layerHandler has rebuilt its Tree of LayerTreeElements
 
-			_treeView.ItemContextClicked += OnContextClicked; // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
+			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;            // LayerHandler will be notified when a renaming process is finished in the TreeView
+			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked;  // LayerHandler will be notified for each TreeViewItem double-click
+			_treeView.ItemsDropped += _layerHandler.OnItemsDropped;            // LayerHandler will be notified when items are dropped after a DragDrop process
+
+			_treeView.ItemContextClicked += OnContextClicked;                  // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged; // LayerEditor will be notified of any visibility change from the SceneManagement view to update the LayerHandler
 
-			Undo.undoRedoPerformed += OnUndoRedoPerformed; // LayerEditor will ask LayerHandler to rebuild its layers structure after performing an Undo/Redo
+			Undo.undoRedoPerformed += OnUndoRedoPerformed;                     // LayerEditor will ask LayerHandler to rebuild its layers structure after performing an Undo/Redo
 
 			// trigger handler update on enable
 			OnHierarchyChange();
@@ -87,11 +90,17 @@ namespace VisualPinball.Unity.Editor.Layers
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
+
+		private void OnGUI()
+		{
+			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
+			_treeView.OnGUI(TreeViewRect);
+		}
+
 		#endregion
 
-
-
 		#region MenuItems callbacks & helpers
+
 		/// <summary>
 		/// This context will pass information for Layer assignment menu items (can only pass an object as userData)
 		/// </summary>
@@ -140,13 +149,12 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private void DeleteLayer(object element)
 		{
-			_layerHandler.DeleteLayer((element as LayerTreeElement).Id);
+			_layerHandler.DeleteLayer(((LayerTreeElement) element).Id);
 		}
 
 		private void AssignToLayer(object context)
 		{
-			LayerAssignMenuContext assignContext = context as LayerAssignMenuContext;
-			if (assignContext != null) {
+			if (context is LayerAssignMenuContext assignContext) {
 				_layerHandler.AssignToLayer(assignContext.Elements, assignContext.Layer);
 			}
 		}
@@ -159,7 +167,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </summary>
 		private void OnHierarchyChange()
 		{
-			_layerHandler.OnHierarchyChange(UnityEngine.Object.FindObjectOfType<TableBehavior>());
+			_layerHandler.OnHierarchyChange(FindObjectOfType<TableBehavior>());
 			_treeView.Reload();
 		}
 
@@ -177,15 +185,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		private void OnUndoRedoPerformed()
 		{
 			OnHierarchyChange();
-		}
-		#endregion
-
-		#region Editor UI
-		private void OnGUI()
-		{
-			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
-
-			_treeView.OnGUI(TreeViewRect);
 		}
 		#endregion
 	}
