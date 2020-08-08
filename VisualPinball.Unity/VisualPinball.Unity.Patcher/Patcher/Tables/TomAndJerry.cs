@@ -74,6 +74,7 @@ namespace VisualPinball.Unity.Patcher.Patcher.Tables
 		[NameMatch("Ramp15")]
 		[NameMatch("Ramp20")]
 		[NameMatch("Primitive52")] // side-wall
+		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
 			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
@@ -86,6 +87,17 @@ namespace VisualPinball.Unity.Patcher.Patcher.Tables
 
 			unityMat.SetInt("_CullMode", 0);
 			unityMat.SetInt("_CullModeForward", 0);
+		}
+
+		[NameMatch("Ramp5")]
+		[NameMatch("Ramp6")]
+		[NameMatch("Ramp13")]
+		[NameMatch("Ramp15")]
+		[NameMatch("Ramp20")]
+		public void SetMetallic(GameObject gameObject)
+		{
+			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
+			unityMat.SetFloat("_Metallic", 1.0f);
 		}
 	}
 }
