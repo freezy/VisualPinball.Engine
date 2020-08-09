@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <summary>
 		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
 		/// </summary>
-		private readonly Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
+		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
 		/// Expose the list of current layer names (used by <see cref="LayerEditor"/> for populating context menu)
@@ -62,7 +62,10 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </summary>
 		private void RebuildLayers()
 		{
-			_layers.Clear();
+			_layers = _layers.Where(pair => pair.Value?.Count == 0)
+							 .ToDictionary(pair => pair.Key,
+										pair => pair.Value);
+
 			if (_tableBehavior != null) {
 				BuildLayersRecursively(_tableBehavior.gameObject);
 			}
