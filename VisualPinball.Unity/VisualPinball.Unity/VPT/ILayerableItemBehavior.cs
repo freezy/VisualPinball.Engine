@@ -1,11 +1,11 @@
 ﻿namespace VisualPinball.Unity.VPT
 {
 	/// <summary>
-	/// Expose Layer related date from all ItemBehaviors
+	/// Exposes layer-related data from all ItemBehaviors
 	/// </summary>
 	public interface ILayerableItemBehavior
 	{
-		int EditorLayer { get; set; }
+		int EditorLayer { get; }
 		string EditorLayerName { get; set; }
 		bool EditorLayerVisibility { get; set; }
 	}
