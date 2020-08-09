@@ -44,9 +44,10 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// <remarks>
 		/// These properties are re-evaluated each time because window width/height could change.
 		/// </remarks>
-		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
-		private Rect LayerOperationRect => new Rect(10f, SearchRect.max.y, position.width - 20f, 20f);
-		private Rect TreeViewRect => new Rect(10f, LayerOperationRect.max.y, position.width - 20f, position.height - SearchRect.height - LayerOperationRect.height - 20f);
+
+		private Rect SearchRect => new Rect(GUI.skin.window.margin.left, GUI.skin.window.margin.top, position.width - GUI.skin.window.margin.horizontal, 20f);
+		private Rect LayerOperationRect => new Rect(GUI.skin.window.margin.left, SearchRect.max.y, position.width - GUI.skin.window.margin.horizontal, 20f);
+		private Rect TreeViewRect => new Rect(GUI.skin.window.margin.left, LayerOperationRect.max.y, position.width - GUI.skin.window.margin.horizontal, position.height - SearchRect.height - LayerOperationRect.height - GUI.skin.window.margin.vertical);
 
 		#region Editor Window
 
