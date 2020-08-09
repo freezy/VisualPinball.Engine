@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -193,7 +194,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			var tb = TableAuthoring;
 			var rog = renderable.GetRenderObjects(table, Origin.Original, false);
-			return VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tb, rog), tb);
+			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tb, rog), tb, out var obj);
+			return obj;
 		}
 
 		private static GameObject GetOrCreateParent(Component tb, RenderObjectGroup rog)

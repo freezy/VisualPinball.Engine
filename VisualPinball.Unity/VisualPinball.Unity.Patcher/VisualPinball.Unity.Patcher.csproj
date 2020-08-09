@@ -17,6 +17,9 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="VisualPinball.Unity, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\vpe-2020.1\Library\ScriptAssemblies\VisualPinball.Unity.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />

@@ -5,6 +5,7 @@ using System.Reflection;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -49,9 +50,34 @@ namespace VisualPinball.Unity.Patcher
 					var methodInfo = method as MethodInfo;
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
+							var validArgs = true;
 							if (methodMatcher.Matches(_table, item, renderObject, gameObject)) {
-								Logger.Info($"Patching element {item.Name} based on match by {patcher.GetType().Name}.{method.Name}");
-								methodInfo.Invoke(patcher, new object[] {gameObject});
+								var patcherParamInfos = methodInfo.GetParameters();
+								var patcherParams = new object[patcherParamInfos.Length];
+
+								foreach (var pi in patcherParamInfos) {
+									if (pi.ParameterType == typeof(GameObject)) {
+										patcherParams[pi.Position] = gameObject;
+
+									} else if (pi.ParameterType == typeof(Table)) {
+										patcherParams[pi.Position] = _table;
+
+									} else if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {
+										patcherParams[pi.Position] = item;
+
+									} else if (pi.ParameterType == typeof(IRenderable) && item.GetType().GetInterfaces().Contains(typeof(IRenderable))) {
+										patcherParams[pi.Position] = item;
+
+									} else {
+										Logger.Warn($"Unknown parameter {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+										validArgs = false;
+									}
+								}
+
+								if (validArgs) {
+									Logger.Info($"Patching element {item.Name} based on match by {patcher.GetType().Name}.{method.Name}");
+									methodInfo.Invoke(patcher, patcherParams);
+								}
 							}
 						}
 					}
