@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
 			// reload when the layer handler has rebuilt its tree
-			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;
+			_layerHandler.TreeRebuilt += _treeView.Reload;
 
 			// trigger layer updates when layer was renamed
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;

@@ -10,19 +10,24 @@ using UnityObject = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
+	/// The actual tree view that is rendered in the editor window.
+	/// </summary>
+	///
+	/// <remarks>
 	/// Populates the VPX Layers structure as provided by the <see cref="LayerHandler"/>. <p/>
 	///
 	/// It notifies the LayerHandler of any change in the layers structure, such as addition, removal, renaming,
 	/// or toggling.
-	/// </summary>
+	/// </remarks>
 	internal class LayerTreeView : TreeView<LayerTreeElement>
 	{
 		/// <summary>
 		/// Event emitted when a layer is renamed, used by <see cref="LayerHandler"/>.
 		/// </summary>
 		public event Action<LayerTreeElement, string> LayerRenamed;
+
 		/// <summary>
-		/// Event emitted on Items dropping validation, used by <see cref="LayerHandler"/>.
+		/// Event emitted on items dropping validation, used by <see cref="LayerHandler"/>.
 		/// </summary>
 		public event Action<LayerTreeElement[], LayerTreeElement> ItemsDropped;
 
@@ -33,14 +38,13 @@ namespace VisualPinball.Unity.Editor.Layers
 			customFoldoutYOffset = 3f;
 		}
 
-
-		#region Row GUI
-		internal static Dictionary<LayerTreeElementVisibility, Texture> _visibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
+		private static readonly Dictionary<LayerTreeElementVisibility, Texture> VisibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
 			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
 			{ LayerTreeElementVisibility.HiddenMixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
 			{ LayerTreeElementVisibility.VisibleMixed, EditorGUIUtility.IconContent("scenevis_visible-mixed_hover").image},
 			{ LayerTreeElementVisibility.Visible, EditorGUIUtility.IconContent("scenevis_visible_hover").image},
 		};
+
 		// Custom GUI
 		protected override void RowGUI(RowGUIArgs args)
 		{
@@ -59,7 +63,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			if (args.item is TreeViewItem<LayerTreeElement> treeViewItem) {
 				EditorGUI.BeginChangeCheck();
 				GUIContent guiC = new GUIContent();
-				guiC.image = _visibilityToIcon[treeViewItem.Data.Visibility];
+				guiC.image = VisibilityToIcon[treeViewItem.Data.Visibility];
 				if (GUI.Button(toggleRect, guiC, GUIStyle.none)) {
 					treeViewItem.Data.IsVisible = !treeViewItem.Data.IsVisible;
 				}
@@ -72,18 +76,14 @@ namespace VisualPinball.Unity.Editor.Layers
 				EditorGUI.LabelField(textRect, guiC);
 			}
 		}
-		#endregion
 
+		#region Rename
 
 		/// <summary>
-		/// Triggered by the LayerHandler tree rebuild, will have to recreate the TreeViewItems structure
+		/// Only allows layers to be renamed
 		/// </summary>
-		internal void OnTreeRebuilt()
-		{
-			Reload();
-		}
-
-		#region Items renaming
+		/// <param name="item"></param>
+		/// <returns></returns>
 		protected override bool ValidateRename(TreeViewItem<LayerTreeElement> item) => item.Data?.Type == LayerTreeViewElementType.Layer;
 
 		protected override void RenameEnded(RenameEndedArgs args)
@@ -97,9 +97,11 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 			}
 		}
+
 		#endregion
 
-		#region Items drag&drop
+		#region Drag and Drop
+
 		protected override bool ValidateStartDrag(LayerTreeElement[] elements)
 		{
 			if (elements.Length == 0) {
@@ -121,21 +123,21 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 				Reload();
 				return DragAndDropVisualMode.None;
-			} else {
-				switch (args.dragAndDropPosition) {
-					default: {
-						return DragAndDropVisualMode.None;
+			}
+
+			switch (args.dragAndDropPosition) {
+				default: {
+					return DragAndDropVisualMode.None;
+				}
+				case DragAndDropPosition.BetweenItems:
+				case DragAndDropPosition.OutsideItems: {
+					return DragAndDropVisualMode.Rejected;
+				}
+				case DragAndDropPosition.UponItem: {
+					if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
+						return (layerTreeItem.Data.Type == LayerTreeViewElementType.Layer ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected);
 					}
-					case DragAndDropPosition.BetweenItems:
-					case DragAndDropPosition.OutsideItems: {
-						return DragAndDropVisualMode.Rejected;
-					}
-					case DragAndDropPosition.UponItem: {
-						if (args.parentItem is TreeViewItem<LayerTreeElement> layerTreeItem) {
-							return (layerTreeItem.Data.Type == LayerTreeViewElementType.Layer ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected);
-						}
-						return DragAndDropVisualMode.Move;
-					}
+					return DragAndDropVisualMode.Move;
 				}
 			}
 		}
