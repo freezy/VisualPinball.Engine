@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Editor.Managers
 		protected virtual void OnButtonBarGUI() { }
 		protected virtual void OnDataDetailGUI() { }
 		protected virtual void RenameExistingItem(T data, string desiredName) { }
-		protected virtual void CollectData(List<T> data) { }
+		protected virtual List<T> CollectData() => new List<T>();
 		protected virtual void OnDataChanged(string undoName, T data) { }
 		protected virtual void AddNewData(string undoName, string newName) { }
 		protected virtual void RemoveData(string undoName, T data) { }
@@ -38,8 +38,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected void Reload()
 		{
-			_data.Clear();
-			CollectData(_data);
+			_data = CollectData();
 			_listView.SetData(_data);
 		}
 
@@ -252,7 +251,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			_table = GameObject.FindObjectOfType<TableBehavior>();
 			_data.Clear();
 			if (_table != null) {
-				CollectData(_data);
+				_data = CollectData();
 			}
 			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
 		}

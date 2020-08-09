@@ -54,8 +54,10 @@ namespace VisualPinball.Unity.Editor.Managers
 			data.Material.Name = newName;
 		}
 
-		protected override void CollectData(List<MaterialListData> data)
+		protected override List<MaterialListData> CollectData()
 		{
+			List<MaterialListData> data = new List<MaterialListData>();
+
 			// collect list of in use materials
 			List<string> inUseMaterials = new List<string>();
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
@@ -74,6 +76,8 @@ namespace VisualPinball.Unity.Editor.Managers
 				var mat = _table.Item.Data.Materials[i];
 				data.Add(new MaterialListData { Material = mat, InUse = inUseMaterials.Contains(mat.Name) });
 			}
+
+			return data;
 		}
 
 		protected override void OnDataChanged(string undoName, MaterialListData data)
