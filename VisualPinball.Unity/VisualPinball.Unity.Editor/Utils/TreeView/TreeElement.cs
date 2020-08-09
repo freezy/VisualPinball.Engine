@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,45 +11,45 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	public abstract class TreeElement
 	{
 		/// <summary>
-		/// Unique ID of the TreeElement within the Tree structure
+		/// Unique ID of this <see cref="TreeElement"/> within the tree structure
 		/// </summary>
 		public int Id { get; set; }
+
 		/// <summary>
-		/// The element's Name
+		/// The element's name
 		/// </summary>
-		public virtual string Name { get; }
+		public abstract string Name { get; }
+
 		/// <summary>
-		/// The name which will be displayed in the TreeView 
+		/// The name which is displayed in the <see cref="TreeView"/>
 		/// </summary>
 		public virtual string DisplayName => Name;
+
 		/// <summary>
-		/// The icon which will be shown before the DisplayName
+		/// The icon which is shown before the <see cref="DisplayName"/>
 		/// </summary>
 		public virtual Texture2D Icon => null;
+
 		/// <summary>
-		/// The Depth level of the TreeElement into the Tree structure
+		/// The depth level of this <see cref="TreeElement"/> into the tree structure
 		/// </summary>
 		public int Depth { get; set; }
+
 		/// <summary>
-		/// This TreeElement's parent
+		/// The parent of this <see cref="TreeElement"/>
 		/// </summary>
 		public TreeElement Parent { get; set; }
+
 		/// <summary>
-		/// This TreeElement's Children
+		/// The children of this <see cref="TreeElement"/>
 		/// </summary>
 		public List<TreeElement> Children { get; set; } = new List<TreeElement>();
+
 		public bool HasChildren => Children != null && Children.Count > 0;
 
-		#region Parenting Helpers
 		public void AddChild(TreeElement child)
 		{
 			child?.ReParent(this);
-		}
-		public void AddChildren(TreeElement[] children)
-		{
-			foreach(var child in children) {
-				child?.ReParent(this);
-			}
 		}
 
 		public virtual void ReParent(TreeElement newParent)
@@ -63,12 +62,11 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 
 		private void UpdateDepth()
 		{
-			Depth = Parent != null ? Parent.Depth + 1 : 0;
+			Depth = Parent?.Depth + 1 ?? 0;
 			foreach (var child in Children) {
 				child.UpdateDepth();
 			}
 		}
-		#endregion
 	}
 }
 

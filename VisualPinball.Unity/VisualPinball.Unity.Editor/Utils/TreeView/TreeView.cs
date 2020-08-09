@@ -9,7 +9,7 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 	/// <summary>
-	/// The TreeWiew class is a ImGui TreeView which will handle a provided generic TreeElement type
+	/// An ImGui TreeView which will handle a provided generic TreeElement type
 	/// It will handle all TreeViewItem creation using this generic TreeElement type
 	/// You have to provide the Root element of your tree structure
 	/// It'll also fire events for several base TreeView events (Tree rebuild & update, item double click...)
@@ -205,7 +205,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 			var elements = Root.GetChildren<T>(element => idList.Contains(element.Id));
 			return HandleElementsDragAndDrop(args, elements.ToArray());
 		}
-		#endregion 
+		#endregion
 	}
 
 	/// <summary>
