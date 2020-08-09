@@ -50,6 +50,7 @@ namespace VisualPinball.Unity.Editor.Layers
 		public void OnHierarchyChange(TableBehavior tableBehavior)
 		{
 			_tableBehavior = tableBehavior;
+			_layers.Clear();
 			RebuildLayers();
 		}
 
