@@ -45,7 +45,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// These properties are re-evaluated each time because window width/height could change.
 		/// </remarks>
 		private Rect SearchRect => new Rect(10f, 10f, position.width - 20f, 20f);
-		private Rect TreeViewRect => new Rect(10f, SearchRect.max.y, position.width - 20f, position.height - 40f);
+		private Rect LayerOperationRect => new Rect(10f, SearchRect.max.y, position.width - 20f, 20f);
+		private Rect TreeViewRect => new Rect(10f, LayerOperationRect.max.y, position.width - 20f, position.height - SearchRect.height - LayerOperationRect.height - 20f);
 
 		#region Editor Window
 
@@ -94,6 +95,11 @@ namespace VisualPinball.Unity.Editor.Layers
 		private void OnGUI()
 		{
 			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
+
+			if (GUI.Button(new Rect(LayerOperationRect.xMin, LayerOperationRect.yMin, 20f, 16f), new GUIContent("+", "Create new layer"), new GUIStyle(GUI.skin.button) { alignment = TextAnchor.LowerCenter })) {
+				_layerHandler.CreateNewLayer();
+			}
+
 			_treeView.OnGUI(TreeViewRect);
 		}
 
