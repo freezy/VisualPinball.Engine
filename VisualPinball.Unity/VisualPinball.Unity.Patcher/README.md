@@ -126,8 +126,8 @@ Let's look at how to apply this in the next section.
 ## Patcher
 
 Now we know how to match an item, let's create a patch. It's as easy as
-writing a `void` method in your patch class that takes in Unity's `GameObject`
-and decorate it with an item matcher.
+writing a `void` method in your patch class that takes in the objects you're
+interested in (see below), and decorate it with an item matcher.
 
 Let's take the name matcher from the example above and use it to hide the
 flipper shadows:
@@ -143,8 +143,38 @@ public void RemoveFlipperShadow(GameObject gameObject)
 
 Putting several attributes on a method means that it is matched if *at least 
 one* of the matchers matches (the same applies to the table matchers, by the 
-way). 
+way).
 
+You can pass different types in any order to the method. Supported types are:
+
+- `UnityEngine.GameObject` - Unity game object that was created for that game item.
+- `VisualPinball.Engine.VPT.Table.Table` - The table object for which the game 
+  item was created for
+- Any game item type, e.g. `VisualPinball.Engine.VPT.Flipper.Flipper` that 
+  extends `IItem`. If your matched game item is not of the type you've provided
+  in the method signature, the patch is skipped and a warning is printed.
+- `VisualPinball.Engine.Game.IRenderable` if you don't care about the item type
+  but still want to access something from the item.
+  
+## Built-in Matchers
+
+### Table Matchers
+
+- `[AnyMatch]` - Matches all tables
+- `[MetaMatch(string TableName, string AuthorName)]` - Matches a table  where 
+  `TableName` is the table name and `AuthorName` the (exact) string of the
+  authors field of the table's metadata.
+ - `[TableNameMatch(string name)]` - Matches a table by the table's game item
+  item name (also the table name in the table script).
+- `[RenderPipeline(RenderPipelineType rp)]` - Matches if the current render
+  pipeline is set to the given value.  
+
+### Item Matchers
+
+- `[NameMatch(string name)]` - Matches an item by its name.
+- `[RenderPipeline(RenderPipelineType rp)]` - Matches if the current render
+  pipeline is set to the given value.  
+  
 ## Summary
 
 For a new table:

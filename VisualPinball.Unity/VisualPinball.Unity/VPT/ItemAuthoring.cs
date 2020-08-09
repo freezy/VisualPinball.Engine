@@ -85,7 +85,6 @@ namespace VisualPinball.Unity
 								var subObj = new GameObject(ro.Name);
 								subObj.transform.SetParent(transform, false);
 								subObj.layer = VpxConverter.ChildObjectsLayer;
-								VpxConverter.ConvertRenderObject(Item, ro, subObj, table);
 							}
 						}
 					}
