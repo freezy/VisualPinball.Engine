@@ -73,8 +73,10 @@ namespace VisualPinball.Unity.Editor.Managers
 			data.TextureData.Name = newName;
 		}
 
-		protected override void CollectData(List<ImageListData> data)
+		protected override List<ImageListData> CollectData()
 		{
+			List<ImageListData> data = new List<ImageListData>();
+
 			// collect list of in use textures
 			List<string> inUseTextures = new List<string>();
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
@@ -92,6 +94,8 @@ namespace VisualPinball.Unity.Editor.Managers
 				var texData = t.Data;
 				data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
 			}
+
+			return data;
 		}
 
 		protected override void OnDataChanged(string undoName, ImageListData data)
