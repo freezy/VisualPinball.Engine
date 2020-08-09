@@ -15,11 +15,6 @@ namespace VisualPinball.Unity.Editor.Layers
 	/// It notifies the LayerHandler of any change in the layers structure, such as addition, removal, renaming,
 	/// or toggling.
 	/// </summary>
-	///
-	/// <remarks>
-	/// It a first structure draft mirroring the table structure for now, will be changed to fit the LayersHandler
-	/// afterwards.
-	/// </remarks>
 	internal class LayerTreeView : TreeView<LayerTreeElement>
 	{
 		/// <summary>
@@ -42,8 +37,8 @@ namespace VisualPinball.Unity.Editor.Layers
 		#region Row GUI
 		internal static Dictionary<LayerTreeElementVisibility, Texture> _visibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
 			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
-			{ LayerTreeElementVisibility.Hidden_Mixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
-			{ LayerTreeElementVisibility.Visible_Mixed, EditorGUIUtility.IconContent("scenevis_visible-mixed_hover").image},
+			{ LayerTreeElementVisibility.HiddenMixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
+			{ LayerTreeElementVisibility.VisibleMixed, EditorGUIUtility.IconContent("scenevis_visible-mixed_hover").image},
 			{ LayerTreeElementVisibility.Visible, EditorGUIUtility.IconContent("scenevis_visible_hover").image},
 		};
 		// Custom GUI

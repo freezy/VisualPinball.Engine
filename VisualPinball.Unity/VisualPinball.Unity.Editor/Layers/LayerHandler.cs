@@ -11,27 +11,30 @@ using VisualPinball.Unity.VPT.Table;
 namespace VisualPinball.Unity.Editor.Layers
 {
 	/// <summary>
-	/// This handler will construct a layer structure from the table loaded data and store it into a LayerTreeElement tree structure.
-	/// It will then be in charge of layers management (add/remove/rename/item assignment) by listening several events from the <see cref="LayerTreeView"/>
+	/// Handles user actions within the layer tree. <p/>
+	///
+	/// It's responsible for: <ul>
+	///   <li>Keep the layer tree sync with the game item data </li>
+	///   <li>Apply the new layer name to the data when a layer was renamed </li>
+	///   <li>Add new layers </li>
+	///   <li>Remove layers </li>
+	///   <li>Assign a new layer to an item</li>
+	///   <li>Select items in the hierarchy on double click</li>
+	/// </ul>
 	/// </summary>
+	///
+	/// <remarks>
+	/// This class is not aware of the tree *view*, the link between the tree
+	/// view and the tree data is the <see cref="TreeRoot"/>.
+	/// </remarks>
 	internal class LayerHandler
 	{
 		private const string NewLayerDefaultName = "New Layer ";
 
 		/// <summary>
-		/// Attached <see cref="TableBehavior"/>, Set by calling OnHierarchyChange
-		/// </summary>
-		private TableBehavior _tableBehavior;
-
-		/// <summary>
-		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
-		/// </summary>
-		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
-
-		/// <summary>
 		/// Expose the list of current layer names (used by <see cref="LayerEditor"/> for populating context menu)
 		/// </summary>
-		public string[] Layers => _layers.Keys.ToArray();
+		public IEnumerable<string> Layers => _layers.Keys.ToArray();
 
 		/// <summary>
 		/// TreeModel used by the <see cref="LayerTreeView"/>, will be built based on the Layers structure
@@ -44,6 +47,16 @@ namespace VisualPinball.Unity.Editor.Layers
 		public event Action TreeRebuilt;
 
 		/// <summary>
+		/// Attached <see cref="TableBehavior"/>, Set by calling OnHierarchyChange
+		/// </summary>
+		private TableBehavior _tableBehavior;
+
+		/// <summary>
+		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
+		/// </summary>
+		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
+
+		/// <summary>
 		/// Is called by the <see cref="LayerEditor"/> when a new TableBehavior is created/deleted
 		/// </summary>
 		/// <param name="tableBehavior"></param>
@@ -51,25 +64,30 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			_tableBehavior = tableBehavior;
 			_layers.Clear();
-			RebuildLayers();
+			Rebuild();
 		}
 
-		#region Layers & Tree construction
+		#region Construction
+
 		/// <summary>
 		/// Recursively runs through the <see cref="TableBehavior"/>'s children and
 		/// adds the game items' <see cref="MonoBehaviour"/> to the layers map. <p/>
 		///
 		/// It also rebuilds the tree model.
 		/// </summary>
-		private void RebuildLayers()
+		private void Rebuild()
 		{
+			// keep the empty layers
 			_layers = _layers.Where(pair => pair.Value?.Count == 0)
 							 .ToDictionary(pair => pair.Key,
 										pair => pair.Value);
 
+			// add layers from table data
 			if (_tableBehavior != null) {
 				BuildLayersRecursively(_tableBehavior.gameObject);
 			}
+
+			// create tree from table data
 			RebuildTree();
 		}
 
@@ -128,46 +146,15 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			TreeRebuilt?.Invoke();
 		}
+
 		#endregion
 
-		#region Layer Renaming
+		#region Rename
 
 		/// <summary>
-		/// Updates <see cref="ItemData.EditorLayerName"/>, managing Undo.
+		/// Applies the new layer name to all items, and updates internals.
 		/// </summary>
-		/// <param name="item">Tree layer element to update</param>
-		/// <param name="layerName">New layer name</param>
-		private static void ApplyLayerNameToItem(ILayerableItemBehavior item, string layerName)
-		{
-			if (item.EditorLayerName != layerName) {
-				if (item is MonoBehaviour behaviour) {
-					Undo.RecordObject(behaviour, $"Item {behaviour.name}: Change layer name from {item.EditorLayerName} to {layerName}");
-				}
-				item.EditorLayerName = layerName;
-			}
-		}
-
-		/// <summary>
-		/// Recursively updates <see cref="ItemData.EditorLayerName"/> of all provided elements with a new layer name
-		/// </summary>
-		/// <param name="elements">Tree layer elements to update</param>
-		/// <param name="layerName">New layer name</param>
-		private static void ApplyLayerNameToItems(IEnumerable<LayerTreeElement> elements, string layerName)
-		{
-			foreach (var element in elements) {
-				if (element.Item != null) {
-					ApplyLayerNameToItem(element.Item, layerName);
-					if (element.HasChildren) {
-						ApplyLayerNameToItems(element.GetChildren<LayerTreeElement>(), layerName);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Callback when LayerTreeView has validated a layer rename
-		/// </summary>
-		/// <param name="element">Renamed layer TreeElement</param>
+		/// <param name="element">Renamed layer tree element</param>
 		/// <param name="newName">Validated name</param>
 		internal void OnLayerRenamed(LayerTreeElement element, string newName)
 		{
@@ -195,9 +182,42 @@ namespace VisualPinball.Unity.Editor.Layers
 			RebuildTree();
 		}
 
+
+		/// <summary>
+		/// Recursively updates <see cref="ItemData.EditorLayerName"/> of all provided elements with a new layer name
+		/// </summary>
+		/// <param name="elements">Tree layer elements to update</param>
+		/// <param name="layerName">New layer name</param>
+		private static void ApplyLayerNameToItems(IEnumerable<LayerTreeElement> elements, string layerName)
+		{
+			foreach (var element in elements) {
+				if (element.Item != null) {
+					ApplyLayerNameToItem(element.Item, layerName);
+					if (element.HasChildren) {
+						ApplyLayerNameToItems(element.GetChildren<LayerTreeElement>(), layerName);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Updates <see cref="ItemData.EditorLayerName"/>, while managing Undo.
+		/// </summary>
+		/// <param name="item">Tree layer element to update</param>
+		/// <param name="layerName">New layer name</param>
+		private static void ApplyLayerNameToItem(ILayerableItemBehavior item, string layerName)
+		{
+			if (item.EditorLayerName != layerName) {
+				if (item is MonoBehaviour behaviour) {
+					Undo.RecordObject(behaviour, $"Item {behaviour.name}: Change layer name from {item.EditorLayerName} to {layerName}");
+				}
+				item.EditorLayerName = layerName;
+			}
+		}
+
 		#endregion
 
-		#region Layer Add/Removal
+		#region Add/Remove
 
 		/// <summary>
 		/// Create a new layer with first free name formatted as "New Layer {num}"
@@ -239,21 +259,18 @@ namespace VisualPinball.Unity.Editor.Layers
 				foreach (var item in items) {
 					item.ReParent(firstLayer);
 				}
-				RebuildLayers();
+				Rebuild();
 			}
 		}
 		#endregion
 
-		#region Items Drag & Drop
+		#region Assign
 
 		internal void OnItemsDropped(LayerTreeElement[] droppedElements, LayerTreeElement newParent)
 		{
 			AssignToLayer(droppedElements, newParent);
 		}
 
-		#endregion
-
-		#region Layer Assignement
 		private void AssignToLayer(LayerTreeElement[] elements, LayerTreeElement layer)
 		{
 			if (layer.Type != LayerTreeViewElementType.Layer) {
@@ -265,7 +282,7 @@ namespace VisualPinball.Unity.Editor.Layers
 					element.ReParent(layer);
 				}
 			}
-			RebuildLayers();
+			Rebuild();
 		}
 
 		internal void AssignToLayer(LayerTreeElement[] elements, string layerName)
@@ -280,12 +297,13 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		#endregion
 
-		#region Items selection
+		#region Select
+
 		/// <summary>
 		/// Callback when a TreeViewItem is double clicked
 		/// </summary>
 		/// <param name="element">the TreeElement attached to the TreeViewItem</param>
-		internal void OnItemDoubleClicked(LayerTreeElement element)
+		internal static void OnItemDoubleClicked(LayerTreeElement element)
 		{
 			switch (element.Type) {
 				case LayerTreeViewElementType.Table:
@@ -299,13 +317,9 @@ namespace VisualPinball.Unity.Editor.Layers
 					Selection.activeObject = EditorUtility.InstanceIDToObject(element.Id);
 					break;
 				}
-
-				default: {
-					break;
-				}
 			}
 		}
-		#endregion
 
+		#endregion
 	}
 }

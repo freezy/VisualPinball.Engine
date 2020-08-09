@@ -11,13 +11,6 @@ namespace VisualPinball.Unity.Editor.Layers
 	///
 	/// It does mostly coordination. The main logic is implemented in <see cref="LayerHandler"/>,
 	/// and tree view of the layers in <see cref="LayerTreeView"/>.
-	///
-	/// So apart from drawing the UI, it does the following: <ul>
-	///   <li>Dispatch changes in the hierarchy to the handler </li>
-	///   <li>Dispatch layer renaming to the handler </li>
-	///   <li>Dispatch search text to the handler </li>
-	///   <li>Trigger repaint if visibility changed in the hierarchy </li></ul>
-	///
 	/// </summary>
 	public class LayerEditor : EditorWindow
 	{
@@ -49,8 +42,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		private Rect LayerOperationRect => new Rect(GUI.skin.window.margin.left, SearchRect.max.y, position.width - GUI.skin.window.margin.horizontal, 20f);
 		private Rect TreeViewRect => new Rect(GUI.skin.window.margin.left, LayerOperationRect.max.y, position.width - GUI.skin.window.margin.horizontal, position.height - SearchRect.height - LayerOperationRect.height - GUI.skin.window.margin.vertical);
 
-		#region Editor Window
-
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
@@ -69,19 +60,28 @@ namespace VisualPinball.Unity.Editor.Layers
 
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
-			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;              // treeview will Reload when the layerHandler has rebuilt its Tree of LayerTreeElements
+			// reload when the layer handler has rebuilt its tree
+			_layerHandler.TreeRebuilt += _treeView.OnTreeRebuilt;
 
-			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;            // LayerHandler will be notified when a renaming process is finished in the TreeView
-			_treeView.ItemDoubleClicked += _layerHandler.OnItemDoubleClicked;  // LayerHandler will be notified for each TreeViewItem double-click
-			_treeView.ItemsDropped += _layerHandler.OnItemsDropped;            // LayerHandler will be notified when items are dropped after a DragDrop process
+			// trigger layer updates when layer was renamed
+			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
 
-			_treeView.ItemContextClicked += OnContextClicked;                  // LayerEditor will be notified of any right-click within the TreeView region to open a context menu
+			// select layer items / selected item when layer / item was double-clicked
+			_treeView.ItemDoubleClicked += LayerHandler.OnItemDoubleClicked;
+
+			// assign new layer when item was dropped onto a layer
+			_treeView.ItemsDropped += _layerHandler.OnItemsDropped;
+
+			// show context menu
+			_treeView.ItemContextClicked += OnContextClicked;
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
-			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged; // LayerEditor will be notified of any visibility change from the SceneManagement view to update the LayerHandler
+			// repaint layer when visibility changes
+			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
 
-			Undo.undoRedoPerformed += OnUndoRedoPerformed;                     // LayerEditor will ask LayerHandler to rebuild its layers structure after performing an Undo/Redo
+			// reload when undo performed
+			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
 			// trigger handler update on enable
 			OnHierarchyChange();
@@ -104,18 +104,6 @@ namespace VisualPinball.Unity.Editor.Layers
 			_treeView.OnGUI(TreeViewRect);
 		}
 
-		#endregion
-
-		#region MenuItems callbacks & helpers
-
-		/// <summary>
-		/// This context will pass information for Layer assignment menu items (can only pass an object as userData)
-		/// </summary>
-		private class LayerAssignMenuContext
-		{
-			public LayerTreeElement[] Elements;
-			public string Layer;
-		}
 
 		/// <summary>
 		/// Opens a popup menu when right-clicking somewhere in the TreeView
@@ -128,6 +116,7 @@ namespace VisualPinball.Unity.Editor.Layers
 			menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer);
 			if (elements.Length == 1 && elements[0].Type == LayerTreeViewElementType.Layer) {
 				menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, elements[0]);
+
 			} else {
 				menu.AddDisabledItem(new GUIContent($"Delete Layer"), false);
 			}
@@ -136,10 +125,10 @@ namespace VisualPinball.Unity.Editor.Layers
 				bool onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
 				menu.AddSeparator("");
 				if (onlyItems) {
-					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerAssignMenuContext() { Elements = elements });
+					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements });
 
 					foreach (var layer in _layerHandler.Layers) {
-						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToLayer, new LayerAssignMenuContext() { Elements = elements, Layer = layer });
+						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements, Layer = layer });
 					}
 				} else {
 					menu.AddDisabledItem(new GUIContent("Select only game items to enable layer assignment"));
@@ -166,11 +155,8 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		#endregion
-
-		#region Unity Scene management callbacks
 		/// <summary>
-		/// Callled each time something is changed in the SceneView hierarchy (event GameObjects renaming)
+		/// Called each time something is changed in the scene hierarchy (event GameObjects renaming)
 		/// </summary>
 		private void OnHierarchyChange()
 		{
@@ -193,6 +179,15 @@ namespace VisualPinball.Unity.Editor.Layers
 		{
 			OnHierarchyChange();
 		}
-		#endregion
+
+		/// <summary>
+		/// This context will pass information for Layer assignment menu items (can only pass an object as userData)
+		/// </summary>
+		private class LayerAssignMenuContext
+		{
+			public LayerTreeElement[] Elements;
+			public string Layer;
+		}
+
 	}
 }

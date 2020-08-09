@@ -14,17 +14,16 @@ namespace VisualPinball.Unity.Editor.Layers
 	internal enum LayerTreeElementVisibility
 	{
 		Hidden,			// Element is hidden and children also
-		Hidden_Mixed,	// Element is hidden but some children are visible
-		Visible_Mixed,	// Element is visible but some children are hidden
+		HiddenMixed,	// Element is hidden but some children are visible
+		VisibleMixed,	// Element is visible but some children are hidden
 		Visible			// Element is visible and children also
 	}
 
 	/// <summary>
-	/// Element type used in TreeModel for the LayerTreeView
+	/// Element type used in tree model for the <see cref="LayerTreeView"/>. <p/>
+	///
+	/// It represents one of multiple types of elements, see <see cref="LayerTreeViewElementType"/>
 	/// </summary>
-	/// <remarks>
-	/// Could be initialized in different ways to fit all possible LayerTreeView item types
-	/// </remarks>
 	internal class LayerTreeElement : TreeElement
 	{
 		/// <summary>
@@ -35,6 +34,9 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private readonly Table _table;
 
+		/// <summary>
+		/// Returns the type based on which data is set.
+		/// </summary>
 		public LayerTreeViewElementType Type =>
 			_table != null
 				? LayerTreeViewElementType.Table
@@ -42,8 +44,11 @@ namespace VisualPinball.Unity.Editor.Layers
 					? LayerTreeViewElementType.Item
 					: LayerName != null ? LayerTreeViewElementType.Layer : LayerTreeViewElementType.Root;
 
-		private bool _isVisible = true;
-		public bool IsVisible 
+
+		/// <summary>
+		/// Dispatches the visibility flag to the game item data.
+		/// </summary>
+		public bool IsVisible
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
@@ -83,7 +88,11 @@ namespace VisualPinball.Unity.Editor.Layers
 				}
 			}
 		}
+		private bool _isVisible = true;
 
+		/// <summary>
+		/// The name of the game item if it's a game item.
+		/// </summary>
 		public override string Name
 		{
 			get {
@@ -95,14 +104,13 @@ namespace VisualPinball.Unity.Editor.Layers
 					return identifiable.Name;
 				}
 
-				if (LayerName != null) {
-					return LayerName;
-				}
-
-				return "<Root>";
+				return LayerName ?? "<Root>";
 			}
 		}
 
+		/// <summary>
+		///
+		/// </summary>
 		public override string DisplayName
 		{
 			get {
@@ -122,13 +130,13 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		internal static Dictionary<LayerTreeViewElementType, Texture> _typeToIcon = new Dictionary<LayerTreeViewElementType, Texture>() {
+		private static readonly Dictionary<LayerTreeViewElementType, Texture> TypeToIcon = new Dictionary<LayerTreeViewElementType, Texture> {
 			{ LayerTreeViewElementType.Root, null},
 			{ LayerTreeViewElementType.Table, EditorGUIUtility.IconContent("d_winbtn_graph").image},
 			{ LayerTreeViewElementType.Layer, EditorGUIUtility.IconContent("ToggleUVOverlay").image},
 			{ LayerTreeViewElementType.Item, EditorGUIUtility.IconContent("GameObject Icon").image},
 		};
-		public override Texture2D Icon => _typeToIcon[Type] as Texture2D;
+		public override Texture2D Icon => TypeToIcon[Type] as Texture2D;
 
 		/// <summary>
 		/// Expose the Visibility of a LayerTreeElement, telling if all its children have the same visibility status than its own.
@@ -140,16 +148,16 @@ namespace VisualPinball.Unity.Editor.Layers
 					case LayerTreeViewElementType.Table:
 					case LayerTreeViewElementType.Layer: {
 						if (Children.Any(e => ((LayerTreeElement)e).IsVisible != IsVisible)) {
-							return IsVisible ? LayerTreeElementVisibility.Visible_Mixed : LayerTreeElementVisibility.Hidden_Mixed;
-						} else {
-							return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;
+							return IsVisible ? LayerTreeElementVisibility.VisibleMixed : LayerTreeElementVisibility.HiddenMixed;
 						}
+
+						return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;
 					}
 
 					case LayerTreeViewElementType.Item: {
 						return IsVisible ? LayerTreeElementVisibility.Visible : LayerTreeElementVisibility.Hidden;
 					}
-					
+
 					default: {
 						return LayerTreeElementVisibility.Hidden;
 					}
@@ -157,35 +165,52 @@ namespace VisualPinball.Unity.Editor.Layers
 			}
 		}
 
-		#region CTors
+		#region Constructors
+
 		/// <summary>
-		/// Default CTor is for Root
+		/// Default results in a <see cref="LayerTreeViewElementType.Root"/>.
 		/// </summary>
 		public LayerTreeElement(){}
+
+		/// <summary>
+		/// Construct as <see cref="LayerTreeViewElementType.Table"/>.
+		/// </summary>
+		/// <param name="table">Table object</param>
 		public LayerTreeElement(Table table)
 		{
 			_table = table;
 		}
+
+		/// <summary>
+		/// Construct as <see cref="LayerTreeViewElementType.Item"/>.
+		/// </summary>
+		/// <param name="item">Game item behavior</param>
 		public LayerTreeElement(ILayerableItemBehavior item)
 		{
 			Item = item;
 			IsVisible = Item.EditorLayerVisibility;
 		}
+
+		/// <summary>
+		/// Construct as <see cref="LayerTreeViewElementType.Layer"/>.
+		/// </summary>
+		/// <param name="layerName">Name of the layer</param>
 		public LayerTreeElement(string layerName)
 		{
 			LayerName = layerName;
 		}
+
 		#endregion
 
 		public override void ReParent(TreeElement newParent)
 		{
 			base.ReParent(newParent);
-			//Update Layer BiffData when reparenting an Item on a Layer
-			if (Type == LayerTreeViewElementType.Item && 
-					newParent is LayerTreeElement layerParent && 
+			// Update Layer BiffData when reparenting an Item on a Layer
+			if (Type == LayerTreeViewElementType.Item &&
+					newParent is LayerTreeElement layerParent &&
 					layerParent.Type == LayerTreeViewElementType.Layer) {
 				if (Item is MonoBehaviour behaviour) {
-					Undo.RecordObject(behaviour, $"{behaviour.name} : Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
+					Undo.RecordObject(behaviour, $"{behaviour.name}: Change layer from {Item.EditorLayerName} to {layerParent.LayerName}.");
 				}
 				Item.EditorLayerName = layerParent.LayerName;
 			}
@@ -193,17 +218,35 @@ namespace VisualPinball.Unity.Editor.Layers
 	}
 
 	/// <summary>
-	/// Enum for different Item Types in the LayerTreeView
+	/// Enum for different Item Types in the LayerTreeView. This allows us to
+	/// re-use the same element class for the tree view.
 	/// </summary>
+	///
 	/// <remarks>
-	/// The Item Type will change the IsVisible behavior.
-	/// It will be used also to display a specific icon per item in the treeview
+	/// This type will change the <code>IsVisible</code> of the game item data.
+	/// It will be used also to display a specific icon per item in the tree view.
 	/// </remarks>
 	internal enum LayerTreeViewElementType
 	{
+		/// <summary>
+		/// The first obligatory node of the tree view, whose only purpose is
+		/// to be the root.
+		/// </summary>
 		Root,
+
+		/// <summary>
+		/// The table node is the first node displayed in the layer window.
+		/// </summary>
 		Table,
+
+		/// <summary>
+		/// The layer node groups items per layer
+		/// </summary>
 		Layer,
+
+		/// <summary>
+		/// A game item.
+		/// </summary>
 		Item
 	}
 }
