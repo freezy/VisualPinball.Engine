@@ -35,6 +35,10 @@ namespace VisualPinball.Unity.Editor.Managers
 		private bool _renaming = false;
 		private string _renameBuffer = "";
 		[SerializeField] private string _forceSelectItemWithName;
+		private bool _isImplAddNewData = false;
+		private bool _isImplRemoveData = false;
+		private bool _isImplCloneData = false;
+		private bool _isImplRenameExistingItem = false;
 
 		protected void Reload()
 		{
@@ -44,6 +48,11 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected virtual void OnEnable()
 		{
+			_isImplAddNewData = IsImplemented("AddNewData");
+			_isImplRemoveData = IsImplemented("RemoveData");
+			_isImplCloneData = IsImplemented("CloneData");
+			_isImplRenameExistingItem = IsImplemented("RenameExistingItem");
+
 			// force gui draw when we perform an undo so we see the fields change back
 			Undo.undoRedoPerformed -= UndoPerformed;
 			Undo.undoRedoPerformed += UndoPerformed;
@@ -77,7 +86,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			if (IsImplemented("AddNewData") && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
+			if (_isImplAddNewData && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
 				// use a serialized field to force list item selection in the next gui pass
 				// this way undo will cause it to happen again, and if its no there anymore, just deselect any
 				string newDataName = GetUniqueName("New " + DataTypeName);
@@ -87,7 +96,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				AddNewData(undoName, newDataName);
 				Reload();
 			}
-			if (IsImplemented("RemoveData") && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
+			if (_isImplRemoveData && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
 					string undoName = "Remove " + DataTypeName;
 					Undo.RecordObjects(new Object[] { this, _table }, undoName);
@@ -96,7 +105,7 @@ namespace VisualPinball.Unity.Editor.Managers
 					Reload();
 				}
 			}
-			if (IsImplemented("CloneData") && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
+			if (_isImplCloneData && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				string newDataName = GetUniqueName(_selectedItem.Name);
 				string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
 				_forceSelectItemWithName = newDataName;
@@ -135,7 +144,7 @@ namespace VisualPinball.Unity.Editor.Managers
 					}
 				} else {
 					EditorGUILayout.LabelField(_selectedItem.Name);
-					if (IsImplemented("RenameExistingItem") && GUILayout.Button("Rename")) {
+					if (_isImplRenameExistingItem && GUILayout.Button("Rename")) {
 						_renaming = true;
 						_renameBuffer = _selectedItem.Name;
 					}
