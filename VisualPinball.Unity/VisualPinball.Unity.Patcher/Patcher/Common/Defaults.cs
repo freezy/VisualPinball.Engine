@@ -25,13 +25,5 @@ namespace VisualPinball.Unity.Patcher
 		{
 			gameObject.GetComponent<MeshRenderer>().enabled = false;
 		}
-
-		[NameMatch("Wall1")]
-		public void ObjectTest(Table table, IRenderable item, GameObject gameObject)
-		{
-			Debug.Log("table = " + table);
-			Debug.Log("item = " + item);
-			Debug.Log("gameObject = " + gameObject);
-		}
 	}
 }
