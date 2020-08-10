@@ -4,7 +4,7 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor.Utils.TreeView
 {
 	/// <summary>
-	/// TreeElement is the base class for creating TreeModel which will be used by TreeViewWithTreeModel, you'll have to inherit from it.
+	/// TreeElement is the base class used by <see cref="TreeView{T}"/>, you'll have to inherit from it.
 	/// It provides base properties to be inserted & identified in a TreeView (Id, Name, Depth)
 	/// It hosts also its hierarchical information.
 	/// </summary>

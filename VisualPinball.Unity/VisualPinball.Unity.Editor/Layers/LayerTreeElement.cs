@@ -96,15 +96,26 @@ namespace VisualPinball.Unity.Editor.Layers
 		public override string Name
 		{
 			get {
-				if (_table != null) {
-					return _table.Name;
-				}
+				switch (Type) {
+					case LayerTreeViewElementType.Table: {
+						return _table?.Name;
+					}
 
-				if (Item is IIdentifiableItemBehavior identifiable) {
-					return identifiable.Name;
-				}
+					case LayerTreeViewElementType.Layer: {
+						return LayerName ?? string.Empty;
+					}
 
-				return LayerName ?? "<Root>";
+					case LayerTreeViewElementType.Item: {
+						if (Item is IIdentifiableItemBehavior identifiable) {
+							return identifiable.Name;
+						}
+						return string.Empty;
+					}
+
+					default: {
+						return "<Root>";
+					}
+				}
 			}
 		}
 

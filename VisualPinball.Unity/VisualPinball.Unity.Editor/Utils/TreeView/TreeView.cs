@@ -209,7 +209,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	}
 
 	/// <summary>
-	/// TreeViewItem class which will be used by your TreeViewWithTreeModel using the same TreeElement generic provided by your TreeModel
+	/// TreeViewItem class which will be used by your <see cref="TreeView{T}"/> using the same TreeElement generic 
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
 	internal class TreeViewItem<T> : TreeViewItem where T : TreeElement
