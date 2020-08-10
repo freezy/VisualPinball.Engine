@@ -6,7 +6,7 @@ using VisualPinball.Unity.Patcher.Matcher.Table;
 namespace VisualPinball.Unity.Patcher
 {
 	[TableNameMatch("TomandJerry")]
-	public class TomAndJerry : Defaults
+	public class TomAndJerry
 	{
 		[NameMatch("ShadowsRamp")]
 		[NameMatch("JerryHAMMERshadow")]
