@@ -31,17 +31,6 @@ namespace VisualPinball.Unity.Editor.Layers
 		/// </summary>
 		private LayerHandler _layerHandler;
 
-		/// <summary>
-		/// Rects used for Editor UI partitioning
-		/// </summary>
-		/// <remarks>
-		/// These properties are re-evaluated each time because window width/height could change.
-		/// </remarks>
-
-		private Rect SearchRect => new Rect(GUI.skin.window.margin.left, GUI.skin.window.margin.top, position.width - GUI.skin.window.margin.horizontal, 20f);
-		private Rect LayerOperationRect => new Rect(GUI.skin.window.margin.left, SearchRect.max.y, position.width - GUI.skin.window.margin.horizontal, 20f);
-		private Rect TreeViewRect => new Rect(GUI.skin.window.margin.left, LayerOperationRect.max.y, position.width - GUI.skin.window.margin.horizontal, position.height - SearchRect.height - LayerOperationRect.height - GUI.skin.window.margin.vertical);
-
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
@@ -95,13 +84,18 @@ namespace VisualPinball.Unity.Editor.Layers
 
 		private void OnGUI()
 		{
-			_treeView.searchString = _searchField.OnGUI(SearchRect, _treeView.searchString);
-
-			if (GUI.Button(new Rect(LayerOperationRect.xMin, LayerOperationRect.yMin, 20f, 16f), new GUIContent("+", "Create new layer"), new GUIStyle(GUI.skin.button) { alignment = TextAnchor.LowerCenter })) {
+			GUILayout.BeginHorizontal(EditorStyles.toolbar);
+			if (GUILayout.Button(	new GUIContent(EditorGUIUtility.IconContent("CreateAddNew").image, "Create new layer"), 
+									new GUIStyle(GUI.skin.FindStyle("RL FooterButton")) { fixedWidth = EditorStyles.toolbar.fixedHeight, fixedHeight = EditorStyles.toolbar.fixedHeight })) {
 				_layerHandler.CreateNewLayer();
 			}
+			_treeView.searchString = _searchField.OnGUI(_treeView.searchString);
+			GUILayout.EndHorizontal();
 
-			_treeView.OnGUI(TreeViewRect);
+			_treeView.OnGUI(new Rect(GUI.skin.window.margin.left, 
+									 EditorStyles.toolbar.fixedHeight, 
+									 position.width - GUI.skin.window.margin.horizontal, 
+									 position.height - EditorStyles.toolbar.fixedHeight - GUI.skin.window.margin.vertical));
 		}
 
 
