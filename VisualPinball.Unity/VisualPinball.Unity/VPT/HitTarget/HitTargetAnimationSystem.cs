@@ -22,6 +22,11 @@ namespace VisualPinball.Unity.VPT.HitTarget
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
 
+		protected override void OnDestroy()
+		{
+			_eventQueue.Dispose();
+		}
+
 		protected override void OnUpdate()
 		{
 			var timeMsec = _visualPinballSimulationSystemGroup.TimeMsec;
