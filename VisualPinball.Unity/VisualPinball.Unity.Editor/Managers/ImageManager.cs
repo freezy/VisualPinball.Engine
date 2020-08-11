@@ -203,9 +203,14 @@ namespace VisualPinball.Unity.Editor.Managers
 
 			var unityTex = _table.GetTexture(_selectedItem.TextureData.Name);
 			if (unityTex != null) {
-				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, "asset", "Export Image");
+				string fileExt = Path.GetExtension(_selectedItem.TextureData.Path).TrimStart('.');
+				if (string.IsNullOrEmpty(fileExt)) {
+					Debug.LogError("Could not determine filetype from path");
+				}
+				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, fileExt, "Export Image");
 				if (!string.IsNullOrEmpty(savePath)) {
-					AssetDatabase.CreateAsset(unityTex, savePath);
+					File.WriteAllBytes(savePath, _selectedItem.TextureData.Binary.Data);
+					AssetDatabase.ImportAsset(savePath);
 				}
 			}
 		}
