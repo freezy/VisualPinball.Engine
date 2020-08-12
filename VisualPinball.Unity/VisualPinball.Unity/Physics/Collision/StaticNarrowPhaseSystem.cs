@@ -37,6 +37,11 @@ using VisualPinball.Unity.VPT.Flipper;
 
 				marker.Begin();
 
+				// don't play with frozen balls
+				if (ballData.IsFrozen) {
+					return;
+				}
+
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
 				ref var playfieldCollider = ref colliders[collData.Value.Value.PlayfieldColliderId].Value;

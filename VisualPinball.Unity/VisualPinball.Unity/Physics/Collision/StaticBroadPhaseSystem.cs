@@ -28,6 +28,11 @@ namespace VisualPinball.Unity.Physics.Collision
 
 				marker.Begin();
 
+				// don't play with frozen balls
+				if (ballData.IsFrozen) {
+					return;
+				}
+
 				ref var quadTree = ref collData.Value.Value.QuadTree;
 				colliderIds.Clear();
 				quadTree.GetAabbOverlaps(in ballData, ref colliderIds);

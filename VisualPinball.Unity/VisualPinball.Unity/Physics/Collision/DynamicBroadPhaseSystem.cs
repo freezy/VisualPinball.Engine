@@ -45,6 +45,11 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					marker.Begin();
 
+					// don't play with frozen balls
+					if (ball.IsFrozen) {
+						return;
+					}
+
 					var colliderEntities = overlappingEntities[entity];
 					colliderEntities.Clear();
 					kdRoot.GetAabbOverlaps(in entity, in ball, ref colliderEntities);
