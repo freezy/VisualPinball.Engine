@@ -35,7 +35,10 @@ namespace VisualPinball.Unity.VPT.Ball
 
 				marker.Begin();
 
-				translation.Value = math.transform(ltw, ball.Position);
+				// calculate/adapt height of ball
+				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
+
+				translation.Value = math.transform(ltw, new float3(ball.Position.x, ball.Position.y, zHeight));
 				var or = ball.Orientation;
 				rot.Value = quaternion.LookRotation(or.c2,  or.c1);
 
