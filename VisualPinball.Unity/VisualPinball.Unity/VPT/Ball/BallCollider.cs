@@ -299,9 +299,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			//      g_pplayer->m_ptable->InvokeBallBallCollisionCallback(this, pball, -dot);
 			// }
 
-			//#ifdef PhysicsConstants.DispGain
 			var eDist = -PhysicsConstants.DispGain * otherCollEvent.HitDistance;
-			var normalDist = eDist * vNormal;
 			if (eDist > 1.0e-4) {
 				if (eDist > PhysicsConstants.DispLimit) {
 					eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
@@ -311,8 +309,7 @@ namespace VisualPinball.Unity.VPT.Ball
 					// if the hit ball is not frozen
 					eDist *= 0.5f;
 				}
-
-				otherBall.Position += normalDist; // push along norm, back to free area
+				otherBall.Position += eDist * vNormal; // push along norm, back to free area
 				// use the norm, but is not correct, but cheaply handled
 			}
 
@@ -323,9 +320,8 @@ namespace VisualPinball.Unity.VPT.Ball
 				}
 
 				eDist *= 0.5f;
-				ball.Position -= normalDist; // pull along norm, back to free area
+				ball.Position -= eDist * vNormal; // pull along norm, back to free area
 			}
-			//#endif
 
 			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
 			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
