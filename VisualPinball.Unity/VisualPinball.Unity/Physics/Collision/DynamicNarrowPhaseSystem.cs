@@ -25,6 +25,11 @@ namespace VisualPinball.Unity.Physics.Collision
 
 					marker.Begin();
 
+					// don't play with frozen balls
+					if (ball.IsFrozen) {
+						return;
+					}
+
 					var contacts = contactsBuffer[entity];
 					var overlappingEntities = overlappingEntitiesBuffer[entity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
