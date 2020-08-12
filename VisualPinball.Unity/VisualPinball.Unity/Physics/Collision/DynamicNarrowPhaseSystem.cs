@@ -23,12 +23,12 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithReadOnly(overlappingEntitiesBuffer)
 				.ForEach((Entity entity, ref BallData ball, ref CollisionEventData collEvent) => {
 
-					marker.Begin();
-
 					// don't play with frozen balls
 					if (ball.IsFrozen) {
 						return;
 					}
+
+					marker.Begin();
 
 					var contacts = contactsBuffer[entity];
 					var overlappingEntities = overlappingEntitiesBuffer[entity];

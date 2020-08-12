@@ -43,12 +43,12 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithNativeDisableParallelForRestriction(overlappingEntities)
 				.ForEach((Entity entity, in BallData ball) => {
 
-					marker.Begin();
-
 					// don't play with frozen balls
 					if (ball.IsFrozen) {
 						return;
 					}
+
+					marker.Begin();
 
 					var colliderEntities = overlappingEntities[entity];
 					colliderEntities.Clear();
