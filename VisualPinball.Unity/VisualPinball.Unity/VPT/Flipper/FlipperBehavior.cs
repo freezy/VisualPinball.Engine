@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table.Remove<Engine.VPT.Flipper.Flipper>(Name);
+				Table?.Remove<Engine.VPT.Flipper.Flipper>(Name);
 			}
 		}
 
