@@ -35,12 +35,12 @@ using VisualPinball.Unity.VPT.Flipper;
 				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
-				marker.Begin();
-
 				// don't play with frozen balls
 				if (ballData.IsFrozen) {
 					return;
 				}
+
+				marker.Begin();
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;

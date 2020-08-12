@@ -26,12 +26,12 @@ namespace VisualPinball.Unity.Physics.Collision
 				.WithName("StaticBroadPhaseJob")
 				.ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
-				marker.Begin();
-
 				// don't play with frozen balls
 				if (ballData.IsFrozen) {
 					return;
 				}
+
+				marker.Begin();
 
 				ref var quadTree = ref collData.Value.Value.QuadTree;
 				colliderIds.Clear();
