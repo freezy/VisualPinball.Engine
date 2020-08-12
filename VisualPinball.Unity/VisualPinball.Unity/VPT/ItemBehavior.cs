@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.VPT
 
 		private Engine.VPT.Table.Table _table;
 
-		protected Engine.VPT.Table.Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableBehavior>().Item);
+		protected Engine.VPT.Table.Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableBehavior>()?.Item);
 
 		private TItem _item;
 		private List<MemberInfo> _materialRefs;
