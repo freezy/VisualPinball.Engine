@@ -22,6 +22,10 @@ namespace VisualPinball.Unity.Editor.Toolbox
 {
 	public class ToolboxEditor : EditorWindow
 	{
+		private Texture2D _bumperIcon;
+		private Texture2D _surfaceIcon;
+
+
 		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
 
 		private static Table Table {
@@ -35,6 +39,13 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		public static void ShowWindow()
 		{
 			GetWindow<ToolboxEditor>("Visual Pinball Toolbox");
+		}
+
+		private void OnEnable()
+		{
+			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+			_bumperIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_bumper.png", typeof(Texture2D));
+			_surfaceIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_surface.png", typeof(Texture2D));
 		}
 
 		private void OnGUI()
@@ -61,6 +72,16 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			if (TableBehavior == null) {
 				GUI.enabled = false;
 			}
+
+			// var buttonStyle = new GUIStyle(GUI.skin.button);
+			// var textStyle = new GUIStyle(GUI.skin.label) {alignment = TextAnchor.MiddleCenter};
+			//
+			// var r = EditorGUILayout.BeginVertical(buttonStyle);
+			// if (GUILayout.Button(_surfaceIcon, GUI.skin.label)) {
+			// 	CreateItem(Surface.GetDefault, "Wall");
+			// }
+			// GUILayout.Label("New Wall", textStyle);
+			// EditorGUILayout.EndVertical();
 
 			if (GUILayout.Button("Wall")) {
 				CreateItem(Surface.GetDefault, "New Wall");
