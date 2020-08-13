@@ -5,7 +5,6 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
@@ -17,6 +16,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
+using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor.Toolbox
 {
@@ -24,7 +24,14 @@ namespace VisualPinball.Unity.Editor.Toolbox
 	{
 		private Texture2D _bumperIcon;
 		private Texture2D _surfaceIcon;
-
+		private Texture2D _rampIcon;
+		private Texture2D _flipperIcon;
+		private Texture2D _plungerIcon;
+		private Texture2D _spinnerIcon;
+		private Texture2D _triggerIcon;
+		private Texture2D _kickerIcon;
+		private Texture2D _targetIcon;
+		private Texture2D _rubberIcon;
 
 		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
 
@@ -46,6 +53,14 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 			_bumperIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_bumper.png", typeof(Texture2D));
 			_surfaceIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_surface.png", typeof(Texture2D));
+			_rampIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_ramp.png", typeof(Texture2D));
+			_flipperIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_flipper.png", typeof(Texture2D));
+			_plungerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_plunger.png", typeof(Texture2D));
+			_spinnerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_spinner.png", typeof(Texture2D));
+			_triggerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_trigger.png", typeof(Texture2D));
+			_kickerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_kicker.png", typeof(Texture2D));
+			_targetIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_target.png", typeof(Texture2D));
+			_rubberIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_rubber.png", typeof(Texture2D));
 		}
 
 		private void OnGUI()
@@ -73,61 +88,79 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				GUI.enabled = false;
 			}
 
-			// var buttonStyle = new GUIStyle(GUI.skin.button);
-			// var textStyle = new GUIStyle(GUI.skin.label) {alignment = TextAnchor.MiddleCenter};
-			//
-			// var r = EditorGUILayout.BeginVertical(buttonStyle);
-			// if (GUILayout.Button(_surfaceIcon, GUI.skin.label)) {
-			// 	CreateItem(Surface.GetDefault, "Wall");
-			// }
-			// GUILayout.Label("New Wall", textStyle);
-			// EditorGUILayout.EndVertical();
+			var iconSize = position.width / 2f - 4.5f;
+			var buttonStyle = new GUIStyle(GUI.skin.button) {
+				alignment = TextAnchor.MiddleCenter,
+				imagePosition = ImagePosition.ImageAbove
+			};
 
-			if (GUILayout.Button("Wall")) {
-				CreateItem(Surface.GetDefault, "New Wall");
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Wall", _surfaceIcon, iconSize, buttonStyle)) {
+				CreateItem(Surface.GetDefault, "Wall");
 			}
 
-			if (GUILayout.Button("Gate")) {
-				CreateItem(Gate.GetDefault, "New Gate");
-			}
-
-			if (GUILayout.Button("Ramp")) {
+			if (CreateButton("Ramp", _rampIcon, iconSize, buttonStyle)) {
 				CreateItem(Ramp.GetDefault, "New Ramp");
 			}
 
-			if (GUILayout.Button("Flipper")) {
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Flipper", _flipperIcon, iconSize, buttonStyle)) {
 				CreateItem(Flipper.GetDefault, "New Flipper");
 			}
 
-			if (GUILayout.Button("Plunger")) {
+			if (CreateButton("Plunger", _plungerIcon, iconSize, buttonStyle)) {
 				CreateItem(Plunger.GetDefault, "New Plunger");
 			}
 
-			if (GUILayout.Button("Bumper")) {
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Bumper", _bumperIcon, iconSize, buttonStyle)) {
 				CreateItem(Bumper.GetDefault, "New Bumper");
 			}
 
-			if (GUILayout.Button("Spinner")) {
+			if (CreateButton("Spinner", _spinnerIcon, iconSize, buttonStyle)) {
 				CreateItem(Spinner.GetDefault, "New Spinner");
 			}
 
-			if (GUILayout.Button("Trigger")) {
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Trigger", _triggerIcon, iconSize, buttonStyle)) {
 				CreateItem(Trigger.GetDefault, "New Trigger");
 			}
 
-			if (GUILayout.Button("Kicker")) {
+			if (CreateButton("Kicker", _kickerIcon, iconSize, buttonStyle)) {
 				CreateItem(Kicker.GetDefault, "New Kicker");
 			}
 
-			if (GUILayout.Button("Target")) {
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Target", _targetIcon, iconSize, buttonStyle)) {
 				CreateItem(HitTarget.GetDefault, "New Target");
 			}
 
-			if (GUILayout.Button("Rubber")) {
+			if (CreateButton("Rubber", _rubberIcon, iconSize, buttonStyle)) {
 				CreateItem(Rubber.GetDefault, "New Rubber");
 			}
 
+			GUILayout.EndHorizontal();
+
 			GUI.enabled = true;
+		}
+
+		private static bool CreateButton(string label, Texture icon, float iconSize, GUIStyle buttonStyle)
+		{
+			return GUILayout.Button(
+				new GUIContent(label, icon),
+				buttonStyle,
+				GUILayout.Width(iconSize),
+				GUILayout.Height(iconSize)
+			);
 		}
 
 		private static void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
