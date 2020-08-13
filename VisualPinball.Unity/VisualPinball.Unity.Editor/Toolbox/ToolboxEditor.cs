@@ -51,16 +51,16 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private void OnEnable()
 		{
 			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
-			_bumperIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_bumper.png", typeof(Texture2D));
-			_surfaceIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_surface.png", typeof(Texture2D));
-			_rampIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_ramp.png", typeof(Texture2D));
-			_flipperIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_flipper.png", typeof(Texture2D));
-			_plungerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_plunger.png", typeof(Texture2D));
-			_spinnerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_spinner.png", typeof(Texture2D));
-			_triggerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_trigger.png", typeof(Texture2D));
-			_kickerIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_kicker.png", typeof(Texture2D));
-			_targetIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_target.png", typeof(Texture2D));
-			_rubberIcon = (Texture2D)AssetDatabase.LoadAssetAtPath($"{iconPath}/icon_rubber.png", typeof(Texture2D));
+			_bumperIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_bumper.png");
+			_surfaceIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_surface.png");
+			_rampIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_ramp.png");
+			_flipperIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_flipper.png");
+			_plungerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_plunger.png");
+			_spinnerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_spinner.png");
+			_triggerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_trigger.png");
+			_kickerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_kicker.png");
+			_targetIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_target.png");
+			_rubberIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_rubber.png");
 		}
 
 		private void OnGUI()
