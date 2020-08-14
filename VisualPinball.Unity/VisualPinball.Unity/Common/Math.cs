@@ -1,5 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Common
 {
@@ -55,6 +57,13 @@ namespace VisualPinball.Unity.Common
 		public static float Random()
 		{
 			return (float) _random.NextDouble();
+		}
+
+
+		public static bool Sign(float f)
+		{
+			var b = BitConverter.GetBytes(f);
+			return (b[3] & 0x80) == 0x80 && (b[2] & 0x00) == 0x00 && (b[1] & 0x00) == 0x00 && (b[0] & 0x00) == 0x00;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
 			{
-				var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
+				var validHit = newTime >= 0 && !Common.Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 				if (newCollEvent.IsContact || validHit) {
 					newCollEvent.SetCollider(ballEntity);
