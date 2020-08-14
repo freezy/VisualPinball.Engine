@@ -59,7 +59,6 @@ namespace VisualPinball.Unity.Common
 			return (float) _random.NextDouble();
 		}
 
-
 		public static bool Sign(float f)
 		{
 			var floats = new NativeArray<float>(1, Allocator.Persistent) { [0] = f };

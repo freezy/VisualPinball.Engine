@@ -45,17 +45,17 @@ namespace VisualPinball.Unity.VPT.Kicker
 
 						DoChangeBallVelocity(ref ball, in hitNormal, in meshData);
 
-						// todo this is an ugly hack to prevent the ball stopping rapidly at the kicker bevel
+						// this is an ugly hack to prevent the ball stopping rapidly at the kicker bevel
 						// something with the friction calculation is wrong in the physics engine
 						// so we monitor the ball velocity if it drop under a length value of 0.2
 						// if so we take the last "good" velocity to help the ball moving over the critical spot at the kicker bevel
 						// this hack seems to work only if the kicker is on the playfield, a kicker attached to a wall has still problems
 						// because the friction calculation for a wall is also different
-						// if (math.lengthsq(ball.Velocity) < (float) (0.2 * 0.2)) {
-						//  ball.Velocity = ball.ol->m_oldVel;
-						// }
-						//
-						// pball->m_oldVel = pball->m_d.m_vel;
+						if (math.lengthsq(ball.Velocity) < (float) (0.2 * 0.2)) {
+							ball.Velocity = ball.OldVelocity;
+						}
+
+						ball.OldVelocity = ball.Velocity;
 					}
 
 					if (hitEvent) {
