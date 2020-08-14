@@ -163,7 +163,9 @@ namespace VisualPinball.Unity.Physics.Collision
 							case ColliderType.KickerCircle:
 								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.Entity);
 								var kickerStaticData = GetComponent<KickerStaticData>(coll.Entity);
-								var kickerMeshData = !kickerStaticData.LegacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
+								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+								var legacyMode = KickerCollider.ForceLegacyMode || kickerStaticData.LegacyMode;
+								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
 								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
 									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity, false
 								);

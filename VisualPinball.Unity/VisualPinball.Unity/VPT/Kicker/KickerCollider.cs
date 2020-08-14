@@ -11,6 +11,13 @@ namespace VisualPinball.Unity.VPT.Kicker
 {
 	public static class KickerCollider
 	{
+		/// <summary>
+		/// Legacy mode adds about 300 iterations to the physics loop,
+		/// resulting in stutter. Disabling this until we find another
+		/// solution.
+		/// </summary>
+		public const bool ForceLegacyMode = true;
+
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
 			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
@@ -21,6 +28,8 @@ namespace VisualPinball.Unity.VPT.Kicker
 				return;
 			}
 
+			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+			var legacyMode = ForceLegacyMode || staticData.LegacyMode;
 			var hitNormal = collEvent.HitNormal;
 			var hitBit = collEvent.HitFlag;
 
@@ -30,7 +39,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 			// New or (Hit && !Vol || UnHit && Vol)
 			if (newBall || hitBit == isBallInside) {
 
-				if (staticData.LegacyMode || newBall) {
+				if (legacyMode || newBall) {
 					ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
 				}
 
@@ -39,7 +48,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 					var grabHeight = (staticData.ZLow + ball.Radius) * staticData.HitAccuracy;
 
 					// early out here if the ball is slow and we are near the kicker center
-					var hitEvent = ball.Position.z < grabHeight || staticData.LegacyMode || newBall;
+					var hitEvent = ball.Position.z < grabHeight || legacyMode || newBall;
 
 					if (!hitEvent) {
 
