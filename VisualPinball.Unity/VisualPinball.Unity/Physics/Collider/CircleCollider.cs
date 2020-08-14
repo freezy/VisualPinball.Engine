@@ -59,10 +59,10 @@ namespace VisualPinball.Unity.Physics.Collider
 
 		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
-			// todo
-			// if (!IsEnabled || ball.State.IsFrozen) {
-			// 	return -1.0f;
-			// }
+			// todo IsEnabled
+			if (/*!IsEnabled || */ball.IsFrozen) {
+				return -1.0f;
+			}
 
 			var c = new float3(Center.x, Center.y, 0.0f);
 			var dist = ball.Position - c; // relative ball position

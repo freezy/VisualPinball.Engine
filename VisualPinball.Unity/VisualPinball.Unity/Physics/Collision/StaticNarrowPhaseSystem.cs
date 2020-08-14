@@ -141,7 +141,7 @@ using VisualPinball.Unity.VPT.Flipper;
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 			ref DynamicBuffer<ContactBufferElement> contacts, in Collider.Collider coll, float newTime)
 		{
-			var validHit = newTime >= 0 && newTime <= collEvent.HitTime;
+			var validHit = newTime >= 0f && !Common.Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
 				newCollEvent.SetCollider(coll.Id);
