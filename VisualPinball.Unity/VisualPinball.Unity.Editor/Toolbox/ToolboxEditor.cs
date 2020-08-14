@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private Texture2D _rubberIcon;
 		private Texture2D _gateIcon;
 		private Texture2D _lightIcon;
+		private Texture2D _primitiveIcon;
 
 		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
 
@@ -65,6 +66,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			_targetIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_target.png");
 			_rubberIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_rubber.png");
 			_lightIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_light.png");
+			_primitiveIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_primitive.png");
 		}
 
 		private void OnGUI()
@@ -161,6 +163,13 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 			if (CreateButton("Rubber", _rubberIcon, iconSize, buttonStyle)) {
 				CreateItem(Rubber.GetDefault, "New Rubber");
+			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Primitive", _primitiveIcon, iconSize, buttonStyle)) {
+				//todo CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
 			GUILayout.EndHorizontal();
