@@ -32,6 +32,8 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		private Texture2D _kickerIcon;
 		private Texture2D _targetIcon;
 		private Texture2D _rubberIcon;
+		private Texture2D _gateIcon;
+		private Texture2D _lightIcon;
 
 		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
 
@@ -54,6 +56,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			_bumperIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_bumper.png");
 			_surfaceIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_surface.png");
 			_rampIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_ramp.png");
+			_gateIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_gate.png");
 			_flipperIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_flipper.png");
 			_plungerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_plunger.png");
 			_spinnerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_spinner.png");
@@ -61,6 +64,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			_kickerIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_kicker.png");
 			_targetIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_target.png");
 			_rubberIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_rubber.png");
+			_lightIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_light.png");
 		}
 
 		private void OnGUI()
@@ -100,41 +104,52 @@ namespace VisualPinball.Unity.Editor.Toolbox
 				CreateItem(Surface.GetDefault, "Wall");
 			}
 
-			if (CreateButton("Ramp", _rampIcon, iconSize, buttonStyle)) {
+			if (CreateButton("Gate", _gateIcon, iconSize, buttonStyle)) {
 				CreateItem(Ramp.GetDefault, "New Ramp");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
+			if (CreateButton("Ramp", _rampIcon, iconSize, buttonStyle)) {
+				CreateItem(Ramp.GetDefault, "New Ramp");
+			}
+
 			if (CreateButton("Flipper", _flipperIcon, iconSize, buttonStyle)) {
 				CreateItem(Flipper.GetDefault, "New Flipper");
 			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Plunger", _plungerIcon, iconSize, buttonStyle)) {
 				CreateItem(Plunger.GetDefault, "New Plunger");
 			}
 
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-
 			if (CreateButton("Bumper", _bumperIcon, iconSize, buttonStyle)) {
 				CreateItem(Bumper.GetDefault, "New Bumper");
 			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Spinner", _spinnerIcon, iconSize, buttonStyle)) {
 				CreateItem(Spinner.GetDefault, "New Spinner");
 			}
 
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-
 			if (CreateButton("Trigger", _triggerIcon, iconSize, buttonStyle)) {
 				CreateItem(Trigger.GetDefault, "New Trigger");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Kicker", _kickerIcon, iconSize, buttonStyle)) {
 				CreateItem(Kicker.GetDefault, "New Kicker");
+			}
+
+			if (CreateButton("Light", _lightIcon, iconSize, buttonStyle)) {
+				// todo CreateItem(Light.GetDefault, "New Light");
 			}
 
 			GUILayout.EndHorizontal();
