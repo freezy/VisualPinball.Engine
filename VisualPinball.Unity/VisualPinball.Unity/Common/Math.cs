@@ -1,7 +1,7 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Common
 {
@@ -62,8 +62,11 @@ namespace VisualPinball.Unity.Common
 
 		public static bool Sign(float f)
 		{
-			var b = BitConverter.GetBytes(f);
-			return (b[3] & 0x80) == 0x80 && (b[2] & 0x00) == 0x00 && (b[1] & 0x00) == 0x00 && (b[0] & 0x00) == 0x00;
+			var floats = new NativeArray<float>(1, Allocator.Persistent) { [0] = f };
+			var b = floats.Reinterpret<byte>(UnsafeUtility.SizeOf<float>());
+			var sign = (b[3] & 0x80) == 0x80 && (b[2] & 0x00) == 0x00 && (b[1] & 0x00) == 0x00 && (b[0] & 0x00) == 0x00;
+			floats.Dispose();
+			return sign;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
