@@ -9,23 +9,21 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Rubber
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberBehavior : ItemBehavior<Engine.VPT.Rubber.Rubber, RubberData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class RubberBehavior : ItemBehavior<Rubber, RubberData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Rubber.Rubber GetItem() => new Engine.VPT.Rubber.Rubber(data);
+		protected override Rubber GetItem() => new Rubber(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Rubber.Rubber>(Name);
+				Table?.Remove<Rubber>(Name);
 			}
 		}
 

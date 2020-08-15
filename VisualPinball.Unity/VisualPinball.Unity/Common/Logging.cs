@@ -1,7 +1,7 @@
 ﻿using NLog;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Common
+namespace VisualPinball.Unity
 {
 	public static class Logging
 	{

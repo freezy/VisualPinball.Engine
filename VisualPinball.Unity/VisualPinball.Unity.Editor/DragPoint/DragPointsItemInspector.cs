@@ -3,11 +3,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Inspectors;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public abstract class DragPointsItemInspector : ItemInspector
 	{

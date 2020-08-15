@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(0)]
 	public struct OverlappingDynamicBufferElement : IBufferElementData

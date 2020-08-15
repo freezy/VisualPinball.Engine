@@ -1,9 +1,8 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	public class BumperSkirtBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{

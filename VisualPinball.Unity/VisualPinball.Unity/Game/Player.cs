@@ -17,24 +17,8 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Bumper;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.HitTarget;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Ramp;
-using VisualPinball.Unity.VPT.Rubber;
-using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
-using VisualPinball.Unity.VPT.Trigger;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public class Player : MonoBehaviour
 	{

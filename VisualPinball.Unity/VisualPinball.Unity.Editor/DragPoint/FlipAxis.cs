@@ -1,4 +1,4 @@
-﻿namespace VisualPinball.Unity.Editor.DragPoint
+﻿namespace VisualPinball.Unity.Editor
 {
 	public enum FlipAxis
 	{

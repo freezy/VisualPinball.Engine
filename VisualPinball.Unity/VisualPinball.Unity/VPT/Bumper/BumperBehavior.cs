@@ -7,23 +7,21 @@
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperBehavior : ItemBehavior<Engine.VPT.Bumper.Bumper, BumperData>, IConvertGameObjectToEntity
+	public class BumperBehavior : ItemBehavior<Bumper, BumperData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
 
-		protected override Engine.VPT.Bumper.Bumper GetItem() => new Engine.VPT.Bumper.Bumper(data);
+		protected override Bumper GetItem() => new Bumper(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Bumper.Bumper>(Name);
+				Table?.Remove<Bumper>(Name);
 			}
 		}
 

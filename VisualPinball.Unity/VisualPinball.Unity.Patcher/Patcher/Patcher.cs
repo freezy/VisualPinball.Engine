@@ -6,11 +6,9 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Patcher.Matcher.Item;
-using VisualPinball.Unity.Patcher.Matcher.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Patcher.Patcher
+namespace VisualPinball.Unity.Patcher
 {
 	public class Patcher
 	{

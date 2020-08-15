@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Plunger;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public class PlungerFlatBehavior : PlungerChildBehavior
 	{

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.Trigger
+namespace VisualPinball.Unity
 {
 	public struct TriggerAnimationData : IComponentData
 	{

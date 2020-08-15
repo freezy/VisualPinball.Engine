@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	public struct HitTargetMovementData : IComponentData
 	{

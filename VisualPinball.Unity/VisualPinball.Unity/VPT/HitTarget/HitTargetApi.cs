@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	public class HitTargetApi : ItemApi<Engine.VPT.HitTarget.HitTarget, Engine.VPT.HitTarget.HitTargetData>,
 		IApiInitializable, IApiHittable

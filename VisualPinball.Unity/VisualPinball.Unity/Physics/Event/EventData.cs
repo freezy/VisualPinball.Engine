@@ -1,7 +1,7 @@
 using Unity.Entities;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.Physics.Event
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// This struct passes an event triggered in a system to the main thread

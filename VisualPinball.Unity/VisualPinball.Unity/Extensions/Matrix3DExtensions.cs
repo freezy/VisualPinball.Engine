@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace VisualPinball.Unity.Extensions
+namespace VisualPinball.Unity
 {
 	public static class Matrix3DExtensions
 	{

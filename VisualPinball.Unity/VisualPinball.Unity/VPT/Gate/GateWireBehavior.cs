@@ -2,11 +2,10 @@
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
-	public class GateWireBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>, IConvertGameObjectToEntity
+	public class GateWireBehavior : ItemBehavior<Gate, GateData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new string[0];
 
@@ -34,7 +33,7 @@ namespace VisualPinball.Unity.VPT.Gate
 			transform.GetComponentInParent<Player>().RegisterGate(gate, entity, gameObject);
 		}
 
-		protected override Engine.VPT.Gate.Gate GetItem()
+		protected override Gate GetItem()
 		{
 			return transform.parent.gameObject.GetComponent<GateBehavior>().Item;
 		}

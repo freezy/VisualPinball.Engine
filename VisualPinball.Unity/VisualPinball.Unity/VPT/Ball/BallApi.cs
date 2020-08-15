@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	public class BallApi
 	{

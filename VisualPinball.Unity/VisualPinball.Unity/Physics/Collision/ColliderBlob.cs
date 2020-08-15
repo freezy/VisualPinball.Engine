@@ -3,11 +3,11 @@ using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Physics;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	public struct ColliderBlob : IComponentData
 	{
-		public BlobArray<BlobPtr<Collider.Collider>> Colliders;
+		public BlobArray<BlobPtr<Collider>> Colliders;
 		public int PlayfieldColliderId;
 		public int GlassColliderId;
 
@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				var colliders = builder.Allocate(ref root.Colliders, hitObjects.Count);
 
 				foreach (var hitObject in hitObjects) {
-					Collider.Collider.Create(builder, hitObject, ref colliders[hitObject.Id]);
+					Collider.Create(builder, hitObject, ref colliders[hitObject.Id]);
 				}
 
 				root.PlayfieldColliderId = playfieldColliderId;

@@ -1,8 +1,7 @@
 using UnityEditor;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.Light;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(LightBehavior))]
 	public class LightInspector : ItemInspector

@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.Common;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class BallRingCounterSystem : SystemBase

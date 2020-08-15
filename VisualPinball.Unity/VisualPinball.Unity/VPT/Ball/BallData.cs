@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	// todo split this into at least 2 components
 	public struct BallData : IComponentData

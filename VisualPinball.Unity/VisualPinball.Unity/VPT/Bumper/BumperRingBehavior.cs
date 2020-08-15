@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	public class BumperRingBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{

@@ -5,13 +5,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class ContactSystem : SystemBase
@@ -58,7 +54,7 @@ namespace VisualPinball.Unity.Physics.Collision
 					if (contact.ColliderId > -1) {
 						ref var coll = ref colliders[contact.ColliderId].Value;
 						unsafe {
-							fixed (Collider.Collider* collider = &coll) {
+							fixed (Collider* collider = &coll) {
 								switch (coll.Type) {
 
 									case ColliderType.Flipper:
@@ -72,7 +68,7 @@ namespace VisualPinball.Unity.Physics.Collision
 										break;
 
 									default:
-										Collider.Collider.Contact(ref coll, ref ball, in contact.CollisionEvent, hitTime, in gravity);
+										Collider.Contact(ref coll, ref ball, in contact.CollisionEvent, hitTime, in gravity);
 										break;
 								}
 							}

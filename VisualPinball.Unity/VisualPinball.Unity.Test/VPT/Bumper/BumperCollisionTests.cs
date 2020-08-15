@@ -2,7 +2,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity.Test.VPT.Bumper
+namespace VisualPinball.Unity.Test
 {
 	public class BumperCollisionTests
 	{

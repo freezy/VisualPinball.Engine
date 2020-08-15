@@ -4,7 +4,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public class DebugBallCreator : IBallCreationPosition
 	{

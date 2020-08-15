@@ -3,7 +3,7 @@ using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.Extensions
+namespace VisualPinball.Unity
 {
 	public static class TextureExtensions
 	{

@@ -1,8 +1,7 @@
 ﻿using UnityEditor;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public static class DragPointMenuItems
 	{

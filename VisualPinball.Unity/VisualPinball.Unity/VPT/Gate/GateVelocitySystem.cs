@@ -4,9 +4,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class GateVelocitySystem : SystemBase

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace VisualPinball.Unity.Import.Material
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Common interface for ball material for the various render pipelines
@@ -20,6 +20,6 @@ namespace VisualPinball.Unity.Import.Material
 		/// <param name="table"></param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		UnityEngine.Material CreateMaterial();
+		Material CreateMaterial();
 	}
 }

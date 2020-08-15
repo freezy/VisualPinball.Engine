@@ -1,8 +1,7 @@
 ﻿using UnityEditor;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.Kicker;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(KickerBehavior))]
 	public class KickerInspector : ItemInspector
@@ -40,7 +39,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				MaterialField("Material", ref _kicker.data.Material);

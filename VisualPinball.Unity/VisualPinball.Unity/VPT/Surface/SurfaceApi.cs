@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Surface
+namespace VisualPinball.Unity
 {
 	public class SurfaceApi : ItemApi<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
 		IApiInitializable, IApiHittable, IApiSlingshot

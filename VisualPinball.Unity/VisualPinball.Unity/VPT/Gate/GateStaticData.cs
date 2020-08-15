@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
 	public struct GateStaticData : IComponentData
 	{

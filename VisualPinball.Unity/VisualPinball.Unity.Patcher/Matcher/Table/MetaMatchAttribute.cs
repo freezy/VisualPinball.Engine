@@ -1,4 +1,4 @@
-namespace VisualPinball.Unity.Patcher.Matcher.Table
+namespace VisualPinball.Unity.Patcher
 {
 	/// <summary>
 	/// Matches by Table Info (in Visual Pinball under the "Table" menu). <p/>

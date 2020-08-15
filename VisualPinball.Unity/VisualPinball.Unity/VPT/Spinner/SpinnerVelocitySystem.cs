@@ -2,9 +2,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	public class SpinnerVelocitySystem : SystemBase

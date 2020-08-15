@@ -5,7 +5,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	[ScriptedImporter(2, "vpx")]
 	public class VpxAssetImporter : ScriptedImporter

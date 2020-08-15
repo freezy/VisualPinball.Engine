@@ -1,6 +1,6 @@
 using System;
 
-namespace VisualPinball.Unity.Patcher.Matcher.Table
+namespace VisualPinball.Unity.Patcher
 {
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public abstract class TableMatchAttribute : Attribute

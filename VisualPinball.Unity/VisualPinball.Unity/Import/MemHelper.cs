@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace VisualPinball.Unity.Import
+namespace VisualPinball.Unity
 {
 	public static class MemHelper
 	{

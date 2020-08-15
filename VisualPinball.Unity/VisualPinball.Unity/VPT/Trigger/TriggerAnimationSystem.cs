@@ -1,9 +1,8 @@
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Trigger
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	public class TriggerAnimationSystem : SystemBase

@@ -2,10 +2,8 @@
 using System.Text;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Import.Material
+namespace VisualPinball.Unity
 {
 	public class UrpMaterialConverter : IMaterialConverter
 	{

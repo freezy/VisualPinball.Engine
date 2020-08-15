@@ -1,12 +1,8 @@
 ﻿using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	public static class BumperCollider
 	{

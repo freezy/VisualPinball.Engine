@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using VisualPinball.Resources;
 
-namespace VisualPinball.Unity.Import.Material
+namespace VisualPinball.Unity
 {
 	public class HdrpBallMaterial : IBallMaterial
 	{
@@ -19,9 +19,9 @@ namespace VisualPinball.Unity.Import.Material
 			return Shader.Find("HDRP/Lit");
 		}
 
-		public UnityEngine.Material CreateMaterial()
+		public Material CreateMaterial()
 		{
-			var material = new UnityEngine.Material(GetShader());
+			var material = new Material(GetShader());
 			var texture = new Texture2D(512, 512, TextureFormat.RGBA32, true) { name = "BallDebugTexture" };
 			texture.LoadImage(Resource.BallDebug.Data);
 			material.SetTexture(BaseColorMap, texture);

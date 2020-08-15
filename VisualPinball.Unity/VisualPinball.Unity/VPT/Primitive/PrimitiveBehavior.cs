@@ -6,18 +6,17 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.VPT.Primitive
+namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Primitive")]
-	public class PrimitiveBehavior : ItemBehavior<Engine.VPT.Primitive.Primitive, PrimitiveData>
+	public class PrimitiveBehavior : ItemBehavior<Primitive, PrimitiveData>
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Primitive.Primitive GetItem()
+		protected override Primitive GetItem()
 		{
-			return new Engine.VPT.Primitive.Primitive(data);
+			return new Primitive(data);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

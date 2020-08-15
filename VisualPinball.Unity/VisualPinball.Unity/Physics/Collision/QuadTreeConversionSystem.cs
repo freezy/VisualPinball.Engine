@@ -3,10 +3,9 @@ using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
 	public class QuadTreeConversionSystem : GameObjectConversionSystem

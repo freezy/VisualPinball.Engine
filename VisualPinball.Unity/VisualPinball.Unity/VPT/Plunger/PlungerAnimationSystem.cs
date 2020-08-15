@@ -1,8 +1,7 @@
 using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	public class PlungerAnimationSystem : SystemBase

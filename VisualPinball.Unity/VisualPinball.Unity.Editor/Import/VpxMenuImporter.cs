@@ -5,7 +5,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	public static class VpxMenuImporter
 	{

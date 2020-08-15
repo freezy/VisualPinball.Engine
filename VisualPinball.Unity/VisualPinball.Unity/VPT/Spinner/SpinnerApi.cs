@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	public class SpinnerApi : ItemApi<Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
 		IApiInitializable, IApiRotatable, IApiSpinnable
@@ -73,8 +72,4 @@ namespace VisualPinball.Unity.VPT.Spinner
 		#endregion
 	}
 
-	public struct RotationEventArgs
-	{
-		public float AngleSpeed;
-	}
 }

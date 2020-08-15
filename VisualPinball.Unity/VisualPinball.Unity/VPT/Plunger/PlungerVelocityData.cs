@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public struct PlungerVelocityData : IComponentData
 	{

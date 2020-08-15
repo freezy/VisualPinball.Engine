@@ -4,11 +4,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Editor.Utils.TreeView;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Editor.Layers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// Handles user actions within the layer tree. <p/>

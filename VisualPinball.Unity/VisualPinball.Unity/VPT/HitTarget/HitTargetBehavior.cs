@@ -7,24 +7,21 @@
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Hit Target")]
-	public class HitTargetBehavior : ItemBehavior<Engine.VPT.HitTarget.HitTarget, HitTargetData>, IConvertGameObjectToEntity
+	public class HitTargetBehavior : ItemBehavior<HitTarget, HitTargetData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.HitTarget.HitTarget GetItem() => new Engine.VPT.HitTarget.HitTarget(data);
+		protected override HitTarget GetItem() => new HitTarget(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.HitTarget.HitTarget>(Name);
+				Table?.Remove<HitTarget>(Name);
 			}
 		}
 

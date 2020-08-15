@@ -5,14 +5,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Physics.Engine
+namespace VisualPinball.Unity
 {
 	public class DefaultPhysicsEngine : IPhysicsEngine
 	{

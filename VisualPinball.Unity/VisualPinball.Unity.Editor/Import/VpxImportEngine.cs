@@ -2,11 +2,9 @@
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Import;
-using VisualPinball.Unity.Import.Job;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	public static class VpxImportEngine
 	{

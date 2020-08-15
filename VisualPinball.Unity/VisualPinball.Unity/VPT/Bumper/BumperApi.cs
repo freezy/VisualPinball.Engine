@@ -1,11 +1,10 @@
 ﻿using System;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Engine.VPT.Bumper.Bumper, BumperData>, IApiInitializable, IApiHittable
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable
 	{
 
 		/// <summary>
@@ -18,7 +17,7 @@ namespace VisualPinball.Unity.VPT.Bumper
 		/// </summary>
 		public event EventHandler Hit;
 
-		public BumperApi(Engine.VPT.Bumper.Bumper item, Entity entity, Player player) : base(item, entity, player)
+		public BumperApi(Bumper item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 

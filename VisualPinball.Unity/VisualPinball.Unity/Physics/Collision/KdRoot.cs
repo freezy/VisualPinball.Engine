@@ -1,9 +1,8 @@
 ﻿using System;
 using Unity.Collections;
 using Unity.Entities;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	public struct KdRoot : IDisposable
 	{

@@ -2,11 +2,10 @@
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
-	public class SpinnerPlateBehavior : ItemBehavior<Engine.VPT.Spinner.Spinner, SpinnerData>, IConvertGameObjectToEntity
+	public class SpinnerPlateBehavior : ItemBehavior<Spinner, SpinnerData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new string[0];
 
@@ -32,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Spinner
 			transform.GetComponentInParent<Player>().RegisterSpinner(spinner, entity, gameObject);
 		}
 
-		protected override Engine.VPT.Spinner.Spinner GetItem()
+		protected override Spinner GetItem()
 		{
 			return transform.parent.gameObject.GetComponent<SpinnerBehavior>().Item;
 		}

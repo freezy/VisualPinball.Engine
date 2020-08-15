@@ -1,8 +1,6 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.Editor.DragPoint;
-using VisualPinball.Unity.VPT.Rubber;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RubberBehavior))]
 	public class RubberInspector : DragPointsItemInspector
@@ -21,7 +19,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				TextureField("Image", ref _rubber.data.Image);

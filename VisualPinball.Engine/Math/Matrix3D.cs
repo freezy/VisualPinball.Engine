@@ -48,18 +48,18 @@ namespace VisualPinball.Engine.Math
 		}
 
 		public Matrix3D SetIdentity() {
-			this._11 = this._22 = this._33 = this._44 = 1.0f;
-			this._12 = this._13 = this._14 = this._41 =
-			this._21 = this._23 = this._24 = this._42 =
-			this._31 = this._32 = this._34 = this._43 = 0.0f;
+			_11 = _22 = _33 = _44 = 1.0f;
+			_12 = _13 = _14 = _41 =
+			_21 = _23 = _24 = _42 =
+			_31 = _32 = _34 = _43 = 0.0f;
 			return this;
 		}
 
 		public Matrix3D SetTranslation(float tx, float ty, float tz) {
 			SetIdentity();
-			this._41 = tx;
-			this._42 = ty;
-			this._43 = tz;
+			_41 = tx;
+			_42 = ty;
+			_43 = tz;
 			return this;
 		}
 
@@ -70,9 +70,9 @@ namespace VisualPinball.Engine.Math
 
 		public Matrix3D SetScaling(float sx, float sy, float sz) {
 			SetIdentity();
-			this._11 = sx;
-			this._22 = sy;
-			this._33 = sz;
+			_11 = sx;
+			_22 = sy;
+			_33 = sz;
 			return this;
 		}
 
@@ -83,25 +83,25 @@ namespace VisualPinball.Engine.Math
 
 		public Matrix3D RotateXMatrix(float x) {
 			SetIdentity();
-			this._22 = this._33 = MathF.Cos((x));
-			this._23 = MathF.Sin((x));
-			this._32 = -this._23;
+			_22 = _33 = MathF.Cos((x));
+			_23 = MathF.Sin((x));
+			_32 = -_23;
 			return this;
 		}
 
 		public Matrix3D RotateYMatrix(float y) {
 			SetIdentity();
-			this._11 = this._33 = MathF.Cos((y));
-			this._31 = MathF.Sin((y));
-			this._13 = -this._31;
+			_11 = _33 = MathF.Cos((y));
+			_31 = MathF.Sin((y));
+			_13 = -_31;
 			return this;
 		}
 
 		public Matrix3D RotateZMatrix(float z) {
 			SetIdentity();
-			this._11 = this._22 = MathF.Cos((z));
-			this._12 = MathF.Sin((z));
-			this._21 = -this._12;
+			_11 = _22 = MathF.Cos((z));
+			_12 = MathF.Sin((z));
+			_21 = -_12;
 			return this;
 		}
 
@@ -110,14 +110,14 @@ namespace VisualPinball.Engine.Math
 
 		public Matrix3D Multiply(Matrix3D a, Matrix3D b = null) {
 			var product = b != null
-				? Matrix3D.MultiplyMatrices(a, b)
-				: Matrix3D.MultiplyMatrices(this, a);
+				? MultiplyMatrices(a, b)
+				: MultiplyMatrices(this, a);
 
 			return Set(product._matrix);
 		}
 
 		public Matrix3D PreMultiply(Matrix3D a) {
-			var product = Matrix3D.MultiplyMatrices(a, this);
+			var product = MultiplyMatrices(a, this);
 			return Set(product._matrix);
 		}
 

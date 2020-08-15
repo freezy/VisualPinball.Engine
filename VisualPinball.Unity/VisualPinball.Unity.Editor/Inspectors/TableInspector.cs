@@ -6,11 +6,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TableBehavior))]
 	[CanEditMultipleObjects]

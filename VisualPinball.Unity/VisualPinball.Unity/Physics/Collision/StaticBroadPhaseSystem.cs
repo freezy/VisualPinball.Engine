@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class StaticBroadPhaseSystem : SystemBase

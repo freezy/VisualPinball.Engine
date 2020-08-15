@@ -2,9 +2,8 @@ using Unity.Entities;
 using Unity.Profiling;
 using Unity.Rendering;
 using UnityEngine;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class PlungerTransformationSystem : SystemBase

@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.VPT
+namespace VisualPinball.Unity
 {
 	public interface IEditableItemBehavior
 	{

@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// An editable drag point in Unity's editor. <p/>

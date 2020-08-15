@@ -4,9 +4,8 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public abstract class PlungerChildBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{

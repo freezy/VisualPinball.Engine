@@ -4,9 +4,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]

@@ -3,9 +3,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor.Managers
 {

@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Profiling;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class DynamicNarrowPhaseSystem : SystemBase
@@ -53,7 +52,7 @@ namespace VisualPinball.Unity.Physics.Collision
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
 				ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
 			{
-				var validHit = newTime >= 0 && !Common.Math.Sign(newTime) && newTime <= collEvent.HitTime;
+				var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 				if (newCollEvent.IsContact || validHit) {
 					newCollEvent.SetCollider(ballEntity);

@@ -1,10 +1,8 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	public struct QuadTree
 	{

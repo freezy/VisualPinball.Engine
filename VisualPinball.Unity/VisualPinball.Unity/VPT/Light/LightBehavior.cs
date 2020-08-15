@@ -6,10 +6,8 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Light;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import;
 
-namespace VisualPinball.Unity.VPT.Light
+namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Light")]
 	public class LightBehavior : ItemBehavior<Engine.VPT.Light.Light, LightData>
@@ -26,7 +24,7 @@ namespace VisualPinball.Unity.VPT.Light
 		protected override void ItemDataChanged()
 		{
 			base.ItemDataChanged();
-			
+
 			if (_unityLight == null) {
 				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
 				if (_unityLight == null) {

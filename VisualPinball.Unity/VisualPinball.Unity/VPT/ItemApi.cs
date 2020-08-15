@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT
+namespace VisualPinball.Unity
 {
 	public abstract class ItemApi<T, TData> where T : Item<TData> where TData : ItemData
 	{

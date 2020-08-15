@@ -1,12 +1,10 @@
 ﻿using System;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.VPT.Kicker
+namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Engine.VPT.Kicker.Kicker, KickerData>, IApiInitializable, IApiHittable
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable
 	{
 
 		/// <summary>
@@ -24,7 +22,7 @@ namespace VisualPinball.Unity.VPT.Kicker
 		/// </summary>
 		public event EventHandler UnHit;
 
-		public KickerApi(Engine.VPT.Kicker.Kicker item, Entity entity, Player player) : base(item, entity, player)
+		public KickerApi(Kicker item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 

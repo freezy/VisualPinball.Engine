@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity.VPT.Kicker
+namespace VisualPinball.Unity
 {
 	public struct KickerStaticData : IComponentData
 	{

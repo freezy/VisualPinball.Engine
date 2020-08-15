@@ -1,4 +1,4 @@
-﻿namespace VisualPinball.Unity.Extensions
+﻿namespace VisualPinball.Unity
 {
 	public static class ColorExtensions
 	{

@@ -5,26 +5,11 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Bumper;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.HitTarget;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Trigger;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class StaticCollisionSystem : SystemBase
@@ -90,7 +75,7 @@ namespace VisualPinball.Unity.Physics.Collision
 				//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
 				unsafe {
-					fixed (Collider.Collider* collider = &coll) {
+					fixed (Collider* collider = &coll) {
 
 						switch (coll.Type) {
 							case ColliderType.Bumper:
@@ -205,7 +190,7 @@ namespace VisualPinball.Unity.Physics.Collision
 									TriggerCollider. Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
 
 								} else {
-									Collider.Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);
+									Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);
 								}
 								break;
 

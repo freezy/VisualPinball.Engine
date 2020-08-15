@@ -2,10 +2,8 @@
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Physics.Engine
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// A swappable engine that implements VPE's rigid body physics.

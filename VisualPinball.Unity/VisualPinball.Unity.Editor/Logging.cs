@@ -7,7 +7,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		static Logging()
 		{
-			Common.Logging.Setup();
+			Unity.Logging.Setup();
 		}
 	}
 }

@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(1)]
 	public struct PlungerUvBufferElement : IBufferElementData

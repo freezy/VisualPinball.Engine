@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.Physics.SystemGroup
+namespace VisualPinball.Unity
 {
 	//[UpdateInGroup(typeof(VisualPinballSimulationSystemGroup))]
 	//[UpdateAfter(typeof(SimulateCycleSystemGroup))]

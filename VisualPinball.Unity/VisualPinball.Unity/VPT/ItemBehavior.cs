@@ -7,11 +7,9 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.VPT
+namespace VisualPinball.Unity
 {
 	public abstract class ItemBehavior<TItem, TData> : MonoBehaviour, IEditableItemBehavior, IIdentifiableItemBehavior,
 		ILayerableItemBehavior where TData : ItemData where TItem : Item<TData>, IRenderable
@@ -85,9 +83,9 @@ namespace VisualPinball.Unity.VPT
 							var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
 							if (ro != null) {
 								var subObj = new GameObject(ro.Name);
-								subObj.transform.SetParent(this.transform, false);
+								subObj.transform.SetParent(transform, false);
 								subObj.layer = VpxConverter.ChildObjectsLayer;
-								VpxConverter.ConvertRenderObject(this.Item, ro, subObj, table);
+								VpxConverter.ConvertRenderObject(Item, ro, subObj, table);
 							}
 						}
 					}
@@ -128,7 +126,7 @@ namespace VisualPinball.Unity.VPT
 
 			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
 			// selects the item itself first, which is most likely what the user would want
-			var mfs = this.GetComponentsInChildren<MeshFilter>();
+			var mfs = GetComponentsInChildren<MeshFilter>();
 			Gizmos.color = Color.clear;
 			Gizmos.matrix = Matrix4x4.identity;
 			foreach (var mf in mfs) {

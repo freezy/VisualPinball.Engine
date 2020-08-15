@@ -1,11 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Mathematics;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	public static class HitTargetCollider
 	{
