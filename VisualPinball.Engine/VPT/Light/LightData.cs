@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipes;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
@@ -118,6 +119,12 @@ namespace VisualPinball.Engine.VPT.Light
 		public LightData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
+		}
+
+		public LightData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Center = new Vertex2D(x, y);
 		}
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)

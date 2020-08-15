@@ -27,16 +27,18 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public static Rubber GetDefault(Table.Table table)
 		{
+			var x = table.Width / 2f;
+			var y = table.Height / 2f;
 			var rubberData = new RubberData(table.GetNewName<Rubber>("Rubber")) {
 				DragPoints = new[] {
-					new DragPointData(table.Width / 2f, table.Height / 2f - 50f) {IsSmooth = true },
-					new DragPointData(table.Width / 2f - 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(table.Width / 2f - 50f, table.Height / 2f) {IsSmooth = true },
-					new DragPointData(table.Width / 2f - 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(table.Width / 2f, table.Height / 2f + 50f) {IsSmooth = true },
-					new DragPointData(table.Width / 2f + 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(table.Width / 2f + 50f, table.Height / 2f) {IsSmooth = true },
-					new DragPointData(table.Width / 2f + 50f * MathF.Cos(MathF.PI / 4), table.Height / 2f - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(x, y - 50f) {IsSmooth = true },
+					new DragPointData(x - 50f * MathF.Cos(MathF.PI / 4), y - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(x - 50f, y) {IsSmooth = true },
+					new DragPointData(x - 50f * MathF.Cos(MathF.PI / 4), y + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(x, y + 50f) {IsSmooth = true },
+					new DragPointData(x + 50f * MathF.Cos(MathF.PI / 4), y + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(x + 50f, y) {IsSmooth = true },
+					new DragPointData(x + 50f * MathF.Cos(MathF.PI / 4), y - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
 				}
 			};
 			return new Rubber(rubberData);
