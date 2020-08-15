@@ -73,23 +73,16 @@ namespace VisualPinball.Unity.Editor.Toolbox
 
 		private void OnGUI()
 		{
-			if (GUILayout.Button("New Table")) {
-				var existingTable = FindObjectOfType<TableBehavior>();
-				if (existingTable == null) {
-					const string tableName = "Table1";
-					var rootGameObj = new GameObject();
-					var table = new Table(new TableData {Name = tableName});
-					var converter = rootGameObj.AddComponent<VpxConverter>();
-					converter.Convert(tableName, table);
-					DestroyImmediate(converter);
-					Selection.activeGameObject = rootGameObj;
-					Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
-
-				} else {
-					EditorUtility.DisplayDialog("Visual Pinball",
-						"Sorry, cannot add multiple tables, and there already is " +
-						existingTable.name, "Close");
-				}
+			var existingTable = FindObjectOfType<TableBehavior>();
+			if (existingTable == null && GUILayout.Button("New Table")) {
+				const string tableName = "Table1";
+				var rootGameObj = new GameObject();
+				var table = new Table(new TableData {Name = tableName});
+				var converter = rootGameObj.AddComponent<VpxConverter>();
+				converter.Convert(tableName, table);
+				DestroyImmediate(converter);
+				Selection.activeGameObject = rootGameObj;
+				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
 
 			if (TableBehavior == null) {
