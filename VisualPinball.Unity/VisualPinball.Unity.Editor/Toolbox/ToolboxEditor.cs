@@ -16,6 +16,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Import;
 using VisualPinball.Unity.VPT.Table;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor.Toolbox
@@ -151,7 +152,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			}
 
 			if (CreateButton("Light", _lightIcon, iconSize, buttonStyle)) {
-				// todo CreateItem(Light.GetDefault, "New Light");
+				CreateItem(Light.GetDefault, "New Light");
 			}
 
 			GUILayout.EndHorizontal();
