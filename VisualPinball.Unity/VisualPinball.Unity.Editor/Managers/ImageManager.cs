@@ -1,12 +1,13 @@
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Extensions;
 using VisualPinball.Unity.VPT;
 using VisualPinball.Unity.VPT.Table;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor.Managers
 {
@@ -16,6 +17,8 @@ namespace VisualPinball.Unity.Editor.Managers
 	public class ImageManager : ManagerWindow<ImageListData>
 	{
 		protected override string DataTypeName => "Image";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		[MenuItem("Visual Pinball/Image Manager", false, 102)]
 		public static void ShowWindow()
@@ -155,9 +158,14 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		private void UpdateAllImages()
 		{
+			int countFound = 0;
 			foreach (var t in _table.Textures) {
-				ReplaceImageFromPath(t.Data, t.Data.Path);
+				if (File.Exists(t.Data.Path)) {
+					countFound++;
+					ReplaceImageFromPath(t.Data, t.Data.Path);
+				}
 			}
+			Logger.Info($"Update all images complete. Found files for {countFound} / {_table.Textures.Count}");
 		}
 
 		private void ReplaceImageFromPath(TextureData textureData, string path) {
@@ -167,7 +175,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			try {
 				newBytes = File.ReadAllBytes(path);
 			} catch (Exception ex) {
-				Debug.LogException(ex);
+				Logger.Error(ex);
 			}
 			if (newBytes == null) { return; }
 
@@ -205,7 +213,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			if (unityTex != null) {
 				string fileExt = Path.GetExtension(_selectedItem.TextureData.Path).TrimStart('.');
 				if (string.IsNullOrEmpty(fileExt)) {
-					Debug.LogError("Could not determine filetype from path");
+					Logger.Error("Could not determine filetype from path");
 				}
 				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, fileExt, "Export Image");
 				if (!string.IsNullOrEmpty(savePath)) {
