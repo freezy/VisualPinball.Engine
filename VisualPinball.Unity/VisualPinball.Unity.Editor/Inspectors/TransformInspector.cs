@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Utils;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(Transform))]
 	[CanEditMultipleObjects]
@@ -148,7 +147,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
 
-			Handles.color = UnityEngine.Color.red;
+			Handles.color = Color.red;
 			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
 			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
 		}
@@ -206,9 +205,9 @@ namespace VisualPinball.Unity.Editor.Inspectors
 					if (EditorGUI.EndChangeCheck()) {
 						// check which axis had the biggest change (they'll all change slightly due to float precision)
 						// and pause that axis' local rotation so the gizmo doesn't flip out
-						float xDiff = Math.Abs(rotX.eulerAngles.y - currentRot.x);
-						float yDiff = Math.Abs(rotY.eulerAngles.y - currentRot.y);
-						float zDiff = Math.Abs(rotZ.eulerAngles.y - currentRot.z);
+						float xDiff = System.Math.Abs(rotX.eulerAngles.y - currentRot.x);
+						float yDiff = System.Math.Abs(rotY.eulerAngles.y - currentRot.y);
+						float zDiff = System.Math.Abs(rotZ.eulerAngles.y - currentRot.z);
 						if (_pauseAxisX == null && xDiff > yDiff && xDiff > zDiff) {
 							_pauseAxisX = currentRotTran;
 						} else if (_pauseAxisY == null && yDiff > xDiff && yDiff > zDiff) {

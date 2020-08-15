@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace VisualPinball.Unity.Import
+namespace VisualPinball.Unity
 {
 	public class ScaleNormalizer
 	{

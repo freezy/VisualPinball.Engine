@@ -26,23 +26,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Bumper;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.HitTarget;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Light;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Primitive;
-using VisualPinball.Unity.VPT.Ramp;
-using VisualPinball.Unity.VPT.Rubber;
-using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
-using VisualPinball.Unity.VPT.Trigger;
 using Logger = NLog.Logger;
-using Player = VisualPinball.Unity.Game.Player;
 
 namespace VisualPinball.Unity
 {
@@ -86,7 +70,7 @@ namespace VisualPinball.Unity
 			}
 
 
-			_tb.Patcher = new Patcher.Patcher.Patcher(_table, fileName);
+			_tb.Patcher = new Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();

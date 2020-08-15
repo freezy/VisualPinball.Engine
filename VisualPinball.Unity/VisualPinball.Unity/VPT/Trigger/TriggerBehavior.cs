@@ -9,24 +9,21 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Trigger
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trigger")]
-	public class TriggerBehavior : ItemBehavior<Engine.VPT.Trigger.Trigger, TriggerData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class TriggerBehavior : ItemBehavior<Trigger, TriggerData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Trigger.Trigger GetItem() => new Engine.VPT.Trigger.Trigger(data);
+		protected override Trigger GetItem() => new Trigger(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Trigger.Trigger>(Name);
+				Table?.Remove<Trigger>(Name);
 			}
 		}
 

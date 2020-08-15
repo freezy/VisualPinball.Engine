@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VisualPinball.Unity.VPT
+﻿namespace VisualPinball.Unity
 {
 	public interface IIdentifiableItemBehavior
 	{

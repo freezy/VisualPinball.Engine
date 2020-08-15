@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public class VisualPinballScript : MonoBehaviour
 	{

@@ -4,12 +4,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity
 {
 	public struct LineZCollider
 	{
@@ -100,7 +96,7 @@ namespace VisualPinball.Unity.Physics.Collider
 					return -1.0f;
 				}
 
-				var solved = Common.Math.SolveQuadraticEq(a, 2.0f * b, bcddsq - ball.Radius * ball.Radius,
+				var solved = Math.SolveQuadraticEq(a, 2.0f * b, bcddsq - ball.Radius * ball.Radius,
 					out var time1, out var time2);
 				if (!solved) {
 					return -1.0f;

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
@@ -31,34 +30,19 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
-using VisualPinball.Unity.VPT.Bumper;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.HitTarget;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Light;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Primitive;
-using VisualPinball.Unity.VPT.Ramp;
-using VisualPinball.Unity.VPT.Rubber;
-using VisualPinball.Unity.VPT.Spinner;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Trigger;
+using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableBehavior : ItemBehavior<Engine.VPT.Table.Table, TableData>
+	public class TableBehavior : ItemBehavior<Table, TableData>
 	{
 		public Engine.VPT.Table.Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
-		public Patcher.Patcher.Patcher Patcher { get; internal set; }
+		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
 
@@ -164,11 +148,11 @@ namespace VisualPinball.Unity.VPT.Table
 			return null;
 		}
 
-		public Engine.VPT.Table.Table CreateTable()
+		public Table CreateTable()
 		{
 			Logger.Info("Restoring table...");
 			// restore table data
-			var table = new Engine.VPT.Table.Table(data);
+			var table = new Table(data);
 
 			// restore table info
 			Logger.Info("Restoring table info...");
@@ -188,30 +172,30 @@ namespace VisualPinball.Unity.VPT.Table
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
-			Restore(_sidecar.plungers, table, d => new Engine.VPT.Plunger.Plunger(d));
+			Restore(_sidecar.plungers, table, d => new Plunger(d));
 			Restore(_sidecar.textBoxes, table, d => new TextBox(d));
 			Restore(_sidecar.timers, table, d => new Timer(d));
 
 			// restore game items
 			Logger.Info("Restoring game items...");
-			Restore<BumperBehavior, Engine.VPT.Bumper.Bumper, BumperData>(table);
-			Restore<FlipperBehavior, Engine.VPT.Flipper.Flipper, FlipperData>(table);
-			Restore<GateBehavior, Engine.VPT.Gate.Gate, GateData>(table);
-			Restore<HitTargetBehavior, Engine.VPT.HitTarget.HitTarget, HitTargetData>(table);
-			Restore<KickerBehavior, Engine.VPT.Kicker.Kicker, KickerData>(table);
+			Restore<BumperBehavior, Bumper, BumperData>(table);
+			Restore<FlipperBehavior, Flipper, FlipperData>(table);
+			Restore<GateBehavior, Gate, GateData>(table);
+			Restore<HitTargetBehavior, HitTarget, HitTargetData>(table);
+			Restore<KickerBehavior, Kicker, KickerData>(table);
 			Restore<LightBehavior, Engine.VPT.Light.Light, LightData>(table);
-			Restore<PlungerBehavior, Engine.VPT.Plunger.Plunger, PlungerData>(table);
-			Restore<PrimitiveBehavior, Engine.VPT.Primitive.Primitive, PrimitiveData>(table);
-			Restore<RampBehavior, Engine.VPT.Ramp.Ramp, RampData>(table);
-			Restore<RubberBehavior, Engine.VPT.Rubber.Rubber, RubberData>(table);
-			Restore<SpinnerBehavior, Engine.VPT.Spinner.Spinner, SpinnerData>(table);
+			Restore<PlungerBehavior, Plunger, PlungerData>(table);
+			Restore<PrimitiveBehavior, Primitive, PrimitiveData>(table);
+			Restore<RampBehavior, Ramp, RampData>(table);
+			Restore<RubberBehavior, Rubber, RubberData>(table);
+			Restore<SpinnerBehavior, Spinner, SpinnerData>(table);
 			Restore<SurfaceBehavior, Engine.VPT.Surface.Surface, SurfaceData>(table);
-			Restore<TriggerBehavior, Engine.VPT.Trigger.Trigger, TriggerData>(table);
+			Restore<TriggerBehavior, Trigger, TriggerData>(table);
 
 			return table;
 		}
 
-		public Engine.VPT.Table.Table RecreateTable()
+		public Table RecreateTable()
 		{
 			var table = CreateTable();
 
@@ -221,7 +205,7 @@ namespace VisualPinball.Unity.VPT.Table
 			return table;
 		}
 
-		private void Restore<TComp, TItem, TData>(Engine.VPT.Table.Table table) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemBehavior<TItem, TData>
+		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemBehavior<TItem, TData>
 		{
 			foreach (var component in GetComponentsInChildren<TComp>(true)) {
 				table.Add(component.Item);
@@ -235,7 +219,7 @@ namespace VisualPinball.Unity.VPT.Table
 			}
 		}
 
-		private static void Restore<TItem, TData>(IEnumerable<TData> src, Engine.VPT.Table.Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
+		private static void Restore<TItem, TData>(IEnumerable<TData> src, Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
 		{
 			foreach (var d in src) {
 				table.Add(create(d));

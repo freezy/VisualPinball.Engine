@@ -2,9 +2,8 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.Plunger;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlungerBehavior))]
 	public class PlungerInspector : ItemInspector

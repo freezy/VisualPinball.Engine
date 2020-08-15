@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace VisualPinball.Unity.Physics.DebugUI
+namespace VisualPinball.Unity
 {
 	public struct DebugFlipperState
 	{

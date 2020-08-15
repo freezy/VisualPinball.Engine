@@ -3,10 +3,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Editor.Utils.TreeView;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Layers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// Enum for LayerTreeElement visibility status (including children)

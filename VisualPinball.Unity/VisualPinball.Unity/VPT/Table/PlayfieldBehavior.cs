@@ -1,7 +1,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	public class PlayfieldBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{

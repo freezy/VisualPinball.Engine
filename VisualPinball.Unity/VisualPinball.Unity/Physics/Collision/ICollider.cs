@@ -1,4 +1,4 @@
-﻿namespace VisualPinball.Unity.Physics.Collision
+﻿namespace VisualPinball.Unity
 {
 	public interface ICollider
 	{

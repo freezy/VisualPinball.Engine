@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Trigger
+namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemApi<Engine.VPT.Trigger.Trigger, Engine.VPT.Trigger.TriggerData>,
 		IApiInitializable, IApiHittable

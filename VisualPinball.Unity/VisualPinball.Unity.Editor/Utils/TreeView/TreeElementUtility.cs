@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-
-namespace VisualPinball.Unity.Editor.Utils.TreeView
+namespace VisualPinball.Unity.Editor
 {
 
 	/// <summary>

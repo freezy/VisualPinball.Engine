@@ -1,4 +1,4 @@
-namespace VisualPinball.Unity.Patcher.Matcher.Table
+namespace VisualPinball.Unity.Patcher
 {
 	/// <summary>
 	/// Matches all tables.

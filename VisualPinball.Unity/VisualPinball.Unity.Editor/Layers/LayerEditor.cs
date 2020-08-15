@@ -2,9 +2,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Editor.Layers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// The VPX layer manager window. <p/>

@@ -1,27 +1,23 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Plunger")]
-	public class PlungerBehavior : ItemBehavior<Engine.VPT.Plunger.Plunger, PlungerData>, IConvertGameObjectToEntity
+	public class PlungerBehavior : ItemBehavior<Plunger, PlungerData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new [] {
 			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
 		};
 
-		protected override Engine.VPT.Plunger.Plunger GetItem() => new Engine.VPT.Plunger.Plunger(data);
+		protected override Plunger GetItem() => new Plunger(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Plunger.Plunger>(Name);
+				Table?.Remove<Plunger>(Name);
 			}
 		}
 

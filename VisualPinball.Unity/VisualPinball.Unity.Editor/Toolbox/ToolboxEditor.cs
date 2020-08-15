@@ -15,12 +15,10 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Import;
-using VisualPinball.Unity.VPT.Table;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
-namespace VisualPinball.Unity.Editor.Toolbox
+namespace VisualPinball.Unity.Editor
 {
 	public class ToolboxEditor : EditorWindow
 	{

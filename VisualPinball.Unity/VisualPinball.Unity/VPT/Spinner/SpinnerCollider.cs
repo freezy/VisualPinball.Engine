@@ -2,11 +2,8 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	public struct SpinnerCollider : ICollider, ICollidable
 	{

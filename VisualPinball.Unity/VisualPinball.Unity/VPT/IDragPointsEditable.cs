@@ -2,7 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Math;
 
-namespace VisualPinball.Unity.VPT
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Visual Pinball keeps the same data for drag points across all game

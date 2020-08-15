@@ -7,9 +7,8 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.Test.Physics.DOTS
+namespace VisualPinball.Unity.Test
 {
 	[TestFixture]
 	public class DynamicStructTests
@@ -58,7 +57,7 @@ namespace VisualPinball.Unity.Test.Physics.DOTS
 
 			ref var poly3DCollider = ref colliderBlob.Value.Colliders[0].Value;
 
-			Assert.AreEqual("Poly3DCollider, rgv[0] = float3(1f, 2f, 3f)", Unity.Physics.Collider.Collider.ToString(ref poly3DCollider));
+			Assert.AreEqual("Poly3DCollider, rgv[0] = float3(1f, 2f, 3f)", Unity.Collider.ToString(ref poly3DCollider));
 		}
 	}
 

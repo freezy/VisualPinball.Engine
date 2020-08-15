@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.VPT.Spinner;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerBehavior))]
 	public class SpinnerInspector : ItemInspector
@@ -20,7 +19,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref _spinner.data.IsVisible);

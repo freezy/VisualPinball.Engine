@@ -2,9 +2,8 @@ using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class BallDisplacementSystem : SystemBase

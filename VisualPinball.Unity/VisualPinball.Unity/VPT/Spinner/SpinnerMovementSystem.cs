@@ -2,9 +2,8 @@
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class SpinnerMovementSystem : SystemBase

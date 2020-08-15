@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
 	public class VpxImportWizardSettings : MonoBehaviour

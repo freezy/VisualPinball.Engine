@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
-using VisualPinball.Unity.VPT.Bumper;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperBehavior))]
 	public class BumperInspector : ItemInspector
@@ -20,7 +19,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				MaterialField("Cap Material", ref _bumper.data.CapMaterial);

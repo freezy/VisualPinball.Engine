@@ -2,9 +2,9 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.VPT.Ramp
+namespace VisualPinball.Unity
 {
-	public static class RubberExtensions
+	public static class RampExtensions
 	{
 		public static RampBehavior SetupGameObject(this Engine.VPT.Ramp.Ramp ramp, GameObject obj, RenderObjectGroup rog)
 		{

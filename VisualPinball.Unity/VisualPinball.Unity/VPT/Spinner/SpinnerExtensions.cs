@@ -2,7 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	public static class SpinnerExtensions
 	{

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
-
-namespace VisualPinball.Unity.Editor.Utils.TreeView
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// An ImGui TreeView which will handle a provided generic TreeElement type
@@ -15,7 +13,7 @@ namespace VisualPinball.Unity.Editor.Utils.TreeView
 	/// It'll also fire events for several base TreeView events (Tree rebuild & update, item double click...)
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
-	internal class TreeView<T> : UnityEditor.IMGUI.Controls.TreeView where T : TreeElement
+	internal class TreeView<T> : TreeView where T : TreeElement
 	{
 		#region Events
 		public event Action<T> TreeRebuilt;

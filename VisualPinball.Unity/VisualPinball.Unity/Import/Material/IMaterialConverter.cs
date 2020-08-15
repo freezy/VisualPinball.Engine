@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Import.Material
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Common interface for material conversion with the various render pipelines

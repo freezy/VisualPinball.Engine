@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.Patcher.Matcher.Item
+namespace VisualPinball.Unity.Patcher
 {
 	/// <summary>
 	/// Matches an game item by its name.

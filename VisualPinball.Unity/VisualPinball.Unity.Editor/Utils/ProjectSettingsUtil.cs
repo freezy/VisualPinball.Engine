@@ -3,7 +3,7 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace VisualPinball.Unity.Editor.Utils
+namespace VisualPinball.Unity.Editor
 {
 	public static class ProjectSettingsUtil
     {

@@ -4,12 +4,9 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.Editor.Utils;
 using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity.Editor.DragPoint
+namespace VisualPinball.Unity.Editor
 {
 	public delegate void OnDragPointPositionChange(Vector3 newPosition);
 

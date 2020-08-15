@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace VisualPinball.Unity.Physics.SystemGroup
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class UpdateVelocitiesSystemGroup : ComponentSystemGroup

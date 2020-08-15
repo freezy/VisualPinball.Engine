@@ -1,14 +1,11 @@
 ﻿// ReSharper disable StringLiteralTypo
 
-using System;
 using System.Text;
 using NLog;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Import.Material;
-using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Extensions
+namespace VisualPinball.Unity
 {
 	public static class MaterialExtensions
 	{

@@ -1,9 +1,8 @@
 ﻿using Unity.Entities;
 using Unity.Profiling;
 using Unity.Transforms;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class BumperRingMovementSystem : SystemBase

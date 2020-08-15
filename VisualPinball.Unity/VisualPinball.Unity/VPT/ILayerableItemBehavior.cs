@@ -1,4 +1,4 @@
-﻿namespace VisualPinball.Unity.VPT
+﻿namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Exposes layer-related data from all ItemBehaviors

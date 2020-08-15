@@ -3,10 +3,8 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
 using UnityEngine;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class HitTargetMovementSystem : SystemBase

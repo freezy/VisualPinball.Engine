@@ -1,8 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Common;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
@@ -10,10 +8,12 @@ using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Sound;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
+using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
     /// This monobehavior is meant to hold all the (large) serialized data needed to reconstruct

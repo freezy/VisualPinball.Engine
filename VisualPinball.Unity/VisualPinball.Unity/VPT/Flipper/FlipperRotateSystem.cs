@@ -2,9 +2,8 @@
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]

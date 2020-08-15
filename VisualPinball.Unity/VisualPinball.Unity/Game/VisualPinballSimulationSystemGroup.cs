@@ -5,10 +5,8 @@ using NLog;
 using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.SystemGroup;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Main physics simulation system, executed once per frame.

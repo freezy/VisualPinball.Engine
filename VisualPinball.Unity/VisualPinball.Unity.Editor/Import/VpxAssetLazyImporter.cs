@@ -1,11 +1,8 @@
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Utils;
-using VisualPinball.Unity.Import;
-using VisualPinball.Unity.Import.Job;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// This component is attached to a game object when using the scripted importer for vpx files

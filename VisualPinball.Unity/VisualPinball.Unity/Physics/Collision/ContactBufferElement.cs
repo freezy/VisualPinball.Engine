@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(1)]
 	public struct ContactBufferElement : IBufferElementData

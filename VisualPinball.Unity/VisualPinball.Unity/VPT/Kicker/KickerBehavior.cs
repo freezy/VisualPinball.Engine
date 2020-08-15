@@ -9,24 +9,21 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Kicker
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Kicker")]
-	public class KickerBehavior : ItemBehavior<Engine.VPT.Kicker.Kicker, KickerData>, IConvertGameObjectToEntity
+	public class KickerBehavior : ItemBehavior<Kicker, KickerData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
-		protected override Engine.VPT.Kicker.Kicker GetItem() => new Engine.VPT.Kicker.Kicker(data);
+		protected override Kicker GetItem() => new Kicker(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Kicker.Kicker>(Name);
+				Table?.Remove<Kicker>(Name);
 			}
 		}
 

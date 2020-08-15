@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	public struct BumperSkirtAnimationData : IComponentData
 	{

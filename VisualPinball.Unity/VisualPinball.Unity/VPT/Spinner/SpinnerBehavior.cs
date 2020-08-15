@@ -6,22 +6,21 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Spinner")]
-	public class SpinnerBehavior : ItemBehavior<Engine.VPT.Spinner.Spinner, SpinnerData>
+	public class SpinnerBehavior : ItemBehavior<Spinner, SpinnerData>
 	{
 		protected override string[] Children => new [] { "Plate", "Bracket" };
 
-		protected override Engine.VPT.Spinner.Spinner GetItem() => new Engine.VPT.Spinner.Spinner(data);
+		protected override Spinner GetItem() => new Spinner(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Spinner.Spinner>(Name);
+				Table?.Remove<Spinner>(Name);
 			}
 		}
 

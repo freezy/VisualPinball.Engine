@@ -1,9 +1,7 @@
 ﻿using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Common;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	public static class BallCollider
 	{

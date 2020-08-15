@@ -3,10 +3,8 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	public class BallBehavior : MonoBehaviour, IConvertGameObjectToEntity
 	{

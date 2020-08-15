@@ -1,11 +1,10 @@
 ﻿using System;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<Engine.VPT.Plunger.Plunger, PlungerData>, IApiInitializable, IApiRotatable
+	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -27,7 +26,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 
 		public bool DoRetract { get; set; } = true;
 
-		internal PlungerApi(Engine.VPT.Plunger.Plunger item, Entity entity, Player player) : base(item, entity, player)
+		internal PlungerApi(Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 

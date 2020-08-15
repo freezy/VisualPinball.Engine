@@ -1,10 +1,8 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using VisualPinball.Unity.Patcher.Matcher.Item;
-using VisualPinball.Unity.Patcher.Matcher.Table;
 
-namespace VisualPinball.Unity.Patcher.Patcher.Tables
+namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Jurassic Park (Data East)", AuthorName = "Dark & Friends")]
 	public class JurassicPark

@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
 	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable, IApiHittable, IApiRotatable
 	{
@@ -76,10 +75,5 @@ namespace VisualPinball.Unity.VPT.Gate
 
 		#endregion
 
-	}
-
-	public struct RotationEventArgs
-	{
-		public float AngleSpeed;
 	}
 }

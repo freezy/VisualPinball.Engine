@@ -1,8 +1,7 @@
 ﻿using System;
 using Unity.Entities;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.VPT.Ramp
+namespace VisualPinball.Unity
 {
 	public class RampApi : ItemApi<Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable
 	{

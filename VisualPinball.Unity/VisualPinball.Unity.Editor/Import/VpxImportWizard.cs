@@ -1,11 +1,11 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System;
+﻿using System;
 using System.IO;
 using NLog;
+using UnityEditor;
+using UnityEngine;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor.Import
+namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
 	public class VpxImportWizard : EditorWindow

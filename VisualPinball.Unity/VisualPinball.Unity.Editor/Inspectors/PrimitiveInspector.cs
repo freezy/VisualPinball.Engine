@@ -1,11 +1,8 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.VPT.Primitive;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PrimitiveBehavior))]
 	public class PrimitiveInspector : ItemInspector
@@ -23,7 +20,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				GUILayout.BeginHorizontal();
@@ -110,7 +107,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 		private void MeshImporterGui()
 		{
 			EditorGUI.BeginChangeCheck();
-			var mesh = (UnityEngine.Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(UnityEngine.Mesh), false);
+			var mesh = (Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(Mesh), false);
 			if (mesh != null && EditorGUI.EndChangeCheck()) {
 				FinishEdit("Import Mesh", true);
 				_prim.data.Use3DMesh = true;

@@ -6,11 +6,8 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.Physics.SystemGroup;
-using Player = VisualPinball.Unity.Game.Player;
 
-namespace VisualPinball.Unity.VPT.Spinner
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	public class SpinnerDisplacementSystem : SystemBase

@@ -2,7 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	public static class HitTargetExtensions
 	{

@@ -3,9 +3,8 @@ using NUnit.Framework;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.Test.Physics.Collider
+namespace VisualPinball.Unity.Test
 {
 	[TestFixture]
 	[Category("Visual Pinball")]

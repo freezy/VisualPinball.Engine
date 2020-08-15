@@ -8,24 +8,22 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Flipper")]
-	public class FlipperBehavior : ItemBehavior<Engine.VPT.Flipper.Flipper, FlipperData>, IConvertGameObjectToEntity
+	public class FlipperBehavior : ItemBehavior<Flipper, FlipperData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
-		protected override Engine.VPT.Flipper.Flipper GetItem() => new Engine.VPT.Flipper.Flipper(data);
+		protected override Flipper GetItem() => new Flipper(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Flipper.Flipper>(Name);
+				Table?.Remove<Flipper>(Name);
 			}
 		}
 

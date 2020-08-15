@@ -2,10 +2,8 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
-using VisualPinball.Unity.Patcher.Matcher.Item;
-using VisualPinball.Unity.Patcher.Matcher.Table;
 
-namespace VisualPinball.Unity.Patcher.Patcher.Tables
+namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Indiana Jones - The Pinball Adventure", AuthorName = "ninuzzu,tom tower")]
 	public class IndianaJones

@@ -1,8 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.VPT;
 
-namespace VisualPinball.Unity.Editor.Utils
+namespace VisualPinball.Unity.Editor
 {
 	public static class HandlesUtils
 	{

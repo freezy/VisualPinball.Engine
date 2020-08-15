@@ -1,11 +1,6 @@
-﻿
-using System;
-using UnityEditor;
-using UnityEngine;
-using VisualPinball.Unity.Editor.DragPoint;
-using VisualPinball.Unity.VPT.Surface;
+﻿using UnityEditor;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceBehavior))]
 	public class SurfaceInspector : DragPointsItemInspector
@@ -24,7 +19,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);

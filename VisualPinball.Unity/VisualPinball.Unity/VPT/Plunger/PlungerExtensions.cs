@@ -3,11 +3,11 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Plunger;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public static class PlungerExtensions
 	{
-		public static PlungerBehavior SetupGameObject(this Engine.VPT.Plunger.Plunger plunger, GameObject obj, RenderObjectGroup rog)
+		public static PlungerBehavior SetupGameObject(this Plunger plunger, GameObject obj, RenderObjectGroup rog)
 		{
 			var ic = obj.AddComponent<PlungerBehavior>().SetItem(plunger);
 

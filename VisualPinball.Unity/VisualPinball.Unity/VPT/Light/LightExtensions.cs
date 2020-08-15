@@ -1,7 +1,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.VPT.Light
+namespace VisualPinball.Unity
 {
 	public static class LightExtensions
 	{

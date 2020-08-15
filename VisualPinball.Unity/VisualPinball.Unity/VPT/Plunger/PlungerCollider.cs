@@ -3,11 +3,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Unity.Physics.Collider;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public struct PlungerCollider : ICollider, ICollidable
 	{
@@ -237,7 +234,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 			}
 
 			// figure the basic impulse
-			var impulse = dot * -1.45f / (1.0f + 1.0f / Engine.VPT.Plunger.Plunger.PlungerMass);
+			var impulse = dot * -1.45f / (1.0f + 1.0f / Plunger.PlungerMass);
 
 			// We hit the ball, so attenuate any plunger bounce we have queued up
 			// for a Fire event.  Real plungers bounce quite a bit when fired without
@@ -266,7 +263,7 @@ namespace VisualPinball.Unity.VPT.Plunger
 				// accounting for the spring tension and friction.
 				const float reverseImpulseFudgeFactor = .22f;
 				movementData.ReverseImpulse = ball.Velocity.y * impulse
-					* (ball.Mass / Engine.VPT.Plunger.Plunger.PlungerMass)
+					* (ball.Mass / Plunger.PlungerMass)
 					* reverseImpulseFudgeFactor;
 			}
 

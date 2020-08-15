@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.Bumper
+namespace VisualPinball.Unity
 {
 	public struct BumperRingAnimationData : IComponentData
 	{

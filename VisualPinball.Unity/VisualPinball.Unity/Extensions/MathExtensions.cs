@@ -1,9 +1,8 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.Extensions
+namespace VisualPinball.Unity
 {
 	public static class MathExtensions
 	{

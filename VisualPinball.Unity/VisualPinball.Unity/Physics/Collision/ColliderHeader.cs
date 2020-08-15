@@ -3,7 +3,7 @@ using Unity.Entities;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// The common data to all colliders.

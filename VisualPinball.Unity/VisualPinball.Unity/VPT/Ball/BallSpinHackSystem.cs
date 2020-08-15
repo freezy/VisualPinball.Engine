@@ -1,9 +1,8 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.Collision;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
 	public class BallSpinHackSystem : SystemBase

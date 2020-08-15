@@ -6,22 +6,21 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Unity.Extensions;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Gate")]
-	public class GateBehavior : ItemBehavior<Engine.VPT.Gate.Gate, GateData>
+	public class GateBehavior : ItemBehavior<Gate, GateData>
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
 
-		protected override Engine.VPT.Gate.Gate GetItem() => new Engine.VPT.Gate.Gate(data);
+		protected override Gate GetItem() => new Gate(data);
 
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Gate.Gate>(Name);
+				Table?.Remove<Gate>(Name);
 			}
 		}
 

@@ -4,13 +4,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Common;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT.Ball;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity
 {
 	public struct PointCollider : ICollider, ICollidable
 	{

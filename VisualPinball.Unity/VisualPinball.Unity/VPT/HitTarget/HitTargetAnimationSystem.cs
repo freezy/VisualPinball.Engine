@@ -2,11 +2,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.HitTarget
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	public class HitTargetAnimationSystem : SystemBase

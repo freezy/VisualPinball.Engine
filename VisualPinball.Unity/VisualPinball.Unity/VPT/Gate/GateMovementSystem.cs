@@ -2,9 +2,8 @@
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
-using VisualPinball.Unity.Physics.SystemGroup;
 
-namespace VisualPinball.Unity.VPT.Gate
+namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	public class GateMovementSystem : SystemBase

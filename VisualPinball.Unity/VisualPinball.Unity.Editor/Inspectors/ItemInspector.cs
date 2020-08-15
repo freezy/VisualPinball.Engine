@@ -1,15 +1,11 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Surface;
-using VisualPinball.Unity.VPT.Table;
-using VisualPinball.Unity.Extensions;
-using System;
 using VisualPinball.Engine.VPT.Surface;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
@@ -202,7 +198,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 			}
 		}
 
-		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : System.IEquatable<T>
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;

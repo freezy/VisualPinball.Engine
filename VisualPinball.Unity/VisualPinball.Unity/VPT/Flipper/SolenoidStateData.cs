@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
 	public struct SolenoidStateData : IComponentData
 	{

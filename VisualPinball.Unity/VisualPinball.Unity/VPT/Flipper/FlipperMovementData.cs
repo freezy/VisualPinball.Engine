@@ -1,8 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Unity.Common;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
 	public struct FlipperMovementData : IComponentData
 	{

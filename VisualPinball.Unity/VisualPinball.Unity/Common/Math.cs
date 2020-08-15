@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity.Common
+namespace VisualPinball.Unity
 {
 	public static class Math
 	{

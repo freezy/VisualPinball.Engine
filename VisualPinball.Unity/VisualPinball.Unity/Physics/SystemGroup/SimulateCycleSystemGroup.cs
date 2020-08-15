@@ -3,14 +3,8 @@ using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
 
-namespace VisualPinball.Unity.Physics.SystemGroup
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// The main simulation loop

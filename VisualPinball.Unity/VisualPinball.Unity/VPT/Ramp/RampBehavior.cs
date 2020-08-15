@@ -7,20 +7,18 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Game;
+using VisualPinball.Engine.VPT.Ramp;
 
-namespace VisualPinball.Unity.VPT.Ramp
+namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Ramp")]
-	public class RampBehavior : ItemBehavior<Engine.VPT.Ramp.Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class RampBehavior : ItemBehavior<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
-		protected override Engine.VPT.Ramp.Ramp GetItem() => new Engine.VPT.Ramp.Ramp(data);
+		protected override Ramp GetItem() => new Ramp(data);
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -33,7 +31,7 @@ namespace VisualPinball.Unity.VPT.Ramp
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
-				Table?.Remove<Engine.VPT.Ramp.Ramp>(Name);
+				Table?.Remove<Ramp>(Name);
 			}
 		}
 

@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 
-namespace VisualPinball.Unity.Import.Job
+namespace VisualPinball.Unity
 {
 	public static class TableLoader
 	{

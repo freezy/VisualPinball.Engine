@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public PlungerDesc(PlungerCoord[] c) : this()
 		{
 			this.c = c;
-			this.n = c.Length;
+			n = c.Length;
 		}
 
 		public static PlungerDesc GetModern()

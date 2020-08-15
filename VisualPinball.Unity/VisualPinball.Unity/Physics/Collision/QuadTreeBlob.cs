@@ -1,15 +1,14 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Unity.Physics.Collider;
 
-namespace VisualPinball.Unity.Physics.Collision
+namespace VisualPinball.Unity
 {
 	public struct QuadTreeBlob
 	{
 		public QuadTree QuadTree;
-		public BlobPtr<Collider.Collider> PlayfieldCollider;
-		public BlobPtr<Collider.Collider> GlassCollider;
+		public BlobPtr<Collider> PlayfieldCollider;
+		public BlobPtr<Collider> GlassCollider;
 
 		public static BlobAssetReference<QuadTreeBlob> CreateBlobAssetReference(HitQuadTree hitQuadTree, HitPlane playfield, HitPlane glass)
 		{

@@ -1,8 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Game;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(Player))]
 	[CanEditMultipleObjects]

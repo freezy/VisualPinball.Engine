@@ -1,4 +1,4 @@
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public static class PlungerCommands
 	{

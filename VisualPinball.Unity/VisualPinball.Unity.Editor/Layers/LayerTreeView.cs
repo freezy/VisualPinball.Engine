@@ -4,10 +4,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Utils.TreeView;
-using UnityObject = UnityEngine.Object;
 
-namespace VisualPinball.Unity.Editor.Layers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// The actual tree view that is rendered in the editor window.

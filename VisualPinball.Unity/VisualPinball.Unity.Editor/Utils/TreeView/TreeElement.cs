@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Utils.TreeView
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// TreeElement is the base class used by <see cref="TreeView{T}"/>, you'll have to inherit from it.

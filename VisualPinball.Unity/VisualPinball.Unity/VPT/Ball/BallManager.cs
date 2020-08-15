@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -7,12 +6,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity.Extensions;
-using VisualPinball.Unity.Import.Material;
-using VisualPinball.Unity.Physics.Engine;
-using Player = VisualPinball.Unity.Game.Player;
 
-namespace VisualPinball.Unity.VPT.Ball
+namespace VisualPinball.Unity
 {
 	public class BallManager
 	{
@@ -110,7 +105,7 @@ namespace VisualPinball.Unity.VPT.Ball
 			{
 				var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 				_unitySphereMesh = go.GetComponent<MeshFilter>().sharedMesh;
-				GameObject.Destroy(go);
+				Object.Destroy(go);
 			}
 
 			return _unitySphereMesh;

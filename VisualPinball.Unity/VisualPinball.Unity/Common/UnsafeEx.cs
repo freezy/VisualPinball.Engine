@@ -1,6 +1,6 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 
-namespace VisualPinball.Unity.Common
+namespace VisualPinball.Unity
 {
 	internal static class UnsafeEx
 	{

@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
-using VisualPinball.Unity.Physics.Collider;
 
-namespace VisualPinball.Unity.VPT.Plunger
+namespace VisualPinball.Unity
 {
 	public struct PlungerColliderData : IComponentData
 	{

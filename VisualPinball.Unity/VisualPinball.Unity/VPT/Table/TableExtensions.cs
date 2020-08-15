@@ -2,7 +2,7 @@
 using UnityEngine;
 using VisualPinball.Engine.Game;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	public static class TableExtensions
 	{

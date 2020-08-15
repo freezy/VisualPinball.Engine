@@ -13,18 +13,9 @@ using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Physics.Collision;
-using VisualPinball.Unity.Physics.Event;
-using VisualPinball.Unity.VPT.Ball;
-using VisualPinball.Unity.VPT.Flipper;
-using VisualPinball.Unity.VPT.Gate;
-using VisualPinball.Unity.VPT.Kicker;
-using VisualPinball.Unity.VPT.Plunger;
-using VisualPinball.Unity.VPT.Spinner;
-using PhysicsMaterialData = VisualPinball.Unity.Physics.Collision.PhysicsMaterialData;
 using Random = Unity.Mathematics.Random;
 
-namespace VisualPinball.Unity.Physics.Collider
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Base struct common to all colliders.

@@ -1,8 +1,7 @@
 ﻿using Unity.Entities;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.VPT.Table;
 
-namespace VisualPinball.Unity.Physics.DebugUI
+namespace VisualPinball.Unity
 {
 	public interface IDebugUI : IEngine
 	{

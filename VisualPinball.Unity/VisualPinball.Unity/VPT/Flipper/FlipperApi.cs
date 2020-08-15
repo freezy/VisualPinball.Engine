@@ -5,12 +5,10 @@ using System;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.Engine;
 
-namespace VisualPinball.Unity.VPT.Flipper
+namespace VisualPinball.Unity
 {
-	public class FlipperApi : ItemApi<Engine.VPT.Flipper.Flipper, FlipperData>, IApiInitializable, IApiHittable,
+	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
 		IApiRotatable, IApiCollidable
 	{
 		/// <summary>
@@ -43,7 +41,7 @@ namespace VisualPinball.Unity.VPT.Flipper
 		// todo
 		public event EventHandler Timer;
 
-		public FlipperApi(Engine.VPT.Flipper.Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
+		public FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
 		}
 
@@ -94,17 +92,6 @@ namespace VisualPinball.Unity.VPT.Flipper
 		#endregion
 	}
 
-	/// <summary>
-	/// Event data when the flipper either reaches resting or end
-	/// position.
-	/// </summary>
-	public struct RotationEventArgs
-	{
-		/// <summary>
-		/// Angle speed with which the new position was reached.
-		/// </summary>
-		public float AngleSpeed;
-	}
 
 	/// <summary>
 	/// Event data when the ball collides with the flipper.

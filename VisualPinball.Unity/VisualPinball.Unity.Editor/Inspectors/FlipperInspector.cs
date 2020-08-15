@@ -1,9 +1,8 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Unity.VPT.Flipper;
 
-namespace VisualPinball.Unity.Editor.Inspectors
+namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(FlipperBehavior))]
 	public class FlipperInspector : ItemInspector
@@ -23,7 +22,7 @@ namespace VisualPinball.Unity.Editor.Inspectors
 
 		public override void OnInspectorGUI()
 		{
-			base.OnPreInspectorGUI();
+			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				TextureField("Image", ref _flipper.data.Image);
