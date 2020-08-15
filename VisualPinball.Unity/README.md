@@ -9,22 +9,19 @@ separate DLL, called `VisualPinball.Unity`.
 
 ## Status
 
-There are a few Unity-related features of VPE, and there will be (a lot) more
-documentation. The main features VPE currently provides are:
-
-- Import `.vpx` files into the Unity Editor
-- Provide Visual Pinball specific features in the editor
-- Export `.vpx` from the editor
-- Nearly done porting VPX physics into Unity DOTS
+Currently this part of VPE is about importing the meshes, textures and 
+materials correctly. You can either do a full import, meaning Unity will
+generate its own assets for an imported table, a quick import which only loads
+it into memory, or drag a `.vpx` file into Unity directly.
 
 ![Monster Bash in Unity](mb_unity_teaser.jpg)
 
-VPE supports all three render pipelines, i.e. the built-in renderer as well
-as the new [URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/index.html) and [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/index.html). For more screenshots, check [this Wiki page](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots).
+It currently uses the built-in renderer, but will also be compatible with
+Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/index.html)
 
 ### Usage
 
-This repository acts as a Unity Package. That means you need to import it into
+This repository acts as a Unity Package. That means you can import it into
 your Unity project as a package. In order to do that:
 
 1. Open Package Manager (*Window / Package Manager*)
@@ -33,29 +30,14 @@ your Unity project as a package. In order to do that:
 4. Navigate where you cloned this repo and select `package.json`
 
 You'll then have a *Visual Pinball* menu in the Unity editor where you can 
-import `.vpx` files. 
-
-*Note:* OSX users will need to add the following `dllmap` entries to the Unity `config` file
-prior to launching Unity:
-
-```
-<configuration>
-        <dllmap dll="libvips-42.dll" target="libvips.42.dylib" os="osx" />
-        <dllmap dll="libglib-2.0-0.dll" target="libvips.42.dylib" os="osx" />
-        <dllmap dll="libgobject-2.0-0.dll" target="libvips.42.dylib" os="osx" />
-        .
-        .
-```
-
-The `config` file is located at:
-
-- `/Applications/Unity/Hub/Editor/2020.1.2f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
+import `.vpx` files. You'll be also able to drag and drop `.vpx` files into 
+your asset folder and Unity will create the table model directly.
 
 ## Future
 
-Unity allows extending its editor. This allows us to use Unity as a table
-editor and export the table back to `.vpx` files. While the Unity editor 
-is not a modelling tool, it has excellent integration with existing tools like 
+Unity allows extending its editor. This would allow us to use Unity as a table
+editor, given VPE is able to write `.vpx` files. While the Unity editor is not
+a modelling tool, it has excellent integration with existing tools like 
 Blender, so would facilitate the workflow for table authors a lot.
 
 Since the VPX file format acts like a virtual file system, it would be possible
