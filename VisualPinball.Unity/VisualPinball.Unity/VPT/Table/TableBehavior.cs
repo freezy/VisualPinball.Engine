@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.VPT.Table
 		/// Keeps a list of texture names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
 		/// </summary>
-		[SerializeField] private List<string> _dirtyTextures = new List<string>();
+		[HideInInspector] [SerializeField] private List<string> _dirtyTextures = new List<string>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
