@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// Does not provide arbitrary key access, instead all access is implicit based on INameable.Name
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public interface ITableResourceContainer<T> : IEnumerable<T> where T : INameable
+	public interface ITableResourceContainer<T> : IEnumerable<T> where T : IItem
 	{
 		int Count { get; }
 		IEnumerable<T> Values { get; }
