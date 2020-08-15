@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// Provides a basic default implementation for ITableResourceContainer that stores T in a c# dict
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class DefaultTableResourceContainer<T> : ITableResourceContainer<T> where T : INameable
+	public class DefaultTableResourceContainer<T> : ITableResourceContainer<T> where T : IItem
 	{
 		private Dictionary<string, T> _dict = new Dictionary<string, T>();
 

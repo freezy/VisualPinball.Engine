@@ -1,9 +1,9 @@
 namespace VisualPinball.Engine.VPT
 {
 	/// <summary>
-	/// Describes an object that has a name
+	/// Non-generic interface for Item<T>
 	/// </summary>
-	public interface INameable
+	public interface IItem
 	{
 		string Name { get; }
 	}

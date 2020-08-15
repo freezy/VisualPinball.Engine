@@ -125,13 +125,16 @@ namespace VisualPinball.Unity.VPT.Table
 		{
 			var lowerName = name.ToLower();
 			bool forceRecreate = false;
+			// check to see if the texture we're after has been flagged as dirty and thus needs to be recreated from table data
 			if (_dirtyTextures.Contains(lowerName)) {
 				forceRecreate = true;
 				_dirtyTextures.Remove(lowerName);
 			}
+			// don't need to recreate it, and we have the texture in cache
 			if (!forceRecreate && _unityTextures.ContainsKey(lowerName)) {
 				return _unityTextures[lowerName];
 			}
+			// create unity texture from vpe data and put in a cache for future retrievals
 			var tableTex = Table.GetTexture(lowerName);
 			if (tableTex != null) {
 				var unityTex = tableTex.ToUnityTexture();
