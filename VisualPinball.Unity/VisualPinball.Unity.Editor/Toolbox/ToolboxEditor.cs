@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 		[MenuItem("Visual Pinball/Toolbox", false, 100)]
 		public static void ShowWindow()
 		{
-			GetWindow<ToolboxEditor>("Visual Pinball Toolbox");
+			GetWindow<ToolboxEditor>("Toolbox");
 		}
 
 		private void OnEnable()
