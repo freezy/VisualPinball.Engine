@@ -68,7 +68,10 @@ namespace VisualPinball.Unity.VPT.Table
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
 		private readonly Dictionary<PbrMaterial, UnityEngine.Material> _unityMaterials = new Dictionary<PbrMaterial, UnityEngine.Material>();
-		// keep a list of texture names that need recreation, serialized and lazy so when undo happens they'll be considered dirty again
+		/// <summary>
+		/// Keeps a list of texture names that need recreation, serialized and
+		/// lazy so when undo happens they'll be considered dirty again
+		/// </summary>
 		[SerializeField] private List<string> _dirtyTextures = new List<string>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
