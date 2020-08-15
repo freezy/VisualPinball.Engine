@@ -8,6 +8,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
@@ -170,7 +171,7 @@ namespace VisualPinball.Unity.Editor.Toolbox
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Primitive", _primitiveIcon, iconSize, buttonStyle)) {
-				//todo CreateItem(Primitive.GetDefault, "New Primitive");
+				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
 			GUILayout.EndHorizontal();
