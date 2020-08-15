@@ -107,9 +107,7 @@ namespace VisualPinball.Unity.VPT.Table
 		internal TableSidecar GetOrCreateSidecar()
 		{
 			if (_sidecar == null) {
-				var sidecarGo = new GameObject("Table Sidecar");
-				sidecarGo.transform.parent = this.transform;
-				_sidecar = sidecarGo.AddComponent<TableSidecar>();
+				_sidecar = ScriptableObject.CreateInstance<TableSidecar>();
 			}
 			return _sidecar;
 		}
