@@ -176,6 +176,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 			Mesh.Name = Name;
 		}
 
+		public PrimitiveData(string name, float x, float y) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+			Position = new Vertex3D(x, y, 0f);
+		}
+
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			writer.Write((int)ItemType.Primitive);
