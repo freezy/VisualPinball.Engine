@@ -19,12 +19,12 @@ documentation. The main features VPE currently provides are:
 
 ![Monster Bash in Unity](mb_unity_teaser.jpg)
 
-It currently uses the built-in renderer, but will also be compatible with
-Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/index.html)
+VPE supports all three render pipelines, i.e. the built-in renderer as well
+as the new [URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/index.html) and [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@7.1/manual/index.html). For more screenshots, check [this Wiki page](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots).
 
 ### Usage
 
-This repository acts as a Unity Package. That means you can import it into
+This repository acts as a Unity Package. That means you need to import it into
 your Unity project as a package. In order to do that:
 
 1. Open Package Manager (*Window / Package Manager*)
@@ -33,8 +33,7 @@ your Unity project as a package. In order to do that:
 4. Navigate where you cloned this repo and select `package.json`
 
 You'll then have a *Visual Pinball* menu in the Unity editor where you can 
-import `.vpx` files. You'll be also able to drag and drop `.vpx` files into 
-your asset folder and Unity will create the table model directly.
+import `.vpx` files. 
 
 *Note:* OSX users will need to add the following `dllmap` entries to the Unity `config` file
 prior to launching Unity:
@@ -50,8 +49,8 @@ prior to launching Unity:
 
 The `config` file is located at:
 
-- `2019.4.1f1:` `/Applications/Unity/Hub/Editor/2019.4.1f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config`
-- `2020.1.0b12:` `/Applications/Unity/Hub/Editor/2020.1.0b12/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
+- `2019.4:` `/Applications/Unity/Hub/Editor/2019.4.1f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config`
+- `2020.1:` `/Applications/Unity/Hub/Editor/2020.1.0b12/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
 
 ## Future
 
