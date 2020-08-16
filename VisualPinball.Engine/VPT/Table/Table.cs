@@ -433,10 +433,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Texture GetTexture(string name)
 		{
-			string lowerName = name.ToLower();
 			var tex = name == null
 				? null
-				: Textures[lowerName];
+				: Textures[name.ToLower()];
 			return tex;
 		}
 
