@@ -13,16 +13,9 @@ namespace VisualPinball.Engine.VPT
 		public int Version { get; set; }
 		public int StorageIndex { get => Data.StorageIndex; set => Data.StorageIndex = value; }
 
-		public Item(TData data)
+		protected Item(TData data)
 		{
 			Data = data;
 		}
-	}
-
-	public interface IItem
-	{
-		string Name { get; }
-
-		int StorageIndex { get; set; }
 	}
 }
