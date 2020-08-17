@@ -325,7 +325,7 @@ namespace VisualPinball.Engine.VPT
 		[Serializable]
 		public struct VertData
 		{
-			public const int Size = 28;
+			public const int Size = 24;
 
 			public float X;
 			public float Y;
