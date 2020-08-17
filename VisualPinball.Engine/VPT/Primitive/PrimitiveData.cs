@@ -45,6 +45,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
+		[BiffAnimation("M3DX", IsCompressed = true, Pos = 333)]
 		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]
@@ -347,6 +348,105 @@ namespace VisualPinball.Engine.VPT.Primitive
 					} else {
 						writer.Write((ushort) data.Mesh.Indices[i]);
 					}
+				}
+				return stream.ToArray();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Parses animated vertex data.<p/>
+	///
+	/// </summary>
+	public class BiffAnimationAttribute : BiffAttribute
+	{
+		/// <summary>
+		/// If set, the vertices are Zlib-compressed.
+		/// </summary>
+		public bool IsCompressed;
+
+		public BiffAnimationAttribute(string name) : base(name) { }
+
+		public override void Parse<T>(T obj, BinaryReader reader, int len)
+		{
+			if (obj is PrimitiveData primitiveData)
+			{
+				try
+				{
+					ParseAnimation(primitiveData, IsCompressed
+						? BiffZlib.Decompress(reader.ReadBytes(len))
+						: reader.ReadBytes(len));
+				}
+				catch (Exception e)
+				{
+					throw new Exception($"Error parsing animation data for {primitiveData.Name} ({primitiveData.StorageName}).", e);
+				}
+			}
+		}
+
+		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
+		{
+			if (obj is PrimitiveData primitiveData)
+			{
+				if (!primitiveData.Use3DMesh)
+				{
+					// don't write animation if not using 3d mesh
+					return;
+				}
+
+				for (var i = 0; i < primitiveData.Mesh.AnimationFrames.Count; i++)
+				{
+					var animationData = SerializeAnimation(primitiveData.Mesh.AnimationFrames[i]);
+					var data = IsCompressed ? BiffZlib.Compress(animationData) : animationData;
+					WriteStart(writer, data.Length, hashWriter);
+					writer.Write(data);
+					hashWriter?.Write(data);
+				}
+
+			}
+			else
+			{
+				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
+			}
+		}
+
+		private void ParseAnimation(PrimitiveData data, byte[] bytes)
+		{
+			if (data.NumVertices == 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(data), "Cannot create animation when size is unknown.");
+			}
+
+			if (bytes.Length < data.NumVertices * Mesh.VertData.Size)
+			{
+				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex anoimations for primitive item \"${data.Name}\" (${data.StorageName}), but only ${bytes.Length} bytes available.");
+			}
+
+			if (!(GetValue(data) is Mesh mesh))
+			{
+				throw new ArgumentException("BiffAnimationAttribute attribute must sit on a Mesh object.");
+			}
+
+			var vertices = new Mesh.VertData[data.NumVertices];
+			using (var stream = new MemoryStream(bytes))
+			using (var reader = new BinaryReader(stream))
+			{
+				for (var i = 0; i < data.NumVertices; i++)
+				{
+					vertices[i] = new Mesh.VertData(reader);
+				}
+			}
+			mesh.AnimationFrames.Add(vertices);
+		}
+
+		private static byte[] SerializeAnimation(Mesh.VertData[] data)
+		{
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream))
+			{
+				for (var i = 0; i < data.Length; i++)
+				{
+					data[i].Write(writer);
 				}
 				return stream.ToArray();
 			}

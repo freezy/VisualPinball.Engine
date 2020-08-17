@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 
@@ -22,6 +23,8 @@ namespace VisualPinball.Engine.VPT
 		public Vertex3DNoTex2[] Vertices;
 		public int[] Indices;
 		public bool IsSet => Vertices != null && Indices != null;
+
+		public List<VertData[]> AnimationFrames;
 
 		public Mesh() { }
 
@@ -311,5 +314,104 @@ namespace VisualPinball.Engine.VPT
 
 			return d341 * d342 < 0.0;
 		}
+
+
+		#region VertData
+		/// <summary>
+		/// VertData is a utility struct containing position and normal data.<p/>
+		///
+		/// It is used primarily for storing animation frames.
+		/// </summary>
+		[Serializable]
+		public struct VertData
+		{
+			public const int Size = 28;
+
+			public float X;
+			public float Y;
+			public float Z;
+
+			public float Nx;
+			public float Ny;
+			public float Nz;
+
+			public VertData(BinaryReader reader)
+			{
+				var startPos = reader.BaseStream.Position;
+				X = reader.ReadSingle();
+				Y = reader.ReadSingle();
+				Z = reader.ReadSingle();
+				Nx = reader.ReadSingle();
+				Ny = reader.ReadSingle();
+				Nz = reader.ReadSingle();
+				var remainingSize = Size - (reader.BaseStream.Position - startPos);
+				if (remainingSize > 0)
+				{
+					throw new InvalidOperationException();
+				}
+			}
+
+			public VertData(IReadOnlyList<float> arr)
+			{
+				X = arr.Count > 0 ? arr[0] : float.NaN;
+				Y = arr.Count > 1 ? arr[1] : float.NaN;
+				Z = arr.Count > 2 ? arr[2] : float.NaN;
+				Nx = arr.Count > 3 ? arr[3] : float.NaN;
+				Ny = arr.Count > 4 ? arr[4] : float.NaN;
+				Nz = arr.Count > 5 ? arr[5] : float.NaN;
+			}
+
+			public VertData(float x, float y, float z, float nx = float.NaN, float ny = float.NaN, float nz = float.NaN)
+			{
+				X = x;
+				Y = y;
+				Z = z;
+				Nx = nx;
+				Ny = ny;
+				Nz = nz;
+			}
+
+			public void Write(BinaryWriter writer)
+			{
+				writer.Write(X);
+				writer.Write(Y);
+				writer.Write(Z);
+				writer.Write(Nx);
+				writer.Write(Ny);
+				writer.Write(Nz);
+			}
+
+			public Vertex3D GetVertex()
+			{
+				return new Vertex3D(X, Y, Z);
+			}
+
+			public Vertex3D GetNormal()
+			{
+				return new Vertex3D(Nx, Ny, Nz);
+			}
+
+			public VertData Clone()
+			{
+				var vertex = new VertData
+				{
+					X = X,
+					Y = Y,
+					Z = Z,
+					Nx = Nx,
+					Ny = Ny,
+					Nz = Nz
+				};
+				return vertex;
+			}
+
+			public override string ToString()
+			{
+				return $"VertData({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz})";
+			}
+		}
+		#endregion
+
 	}
+
 }
