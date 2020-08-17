@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
-		[BiffAnimation("M3DX", IsCompressed = true, Pos = 333)]
+		[BiffAnimation("M3AX", IsCompressed = true, Pos = 333)]
 		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]
@@ -419,7 +419,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			if (bytes.Length < data.NumVertices * Mesh.VertData.Size)
 			{
-				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex anoimations for primitive item \"${data.Name}\" (${data.StorageName}), but only ${bytes.Length} bytes available.");
+				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex animations for primitive item \"${data.Name}\" (${data.StorageName}), but only ${bytes.Length} bytes available.");
 			}
 
 			if (!(GetValue(data) is Mesh mesh))
