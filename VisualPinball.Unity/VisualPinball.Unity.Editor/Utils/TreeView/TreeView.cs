@@ -192,14 +192,16 @@ namespace VisualPinball.Unity.Editor
 		protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
 		{
 			DragAndDrop.PrepareStartDrag();
-			DragAndDrop.paths = args.draggedItemIDs.Select<int, string>(e => e.ToString()).ToArray();
+			DragAndDrop.paths = args.draggedItemIDs.Select(e => e.ToString()).ToArray();
 			DragAndDrop.StartDrag($"{args.draggedItemIDs.Count} tree item(s)");
 		}
 
 		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;
 		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
 		{
-			var idList = DragAndDrop.paths.Select<string, int>(e => Int32.Parse(e));
+			var idList = DragAndDrop.paths.Select(e => Int32.Parse(e))
+						.Concat(DragAndDrop.objectReferences.Select(obj => obj.GetInstanceID()))
+						.Distinct();
 			var elements = Root.GetChildren<T>(element => idList.Contains(element.Id));
 			return HandleElementsDragAndDrop(args, elements.ToArray());
 		}
