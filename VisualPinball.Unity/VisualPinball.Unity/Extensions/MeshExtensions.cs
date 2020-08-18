@@ -54,6 +54,22 @@ namespace VisualPinball.Unity
 
 			// faces
 			mesh.triangles = vpMesh.Indices;
+
+			// animation
+			if (vpMesh.AnimationFrames.Count > 0) {
+				float deltaWeight = 100f / vpMesh.AnimationFrames.Count;
+				Vector3[] deltaVertices = new Vector3[vpMesh.Vertices.Length];
+				Vector3[] deltaNormals = new Vector3[vpMesh.Vertices.Length];
+
+				float weight = deltaWeight;
+				for (int i = 0; i < vpMesh.AnimationFrames.Count; i++, weight+= deltaWeight) {
+					for (int j = 0; j < vpMesh.Vertices.Length; j++) {
+						deltaVertices[j] = vpMesh.AnimationFrames[i][j].ToUnityVector3() - vertices[j];
+						deltaNormals[j] = vpMesh.AnimationFrames[i][j].ToUnityNormalVector3() - normals[j];
+					}
+					mesh.AddBlendShapeFrame("animation", weight, deltaVertices, deltaNormals, null);
+				}
+			}
 		}
 	}
 }

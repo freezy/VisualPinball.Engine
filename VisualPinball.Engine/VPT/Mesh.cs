@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.VPT
 		public int[] Indices;
 		public bool IsSet => Vertices != null && Indices != null;
 
-		public List<VertData[]> AnimationFrames;
+		public List<VertData[]> AnimationFrames = new List<VertData[]>();
 
 		public Mesh() { }
 
@@ -90,11 +90,18 @@ namespace VisualPinball.Engine.VPT
 			var mesh = new Mesh {
 				Name = name ?? Name,
 				Vertices = new Vertex3DNoTex2[Vertices.Length],
-				Indices = new int[Indices.Length]
+				Indices = new int[Indices.Length],
+				AnimationFrames = new List<VertData[]>(AnimationFrames.Count)
 			};
-			//mesh.animationFrames = this.animationFrames.map(a => a.clone());
 			Vertices.Select(v => v.Clone()).ToArray().CopyTo(mesh.Vertices, 0);
 			Indices.CopyTo(mesh.Indices, 0);
+			if (AnimationFrames.Count > 0) {
+				for (int i = 0; i < AnimationFrames.Count; i++) {
+					mesh.AnimationFrames.Add(new VertData[Vertices.Length]);
+					AnimationFrames[i].CopyTo(mesh.AnimationFrames[i], 0);
+				}
+			}
+
 			//mesh.faceIndexOffset = this.faceIndexOffset;
 			return mesh;
 		}
@@ -389,6 +396,16 @@ namespace VisualPinball.Engine.VPT
 			public Vertex3D GetNormal()
 			{
 				return new Vertex3D(Nx, Ny, Nz);
+			}
+
+			public UnityEngine.Vector3 ToUnityVector3()
+			{
+				return new UnityEngine.Vector3(X, Y, Z);
+			}
+
+			public UnityEngine.Vector3 ToUnityNormalVector3()
+			{
+				return new UnityEngine.Vector3(Nx, Ny, Nz);
 			}
 
 			public VertData Clone()
