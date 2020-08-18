@@ -6,15 +6,15 @@ namespace VisualPinball.Unity
 {
 	public static class SpinnerExtensions
 	{
-		public static SpinnerBehavior SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj, RenderObjectGroup rog)
+		public static SpinnerAuthoring SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<SpinnerBehavior>().SetItem(spinner);
+			var ic = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
 			obj.AddComponent<ConvertToEntity>();
 
 			var wire = obj.transform.Find("Plate").gameObject;
-			wire.AddComponent<SpinnerPlateBehavior>().SetItem(spinner, "Plate");
+			wire.AddComponent<SpinnerPlateAuthoring>().SetItem(spinner, "Plate");
 
-			return ic as SpinnerBehavior;
+			return ic as SpinnerAuthoring;
 		}
 	}
 }

@@ -6,11 +6,11 @@ namespace VisualPinball.Unity
 {
 	public static class SurfaceExtensions
 	{
-		public static SurfaceBehavior SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
+		public static SurfaceAuthoring SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<SurfaceBehavior>().SetItem(surface);
+			var ic = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
 			obj.AddComponent<ConvertToEntity>();
-			return ic as SurfaceBehavior;
+			return ic as SurfaceAuthoring;
 		}
 	}
 }

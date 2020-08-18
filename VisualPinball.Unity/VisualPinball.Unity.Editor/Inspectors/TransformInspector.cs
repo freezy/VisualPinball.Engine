@@ -13,7 +13,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private UnityEditor.Editor _defaultEditor;
 		private Transform _transform;
-		private IEditableItemBehavior _primaryItem;
+		private IEditableItemAuthoring _primaryItem;
 		private List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
 		private ItemDataTransformType _positionType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 			bool useDefault = true;
 			foreach (var t in targets) {
-				var item = (t as Transform)?.GetComponent<IEditableItemBehavior>();
+				var item = (t as Transform)?.GetComponent<IEditableItemAuthoring>();
 				if (item != null) {
 					useDefault = false;
 					if (_primaryItem == null) {
@@ -332,7 +332,7 @@ namespace VisualPinball.Unity.Editor
 		private class SecondaryItem
 		{
 			public Transform Transform;
-			public IEditableItemBehavior Item;
+			public IEditableItemAuthoring Item;
 			public Vector3 Offset;
 		}
 	}

@@ -6,11 +6,11 @@ namespace VisualPinball.Unity
 {
 	public static class RubberExtensions
 	{
-		public static RubberBehavior SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
+		public static RubberAuthoring SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<RubberBehavior>().SetItem(rubber);
+			var ic = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 			obj.AddComponent<ConvertToEntity>();
-			return ic as RubberBehavior;
+			return ic as RubberAuthoring;
 		}
 	}
 }

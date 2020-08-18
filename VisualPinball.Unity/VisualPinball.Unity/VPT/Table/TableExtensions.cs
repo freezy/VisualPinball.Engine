@@ -8,7 +8,7 @@ namespace VisualPinball.Unity
 	{
 		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<PlayfieldBehavior>();
+			var ic = obj.AddComponent<PlayfieldAuthoring>();
 			obj.AddComponent<ConvertToEntity>();
 			return ic;
 		}

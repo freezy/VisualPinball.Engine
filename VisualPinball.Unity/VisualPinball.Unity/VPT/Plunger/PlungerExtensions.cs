@@ -7,27 +7,27 @@ namespace VisualPinball.Unity
 {
 	public static class PlungerExtensions
 	{
-		public static PlungerBehavior SetupGameObject(this Plunger plunger, GameObject obj, RenderObjectGroup rog)
+		public static PlungerAuthoring SetupGameObject(this Plunger plunger, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<PlungerBehavior>().SetItem(plunger);
+			var ic = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
 
 			var rod = obj.transform.Find(PlungerMeshGenerator.RodName);
 			if (rod != null) {
-				rod.gameObject.AddComponent<PlungerRodBehavior>();
+				rod.gameObject.AddComponent<PlungerRodAuthoring>();
 			}
 
 			var spring = obj.transform.Find(PlungerMeshGenerator.SpringName);
 			if (spring != null) {
-				spring.gameObject.AddComponent<PlungerSpringBehavior>();
+				spring.gameObject.AddComponent<PlungerSpringAuthoring>();
 			}
 
 			var flat = obj.transform.Find(PlungerMeshGenerator.FlatName);
 			if (flat != null) {
-				flat.gameObject.AddComponent<PlungerFlatBehavior>();
+				flat.gameObject.AddComponent<PlungerFlatAuthoring>();
 			}
 
 			obj.AddComponent<ConvertToEntity>();
-			return ic as PlungerBehavior;
+			return ic as PlungerAuthoring;
 		}
 	}
 }

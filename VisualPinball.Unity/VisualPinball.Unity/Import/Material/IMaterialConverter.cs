@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 		/// <param name="table"></param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableBehavior table, StringBuilder debug = null);
+		UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null);
 
 	}
 }

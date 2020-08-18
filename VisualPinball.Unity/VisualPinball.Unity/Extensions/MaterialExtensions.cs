@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			return new StandardMaterialConverter();
 		}
 
-		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableBehavior table, StringBuilder debug = null)
+		public static UnityEngine.Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null)
 		{
 			if (table != null)
 			{

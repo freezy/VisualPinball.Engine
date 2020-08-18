@@ -5,10 +5,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerBehavior))]
+	[CustomEditor(typeof(PlungerAuthoring))]
 	public class PlungerInspector : ItemInspector
 	{
-		private PlungerBehavior _plunger;
+		private PlungerAuthoring _plunger;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutStateAndPhysics = true;
@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_plunger = target as PlungerBehavior;
+			_plunger = target as PlungerAuthoring;
 		}
 
 		public override void OnInspectorGUI()

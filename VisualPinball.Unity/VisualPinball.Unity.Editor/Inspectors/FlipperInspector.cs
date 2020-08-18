@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(FlipperBehavior))]
+	[CustomEditor(typeof(FlipperAuthoring))]
 	public class FlipperInspector : ItemInspector
 	{
 		private bool _foldoutColorsAndFormatting = true;
@@ -12,12 +12,12 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
-		private FlipperBehavior _flipper;
+		private FlipperAuthoring _flipper;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_flipper = (FlipperBehavior)target;
+			_flipper = (FlipperAuthoring)target;
 		}
 
 		public override void OnInspectorGUI()

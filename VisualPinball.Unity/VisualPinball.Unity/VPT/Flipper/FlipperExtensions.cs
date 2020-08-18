@@ -6,11 +6,11 @@ namespace VisualPinball.Unity
 {
 	public static class FlipperExtensions
 	{
-		public static FlipperBehavior SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
+		public static FlipperAuthoring SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<FlipperBehavior>().SetItem(flipper);
+			var ic = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
 			obj.AddComponent<ConvertToEntity>();
-			return ic as FlipperBehavior;
+			return ic as FlipperAuthoring;
 		}
 	}
 }

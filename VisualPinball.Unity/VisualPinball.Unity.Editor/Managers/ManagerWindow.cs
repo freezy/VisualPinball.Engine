@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor.Managers
 		protected virtual void RemoveData(string undoName, T data) { }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
 
-		protected TableBehavior _table;
+		protected TableAuthoring _table;
 		protected T _selectedItem;
 
 		private List<T> _data = new List<T>();
@@ -223,7 +223,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			return false;
 		}
 
-		protected void RenameReflectedFields(string undoName, IEditableItemBehavior item, List<MemberInfo> mis, string oldName, string newName)
+		protected void RenameReflectedFields(string undoName, IEditableItemAuthoring item, List<MemberInfo> mis, string oldName, string newName)
 		{
 			foreach (var mi in mis) {
 				string fieldVal = GetMemberValue(mi, item.ItemData);
@@ -254,7 +254,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		private void FindTable()
 		{
-			_table = GameObject.FindObjectOfType<TableBehavior>();
+			_table = GameObject.FindObjectOfType<TableAuthoring>();
 			_data.Clear();
 			if (_table != null) {
 				_data = CollectData();

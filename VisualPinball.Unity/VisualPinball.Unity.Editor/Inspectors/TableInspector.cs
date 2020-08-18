@@ -9,7 +9,7 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TableBehavior))]
+	[CustomEditor(typeof(TableAuthoring))]
 	[CanEditMultipleObjects]
 	public class TableInspector : UnityEditor.Editor
 	{
@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			var tableComponent = (TableBehavior) target;
+			var tableComponent = (TableAuthoring) target;
 			DrawEngineSelector("Physics Engine", ref tableComponent.physicsEngineId, ref _physicsEngines, ref _physicsEngineNames, ref _physicsEngineIndex);
 			DrawEngineSelector("Debug UI", ref tableComponent.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
 

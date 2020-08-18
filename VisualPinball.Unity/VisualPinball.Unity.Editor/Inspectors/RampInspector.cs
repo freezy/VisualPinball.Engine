@@ -3,10 +3,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RampBehavior))]
+	[CustomEditor(typeof(RampAuthoring))]
 	public class RampInspector : DragPointsItemInspector
 	{
-		private RampBehavior _ramp;
+		private RampAuthoring _ramp;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_ramp = target as RampBehavior;
+			_ramp = target as RampAuthoring;
 		}
 
 		public override void OnInspectorGUI()

@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 			// give each editable item a chance to update its fields
 			string undoName = "Rename Material";
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				RenameReflectedFields(undoName, item, item.TextureRefs, oldName, newName);
 			}
 			RecordUndo(undoName, data.TextureData);
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 			// collect list of in use textures
 			List<string> inUseTextures = new List<string>();
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				var texRefs = item.TextureRefs;
 				if (texRefs == null) { continue; }
 				foreach (var texRef in texRefs) {
@@ -135,7 +135,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			RecordUndo(undoName, textureData);
 
 			// update any items using this tex
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemBehavior>()) {
+			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				if (IsReferenced(item.TextureRefs, item.ItemData, textureData.Name)) {
 					item.MeshDirty = true;
 					Undo.RecordObject(item as UnityEngine.Object, undoName);
