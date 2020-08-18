@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
@@ -31,6 +32,10 @@ namespace VisualPinball.Unity
 
 		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, Mesh mesh)
 		{
+			if (vpMesh.Indices.Length > 65535) {
+				mesh.indexFormat = IndexFormat.UInt32;
+			}
+
 			// vertices
 			var vertices = new Vector3[vpMesh.Vertices.Length];
 			var normals = new Vector3[vpMesh.Vertices.Length];
