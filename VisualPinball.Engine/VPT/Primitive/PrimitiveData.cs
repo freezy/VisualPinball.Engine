@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
-		[BiffAnimation("M3AX", IsCompressed = true, Pos = 333)]
+		[BiffAnimation("M3AX", IsCompressed = true, Pos = 48)]
 		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]

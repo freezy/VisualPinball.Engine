@@ -111,9 +111,17 @@ namespace VisualPinball.Unity
 			mf.sharedMesh = mesh;
 
 			// apply material
-			var mr = obj.AddComponent<MeshRenderer>();
-			mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-			mr.enabled = ro.IsVisible;
+			if (ro.Mesh.AnimationFrames.Count > 0) {
+				var smr = obj.AddComponent<SkinnedMeshRenderer>();
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(table);
+				smr.sharedMesh = mesh;
+				smr.enabled = ro.IsVisible;
+			}
+			else {
+				var mr = obj.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
+				mr.enabled = ro.IsVisible;
+			}
 
 			return obj;
 		}
