@@ -44,9 +44,9 @@ namespace VisualPinball.Unity.Editor
 		public event Action TreeRebuilt;
 
 		/// <summary>
-		/// Attached <see cref="TableBehavior"/>, Set by calling OnHierarchyChange
+		/// Attached <see cref="TableAuthoring"/>, Set by calling OnHierarchyChange
 		/// </summary>
-		private TableBehavior _tableBehavior;
+		private TableAuthoring _tableAuthoring;
 
 		/// <summary>
 		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
@@ -54,12 +54,12 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
-		/// Is called by the <see cref="LayerEditor"/> when a new TableBehavior is created/deleted
+		/// Is called by the <see cref="LayerEditor"/> when a new TableAuthoring is created/deleted
 		/// </summary>
-		/// <param name="tableBehavior"></param>
-		public void OnHierarchyChange(TableBehavior tableBehavior)
+		/// <param name="tableAuthoring"></param>
+		public void OnHierarchyChange(TableAuthoring tableAuthoring)
 		{
-			_tableBehavior = tableBehavior;
+			_tableAuthoring = tableAuthoring;
 			_layers.Clear();
 			Rebuild();
 		}
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 		#region Construction
 
 		/// <summary>
-		/// Recursively runs through the <see cref="TableBehavior"/>'s children and
+		/// Recursively runs through the <see cref="TableAuthoring"/>'s children and
 		/// adds the game items' <see cref="MonoBehaviour"/> to the layers map. <p/>
 		///
 		/// It also rebuilds the tree model.
@@ -80,8 +80,8 @@ namespace VisualPinball.Unity.Editor
 										pair => pair.Value);
 
 			// add layers from table data
-			if (_tableBehavior != null) {
-				BuildLayersRecursively(_tableBehavior.gameObject);
+			if (_tableAuthoring != null) {
+				BuildLayersRecursively(_tableAuthoring.gameObject);
 			}
 
 			// create tree from table data
@@ -96,12 +96,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			for (var i = 0; i < gameObj.transform.childCount; ++i) {
 				var child = gameObj.transform.GetChild(i).gameObject;
-				AddToLayer(child.GetComponent<ILayerableItemBehavior>());
+				AddToLayer(child.GetComponent<ILayerableItemAuthoring>());
 				BuildLayersRecursively(child);
 			}
 		}
 
-		private void AddToLayer(ILayerableItemBehavior item)
+		private void AddToLayer(ILayerableItemAuthoring item)
 		{
 			if (item == null) {
 				return;
@@ -120,10 +120,10 @@ namespace VisualPinball.Unity.Editor
 			TreeRoot.Children.Clear();
 
 			// init with root element
-			if (_tableBehavior != null && _tableBehavior.Table != null) {
+			if (_tableAuthoring != null && _tableAuthoring.Table != null) {
 
 				// table node
-				var tableItem = new LayerTreeElement(_tableBehavior.Table) { Id = 0 };
+				var tableItem = new LayerTreeElement(_tableAuthoring.Table) { Id = 0 };
 				TreeRoot.AddChild(tableItem);
 
 				var layerCount = 1;
@@ -134,7 +134,7 @@ namespace VisualPinball.Unity.Editor
 					tableItem.AddChild(layerItem);
 
 					foreach (var item in pair.Value.OrderBy(behaviour => behaviour.name)) {
-						if (item is ILayerableItemBehavior layeredItem) {
+						if (item is ILayerableItemAuthoring layeredItem) {
 							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
 						}
 					}
@@ -202,7 +202,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="item">Tree layer element to update</param>
 		/// <param name="layerName">New layer name</param>
-		private static void ApplyLayerNameToItem(ILayerableItemBehavior item, string layerName)
+		private static void ApplyLayerNameToItem(ILayerableItemAuthoring item, string layerName)
 		{
 			if (item.EditorLayerName != layerName) {
 				if (item is MonoBehaviour behaviour) {

@@ -19,7 +19,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var table = Object.FindObjectOfType<TableBehavior>().Table;
+			var table = Object.FindObjectOfType<TableAuthoring>().Table;
 
 			foreach (var playable in table.Playables) {
 				playable.Init(table);

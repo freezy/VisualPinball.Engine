@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IEditableItemBehavior editable) || editable.IsLocked;
+			return !(target is IEditableItemAuthoring editable) || editable.IsLocked;
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity.Editor
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IEditableItemBehavior editable) {
+			if (rebuilt && target is IEditableItemAuthoring editable) {
 				editable.MeshDirty = true;
 			}
 		}
@@ -158,7 +158,7 @@ namespace VisualPinball.Unity.Editor
 
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
-			if (target is IEditableItemBehavior editable) {
+			if (target is IEditableItemAuthoring editable) {
 				editable.MeshDirty = true;
 				recordObjs.Add(this);
 			}
@@ -170,7 +170,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnInspectorGUI();
 
-			var editable = target as IEditableItemBehavior;
+			var editable = target as IEditableItemAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			if (editable == null || dragPointEditable == null) {
 				return;
@@ -222,7 +222,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IEditableItemBehavior editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IEditableItemAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -235,14 +235,14 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IEditableItemBehavior item) {
+			if (target is IEditableItemAuthoring item) {
 				item.MeshDirty = true;
 			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			var editable = target as IEditableItemBehavior;
+			var editable = target as IEditableItemAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 

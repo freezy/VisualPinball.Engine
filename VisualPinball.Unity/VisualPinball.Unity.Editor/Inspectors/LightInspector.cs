@@ -3,10 +3,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(LightBehavior))]
+	[CustomEditor(typeof(LightAuthoring))]
 	public class LightInspector : ItemInspector
 	{
-		private LightBehavior _light;
+		private LightAuthoring _light;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutStateAndPhysics = true;
@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_light = target as LightBehavior;
+			_light = target as LightAuthoring;
 		}
 
 		public override void OnInspectorGUI()

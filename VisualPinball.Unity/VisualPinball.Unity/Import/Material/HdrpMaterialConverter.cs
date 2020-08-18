@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			return Shader.Find("HDRP/Lit");
 		}
 
-		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableBehavior table, StringBuilder debug = null)
+		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null)
 		{
 			var unityMaterial = new UnityEngine.Material(GetShader())
 			{

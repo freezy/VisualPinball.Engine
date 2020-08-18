@@ -36,11 +36,11 @@ namespace VisualPinball.Unity.Editor
 		private Texture2D _lightIcon;
 		private Texture2D _primitiveIcon;
 
-		private static TableBehavior TableBehavior => FindObjectOfType<TableBehavior>();
+		private static TableAuthoring TableAuthoring => FindObjectOfType<TableAuthoring>();
 
 		private static Table Table {
 			get {
-				var tb = TableBehavior;
+				var tb = TableAuthoring;
 				return tb == null ? null : tb.Item;
 			}
 		}
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnGUI()
 		{
-			var existingTable = FindObjectOfType<TableBehavior>();
+			var existingTable = FindObjectOfType<TableAuthoring>();
 			if (existingTable == null && GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
 				var rootGameObj = new GameObject();
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
 
-			if (TableBehavior == null) {
+			if (TableAuthoring == null) {
 				GUI.enabled = false;
 			}
 
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static GameObject CreateRenderable(Table table, IRenderable renderable)
 		{
-			var tb = TableBehavior;
+			var tb = TableAuthoring;
 			var rog = renderable.GetRenderObjects(table, Origin.Original, false);
 			return VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tb, rog), tb);
 		}

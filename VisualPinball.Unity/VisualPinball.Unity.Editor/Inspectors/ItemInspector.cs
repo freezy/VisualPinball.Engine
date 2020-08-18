@@ -9,15 +9,15 @@ namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
     {
-		protected TableBehavior _table;
-		protected SurfaceBehavior _surface;
+		protected TableAuthoring _table;
+		protected SurfaceAuthoring _surface;
 
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
 
 		protected virtual void OnEnable()
 		{
-			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableBehavior>();
+			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 			EditorApplication.hierarchyChanged += OnHierarchyChange;
 		}
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnHierarchyChange()
 		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemBehavior item && bh != null) {
+			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
 				if (item.Name != bh.gameObject.name) {
 					item.Name = bh.gameObject.name;
 				}
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			var item = (target as IEditableItemBehavior);
+			var item = (target as IEditableItemAuthoring);
 			if (item == null) return;
 
 			EditorGUI.BeginChangeCheck();
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			var item = target as IEditableItemBehavior;
+			var item = target as IEditableItemAuthoring;
 			if (item == null) return;
 
 			GUILayout.Space(10);
@@ -185,13 +185,13 @@ namespace VisualPinball.Unity.Editor
 			if (_surface == null && _table != null) {
 				string currentFieldName = field;
 				if (currentFieldName != null && _table.Table.Has<Surface>(currentFieldName)) {
-					_surface = _table.gameObject.GetComponentsInChildren<SurfaceBehavior>(true)
+					_surface = _table.gameObject.GetComponentsInChildren<SurfaceAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}
 			}
 
 			EditorGUI.BeginChangeCheck();
-			_surface = (SurfaceBehavior)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceBehavior), true);
+			_surface = (SurfaceAuthoring)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceAuthoring), true);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
 				field = _surface != null ? _surface.name : "";
@@ -263,7 +263,7 @@ namespace VisualPinball.Unity.Editor
 			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				var item = (target as IEditableItemBehavior);
+				var item = (target as IEditableItemAuthoring);
 				if (item != null) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);

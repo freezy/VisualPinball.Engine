@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
 		private Table _table;
-		private TableBehavior _tb;
+		private TableAuthoring _tb;
 		private bool _applyPatch = true;
 
 		public void Convert(string fileName, Table table, bool applyPatch = true, string tableName = null)
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			go.AddComponent<Player>();
 		}
 
-		public static void ConvertRenderObject(IRenderable item, RenderObject ro, GameObject obj, TableBehavior table)
+		public static void ConvertRenderObject(IRenderable item, RenderObject ro, GameObject obj, TableAuthoring table)
 		{
 			if (ro.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");
@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static GameObject ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableBehavior tb)
+		public static GameObject ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableAuthoring tb)
 		{
 			var obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
@@ -166,7 +166,7 @@ namespace VisualPinball.Unity
 				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = obj.AddComponent<PrimitiveBehavior>().SetItem(primitive); break;
+				case Primitive primitive:			ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive); break;
 				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
 				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 		private void MakeSerializable(GameObject go, Table table)
 		{
 			// add table component (plus other data)
-			_tb = go.AddComponent<TableBehavior>();
+			_tb = go.AddComponent<TableAuthoring>();
 			_tb.SetItem(table);
 
 			var sidecar = _tb.GetOrCreateSidecar();

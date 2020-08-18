@@ -6,11 +6,11 @@ namespace VisualPinball.Unity
 {
 	public static class KickerExtensions
 	{
-		public static KickerBehavior SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj, RenderObjectGroup rog)
+		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<KickerBehavior>().SetItem(kicker);
+			var ic = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
 			obj.AddComponent<ConvertToEntity>();
-			return ic as KickerBehavior;
+			return ic as KickerAuthoring;
 		}
 	}
 }

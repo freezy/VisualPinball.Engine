@@ -2,10 +2,10 @@
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SpinnerBehavior))]
+	[CustomEditor(typeof(SpinnerAuthoring))]
 	public class SpinnerInspector : ItemInspector
 	{
-		private SpinnerBehavior _spinner;
+		private SpinnerAuthoring _spinner;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_spinner = target as SpinnerBehavior;
+			_spinner = target as SpinnerAuthoring;
 		}
 
 		public override void OnInspectorGUI()

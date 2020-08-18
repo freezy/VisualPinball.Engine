@@ -3,10 +3,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetBehavior))]
+	[CustomEditor(typeof(HitTargetAuthoring))]
 	public class HitTargetInspector : ItemInspector
 	{
-		private HitTargetBehavior _target;
+		private HitTargetAuthoring _target;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_target = target as HitTargetBehavior;
+			_target = target as HitTargetAuthoring;
 		}
 
 		public override void OnInspectorGUI()

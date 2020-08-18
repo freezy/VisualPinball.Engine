@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 		private readonly DebugFlipperSlider[] _flipperSliders = new DebugFlipperSlider[0];
 		private int _nextBallIdToNotifyDebugUI;
 
-		public void Init(TableBehavior tableBehavior)
+		public void Init(TableAuthoring tableAuthoring)
 		{
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			_flipperDataQuery = _entityManager.CreateEntityQuery(
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			visualPinballSimulationSystemGroup.Enabled = true;
 			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
 
-			_worldToLocal = tableBehavior.gameObject.transform.worldToLocalMatrix;
+			_worldToLocal = tableAuthoring.gameObject.transform.worldToLocalMatrix;
 		}
 
 		public void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,

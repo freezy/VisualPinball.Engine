@@ -3,10 +3,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateBehavior))]
+	[CustomEditor(typeof(GateAuthoring))]
 	public class GateInspector : ItemInspector
 	{
-		private GateBehavior _gate;
+		private GateAuthoring _gate;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_gate = target as GateBehavior;
+			_gate = target as GateAuthoring;
 		}
 
 		public override void OnInspectorGUI()

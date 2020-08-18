@@ -4,10 +4,10 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveBehavior))]
+	[CustomEditor(typeof(PrimitiveAuthoring))]
 	public class PrimitiveInspector : ItemInspector
 	{
-		private PrimitiveBehavior _prim;
+		private PrimitiveAuthoring _prim;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -15,7 +15,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_prim = target as PrimitiveBehavior;
+			_prim = target as PrimitiveAuthoring;
 		}
 
 		public override void OnInspectorGUI()
@@ -120,7 +120,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void ExportMesh()
 		{
-			var table = _prim.GetComponentInParent<TableBehavior>();
+			var table = _prim.GetComponentInParent<TableAuthoring>();
 			if (table != null) {
 				var rog = _prim.Item.GetRenderObjects(table.Table, Origin.Original, false);
 				if (rog != null && rog.RenderObjects.Length > 0) {

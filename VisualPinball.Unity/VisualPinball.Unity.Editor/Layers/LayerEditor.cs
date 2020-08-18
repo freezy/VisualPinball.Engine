@@ -153,7 +153,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void OnHierarchyChange()
 		{
-			_layerHandler.OnHierarchyChange(FindObjectOfType<TableBehavior>());
+			_layerHandler.OnHierarchyChange(FindObjectOfType<TableAuthoring>());
 			_treeView.Reload();
 		}
 

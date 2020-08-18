@@ -6,19 +6,19 @@ namespace VisualPinball.Unity
 {
 	public static class BumperExtensions
 	{
-		public static BumperBehavior SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj, RenderObjectGroup rog)
+		public static BumperAuthoring SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj, RenderObjectGroup rog)
 		{
-			var ic = obj.AddComponent<BumperBehavior>().SetItem(bumper);
+			var ic = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
 
 			obj.AddComponent<ConvertToEntity>();
 
 			var ring = obj.transform.Find("Ring").gameObject;
 			var skirt = obj.transform.Find("Skirt").gameObject;
 
-			ring.AddComponent<BumperRingBehavior>();
-			skirt.AddComponent<BumperSkirtBehavior>();
+			ring.AddComponent<BumperRingAuthoring>();
+			skirt.AddComponent<BumperSkirtAuthoring>();
 
-			return ic as BumperBehavior;
+			return ic as BumperAuthoring;
 		}
 	}
 }

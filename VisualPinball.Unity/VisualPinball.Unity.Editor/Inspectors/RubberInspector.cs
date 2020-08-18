@@ -2,10 +2,10 @@
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberBehavior))]
+	[CustomEditor(typeof(RubberAuthoring))]
 	public class RubberInspector : DragPointsItemInspector
 	{
-		private RubberBehavior _rubber;
+		private RubberAuthoring _rubber;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_rubber = target as RubberBehavior;
+			_rubber = target as RubberAuthoring;
 		}
 
 		public override void OnInspectorGUI()
