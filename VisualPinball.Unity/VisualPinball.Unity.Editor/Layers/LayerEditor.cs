@@ -107,31 +107,41 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="elements">the current selection in the TreeView</param>
 		private void OnContextClicked(LayerTreeElement[] elements)
 		{
-			GenericMenu menu = new GenericMenu();
-
-			menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer);
-			if (elements.Length == 1 && elements[0].Type == LayerTreeViewElementType.Layer) {
-				menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, elements[0]);
-
-			} else {
-				menu.AddDisabledItem(new GUIContent($"Delete Layer"), false);
-			}
-
 			if (elements.Length > 0) {
+				GenericMenu menu = new GenericMenu();
+
+				if (elements.Length == 1) {
+					switch (elements[0].Type) {
+						case LayerTreeViewElementType.Table: {
+							menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer);
+							break;
+						}
+
+						case LayerTreeViewElementType.Layer: {
+							menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, elements[0]);
+							break;
+						}
+
+						default: {
+							break;
+						}
+					}
+				}
+
 				bool onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
-				menu.AddSeparator("");
 				if (onlyItems) {
 					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements });
 
 					foreach (var layer in _layerHandler.Layers) {
 						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements, Layer = layer });
 					}
-				} else {
-					menu.AddDisabledItem(new GUIContent("Select only game items to enable layer assignment"));
+				}
+
+				if (menu.GetItemCount() > 0) {
+					menu.ShowAsContext();
 				}
 			}
 
-			menu.ShowAsContext();
 		}
 
 		private void CreateNewLayer()
