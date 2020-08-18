@@ -48,6 +48,9 @@ namespace VisualPinball.Unity.Editor
 
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
 
+			// Notify the tree That the table has changed (mainly to reset the state)
+			_layerHandler.TableChanged += _treeView.TableChanged;
+
 			// reload when the layer handler has rebuilt its tree
 			_layerHandler.TreeRebuilt += _treeView.Reload;
 
@@ -154,7 +157,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnHierarchyChange()
 		{
 			_layerHandler.OnHierarchyChange(FindObjectOfType<TableAuthoring>());
-			_treeView.Reload();
 		}
 
 		/// <summary>

@@ -36,6 +36,15 @@ namespace VisualPinball.Unity.Editor
 			customFoldoutYOffset = 3f;
 		}
 
+		internal void TableChanged()
+		{
+			state.selectedIDs.Clear();
+			state.expandedIDs = Root.GetChildren<LayerTreeElement>(e => e.Type == LayerTreeViewElementType.Table)
+									.Select(e => e.Id)
+									.ToList();
+			Reload();
+		}
+
 		private static readonly Dictionary<LayerTreeElementVisibility, Texture> VisibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
 			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
 			{ LayerTreeElementVisibility.HiddenMixed, EditorGUIUtility.IconContent("scenevis_hidden-mixed_hover").image},
@@ -139,6 +148,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
+
 		#endregion
 
 	}

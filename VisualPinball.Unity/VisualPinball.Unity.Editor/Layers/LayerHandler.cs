@@ -39,6 +39,11 @@ namespace VisualPinball.Unity.Editor
 		public LayerTreeElement TreeRoot { get; } = new LayerTreeElement { Depth = -1, Id = -1 };
 
 		/// <summary>
+		/// this event is fired when the current Table has changed
+		/// </summary>
+		public event Action TableChanged;
+
+		/// <summary>
 		/// this event is fired each time the Tree structure has been updated based on the data gathered from layer BiffData
 		/// </summary>
 		public event Action TreeRebuilt;
@@ -59,9 +64,13 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="tableAuthoring"></param>
 		public void OnHierarchyChange(TableAuthoring tableAuthoring)
 		{
+			var tableChanged = _tableBehavior != tableBehavior;
 			_tableAuthoring = tableAuthoring;
 			_layers.Clear();
 			Rebuild();
+			if (tableChanged) {
+				TableChanged?.Invoke();
+			}
 		}
 
 		#region Construction
