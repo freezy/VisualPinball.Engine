@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class BallBehavior : MonoBehaviour, IConvertGameObjectToEntity
+	public class BallAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 	{
 		private static int _id;
 		public static int NumBallsCreated { get => _id; }

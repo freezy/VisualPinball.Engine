@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 			in float3 localVel, in float scale, in float mass, in float radius)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			BallBehavior.CreateEntity(entityManager,
+			BallAuthoring.CreateEntity(entityManager,
 				mesh, material, worldPos, scale, localPos,
 					localVel, radius, mass);
 		}
