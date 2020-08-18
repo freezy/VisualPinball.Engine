@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Unity.VPT;
 
 namespace VisualPinball.Unity.Editor.Managers
 {

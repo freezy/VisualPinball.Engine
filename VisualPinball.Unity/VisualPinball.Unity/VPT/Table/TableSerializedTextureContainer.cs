@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.VPT.Table
 			return dict;
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<Texture> GetEnumerator()
 		{
 			foreach (var kvp in Textures) {

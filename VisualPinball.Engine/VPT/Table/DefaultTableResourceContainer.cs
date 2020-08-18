@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public void Add(T value) => _dict[value.Name.ToLower()] = value;
 		public bool Remove(T value) => _dict.Remove(value.Name.ToLower());
 
-		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public IEnumerator<T> GetEnumerator()
 		{
 			foreach (var kvp in _dict) {
