@@ -133,11 +133,11 @@ namespace VisualPinball.Unity
 
 		public void PushPendingCreateBallNotifications()
 		{
-			if (_nextBallIdToNotifyDebugUI == BallBehavior.NumBallsCreated)
+			if (_nextBallIdToNotifyDebugUI == BallAuthoring.NumBallsCreated)
 				return; // nothing to report
 
 			var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
-			int numBallsToReport = BallBehavior.NumBallsCreated - _nextBallIdToNotifyDebugUI;
+			int numBallsToReport = BallAuthoring.NumBallsCreated - _nextBallIdToNotifyDebugUI;
 			foreach (var entity in entities)
 			{
 				var ballData = _entityManager.GetComponentData<BallData>(entity);
@@ -150,7 +150,7 @@ namespace VisualPinball.Unity
 
 			// error checking
 			Assert.AreEqual(0, numBallsToReport);
-			_nextBallIdToNotifyDebugUI = BallBehavior.NumBallsCreated;
+			_nextBallIdToNotifyDebugUI = BallAuthoring.NumBallsCreated;
 		}
 	}
 }

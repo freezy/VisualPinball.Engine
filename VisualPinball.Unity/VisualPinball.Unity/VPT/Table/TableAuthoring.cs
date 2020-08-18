@@ -33,14 +33,13 @@ using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
-using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemAuthoring<Table, TableData>
 	{
-		public Engine.VPT.Table.Table Table => Item;
+		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public Patcher.Patcher Patcher { get; internal set; }
 
@@ -83,7 +82,7 @@ namespace VisualPinball.Unity
 			// that would just be everything at this level
 		}
 
-		protected override Engine.VPT.Table.Table GetItem()
+		protected override Table GetItem()
 		{
 			return RecreateTable();
 		}
