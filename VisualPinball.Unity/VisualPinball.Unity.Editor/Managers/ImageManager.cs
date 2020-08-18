@@ -5,8 +5,6 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VPT;
-using VisualPinball.Unity.VPT.Table;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor.Managers
@@ -39,7 +37,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.PrefixLabel("Replace Image");
-			var tex = (UnityEngine.Texture2D)EditorGUILayout.ObjectField(null, typeof(UnityEngine.Texture2D), false);
+			var tex = (Texture2D)EditorGUILayout.ObjectField(null, typeof(Texture2D), false);
 			EditorGUILayout.EndHorizontal();
 			if (EditorGUI.EndChangeCheck() && tex != null) {
 				ReplaceImageFromAsset(_selectedItem.TextureData, tex);
@@ -197,7 +195,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			}
 		}
 
-		private void ReplaceImageFromAsset(TextureData textureData, UnityEngine.Texture2D tex)
+		private void ReplaceImageFromAsset(TextureData textureData, Texture2D tex)
 		{
 			string path = AssetDatabase.GetAssetPath(tex);
 			if (!string.IsNullOrEmpty(path)) {

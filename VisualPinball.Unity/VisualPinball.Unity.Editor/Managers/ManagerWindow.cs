@@ -254,7 +254,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		private void FindTable()
 		{
-			_table = GameObject.FindObjectOfType<TableAuthoring>();
+			_table = FindObjectOfType<TableAuthoring>();
 			_data.Clear();
 			if (_table != null) {
 				_data = CollectData();
@@ -286,7 +286,7 @@ namespace VisualPinball.Unity.Editor.Managers
 		// check is a concrete class implements the given method name
 		private bool IsImplemented(string methodName)
 		{
-			var mi = this.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			var mi = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			return mi != null && mi.GetBaseDefinition().DeclaringType != mi.DeclaringType;
 		}
 	}

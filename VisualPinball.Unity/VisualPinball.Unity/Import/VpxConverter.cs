@@ -1,5 +1,6 @@
 ﻿// ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable RedundantAssignment
 
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
 		private Table _table;
-		private TableAuthoring _tb;
+		private TableAuthoring _tableAuthoring;
 		private bool _applyPatch = true;
 
 		public void Convert(string fileName, Table table, bool applyPatch = true, string tableName = null)
@@ -69,8 +70,7 @@ namespace VisualPinball.Unity
 					.Replace("%INFONAME%", _table.InfoName);
 			}
 
-
-			_tb.Patcher = new Patcher.Patcher(_table, fileName);
+			_tableAuthoring.Patcher = new Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
 			var materials = new Dictionary<string, PbrMaterial>();
@@ -133,7 +133,7 @@ namespace VisualPinball.Unity
 					parent.transform.parent = gameObject.transform;
 					_parents[ro.Parent] = parent;
 				}
-				ConvertRenderObjects(renderable, ro, _parents[ro.Parent], _tb);
+				ConvertRenderObjects(renderable, ro, _parents[ro.Parent], _tableAuthoring);
 			}
 		}
 
@@ -189,10 +189,10 @@ namespace VisualPinball.Unity
 		private void MakeSerializable(GameObject go, Table table)
 		{
 			// add table component (plus other data)
-			_tb = go.AddComponent<TableAuthoring>();
-			_tb.SetItem(table);
+			_tableAuthoring = go.AddComponent<TableAuthoring>();
+			_tableAuthoring.SetItem(table);
 
-			var sidecar = _tb.GetOrCreateSidecar();
+			var sidecar = _tableAuthoring.GetOrCreateSidecar();
 
 			foreach (var key in table.TableInfo.Keys) {
 				sidecar.tableInfo[key] = table.TableInfo[key];

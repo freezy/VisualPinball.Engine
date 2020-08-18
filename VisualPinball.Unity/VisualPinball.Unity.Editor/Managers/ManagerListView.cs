@@ -52,11 +52,11 @@ namespace VisualPinball.Unity.Editor.Managers
 			_columns.Sort((a, b) => a.Order.CompareTo(b.Order));
 
 			var headerState = new MultiColumnHeaderState(_columns.Select(c => c.State).ToArray());
-			this.multiColumnHeader = new MultiColumnHeader(headerState);
-			this.multiColumnHeader.SetSorting(0, true);
-			this.multiColumnHeader.sortingChanged += SortingChanged;
-			this.showAlternatingRowBackgrounds = true;
-			this.showBorder = true;
+			multiColumnHeader = new MultiColumnHeader(headerState);
+			multiColumnHeader.SetSorting(0, true);
+			multiColumnHeader.sortingChanged += SortingChanged;
+			showAlternatingRowBackgrounds = true;
+			showBorder = true;
 
 			SetData(data);
 			if (GetRows().Count > 0) {
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor.Managers
 				items.Add(new RowData(i, _data[i]));
 			}
 
-			var sortedColumns = this.multiColumnHeader.state.sortedColumns;
+			var sortedColumns = multiColumnHeader.state.sortedColumns;
 			if (sortedColumns.Length > 0) {
 				items.Sort((baseA, baseB) => {
 					var a = baseA as RowData;
