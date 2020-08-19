@@ -10,7 +10,8 @@ jobs:
           run: |
              nuget restore
              dotnet build -c Release
-             ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+        - name: Build Contents
+          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
           shell: bash
         - name: Test
           run: |
@@ -25,12 +26,13 @@ jobs:
         - name: Build
           run: |
              nuget restore
-             dotnet build -c Release -p:Platform=x86
-             ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+             dotnet build -c Release -p:PlatformTarget=x86
+        - name: Build Contents
+          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
           shell: bash
         - name: Test
           run: |
-             $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+             $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe --x86 VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
           shell: bash
 
     visualpinball-engine-osx-x64:
@@ -42,7 +44,8 @@ jobs:
           run: |
              nuget restore
              msbuild /p:Configuration=Release
-             ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+        - name: Build Contents
+          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
         - name: Test
           run: |
              mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
@@ -56,7 +59,8 @@ jobs:
           run: |
              nuget restore
              msbuild /p:Configuration=Release
-             ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+        - name: Build Contents
+          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
         - name: Test
           run: |
              mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
