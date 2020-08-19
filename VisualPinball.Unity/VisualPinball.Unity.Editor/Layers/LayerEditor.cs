@@ -2,6 +2,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Utils.Dialogs;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -54,6 +55,12 @@ namespace VisualPinball.Unity.Editor
 			// reload when the layer handler has rebuilt its tree
 			_layerHandler.TreeRebuilt += _treeView.Reload;
 
+			// notify the treeview to set selection on the new layer
+			_layerHandler.LayerCreated += _treeView.LayerCreated;
+
+			// notify the treeview to set focus on the layer where the items are assigned and to set seleiton on items
+			_layerHandler.ItemsAssigned += _treeView.ItemsAssigned;
+
 			// trigger layer updates when layer was renamed
 			_treeView.LayerRenamed += _layerHandler.OnLayerRenamed;
 
@@ -89,7 +96,8 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
 			if (GUILayout.Button(	new GUIContent(EditorGUIUtility.IconContent("CreateAddNew").image, "Create new layer"), 
 									new GUIStyle(GUI.skin.FindStyle("RL FooterButton")) { fixedWidth = EditorStyles.toolbar.fixedHeight, fixedHeight = EditorStyles.toolbar.fixedHeight })) {
-				_layerHandler.CreateNewLayer();
+				CreateNewLayerWithValidation(Event.current.mousePosition);
+				GUIUtility.ExitGUI();
 			}
 			_treeView.searchString = _searchField.OnGUI(_treeView.searchString);
 			GUILayout.EndHorizontal();
@@ -113,12 +121,12 @@ namespace VisualPinball.Unity.Editor
 				if (elements.Length == 1) {
 					switch (elements[0].Type) {
 						case LayerTreeViewElementType.Table: {
-							menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer);
+							menu.AddItem(new GUIContent("<New Layer>"), false, CreateNewLayer, new LayerMenuContext { MousePosition = Event.current.mousePosition });
 							break;
 						}
 
 						case LayerTreeViewElementType.Layer: {
-							menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, elements[0]);
+							menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, new LayerMenuContext { Elements = elements } );
 							break;
 						}
 
@@ -130,35 +138,67 @@ namespace VisualPinball.Unity.Editor
 
 				bool onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
 				if (onlyItems) {
-					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements });
+					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerMenuContext { MousePosition = Event.current.mousePosition, Elements = elements });
 
 					foreach (var layer in _layerHandler.Layers) {
-						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToLayer, new LayerAssignMenuContext { Elements = elements, Layer = layer });
+						menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/{layer}"), false, AssignToLayer, new LayerMenuContext { MousePosition = Event.current.mousePosition, Elements = elements, Layer = layer });
 					}
 				}
 
 				if (menu.GetItemCount() > 0) {
 					menu.ShowAsContext();
+					Event.current.Use();
 				}
 			}
 
 		}
 
-		private void CreateNewLayer()
+		private void CreateNewLayer(object context)
 		{
-			_layerHandler.CreateNewLayer();
+			if (context is LayerMenuContext createContext) {
+				CreateNewLayerWithValidation(createContext.MousePosition);
+			}
 		}
 
-		private void DeleteLayer(object element)
+		private void DeleteLayer(object context)
 		{
-			_layerHandler.DeleteLayer(((LayerTreeElement) element).Id);
+			if (context is LayerMenuContext deleteContext) {
+				_layerHandler.DeleteLayer(deleteContext.Elements[0].Id);
+			}
 		}
 
 		private void AssignToLayer(object context)
 		{
-			if (context is LayerAssignMenuContext assignContext) {
-				_layerHandler.AssignToLayer(assignContext.Elements, assignContext.Layer);
+			if (context is LayerMenuContext assignContext) {
+
+				var layerName = assignContext.Layer;
+				if (string.IsNullOrEmpty(layerName)) {
+					layerName = CreateNewLayerWithValidation(assignContext.MousePosition);
+				}
+
+				if (!string.IsNullOrEmpty(layerName)) {
+					_layerHandler.AssignToLayer(assignContext.Elements, layerName);
+				}
 			}
+		}
+
+		private string CreateNewLayerWithValidation(Vector2 mousePosition)
+		{
+			var dialog = TextInputDialog.Create(titleContent: new GUIContent("Create New Layer"),
+												position: new Rect(mousePosition.x, mousePosition.y, 400f, 108f),
+												message: "Please enter a valid layer name.\nCannot have several layers with the same name.",
+												inputLabel: "Layer Name",
+												text: _layerHandler.GetNewLayerValidName(),
+												validationDelegate: _layerHandler.ValidateNewLayerName
+												);
+
+			dialog.ShowModal();
+			if (dialog.TextValidated) {
+				_layerHandler.CreateNewLayer(dialog.Text);
+				return dialog.Text;
+			}
+
+			return null;
 		}
 
 		/// <summary>
@@ -186,10 +226,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// This context will pass information for Layer assignment menu items (can only pass an object as userData)
+		/// This context will pass information for Layer creation/deletion/assignment (can only pass an object as userData)
 		/// </summary>
-		private class LayerAssignMenuContext
+		private class LayerMenuContext
 		{
+			public Vector2 MousePosition;
 			public LayerTreeElement[] Elements;
 			public string Layer;
 		}

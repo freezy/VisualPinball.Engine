@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -36,14 +37,39 @@ namespace VisualPinball.Unity.Editor
 			customFoldoutYOffset = 3f;
 		}
 
+		private void ExpandTableItem()
+		{
+			SetExpanded(Root.GetChildren(e => e.Type == LayerTreeViewElementType.Table)
+									.Select(e => e.Id)
+									.ToList().First(), true);
+		}
+
+		#region LayerHandler Events
 		internal void TableChanged()
 		{
-			state.selectedIDs.Clear();
-			state.expandedIDs = Root.GetChildren<LayerTreeElement>(e => e.Type == LayerTreeViewElementType.Table)
-									.Select(e => e.Id)
-									.ToList();
 			Reload();
+			SetSelection(new List<int>());
+			CollapseAll();
+			ExpandTableItem();
 		}
+		internal void LayerCreated(LayerTreeElement layer)
+		{
+			Reload();
+			SetSelection(new List<int>() { layer.Id });
+			SetFocusAndEnsureSelectedItem();
+		}
+
+		internal void ItemsAssigned(LayerTreeElement layer, LayerTreeElement[] items)
+		{
+			Reload();
+			CollapseAll();
+			ExpandTableItem();
+			SetExpanded(layer.Id, true);
+			SetSelection(items.Select(i => i.Id).ToList(), TreeViewSelectionOptions.RevealAndFrame);
+			SetFocusAndEnsureSelectedItem();
+		}
+
+		#endregion
 
 		private static readonly Dictionary<LayerTreeElementVisibility, Texture> VisibilityToIcon = new Dictionary<LayerTreeElementVisibility, Texture>() {
 			{ LayerTreeElementVisibility.Hidden, EditorGUIUtility.IconContent("scenevis_hidden_hover").image},
@@ -97,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			// Set the backend name and reload the tree to reflect the new model
 			if (args.acceptedRename) {
-				var layerElement = Root.Find<LayerTreeElement>(args.itemID);
+				var layerElement = Root.Find(args.itemID);
 				if (layerElement != null && layerElement.Type == LayerTreeViewElementType.Layer) {
 					LayerRenamed?.Invoke(layerElement, args.newName);
 					Reload();

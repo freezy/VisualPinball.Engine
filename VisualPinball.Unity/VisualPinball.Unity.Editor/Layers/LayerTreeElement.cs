@@ -211,9 +211,9 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
-		public override void ReParent(TreeElement newParent)
+		public override TreeElement ReParent(TreeElement newParent)
 		{
-			base.ReParent(newParent);
+			var oldParent = base.ReParent(newParent);
 			// Update Layer BiffData when reparenting an Item on a Layer
 			if (Type == LayerTreeViewElementType.Item &&
 					newParent is LayerTreeElement layerParent &&
@@ -223,6 +223,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				Item.EditorLayerName = layerParent.LayerName;
 			}
+			return oldParent;
 		}
 	}
 
