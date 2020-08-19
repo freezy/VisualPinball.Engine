@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 
 		public static unsafe void Create(BlobBuilder builder, Hit3DPoly src, ref BlobPtr<Collider> dest)
 		{
-			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<Poly3DCollider>>(ref dest);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Poly3DCollider>>(ref dest);
 			var totalSize = sizeof(Poly3DCollider) + sizeof(float3) * src.Rgv.Length;
 			totalSize = (totalSize + 15) & 0x7ffffff0;
 

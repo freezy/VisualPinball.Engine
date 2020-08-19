@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 
 		public static void Create(BlobBuilder builder, HitTriangle src, ref BlobPtr<Collider> dest)
 		{
-			ref var trianglePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref dest);
+			ref var trianglePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref trianglePtr);
 			collider.Init(src);
 		}

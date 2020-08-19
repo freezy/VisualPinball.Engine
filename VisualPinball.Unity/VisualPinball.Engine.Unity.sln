@@ -14,6 +14,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine", "..\VisualPinball.Engine\VisualPinball.Engine.csproj", "{18A13253-671A-4092-A787-8AB04FEA25A8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{06C1F94F-D7A6-4BB5-BB0A-9A45B0F6F503}"
+ProjectSection(SolutionItems) = preProject
+	..\README.md = ..\README.md
+	..\package.json = ..\package.json
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

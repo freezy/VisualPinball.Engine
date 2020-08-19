@@ -19,7 +19,7 @@ namespace VisualPinball.Unity
 
 		public static void Create(BlobBuilder builder, HitLineZ src, ref BlobPtr<Collider> dest)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(src);
 		}

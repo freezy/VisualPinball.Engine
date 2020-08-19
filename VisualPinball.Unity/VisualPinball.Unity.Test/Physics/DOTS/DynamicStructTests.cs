@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.Test
 
 		public static void Create(BlobBuilder builder, ref BlobPtr<Collider> dest, float2 v1, float2 v2, float zLow, float zHigh)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(v1, v2, zLow, zHigh);
 		}
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var dest = default(LineCollider);
 			dest.Init(v1, v2, zLow, zHigh);
-			return UnsafeUtilityEx.As<LineCollider, Collider>(ref dest);
+			return UnsafeUtility.As<LineCollider, Collider>(ref dest);
 		}
 
 		private void Init(float2 v1, float2 v2, float zLow, float zHigh)
@@ -135,7 +135,7 @@ namespace VisualPinball.Unity.Test
 
 		public static void Create(BlobBuilder builder, ref BlobPtr<Collider> dest, float3 pos)
 		{
-			ref var linePtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
+			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(pos);
 		}

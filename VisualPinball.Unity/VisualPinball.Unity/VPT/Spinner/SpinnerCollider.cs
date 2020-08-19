@@ -16,7 +16,7 @@ namespace VisualPinball.Unity
 
 		public static void Create(BlobBuilder builder, SpinnerHit src, ref BlobPtr<Collider> dest)
 		{
-			ref var ptr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref dest);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src);
 		}

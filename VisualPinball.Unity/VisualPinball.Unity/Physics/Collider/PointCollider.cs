@@ -17,7 +17,7 @@ namespace VisualPinball.Unity
 
 		public static void Create(BlobBuilder builder, HitPoint src, ref BlobPtr<Collider> dest)
 		{
-			ref var colliderPtr = ref UnsafeUtilityEx.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
+			ref var colliderPtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref colliderPtr);
 			collider.Init(src);
 		}

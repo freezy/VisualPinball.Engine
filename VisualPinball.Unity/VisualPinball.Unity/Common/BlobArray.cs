@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			public ref T this[int index] => ref UnsafeUtilityEx.ArrayElementAsRef<T>((byte*)m_OffsetPtr + *m_OffsetPtr, index);
+			public ref T this[int index] => ref UnsafeUtility.ArrayElementAsRef<T>((byte*)m_OffsetPtr + *m_OffsetPtr, index);
 
 			public Enumerator GetEnumerator() => new Enumerator(m_OffsetPtr, Length);
 
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 				private readonly int m_Length;
 				private int m_Index;
 
-				public T Current => UnsafeUtilityEx.ArrayElementAsRef<T>((byte*)m_OffsetPtr + *m_OffsetPtr, m_Index);
+				public T Current => UnsafeUtility.ArrayElementAsRef<T>((byte*)m_OffsetPtr + *m_OffsetPtr, m_Index);
 
 				public Enumerator(int* offsetPtr, int length)
 				{
