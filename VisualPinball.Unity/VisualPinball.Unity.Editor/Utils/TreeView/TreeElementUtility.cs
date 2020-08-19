@@ -16,17 +16,17 @@ namespace VisualPinball.Unity.Editor
 		/// This helper try to find an element with the provided id in this TreeElement's hierarchy, including itself
 		/// </summary>
 		/// <typeparam name="T">a TreeElement generic class</typeparam>
-		/// <param name="element">the root element for the search</param>
-		/// <param name="id">the id of the searched element</param>
+		/// <param name="rootElement">the root element for the search</param>
+		/// <param name="filter">the filtering predicate</param>
 		/// <returns>casted TreeElement as T, or null if not found</returns>
-		public static T Find<T>(this TreeElement element, ChildFilter<T> filter) where T : TreeElement
+		public static T Find<T>(this T rootElement, ChildFilter<T> filter) where T : TreeElement
 		{
-			if (filter.Invoke(element as T)) {
-				return (T)element;
+			if (filter.Invoke(rootElement as T)) {
+				return rootElement;
 			}
 
-			foreach (var child in element.Children) {
-				var itFound = child.Find<T>(filter);
+			foreach (var child in rootElement.Children) {
+				var itFound = ((T)child).Find<T>(filter);
 				if (itFound != null) {
 					return itFound;
 				}
@@ -37,10 +37,19 @@ namespace VisualPinball.Unity.Editor
 		/// Find helper to search an element within provided TreeElement hierarchy based on its Id
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
-		/// <param name="element">the root element for the search</param>
-		/// <param name="id"></param>
+		/// <param name="rootElement">the root element for the search</param>
+		/// <param name="id">the id of the element to search</param>
 		/// <returns></returns>
-		public static T Find<T>(this TreeElement element, int id) where T : TreeElement => Find<T>(element, d => d.Id == id);
+		public static T Find<T>(this T rootElement, int id) where T : TreeElement => Find<T>(rootElement, d => d.Id == id);
+
+		/// <summary>
+		/// Find helper to search an element within provided TreeElement hierarchy 
+		/// </summary>
+		/// <typeparam name="T">a generic TreeElement child class</typeparam>
+		/// <param name="rootElement">the root element for the search</param>
+		/// <param name="element">the element to search</param>
+		/// <returns></returns>
+		public static T Find<T>(this T rootElement, T element) where T : TreeElement => Find<T>(rootElement, d => d == element);
 
 		/// <summary>
 		/// Will gather all children from this TreeElement which pass the provided filter
@@ -49,14 +58,14 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="element">the root element for the parsing</param>
 		/// <param name="filter">a filtering delegate</param>
 		/// <returns>an array of TreeElement as T type</returns>
-		public static T[] GetChildren<T>(this TreeElement element, ChildFilter<T> filter) where T : TreeElement
+		public static T[] GetChildren<T>(this T rootElement, ChildFilter<T> filter) where T : TreeElement
 		{
 			List<T> children = new List<T>();
-			foreach (var child in element.Children) {
+			foreach (var child in rootElement.Children) {
 				if (filter.Invoke(child as T)) {
 					children.Add(child as T);
 				}
-				children.AddRange(child.GetChildren<T>(filter));
+				children.AddRange(((T)child).GetChildren<T>(filter));
 			}
 			return children.ToArray();
 		}
@@ -65,9 +74,9 @@ namespace VisualPinball.Unity.Editor
 		/// Will gather all children from this TreeElement 
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
-		/// <param name="element">the root element for the parsing</param>
+		/// <param name="rootElement">the root element for the parsing</param>
 		/// <returns>an array of TreeElement as T type</returns>
-		public static T[] GetChildren<T>(this TreeElement element) where T : TreeElement => GetChildren<T>(element, d => true);
+		public static T[] GetChildren<T>(this T rootElement) where T : TreeElement => GetChildren<T>(rootElement, d => true);
 		#endregion
 
 		#region Tree structure helpers

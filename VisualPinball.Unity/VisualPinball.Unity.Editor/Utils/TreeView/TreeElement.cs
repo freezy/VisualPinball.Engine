@@ -52,12 +52,14 @@ namespace VisualPinball.Unity.Editor
 			child?.ReParent(this);
 		}
 
-		public virtual void ReParent(TreeElement newParent)
+		public virtual TreeElement ReParent(TreeElement newParent)
 		{
-			Parent?.Children.Remove(this);
+			var oldParent = Parent;
+			oldParent?.Children.Remove(this);
 			newParent?.Children.Add(this);
 			Parent = newParent;
 			UpdateDepth();
+			return oldParent;
 		}
 
 		private void UpdateDepth()
