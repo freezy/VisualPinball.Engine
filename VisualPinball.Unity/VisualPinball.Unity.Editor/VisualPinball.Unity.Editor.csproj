@@ -8,11 +8,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-	<LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
@@ -24,19 +20,19 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor">
-      <HintPath>..\Vendor\.unity\UnityEditor.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEditor.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

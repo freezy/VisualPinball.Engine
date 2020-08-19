@@ -8,12 +8,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-	<LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
@@ -25,43 +20,43 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
-      <HintPath>..\Vendor\.unity\UnityEngine.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections">
-      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Collections.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics.Extensions">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Mathematics.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics.Extensions.Hybrid">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Entities">
-      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Entities.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Entities.Hybrid">
-      <HintPath>..\Vendor\.unity\Unity.Entities.Hybrid.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Entities.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Rendering.Hybrid">
-      <HintPath>..\Vendor\.unity\Unity.Rendering.Hybrid.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Rendering.Hybrid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Transforms">
-      <HintPath>..\Vendor\.unity\Unity.Transforms.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Transforms.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

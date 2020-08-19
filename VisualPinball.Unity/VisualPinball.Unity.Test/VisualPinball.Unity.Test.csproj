@@ -8,12 +8,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-	<LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
@@ -29,16 +24,16 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\Vendor\.unity\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections">
-      <HintPath>..\Vendor\.unity\Unity.Collections.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Collections.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
-      <HintPath>..\Vendor\.unity\Unity.Mathematics.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Entities">
-      <HintPath>..\Vendor\.unity\Unity.Entities.dll</HintPath>
+      <HintPath>..\Plugins\.unity\Unity.Entities.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

@@ -8,20 +8,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-    <Platforms>x64;x86</Platforms>
-	<LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <PlatformTarget>x86</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
@@ -38,11 +25,11 @@
     <None Remove="Textures\BumperSkirt.png" />
     <EmbeddedResource Include="Textures\BumperSkirt.png" />
   </ItemGroup>
-  <Target Name="DeployVendor" AfterTargets="CoreBuild">
+  <Target Name="DeployPlugins" AfterTargets="CoreBuild">
     <ItemGroup>
       <BuildFiles Include="$(OutDir)*.dll" />
     </ItemGroup>
-    <Message Text="DeployVendor: @(BuildFiles)" />
-    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Vendor" SkipUnchangedFiles="true" />
+    <Message Text="DeployPlugins: @(BuildFiles)" />
+    <Copy SourceFiles="@(BuildFiles)" DestinationFolder="..\VisualPinball.Unity\Plugins" SkipUnchangedFiles="true" />
   </Target>
 </Project>
