@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="tableAuthoring"></param>
 		public void OnHierarchyChange(TableAuthoring tableAuthoring)
 		{
-			var tableChanged = _tableBehavior != tableBehavior;
+			var tableChanged = _tableAuthoring != tableAuthoring;
 			_tableAuthoring = tableAuthoring;
 			_layers.Clear();
 			Rebuild();
@@ -353,7 +353,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="layerName">The first selected layer provided by the <see cref="LayerTreeView"/></param>
 		internal void AssignToLayer(GameObject obj, string layerName)
 		{
-			var layerable = obj.GetComponent<ILayerableItemBehavior>();
+			var layerable = obj.GetComponent<ILayerableItemAuthoring>();
 			if (layerable != null) {
 				var layer = TreeRoot.Find(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
 				AssignToLayer(new LayerTreeElement[] { new LayerTreeElement(layerable) { Id = obj.GetInstanceID() } }, layer);
