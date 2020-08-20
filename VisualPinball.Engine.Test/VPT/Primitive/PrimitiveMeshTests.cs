@@ -49,7 +49,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 
 			rog.TransformationMatrix.GetTranslation().X.Should().Be(505f);
 			rog.TransformationMatrix.GetTranslation().Y.Should().Be(1305f);
-			rog.TransformationMatrix.GetTranslation().Z.Should().Be(0f);
+			rog.TransformationMatrix.GetTranslation().Z.Should().Be(_table.TableHeight);
 		}
 
 		[Test]

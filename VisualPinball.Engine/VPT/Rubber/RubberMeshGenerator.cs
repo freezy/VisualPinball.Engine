@@ -106,7 +106,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 				prevB = biNormal;
 				var u = i * invNr;
 				for (var j = 0; j < numSegments; j++) {
-					var v = (j + u) * invNs;
+					var v = ((float)j + u) * invNs;
 					var tmp = Vertex3D.GetRotatedAxis(j * (360.0f * invNs), tangent, normal)
 						.MultiplyScalar(_data.Thickness * 0.5f);
 

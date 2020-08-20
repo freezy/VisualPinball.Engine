@@ -25,15 +25,9 @@ namespace VisualPinball.Engine.VPT.Table
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
 
-		/// <summary>
-		/// We set the table height to always 0 and adapt the camera accordingly.
-		/// </summary>
-		public float TableHeight => 0f;
+		public float TableHeight => Data.TableHeight;
 
-		/// <summary>
-		/// Since the table height is always 0, the glass height needs to be adapted.
-		/// </summary>
-		public float GlassHeight => Data.GlassHeight - Data.TableHeight;
+		public float GlassHeight => Data.GlassHeight;
 		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;

@@ -199,8 +199,8 @@ namespace VisualPinball.Engine.Math
 		{
 			var u = axis.Clone().Normalize();
 
-			var sinAngle = MathF.Sin(MathF.PI / 180.0f * angle);
-			var cosAngle = MathF.Cos(MathF.PI / 180.0f * angle);
+			var sinAngle = MathF.Sin((float)(System.Math.PI / 180.0)*angle);
+			var cosAngle = MathF.Cos((float)(System.Math.PI / 180.0)*angle);
 			var oneMinusCosAngle = 1.0f - cosAngle;
 
 			var rotMatrixRow0 = new Vertex3D();

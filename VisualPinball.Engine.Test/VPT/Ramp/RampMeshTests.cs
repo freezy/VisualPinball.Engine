@@ -58,9 +58,9 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			var ramp = _table.Ramp(name);
 			var rampMeshes = ramp.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 #if WIN64
-			var threshold = 0.0001f;
+			const float threshold = 0.0001f;
 #else
-			var threshold = 4.5f;
+			const float threshold = 4.5f;
 #endif
 			AssertObjMesh(_obj, ramp.Name, rampMeshes, threshold);
 		}
