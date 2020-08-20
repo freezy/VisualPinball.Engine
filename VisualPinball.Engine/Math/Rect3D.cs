@@ -15,6 +15,8 @@ namespace VisualPinball.Engine.Math
 		public float Height => MathF.Abs(Top - Bottom);
 		public float Depth => MathF.Abs(ZLow - ZHigh);
 
+		public Vertex3D Center => new Vertex3D(Right - Left, Bottom - Top, ZHigh - ZLow);
+
 		public Rect3D(bool init)
 		{
 			Left = Constants.FloatMax;
