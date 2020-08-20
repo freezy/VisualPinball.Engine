@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -30,6 +31,11 @@ namespace VisualPinball.Unity.Editor
 		/// The handler, which bridges the table data with the tree view data.
 		/// </summary>
 		private LayerHandler _layerHandler;
+
+		/// <summary>
+		/// Will synchronize the selection with changes from global Selection
+		/// </summary>
+		private bool _synchronizeSelection = false;
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
@@ -84,6 +90,9 @@ namespace VisualPinball.Unity.Editor
 			// catch ToolBoxEditor item creation event to assign to the currently selected layer
 			ToolboxEditor.ItemCreated += ToolBoxItemCreated;
 
+			// will notify the TreeView if Synchronize Selection is set
+			Selection.selectionChanged += SelectionChanged;
+
 			// trigger handler update on enable
 			OnHierarchyChange();
 		}
@@ -99,6 +108,7 @@ namespace VisualPinball.Unity.Editor
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 			ToolboxEditor.ItemCreated -= ToolBoxItemCreated;
+			Selection.selectionChanged -= SelectionChanged;
 		}
 
 		private void OnGUI()
@@ -112,12 +122,23 @@ namespace VisualPinball.Unity.Editor
 			_treeView.searchString = _searchField.OnGUI(_treeView.searchString);
 			GUILayout.EndHorizontal();
 
+			_synchronizeSelection = GUILayout.Toggle(_synchronizeSelection, "Sync to hierarchy selection");
+
 			_treeView.OnGUI(new Rect(GUI.skin.window.margin.left, 
-									 EditorStyles.toolbar.fixedHeight, 
+									 EditorStyles.toolbar.fixedHeight * 2f, 
 									 position.width - GUI.skin.window.margin.horizontal, 
-									 position.height - EditorStyles.toolbar.fixedHeight - GUI.skin.window.margin.vertical));
+									 position.height - EditorStyles.toolbar.fixedHeight - GUI.skin.window.margin.vertical * 2f));
 		}
 
+		private void SelectionChanged()
+		{
+			if (_synchronizeSelection) {
+				List<GameObject> gObjs = new List<GameObject>();
+				gObjs.Add(Selection.activeGameObject);
+				gObjs.AddRange(Selection.objects.Where(o => o is GameObject).Select(o => o as GameObject).ToList());
+				_treeView.SynchronizeSelection(gObjs.Select(o => o.GetInstanceID()).Distinct().ToList());
+			}
+		}
 
 		/// <summary>
 		/// Opens a popup menu when right-clicking somewhere in the TreeView

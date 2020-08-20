@@ -44,6 +44,24 @@ namespace VisualPinball.Unity.Editor
 									.ToList().First(), true);
 		}
 
+		#region Selection
+		public void SynchronizeSelection(IList<int> selectIds)
+		{
+			if (GetSelection().SequenceEqual(selectIds)) {
+				return;
+			}
+
+			CollapseAll();
+			ExpandTableItem();
+			var layersIds = Root.GetChildren(e => selectIds.Contains(e.Id))
+								.Select(e => e.Parent.Id).ToList();
+			foreach( var id in layersIds) {
+				SetExpanded(id, true);
+			}
+			SetSelection(selectIds);
+			SetFocusAndEnsureSelectedItem();
+		}
+
 		public string GetFirstSelectedLayer(bool includeItems = true)
 		{
 			var idList = GetSelection();
@@ -64,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 
 			return layers.Length > 0 ? layers[0].Name : string.Empty;
 		}
+		#endregion
 
 		#region LayerHandler Events
 		internal void TableChanged()
