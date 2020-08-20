@@ -44,6 +44,27 @@ namespace VisualPinball.Unity.Editor
 									.ToList().First(), true);
 		}
 
+		public string GetFirstSelectedLayer(bool includeItems = true)
+		{
+			var idList = GetSelection();
+			var layers = Root.GetChildren(e => e.Type == LayerTreeViewElementType.Layer);
+			var selectedLayers = layers.Where(layer => idList.Contains(layer.Id)).ToArray();
+			if (selectedLayers.Length > 0) {
+				return selectedLayers[0].Name;
+			}
+
+			if (includeItems) {
+				var selectedItems = Root.GetChildren(e => idList.Contains(e.Id) && e.Type == LayerTreeViewElementType.Item);
+				if (selectedItems.Length > 0) {
+					if (selectedItems[0].Parent is LayerTreeElement layerElt) {
+						return layerElt.Name;
+					}
+				}
+			}
+
+			return layers.Length > 0 ? layers[0].Name : string.Empty;
+		}
+
 		#region LayerHandler Events
 		internal void TableChanged()
 		{

@@ -50,8 +50,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
-					if (Item is Behaviour behaviour) {
-						_isVisible = !SceneVisibilityManager.instance.IsHidden(behaviour.gameObject);
+					if (Item is MonoBehaviour behaviour) {
+						_isVisible = behaviour.gameObject != null ? !SceneVisibilityManager.instance.IsHidden(behaviour.gameObject) : false;
 					}
 					else {
 						_isVisible = false;
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 						Undo.RecordObject(behaviour, $"{behaviour.name} : Switch visibility to {_isVisible}.");
 					}
 					Item.EditorLayerVisibility = _isVisible;
-					if (behaviour != null) {
+					if (behaviour != null && behaviour.gameObject != null) {
 						if (_isVisible) {
 							SceneVisibilityManager.instance.Show(behaviour.gameObject, true);
 						}

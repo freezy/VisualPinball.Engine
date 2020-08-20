@@ -328,10 +328,12 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var element in elements) {
 				if (element.Type == LayerTreeViewElementType.Item) {
-					var oldParent = element.ReParent(layer) as LayerTreeElement;
-					var gameObj = _layers[oldParent?.LayerName].First(obj => obj.gameObject.GetInstanceID() == element.Id);
-					_layers[oldParent?.LayerName].Remove(gameObj);
-					_layers[layer.LayerName].Add(gameObj);
+					var oldLayer = element.ReParent(layer) as LayerTreeElement;
+					var bh = element.Item as MonoBehaviour;
+					if (oldLayer != null) {
+						_layers[oldLayer.Name].Remove(bh);
+					}
+					_layers[layer.Name].Add(bh);
 				}
 			}
 			Rebuild();
@@ -342,6 +344,20 @@ namespace VisualPinball.Unity.Editor
 		{
 			var layer = TreeRoot.Find(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
 			AssignToLayer(elements, layer);
+		}
+
+		/// <summary>
+		/// This assign method is used when the <see cref="LayerEditor"/> is receiving a callback of item creation from the <see cref="ToolboxEditor"/>
+		/// </summary>
+		/// <param name="obj">The GameObject which has been created by the ToolBox</param>
+		/// <param name="layerName">The first selected layer provided by the <see cref="LayerTreeView"/></param>
+		internal void AssignToLayer(GameObject obj, string layerName)
+		{
+			var layerable = obj.GetComponent<ILayerableItemBehavior>();
+			if (layerable != null) {
+				var layer = TreeRoot.Find(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
+				AssignToLayer(new LayerTreeElement[] { new LayerTreeElement(layerable) { Id = obj.GetInstanceID() } }, layer);
+			}
 		}
 
 		#endregion
