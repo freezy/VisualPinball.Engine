@@ -37,6 +37,14 @@ namespace VisualPinball.Unity.Editor
 		private Texture2D _lightIcon;
 		private Texture2D _primitiveIcon;
 
+		/// <summary>
+		/// This event is called each time the ToolBoxEditor create a new Item
+		/// </summary>
+		/// <remarks>
+		/// e.g. used by the <see cref="LayerEditor"/> for auto-assigning this item to the first selected layer
+		/// </remarks>
+		public static event Action<GameObject> ItemCreated;
+
 		private static TableAuthoring TableAuthoring => FindObjectOfType<TableAuthoring>();
 
 		private static Table Table {
@@ -187,6 +195,7 @@ namespace VisualPinball.Unity.Editor
 			var item = create(table);
 			table.Add(item, true);
 			Selection.activeGameObject = CreateRenderable(table, item as IRenderable);
+			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
 		}
 

@@ -81,14 +81,24 @@ namespace VisualPinball.Unity.Editor
 			// reload when undo performed
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
+			// catch ToolBoxEditor item creation event to assign to the currently selected layer
+			ToolboxEditor.ItemCreated += ToolBoxItemCreated;
+
 			// trigger handler update on enable
 			OnHierarchyChange();
+		}
+
+		private void ToolBoxItemCreated(GameObject obj)
+		{
+			var layerName = _treeView.GetFirstSelectedLayer();
+			_layerHandler.AssignToLayer(obj, layerName);
 		}
 
 		private void OnDisable()
 		{
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+			ToolboxEditor.ItemCreated -= ToolBoxItemCreated;
 		}
 
 		private void OnGUI()
