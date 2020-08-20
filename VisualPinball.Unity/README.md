@@ -49,8 +49,7 @@ prior to launching Unity:
 
 The `config` file is located at:
 
-- `2019.4:` `/Applications/Unity/Hub/Editor/2019.4.1f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config`
-- `2020.1:` `/Applications/Unity/Hub/Editor/2020.1.0b12/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
+- `/Applications/Unity/Hub/Editor/2020.1.2f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
 
 ## Future
 
