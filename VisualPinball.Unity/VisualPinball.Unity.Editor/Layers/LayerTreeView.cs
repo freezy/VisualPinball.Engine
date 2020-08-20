@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			CollapseAll();
 			ExpandTableItem();
 			SetExpanded(layer.Id, true);
-			SetSelection(items.Select(i => i.Id).ToList(), TreeViewSelectionOptions.RevealAndFrame);
+			SetSelection(items.Select(i => i.Id).ToList());
 			SetFocusAndEnsureSelectedItem();
 		}
 
