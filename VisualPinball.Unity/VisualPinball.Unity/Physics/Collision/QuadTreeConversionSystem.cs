@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			}
 
 			// construct quad tree
-			var quadTree = new HitQuadTree(hitObjects, table.Data.BoundingBox);
+			var quadTree = new HitQuadTree(hitObjects, table.BoundingBox);
 			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
 				quadTree,
 				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists

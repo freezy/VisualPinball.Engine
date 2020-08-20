@@ -8,12 +8,14 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public bool HasMeshAsPlayfield => _playfield != null;
 
+		private readonly Table _table;
 		private readonly TableData _data;
 		private Primitive.Primitive _playfield;
 
-		public TableMeshGenerator(TableData data)
+		public TableMeshGenerator(Table table)
 		{
-			_data = data;
+			_data = table.Data;
+			_table = table;
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
@@ -32,10 +34,10 @@ namespace VisualPinball.Engine.VPT.Table
 		private RenderObject GetFromTableDimensions(bool asRightHanded, PbrMaterial material)
 		{
 			var rgv = new[] {
-				new Vertex3DNoTex2(_data.Left, _data.Top, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Top, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Bottom, _data.TableHeight),
-				new Vertex3DNoTex2(_data.Left, _data.Bottom, _data.TableHeight),
+				new Vertex3DNoTex2(_data.Left, _data.Top, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Right, _data.Top, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Right, _data.Bottom, _table.TableHeight),
+				new Vertex3DNoTex2(_data.Left, _data.Bottom, _table.TableHeight),
 			};
 			var mesh = new Mesh {
 				Name = _data.Name,

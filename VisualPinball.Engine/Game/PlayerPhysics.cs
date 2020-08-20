@@ -146,7 +146,7 @@ namespace VisualPinball.Engine.Game
 
 		private void InitOcTree(Table table)
 		{
-			_hitOcTree = new HitQuadTree(_hitObjects, table.Data.BoundingBox);
+			_hitOcTree = new HitQuadTree(_hitObjects, table.BoundingBox);
 
 			// initialize hit structure for dynamic objects
 			_hitOcTreeDynamic.FillFromVector(_hitObjectsDynamic);

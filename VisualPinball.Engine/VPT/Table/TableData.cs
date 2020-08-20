@@ -109,7 +109,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public float GlassHeight = 400f;
 
 		[BiffFloat("TBLH", Pos = 71)]
-		public float TableHeight;
+		public float TableHeight = 0f;
 
 		[BiffString("IMAG", Pos = 59)]
 		public string Image;
@@ -326,8 +326,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public const float OverrideElasticity = 0.25f;
 		public const float OverrideElasticityFalloff = 0f;
 		public const float OverrideScatterAngle = 0f;
-
-		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 
 		public float GetFriction() => OverridePhysics != 0 ? OverrideContactFriction : Friction;
 		public float GetElasticity() => OverridePhysics != 0 ? OverrideElasticity : Elasticity;

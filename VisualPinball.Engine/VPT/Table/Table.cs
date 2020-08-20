@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using Logger = NLog.Logger;
 
@@ -23,7 +24,17 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
-		public float TableHeight => Data.TableHeight;
+
+		/// <summary>
+		/// We set the table height to always 0 and adapt the camera accordingly.
+		/// </summary>
+		public float TableHeight => 0f;
+
+		/// <summary>
+		/// Since the table height is always 0, the glass height needs to be adapted.
+		/// </summary>
+		public float GlassHeight => Data.GlassHeight - Data.TableHeight;
+		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
@@ -398,7 +409,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Table(TableData data) : base(data)
 		{
-			_meshGenerator = new TableMeshGenerator(Data);
+			_meshGenerator = new TableMeshGenerator(this);
 			_hitGenerator = new TableHitGenerator(this);
 		}
 
@@ -455,15 +466,15 @@ namespace VisualPinball.Engine.VPT.Table
 		public float GetSurfaceHeight(string surfaceName, float x, float y)
 		{
 			if (string.IsNullOrEmpty(surfaceName)) {
-				return Data.TableHeight;
+				return TableHeight;
 			}
 
 			if (_surfaces.ContainsKey(surfaceName)) {
-				return Data.TableHeight + _surfaces[surfaceName].Data.HeightTop;
+				return TableHeight + _surfaces[surfaceName].Data.HeightTop;
 			}
 
 			if (_ramps.ContainsKey(surfaceName)) {
-				return Data.TableHeight + _ramps[surfaceName].GetSurfaceHeight(x, y, this);
+				return TableHeight + _ramps[surfaceName].GetSurfaceHeight(x, y, this);
 			}
 
 			Logger.Warn(
@@ -472,7 +483,7 @@ namespace VisualPinball.Engine.VPT.Table
 				string.Join(", ", _surfaces.Keys),
 				string.Join(", ", _ramps.Keys)
 			);
-			return Data.TableHeight;
+			return TableHeight;
 		}
 
 		public int GetDetailLevel()

@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		protected override float BaseHeight(Table.Table table)
 		{
-			return 0f;
+			return table.TableHeight;
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
