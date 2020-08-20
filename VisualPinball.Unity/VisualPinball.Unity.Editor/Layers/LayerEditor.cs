@@ -122,12 +122,16 @@ namespace VisualPinball.Unity.Editor
 			_treeView.searchString = _searchField.OnGUI(_treeView.searchString);
 			GUILayout.EndHorizontal();
 
+			EditorGUI.BeginChangeCheck();
 			_synchronizeSelection = GUILayout.Toggle(_synchronizeSelection, "Sync to hierarchy selection");
+			if (EditorGUI.EndChangeCheck()) {
+				SelectionChanged();
+			}
 
 			_treeView.OnGUI(new Rect(GUI.skin.window.margin.left, 
 									 EditorStyles.toolbar.fixedHeight * 2f, 
 									 position.width - GUI.skin.window.margin.horizontal, 
-									 position.height - EditorStyles.toolbar.fixedHeight - GUI.skin.window.margin.vertical * 2f));
+									 position.height - EditorStyles.toolbar.fixedHeight * 2f - GUI.skin.window.margin.vertical));
 		}
 
 		private void SelectionChanged()
