@@ -207,6 +207,10 @@ namespace VisualPinball.Unity.Editor
 			//Get Id list from GenericData if the DragAndDrop was initiated by the TreeView
 			var idList = DragAndDrop.GetGenericData(DragAndDropItemsTask) as IList<int>;
 
+			if (args.performDrop) {
+				DragAndDrop.SetGenericData(DragAndDropItemsTask, null);
+			}
+
 			if (idList == null) {
 				//Check for gameObjects inside the DragAndDrop task (could come from the SceneHierarchy)
 				idList = DragAndDrop.objectReferences.Select(obj => obj.GetInstanceID()).ToList();
