@@ -195,6 +195,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 				Reload();
+				DragAndDrop.AcceptDrag();
 				return DragAndDropVisualMode.None;
 			}
 
