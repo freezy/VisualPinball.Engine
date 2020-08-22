@@ -4,9 +4,12 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
+using Color = UnityEngine.Color;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -38,6 +41,8 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private bool _meshDirty;
 		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
+
+		private static readonly Color AabbColor = new Color32(255, 0, 252, 255);
 
 		public ItemAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
 		{
@@ -133,7 +138,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableAuthoring table)
+		protected virtual void OnDrawGizmosSelected()
+		{
+			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
+			if (Item is IHittable hittable) {
+				hittable.Init(Table);
+				var hits = hittable.GetHitShapes();
+				foreach (var hit in hits) {
+					hit.CalcHitBBox();
+					DrawAabb(ltw, hit.HitBBox);
+				}
+			}
+		}
+
+		private static void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableAuthoring table)
 		{
 			var mr = go.GetComponent<MeshRenderer>();
 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
@@ -156,6 +174,36 @@ namespace VisualPinball.Unity
 				mr.enabled = true;
 			}
 		}
+
+		protected void DrawAabb(Matrix4x4 ltw, Rect3D aabb)
+		{
+			var p00 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZHigh));
+			var p01 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZHigh));
+			var p02 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZHigh));
+			var p03 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZHigh));
+
+			var p10 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZLow));
+			var p11 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZLow));
+			var p12 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZLow));
+			var p13 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZLow));
+
+			Gizmos.color = AabbColor;
+			Gizmos.DrawLine(p00, p01);
+			Gizmos.DrawLine(p01, p02);
+			Gizmos.DrawLine(p02, p03);
+			Gizmos.DrawLine(p03, p00);
+
+			Gizmos.DrawLine(p10, p11);
+			Gizmos.DrawLine(p11, p12);
+			Gizmos.DrawLine(p12, p13);
+			Gizmos.DrawLine(p13, p10);
+
+			Gizmos.DrawLine(p00, p10);
+			Gizmos.DrawLine(p01, p11);
+			Gizmos.DrawLine(p02, p12);
+			Gizmos.DrawLine(p03, p13);
+		}
+
 
 		private List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
 		{
