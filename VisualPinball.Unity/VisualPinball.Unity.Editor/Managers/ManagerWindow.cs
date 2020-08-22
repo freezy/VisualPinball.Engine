@@ -62,8 +62,10 @@ namespace VisualPinball.Unity.Editor
 
 		protected void Reload()
 		{
-			_data = CollectData();
-			_listView.SetData(_data);
+			if (_table != null) {
+				_data = CollectData();
+				_listView.SetData(_data);
+			}
 		}
 
 		protected virtual void OnEnable()

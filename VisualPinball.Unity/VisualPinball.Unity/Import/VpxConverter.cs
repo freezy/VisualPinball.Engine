@@ -213,15 +213,6 @@ namespace VisualPinball.Unity
 				case Table table:					ic = table.SetupGameObject(obj, rog); break;
 				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
 			}
-#if UNITY_EDITOR
-			// for convenience move item behavior to the top of the list
-			if (ic != null) {
-				int numComp = obj.GetComponents<MonoBehaviour>().Length;
-				for (int i = 0; i <= numComp; i++) {
-					UnityEditorInternal.ComponentUtility.MoveComponentUp(ic);
-				}
-			}
-#endif
 			return createdObjs;
 		}
 

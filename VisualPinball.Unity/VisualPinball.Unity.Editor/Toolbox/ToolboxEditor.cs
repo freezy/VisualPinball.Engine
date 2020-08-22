@@ -96,8 +96,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnGUI()
 		{
-			var existingTable = FindObjectOfType<TableAuthoring>();
-			if (existingTable == null && GUILayout.Button("New Table")) {
+			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
 				var rootGameObj = new GameObject();
 				var table = new Table(new TableData {Name = tableName});

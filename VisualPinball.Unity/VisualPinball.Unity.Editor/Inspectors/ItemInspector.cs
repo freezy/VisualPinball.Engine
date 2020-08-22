@@ -35,6 +35,18 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnEnable()
 		{
+#if UNITY_EDITOR
+			// for convenience move item behavior to the top of the list
+			// we're opting to due this here as opposed to at import time since modifying objects
+			// in this way caused them to not be part of the created object undo stack
+			if (target != null && target is MonoBehaviour mb) {
+				int numComp = mb.GetComponents<MonoBehaviour>().Length;
+				for (int i = 0; i <= numComp; i++) {
+					UnityEditorInternal.ComponentUtility.MoveComponentUp(mb);
+				}
+			}
+#endif
+
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 			EditorApplication.hierarchyChanged += OnHierarchyChange;
