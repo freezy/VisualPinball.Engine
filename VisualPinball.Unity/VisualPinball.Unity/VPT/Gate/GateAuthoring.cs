@@ -5,17 +5,20 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Gate")]
-	public class GateAuthoring : ItemAuthoring<Gate, GateData>
+	public class GateAuthoring : ItemAuthoring<Gate, GateData>, IHittableAuthoring
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
 
 		protected override Gate GetItem() => new Gate(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{

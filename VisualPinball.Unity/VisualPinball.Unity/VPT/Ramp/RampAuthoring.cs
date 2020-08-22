@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Ramp;
 
@@ -14,11 +15,13 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Ramp")]
-	public class RampAuthoring : ItemAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class RampAuthoring : ItemAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
 	{
 		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
 		protected override Ramp GetItem() => new Ramp(data);
+
+		public IHittable Hittable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
