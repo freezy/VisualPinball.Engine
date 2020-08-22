@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	/// Base class for VPX-style "Manager" windows, such as the Material Manager
 	/// </summary>
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
-	public abstract class ManagerWindow<T> : EditorWindow where T: class, IManagerListData
+	public abstract class ManagerWindow<T> : EditorWindow, IHasCustomMenu where T: class, IManagerListData
 	{
 		protected virtual string DataTypeName => "";
 		protected virtual float DetailsMaxWidth => 300f;
@@ -57,6 +57,8 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplCloneData = false;
 		private bool _isImplMoveData = false;
 		private bool _isImplRenameExistingItem = false;
+		private GUIStyle _lockButtonStyle;
+		private bool _windowLocked = false;
 
 		protected void Reload()
 		{
@@ -81,6 +83,25 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			FindTable();
+		}
+
+		/// <summary>
+		/// This is called by unity as part of the GUI pass, its an undocumented feature
+		/// that gives us the ability to draw UI in the upper right of the tab bar, so we'll
+		/// use it to add the little lock toggle just like inspectors
+		/// </summary>
+		/// <param name="position"></param>
+		protected virtual void ShowButton(Rect position)
+		{
+			if(_lockButtonStyle == null) {
+				_lockButtonStyle = "IN LockButton"; // undocument ui style for the tab bar lock button
+			}
+			_windowLocked = GUI.Toggle(position, _windowLocked, GUIContent.none, _lockButtonStyle);
+		}
+
+		public virtual void AddItemsToMenu(GenericMenu menu)
+		{
+			menu.AddItem(new GUIContent("Lock"), _windowLocked, () => _windowLocked = !_windowLocked );
 		}
 
 		protected virtual void OnHierarchyChange()
