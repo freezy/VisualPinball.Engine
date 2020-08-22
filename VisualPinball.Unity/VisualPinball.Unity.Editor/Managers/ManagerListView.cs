@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// Wraps Unity's TreeView to make a simplified generic (1-dimensional) list view type control

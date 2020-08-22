@@ -1,4 +1,4 @@
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	public class ImageListData : IManagerListData
 	{

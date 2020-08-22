@@ -4,11 +4,11 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
 using Logger = NLog.Logger;
 
@@ -26,9 +26,9 @@ namespace VisualPinball.Unity
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
-		private Engine.VPT.Table.Table _table;
+		private Table _table;
 
-		protected Engine.VPT.Table.Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableAuthoring>()?.Item);
+		protected Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableAuthoring>()?.Item);
 
 		private TItem _item;
 		private List<MemberInfo> _materialRefs;
@@ -140,13 +140,15 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnDrawGizmosSelected()
 		{
-			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
-			if (Item is IHittable hittable) {
-				hittable.Init(Table);
-				var hits = hittable.GetHitShapes();
-				foreach (var hit in hits) {
-					hit.CalcHitBBox();
-					DrawAabb(ltw, hit.HitBBox);
+			if (PhysicsDebug.ShowAabbs) {
+				var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
+				if (Item is IHittable hittable) {
+					hittable.Init(Table);
+					var hits = hittable.GetHitShapes();
+					foreach (var hit in hits) {
+						hit.CalcHitBBox();
+						DrawAabb(ltw, hit.HitBBox);
+					}
 				}
 			}
 		}
@@ -225,5 +227,10 @@ namespace VisualPinball.Unity
 		public int EditorLayer { get => data.EditorLayer; set => data.EditorLayer = value; }
 		public string EditorLayerName { get => data.EditorLayerName; set => data.EditorLayerName = value; }
 		public bool EditorLayerVisibility { get => data.EditorLayerVisibility; set => data.EditorLayerVisibility = value; }
+	}
+
+	public static class PhysicsDebug
+	{
+		public static bool ShowAabbs;
 	}
 }

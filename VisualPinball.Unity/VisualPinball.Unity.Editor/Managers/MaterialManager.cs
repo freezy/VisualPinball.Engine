@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// Editor UI for VPX materials, equivalent to VPX's "Material Manager" window
