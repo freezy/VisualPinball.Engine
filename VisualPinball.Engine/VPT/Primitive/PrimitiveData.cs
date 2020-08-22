@@ -41,11 +41,14 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffInt("M3CJ", Pos = 44)]
 		public int CompressedIndices = 0;
 
+		[BiffInt("M3AY", Pos = 46)]
+		public int CompressedAnimationVertices;
+
 		[BiffVertices("M3DX", SkipWrite = true)]
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
-		[BiffAnimation("M3AX", IsCompressed = true, Pos = 48)]
+		[BiffAnimation("M3AX", IsCompressed = true, Pos = 47)]
 		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]
@@ -147,7 +150,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffString("M3DN", Pos = 39)]
 		public string MeshFileName = string.Empty;
 
-		[BiffFloat("PIDB", Pos = 46)]
+		[BiffFloat("PIDB", Pos = 48)]
 		public float DepthBias = 0;
 
 		protected override bool SkipWrite(BiffAttribute attr)
@@ -394,8 +397,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 					return;
 				}
 
-				for (var i = 0; i < primitiveData.Mesh.AnimationFrames.Count; i++)
-				{
+				for (var i = 0; i < primitiveData.Mesh.AnimationFrames.Count; i++) {
 					var animationData = SerializeAnimation(primitiveData.Mesh.AnimationFrames[i]);
 					var data = IsCompressed ? BiffZlib.Compress(animationData) : animationData;
 					WriteStart(writer, data.Length, hashWriter);
@@ -417,9 +419,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 				throw new ArgumentOutOfRangeException(nameof(data), "Cannot create animation when size is unknown.");
 			}
 
-			if (bytes.Length < data.NumVertices * Mesh.VertData.Size)
+			if (bytes.Length != data.NumVertices * Mesh.VertData.Size)
 			{
-				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex animations for primitive item \"${data.Name}\" (${data.StorageName}), but only ${bytes.Length} bytes available.");
+				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex animations for primitive item \"${data.Name}\" (${data.StorageName}), but had ${bytes.Length} bytes available.");
 			}
 
 			if (!(GetValue(data) is Mesh mesh))
