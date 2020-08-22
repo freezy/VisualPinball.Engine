@@ -7,6 +7,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
 
 		private static readonly Color AabbColor = new Color32(255, 0, 252, 255);
+		private static readonly Color ColliderColor = new Color32(0, 255, 75, 255);
 
 		public ItemAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
 		{
@@ -145,9 +147,15 @@ namespace VisualPinball.Unity
 				if (Item is IHittable hittable) {
 					hittable.Init(Table);
 					var hits = hittable.GetHitShapes();
-					foreach (var hit in hits) {
-						hit.CalcHitBBox();
-						DrawAabb(ltw, hit.HitBBox);
+					if (PhysicsDebug.SelectedCollider > -1) {
+						DrawAabb(ltw, hits[PhysicsDebug.SelectedCollider].HitBBox);
+						DrawCollider(ltw, hits[PhysicsDebug.SelectedCollider]);
+
+					} else {
+						foreach (var hit in hits) {
+							hit.CalcHitBBox();
+							DrawAabb(ltw, hit.HitBBox);
+						}
 					}
 				}
 			}
@@ -177,7 +185,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected void DrawAabb(Matrix4x4 ltw, Rect3D aabb)
+		private static void DrawAabb(Matrix4x4 ltw, Rect3D aabb)
 		{
 			var p00 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZHigh));
 			var p01 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZHigh));
@@ -206,6 +214,16 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(p03, p13);
 		}
 
+		private static void DrawCollider(Matrix4x4 ltw, HitObject hitObject)
+		{
+			Gizmos.color = ColliderColor;
+			switch (hitObject) {
+				case HitPoint hitPoint:
+					Gizmos.DrawSphere(ltw.MultiplyPoint(hitPoint.P.ToUnityVector3()), 0.001f);
+					break;
+			}
+		}
+
 
 		private List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
 		{
@@ -232,5 +250,7 @@ namespace VisualPinball.Unity
 	public static class PhysicsDebug
 	{
 		public static bool ShowAabbs;
+
+		public static int SelectedCollider;
 	}
 }
