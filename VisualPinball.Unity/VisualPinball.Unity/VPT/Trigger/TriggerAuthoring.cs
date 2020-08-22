@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -14,11 +15,13 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trigger")]
-	public class TriggerAuthoring : ItemAuthoring<Trigger, TriggerData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class TriggerAuthoring : ItemAuthoring<Trigger, TriggerData>, IHittableAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
 		protected override Trigger GetItem() => new Trigger(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{

@@ -416,7 +416,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 					contactAng = angleMin;
 				}
 
-				var radSin = MathF.Sin(contactAng); // Green"s transform matrix... rotate angle delta
+				var radSin = MathF.Sin(contactAng); // Green's transform matrix... rotate angle delta
 				var radCos = MathF.Cos(contactAng); // rotational transform from current position to position at time t
 
 				faceNormal.X = ffnx * radCos - ffny * radSin; // rotate to time t, norm and face offset point

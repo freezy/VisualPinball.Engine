@@ -11,6 +11,9 @@ namespace VisualPinball.Engine.Physics
 		public readonly float ZLow;
 		public readonly float ZHigh;
 
+		public readonly Vertex3D V1;
+		public readonly Vertex3D V2;
+
 		public HitLine3D(Vertex3D v1, Vertex3D v2, ItemType itemType) : base(new Vertex2D(), itemType)
 		{
 			var vLine = v2.Clone().Sub(v1);
@@ -40,6 +43,9 @@ namespace VisualPinball.Engine.Physics
 			Xy.Set(vTrans1.X, vTrans1.Y);
 			ZLow = MathF.Min(vTrans1.Z, vTrans2Z);
 			ZHigh = MathF.Max(vTrans1.Z, vTrans2Z);
+
+			V1 = v1;
+			V2 = v2;
 
 			HitBBox.Left = MathF.Min(v1.X, v2.X);
 			HitBBox.Right = MathF.Max(v1.X, v2.X);

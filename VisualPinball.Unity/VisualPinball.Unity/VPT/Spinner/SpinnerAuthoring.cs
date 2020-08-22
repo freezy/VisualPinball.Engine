@@ -5,17 +5,20 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Spinner")]
-	public class SpinnerAuthoring : ItemAuthoring<Spinner, SpinnerData>
+	public class SpinnerAuthoring : ItemAuthoring<Spinner, SpinnerData>, IHittableAuthoring
 	{
 		protected override string[] Children => new [] { "Plate", "Bracket" };
 
 		protected override Spinner GetItem() => new Spinner(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{

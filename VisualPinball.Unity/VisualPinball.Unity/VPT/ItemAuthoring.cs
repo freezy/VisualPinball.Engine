@@ -4,11 +4,16 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
 using Logger = NLog.Logger;
@@ -147,7 +152,13 @@ namespace VisualPinball.Unity
 				if (Item is IHittable hittable) {
 					hittable.Init(Table);
 					var hits = hittable.GetHitShapes();
+					if (hittable != PhysicsDebug.SelectedHittable) {
+						PhysicsDebug.SelectedCollider = hits.Length == 1 ? 0 : -1;
+						PhysicsDebug.SelectedHittable = hittable;
+					}
+
 					if (PhysicsDebug.SelectedCollider > -1) {
+						hits[PhysicsDebug.SelectedCollider].CalcHitBBox();
 						DrawAabb(ltw, hits[PhysicsDebug.SelectedCollider].HitBBox);
 						DrawCollider(ltw, hits[PhysicsDebug.SelectedCollider]);
 
@@ -160,6 +171,7 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
 
 		private static void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableAuthoring table)
 		{
@@ -184,6 +196,8 @@ namespace VisualPinball.Unity
 				mr.enabled = true;
 			}
 		}
+
+		#region Physics Debug
 
 		private static void DrawAabb(Matrix4x4 ltw, Rect3D aabb)
 		{
@@ -214,15 +228,130 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(p03, p13);
 		}
 
-		private static void DrawCollider(Matrix4x4 ltw, HitObject hitObject)
+		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject)
 		{
 			Gizmos.color = ColliderColor;
 			switch (hitObject) {
-				case HitPoint hitPoint:
+
+				case HitPoint hitPoint: {
 					Gizmos.DrawSphere(ltw.MultiplyPoint(hitPoint.P.ToUnityVector3()), 0.001f);
 					break;
+				}
+
+				case LineSeg lineSeg: {
+					const int num = 10;
+					var d = (lineSeg.HitBBox.ZHigh - lineSeg.HitBBox.ZLow) / num;
+					for (var i = 0; i < num; i++) {
+						Gizmos.DrawLine(
+							ltw.MultiplyPoint(lineSeg.V1.ToUnityVector3(lineSeg.HitBBox.ZLow + i * d)),
+							ltw.MultiplyPoint(lineSeg.V2.ToUnityVector3(lineSeg.HitBBox.ZLow + i * d))
+						);
+					}
+					break;
+				}
+
+				case HitLine3D hitLine3D: {
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(hitLine3D.V1.ToUnityVector3()),
+						ltw.MultiplyPoint(hitLine3D.V2.ToUnityVector3())
+					);
+					break;
+				}
+
+				case HitLineZ hitLineZ: {
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(hitLineZ.Xy.ToUnityVector3(hitLineZ.HitBBox.ZLow)),
+						ltw.MultiplyPoint(hitLineZ.Xy.ToUnityVector3(hitLineZ.HitBBox.ZHigh))
+					);
+					break;
+				}
+
+				case HitTriangle hitTriangle: {
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(hitTriangle.Rgv[0].ToUnityVector3()),
+						ltw.MultiplyPoint(hitTriangle.Rgv[1].ToUnityVector3())
+					);
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(hitTriangle.Rgv[1].ToUnityVector3()),
+						ltw.MultiplyPoint(hitTriangle.Rgv[2].ToUnityVector3())
+					);
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(hitTriangle.Rgv[2].ToUnityVector3()),
+						ltw.MultiplyPoint(hitTriangle.Rgv[0].ToUnityVector3())
+					);
+					break;
+				}
+
+				case HitCircle hitCircle: {
+					const int num = 20;
+					var d = (hitCircle.HitBBox.ZHigh - hitCircle.HitBBox.ZLow) / num;
+					for (var i = 0; i < num; i++) {
+						GizmoDrawCircle(ltw, hitCircle.Center.ToUnityVector3(hitCircle.HitBBox.ZLow + i * d), hitCircle.Radius);
+					}
+					break;
+				}
+
+				case GateHit gateHit: {
+					DrawCollider(ltw, gateHit.LineSeg0);
+					DrawCollider(ltw, gateHit.LineSeg1);
+					break;
+				}
+
+				case SpinnerHit spinnerHit: {
+					DrawCollider(ltw, spinnerHit.LineSeg0);
+					DrawCollider(ltw, spinnerHit.LineSeg1);
+					break;
+				}
+
+				case FlipperHit flipperHit: {
+					var mfs = GetComponentsInChildren<MeshFilter>();
+					foreach (var mf in mfs) {
+						if (mf.name == "Rubber") {
+							var t = mf.transform;
+							Gizmos.DrawWireMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
+							break;
+						}
+					}
+					break;
+				}
+
+				case PlungerHit plungerHit: {
+					DrawCollider(ltw, plungerHit.LineSegBase);
+					DrawCollider(ltw, plungerHit.LineSegEnd);
+					DrawCollider(ltw, plungerHit.LineSegSide[0]);
+					DrawCollider(ltw, plungerHit.LineSegSide[1]);
+					DrawCollider(ltw, plungerHit.JointBase[0]);
+					DrawCollider(ltw, plungerHit.JointBase[1]);
+					DrawCollider(ltw, plungerHit.JointEnd[0]);
+					DrawCollider(ltw, plungerHit.JointEnd[1]);
+					break;
+				}
+
 			}
 		}
+
+		private static void GizmoDrawCircle(Matrix4x4 ltw, Vector3 center, float radius)
+		{
+			var theta = 0f;
+			var x = radius * MathF.Cos(theta);
+			var y = radius * MathF.Sin(theta);
+			var pos = center + new Vector3(x, y, 0f);
+			var lastPos = pos;
+			for (theta = 0.1f; theta < MathF.PI * 2; theta += 0.1f){
+				x = radius * MathF.Cos(theta);
+				y = radius * MathF.Sin(theta);
+				var newPos = center + new Vector3(x, y, 0);
+				Gizmos.DrawLine(
+					ltw.MultiplyPoint(pos),
+					ltw.MultiplyPoint(newPos)
+				);
+				pos = newPos;
+			}
+			Gizmos.DrawLine(pos, lastPos);
+		}
+
+
+		#endregion
 
 
 		private List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
@@ -251,6 +380,9 @@ namespace VisualPinball.Unity
 	{
 		public static bool ShowAabbs;
 
+		public static IHittable SelectedHittable;
+
 		public static int SelectedCollider;
+
 	}
 }

@@ -5,6 +5,7 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
@@ -14,10 +15,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => null;
 
-		protected override Primitive GetItem()
-		{
-			return new Primitive(data);
-		}
+		protected override Primitive GetItem() => new Primitive(data);
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();

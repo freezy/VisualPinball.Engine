@@ -8,17 +8,20 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Kicker")]
-	public class KickerAuthoring : ItemAuthoring<Kicker, KickerData>, IConvertGameObjectToEntity
+	public class KickerAuthoring : ItemAuthoring<Kicker, KickerData>, IConvertGameObjectToEntity, IHittableAuthoring
 	{
 		protected override string[] Children => null;
 
 		protected override Kicker GetItem() => new Kicker(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{
