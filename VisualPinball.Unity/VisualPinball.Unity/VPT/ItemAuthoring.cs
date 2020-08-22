@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -155,6 +154,7 @@ namespace VisualPinball.Unity
 					if (hittable != PhysicsDebug.SelectedHittable) {
 						PhysicsDebug.SelectedCollider = hits.Length == 1 ? 0 : -1;
 						PhysicsDebug.SelectedHittable = hittable;
+						PhysicsDebug.OnItemSelected(hittable);
 					}
 
 					if (PhysicsDebug.SelectedCollider > -1) {
@@ -376,6 +376,9 @@ namespace VisualPinball.Unity
 		public bool EditorLayerVisibility { get => data.EditorLayerVisibility; set => data.EditorLayerVisibility = value; }
 	}
 
+	/// <summary>
+	/// The intermediate class through which the physics debug window communicates.
+	/// </summary>
 	public static class PhysicsDebug
 	{
 		public static bool ShowAabbs;
@@ -384,5 +387,11 @@ namespace VisualPinball.Unity
 
 		public static int SelectedCollider;
 
+		public static event EventHandler ItemSelected;
+
+		internal static void OnItemSelected(IHittable hittable)
+		{
+			ItemSelected?.Invoke(hittable, EventArgs.Empty);
+		}
 	}
 }

@@ -53,8 +53,8 @@ namespace VisualPinball.Engine.VPT.Gate
 		public HitObject[] GetHitShapes()
 		{
 			return new HitObject[] {_hitGate}
-				.Concat(_hitLines)
-				.Concat(_hitCircles)
+				.Concat(_hitLines ?? new HitObject[0])
+				.Concat(_hitCircles ?? new HitObject[0])
 				.ToArray();
 		}
 

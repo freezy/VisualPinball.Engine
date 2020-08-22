@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
@@ -21,16 +22,40 @@ namespace VisualPinball.Unity.Editor.Physics
 			Window.Show();
 		}
 
+		private void OnEnable()
+		{
+			PhysicsDebug.ShowAabbs = true;
+			PhysicsDebug.ItemSelected += OnItemSelected;
+		}
+
+
+		private void OnDisable()
+		{
+			PhysicsDebug.ShowAabbs = false;
+			PhysicsDebug.ItemSelected -= OnItemSelected;
+		}
+
+		private void OnItemSelected(object sender, EventArgs e)
+		{
+			Repaint();
+		}
+
 		private void OnGUI()
 		{
-			var refresh = false;
-			var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", PhysicsDebug.ShowAabbs);
-			refresh = showAabbs == PhysicsDebug.ShowAabbs;
-			PhysicsDebug.ShowAabbs = showAabbs;
-
 			var selectedObject = Selection.activeObject as GameObject;
 			var hittableObj = selectedObject != null ? selectedObject.GetComponent<IHittableAuthoring>() : null;
 			if (hittableObj != null) {
+
+				var headerStyle = new GUIStyle(EditorStyles.largeLabel) {
+					fontStyle = FontStyle.Bold
+				};
+				GUILayout.Label(selectedObject.name, headerStyle);
+				GUILayout.Space(2f);
+
+				bool refresh;
+				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", PhysicsDebug.ShowAabbs);
+				refresh = showAabbs == PhysicsDebug.ShowAabbs;
+				PhysicsDebug.ShowAabbs = showAabbs;
 
 				if (_currentHittable != hittableObj) {
 					var hitObjects = hittableObj.Hittable.GetHitShapes() ?? new HitObject[0];
@@ -38,7 +63,6 @@ namespace VisualPinball.Unity.Editor.Physics
 						.Where(h => h != null)
 						.Select((h, i) => $"[{i}] {h.GetType().Name}")
 						.ToArray();
-					PhysicsDebug.SelectedCollider = -1;
 				}
 
 				_currentHittable = hittableObj;
@@ -48,13 +72,14 @@ namespace VisualPinball.Unity.Editor.Physics
 				PhysicsDebug.SelectedCollider = selectedCollider;
 				EditorGUILayout.EndScrollView();
 
+				if (refresh) {
+					EditorWindow view = GetWindow<SceneView>();
+					view.Repaint();
+				}
+
 			} else {
 				PhysicsDebug.SelectedCollider = -1;
-			}
-
-			if (refresh) {
-				EditorWindow view = GetWindow<SceneView>();
-				view.Repaint();
+				GUILayout.Label("No collidable element selected.");
 			}
 		}
 	}
