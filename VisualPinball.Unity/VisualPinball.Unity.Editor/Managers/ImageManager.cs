@@ -1,13 +1,13 @@
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// Editor UI for VPX images, equivalent to VPX's "Image Manager" window

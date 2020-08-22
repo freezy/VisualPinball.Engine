@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public class ManagerListColumnAttribute : Attribute
