@@ -351,6 +351,7 @@ namespace VisualPinball.Engine.VPT
 				Nx = reader.ReadSingle();
 				Ny = reader.ReadSingle();
 				Nz = reader.ReadSingle();
+
 				var remainingSize = Size - (reader.BaseStream.Position - startPos);
 				if (remainingSize > 0)
 				{
@@ -376,6 +377,16 @@ namespace VisualPinball.Engine.VPT
 				Nx = nx;
 				Ny = ny;
 				Nz = nz;
+			}
+
+			public VertData(UnityEngine.Vector3 vertex, UnityEngine.Vector3 normal)
+			{
+				X = vertex.x;
+				Y = vertex.y;
+				Z = vertex.z;
+				Nx = normal.x;
+				Ny = normal.y;
+				Nz = normal.z;
 			}
 
 			public void Write(BinaryWriter writer)
