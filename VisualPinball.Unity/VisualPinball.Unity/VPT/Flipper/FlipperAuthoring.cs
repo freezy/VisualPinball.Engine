@@ -4,24 +4,24 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
-using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Flipper")]
-	public class FlipperAuthoring : ItemAuthoring<Flipper, FlipperData>, IConvertGameObjectToEntity
+	public class FlipperAuthoring : ItemAuthoring<Flipper, FlipperData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
 
 		protected override Flipper GetItem() => new Flipper(data);
+
+		public IHittable Hittable => Item;
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 

@@ -6,17 +6,20 @@
 
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IConvertGameObjectToEntity
+	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
 
 		protected override Bumper GetItem() => new Bumper(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{

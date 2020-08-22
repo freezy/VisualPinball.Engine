@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
 
@@ -14,11 +15,13 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberAuthoring : ItemAuthoring<Rubber, RubberData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class RubberAuthoring : ItemAuthoring<Rubber, RubberData>, IDragPointsEditable, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
 		protected override Rubber GetItem() => new Rubber(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{

@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
 
@@ -14,11 +15,13 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Surface")]
-	public class SurfaceAuthoring : ItemAuthoring<Surface, SurfaceData>, IConvertGameObjectToEntity, IDragPointsEditable
+	public class SurfaceAuthoring : ItemAuthoring<Surface, SurfaceData>, IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
 	{
 		protected override string[] Children => new [] { "Side", "Top" };
 
 		protected override Surface GetItem() => new Surface(data);
+
+		public IHittable Hittable => Item;
 
 		private void OnDestroy()
 		{
