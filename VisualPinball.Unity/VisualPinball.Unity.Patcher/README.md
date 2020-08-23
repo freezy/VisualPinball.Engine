@@ -155,6 +155,8 @@ You can pass different types in any order to the method. Supported types are:
   in the method signature, the patch is skipped and a warning is printed.
 - `VisualPinball.Engine.Game.IRenderable` if you don't care about the item type
   but still want to access something from the item.
+- `ref UnityEngine.GameObject` - Another game object, specified by the `Ref` 
+  field of the matcher (see *Advanced Features* below).  
   
 ## Built-in Matchers
 
@@ -173,8 +175,34 @@ You can pass different types in any order to the method. Supported types are:
 
 - `[NameMatch(string name)]` - Matches an item by its name.
 - `[RenderPipeline(RenderPipelineType rp)]` - Matches if the current render
-  pipeline is set to the given value.  
+  pipeline is set to the given value. 
   
+## Advanced Features
+
+You might need to find another game object during patching, and repeat this 
+over several patch methods. For that, you can use the matcher's `Ref` field,
+which is a search path for the game object you'd like to find. In the patch
+method, you can retrieve this using a `ref GameObject` parameter.
+
+For example, many tables use a primitive for the flipper, that we'd like to 
+re-parent to the actual flipper object. So we would do the following:
+
+```cs
+[NameMatch("RightFlipperPrimitive", Ref="Flippers/RightFlipper")]
+[NameMatch("LeftFlipperPrimitive", Ref="Flippers/LeftFlipper")]
+public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+{
+	var rot = gameObject.transform.rotation;
+	var pos = gameObject.transform.position;
+
+	// re-parent the child
+	gameObject.transform.SetParent(parent.transform, false);
+
+	gameObject.transform.rotation = rot;
+	gameObject.transform.position = pos;
+}  
+```
+
 ## Summary
 
 For a new table:
