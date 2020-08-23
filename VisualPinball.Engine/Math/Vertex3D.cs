@@ -236,5 +236,7 @@ namespace VisualPinball.Engine.Math
 		{
 			return $"Vertex3D({X}/{Y}/{Z})";
 		}
+
+		public float Magnitude() => MathF.Sqrt(this.Dot(this));
 	}
 }
