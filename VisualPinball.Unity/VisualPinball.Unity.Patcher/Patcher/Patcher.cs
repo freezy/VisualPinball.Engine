@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Patcher
 			Logger.Info("Table will be patched using the following patchers: [ {0} ]", string.Join(", ", _patchers.Select(o => o.GetType().Name)));
 		}
 
-		public void ApplyPatches(IRenderable item, RenderObject renderObject, GameObject gameObject)
+		public void ApplyPatches(IRenderable item, RenderObject renderObject, GameObject gameObject, GameObject tableGameObject)
 		{
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
@@ -58,6 +58,22 @@ namespace VisualPinball.Unity.Patcher
 								foreach (var pi in patcherParamInfos) {
 									if (pi.ParameterType == typeof(GameObject)) {
 										patcherParams[pi.Position] = gameObject;
+
+									} else if (pi.ParameterType == typeof(GameObject).MakeByRefType()) {
+										if (methodMatcher.Ref == null) {
+											Logger.Warn($"No Ref provided in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+											validArgs = false;
+
+										} else {
+											var goRef = tableGameObject.transform.Find(methodMatcher.Ref);
+											if (goRef == null) {
+												Logger.Warn($"No GameObject named {methodMatcher.Ref} found in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+												validArgs = false;
+
+											} else {
+												patcherParams[pi.Position] = goRef.gameObject;
+											}
+										}
 
 									} else if (pi.ParameterType == typeof(Table)) {
 										patcherParams[pi.Position] = _table;

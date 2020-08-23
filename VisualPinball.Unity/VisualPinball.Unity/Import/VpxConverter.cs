@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 			}
 
 			// import
-			ConvertGameItems();
+			ConvertGameItems(go);
 
 			// set root transformation
 			go.transform.localRotation = GlobalRotation;
@@ -118,13 +118,13 @@ namespace VisualPinball.Unity
 			return obj;
 		}
 
-		private void ConvertGameItems()
+		private void ConvertGameItems(GameObject tableGameObject)
 		{
 			// convert game objects
-			ConvertRenderables();
+			ConvertRenderables(tableGameObject);
 		}
 
-		private void ConvertRenderables()
+		private void ConvertRenderables(GameObject tableGameObject)
 		{
 			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
 			foreach (var renderable in _renderObjects.Keys) {
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			// now we have all renderables imported, patch them.
 			foreach (var renderable in createdObjs.Keys) {
 				foreach (var (obj, ro) in createdObjs[renderable]) {
-					_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj);
+					_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj, tableGameObject);
 				}
 			}
 		}
