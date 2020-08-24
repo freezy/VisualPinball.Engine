@@ -368,21 +368,26 @@ namespace VisualPinball.Unity.Editor
 		/// Callback when a TreeViewItem is double clicked
 		/// </summary>
 		/// <param name="element">the TreeElement attached to the TreeViewItem</param>
-		internal static void OnItemDoubleClicked(LayerTreeElement element)
+		internal static void OnItemDoubleClicked(LayerTreeElement[] elements)
 		{
-			switch (element.Type) {
-				case LayerTreeViewElementType.Table:
-				case LayerTreeViewElementType.Layer: {
-					LayerTreeElement[] items = element.GetChildren(child => child.Type == LayerTreeViewElementType.Item);
-					Selection.objects = items.Select(item => EditorUtility.InstanceIDToObject(item.Id)).ToArray();
-					break;
-				}
+			List<UnityEngine.Object> selectedObjs = new List<UnityEngine.Object>();
+			foreach(var element in elements) {
+				switch (element.Type) {
+					case LayerTreeViewElementType.Table:
+					case LayerTreeViewElementType.Layer: {
+						LayerTreeElement[] items = element.GetChildren(child => child.Type == LayerTreeViewElementType.Item);
+						selectedObjs.AddRange(items.Select(item => EditorUtility.InstanceIDToObject(item.Id)).ToArray());
+						break;
+					}
 
-				case LayerTreeViewElementType.Item: {
-					Selection.activeObject = EditorUtility.InstanceIDToObject(element.Id);
-					break;
+					case LayerTreeViewElementType.Item: {
+						selectedObjs.Add(EditorUtility.InstanceIDToObject(element.Id));
+						break;
+					}
 				}
 			}
+
+			Selection.objects = selectedObjs.ToArray();
 		}
 
 		#endregion
