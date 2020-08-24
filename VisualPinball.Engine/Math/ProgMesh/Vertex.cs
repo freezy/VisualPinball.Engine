@@ -72,8 +72,4 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			Util.RemoveFillWithBack(neighbor, n);
 		}
 	}
-
-	internal struct tridata {
-		internal int[] v;
-	};
 }

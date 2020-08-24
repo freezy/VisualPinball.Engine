@@ -161,7 +161,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			return mn;
 		}
 
-		internal void ProgressiveMesh(List<Vertex3D> vert, List<tridata> tri, List<int> map, List<int> permutation)
+		internal static void ProgressiveMesh(List<Vertex3D> vert, List<tridata> tri, List<int> map, List<int> permutation)
 		{
 			if (vert.Count == 0 || tri.Count == 0)
 				return;
@@ -247,7 +247,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			return a;
 		}
 
-		void ReMapIndices(uint num_vertices, List<tridata> tri, List<tridata> new_tri, List<int> map)
+		internal static void ReMapIndices(uint num_vertices, List<tridata> tri, List<tridata> new_tri, List<int> map)
 		{
 			for (var i = 0; i < tri.Count; i++) {
 				var t = new tridata {
