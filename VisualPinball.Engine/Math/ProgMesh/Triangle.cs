@@ -102,4 +102,14 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			return v == vertex[0] || v == vertex[1] || v == vertex[2];
 		}
 	}
+
+
+	internal struct tridata {
+		internal int[] v;
+
+		public tridata(int v1, int v2, int v3)
+		{
+			v = new[] {v1, v2, v3};
+		}
+	}
 }
