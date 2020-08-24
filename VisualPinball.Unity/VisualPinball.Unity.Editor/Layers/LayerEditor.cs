@@ -81,6 +81,8 @@ namespace VisualPinball.Unity.Editor
 
 			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
+			ItemInspector.ItemRenamed += _treeView.OnItemRenamed;
+
 			// repaint layer when visibility changes
 			SceneVisibilityManager.visibilityChanged += OnVisibilityChanged;
 
@@ -105,6 +107,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDisable()
 		{
+			ItemInspector.ItemRenamed -= _treeView.OnItemRenamed;
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 			ToolboxEditor.ItemCreated -= ToolBoxItemCreated;
