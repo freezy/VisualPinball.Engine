@@ -15,6 +15,8 @@ namespace VisualPinball.Unity.Editor
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
 
+		public static event Action<IIdentifiableItemAuthoring, string, string> ItemRenamed;
+
 		protected virtual void OnEnable()
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
@@ -50,7 +52,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
 				if (item.Name != bh.gameObject.name) {
+					var oldName = item.Name;
 					item.Name = bh.gameObject.name;
+					ItemRenamed?.Invoke(item, oldName, bh.gameObject.name);
 				}
 			}
 		}
