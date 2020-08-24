@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Events
 		public event Action<T> TreeRebuilt;
-		public event Action<T> ItemDoubleClicked;
+		public event Action<T[]> ItemDoubleClicked;
 		public event Action<T[]> ItemContextClicked;
 		#endregion
 
@@ -177,10 +177,8 @@ namespace VisualPinball.Unity.Editor
 		protected override void DoubleClickedItem(int id)
 		{
 			base.DoubleClickedItem(id);
-			var item = Root.Find<T>(id);
-			if (item != null) {
-				ItemDoubleClicked?.Invoke(item);
-			}
+			var selectedItems = GetSelection().Select(Id => Root.Find<T>(Id));
+			ItemDoubleClicked?.Invoke(selectedItems.ToArray());
 		}
 		#endregion
 

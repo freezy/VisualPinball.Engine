@@ -180,6 +180,11 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
+				if (elements.Length > 0) {
+					menu.AddSeparator("");
+					menu.AddItem(new GUIContent($"Select {elements.Length} item(s) in Scene Hierarchy"), false, SelectInHierarchy, new LayerMenuContext { MousePosition = Event.current.mousePosition, Elements = elements });
+				}
+
 				if (menu.GetItemCount() > 0) {
 					menu.ShowAsContext();
 					Event.current.Use();
@@ -214,6 +219,13 @@ namespace VisualPinball.Unity.Editor
 				if (!string.IsNullOrEmpty(layerName)) {
 					_layerHandler.AssignToLayer(assignContext.Elements, layerName);
 				}
+			}
+		}
+
+		private void SelectInHierarchy(object context)
+		{
+			if (context is LayerMenuContext selectContext) {
+				LayerHandler.OnItemDoubleClicked(selectContext.Elements);
 			}
 		}
 
