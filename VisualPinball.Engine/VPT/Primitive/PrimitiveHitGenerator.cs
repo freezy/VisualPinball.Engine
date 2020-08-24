@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿// ReSharper disable LoopCanBeConvertedToQuery
+
+using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Math.ProgMesh;
 using VisualPinball.Engine.Physics;
 
-namespace VisualPinball.Engine.VPT.Primitive
+namespace VisualPinball.Engine.VPT.Primitivehitp
 {
 	public class PrimitiveHitGenerator
 	{
@@ -17,7 +19,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = primitive.Data;
 		}
 
-		public HitObject[] GenerateHitObjects(Mesh mesh, Table.Table table)
+		public HitObject[] GenerateHitObjects(Table.Table table, Mesh mesh)
 		{
 			var hitObjects = new List<HitObject>();
 
@@ -34,13 +36,13 @@ namespace VisualPinball.Engine.VPT.Primitive
 			//RecalculateMatrices();
 			//TransformVertices(); //!! could also only do this for the optional reduced variant!
 
-			var reduced_vertices = System.Math.Max(
+			var reducedVertices = System.Math.Max(
 				(uint) MathF.Pow(mesh.Vertices.Length,
 					MathF.Clamp(1f - _data.CollisionReductionFactor, 0f, 1f) * 0.25f + 0.75f), 420u //!! 420 = magic
 			);
 
-			if (reduced_vertices < mesh.Vertices.Length) {
-				mesh = ComputeReducedMesh(mesh, reduced_vertices);
+			if (reducedVertices < mesh.Vertices.Length) {
+				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
 			var addedEdges = new EdgeSet();
@@ -74,20 +76,20 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return hitObjects.Select(ho => SetupHitObject(ho, table)).ToArray();
 		}
 
-		private Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)
+		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)
 		{
-			var prog_vertices = new List<Vertex3D>(mesh.Vertices.Length);
+			var progVertices = new List<Vertex3D>(mesh.Vertices.Length);
 
 			//!! opt. use original data directly!
 			for (var i = 0; i < mesh.Vertices.Length; ++i) {
-				prog_vertices[i] = new Vertex3D(
+				progVertices[i] = new Vertex3D(
 					mesh.Vertices[i].X,
 					mesh.Vertices[i].Y,
 					mesh.Vertices[i].Z
 				);
 			}
 
-			var prog_indices = new List<tridata>(mesh.Indices.Length / 3);
+			var progIndices = new List<tridata>(mesh.Indices.Length / 3);
 			{
 				var i2 = 0;
 				for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -97,34 +99,34 @@ namespace VisualPinball.Engine.VPT.Primitive
 						mesh.Indices[i + 2]
 					);
 					if (t.v[0] != t.v[1] && t.v[1] != t.v[2] && t.v[2] != t.v[0]) {
-						prog_indices[i2++] = t;
+						progIndices[i2++] = t;
 					}
 				}
 
-				if (i2 < prog_indices.Count) {
-					prog_indices.AddRange(new tridata[prog_indices.Count - i2]);
+				if (i2 < progIndices.Count) {
+					progIndices.AddRange(new tridata[progIndices.Count - i2]);
 				}
 			}
-			var prog_map = new List<int>();
-			var prog_perm = new List<int>();
-			ProgMesh.ProgressiveMesh(prog_vertices, prog_indices, prog_map, prog_perm);
-			Util.PermuteVertices(prog_perm, prog_vertices, prog_indices);
-			prog_perm.Clear();
+			var progMap = new List<int>();
+			var progPerm = new List<int>();
+			ProgMesh.ProgressiveMesh(progVertices, progIndices, progMap, progPerm);
+			Util.PermuteVertices(progPerm, progVertices, progIndices);
+			progPerm.Clear();
 
-			var prog_new_indices = new List<tridata>();
-			ProgMesh.ReMapIndices(reducedVertices, prog_indices, prog_new_indices, prog_map);
-			prog_indices.Clear();
-			prog_map.Clear();
+			var progNewIndices = new List<tridata>();
+			ProgMesh.ReMapIndices(reducedVertices, progIndices, progNewIndices, progMap);
+			progIndices.Clear();
+			progMap.Clear();
 
 			var reducedIndices = new List<int>();
-			foreach (var index in prog_new_indices) {
+			foreach (var index in progNewIndices) {
 				reducedIndices.Add(index.v[0]);
 				reducedIndices.Add(index.v[1]);
 				reducedIndices.Add(index.v[2]);
 			}
 
 			return new Mesh(
-				prog_vertices.Select(pv => new Vertex3DNoTex2(pv.X, pv.Y, pv.Z)).ToArray(),
+				progVertices.Select(pv => new Vertex3DNoTex2(pv.X, pv.Y, pv.Z)).ToArray(),
 				reducedIndices.ToArray()
 			);
 		}
@@ -133,8 +135,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 			if (!_primitive.UseAsPlayfield) {
 				obj.ApplyPhysics(_data, table);
-			}
-			else {
+
+			} else {
 				obj.SetElasticity(table.Data.Elasticity, table.Data.ElasticityFalloff);
 				obj.SetFriction(table.Data.Friction);
 				obj.SetScatter(MathF.DegToRad(table.Data.Scatter));

@@ -127,6 +127,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_hitTargets.Values)
 			.Concat(_kickers.Values)
 			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
 			.Concat(_ramps.Values)
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
@@ -140,6 +141,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_hitTargets.Values)
 			.Concat(_kickers.Values)
 			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
 			.Concat(_ramps.Values)
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
@@ -153,7 +155,6 @@ namespace VisualPinball.Engine.VPT.Table
 				Data.NumGameItems = item.StorageIndex + 1;
 			}
 			d[name] = item;
-
 		}
 
 		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
