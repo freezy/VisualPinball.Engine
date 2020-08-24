@@ -2,6 +2,13 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Engine.Math.ProgMesh
 {
+	/// <summary>
+	/// For the polygon reduction algorithm we use data structures
+	/// that contain a little bit more information than the usual
+	/// indexed face set type of data structure.
+	/// From a vertex we wish to be able to quickly get the
+	/// neighboring faces and vertices.
+	/// </summary>
 	public class Vertex
 	{
 		/// <summary>
@@ -12,7 +19,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 		/// <summary>
 		/// place of vertex in original Array
 		/// </summary>
-		public uint id;
+		public int id;
 
 		/// <summary>
 		/// adjacent vertices
@@ -27,20 +34,27 @@ namespace VisualPinball.Engine.Math.ProgMesh
 		/// <summary>
 		/// cached cost of collapsing edge
 		/// </summary>
-		float objdist;
+		internal float objdist;
 
 		/// <summary>
 		/// candidate vertex for collapse
 		/// </summary>
-		Vertex collapse;
+		internal Vertex collapse;
 
-		public List<Vertex> vertices = new List<Vertex>();
-
-		public Vertex(Vertex3D v, ulong id)
+		public Vertex(Vertex3D v, int id)
 		{
 			position = v;
-			this.id = (uint)id;
-			vertices.Add(this);
+			this.id = id;
+			ProgMesh.vertices.Add(this);
+		}
+
+		~Vertex()
+		{
+			while (neighbor.Count > 0) {
+				Util.RemoveFillWithBack(neighbor[0].neighbor, this);
+				Util.RemoveFillWithBack(neighbor, neighbor[0]);
+			}
+			Util.RemoveFillWithBack(ProgMesh.vertices, this);
 		}
 
 		public void RemoveIfNonNeighbor(Vertex n)
@@ -50,12 +64,16 @@ namespace VisualPinball.Engine.Math.ProgMesh
 				return;
 			}
 
-			for (var i = 0; i < face.Count; i++) {
-				if (face[i].HasVertex(n)) {
+			foreach (var face in face) {
+				if (face.HasVertex(n)) {
 					return;
 				}
 			}
-			Triangle.RemoveFillWithBack(neighbor, n);
+			Util.RemoveFillWithBack(neighbor, n);
 		}
 	}
+
+	internal struct tridata {
+		internal int[] v;
+	};
 }
