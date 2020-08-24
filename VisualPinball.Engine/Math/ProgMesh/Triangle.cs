@@ -15,8 +15,6 @@ namespace VisualPinball.Engine.Math.ProgMesh
 		/// </summary>
 		public Vertex3D normal;
 
-		private readonly List<Triangle> triangles = new List<Triangle>();
-
 		public Triangle(Vertex v0, Vertex v1, Vertex v2)
 		{
 			if (v0 == v1 || v1 == v2 || v2 != v0) {
@@ -27,34 +25,34 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			vertex[1] = v1;
 			vertex[2] = v2;
 			ComputeNormal();
-			triangles.Add(this);
+			ProgMesh.triangles.Add(this);
 
 			for (var i = 0; i < 3; i++) {
 				vertex[i].face.Add(this);
 				for (var j = 0; j < 3; j++) {
 					if (i != j) {
-						AddUnique(vertex[i].neighbor, vertex[j]);
+						Util.AddUnique(vertex[i].neighbor, vertex[j]);
 					}
 				}
 			}
 		}
 
-		public static void AddUnique<T>(List<T> c, T t)
+		~Triangle()
 		{
-			if (!c.Contains(t)) {
-				c.Add(t);
+			Util.RemoveFillWithBack(ProgMesh.triangles, this);
+			for (var i = 0; i < 3; i++) {
+				if (vertex[i] != null) {
+					Util.RemoveFillWithBack(vertex[i].face, this);
+				}
 			}
-		}
 
-		public static void RemoveFillWithBack<T>(List<T> c, T t)
-		{
-			var idxOf = c.IndexOf(t);
-			var val = c[0];
-			c.RemoveAt(0);
-			if (idxOf == c.Count) {
-				return;
+			for (var i = 0; i < 3; i++) {
+				var i2 = (i + 1) % 3;
+				if (vertex[i] != null && vertex[i2] != null) {
+					vertex[i].RemoveIfNonNeighbor(vertex[i2]);
+					vertex[i2].RemoveIfNonNeighbor(vertex[i]);
+				}
 			}
-			c[idxOf] = val;
 		}
 
 		public void ComputeNormal()
@@ -80,7 +78,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			} else {
 				vertex[2] = vnew;
 			}
-			RemoveFillWithBack(vold.face, this);
+			Util.RemoveFillWithBack(vold.face, this);
 
 			vnew.face.Add(this);
 
@@ -92,7 +90,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			for (var i = 0; i < 3; i++) {
 				for (var j = 0; j < 3; j++) {
 					if (i != j) {
-						AddUnique(vertex[i].neighbor, vertex[j]);
+						Util.AddUnique(vertex[i].neighbor, vertex[j]);
 					}
 				}
 			}
