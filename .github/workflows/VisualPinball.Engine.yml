@@ -1,66 +1,70 @@
 on: [push, pull_request]
 
 jobs:
-    visualpinball-engine-win-x64:
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: nuget/setup-nuget@v1
-        - name: Build
-          run: |
-             nuget restore
-             dotnet build -c Release
-        - name: Build Contents
-          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
-          shell: bash
-        - name: Test
-          run: |
-             $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
-          shell: bash
+  visualpinball-engine-win-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nuget/setup-nuget@v1
+      - name: Build
+        run: |
+           nuget restore
+           dotnet build -c Release
+      - name: Build Contents
+        run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+        shell: bash
+      - name: Test
+        run: |
+           $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+        shell: bash
 
-    visualpinball-engine-win-x86:
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: nuget/setup-nuget@v1
-        - name: Build
-          run: |
-             nuget restore
-             dotnet build -c Release -p:PlatformTarget=x86
-        - name: Build Contents
-          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
-          shell: bash
-        - name: Test
-          run: |
-             $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe --x86 VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
-          shell: bash
+  visualpinball-engine-win-x86:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nuget/setup-nuget@v1
+      - name: Build
+        run: |
+           nuget restore
+           dotnet build -c Release -p:PlatformTarget=x86
+      - name: Build Contents
+        run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+        shell: bash
+      - name: Test
+        run: |
+           $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe --x86 VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+        shell: bash
 
-    visualpinball-engine-osx-x64:
-      runs-on: macos-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: nuget/setup-nuget@v1
-        - name: Build
-          run: |
-             nuget restore
-             msbuild /p:Configuration=Release
-        - name: Build Contents
-          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
-        - name: Test
-          run: |
-             mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+  visualpinball-engine-osx-x64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nuget/setup-nuget@v1
+      - name: Build
+        run: |
+           nuget restore
+           msbuild /p:Configuration=Release
+      - name: Build Contents
+        run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+      - name: Test
+        run: |
+           export MONO_LOG_MASK="dll"
+           export MONO_LOG_LEVEL="debug"
+           mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
 
-    visualpinball-engine-linux-x64:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: nuget/setup-nuget@v1
-        - name: Build
-          run: |
-             nuget restore
-             msbuild /p:Configuration=Release
-        - name: Build Contents
-          run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
-        - name: Test
-          run: |
-             mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
+  visualpinball-engine-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nuget/setup-nuget@v1
+      - name: Build
+        run: |
+           nuget restore
+           msbuild /p:Configuration=Release
+      - name: Build Contents
+        run: ls -lart VisualPinball.Engine.Test/.bin/Release/net472
+      - name: Test
+        run: |
+           export MONO_LOG_MASK="dll"
+           export MONO_LOG_LEVEL="debug"
+           mono $HOME/.nuget/packages/nunit.consolerunner/3.11.1/tools/nunit3-console.exe VisualPinball.Engine.Test/.bin/Release/net472/VisualPinball.Engine.Test.dll
