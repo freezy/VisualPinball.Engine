@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Editor.Utils;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -388,6 +389,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Selection.objects = selectedObjs.ToArray();
+			SceneViewFramer.FrameObjects(Selection.objects);
 		}
 
 		#endregion
