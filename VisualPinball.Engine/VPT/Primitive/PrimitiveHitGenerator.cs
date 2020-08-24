@@ -59,7 +59,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 					mesh.Vertices[i1].GetVertex(),
 				};
 
-				hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D, ItemType.Primitive), table));
+				hitObjects.Add(new HitTriangle(rgv3D, ItemType.Primitive));
 
 				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], ItemType.Primitive));
 				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], ItemType.Primitive));
