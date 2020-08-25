@@ -72,28 +72,14 @@
       <Plugins Include="$(OutDir)NLog.dll" />
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
 
-      <Plugins Include="$(OutDir)NetMiniZ.dll" native="win-x64" />
-      <Plugins Include="$(OutDir)NetMiniZ.dll" native="win-x86" />
-      <Plugins Include="$(OutDir)NetMiniZ.dll" native="osx-x64" />
-      <Plugins Include="$(OutDir)NetMiniZ.dll" native="linux-x64" />
+      <NativePlugins Include="$(OutDir)NetMiniZ.dll" />
+      <NativePlugins Include="$(OutDir)NetVips.dll"/>
 
-      <Plugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\win-x64\native\*" native="win-x64" />
-      <Plugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\win-x86\native\*" native="win-x86" />
-      <Plugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\osx-x64\native\*" native="osx-x64" />
-      <Plugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\linux-x64\native\*" native="linux-x64" />
-
-      <Plugins Include="$(OutDir)NetVips.dll" native="win-x64" />
-      <Plugins Include="$(OutDir)NetVips.dll" native="win-x86" />
-      <Plugins Include="$(OutDir)NetVips.dll" native="osx-x64" />
-      <Plugins Include="$(OutDir)NetVips.dll" native="linux-x64" />
-
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.win-x64\8.9.2-build3\runtimes\win-x64\native\*.dll" native="win-x64" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.win-x86\8.9.2-build3\runtimes\win-x86\native\*.dll" native="win-x86" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.9.2-build3\runtimes\osx-x64\native\*.dylib" native="osx-x64" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.linux-x64\8.9.2-build3\runtimes\linux-x64\native\*.so.*" native="linux-x64" />
+      <NativePlugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\$(RuntimeIdentifier)\native\*" />
+      <NativePlugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.9.2-build3\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins)" />
-    <Copy SourceFiles="@(Plugins)" Condition="'%(Plugins.native)' == ''" DestinationFolder="..\VisualPinball.Unity\Plugins\" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(Plugins)" Condition="'%(Plugins.native)' != ''" DestinationFolder="..\VisualPinball.Unity\Plugins\%(Plugins.native)\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativePlugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
   </Target>
 </Project>
