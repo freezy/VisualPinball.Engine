@@ -1,13 +1,19 @@
-using System.Collections.Generic;
+// ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+// ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
-namespace VisualPinball.Engine.Math.ProgMesh
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using VisualPinball.Engine.Common;
+
+namespace VisualPinball.Engine.Math.Mesh
 {
 	internal class ProgMesh
 	{
-		internal static readonly List<Vertex> vertices = new List<Vertex>();
-		internal static readonly List<Triangle> triangles = new List<Triangle>();
+		public static readonly List<ProgMeshVertex> Vertices = new List<ProgMeshVertex>();
+		public static readonly List<ProgMeshTriangle> Triangles = new List<ProgMeshTriangle>();
 
-		internal static float ComputeEdgeCollapseCost(Vertex u, Vertex v)
+		private static float ComputeEdgeCollapseCost(ProgMeshVertex u, ProgMeshVertex v)
 		{
 			// if we collapse edge uv by moving u to v then how
 			// much different will the model change, i.e. how much "error".
@@ -22,8 +28,8 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			// therefore never added code to detect this case.
 
 			// find the "sides" triangles that are on the edge uv
-			var sides = new List<Triangle>(u.face.Count);
-			foreach (var face in u.face) {
+			var sides = new List<ProgMeshTriangle>(u.Face.Count);
+			foreach (var face in u.Face) {
 				if (face.HasVertex(v)) {
 					sides.Add(face);
 				}
@@ -32,11 +38,11 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			// use the triangle facing most away from the sides
 			// to determine our curvature term
 			var curvature = 0f;
-			foreach (var face in u.face) {
+			foreach (var face in u.Face) {
 				var minCurve = 1f; // curve for face i and closer side to it
 				foreach (var side in sides) {
 					// use dot product of face normals.
-					var dotProd = face.normal.Dot(side.normal);
+					var dotProd = face.Normal.Dot(side.Normal);
 					minCurve = MathF.Min(minCurve, (1f - dotProd) * 0.5f);
 				}
 
@@ -44,11 +50,11 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			}
 
 			// the more coplanar the lower the curvature term
-			var edgeLength = v.position.Clone().Sub(u.position).Magnitude();
+			var edgeLength = v.Position.Sub(u.Position).Magnitude();
 			return edgeLength * curvature;
 		}
 
-		internal static void ComputeEdgeCostAtVertex(Vertex v)
+		private static void ComputeEdgeCostAtVertex(ProgMeshVertex v)
 		{
 			// compute the edge collapse cost for all edges that start
 			// from vertex v.  Since we are only interested in reducing
@@ -56,71 +62,69 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			// only cache the cost of the least cost edge at this vertex
 			// (in member variable collapse) as well as the value of the
 			// cost (in member variable objdist).
-			if (v.neighbor.Count == 0) {
+			if (v.Neighbor.Count == 0) {
 				// v doesn't have neighbors so it costs nothing to collapse
-				v.collapse = null;
-				v.objdist = -0.01f;
+				v.Collapse = null;
+				v.ObjDist = -0.01f;
 				return;
 			}
 
-			v.objdist = float.MaxValue;
-			v.collapse = null;
+			v.ObjDist = Constants.FloatMax;
+			v.Collapse = null;
 
 			// search all neighboring edges for "least cost" edge
-			foreach (var neighbor in v.neighbor) {
+			foreach (var neighbor in v.Neighbor) {
 				var dist = ComputeEdgeCollapseCost(v, neighbor);
-				if (dist < v.objdist) {
-					v.collapse = neighbor;  // candidate for edge collapse
-					v.objdist = dist;             // cost of the collapse
+				if (dist < v.ObjDist) {
+					v.Collapse = neighbor;  // candidate for edge collapse
+					v.ObjDist = dist;             // cost of the collapse
 				}
 			}
 		}
 
-		internal static void ComputeAllEdgeCollapseCosts()
+		private static void ComputeAllEdgeCollapseCosts()
 		{
 			// For all the edges, compute the difference it would make
 			// to the model if it was collapsed.  The least of these
 			// per vertex is cached in each vertex object.
-			foreach (var v in vertices) {
+			foreach (var v in Vertices) {
 				ComputeEdgeCostAtVertex(v);
 			}
 		}
 
-		internal static void Collapse(ref Vertex u, Vertex v)
+		private static void Collapse(ProgMeshVertex u, ProgMeshVertex v)
 		{
+			int i;
+
 			// Collapse the edge uv by moving vertex u onto v
 			// Actually remove tris on uv, then update tris that
 			// have u to have v, and then remove u.
 			if (v == null) {
 				// u is a vertex all by itself so just delete it
-				u = null;
+				u.Dispose();
 				return;
 			}
-			var tmp = new List<Vertex>(u.neighbor.Count);
+			var tmp = new ProgMeshVertex[u.Neighbor.Count];
 
 			// make tmp a Array of all the neighbors of u
-			for (var i = 0; i < tmp.Count; i++) {
-				tmp[i] = u.neighbor[i];
+			for (i = 0; i < tmp.Length; i++) {
+				tmp[i] = u.Neighbor[i];
 			}
 
 			// delete triangles on edge uv:
-			{
-				var i = u.face.Count;
-				while (i-- > 0) {
-					if (u.face[i].HasVertex(v)) {
-						u.face[i] = null;
-					}
+			i = u.Face.Count;
+			while (i-- > 0) {
+				if (u.Face[i].HasVertex(v)) {
+					u.Face[i].Dispose();
 				}
 			}
 
 			// update remaining triangles to have v instead of u
-			{
-				var i = u.face.Count;
-				while (i-- > 0) {
-					u.face[i].ReplaceVertex(u, v);
-				}
+			i = u.Face.Count;
+			while (i-- > 0) {
+				u.Face[i].ReplaceVertex(u, v);
 			}
-			u = null;
+			u.Dispose();
 
 			// recompute the edge collapse costs for neighboring vertices
 			foreach (var t in tmp) {
@@ -128,85 +132,84 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			}
 		}
 
-		internal static void AddVertex(List<Vertex3D> vert)
+		private static void AddVertex(ProgMeshFloat3[] vert)
 		{
-			for (var i = 0; i < vert.Count; i++) {
-				new Vertex(vert[i], i); //!! braindead design, actually fills up "vertices"
+			for (var i = 0; i < vert.Length; i++) {
+				new ProgMeshVertex(vert[i], i); //!! braindead design, actually fills up "vertices"
 			}
 		}
 
-		internal static void AddFaces(List<tridata> tri)
+		private static void AddFaces(ProgMeshTriData[] tri)
 		{
-			for (var i = 0; i < tri.Count; i++) {
-				new Triangle(
-					vertices[tri[i].v[0]], //!! braindead design, actually fills up "triangles"
-					vertices[tri[i].v[1]],
-					vertices[tri[i].v[2]]
+			foreach (var t in tri) {
+				new ProgMeshTriangle(
+					Vertices[t.V[0]], //!! braindead design, actually fills up "triangles"
+					Vertices[t.V[1]],
+					Vertices[t.V[2]]
 				);
 			}
 		}
 
-		internal static Vertex MinimumCostEdge()
+		private static ProgMeshVertex MinimumCostEdge()
 		{
 			// Find the edge that when collapsed will affect model the least.
-			// This funtion actually returns a Vertex, the second vertex
+			// This function actually returns a Vertex, the second vertex
 			// of the edge (collapse candidate) is stored in the vertex data.
 			// Serious optimization opportunity here: this function currently
 			// does a sequential search through an unsorted Array :-(
 			// Our algorithm could be O(n*lg(n)) instead of O(n*n)
-			var mn = vertices[0];
-			foreach (var vertex in vertices) {
-				if (vertex.objdist < mn.objdist) {
+			var mn = Vertices[0];
+			foreach (var vertex in Vertices) {
+				if (vertex.ObjDist < mn.ObjDist) {
 					mn = vertex;
 				}
 			}
 			return mn;
 		}
 
-		internal static void ProgressiveMesh(List<Vertex3D> vert, List<tridata> tri, List<int> map, List<int> permutation)
+		public static Tuple<int[], int[]> ProgressiveMesh(ProgMeshFloat3[] vert, ProgMeshTriData[] tri)
 		{
-			if (vert.Count == 0 || tri.Count == 0)
-				return;
+			if (vert.Length == 0 || tri.Length == 0)
+				return new Tuple<int[], int[]>(new int[0], new int[0]);
 
-			if (vertices.Count < vert.Count) {
-				vertices.AddRange(new Vertex[vert.Count - vertices.Count]);
+			if (Vertices.Count < vert.Length) {
+				Vertices.AddRange(new ProgMeshVertex[vert.Length - Vertices.Count]);
 			}
 
-			if (triangles.Count < tri.Count) {
-				triangles.AddRange(new Triangle[tri.Count - triangles.Count]);
+			if (Triangles.Count < tri.Length) {
+				Triangles.AddRange(new ProgMeshTriangle[tri.Length - Triangles.Count]);
 			}
 
 			AddVertex(vert);  // put input data into our data structures
 			AddFaces(tri);
 			ComputeAllEdgeCollapseCosts(); // cache all edge collapse costs
 
-			if (permutation.Count < vertices.Count) {
-				permutation.AddRange(new int[vertices.Count - permutation.Count]);
-			}
-			if (map.Count < vertices.Count) {
-				map.AddRange(new int[vertices.Count - map.Count]);
-			}
+			var permutation = new int[vert.Length];
+			var map = new int[vert.Length];
 
 			// reduce the object down to nothing:
-			while (vertices.Count > 0) {
+			while (Vertices.Count > 0) {
 				// get the next vertex to collapse
 				var mn = MinimumCostEdge();
 				// keep track of this vertex, i.e. the collapse ordering
-				permutation[mn.id] = vertices.Count - 1;
+				permutation[mn.ID] = Vertices.Count - 1;
 				// keep track of vertex to which we collapse to
-				map[vertices.Count - 1] = mn.collapse?.id ?? 0;
+				map[Vertices.Count - 1] = mn.Collapse?.ID ?? 0;
 				// Collapse this edge
-				Collapse(ref mn, mn.collapse);
+				Collapse(mn, mn.Collapse);
 			}
 
 			// reorder the map Array based on the collapse ordering
-			for (var i = 0; i < map.Count; i++)
+			for (var i = 0; i < map.Length; i++) {
 				map[i] = map[i] == ~0u ? 0 : permutation[map[i]];
+			}
 
 			// The caller of this function should reorder their vertices
 			// according to the returned "permutation".
-			Util.Assert(vertices.Count == 0, "[progressiveMesh] vertices.size() == 0");
-			Util.Assert(triangles.Count == 0,  "[progressiveMesh] triangles.size() == 0");
+			Debug.Assert(Vertices.Count == 0, "[progressiveMesh] vertices.size() == 0");
+			Debug.Assert(Triangles.Count == 0,  "[progressiveMesh] triangles.size() == 0");
+
+			return new Tuple<int[], int[]>(map, permutation);
 		}
 
 		// Note that the use of the MapVertex() function and the map
@@ -242,7 +245,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 		//   progressive mesh polygon reduction algorithm by the time
 		//   it had gotten down to 5 vertices.
 		//   No need to draw a one dimensional polygon. :-)
-		internal static int MapVertex(int a, uint mx, List<int> map)
+		private static int MapVertex(int a, uint mx, int[] map)
 		{
 			while (a >= mx) {
 				a = map[a];
@@ -251,28 +254,26 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			return a;
 		}
 
-		internal static void ReMapIndices(uint num_vertices, List<tridata> tri, List<tridata> new_tri, List<int> map)
+		public static void ReMapIndices(uint numVertices, ProgMeshTriData[] tri, List<ProgMeshTriData> newTri, int[] map)
 		{
-			Util.Assert(new_tri.Count == 0, "[remapIndices] new_tri.size() == 0");
-			Util.Assert(map.Count != 0, "[remapIndices] map.size() != 0");
-			Util.Assert(num_vertices != 0, "[remapIndices] num_vertices != 0");
+			Debug.Assert(newTri.Count == 0, "[ReMapIndices] new_tri.size() == 0");
+			Debug.Assert(map.Length != 0, "[ReMapIndices] map.size() != 0");
+			Debug.Assert(numVertices != 0, "[ReMapIndices] num_vertices != 0");
 
-			for (var i = 0; i < tri.Count; i++) {
-				var t = new tridata {
-					v = new[] {
-						MapVertex(tri[i].v[0], num_vertices, map),
-						MapVertex(tri[i].v[1], num_vertices, map),
-						MapVertex(tri[i].v[2], num_vertices, map)
-					}
-				};
+			for (var i = 0; i < tri.Length; i++) {
+				var t = new ProgMeshTriData(
+					MapVertex(tri[i].V[0], numVertices, map),
+					MapVertex(tri[i].V[1], numVertices, map),
+					MapVertex(tri[i].V[2], numVertices, map)
+				);
 
 				//!! note:  serious optimization opportunity here,
 				//  by sorting the triangles the following "continue"
 				//  could have been made into a "break" statement.
-				if (t.v[0] == t.v[1] || t.v[1] == t.v[2] || t.v[2] == t.v[0]) {
+				if (t.V[0] == t.V[1] || t.V[1] == t.V[2] || t.V[2] == t.V[0]) {
 					continue;
 				}
-				new_tri.Add(t);
+				newTri.Add(t);
 			}
 		}
 	}

@@ -17,7 +17,7 @@ namespace VisualPinball.Unity
 				var p1 = (ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime) + 2) % BallRingCounterSystem.MaxBallTrailPos;
 
 				// only if already initialized
-				if (collEvent.HitDistance < PhysicsConstants.PhysTouch && lastPos[p0].Value.x != float.MaxValue && lastPos[p1].Value.x != float.MaxValue) {
+				if (collEvent.HitDistance < PhysicsConstants.PhysTouch && lastPos[p0].Value.x != Constants.FloatMax && lastPos[p1].Value.x != float.MaxValue) {
 					var diffPos = lastPos[p0].Value - ball.Position;
 					var mag = diffPos.x*diffPos.x + diffPos.y*diffPos.y;
 					var diffPos2 = lastPos[p1].Value - ball.Position;
