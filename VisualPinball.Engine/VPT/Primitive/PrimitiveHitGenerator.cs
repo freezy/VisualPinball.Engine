@@ -99,7 +99,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			}
 
 			Debug.Assert(progIndices.Length == i2);
-			var (progMap, progPerm) = ProgMesh.ProgressiveMesh(progVertices, progIndices);
+			var (progMap, progPerm) = new ProgMesh().ProgressiveMesh(progVertices, progIndices);
 			ProgMeshUtil.PermuteVertices(progPerm, progVertices, progIndices);
 
 			var progNewIndices = new List<ProgMeshTriData>();
