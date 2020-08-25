@@ -73,7 +73,7 @@
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
 
       <NativePlugins Include="$(OutDir)NetMiniZ.dll" />
-      <NativePlugins Include="$(OutDir)NetVips.dll"/>
+      <NativePlugins Include="$(OutDir)NetVips.dll" />
 
       <NativePlugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\$(RuntimeIdentifier)\native\*" />
       <NativePlugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.9.2-build3\runtimes\$(RuntimeIdentifier)\native\*" />
