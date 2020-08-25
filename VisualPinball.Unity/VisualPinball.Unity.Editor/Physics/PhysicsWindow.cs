@@ -42,6 +42,20 @@ namespace VisualPinball.Unity.Editor.Physics
 
 		private void OnGUI()
 		{
+
+			GUILayout.BeginHorizontal();
+
+			var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", PhysicsDebug.ShowAabbs);
+			var refresh = showAabbs == PhysicsDebug.ShowAabbs;
+			PhysicsDebug.ShowAabbs = showAabbs;
+
+			var showColliders = EditorGUILayout.Toggle("Show Colliders", PhysicsDebug.ShowColliders);
+			refresh = refresh || showColliders == PhysicsDebug.ShowColliders;
+			PhysicsDebug.ShowColliders = showColliders;
+
+			GUILayout.EndHorizontal();
+			GUILayout.Space(4);
+
 			var selectedObject = Selection.activeObject as GameObject;
 			var hittableObj = selectedObject != null ? selectedObject.GetComponent<IHittableAuthoring>() : null;
 			if (hittableObj != null) {
@@ -52,17 +66,16 @@ namespace VisualPinball.Unity.Editor.Physics
 				GUILayout.Label(selectedObject.name, headerStyle);
 				GUILayout.Space(2f);
 
-				bool refresh;
-				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", PhysicsDebug.ShowAabbs);
-				refresh = showAabbs == PhysicsDebug.ShowAabbs;
-				PhysicsDebug.ShowAabbs = showAabbs;
-
 				if (_currentHittable != hittableObj) {
 					var hitObjects = hittableObj.Hittable.GetHitShapes() ?? new HitObject[0];
 					_currentColliders = hitObjects
 						.Where(h => h != null)
 						.Select((h, i) => $"[{i}] {h.GetType().Name}")
 						.ToArray();
+
+					if (_currentColliders.Length == 0) {
+						GUILayout.Label("No colliders for this item.");
+					}
 				}
 
 				_currentHittable = hittableObj;

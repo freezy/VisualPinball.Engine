@@ -47,9 +47,6 @@ namespace VisualPinball.Unity
 		private bool _meshDirty;
 		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
 
-		private static readonly Color AabbColor = new Color32(255, 0, 252, 255);
-		private static readonly Color ColliderColor = new Color32(0, 255, 75, 255);
-
 		public ItemAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
@@ -146,26 +143,29 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnDrawGizmosSelected()
 		{
-			if (PhysicsDebug.ShowAabbs) {
+			if (PhysicsDebug.ShowAabbs || PhysicsDebug.ShowColliders) {
 				var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
+
 				if (Item is IHittable hittable) {
 					hittable.Init(Table);
 					var hits = hittable.GetHitShapes();
+
+					// new hittable selected?
 					if (hittable != PhysicsDebug.SelectedHittable) {
 						PhysicsDebug.SelectedCollider = hits.Length == 1 ? 0 : -1;
 						PhysicsDebug.SelectedHittable = hittable;
 						PhysicsDebug.OnItemSelected(hittable);
 					}
 
-					if (PhysicsDebug.SelectedCollider > -1) {
-						hits[PhysicsDebug.SelectedCollider].CalcHitBBox();
-						DrawAabb(ltw, hits[PhysicsDebug.SelectedCollider].HitBBox);
-						DrawCollider(ltw, hits[PhysicsDebug.SelectedCollider]);
-
-					} else {
-						foreach (var hit in hits) {
+					// draw aabbs and colliders
+					for (var i = 0; i < hits.Length; i++) {
+						var hit = hits[i];
+						if (PhysicsDebug.ShowAabbs) {
 							hit.CalcHitBBox();
-							DrawAabb(ltw, hit.HitBBox);
+							DrawAabb(ltw, hit.HitBBox, i == PhysicsDebug.SelectedCollider);
+						}
+						if (PhysicsDebug.ShowColliders) {
+							DrawCollider(ltw, hit, i == PhysicsDebug.SelectedCollider);
 						}
 					}
 				}
@@ -199,7 +199,7 @@ namespace VisualPinball.Unity
 
 		#region Physics Debug
 
-		private static void DrawAabb(Matrix4x4 ltw, Rect3D aabb)
+		private static void DrawAabb(Matrix4x4 ltw, Rect3D aabb, bool isSelected)
 		{
 			var p00 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZHigh));
 			var p01 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZHigh));
@@ -211,7 +211,7 @@ namespace VisualPinball.Unity
 			var p12 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZLow));
 			var p13 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZLow));
 
-			Gizmos.color = AabbColor;
+			Gizmos.color = isSelected ? PhysicsDebug.SelectedAabbColor : PhysicsDebug.AabbColor;
 			Gizmos.DrawLine(p00, p01);
 			Gizmos.DrawLine(p01, p02);
 			Gizmos.DrawLine(p02, p03);
@@ -228,9 +228,9 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(p03, p13);
 		}
 
-		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject)
+		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject, bool isSelected)
 		{
-			Gizmos.color = ColliderColor;
+			Gizmos.color = isSelected ? PhysicsDebug.SelectedColliderColor : PhysicsDebug.ColliderColor;
 			switch (hitObject) {
 
 				case HitPoint hitPoint: {
@@ -292,14 +292,14 @@ namespace VisualPinball.Unity
 				}
 
 				case GateHit gateHit: {
-					DrawCollider(ltw, gateHit.LineSeg0);
-					DrawCollider(ltw, gateHit.LineSeg1);
+					DrawCollider(ltw, gateHit.LineSeg0, isSelected);
+					DrawCollider(ltw, gateHit.LineSeg1, isSelected);
 					break;
 				}
 
 				case SpinnerHit spinnerHit: {
-					DrawCollider(ltw, spinnerHit.LineSeg0);
-					DrawCollider(ltw, spinnerHit.LineSeg1);
+					DrawCollider(ltw, spinnerHit.LineSeg0, isSelected);
+					DrawCollider(ltw, spinnerHit.LineSeg1, isSelected);
 					break;
 				}
 
@@ -316,14 +316,14 @@ namespace VisualPinball.Unity
 				}
 
 				case PlungerHit plungerHit: {
-					DrawCollider(ltw, plungerHit.LineSegBase);
-					DrawCollider(ltw, plungerHit.LineSegEnd);
-					DrawCollider(ltw, plungerHit.LineSegSide[0]);
-					DrawCollider(ltw, plungerHit.LineSegSide[1]);
-					DrawCollider(ltw, plungerHit.JointBase[0]);
-					DrawCollider(ltw, plungerHit.JointBase[1]);
-					DrawCollider(ltw, plungerHit.JointEnd[0]);
-					DrawCollider(ltw, plungerHit.JointEnd[1]);
+					DrawCollider(ltw, plungerHit.LineSegBase, isSelected);
+					DrawCollider(ltw, plungerHit.LineSegEnd, isSelected);
+					DrawCollider(ltw, plungerHit.LineSegSide[0], isSelected);
+					DrawCollider(ltw, plungerHit.LineSegSide[1], isSelected);
+					DrawCollider(ltw, plungerHit.JointBase[0], isSelected);
+					DrawCollider(ltw, plungerHit.JointBase[1], isSelected);
+					DrawCollider(ltw, plungerHit.JointEnd[0], isSelected);
+					DrawCollider(ltw, plungerHit.JointEnd[1], isSelected);
 					break;
 				}
 
@@ -383,9 +383,19 @@ namespace VisualPinball.Unity
 	{
 		public static bool ShowAabbs;
 
+		public static Color AabbColor = new Color32(255, 0, 252, 8);
+
+		public static Color SelectedAabbColor = new Color32(255, 0, 252, 255);
+
+		public static bool ShowColliders;
+
 		public static IHittable SelectedHittable;
 
 		public static int SelectedCollider;
+
+		public static Color ColliderColor = new Color32(0, 255, 75, 8);
+
+		public static Color SelectedColliderColor = new Color32(0, 255, 75, 255);
 
 		public static event EventHandler ItemSelected;
 

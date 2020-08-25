@@ -11,11 +11,13 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Primitive")]
-	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>
+	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring
 	{
 		protected override string[] Children => null;
 
 		protected override Primitive GetItem() => new Primitive(data);
+
+		public IHittable Hittable => Item;
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
