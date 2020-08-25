@@ -1,4 +1,5 @@
-using System;
+// ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+
 using System.Diagnostics;
 using System.Collections.Generic;
 
@@ -11,7 +12,7 @@ namespace VisualPinball.Engine.Math.Mesh
 	/// From a vertex we wish to be able to quickly get the
 	/// neighboring faces and vertices.
 	/// </summary>
-	internal class ProgMeshVertex : IDisposable
+	internal class ProgMeshVertex
 	{
 		/// <summary>
 		/// location of point in euclidean space
@@ -47,17 +48,16 @@ namespace VisualPinball.Engine.Math.Mesh
 		{
 			Position = v;
 			ID = id;
-			ProgMesh.Vertices.Add(this);
 		}
 
-		public void Dispose()
+		public void Dispose(ProgMesh pm)
 		{
 			Debug.Assert(Face.Count == 0, "[ProgMeshVertex.destroy] face.size() == 0");
 			while (Neighbor.Count > 0) {
 				ProgMeshUtil.RemoveFillWithBack(Neighbor[0].Neighbor, this);
 				ProgMeshUtil.RemoveFillWithBack(Neighbor, Neighbor[0]);
 			}
-			ProgMeshUtil.RemoveFillWithBack(ProgMesh.Vertices, this);
+			ProgMeshUtil.RemoveFillWithBack(pm.Vertices, this);
 		}
 
 		public void RemoveIfNonNeighbor(ProgMeshVertex n)

@@ -1,16 +1,15 @@
-using System;
 using System.Diagnostics;
 using System.Linq;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Engine.Math.Mesh
 {
-	internal class ProgMeshTriangle : IDisposable
+	internal class ProgMeshTriangle
 	{
 		/// <summary>
 		/// The 3 points that make this tri
 		/// </summary>
-		private readonly ProgMeshVertex[] _vertex = new ProgMeshVertex[3];
+		private readonly ProgMeshVertex[] _vertex;
 
 		/// <summary>
 		/// Unit vector orthogonal to this face
@@ -22,11 +21,8 @@ namespace VisualPinball.Engine.Math.Mesh
 			Debug.Assert(v0 != null && v1 != null && v2 != null, "[ProgMeshTriangle] Vertices must not be null.");
 			Debug.Assert(v0 != v1 && v1 != v2 && v2 != v0, "[ProgMeshTriangle] Vertices must be different.");
 
-			_vertex[0] = v0;
-			_vertex[1] = v1;
-			_vertex[2] = v2;
+			_vertex = new[] {v0, v1, v2};
 			ComputeNormal();
-			ProgMesh.Triangles.Add(this);
 
 			for (var i = 0; i < 3; i++) {
 				_vertex[i].Face.Add(this);
@@ -38,9 +34,9 @@ namespace VisualPinball.Engine.Math.Mesh
 			}
 		}
 
-		public void Dispose()
+		public void Dispose(ProgMesh pm)
 		{
-			ProgMeshUtil.RemoveFillWithBack(ProgMesh.Triangles, this);
+			ProgMeshUtil.RemoveFillWithBack(pm.Triangles, this);
 			for (var i = 0; i < 3; i++) {
 				if (_vertex[i] != null) {
 					ProgMeshUtil.RemoveFillWithBack(_vertex[i].Face, this);
@@ -59,8 +55,8 @@ namespace VisualPinball.Engine.Math.Mesh
 		public void ReplaceVertex(ProgMeshVertex vOld, ProgMeshVertex vNew)
 		{
 			Debug.Assert(vOld != null && vNew != null, "[ProgMeshTriangle.ReplaceVertex] Arguments must not be null.");
-			Debug.Assert(vOld == _vertex[0] || vOld == _vertex[1] || vOld == _vertex[2], "[ProgMeshTriangle.replaceVertex] vold must not be included in this.vertex.");
-			Debug.Assert(vNew != _vertex[0] && vNew != _vertex[1] && vNew != _vertex[2], "[ProgMeshTriangle.replaceVertex] vnew must not be included in this.vertex.");
+			Debug.Assert(vOld == _vertex[0] || vOld == _vertex[1] || vOld == _vertex[2], "[ProgMeshTriangle.replaceVertex] vOld must not be included in this.vertex.");
+			Debug.Assert(vNew != _vertex[0] && vNew != _vertex[1] && vNew != _vertex[2], "[ProgMeshTriangle.replaceVertex] vNew must not be included in this.vertex.");
 
 			if (vOld == _vertex[0]) {
 				_vertex[0] = vNew;
@@ -69,12 +65,12 @@ namespace VisualPinball.Engine.Math.Mesh
 				_vertex[1] = vNew;
 
 			} else {
-				Debug.Assert(vOld == _vertex[2], "[ProgMeshTriangle.ReplaceVertex] vold == vertex[2]");
+				Debug.Assert(vOld == _vertex[2], "[ProgMeshTriangle.ReplaceVertex] vOld == vertex[2]");
 				_vertex[2] = vNew;
 			}
 
 			ProgMeshUtil.RemoveFillWithBack(vOld.Face, this);
-			Debug.Assert(!vNew.Face.Contains(this), "[ProgMeshTriangle.ReplaceVertex] !Contains(vnew->face, this)");
+			Debug.Assert(!vNew.Face.Contains(this), "[ProgMeshTriangle.ReplaceVertex] !Contains(vNew->face, this)");
 
 			vNew.Face.Add(this);
 
