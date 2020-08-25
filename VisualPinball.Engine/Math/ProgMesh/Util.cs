@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace VisualPinball.Engine.Math.ProgMesh
 {
@@ -14,8 +15,9 @@ namespace VisualPinball.Engine.Math.ProgMesh
 				return;
 			}
 			c[idxOf] = val;
-		}
 
+			Assert(!c.Contains(t), "[removeFillWithBack] List must not include value anymore.");
+		}
 
 		internal static void AddUnique<T>(List<T> c, T t)
 		{
@@ -42,6 +44,12 @@ namespace VisualPinball.Engine.Math.ProgMesh
 				for (var j = 0; j < 3; j++) {
 					tri[i].v[j] = permutation[tri[i].v[j]];
 				}
+			}
+		}
+
+		internal static void Assert(bool success, string message) {
+			if (!success) {
+				throw new InvalidOperationException(message);
 			}
 		}
 	}

@@ -50,6 +50,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 
 		~Vertex()
 		{
+			Util.Assert(this.face.Count == 0, "[ProgMeshVertex.destroy] face.size() == 0");
 			while (neighbor.Count > 0) {
 				Util.RemoveFillWithBack(neighbor[0].neighbor, this);
 				Util.RemoveFillWithBack(neighbor, neighbor[0]);
