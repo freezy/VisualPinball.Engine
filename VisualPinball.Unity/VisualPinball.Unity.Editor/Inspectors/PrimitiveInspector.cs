@@ -93,7 +93,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Toy", ref _prim.data.IsToy, dirtyMesh: false);
 
 				EditorGUI.BeginDisabledGroup(_prim.data.IsToy);
-				ItemDataField("Reduce Polygons By", ref _prim.data.CollisionReductionFactor, dirtyMesh: false);
+				ItemDataSlider("Reduce Polygons By", ref _prim.data.CollisionReductionFactor, 0f, 1f, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
