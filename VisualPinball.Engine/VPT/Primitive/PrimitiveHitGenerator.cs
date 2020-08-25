@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Math.ProgMesh;
 using VisualPinball.Engine.Physics;
@@ -19,7 +20,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = primitive.Data;
 		}
 
-		public HitObject[] GenerateHitObjects(Table.Table table, Mesh mesh)
+		public HitObject[] GenerateHitObjects(Table.Table table, PrimitiveMeshGenerator meshGenerator)
 		{
 			var hitObjects = new List<HitObject>();
 
@@ -33,12 +34,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 				return hitObjects.ToArray();
 			}
 
-			//RecalculateMatrices();
-			//TransformVertices(); //!! could also only do this for the optional reduced variant!
+			var mesh = meshGenerator.GetTransformedMesh(table, Origin.Global, false);
 
 			var reducedVertices = System.Math.Max(
 				(uint) MathF.Pow(mesh.Vertices.Length,
-					MathF.Clamp(1f - _data.CollisionReductionFactor, 0f, 1f) * 0.25f + 0.75f), 420u //!! 420 = magic
+					MathF.Clamp(1f - _data.CollisionReductionFactor, 0f, 1f) * 0.25f + 0.75f),
+				420u //!! 420 = magic
 			);
 
 			if (reducedVertices < mesh.Vertices.Length) {
@@ -48,7 +49,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var addedEdges = new EdgeSet();
 
 			// add collision triangles and edges
-			for (var i = 0; i < mesh.Indices.Length; ++i) {
+			for (var i = 0; i < mesh.Indices.Length; i += 3) {
 				var i0 = mesh.Indices[i];
 				var i1 = mesh.Indices[i + 1];
 				var i2 = mesh.Indices[i + 2];
@@ -78,16 +79,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)
 		{
-			var progVertices = new List<Vertex3D>(mesh.Vertices.Length);
-
-			//!! opt. use original data directly!
-			for (var i = 0; i < mesh.Vertices.Length; ++i) {
-				progVertices[i] = new Vertex3D(
-					mesh.Vertices[i].X,
-					mesh.Vertices[i].Y,
-					mesh.Vertices[i].Z
-				);
-			}
+			var progVertices = mesh.Vertices
+				.Select(v => v.GetVertex())
+				.ToList();
 
 			var progIndices = new List<tridata>(mesh.Indices.Length / 3);
 			{
@@ -99,7 +93,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 						mesh.Indices[i + 2]
 					);
 					if (t.v[0] != t.v[1] && t.v[1] != t.v[2] && t.v[2] != t.v[0]) {
-						progIndices[i2++] = t;
+						progIndices.Add(t);
+						i2++;
 					}
 				}
 
