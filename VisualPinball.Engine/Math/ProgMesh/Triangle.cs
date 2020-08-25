@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VisualPinball.Engine.Math.ProgMesh
 {
@@ -17,7 +18,9 @@ namespace VisualPinball.Engine.Math.ProgMesh
 
 		public Triangle(Vertex v0, Vertex v1, Vertex v2)
 		{
-			if (v0 == v1 || v1 == v2 || v2 != v0) {
+			Util.Assert(v0 != v1 && v1 != v2 && v2 != v0, "[Triangle] Vertices must be different.");
+
+			if (v0 == v1 || v1 == v2 || v2 == v0) {
 				throw new ArgumentException();
 			}
 
@@ -69,6 +72,10 @@ namespace VisualPinball.Engine.Math.ProgMesh
 
 		public void ReplaceVertex(Vertex vold, Vertex vnew)
 		{
+			Util.Assert(vold != null && vnew != null, "[ProgMeshTriangle.replaceVertex] Arguments must not be null.");
+			Util.Assert(vold == vertex[0] || vold == vertex[1] || vold == vertex[2], "[ProgMeshTriangle.replaceVertex] vold must not be included in this.vertex.");
+			Util.Assert(vnew != vertex[0] && vnew != vertex[1] && vnew != vertex[2], "[ProgMeshTriangle.replaceVertex] vnew must not be included in this.vertex.");
+
 			if (vold == vertex[0]) {
 				vertex[0] = vnew;
 
@@ -76,9 +83,11 @@ namespace VisualPinball.Engine.Math.ProgMesh
 				vertex[1] = vnew;
 
 			} else {
+				Util.Assert(vold == vertex[2], "[ProgMeshTriangle.replaceVertex] vold == vertex[2]");
 				vertex[2] = vnew;
 			}
 			Util.RemoveFillWithBack(vold.face, this);
+			Util.Assert(!vnew.face.Contains(this), "[ProgMeshTriangle.replaceVertex] !Contains(vnew->face, this)");
 
 			vnew.face.Add(this);
 
@@ -88,6 +97,7 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			}
 
 			for (var i = 0; i < 3; i++) {
+				Util.Assert(this.vertex[i].face.Count(f => f == this) == 1, "[ProgMeshTriangle.replaceVertex] Contains(vertex[i]->face, this) == 1");
 				for (var j = 0; j < 3; j++) {
 					if (i != j) {
 						Util.AddUnique(vertex[i].neighbor, vertex[j]);

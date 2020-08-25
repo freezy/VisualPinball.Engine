@@ -107,8 +107,9 @@ namespace VisualPinball.Engine.Math.ProgMesh
 			{
 				var i = u.face.Count;
 				while (i-- > 0) {
-					if (u.face[i].HasVertex(v))
+					if (u.face[i].HasVertex(v)) {
 						u.face[i] = null;
+					}
 				}
 			}
 
@@ -137,7 +138,8 @@ namespace VisualPinball.Engine.Math.ProgMesh
 		internal static void AddFaces(List<tridata> tri)
 		{
 			for (var i = 0; i < tri.Count; i++) {
-				new Triangle(vertices[tri[i].v[0]], //!! braindead design, actually fills up "triangles"
+				new Triangle(
+					vertices[tri[i].v[0]], //!! braindead design, actually fills up "triangles"
 					vertices[tri[i].v[1]],
 					vertices[tri[i].v[2]]
 				);
@@ -203,6 +205,8 @@ namespace VisualPinball.Engine.Math.ProgMesh
 
 			// The caller of this function should reorder their vertices
 			// according to the returned "permutation".
+			Util.Assert(vertices.Count == 0, "[progressiveMesh] vertices.size() == 0");
+			Util.Assert(triangles.Count == 0,  "[progressiveMesh] triangles.size() == 0");
 		}
 
 		// Note that the use of the MapVertex() function and the map
@@ -249,6 +253,10 @@ namespace VisualPinball.Engine.Math.ProgMesh
 
 		internal static void ReMapIndices(uint num_vertices, List<tridata> tri, List<tridata> new_tri, List<int> map)
 		{
+			Util.Assert(new_tri.Count == 0, "[remapIndices] new_tri.size() == 0");
+			Util.Assert(map.Count != 0, "[remapIndices] map.size() != 0");
+			Util.Assert(num_vertices != 0, "[remapIndices] num_vertices != 0");
+
 			for (var i = 0; i < tri.Count; i++) {
 				var t = new tridata {
 					v = new[] {
