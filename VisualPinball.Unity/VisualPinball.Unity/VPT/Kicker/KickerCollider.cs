@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 
 		private static void DoChangeBallVelocity(ref BallData ball, in float3 hitNormal, in ColliderMeshData meshData)
 		{
-			var minDistSqr = float.MaxValue;
+			var minDistSqr = Constants.FloatMax;
 			var idx = 0u;
 			ref var hitMesh = ref meshData.Value.Value.Vertices;
 			ref var hitMeshNormals = ref meshData.Value.Value.Normals;

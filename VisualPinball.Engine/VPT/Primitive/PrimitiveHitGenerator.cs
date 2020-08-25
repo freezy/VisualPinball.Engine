@@ -1,10 +1,12 @@
 ﻿// ReSharper disable LoopCanBeConvertedToQuery
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Math.ProgMesh;
+using VisualPinball.Engine.Math.Mesh;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Primitive
@@ -80,44 +82,34 @@ namespace VisualPinball.Engine.VPT.Primitive
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)
 		{
 			var progVertices = mesh.Vertices
-				.Select(v => v.GetVertex())
-				.ToList();
+				.Select(v =>new ProgMeshFloat3(v.X, v.Y, v.Z))
+				.ToArray();
 
-			var progIndices = new List<tridata>(mesh.Indices.Length / 3);
-			{
-				var i2 = 0;
-				for (var i = 0; i < mesh.Indices.Length; i += 3) {
-					var t = new tridata(
-						mesh.Indices[i],
-						mesh.Indices[i + 1],
-						mesh.Indices[i + 2]
-					);
-					if (t.v[0] != t.v[1] && t.v[1] != t.v[2] && t.v[2] != t.v[0]) {
-						progIndices.Add(t);
-						i2++;
-					}
-				}
-
-				if (i2 < progIndices.Count) {
-					progIndices.AddRange(new tridata[progIndices.Count - i2]);
+			var progIndices = new ProgMeshTriData[mesh.Indices.Length / 3];
+			var i2 = 0;
+			for (var i = 0; i < mesh.Indices.Length; i += 3) {
+				var t = new ProgMeshTriData(
+					mesh.Indices[i],
+					mesh.Indices[i + 1],
+					mesh.Indices[i + 2]
+				);
+				if (t.V[0] != t.V[1] && t.V[1] != t.V[2] && t.V[2] != t.V[0]) {
+					progIndices[i2++] = t;
 				}
 			}
-			var progMap = new List<int>();
-			var progPerm = new List<int>();
-			ProgMesh.ProgressiveMesh(progVertices, progIndices, progMap, progPerm);
-			Util.PermuteVertices(progPerm, progVertices, progIndices);
-			progPerm.Clear();
 
-			var progNewIndices = new List<tridata>();
+			Debug.Assert(progIndices.Length == i2);
+			var (progMap, progPerm) = ProgMesh.ProgressiveMesh(progVertices, progIndices);
+			ProgMeshUtil.PermuteVertices(progPerm, progVertices, progIndices);
+
+			var progNewIndices = new List<ProgMeshTriData>();
 			ProgMesh.ReMapIndices(reducedVertices, progIndices, progNewIndices, progMap);
-			progIndices.Clear();
-			progMap.Clear();
 
 			var reducedIndices = new List<int>();
 			foreach (var index in progNewIndices) {
-				reducedIndices.Add(index.v[0]);
-				reducedIndices.Add(index.v[1]);
-				reducedIndices.Add(index.v[2]);
+				reducedIndices.Add(index.V[0]);
+				reducedIndices.Add(index.V[1]);
+				reducedIndices.Add(index.V[2]);
 			}
 
 			return new Mesh(
