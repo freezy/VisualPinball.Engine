@@ -6,7 +6,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Math.ProgMesh;
 using VisualPinball.Engine.Physics;
 
-namespace VisualPinball.Engine.VPT.Primitivehitp
+namespace VisualPinball.Engine.VPT.Primitive
 {
 	public class PrimitiveHitGenerator
 	{
