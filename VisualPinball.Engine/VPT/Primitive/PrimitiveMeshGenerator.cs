@@ -21,11 +21,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true,
 			string parent = null, PbrMaterial material = null)
 		{
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetMesh().Transform(preVertexMatrix, preNormalsMatrix),
+				GetTransformedMesh(table, origin, asRightHanded),
 				material ?? new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -38,6 +38,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public Mesh GetMesh()
 		{
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
+		}
+
+		public Mesh GetTransformedMesh(Table.Table table, Origin origin, bool asRightHanded = true)
+		{
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			return GetMesh().Transform(preVertexMatrix, preNormalsMatrix);
 		}
 
 		protected override float BaseHeight(Table.Table table)

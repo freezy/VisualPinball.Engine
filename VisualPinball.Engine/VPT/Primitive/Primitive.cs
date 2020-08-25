@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public void Init(Table.Table table)
 		{
 			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(table, Data.Mesh);
+			_hits = _hitGenerator.GenerateHitObjects(table, _meshGenerator);
 		}
 
 		public static Primitive GetDefault(Table.Table table)
