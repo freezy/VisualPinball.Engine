@@ -4,6 +4,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
@@ -11,9 +12,14 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Primitive")]
-	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring
+	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+		}
 
 		protected override Primitive GetItem() => new Primitive(data);
 
