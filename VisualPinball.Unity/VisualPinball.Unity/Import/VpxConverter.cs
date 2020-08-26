@@ -231,8 +231,10 @@ namespace VisualPinball.Unity
 			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
 			table.SetSoundContainer(sidecar.sounds);
 
+			sidecar.collections.AddRange(table.Collections);
+			table.SetCollectionContainer(sidecar.collections);
+
 			sidecar.customInfoTags = table.CustomInfoTags;
-			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
@@ -241,10 +243,10 @@ namespace VisualPinball.Unity
 			sidecar.textBoxes = table.GetAllData<TextBox, TextBoxData>();
 			sidecar.timers = table.GetAllData<Timer, TimerData>();
 
-			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
+/*			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
 				string.Join(", ", table.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
-			);
+			);*/
 		}
 	}
 }

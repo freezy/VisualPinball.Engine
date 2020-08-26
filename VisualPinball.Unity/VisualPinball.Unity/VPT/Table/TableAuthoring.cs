@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
+		public TableSerializedCollectionContainer Collections => _sidecar?.collections;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -54,15 +55,10 @@ namespace VisualPinball.Unity
 		// will cache miss and get recreated as well
 		private readonly Dictionary<PbrMaterial, UnityEngine.Material> _unityMaterials = new Dictionary<PbrMaterial, UnityEngine.Material>();
 		/// <summary>
-		/// Keeps a list of texture names that need recreation, serialized and
+		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
 		/// </summary>
-		[HideInInspector] [SerializeField] private List<string> _dirtyTextures = new List<string>();
-		/// <summary>
-		/// Keeps a list of sounds names that need recreation, serialized and
-		/// lazy so when undo happens they'll be considered dirty again
-		/// </summary>
-		[HideInInspector] [SerializeField] private List<string> _dirtySounds = new List<string>();
+		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -106,14 +102,31 @@ namespace VisualPinball.Unity
 			_unityTextures[name.ToLower()] = texture;
 		}
 
-		public void MarkTextureDirty(string name)
+		public void MarkDirty<T>(string name) where T : IItem
 		{
-			_dirtyTextures.Add(name.ToLower());
+			if (!_dirtySerializables.ContainsKey(typeof(T))) {
+				_dirtySerializables[typeof(T)] = new List<string>();
+			}
+			_dirtySerializables[typeof(T)].Add(name.ToLower());
 		}
 
-		public void MarkSoundDirty(string name)
+		private bool CheckDirty<T>(string name, Func<bool> action = null) where T : IItem
 		{
-			_dirtySounds.Add(name.ToLower());
+			List<string> lst;
+			if (_dirtySerializables.TryGetValue(typeof(T), out lst)) {
+				if (lst.Contains(name)) {
+					bool remove = true;
+					if (action != null) {
+						remove = action.Invoke();
+					}
+					if (remove) {
+						_dirtySerializables[typeof(T)].Remove(name);
+					}
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public Texture2D GetTexture(string name)
@@ -121,9 +134,8 @@ namespace VisualPinball.Unity
 			var lowerName = name.ToLower();
 			bool forceRecreate = false;
 			// check to see if the texture we're after has been flagged as dirty and thus needs to be recreated from table data
-			if (_dirtyTextures.Contains(lowerName)) {
+			if (CheckDirty<Engine.VPT.Texture>(lowerName)) {
 				forceRecreate = true;
-				_dirtyTextures.Remove(lowerName);
 			}
 			// don't need to recreate it, and we have the texture in cache
 			if (!forceRecreate && _unityTextures.ContainsKey(lowerName)) {
@@ -179,9 +191,11 @@ namespace VisualPinball.Unity
 			// replace sound container
 			table.SetSoundContainer(_sidecar.sounds);
 
+			// replace collection container
+			table.SetCollectionContainer(_sidecar.collections);
+
 			// restore game items with no game object (yet!)
 			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
-			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));

@@ -53,6 +53,11 @@ namespace VisualPinball.Engine.VPT.Collection
 			Init(typeof(CollectionData), Attributes);
 		}
 
+		public CollectionData(string name) : base(StoragePrefix.Collection)
+		{
+			Name = name;
+		}
+
 		public CollectionData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
