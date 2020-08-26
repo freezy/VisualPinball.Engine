@@ -26,6 +26,8 @@ namespace VisualPinball.Engine.VPT.Sound
 		public SoundData(string name) : base(name)
 		{
 			Name = name;
+			Path = string.Empty;
+			InternalName = name;
 			Data = new byte[0];
 		}
 

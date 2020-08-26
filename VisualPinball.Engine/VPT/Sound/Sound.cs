@@ -4,7 +4,7 @@ namespace VisualPinball.Engine.VPT.Sound
 {
 	public class Sound : Item<SoundData>
 	{
-		public Sound(string name) : base(new SoundData(name))
+		public Sound(string name) : this(new SoundData(name))
 		{
 			Name = name;
 		}
