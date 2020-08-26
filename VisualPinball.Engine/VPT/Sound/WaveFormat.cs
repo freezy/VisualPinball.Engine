@@ -43,6 +43,17 @@ namespace VisualPinball.Engine.VPT.Sound
 		/// </summary>
 		public ushort CbSize;
 
+		public WaveFormat()
+		{
+			FormatTag = 1;
+			Channels = 1;
+			SamplesPerSec = 44100;
+			AvgBytesPerSec = 88200;
+			BlockAlign = 2;
+			BitsPerSample = 16;
+			CbSize = 0;
+		}
+
 		public WaveFormat(BinaryReader reader) {
 			FormatTag = reader.ReadUInt16();
 			Channels = reader.ReadUInt16();

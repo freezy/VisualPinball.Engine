@@ -23,11 +23,12 @@ namespace VisualPinball.Engine.VPT.Sound
 		public int Balance;
 		public int Fade;
 
-		public SoundData(string name) : base(name)
+		public SoundData(string name) : base(IO.StoragePrefix.Sound)
 		{
 			Name = name;
 			Path = string.Empty;
 			InternalName = name;
+			Wfx = new WaveFormat();
 			Data = new byte[0];
 		}
 
