@@ -214,11 +214,14 @@ namespace VisualPinball.Unity
 			}
 
 			// copy each texture ref into the sidecar's serialized storage
-			foreach (var tex in table.Textures) {
-				sidecar.textures.Add(tex);
-			}
+			sidecar.textures.AddRange(table.Textures);
 			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
 			table.SetTextureContainer(sidecar.textures);
+
+			// copy each sound ref into the sidecar's serialized storage
+			sidecar.sounds.AddRange(table.Sounds);
+			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
+			table.SetSoundContainer(sidecar.sounds);
 
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
@@ -227,7 +230,6 @@ namespace VisualPinball.Unity
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
 			sidecar.lightSeqs = table.GetAllData<LightSeq, LightSeqData>();
 			sidecar.plungers = table.GetAllData<Plunger, PlungerData>();
-			sidecar.sounds = table.Sounds.Values.Select(d => d.Data).ToArray();
 			sidecar.textBoxes = table.GetAllData<TextBox, TextBoxData>();
 			sidecar.timers = table.GetAllData<Timer, TimerData>();
 

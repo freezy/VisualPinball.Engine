@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] public FlasherData[] flashers;
 		[HideInInspector] public LightSeqData[] lightSeqs;
 		[HideInInspector] public PlungerData[] plungers;
-		[HideInInspector] public SoundData[] sounds;
+		[HideInInspector] public TableSerializedSoundContainer sounds = new TableSerializedSoundContainer();
 		[HideInInspector] public TextBoxData[] textBoxes;
 		[HideInInspector] public TimerData[] timers;
 	}
