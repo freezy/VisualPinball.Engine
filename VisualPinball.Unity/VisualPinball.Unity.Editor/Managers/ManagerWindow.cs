@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void AddNewData(string undoName, string newName) { }
 		protected virtual void RemoveData(string undoName, T data) { }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
+		protected virtual void OnItemSelected() { }
 
 		protected TableAuthoring _table;
 		protected T _selectedItem;
@@ -279,6 +280,7 @@ namespace VisualPinball.Unity.Editor
 			if (selectedItems.Count > 0) {
 				_selectedItem = selectedItems[0]; // not supporting multi select for now
 				_renaming = false;
+				OnItemSelected();
 			}
 			Repaint();
 		}

@@ -156,6 +156,11 @@ namespace VisualPinball.Unity.Editor
 			}
 			return false;
 		}
+
+		protected override void RenameEnded(RenameEndedArgs args)
+		{
+			base.RenameEnded(args);
+		}
 		#endregion
 
 		#region Item Clicking
