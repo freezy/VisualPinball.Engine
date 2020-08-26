@@ -71,6 +71,21 @@ namespace VisualPinball.Unity
 			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
 
+		public static float PercentageToRatio(this float percent)
+		{
+			return percent * 0.01f;
+		}
+
+		public static float PercentageToRatio(this int percent)
+		{
+			return percent * 0.01f;
+		}
+
+		public static float RatioToPercentage(this float ratio)
+		{
+			return ratio * 100.0f;
+		}
+
 		public static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
 		{
 			aabb.ColliderId = colliderId;

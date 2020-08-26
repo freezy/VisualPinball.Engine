@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			string oldName = data.TextureData.Name;
 
 			// give each editable item a chance to update its fields
-			string undoName = "Rename Material";
+			string undoName = "Rename Image";
 			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				RenameReflectedFields(undoName, item, item.TextureRefs, oldName, newName);
 			}
@@ -106,10 +106,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName) {
 			_table.Textures.SetNameMapDirty();
-			var sidecar = _table.GetComponentInChildren<TableSidecar>();
-			if (sidecar != null) {
-				Undo.RecordObject(sidecar, undoName);
-			}
+			Undo.RecordObject(_table, undoName);
 
 			var newTex = new Engine.VPT.Texture(newName);
 			_table.Textures.Add(newTex);
@@ -119,10 +116,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
 			_table.Textures.SetNameMapDirty();
-			var sidecar = _table.GetComponentInChildren<TableSidecar>();
-			if (sidecar != null) {
-				Undo.RecordObject(sidecar, undoName);
-			}
+			Undo.RecordObject(_table, undoName);
 
 			_table.Textures.Remove(data.Name);
 			_table.Item.Data.NumTextures = _table.Textures.Count;

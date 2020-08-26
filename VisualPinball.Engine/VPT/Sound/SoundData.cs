@@ -23,6 +23,12 @@ namespace VisualPinball.Engine.VPT.Sound
 		public int Balance;
 		public int Fade;
 
+		public SoundData(string name) : base(name)
+		{
+			Name = name;
+			Data = new byte[0];
+		}
+
 		public SoundData(BinaryReader reader, string storageName, int fileVersion) : base(storageName)
 		{
 			Load(reader, fileVersion);

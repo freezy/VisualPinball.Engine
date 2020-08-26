@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 	{
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
+		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -57,6 +58,11 @@ namespace VisualPinball.Unity
 		/// lazy so when undo happens they'll be considered dirty again
 		/// </summary>
 		[HideInInspector] [SerializeField] private List<string> _dirtyTextures = new List<string>();
+		/// <summary>
+		/// Keeps a list of sounds names that need recreation, serialized and
+		/// lazy so when undo happens they'll be considered dirty again
+		/// </summary>
+		[HideInInspector] [SerializeField] private List<string> _dirtySounds = new List<string>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -103,6 +109,11 @@ namespace VisualPinball.Unity
 		public void MarkTextureDirty(string name)
 		{
 			_dirtyTextures.Add(name.ToLower());
+		}
+
+		public void MarkSoundDirty(string name)
+		{
+			_dirtySounds.Add(name.ToLower());
 		}
 
 		public Texture2D GetTexture(string name)
@@ -165,6 +176,9 @@ namespace VisualPinball.Unity
 			// replace texture container
 			table.SetTextureContainer(_sidecar.textures);
 
+			// replace sound container
+			table.SetSoundContainer(_sidecar.sounds);
+
 			// restore game items with no game object (yet!)
 			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
 			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
@@ -197,8 +211,6 @@ namespace VisualPinball.Unity
 		public Table RecreateTable()
 		{
 			var table = CreateTable();
-
-			Restore(_sidecar.sounds, table.Sounds, d => new Sound(d));
 
 			Logger.Info("Table restored.");
 			return table;

@@ -278,7 +278,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
 					var sound = new Sound.Sound(reader, soundName, fileVersion);
-					table.Sounds[sound.Name.ToLower()] = sound;
+					table.Sounds.Add(sound);
 				}
 			}
 		}

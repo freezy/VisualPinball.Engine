@@ -3,6 +3,9 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -175,6 +178,15 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void SliderField(string label, ref int field, int min = 0, int max = 1, string tooltip = "")
+		{
+			EditorGUI.BeginChangeCheck();
+			int val = EditorGUILayout.IntSlider(new GUIContent(label, tooltip), field, min, max);
+			if (EditorGUI.EndChangeCheck()) {
+				FinalizeChange(label, ref field, val);
+			}
+		}
+
 		protected void ToggleField(string label, ref bool field, string tooltip = "")
 		{
 			EditorGUI.BeginChangeCheck();
@@ -190,6 +202,26 @@ namespace VisualPinball.Unity.Editor
 			Engine.Math.Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
 			if (EditorGUI.EndChangeCheck()) {
 				FinalizeChange(label, ref field, val);
+			}
+		}
+
+		protected void DropDownField<TField>(string label, ref TField field, string[] optionStrings, TField[] optionValues) where TField : System.IEquatable<TField>
+		{
+			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
+				return;
+			}
+
+			int selectedIndex = 0;
+			for (int i = 0; i < optionValues.Length; i++) {
+				if (optionValues[i].Equals(field)) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
+				FinalizeChange(label, ref field, optionValues[selectedIndex]);
 			}
 		}
 
