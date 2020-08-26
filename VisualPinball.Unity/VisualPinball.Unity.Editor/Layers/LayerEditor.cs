@@ -56,11 +56,13 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
-			GetWindow<LayerEditor>("Layer Manager");
+			GetWindow<LayerEditor>();
 		}
 
 		private void OnEnable()
 		{
+			titleContent = new GUIContent("Layer Manager", EditorGUIUtility.IconContent("ToggleUVOverlay").image);
+
 			if (_layerHandler== null) {
 				_layerHandler = new LayerHandler();
 			}
