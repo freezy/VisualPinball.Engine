@@ -8,6 +8,25 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Engine.Math.Mesh
 {
+	/// <summary>
+	/// Progressive Mesh type Polygon Reduction Algorithm
+	///   by Stan Melax (c) 1998
+	///
+	/// Permission to use any of this code wherever you want is granted..
+	/// Although, please do acknowledge authorship if appropriate.
+	///
+	/// The function ProgressiveMesh() takes a model in an "indexed face
+	/// set" sort of way.  i.e. Array of vertices and Array of triangles.
+	/// The function then does the polygon reduction algorithm
+	/// internally and reduces the model all the way down to 0
+	/// vertices and then returns the order in which the
+	/// vertices are collapsed and to which neighbor each vertex
+	/// is collapsed to.  More specifically the returned "permutation"
+	/// indicates how to reorder your vertices so you can render
+	/// an object by using the first n vertices (for the n
+	/// vertex version).  After permuting your vertices, the
+	/// map Array indicates to which vertex each vertex is collapsed to.
+	/// </summary>
 	internal class ProgMesh
 	{
 		public readonly List<ProgMeshVertex> Vertices = new List<ProgMeshVertex>();

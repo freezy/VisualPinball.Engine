@@ -4,6 +4,13 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Engine.Math.Mesh
 {
+	/// <summary>
+	/// Progressive Mesh type Polygon Reduction Algorithm
+	///   by Stan Melax (c) 1998
+	///
+	/// Permission to use any of this code wherever you want is granted..
+	/// Although, please do acknowledge authorship if appropriate.
+	/// </summary>
 	internal class ProgMeshTriangle
 	{
 		/// <summary>
