@@ -5,7 +5,7 @@ using UnityEditor;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	class SoundManager : ManagerWindow<SoundListData>
 	{

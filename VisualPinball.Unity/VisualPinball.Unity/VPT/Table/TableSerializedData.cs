@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// ScriptableObject generic wrapper for any data which needs to be managed indepenently, e.g. for Undo tracking.

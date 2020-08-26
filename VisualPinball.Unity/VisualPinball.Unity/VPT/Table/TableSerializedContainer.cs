@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Base container class to handle in a Dictionnary-like way objects based on <see cref="TableSerializedData{TData}"/> generic class

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Implements a serializable Sound container that can replace the engine table container after import
