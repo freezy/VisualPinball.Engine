@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive); break;
+				case Primitive primitive:			ic = primitive.SetupGameObject(obj, rog); break;
 				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
 				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
