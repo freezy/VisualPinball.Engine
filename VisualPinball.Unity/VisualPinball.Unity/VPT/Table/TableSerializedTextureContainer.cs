@@ -10,73 +10,24 @@ namespace VisualPinball.Unity.VPT.Table
 	/// Implements a serializable texture container that can replace the engine table container after import
 	/// </summary>
 	[Serializable]
-	public class TableSerializedTextureContainer : ITableResourceContainer<Texture>
+	public class TableSerializedTextureContainer : TableSerializedContainer<Texture, TextureData, TableSerializedTexture>
 	{
-		public int Count => _textureData.Count;
-		public IEnumerable<Texture> Values => Textures.Values;
-		public IEnumerable<TableSerializedTexture> SerializedObjects => _textureData;
-
-		[UnityEngine.SerializeField] private List<TableSerializedTexture> _textureData = new List<TableSerializedTexture>();
-		[UnityEngine.SerializeField] private bool _textureDictDirty = false;
-		private Dictionary<string, Texture> Textures => _textures == null || _textureDictDirty ? (_textures = CreateTextureDict()) : _textures;
-		private Dictionary<string, Texture> _textures = null;
-
-		public Texture this[string k] => Get(k);
-		public Texture Get(string k)
-		{
-			Textures.TryGetValue(k.ToLower(), out Texture val);
-			return val;
-		}
-
-		public void Add(Texture value)
+		public override void Add(Texture value)
 		{
 			Remove(value);
 			string lowerName = value.Name.ToLower();
-			_textureData.Add(TableSerializedTexture.Create(value.Data));
-			Textures[lowerName] = value;
+			_serializedData.Add(TableSerializedTexture.Create(value.Data));
+			Data[lowerName] = value;
 		}
 
-		public bool Remove(Texture value)
-		{
-			return Remove(value.Name);
-		}
-
-		public bool Remove(string name)
-		{
-			string lowerName = name.ToLower();
-			bool found = false;
-			for (int i = 0; i < _textureData.Count; i++) {
-				if (_textureData[i].Data.Name.ToLower() == lowerName) {
-					_textureData.RemoveAt(i);
-					found = true;
-					break;
-				}
-			}
-			Textures.Remove(lowerName);
-			return found;
-		}
-
-		public void SetNameMapDirty()
-		{
-			_textureDictDirty = true;
-		}
-
-		private Dictionary<string, Texture> CreateTextureDict()
+		protected override Dictionary<string, Texture> CreateDict()
 		{
 			var dict = new Dictionary<string, Texture>();
-			foreach (var td in _textureData) {
+			foreach (var td in _serializedData) {
 				dict.Add(td.Data.Name.ToLower(), new Texture(td.Data));
 			}
-			_textureDictDirty = false;
+			_dictDirty = false;
 			return dict;
-		}
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-		public IEnumerator<Texture> GetEnumerator()
-		{
-			foreach (var kvp in Textures) {
-				yield return kvp.Value;
-			}
 		}
 	}
 }
