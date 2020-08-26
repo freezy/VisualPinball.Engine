@@ -173,7 +173,7 @@ namespace VisualPinball.Unity.Editor
 
 			string undoName = "Replace Image";
 
-			_table.MarkTextureDirty(textureData.Name);
+			_table.MarkDirty<Engine.VPT.Texture>(textureData.Name);
 			Undo.RecordObject(_table, undoName);
 			OnDataChanged(undoName, textureData);
 

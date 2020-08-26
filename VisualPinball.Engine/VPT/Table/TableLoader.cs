@@ -260,7 +260,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(collectionStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
 					var collection = new Collection.Collection(reader, collectionName);
-					table.Collections[collection.Name.ToLower()] = collection;
+					table.Collections.Add(collection);
 				}
 			}
 		}

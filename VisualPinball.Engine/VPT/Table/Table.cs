@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
-		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
+		public ITableResourceContainer<Collection.Collection> Collections = new DefaultTableResourceContainer<Collection.Collection>();
 
 		#region GameItems
 
@@ -92,6 +92,27 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
 			.Concat(_surfaces.Values)
+			.Concat(_triggers.Values);
+
+		public IEnumerable<IItem> GameItemInterfaces => new IItem[] { this }
+			.Concat(_bumpers.Values)
+			.Concat(_decals.Select(i => i))
+			.Concat(_dispReels.Values)
+			.Concat(_flippers.Values)
+			.Concat(_flashers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_lights.Values)
+			.Concat(_lightSeqs.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_textBoxes.Values)
+			.Concat(_timers.Values)
 			.Concat(_triggers.Values);
 
 		public IEnumerable<ItemData> GameItems => new ItemData[] {}
@@ -435,6 +456,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public void SetTextureContainer(ITableResourceContainer<Texture> container)
 		{
 			Textures = container;
+		}
+
+		public void SetCollectionContainer(ITableResourceContainer<Collection.Collection> container)
+		{
+			Collections = container;
 		}
 
 		public Texture GetTexture(string name)
