@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor.Managers
 		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
 		public static void ShowWindow()
 		{
-			GetWindow<SoundManager>("Sound Manager");
+			GetWindow<SoundManager>();
 		}
 
 		protected override void OnButtonBarGUI()
@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor.Managers
 
 		protected override void OnEnable()
 		{
+			titleContent = new GUIContent("Sound Manager", EditorGUIUtility.IconContent("SceneViewAudio").image);
 			base.OnEnable();
 			SceneView.duringSceneGui += OnSceneGUI;
 		}
