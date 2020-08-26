@@ -93,7 +93,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 			// 3. Collections
 			var collections = _table.Collections.Values.ToArray();
+			int i = 0;
 			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
+				collection.StorageIndex = i++;
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 		}
@@ -109,7 +111,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private void WriteSounds()
 		{
+			int i = 0;
 			foreach (var sound in _table.Sounds.Values) {
+				sound.Data.StorageIndex = i++;
 				sound.Data.WriteData(_gameStorage);
 			}
 		}

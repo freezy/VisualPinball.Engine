@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor.Managers
 			SceneView.duringSceneGui -= OnSceneGUI;
 		}
 
-		private bool _shouldDisplaySoundPosition => (_displaySoundPosition && _selectedItem != null && _selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
+		private bool _shouldDisplaySoundPosition => (_table != null && _displaySoundPosition && _selectedItem != null && _selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
 
 		private void Update()
 		{
