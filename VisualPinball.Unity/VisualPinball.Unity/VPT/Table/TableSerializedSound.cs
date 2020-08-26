@@ -1,6 +1,6 @@
 ﻿using VisualPinball.Engine.VPT.Sound;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Scriptable object wrapper for plain VPX sound data. This will allow us to operate on sound data one a time

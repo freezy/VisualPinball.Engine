@@ -1,6 +1,6 @@
 ﻿using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.Editor.Managers
+namespace VisualPinball.Unity.Editor
 {
 	class SoundListData : IManagerListData
 	{
