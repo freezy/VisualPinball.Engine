@@ -291,6 +291,13 @@ namespace VisualPinball.Unity.Editor
 			UpdateTableCollections();
 		}
 
+		protected override void CloneData(string undoName, string newName, CollectionListData data)
+		{
+			var newCol = new Collection(newName, data.CollectionData.Clone());
+			_table.Collections.Add(newCol);
+			UpdateTableCollections();
+		}
+
 		protected override int MoveData(string undoName, CollectionListData data, int increment)
 		{
 			int newIdx = math.clamp(_selectedItem.CollectionData.StorageIndex + increment, 0, _table.Collections.Count - 1);

@@ -46,6 +46,17 @@ namespace VisualPinball.Engine.VPT.Collection
 			return false;
 		}
 
+		public CollectionData Clone(string name = null)
+		{
+			var clone = new CollectionData(string.IsNullOrEmpty(name) ? string.Empty : name) {
+				FireEvents = this.FireEvents,
+				GroupElements = this.GroupElements,
+				StopSingleEvents = this.StopSingleEvents,
+				ItemNames = this.ItemNames
+			};
+			return clone;
+		}
+
 		#region BIFF
 
 		static CollectionData()
