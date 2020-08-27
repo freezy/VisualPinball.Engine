@@ -45,7 +45,9 @@ namespace VisualPinball.Unity
 					for (int j = 0; j < unityMesh.vertexCount; j++) {
 						Vector3 vertex = deltaVertices[j] + unityVertices[j];
 						Vector3 normal = deltaNormals[j] + unityNormals[j];
-						frameData[j] = new Engine.VPT.Mesh.VertData(vertex, normal);
+						frameData[j] = new Engine.VPT.Mesh.VertData(
+							vertex.x, vertex.y, vertex.z,
+							normal.x, normal.y, normal.z);
 					}
 
 					vpMesh.AnimationFrames.Add(frameData);

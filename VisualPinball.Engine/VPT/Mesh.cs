@@ -379,16 +379,6 @@ namespace VisualPinball.Engine.VPT
 				Nz = nz;
 			}
 
-			public VertData(UnityEngine.Vector3 vertex, UnityEngine.Vector3 normal)
-			{
-				X = vertex.x;
-				Y = vertex.y;
-				Z = vertex.z;
-				Nx = normal.x;
-				Ny = normal.y;
-				Nz = normal.z;
-			}
-
 			public void Write(BinaryWriter writer)
 			{
 				writer.Write(X);
