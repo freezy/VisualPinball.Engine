@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace VisualPinball.Unity.Editor
 		private CollectionTreeView _collectionItems;
 
 		protected override string DataTypeName => "Collection";
+		protected override float DetailsMaxWidth => 500f;
 
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -36,13 +38,25 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (_availableItems == null) {
 				_availableItems = new CollectionTreeView();
+				_availableItems.ItemDoubleClicked += ItemsToCollection;
 			}
 			if (_searchCollection == null) {
 				_searchCollection = new SearchField();
 			}
 			if (_collectionItems == null) {
 				_collectionItems = new CollectionTreeView();
+				_collectionItems.ItemDoubleClicked += ItemsToAvailable;
 			}
+		}
+
+		private void ItemsToCollection(CollectionTreeElement[] obj)
+		{
+			AddItemsToCollection();
+		}
+
+		private void ItemsToAvailable(CollectionTreeElement[] obj)
+		{
+			RemoveItemsFromCollection();
 		}
 
 		protected override void OnEnable()
@@ -85,18 +99,15 @@ namespace VisualPinball.Unity.Editor
 			var rootCollection = _collectionItems.Root;
 			rootCollection.Children.Clear();
 
-			var items = _table.Item.GameItemInterfaces
-							.Where(i => !(i is Table))
-							.Where(i => !string.IsNullOrEmpty(i.Name))
-							.OrderBy(i => i.Name);
+			//Build Collection list in the ItemNames order
+			var itemNames = _selectedItem.CollectionData.ItemNames?.Select(n => n) ?? new string[0];
+			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
 
-			foreach (var item in items) {
-				if (_selectedItem.CollectionData.ItemNames != null && _selectedItem.CollectionData.ItemNames.Contains(item.Name)) {
-					rootCollection.AddChild(new CollectionTreeElement(item.Name) { Id = rootCollection.Children.Count });
-				} else {
-					rootAvailable.AddChild(new CollectionTreeElement(item.Name) { Id = rootAvailable.Children.Count });
-				}
-			}
+			//Keep the available items 
+			var items = _table.Item.GameItemInterfaces
+							.Where(i => !(i is Table) && !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
+							.OrderBy(i => i.Name);
+			rootAvailable.AddChildren(items.Select(i => new CollectionTreeElement(i.Name)).ToArray());
 
 			_availableItems.Reload();
 			_collectionItems.Reload();
@@ -142,36 +153,96 @@ namespace VisualPinball.Unity.Editor
 
 			var optionsRect = GUILayoutUtility.GetLastRect();
 
-			GUILayout.BeginHorizontal();
+			EditorGUILayout.BeginHorizontal(GUILayout.MaxWidth(DetailsMaxWidth));
 
-			GUILayout.BeginVertical();
+			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth * 0.5f));
 			GUILayout.Label("Available Items");
+			GUI.enabled = _availableItems.Root.HasChildren;
 			_availableItems.searchString = _searchAvailable.OnGUI(_availableItems.searchString);
 			if (GUILayout.Button("Add")) {
 				AddItemsToCollection();
 			}
+			GUI.enabled = true;
+			float listwidth = optionsRect.width * 0.5f + GUI.skin.window.margin.horizontal * 2.0f;
 			var lastRect = GUILayoutUtility.GetLastRect();
-			var listRect = new Rect(lastRect.x, lastRect.y + lastRect.height, optionsRect.width * 0.49f, position.height - lastRect.y - lastRect.height);
+			var listRect = new Rect(lastRect.x, lastRect.y + lastRect.height, listwidth, position.height - lastRect.y - lastRect.height);
 			_availableItems.OnGUI(listRect);
-			GUILayout.EndVertical();
+			EditorGUILayout.EndVertical();
 
-			GUILayout.BeginVertical();
+			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth * 0.5f));
 			GUILayout.Label("Collection Items");
+			var itemsCount = _selectedItem.CollectionData.ItemNames?.Length ?? 0;
+			GUI.enabled = itemsCount > 0;
 			_collectionItems.searchString = _searchCollection.OnGUI(_collectionItems.searchString);
 			if (GUILayout.Button("Remove")) {
 				RemoveItemsFromCollection();
 			}
+			EditorGUILayout.BeginHorizontal();
+			if (GUILayout.Button("Top")) {
+				OffsetSelectedItems(-itemsCount);
+			}
+			if (GUILayout.Button("Up")) {
+				OffsetSelectedItems(-1);
+			}
+			if (GUILayout.Button("Down")) {
+				OffsetSelectedItems(1);
+			}
+			if (GUILayout.Button("Bottom")) {
+				OffsetSelectedItems(itemsCount);
+			}
+			GUI.enabled = true;
+			EditorGUILayout.EndHorizontal();
 			lastRect = GUILayoutUtility.GetLastRect();
-			listRect = new Rect(lastRect.x, lastRect.y + lastRect.height, optionsRect.width * 0.49f, position.height - lastRect.y - lastRect.height);
+			listRect = new Rect(lastRect.x, lastRect.y + lastRect.height, listwidth, position.height - lastRect.y - lastRect.height);
 			_collectionItems.OnGUI(listRect);
-			GUILayout.EndVertical();
+			EditorGUILayout.EndVertical();
 
-			GUILayout.EndHorizontal();
+			EditorGUILayout.EndHorizontal();
+		}
+
+		private void OffsetSelectedItems(int increment)
+		{
+			if (increment == 0) {
+				return;
+			}
+			var items = _selectedItem.CollectionData.ItemNames;
+			var selectedItems = _collectionItems.GetSelectedElements().Select(e => e.Name)
+								.OrderBy(e => Array.IndexOf(items, e) * (Math.Sign(increment) ? 1 : -1))
+								.ToArray();
+			string undoName = "Move Item(s) In Collection";
+			RecordUndo(undoName, _selectedItem.CollectionData);
+			foreach (var item in selectedItems) {
+				OffsetSelectedItem(item, increment, selectedItems);
+			}
+			RebuildItemLists();
+			_collectionItems.SetSelectedElements(e => selectedItems.Contains(e.Name));
+		}
+
+		private void OffsetSelectedItem(string itemName, int increment, string[] selectedItems)
+		{
+			var items = _selectedItem.CollectionData.ItemNames;
+
+			for (var i = 0; i < items.Length; ++i) {
+				var item = items[i];
+				if (item == itemName) {
+					var nextIdx = math.clamp(i + increment, 0, items.Length - 1);
+					if (nextIdx != i) {
+						while (selectedItems.Contains(items[nextIdx])) {
+							nextIdx += Math.Sign(increment) ? 1 : -1;
+							if (increment > 0 ? nextIdx <= i : nextIdx >= i) {
+								return;
+							}
+						}
+						items[i] = items[nextIdx];
+						items[nextIdx] = itemName;
+						break;
+					}
+				}
+			}
 		}
 
 		protected override void RenameExistingItem(CollectionListData data, string newName)
 		{
-			_table.Collections.SetNameMapDirty();
 			string oldName = data.CollectionData.Name;
 
 			// give each editable item a chance to update its fields
@@ -198,23 +269,39 @@ namespace VisualPinball.Unity.Editor
 			OnDataChanged(undoName, data.CollectionData);
 		}
 
+		private void UpdateTableCollections()
+		{
+			//rebuild storage indexes
+			int idx = 0;
+			foreach (var collection in _table.Collections) {
+				collection.StorageIndex = idx++;
+			}
+			_table.Item.Data.NumCollections = _table.Collections.Count;
+		}
+
 		protected override void AddNewData(string undoName, string newName)
 		{
-			_table.Collections.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
-			var newCol = new Engine.VPT.Collection.Collection(newName);
+			var newCol = new Collection(newName);
 			_table.Collections.Add(newCol);
-			_table.Item.Data.NumCollections = _table.Collections.Count;
+			UpdateTableCollections();
 		}
 
 		protected override void RemoveData(string undoName, CollectionListData data)
 		{
-			_table.Collections.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
 			_table.Collections.Remove(data.Name);
-			_table.Item.Data.NumCollections = _table.Collections.Count;
+			UpdateTableCollections();
+		}
+
+		protected override int MoveData(string undoName, CollectionListData data, int increment)
+		{
+			int newIdx = math.clamp(_selectedItem.CollectionData.StorageIndex + increment, 0, _table.Collections.Count - 1);
+			_table.Collections.Move(_selectedItem.CollectionData.Name, newIdx);
+			UpdateTableCollections();
+			return newIdx;
 		}
 
 		private void OnDataChanged(string undoName, CollectionData collectionData)

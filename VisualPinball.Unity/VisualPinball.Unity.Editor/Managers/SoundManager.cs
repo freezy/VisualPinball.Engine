@@ -111,7 +111,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			_table.Sounds.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
 			var newSnd = new Sound(newName);
@@ -121,7 +120,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void RemoveData(string undoName, SoundListData data)
 		{
-			_table.Sounds.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
 			_table.Sounds.Remove(data.Name);
@@ -130,7 +128,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void RenameExistingItem(SoundListData data, string newName)
 		{
-			_table.Sounds.SetNameMapDirty();
 			string oldName = data.SoundData.Name;
 
 			// give each editable item a chance to update its fields

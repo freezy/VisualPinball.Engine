@@ -61,7 +61,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void RenameExistingItem(ImageListData data, string newName)
 		{
-			_table.Textures.SetNameMapDirty();
 			string oldName = data.TextureData.Name;
 
 			// give each editable item a chance to update its fields
@@ -105,7 +104,6 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected override void AddNewData(string undoName, string newName) {
-			_table.Textures.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
 			var newTex = new Engine.VPT.Texture(newName);
@@ -115,7 +113,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
-			_table.Textures.SetNameMapDirty();
 			Undo.RecordObject(_table, undoName);
 
 			_table.Textures.Remove(data.Name);
