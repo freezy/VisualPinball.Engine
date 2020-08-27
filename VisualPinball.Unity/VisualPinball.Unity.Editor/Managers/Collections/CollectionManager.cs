@@ -31,34 +31,6 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<CollectionManager>();
 		}
 
-		private void CheckGUI()
-		{
-			if (_searchAvailable == null) {
-				_searchAvailable = new SearchField();
-			}
-			if (_availableItems == null) {
-				_availableItems = new CollectionTreeView();
-				_availableItems.ItemDoubleClicked += ItemsToCollection;
-			}
-			if (_searchCollection == null) {
-				_searchCollection = new SearchField();
-			}
-			if (_collectionItems == null) {
-				_collectionItems = new CollectionTreeView();
-				_collectionItems.ItemDoubleClicked += ItemsToAvailable;
-			}
-		}
-
-		private void ItemsToCollection(CollectionTreeElement[] obj)
-		{
-			AddItemsToCollection();
-		}
-
-		private void ItemsToAvailable(CollectionTreeElement[] obj)
-		{
-			RemoveItemsFromCollection();
-		}
-
 		protected override void OnEnable()
 		{
 			titleContent = new GUIContent("Collection Manager", EditorGUIUtility.IconContent("FolderOpened Icon").image);
@@ -77,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 			Undo.undoRedoPerformed -= RebuildItemLists;
 		}
 
+		#region Events
 		private void OnItemRenamed(IIdentifiableItemAuthoring item, string oldName, string newName)
 		{
 			//Have to update this name in all Collections
@@ -86,63 +59,34 @@ namespace VisualPinball.Unity.Editor
 			RebuildItemLists();
 		}
 
-		private void RebuildItemLists()
+		private void ItemsToCollection(CollectionTreeElement[] obj)
 		{
-			if (_selectedItem == null) {
-				return;
+			AddItemsToCollection();
+		}
+
+		private void ItemsToAvailable(CollectionTreeElement[] obj)
+		{
+			RemoveItemsFromCollection();
+		}
+		#endregion
+
+		#region GUI
+		private void CheckGUI()
+		{
+			if (_searchAvailable == null) {
+				_searchAvailable = new SearchField();
 			}
-
-			CheckGUI();
-			//rebuild lists
-			var rootAvailable = _availableItems.Root;
-			rootAvailable.Children.Clear();
-			var rootCollection = _collectionItems.Root;
-			rootCollection.Children.Clear();
-
-			//Build Collection list in the ItemNames order
-			var itemNames = _selectedItem.CollectionData.ItemNames?.Select(n => n) ?? new string[0];
-			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
-
-			//Keep the available items 
-			var items = _table.Item.GameItemInterfaces
-							.Where(i => !(i is Table) && !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
-							.OrderBy(i => i.Name);
-			rootAvailable.AddChildren(items.Select(i => new CollectionTreeElement(i.Name)).ToArray());
-
-			_availableItems.Reload();
-			_collectionItems.Reload();
-		}
-
-		protected override void OnItemSelected()
-		{
-			RebuildItemLists();
-		}
-
-		private void AddItemsToCollection()
-		{
-			var names = _availableItems.GetSelection().Select(id => _availableItems.Root.Find(id).Name);
-			var collectionData = _selectedItem.CollectionData;
-			var itemNames = collectionData.ItemNames?.ToList() ?? new List<string>();
-			itemNames.AddRange(names);
-			
-			RecordUndo($"Add {itemNames.Count} item(s) to collection {collectionData.Name}", _selectedItem.CollectionData);
-
-			collectionData.ItemNames = itemNames.Distinct().ToArray();
-			_availableItems.SetSelection(new List<int>());
-			RebuildItemLists();
-		}
-
-		private void RemoveItemsFromCollection()
-		{
-			var names = _collectionItems.GetSelection().Select(id => _collectionItems.Root.Find(id).Name);
-			CollectionData collectionData = _selectedItem.CollectionData;
-			var itemNames = collectionData.ItemNames.Except(names).ToArray();
-
-			RecordUndo($"Remove {itemNames.Length} item(s) from collection {collectionData.Name}", _selectedItem.CollectionData);
-
-			_selectedItem.CollectionData.ItemNames = itemNames.Distinct().ToArray();
-			_collectionItems.SetSelection(new List<int>());
-			RebuildItemLists();
+			if (_availableItems == null) {
+				_availableItems = new CollectionTreeView();
+				_availableItems.ItemDoubleClicked += ItemsToCollection;
+			}
+			if (_searchCollection == null) {
+				_searchCollection = new SearchField();
+			}
+			if (_collectionItems == null) {
+				_collectionItems = new CollectionTreeView();
+				_collectionItems.ItemDoubleClicked += ItemsToAvailable;
+			}
 		}
 
 		protected override void OnDataDetailGUI()
@@ -199,6 +143,62 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.EndHorizontal();
 		}
+		#endregion
+
+		#region Collection items management
+		private void RebuildItemLists()
+		{
+			if (_selectedItem == null) {
+				return;
+			}
+
+			CheckGUI();
+			//rebuild lists
+			var rootAvailable = _availableItems.Root;
+			rootAvailable.Children.Clear();
+			var rootCollection = _collectionItems.Root;
+			rootCollection.Children.Clear();
+
+			//Build Collection list in the ItemNames order
+			var itemNames = _selectedItem.CollectionData.ItemNames?.Select(n => n) ?? new string[0];
+			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
+
+			//Keep the available items 
+			var items = _table.Item.GameItemInterfaces
+							.Where(i => !(i is Table) && !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
+							.OrderBy(i => i.Name);
+			rootAvailable.AddChildren(items.Select(i => new CollectionTreeElement(i.Name)).ToArray());
+
+			_availableItems.Reload();
+			_collectionItems.Reload();
+		}
+
+		private void AddItemsToCollection()
+		{
+			var names = _availableItems.GetSelection().Select(id => _availableItems.Root.Find(id).Name);
+			var collectionData = _selectedItem.CollectionData;
+			var itemNames = collectionData.ItemNames?.ToList() ?? new List<string>();
+			itemNames.AddRange(names);
+
+			RecordUndo($"Add {itemNames.Count} item(s) to collection {collectionData.Name}", _selectedItem.CollectionData);
+
+			collectionData.ItemNames = itemNames.Distinct().ToArray();
+			_availableItems.SetSelection(new List<int>());
+			RebuildItemLists();
+		}
+
+		private void RemoveItemsFromCollection()
+		{
+			var names = _collectionItems.GetSelection().Select(id => _collectionItems.Root.Find(id).Name);
+			CollectionData collectionData = _selectedItem.CollectionData;
+			var itemNames = collectionData.ItemNames.Except(names).ToArray();
+
+			RecordUndo($"Remove {itemNames.Length} item(s) from collection {collectionData.Name}", _selectedItem.CollectionData);
+
+			_selectedItem.CollectionData.ItemNames = itemNames.Distinct().ToArray();
+			_collectionItems.SetSelection(new List<int>());
+			RebuildItemLists();
+		}
 
 		private void OffsetSelectedItems(int increment)
 		{
@@ -240,18 +240,10 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
+		#endregion
 
-		protected override void RenameExistingItem(CollectionListData data, string newName)
-		{
-			string oldName = data.CollectionData.Name;
 
-			// give each editable item a chance to update its fields
-			string undoName = "Rename Collection";
-			RecordUndo(undoName, data.CollectionData);
-
-			data.CollectionData.Name = newName;
-		}
-
+		#region Data management
 		protected override List<CollectionListData> CollectData()
 		{
 			List<CollectionListData> data = new List<CollectionListData>();
@@ -269,6 +261,9 @@ namespace VisualPinball.Unity.Editor
 			OnDataChanged(undoName, data.CollectionData);
 		}
 
+		/// <summary>
+		/// This methods will correctly set all the StorageIndex for collection items, so no need to reset them while saving
+		/// </summary>
 		private void UpdateTableCollections()
 		{
 			//rebuild storage indexes
@@ -321,6 +316,23 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
+
+		protected override void RenameExistingItem(CollectionListData data, string newName)
+		{
+			string oldName = data.CollectionData.Name;
+
+			// give each editable item a chance to update its fields
+			string undoName = "Rename Collection";
+			RecordUndo(undoName, data.CollectionData);
+
+			data.CollectionData.Name = newName;
+		}
+
+		protected override void OnDataSelected()
+		{
+			RebuildItemLists();
+		}
+		#endregion
 
 	}
 }
