@@ -111,6 +111,16 @@ namespace VisualPinball.Unity
 				mesh.RecalculateTangents();
 			}
 		}
+
+		public static Vector3 ToUnityVector3(this Engine.VPT.Mesh.VertData vpVert)
+		{
+			return new Vector3(vpVert.X, vpVert.Y, vpVert.Z);
+		}
+
+		public static Vector3 ToUnityNormalVector3(this Engine.VPT.Mesh.VertData vpVert)
+		{
+			return new Vector3(vpVert.Nx, vpVert.Ny, vpVert.Nz);
+		}
 	}
 }
 

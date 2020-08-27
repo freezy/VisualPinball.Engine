@@ -399,16 +399,6 @@ namespace VisualPinball.Engine.VPT
 				return new Vertex3D(Nx, Ny, Nz);
 			}
 
-			public UnityEngine.Vector3 ToUnityVector3()
-			{
-				return new UnityEngine.Vector3(X, Y, Z);
-			}
-
-			public UnityEngine.Vector3 ToUnityNormalVector3()
-			{
-				return new UnityEngine.Vector3(Nx, Ny, Nz);
-			}
-
 			public VertData Clone()
 			{
 				var vertex = new VertData
