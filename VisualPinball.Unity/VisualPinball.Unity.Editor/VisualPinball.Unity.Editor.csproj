@@ -19,6 +19,9 @@
     <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\Plugins\.unity\Unity.Mathematics.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>

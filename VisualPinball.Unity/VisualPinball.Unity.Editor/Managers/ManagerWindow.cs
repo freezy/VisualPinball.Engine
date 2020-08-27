@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -13,6 +14,7 @@ namespace VisualPinball.Unity.Editor
 	public abstract class ManagerWindow<T> : EditorWindow where T: class, IManagerListData
 	{
 		protected virtual string DataTypeName => "";
+		protected virtual float DetailsMaxWidth => 300f;
 
 		protected virtual void OnButtonBarGUI() { }
 		protected virtual void OnDataDetailGUI() { }
@@ -21,6 +23,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnDataChanged(string undoName, T data) { }
 		protected virtual void AddNewData(string undoName, string newName) { }
 		protected virtual void RemoveData(string undoName, T data) { }
+		protected virtual int  MoveData(string undoName, T data, int increment) { return 0; }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
 		protected virtual void OnItemSelected() { }
 
@@ -36,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplAddNewData = false;
 		private bool _isImplRemoveData = false;
 		private bool _isImplCloneData = false;
+		private bool _isImplMoveData = false;
 		private bool _isImplRenameExistingItem = false;
 
 		protected void Reload()
@@ -49,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 			_isImplAddNewData = IsImplemented("AddNewData");
 			_isImplRemoveData = IsImplemented("RemoveData");
 			_isImplCloneData = IsImplemented("CloneData");
+			_isImplMoveData = IsImplemented("MoveData");
 			_isImplRenameExistingItem = IsImplemented("RenameExistingItem");
 
 			// force gui draw when we perform an undo so we see the fields change back
@@ -99,7 +104,6 @@ namespace VisualPinball.Unity.Editor
 					string undoName = "Remove " + DataTypeName;
 					Undo.RecordObjects(new Object[] { this, _table }, undoName);
 					RemoveData(undoName, _selectedItem);
-					_selectedItem = null;
 					Reload();
 				}
 			}
@@ -114,6 +118,32 @@ namespace VisualPinball.Unity.Editor
 			OnButtonBarGUI();
 			EditorGUILayout.EndHorizontal();
 
+			if (_isImplMoveData && _selectedItem != null) {
+				EditorGUILayout.BeginHorizontal();
+				GUILayout.Label("Move ", GUILayout.ExpandWidth(false));
+				int moveIncrement = 0;
+				if (GUILayout.Button("Top", GUILayout.ExpandWidth(false))) {
+					moveIncrement = -_data.Count;
+				}
+				if (GUILayout.Button("Up", GUILayout.ExpandWidth(false))) {
+					moveIncrement = -1;
+				}
+				if (GUILayout.Button("Down", GUILayout.ExpandWidth(false))) {
+					moveIncrement = 1;
+				}
+				if (GUILayout.Button("Bottom", GUILayout.ExpandWidth(false))) {
+					moveIncrement = _data.Count;
+				}
+				if (moveIncrement != 0) {
+					string undoName = "Move " + DataTypeName;
+					Undo.RecordObjects(new Object[] { this, _table }, undoName);
+					int newIdx = MoveData(undoName, _selectedItem, moveIncrement);
+					SetSelection(newIdx);
+					Reload();
+				}
+				EditorGUILayout.EndHorizontal();
+			}
+
 			EditorGUILayout.BeginHorizontal();
 
 			// list
@@ -123,7 +153,7 @@ namespace VisualPinball.Unity.Editor
 			_listView?.OnGUI(listRect);
 
 			// options
-			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(300));
+			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth));
 			if (_selectedItem != null) {
 				EditorGUILayout.BeginHorizontal();
 				if (_renaming) {
@@ -312,6 +342,11 @@ namespace VisualPinball.Unity.Editor
 				appendNum++;
 			}
 			return acceptedName;
+		}
+
+		protected void SetSelection(int idx)
+		{
+			_listView.SetSelection(new int[] { idx }.ToList());
 		}
 
 		// check is a concrete class implements the given method name

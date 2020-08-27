@@ -10,12 +10,10 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class TableSerializedCollectionContainer : TableSerializedContainer<Collection, CollectionData, TableSerializedCollection>
 	{
-		public override void Add(Collection value)
+		protected override bool TryAddSerialized(Collection value)
 		{
-			Remove(value);
-			string lowerName = value.Name.ToLower();
 			_serializedData.Add(TableSerializedCollection.Create(value.Data));
-			Data[lowerName] = value;
+			return true;
 		}
 
 		protected override Dictionary<string, Collection> CreateDict()

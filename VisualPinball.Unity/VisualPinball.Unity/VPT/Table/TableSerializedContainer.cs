@@ -1,5 +1,7 @@
-﻿using System.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -33,7 +35,16 @@ namespace VisualPinball.Unity
 		}
 
 		protected abstract Dictionary<string, T> CreateDict();
-		public abstract void Add(T value);
+		protected abstract bool TryAddSerialized(T value);
+
+		public void Add(T value)
+		{
+			Remove(value);
+			if (TryAddSerialized(value)) {
+				Data[value.Name.ToLower()] = value;
+				SetNameMapDirty();
+			}
+		}
 
 		public void AddRange(ITableResourceContainer<T> values)
 		{
@@ -49,20 +60,35 @@ namespace VisualPinball.Unity
 
 		public bool Remove(string name)
 		{
-			string lowerName = name.ToLower();
-			bool found = false;
-			for (int i = 0; i < Data.Count; i++) {
-				if (_serializedData[i].Data.GetName().ToLower() == lowerName) {
-					_serializedData.RemoveAt(i);
-					found = true;
-					break;
-				}
+			var foundItem = _serializedData.Where(d => string.Compare(d.Data.GetName(), name, StringComparison.InvariantCultureIgnoreCase) == 0).ToArray();
+			if (foundItem.Length == 1) {
+				_serializedData.Remove(foundItem[0]);
+				Data.Remove(name.ToLower());
+				SetNameMapDirty();
+				return true;
 			}
-			Data.Remove(lowerName);
-			return found;
+
+			return false;
 		}
 
-		public void SetNameMapDirty()
+		public bool Move(string name, int newIdx)
+		{
+			if (newIdx < 0 || newIdx > _serializedData.Count - 1) {
+				return false;
+			}
+
+			var foundItem = _serializedData.Where(d => string.Compare(d.Data.GetName(), name, StringComparison.InvariantCultureIgnoreCase) == 0).ToArray();
+			if (foundItem.Length == 1) {
+				_serializedData.Remove(foundItem[0]);
+				_serializedData.Insert(newIdx, foundItem[0]);
+				SetNameMapDirty();
+				return true;
+			}
+
+			return false;
+		}
+
+		protected void SetNameMapDirty()
 		{
 			_dictDirty = true;
 		}

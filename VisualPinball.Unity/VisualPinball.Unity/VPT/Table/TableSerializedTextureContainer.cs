@@ -10,12 +10,10 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class TableSerializedTextureContainer : TableSerializedContainer<Texture, TextureData, TableSerializedTexture>
 	{
-		public override void Add(Texture value)
+		protected override bool TryAddSerialized(Texture value)
 		{
-			Remove(value);
-			string lowerName = value.Name.ToLower();
 			_serializedData.Add(TableSerializedTexture.Create(value.Data));
-			Data[lowerName] = value;
+			return true;
 		}
 
 		protected override Dictionary<string, Texture> CreateDict()

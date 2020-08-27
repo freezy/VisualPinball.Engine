@@ -87,8 +87,7 @@ namespace VisualPinball.Unity.Editor
 				if (child.HasChildren) {
 					if (IsExpanded(child.Id)) {
 						AddChildrenRecursive(child, depth + 1, newRows);
-					}
-					else {
+					} else {
 						item.children = CreateChildListForCollapsedParent();
 					}
 				}
@@ -132,9 +131,9 @@ namespace VisualPinball.Unity.Editor
 			SortSearchResult(result);
 		}
 
-		protected void SortSearchResult (List<TreeViewItem> rows)
+		protected void SortSearchResult(List<TreeViewItem> rows)
 		{
-			rows.Sort ((x,y) => EditorUtility.NaturalCompare (x.displayName, y.displayName)); // sort by displayName by default, can be overriden for multicolumn solutions
+			rows.Sort((x, y) => EditorUtility.NaturalCompare(x.displayName, y.displayName)); // sort by displayName by default, can be overriden for multicolumn solutions
 		}
 		#endregion
 
@@ -160,6 +159,16 @@ namespace VisualPinball.Unity.Editor
 		protected override void RenameEnded(RenameEndedArgs args)
 		{
 			base.RenameEnded(args);
+		}
+		#endregion
+
+		#region Selection
+		public T[] GetSelectedElements() => Root?.GetChildren(c => GetSelection().Contains(c.Id)).ToArray() ?? new T[0];
+
+		public void SetSelectedElements(Func<T, bool> testElement)
+		{
+			var itemsId = Root.GetChildren(e => testElement(e)).Select(e => e.Id).ToList();
+			SetSelection(itemsId);
 		}
 		#endregion
 

@@ -2,6 +2,9 @@
 {
 	public class CollectionListData : IManagerListData
 	{
+		[ManagerListColumn(Order = 0, HeaderName = "Index", Width = 50)]
+		public string Index => $"{CollectionData?.StorageIndex ?? -1:D3}";
+
 		[ManagerListColumn(Order = 0, Width = 200)]
 		public string Name => CollectionData?.Name ?? "";
 

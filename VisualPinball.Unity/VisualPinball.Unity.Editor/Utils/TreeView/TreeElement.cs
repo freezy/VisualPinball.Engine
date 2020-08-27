@@ -11,6 +11,15 @@ namespace VisualPinball.Unity.Editor
 	public abstract class TreeElement
 	{
 		/// <summary>
+		/// This Unique Id is automatically set & increment on each TreeElement CTor so you don't need to worry about its unicity
+		/// </summary>
+		/// <remarks>
+		/// Could be useful when constructing an array of TreeElemnt in a delegate for instance, without having to manage a local counter
+		/// Of course, this Id can be overridden afterward
+		/// </remarks>
+		private static int UniqueId = typeof(TreeElement).GUID.ToString().GetHashCode();
+
+		/// <summary>
 		/// Unique ID of this <see cref="TreeElement"/> within the tree structure
 		/// </summary>
 		public int Id { get; set; }
@@ -47,9 +56,26 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasChildren => Children != null && Children.Count > 0;
 
+		public TreeElement()
+		{
+			Id = UniqueId++;
+		}
+
+		public TreeElement(int id)
+		{
+			Id = id;
+		}
+
 		public void AddChild(TreeElement child)
 		{
 			child?.ReParent(this);
+		}
+
+		public void AddChildren(TreeElement[] children)
+		{
+			foreach (var child in children) {
+				child.ReParent(this);
+			}
 		}
 
 		public virtual TreeElement ReParent(TreeElement newParent)

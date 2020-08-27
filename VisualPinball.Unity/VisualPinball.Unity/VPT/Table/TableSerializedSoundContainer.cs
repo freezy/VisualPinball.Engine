@@ -12,12 +12,10 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class TableSerializedSoundContainer : TableSerializedContainer<Sound, SoundData, TableSerializedSound>
 	{
-		public override void Add(Sound value)
+		protected override bool TryAddSerialized(Sound value)
 		{
-			Remove(value);
-			string lowerName = value.Name.ToLower();
 			_serializedData.Add(TableSerializedSound.Create(value.Data));
-			Data[lowerName] = value;
+			return true;
 		}
 
 		protected override Dictionary<string, Sound> CreateDict()
