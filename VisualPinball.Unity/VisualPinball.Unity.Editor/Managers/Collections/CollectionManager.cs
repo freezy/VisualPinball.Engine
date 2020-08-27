@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Table;
 
@@ -52,6 +52,24 @@ namespace VisualPinball.Unity.Editor
 			CheckGUI();
 			_availableItems.Reload();
 			_collectionItems.Reload();
+
+			ItemInspector.ItemRenamed += OnItemRenamed;
+			Undo.undoRedoPerformed += RebuildItemLists;
+		}
+
+		protected virtual void OnDisable()
+		{
+			ItemInspector.ItemRenamed -= OnItemRenamed;
+			Undo.undoRedoPerformed -= RebuildItemLists;
+		}
+
+		private void OnItemRenamed(IIdentifiableItemAuthoring item, string oldName, string newName)
+		{
+			//Have to update this name in all Collections
+			foreach (var collection in _table.Collections) {
+				collection.Data.ItemNames = collection.Data.ItemNames.Select(n => string.Compare(n, oldName, StringComparison.InvariantCultureIgnoreCase) == 0 ? newName : n).ToArray();
+			}
+			RebuildItemLists();
 		}
 
 		private void RebuildItemLists()
@@ -92,9 +110,13 @@ namespace VisualPinball.Unity.Editor
 		private void AddItemsToCollection()
 		{
 			var names = _availableItems.GetSelection().Select(id => _availableItems.Root.Find(id).Name);
-			var collection = _selectedItem.CollectionData.ItemNames?.ToList() ?? new List<string>();
-			collection.AddRange(names);
-			_selectedItem.CollectionData.ItemNames = collection.Distinct().ToArray();
+			var collectionData = _selectedItem.CollectionData;
+			var itemNames = collectionData.ItemNames?.ToList() ?? new List<string>();
+			itemNames.AddRange(names);
+			
+			RecordUndo($"Add {itemNames.Count} item(s) to collection {collectionData.Name}", _selectedItem.CollectionData);
+
+			collectionData.ItemNames = itemNames.Distinct().ToArray();
 			_availableItems.SetSelection(new List<int>());
 			RebuildItemLists();
 		}
@@ -102,11 +124,12 @@ namespace VisualPinball.Unity.Editor
 		private void RemoveItemsFromCollection()
 		{
 			var names = _collectionItems.GetSelection().Select(id => _collectionItems.Root.Find(id).Name);
-			var collection = _selectedItem.CollectionData.ItemNames.ToList();
-			foreach(var name in names) {
-				collection.Remove(name);
-			}
-			_selectedItem.CollectionData.ItemNames = collection.Distinct().ToArray();
+			CollectionData collectionData = _selectedItem.CollectionData;
+			var itemNames = collectionData.ItemNames.Except(names).ToArray();
+
+			RecordUndo($"Remove {itemNames.Length} item(s) from collection {collectionData.Name}", _selectedItem.CollectionData);
+
+			_selectedItem.CollectionData.ItemNames = itemNames.Distinct().ToArray();
 			_collectionItems.SetSelection(new List<int>());
 			RebuildItemLists();
 		}
