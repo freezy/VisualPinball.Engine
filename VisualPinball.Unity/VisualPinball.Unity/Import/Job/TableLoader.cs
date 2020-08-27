@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 							break;
 						}
 						case ItemType.Ramp: {
-							var item = objHandle.Target as Ramp;
+							table.Add(objHandle.Target as Ramp);
 							break;
 						}
 						case ItemType.Rubber: {
@@ -127,6 +127,8 @@ namespace VisualPinball.Unity
 							table.Add(objHandle.Target as Trigger);
 							break;
 						}
+						default:
+							throw new ArgumentException("Unknown item type " + (ItemType)job.ItemType[i] + ".");
 					}
 				}
 			}
