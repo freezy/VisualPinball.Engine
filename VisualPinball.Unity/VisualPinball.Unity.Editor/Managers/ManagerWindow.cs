@@ -98,6 +98,7 @@ namespace VisualPinball.Unity.Editor
 				Undo.RecordObjects(new Object[] { this, _table }, undoName);
 				AddNewData(undoName, newDataName);
 				Reload();
+				SetSelection(_data.Count - 1);
 			}
 			if (_isImplRemoveData && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
@@ -105,6 +106,7 @@ namespace VisualPinball.Unity.Editor
 					Undo.RecordObjects(new Object[] { this, _table }, undoName);
 					RemoveData(undoName, _selectedItem);
 					Reload();
+					SetSelection(0);
 				}
 			}
 			if (_isImplCloneData && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
@@ -114,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 				Undo.RecordObjects(new Object[] { this, _table }, undoName);
 				CloneData(undoName, newDataName, _selectedItem);
 				Reload();
+				SetSelection(_data.Count - 1);
 			}
 			OnButtonBarGUI();
 			EditorGUILayout.EndHorizontal();
