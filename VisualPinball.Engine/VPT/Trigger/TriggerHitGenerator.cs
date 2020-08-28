@@ -55,9 +55,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 				hitObjects.Add(GetLineSeg(pv2, pv3, events, height));
 			}
 
-			hitObjects.Add( new Hit3DPoly(rgv3D, ItemType.Trigger) {
-				Obj = events
-			});
+			hitObjects.AddRange( new Hit3DPoly(rgv3D, ItemType.Trigger).ConvertToTriangles());
 
 			return hitObjects.ToArray();
 		}

@@ -1,8 +1,12 @@
-﻿using VisualPinball.Engine.Common;
+﻿using System.Collections.Generic;
+using System.Linq;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Math.Triangulator;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ball;
+using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Engine.Physics
 {
@@ -32,6 +36,32 @@ namespace VisualPinball.Engine.Physics
 			Elasticity = 0.3f;
 			SetFriction(0.3f);
 			Scatter = 0.0f;
+		}
+
+		public IEnumerable<HitObject> ConvertToTriangles()
+		{
+			var inputVerts = Rgv.Select(v => new Vector2(v.X, v.Y)).ToArray();
+			Triangulator.Triangulate(inputVerts, WindingOrder.CounterClockwise, out var outputVerts, out var outputIndices);
+
+			var mesh = new Mesh(
+				outputVerts.Select(v => new Vertex3DNoTex2(v.X, v.Y, Rgv[0].Z)).ToArray(),
+				outputIndices
+			);
+
+			var hitObjects = PrimitiveHitGenerator.MeshToHitObjects(mesh, ObjType).ToArray();
+			foreach (var hitObject in hitObjects) {
+				hitObject.ItemIndex = ItemIndex;
+				hitObject.ItemVersion = ItemVersion;
+				hitObject.Threshold = Threshold;
+				hitObject.Elasticity = Elasticity;
+				hitObject.ElasticityFalloff = ElasticityFalloff;
+				hitObject.Friction = Friction;
+				hitObject.Scatter = Scatter;
+				hitObject.IsEnabled = IsEnabled;
+				hitObject.FireEvents = FireEvents;
+				hitObject.E = E;
+			}
+			return hitObjects;
 		}
 
 		public override void CalcHitBBox()
