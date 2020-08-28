@@ -1,14 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!-- https://github.com/dotnet/sdk/issues/747\#issuecomment-518156718 -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>	
     <Title>VisualPinball.Engine.Test</Title>
     <Description>A .NET port of Visual Pinball in C#</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
     <LangVersion>7.3</LangVersion>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(PlatformTarget)' != 'x86'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(PlatformTarget)' == 'x86'">win-x86</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
@@ -16,19 +25,20 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit.ConsoleRunner" Version="3.11.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
   </ItemGroup>
-  <Target Name="DeployPlugins" AfterTargets="Build">
+  <Target Name="PluginsDeploy" AfterTargets="Build">
     <ItemGroup>
       <Plugins Include="$(OutDir)FluentAssertions.dll" />
       <Plugins Include="$(OutDir)JeremyAnsel.Media.WavefrontObj.dll" />
     </ItemGroup>
-    <Message Text="DeployPlugins: @(Plugins)" />
+    <Message Text="PluginsDeploy: @(Plugins)" />
     <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins" SkipUnchangedFiles="true" />
   </Target>
 </Project>

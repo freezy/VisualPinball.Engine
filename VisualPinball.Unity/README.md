@@ -35,22 +35,6 @@ your Unity project as a package. In order to do that:
 You'll then have a *Visual Pinball* menu in the Unity editor where you can 
 import `.vpx` files. 
 
-*Note:* OSX users will need to add the following `dllmap` entries to the Unity `config` file
-prior to launching Unity:
-
-```
-<configuration>
-        <dllmap dll="libvips-42.dll" target="libvips.42.dylib" os="osx" />
-        <dllmap dll="libglib-2.0-0.dll" target="libvips.42.dylib" os="osx" />
-        <dllmap dll="libgobject-2.0-0.dll" target="libvips.42.dylib" os="osx" />
-        .
-        .
-```
-
-The `config` file is located at:
-
-- `/Applications/Unity/Hub/Editor/2020.1.2f1/Unity.app/Contents/MonoBleedingEdge/etc/mono/config` 
-
 ## Future
 
 Unity allows extending its editor. This allows us to use Unity as a table
