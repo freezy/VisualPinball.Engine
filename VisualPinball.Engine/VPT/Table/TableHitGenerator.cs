@@ -59,9 +59,14 @@ namespace VisualPinball.Engine.VPT.Table
 			};
 			var hit3DPoly = new Hit3DPoly(rgv3D, ItemType.Table);
 			hit3DPoly.CalcHitBBox();
-			hitObjects.Add(hit3DPoly);
+			hitObjects.AddRange(hit3DPoly.ConvertToTriangles());
 
-			return hitObjects.ToArray();
+			foreach (var hitObject in hitObjects) {
+				hitObject.ItemIndex = _table.Index;
+				hitObject.ItemVersion = _table.Version;
+			}
+
+			return hitObjects;
 		}
 
 		public HitPlane GeneratePlayfieldHit() {

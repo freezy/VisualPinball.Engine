@@ -136,7 +136,6 @@ namespace VisualPinball.Engine.Game
 			//         this.HitTimers.Push(...Scriptable.GetApi()._getTimers());
 			// }
 
-			_hitObjects.AddRange(_table.GetHitShapes()); // these are the table's outer borders
 			_hitPlayfield = _table.GeneratePlayfieldHit();
 			_hitTopGlass = _table.GenerateGlassHit();
 
