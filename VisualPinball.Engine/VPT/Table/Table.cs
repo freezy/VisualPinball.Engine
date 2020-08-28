@@ -16,7 +16,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// A table contains all the playfield elements, as well as a set of
 	/// global data.
 	/// </summary>
-	public class Table : Item<TableData>, IRenderable
+	public class Table : Item<TableData>, IRenderable, IHittable
 	{
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -31,6 +31,9 @@ namespace VisualPinball.Engine.VPT.Table
 		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
+
+		public bool IsCollidable => true;
+		public EventProxy EventProxy { get; }
 
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
@@ -141,7 +144,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_gates.Values)
 			.Concat(_spinners.Values);
 
-		public IEnumerable<IHittable> Hittables => new IHittable[0]
+		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
@@ -271,6 +274,10 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		#endregion
+
+		public void Init(Table table)
+		{
+		}
 
 		/// <summary>
 		/// Adds a game item to the table.
@@ -436,7 +443,8 @@ namespace VisualPinball.Engine.VPT.Table
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
-		public IEnumerable<HitObject> GetHitShapes() => _hitGenerator.GenerateHitObjects();
+		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects().ToArray();
+
 		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit();
 		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit();
 
