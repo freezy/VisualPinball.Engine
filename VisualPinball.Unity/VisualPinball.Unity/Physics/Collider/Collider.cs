@@ -82,9 +82,6 @@ namespace VisualPinball.Unity
 				case HitPoint hitPoint:
 					PointCollider.Create(builder, hitPoint, ref dest);
 					break;
-				case Hit3DPoly hit3DPoly:
-					Poly3DCollider.Create(builder, hit3DPoly, ref dest);
-					break;
 				case HitPlane hitPlane:
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
@@ -98,7 +95,7 @@ namespace VisualPinball.Unity
 					TriangleCollider.Create(builder, hitTriangle, ref dest);
 					break;
 				default:
-					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
+					Logger.Warn("Unsupported collider {0}, skipping.", src.GetType().Name);
 					break;
 			}
 		}

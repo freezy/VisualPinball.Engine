@@ -24,7 +24,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public HitObject[] GenerateHitObjects(Table.Table table, PrimitiveMeshGenerator meshGenerator)
 		{
-			var hitObjects = new List<HitObject>();
+
 
 			if (_data.Name == "playfield_mesh") {
 				_data.IsVisible = false;
@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			// playfield can't be a toy
 			if (_data.IsToy && !_primitive.UseAsPlayfield) {
-				return hitObjects.ToArray();
+				return new HitObject[0];
 			}
 
 			var mesh = meshGenerator.GetTransformedMesh(table, Origin.Global, false);
@@ -48,6 +48,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
+			return MeshToHitObjects(mesh, ItemType.Primitive).Select(ho => SetupHitObject(ho, table)).ToArray();
+		}
+
+		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType)
+		{
+			var hitObjects = new List<HitObject>();
 			var addedEdges = new EdgeSet();
 
 			// add collision triangles and edges
@@ -64,19 +70,19 @@ namespace VisualPinball.Engine.VPT.Primitive
 					mesh.Vertices[i1].GetVertex(),
 				};
 
-				hitObjects.Add(new HitTriangle(rgv3D, ItemType.Primitive));
+				hitObjects.Add(new HitTriangle(rgv3D, itemType));
 
-				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], ItemType.Primitive));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], ItemType.Primitive));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], ItemType.Primitive));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], itemType));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], itemType));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], itemType));
 			}
 
 			// add collision vertices
 			foreach (var vertex in mesh.Vertices) {
-				hitObjects.Add(new HitPoint(vertex.GetVertex(), ItemType.Primitive));
+				hitObjects.Add(new HitPoint(vertex.GetVertex(), itemType));
 			}
 
-			return hitObjects.Select(ho => SetupHitObject(ho, table)).ToArray();
+			return hitObjects;
 		}
 
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)

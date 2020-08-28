@@ -51,10 +51,10 @@ namespace VisualPinball.Engine.VPT.Surface
 				hitObjects.AddRange(GenerateLinePolys(pv2, pv3, events, table));
 			}
 
-			hitObjects.Add(new Hit3DPoly(rgv3Dt, ItemType.Surface));
+			hitObjects.AddRange(new Hit3DPoly(rgv3Dt, ItemType.Surface).ConvertToTriangles());
 
 			if (rgv3Db != null) {
-				hitObjects.Add(new Hit3DPoly(rgv3Db, ItemType.Surface));
+				hitObjects.AddRange(new Hit3DPoly(rgv3Db, ItemType.Surface).ConvertToTriangles());
 			}
 
 			return hitObjects.ToArray();
