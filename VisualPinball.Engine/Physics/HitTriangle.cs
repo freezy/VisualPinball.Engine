@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Physics
 		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
 		{
 			// not needed in unity ECS
-			throw new System.NotImplementedException();
+			return -1;
 		}
 
 		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
