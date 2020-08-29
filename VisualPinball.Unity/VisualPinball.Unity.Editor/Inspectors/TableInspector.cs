@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TableAuthoring))]
 	[CanEditMultipleObjects]
-	public class TableInspector : UnityEditor.Editor
+	public class TableInspector : ItemInspector
 	{
 		private IPhysicsEngine[] _physicsEngines;
 		private string[] _physicsEngineNames;
@@ -39,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			OnPreInspectorGUI();
+
 			var tableComponent = (TableAuthoring) target;
 			DrawEngineSelector("Physics Engine", ref tableComponent.physicsEngineId, ref _physicsEngines, ref _physicsEngineNames, ref _physicsEngineIndex);
 			DrawEngineSelector("Debug UI", ref tableComponent.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
@@ -58,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+
+			base.OnInspectorGUI();
 		}
 
 		private void DrawEngineSelector<T>(string engineName, ref string engineId, ref T[] instances, ref string[] names, ref int index) where T : IEngine

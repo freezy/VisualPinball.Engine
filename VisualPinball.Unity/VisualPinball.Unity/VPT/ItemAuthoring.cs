@@ -114,7 +114,10 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+			// update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
+			if (table != this) {
+				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+			}
 			ItemDataChanged();
 			_meshDirty = false;
 		}
