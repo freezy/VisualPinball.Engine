@@ -16,6 +16,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 		internal readonly Dictionary<string, TriggerApi> Triggers = new Dictionary<string, TriggerApi>();
+		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
 
 		/// <summary>
 		/// Event emitted before the game starts.

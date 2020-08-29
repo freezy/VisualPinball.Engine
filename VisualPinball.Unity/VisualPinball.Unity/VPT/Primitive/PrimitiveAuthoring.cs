@@ -19,6 +19,10 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+
+			// register
+			var primitive = GetComponent<PrimitiveAuthoring>().Item;
+			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, gameObject);
 		}
 
 		protected override Primitive GetItem() => new Primitive(data);
