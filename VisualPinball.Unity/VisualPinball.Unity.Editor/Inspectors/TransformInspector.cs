@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 			bool useDefault = true;
 			foreach (var t in targets) {
 				var item = (t as Transform)?.GetComponent<IEditableItemAuthoring>();
-				if (item != null) {
+				if (item != null && !(item is TableAuthoring)) {
 					useDefault = false;
 					if (_primaryItem == null) {
 						_primaryItem = item;
