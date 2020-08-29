@@ -117,6 +117,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void ToolBoxItemCreated(GameObject obj)
 		{
+			if (obj.GetComponentInParent<TableAuthoring>() != _table) {
+				// don't assign to a layer that's not part if this table
+				return;
+			}
 			var layerName = _treeView.GetFirstSelectedLayer();
 			_layerHandler.AssignToLayer(obj, layerName);
 		}
