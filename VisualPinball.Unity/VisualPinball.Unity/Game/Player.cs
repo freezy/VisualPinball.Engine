@@ -11,6 +11,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
@@ -137,6 +138,14 @@ namespace VisualPinball.Unity
 			_tableApi.Triggers[trigger.Name] = triggerApi;
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
+		}
+
+		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
+		{
+			var primitiveApi = new PrimitiveApi(primitive, entity, this);
+			_tableApi.Primitives[primitive.Name] = primitiveApi;
+			_initializables.Add(primitiveApi);
+			_hittables[entity] = primitiveApi;
 		}
 
 		#endregion
