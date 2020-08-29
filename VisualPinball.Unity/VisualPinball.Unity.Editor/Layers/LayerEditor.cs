@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	/// It does mostly coordination. The main logic is implemented in <see cref="LayerHandler"/>,
 	/// and tree view of the layers in <see cref="LayerTreeView"/>.
 	/// </summary>
-	public class LayerEditor : EditorWindow
+	public class LayerEditor : LockingTableEditorWindow
 	{
 		/// <summary>
 		/// The search box control. <p/>
@@ -111,8 +111,8 @@ namespace VisualPinball.Unity.Editor
 			// will notify the TreeView if Synchronize Selection is set
 			Selection.selectionChanged += SelectionChanged;
 
-			// trigger handler update on enable
-			OnHierarchyChange();
+			// auto select a table to show data for
+			FindTable();
 		}
 
 		private void ToolBoxItemCreated(GameObject obj)
@@ -267,12 +267,9 @@ namespace VisualPinball.Unity.Editor
 			return null;
 		}
 
-		/// <summary>
-		/// Called each time something is changed in the scene hierarchy (event GameObjects renaming)
-		/// </summary>
-		private void OnHierarchyChange()
+		protected override void SetTable(TableAuthoring table)
 		{
-			_layerHandler.OnHierarchyChange(FindObjectOfType<TableAuthoring>());
+			_layerHandler.SetTable(table);
 		}
 
 		/// <summary>
@@ -288,7 +285,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void OnUndoRedoPerformed()
 		{
-			OnHierarchyChange();
+			FindTable();
 		}
 
 		/// <summary>
