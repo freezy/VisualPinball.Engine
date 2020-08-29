@@ -57,6 +57,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplCloneData = false;
 		private bool _isImplMoveData = false;
 		private bool _isImplRenameExistingItem = false;
+		private Vector2 _scrollPos = Vector2.zero;
 		private GUIStyle _lockButtonStyle;
 		private bool _windowLocked = false;
 
@@ -112,6 +113,19 @@ namespace VisualPinball.Unity.Editor
 			if (_table == null) {
 				FindTable();
 			}
+		}
+
+		protected virtual void OnFocus()
+		{
+			if (_windowLocked) { return; }
+			SetTableFromSelection();
+		}
+
+		protected virtual void OnSelectionChange()
+		{
+			if (_windowLocked) { return; }
+			SetTableFromSelection();
+			Repaint();
 		}
 
 		protected virtual void OnGUI()
@@ -221,7 +235,9 @@ namespace VisualPinball.Unity.Editor
 				}
 				EditorGUILayout.EndHorizontal();
 
+				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 				OnDataDetailGUI();
+				EditorGUILayout.EndScrollView();
 			} else {
 				EditorGUILayout.LabelField("Nothing selected");
 			}
@@ -357,12 +373,32 @@ namespace VisualPinball.Unity.Editor
 
 		private void FindTable()
 		{
-			_table = FindObjectOfType<TableAuthoring>();
+			SetTableFromSelection();
+			if (_table == null) {
+				// nothing was selected, just use the first found table
+				SetTable(FindObjectOfType<TableAuthoring>());
+			}
+		}
+
+		private void SetTable( TableAuthoring table )
+		{
+			_table = table;
 			_data.Clear();
 			if (_table != null) {
 				_data = CollectData();
 			}
 			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
+		}
+
+		private void SetTableFromSelection()
+		{
+			if (Selection.activeGameObject == null) { return; }
+
+			// check to see if the selection's table is different from the current one being used by this manager
+			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
+			if (selectedTable != null) {
+				SetTable(selectedTable);
+			}
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)
