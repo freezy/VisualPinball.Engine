@@ -86,10 +86,10 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
-		/// Is called by the <see cref="LayerEditor"/> when a new TableAuthoring is created/deleted
+		/// Populates the layer data from the given table
 		/// </summary>
 		/// <param name="tableAuthoring"></param>
-		public void OnHierarchyChange(TableAuthoring tableAuthoring)
+		public void SetTable(TableAuthoring tableAuthoring)
 		{
 			var tableChanged = _tableAuthoring != tableAuthoring;
 			_tableAuthoring = tableAuthoring;
