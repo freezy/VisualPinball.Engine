@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -96,11 +96,11 @@ namespace VisualPinball.Unity.Editor
 
 					// construct full path
 					_pathPoints.Clear();
-					const float splitRatio = 0.05f;
+					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
 						var segments = controlPointsSegments[controlPoint.Index];
-						if (!controlPoint.DragPoint.IsSmooth && segments.Count == 2) {
+						if (segments.Count == 2) {
 							var dir = segments[1] - segments[0];
 							var dist = dir.magnitude;
 							dir = Vector3.Normalize(dir);
@@ -111,12 +111,14 @@ namespace VisualPinball.Unity.Editor
 								newPath.Add(newPath[0] + dir * splitDist);
 							}
 							newPath.Add(segments[1]);
-							segments = newPath;
+							controlPointsSegments[controlPoint.Index] = newPath;
 						}
-						_pathPoints.AddRange(segments);
+						_pathPoints.AddRange(controlPointsSegments[controlPoint.Index]);
 					}
 
-					_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					if (_pathPoints.Count > 1) {
+						_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					}
 
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
@@ -155,7 +157,7 @@ namespace VisualPinball.Unity.Editor
 						? Color.green
 						: Color.gray;
 
-				Handles.SphereHandleCap(0,
+				Handles.SphereHandleCap(-1,
 					controlPoint.WorldPos,
 					Quaternion.identity,
 					HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio,
