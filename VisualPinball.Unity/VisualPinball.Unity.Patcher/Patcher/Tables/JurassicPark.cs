@@ -1,6 +1,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
+using static VisualPinball.Unity.Patcher.PatcherUtils;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -27,14 +28,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("RFLogo1", Ref="Flippers/UpperRightFlipper")]
 		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
 		{
-			var rot = gameObject.transform.rotation;
-			var pos = gameObject.transform.position;
-
-			// re-parent the child
-			gameObject.transform.SetParent(parent.transform, false);
-
-			gameObject.transform.rotation = rot;
-			gameObject.transform.position = pos;
+			Reparent(gameObject, parent);
 		}
 
 		[NameMatch("PLeftFlipper")]
@@ -50,17 +44,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.SetFloat("_SurfaceType", 0);
-
-			unityMat.SetFloat("_DstBlend", 0);
-			unityMat.SetFloat("_ZWrite", 1);
-
-			unityMat.DisableKeyword("_ALPHATEST_ON");
-			unityMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-			unityMat.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
-			unityMat.DisableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+			PatcherUtils.SetOpaque(gameObject);
 		}
 	}
 }
