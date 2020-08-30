@@ -94,7 +94,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		public IEnumerable<IItem> GameItemInterfaces => new IItem[] { this }
+		public IEnumerable<IItem> GameItemInterfaces => new IItem[] { }
 			.Concat(_bumpers.Values)
 			.Concat(_decals.Select(i => i))
 			.Concat(_dispReels.Values)
