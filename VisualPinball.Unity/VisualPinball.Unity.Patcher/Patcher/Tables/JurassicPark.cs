@@ -17,7 +17,6 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using static VisualPinball.Unity.Patcher.PatcherUtils;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -44,7 +43,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("RFLogo1", Ref="Flippers/UpperRightFlipper")]
 		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
 		{
-			Reparent(gameObject, parent);
+			PatcherUtils.Reparent(gameObject, parent);
 		}
 
 		[NameMatch("PLeftFlipper")]
