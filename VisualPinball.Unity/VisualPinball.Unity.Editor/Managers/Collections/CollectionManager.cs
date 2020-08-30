@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Table;
 
@@ -35,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			titleContent = new GUIContent("Collection Manager", EditorGUIUtility.IconContent("FolderOpened Icon").image);
 			base.OnEnable();
-			CheckGUI();
+			InitGUI();
 			_availableItems.Reload();
 			_collectionItems.Reload();
 
@@ -47,6 +48,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			ItemInspector.ItemRenamed -= OnItemRenamed;
 			Undo.undoRedoPerformed -= RebuildItemLists;
+			if (_availableItems != null) {
+				_availableItems.ItemDoubleClicked -= OnAvailableDoubleClick;
+			}
+			if (_collectionItems != null) {
+				_collectionItems.ItemDoubleClicked -= OnCollectionDoubleClick;
+			}
 		}
 
 		#region Events
@@ -54,38 +61,38 @@ namespace VisualPinball.Unity.Editor
 		{
 			//Have to update this name in all Collections
 			foreach (var collection in _table.Collections) {
-				collection.Data.ItemNames = collection.Data.ItemNames.Select(n => string.Compare(n, oldName, StringComparison.InvariantCultureIgnoreCase) == 0 ? newName : n).ToArray();
+				collection.ItemNames = collection.ItemNames.Select(n => string.Compare(n, oldName, StringComparison.InvariantCultureIgnoreCase) == 0 ? newName : n).ToArray();
 			}
 			RebuildItemLists();
 		}
 
-		private void ItemsToCollection(CollectionTreeElement[] obj)
+		private void OnAvailableDoubleClick(CollectionTreeElement[] obj)
 		{
 			AddItemsToCollection();
 		}
 
-		private void ItemsToAvailable(CollectionTreeElement[] obj)
+		private void OnCollectionDoubleClick(CollectionTreeElement[] obj)
 		{
 			RemoveItemsFromCollection();
 		}
 		#endregion
 
 		#region GUI
-		private void CheckGUI()
+		private void InitGUI()
 		{
 			if (_searchAvailable == null) {
 				_searchAvailable = new SearchField();
 			}
 			if (_availableItems == null) {
 				_availableItems = new CollectionTreeView();
-				_availableItems.ItemDoubleClicked += ItemsToCollection;
+				_availableItems.ItemDoubleClicked += OnAvailableDoubleClick;
 			}
 			if (_searchCollection == null) {
 				_searchCollection = new SearchField();
 			}
 			if (_collectionItems == null) {
 				_collectionItems = new CollectionTreeView();
-				_collectionItems.ItemDoubleClicked += ItemsToAvailable;
+				_collectionItems.ItemDoubleClicked += OnCollectionDoubleClick;
 			}
 		}
 
@@ -152,7 +159,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			CheckGUI();
+			InitGUI();
 			//rebuild lists
 			var rootAvailable = _availableItems.Root;
 			rootAvailable.Children.Clear();
@@ -206,6 +213,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			var items = _selectedItem.CollectionData.ItemNames;
+			//Items are ordered using the increment so we'll treat them in the correct order for stacking if needed
 			var selectedItems = _collectionItems.GetSelectedElements().Select(e => e.Name)
 								.OrderBy(e => Array.IndexOf(items, e) * (Math.Sign(increment) ? 1 : -1))
 								.ToArray();
@@ -218,6 +226,16 @@ namespace VisualPinball.Unity.Editor
 			_collectionItems.SetSelectedElements(e => selectedItems.Contains(e.Name));
 		}
 
+		/// <summary>
+		/// Move one collection item by increment value in the collection.
+		/// Will ensure that all provided selected elements are not overridden by this one
+		/// </summary>
+		/// <param name="itemName">The item name to move</param>
+		/// <param name="increment">The increment t use to move the item</param>
+		/// <param name="selectedItems">The list of other selected items to check overrides</param>
+		/// <remarks>
+		/// If the current moved item ends up on another item, it will go backward from the increment until it found a free spot where it can switch with an unselected item
+		/// </remarks>
 		private void OffsetSelectedItem(string itemName, int increment, string[] selectedItems)
 		{
 			var items = _selectedItem.CollectionData.ItemNames;
@@ -227,8 +245,10 @@ namespace VisualPinball.Unity.Editor
 				if (item == itemName) {
 					var nextIdx = math.clamp(i + increment, 0, items.Length - 1);
 					if (nextIdx != i) {
+						//while the new index is already used by a selected item, we go backward the increment 1 by 1 to find a free spot to swap with
 						while (selectedItems.Contains(items[nextIdx])) {
 							nextIdx += Math.Sign(increment) ? 1 : -1;
+							//We went back to the original index of that item, we cannot move it
 							if (increment > 0 ? nextIdx <= i : nextIdx >= i) {
 								return;
 							}
@@ -249,8 +269,7 @@ namespace VisualPinball.Unity.Editor
 			List<CollectionListData> data = new List<CollectionListData>();
 
 			foreach (var c in _table.Collections) {
-				var colData = c.Data;
-				data.Add(new CollectionListData { CollectionData = colData });
+				data.Add(new CollectionListData { CollectionData = c });
 			}
 
 			return data;
@@ -271,15 +290,15 @@ namespace VisualPinball.Unity.Editor
 			foreach (var collection in _table.Collections) {
 				collection.StorageIndex = idx++;
 			}
-			_table.Item.Data.NumCollections = _table.Collections.Count;
+			_table.Item.Data.NumCollections = _table.Collections.Length;
 		}
 
 		protected override void AddNewData(string undoName, string newName)
 		{
 			Undo.RecordObject(_table, undoName);
 
-			var newCol = new Collection(newName);
-			_table.Collections.Add(newCol);
+			var newCol = new CollectionData(newName);
+			_table.AddCollection(newCol);
 			UpdateTableCollections();
 		}
 
@@ -287,23 +306,24 @@ namespace VisualPinball.Unity.Editor
 		{
 			Undo.RecordObject(_table, undoName);
 
-			_table.Collections.Remove(data.Name);
+			_table.RemoveCollection(data.CollectionData);
 			UpdateTableCollections();
 		}
 
 		protected override void CloneData(string undoName, string newName, CollectionListData data)
 		{
-			var newCol = new Collection(newName, data.CollectionData.Clone());
-			_table.Collections.Add(newCol);
+			Undo.RecordObject(_table, undoName);
+
+			var newCol = new CollectionData(newName, data.CollectionData);
+			_table.AddCollection(newCol);
 			UpdateTableCollections();
 		}
 
 		protected override int MoveData(string undoName, CollectionListData data, int increment)
 		{
-			int newIdx = math.clamp(_selectedItem.CollectionData.StorageIndex + increment, 0, _table.Collections.Count - 1);
-			_table.Collections.Move(_selectedItem.CollectionData.Name, newIdx);
+			_table.MoveCollection(_selectedItem.CollectionData.StorageIndex, _selectedItem.CollectionData.StorageIndex + increment);
 			UpdateTableCollections();
-			return newIdx;
+			return _selectedItem.CollectionData.StorageIndex;
 		}
 
 		private void OnDataChanged(string undoName, CollectionData collectionData)
@@ -316,9 +336,9 @@ namespace VisualPinball.Unity.Editor
 			if (_table == null) { return; }
 
 			// Run over table's collection scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableCol in _table.Collections.SerializedObjects) {
-				if (tableCol.Data == collectionData) {
-					Undo.RecordObject(tableCol, undoName);
+			foreach (var tableCol in _table.Collections) {
+				if (tableCol == collectionData) {
+//					Undo.RecordObject(tableCol, undoName);
 					break;
 				}
 			}

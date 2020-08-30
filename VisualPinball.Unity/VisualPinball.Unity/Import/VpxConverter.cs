@@ -224,14 +224,13 @@ namespace VisualPinball.Unity
 			// copy each serializable ref into the sidecar's serialized storage
 			sidecar.textures.AddRange(table.Textures);
 			sidecar.sounds.AddRange(table.Sounds);
-			sidecar.collections.AddRange(table.Collections);
 
 			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
 			table.SetTextureContainer(sidecar.textures);
 			table.SetSoundContainer(sidecar.sounds);
-			table.SetCollectionContainer(sidecar.collections);
 
 			sidecar.customInfoTags = table.CustomInfoTags;
+			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
@@ -240,10 +239,9 @@ namespace VisualPinball.Unity
 			sidecar.textBoxes = table.GetAllData<TextBox, TextBoxData>();
 			sidecar.timers = table.GetAllData<Timer, TimerData>();
 
-			var savedCollections = table.Collections.ToDictionary(c => new KeyValuePair<string, string[]>(c.Name, c.Data.ItemNames));
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
-				string.Join(", ", savedCollections.Keys),
-				string.Join(", ", savedCollections.Values)
+				string.Join(", ", table.Collections.Keys),
+				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
 		}
 	}

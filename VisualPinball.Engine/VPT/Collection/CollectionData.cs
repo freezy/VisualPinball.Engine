@@ -69,6 +69,16 @@ namespace VisualPinball.Engine.VPT.Collection
 			Name = name;
 		}
 
+		public CollectionData(string name, CollectionData data) : base(StoragePrefix.Collection)
+		{
+			Name = name;
+			FireEvents = data.FireEvents;
+			GroupElements = data.GroupElements;
+			StopSingleEvents = data.StopSingleEvents;
+			ItemNames = new string[data.ItemNames.Length];
+			data.ItemNames.CopyTo(ItemNames, 0);
+		}
+
 		public CollectionData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);

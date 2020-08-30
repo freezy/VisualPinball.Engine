@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
 		[HideInInspector] public TableSerializedTextureContainer textures = new TableSerializedTextureContainer();
 		[HideInInspector] public CustomInfoTags customInfoTags;
-		[HideInInspector] public TableSerializedCollectionContainer collections = new TableSerializedCollectionContainer();
+		[HideInInspector] public CollectionData[] collections;
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
 		[HideInInspector] public FlasherData[] flashers;

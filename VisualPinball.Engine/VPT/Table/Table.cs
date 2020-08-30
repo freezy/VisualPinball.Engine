@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
-		public ITableResourceContainer<Collection.Collection> Collections = new DefaultTableResourceContainer<Collection.Collection>();
+		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 
 		#region GameItems
 
@@ -456,11 +456,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public void SetTextureContainer(ITableResourceContainer<Texture> container)
 		{
 			Textures = container;
-		}
-
-		public void SetCollectionContainer(ITableResourceContainer<Collection.Collection> container)
-		{
-			Collections = container;
 		}
 
 		public Texture GetTexture(string name)
