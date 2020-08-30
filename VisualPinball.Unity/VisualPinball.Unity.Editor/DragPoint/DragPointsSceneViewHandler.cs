@@ -99,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
-						var segments = controlPointsSegments[controlPoint.Index];
+						ref var segments = ref controlPointsSegments[controlPoint.Index];
 						if (segments.Count == 2) {
 							var dir = segments[1] - segments[0];
 							var dist = dir.magnitude;
@@ -111,9 +111,9 @@ namespace VisualPinball.Unity.Editor
 								newPath.Add(newPath[0] + dir * splitDist);
 							}
 							newPath.Add(segments[1]);
-							controlPointsSegments[controlPoint.Index] = newPath;
+							segments = newPath;
 						}
-						_pathPoints.AddRange(controlPointsSegments[controlPoint.Index]);
+						_pathPoints.AddRange(segments);
 					}
 
 					if (_pathPoints.Count > 1) {
