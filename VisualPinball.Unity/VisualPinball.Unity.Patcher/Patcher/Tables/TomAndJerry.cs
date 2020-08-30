@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MuscleswithknifeSHADOW")]
 		public void HideGameObject(GameObject gameObject)
 		{
-			gameObject.SetActive(false);
+			PatcherUtils.Hide(gameObject);
 		}
 
 		[NameMatch("sw51")]
@@ -49,17 +49,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw73a")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.SetFloat("_SurfaceType", 0);
-
-			unityMat.SetFloat("_DstBlend", 0);
-			unityMat.SetFloat("_ZWrite", 1);
-
-			unityMat.DisableKeyword("_ALPHATEST_ON");
-			unityMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-			unityMat.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
-			unityMat.DisableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+			PatcherUtils.SetOpaque(gameObject);
 		}
 
 		/// <summary>
@@ -92,16 +82,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.EnableKeyword("_DOUBLESIDED_ON");
-			unityMat.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
-
-			unityMat.SetInt("_DoubleSidedEnable", 1);
-			unityMat.SetInt("_DoubleSidedNormalMode", 1);
-
-			unityMat.SetInt("_CullMode", 0);
-			unityMat.SetInt("_CullModeForward", 0);
+			PatcherUtils.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Ramp5")]
