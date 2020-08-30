@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
-		public CollectionData[] Collections => _sidecar?.collections;
+		public List<CollectionData> Collections => _sidecar?.collections;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -100,26 +100,6 @@ namespace VisualPinball.Unity
 		public void AddTexture(string name, Texture2D texture)
 		{
 			_unityTextures[name.ToLower()] = texture;
-		}
-
-		public void AddCollection(CollectionData collection)
-		{
-			if (_sidecar == null) {
-				return;
-			}
-			ArrayExtensions.Add(ref _sidecar.collections, collection);
-		}
-		public void RemoveCollection(CollectionData collection)
-		{
-			if (_sidecar == null) {
-				return;
-			}
-			ArrayExtensions.Remove(ref _sidecar.collections, collection);
-		}
-
-		public void MoveCollection(int index, int newIdx)
-		{
-			Collections.Offset(index, newIdx - index, true);
 		}
 
 		public void MarkDirty<T>(string name) where T : IItem
