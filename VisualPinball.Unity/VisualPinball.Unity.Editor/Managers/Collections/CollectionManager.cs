@@ -290,7 +290,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var collection in _table.Collections) {
 				collection.StorageIndex = idx++;
 			}
-			_table.Item.Data.NumCollections = _table.Collections.Length;
+			_table.Item.Data.NumCollections = _table.Collections.Count;
 		}
 
 		protected override void AddNewData(string undoName, string newName)
@@ -298,7 +298,7 @@ namespace VisualPinball.Unity.Editor
 			Undo.RecordObject(_table, undoName);
 
 			var newCol = new CollectionData(newName);
-			_table.AddCollection(newCol);
+			_table.Collections.Add(newCol);
 			UpdateTableCollections();
 		}
 
@@ -306,7 +306,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			Undo.RecordObject(_table, undoName);
 
-			_table.RemoveCollection(data.CollectionData);
+			_table.Collections.Remove(data.CollectionData);
 			UpdateTableCollections();
 		}
 
@@ -315,14 +315,21 @@ namespace VisualPinball.Unity.Editor
 			Undo.RecordObject(_table, undoName);
 
 			var newCol = new CollectionData(newName, data.CollectionData);
-			_table.AddCollection(newCol);
+			_table.Collections.Add(newCol);
 			UpdateTableCollections();
 		}
 
 		protected override int MoveData(string undoName, CollectionListData data, int increment)
 		{
-			_table.MoveCollection(_selectedItem.CollectionData.StorageIndex, _selectedItem.CollectionData.StorageIndex + increment);
-			UpdateTableCollections();
+			var index = _table.Collections.IndexOf(data.CollectionData);
+			if (index >= 0) {
+				var newIdx = math.clamp(index + increment, 0, _table.Collections.Count - 1);
+				if (newIdx != index) {
+					_table.Collections.RemoveAt(index);
+					_table.Collections.Insert(newIdx, data.CollectionData);
+					UpdateTableCollections();
+				}
+			}
 			return _selectedItem.CollectionData.StorageIndex;
 		}
 

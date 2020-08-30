@@ -230,7 +230,7 @@ namespace VisualPinball.Unity
 			table.SetSoundContainer(sidecar.sounds);
 
 			sidecar.customInfoTags = table.CustomInfoTags;
-			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
+			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToList();
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
