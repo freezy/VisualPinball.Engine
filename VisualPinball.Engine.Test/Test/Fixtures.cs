@@ -21,6 +21,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string MaterialTexture = PathHelper.GetFixturePath("MaterialTextureTest.vpx");
 		public static readonly string Plunger = PathHelper.GetFixturePath("PlungerTest.vpx");
 		public static readonly string Primitive = PathHelper.GetFixturePath("PrimitiveTest.vpx");
+		public static readonly string PrimitiveAnimated = PathHelper.GetFixturePath("PrimitiveAnimated.vpx");
 		public static readonly string PrimitiveCompressed = PathHelper.GetFixturePath("PrimitiveCompressed.vpx");
 		public static readonly string Ramp = PathHelper.GetFixturePath("RampTest.vpx");
 		public static readonly string Rubber = PathHelper.GetFixturePath("RubberTest.vpx");
@@ -43,6 +44,15 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string HitTarget = PathHelper.GetFixturePath("HitTargetTest.obj");
 		public static readonly string Kicker = PathHelper.GetFixturePath("KickerTest.obj");
 		public static readonly string Primitive = PathHelper.GetFixturePath("PrimitiveTest.obj");
+		public static readonly string[] PrimitiveAnimated = {
+			PathHelper.GetFixturePath("PrimitiveAnimated_00000.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00001.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00002.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00003.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00004.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00005.obj"),
+			PathHelper.GetFixturePath("PrimitiveAnimated_00006.obj")
+		};
 		public static readonly string PrimitiveCompressed = PathHelper.GetFixturePath("PrimitiveCompressed.obj");
 		public static readonly string Ramp = PathHelper.GetFixturePath("RampTest.obj");
 		public static readonly string Rubber = PathHelper.GetFixturePath("RubberTest.obj");

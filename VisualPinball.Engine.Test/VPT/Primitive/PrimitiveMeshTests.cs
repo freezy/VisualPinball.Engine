@@ -1,8 +1,10 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.Test.VPT.Primitive
 {
@@ -58,8 +60,27 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			var table = Engine.VPT.Table.Table.Load(VpxPath.PrimitiveCompressed);
 			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
 
-			var compressedMesh = table.Primitive("compressed").GetRenderObjects(_table).RenderObjects[0].Mesh;
+			var compressedMesh = table.Primitive("compressed").GetRenderObjects(table).RenderObjects[0].Mesh;
 			AssertObjMesh(obj, compressedMesh, threshold: 0.00015f);
+		}
+
+		[Test]
+		public void ShouldGenerateAnAnimatedMesh() {
+			var table = Engine.VPT.Table.Table.Load(VpxPath.PrimitiveAnimated);
+
+			var animatedPrimitive = table.Primitive("AnimatedPrimitive");
+			var mesh = animatedPrimitive.GetMesh();
+
+			for (var i = 0; i < 7; i++) {
+				var obj = LoadObjFixture(ObjPath.PrimitiveAnimated[i]);
+				var frame = mesh.AnimationFrames[i];
+				var frameMesh = new Mesh(
+					frame.Select(v => v.ToVertex3DNoTex2()).ToArray(),
+					mesh.Indices
+				);
+
+				AssertObjMesh(obj, frameMesh, "AnimatedPrimitive", switchZ: true);
+			}
 		}
 	}
 }
