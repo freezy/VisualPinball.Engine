@@ -417,6 +417,11 @@ namespace VisualPinball.Engine.VPT
 			{
 				return $"VertData({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz})";
 			}
+
+			public Vertex3DNoTex2 ToVertex3DNoTex2()
+			{
+				return new Vertex3DNoTex2(X, Y, Z, Nx, Ny, Nz, 0f, 0f);
+			}
 		}
 		#endregion
 

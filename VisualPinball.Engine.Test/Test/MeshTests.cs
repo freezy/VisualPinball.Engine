@@ -63,7 +63,7 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, float threshold = Threshold)
+		protected static void AssertObjMesh(ObjFile objFile, Mesh mesh, string name = null, float threshold = Threshold, bool switchZ = false)
 		{
 			name = name ?? mesh.Name;
 			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
@@ -72,9 +72,9 @@ namespace VisualPinball.Engine.Test.Test
 			}
 			var i = 0;
 			foreach (var face in objGroup.Faces) {
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]], threshold);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]], threshold);
-				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]], threshold);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[2].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i]], threshold, switchZ);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[1].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 1]], threshold, switchZ);
+				AssertVerticesEqual(objFile.Vertices[face.Vertices[0].Vertex - 1].Position, mesh.Vertices[mesh.Indices[i + 2]], threshold, switchZ);
 
 				i += 3;
 			}
@@ -88,11 +88,12 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold)
+		private static void AssertVerticesEqual(ObjVector4 expected, Vertex3DNoTex2 actual, float threshold, bool switchZ = false)
 		{
+			var sign = switchZ ? -1 : 1;
 			actual.X.Should().BeApproximately(expected.X, threshold);
 			actual.Y.Should().BeApproximately(expected.Y, threshold);
-			actual.Z.Should().BeApproximately(expected.Z, threshold);
+			actual.Z.Should().BeApproximately(sign * expected.Z, threshold);
 		}
 	}
 }
