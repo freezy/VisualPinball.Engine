@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Title>VisualPinball.Unity.Test</Title>
     <Description>A bridge between VisualPinball.Engine and Unity</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke;ecurtz</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
