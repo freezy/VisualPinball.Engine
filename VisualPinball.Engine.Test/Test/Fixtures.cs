@@ -76,18 +76,35 @@ namespace VisualPinball.Engine.Test.Test
 		private static string GetTestPath()
 		{
 			var codeBase = new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
-			return codeBase.Contains("/Library/ScriptAssemblies/")
-				? Path.GetFullPath("Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test")
-				: Path.GetFullPath(
+
+			if (codeBase.Contains("/Library/ScriptAssemblies/"))
+			{
+				return Path.GetFullPath(
+					"Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test");
+			}
+			else if (codeBase.Contains("VisualPinball.Unity.Test"))
+			{
+				return Path.GetFullPath(
 					Path.Combine(
 						Path.GetDirectoryName(codeBase),
 						"..",
 						"..",
-						".."
-					)
-				);
+						"..",
+						"..",
+						"..",
+						"VisualPinball.Engine.Test")
+					);
+			}
+			else
+			{
+				return Path.GetFullPath(
+					Path.Combine(
+						Path.GetDirectoryName(codeBase),
+						"..",
+						"..",
+						"..")
+					);
+			}
 		}
-
 	}
-
 }
