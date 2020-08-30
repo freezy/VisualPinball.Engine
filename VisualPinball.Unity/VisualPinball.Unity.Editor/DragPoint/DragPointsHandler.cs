@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			float ratio = (float)newIdx / (DragPointEditable.GetDragPoints().Length - 1);
+			float ratio = (float)newIdx / DragPointEditable.GetDragPoints().Length;
 			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
 			dragPointPosition -= DragPointEditable.GetEditableOffset();
 			dragPointPosition -= DragPointEditable.GetDragPointOffset(ratio);
