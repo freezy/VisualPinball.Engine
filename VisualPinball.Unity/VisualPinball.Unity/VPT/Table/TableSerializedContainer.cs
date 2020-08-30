@@ -60,15 +60,20 @@ namespace VisualPinball.Unity
 
 		public bool Remove(string name)
 		{
-			var foundItem = _serializedData.Where(d => string.Compare(d.Data.GetName(), name, StringComparison.InvariantCultureIgnoreCase) == 0).ToArray();
-			if (foundItem.Length == 1) {
-				_serializedData.Remove(foundItem[0]);
-				Data.Remove(name.ToLower());
-				SetNameMapDirty();
-				return true;
+			string lowerName = name.ToLower();
+			bool found = false;
+			for (int i = 0; i < Data.Count; i++) {
+				if (_serializedData[i].Data.GetName().ToLower() == lowerName) {
+					_serializedData.RemoveAt(i);
+					found = true;
+					break;
+				}
 			}
-
-			return false;
+			if (found) {
+				Data.Remove(lowerName);
+				SetNameMapDirty();
+			}
+			return found;
 		}
 
 		public bool Move(string name, int newIdx)

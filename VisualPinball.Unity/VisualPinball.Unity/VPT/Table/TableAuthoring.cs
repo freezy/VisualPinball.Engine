@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
-		public TableSerializedCollectionContainer Collections => _sidecar?.collections;
+		public CollectionData[] Collections => _sidecar?.collections;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -100,6 +100,26 @@ namespace VisualPinball.Unity
 		public void AddTexture(string name, Texture2D texture)
 		{
 			_unityTextures[name.ToLower()] = texture;
+		}
+
+		public void AddCollection(CollectionData collection)
+		{
+			if (_sidecar == null) {
+				return;
+			}
+			ArrayExtensions.Add(ref _sidecar.collections, collection);
+		}
+		public void RemoveCollection(CollectionData collection)
+		{
+			if (_sidecar == null) {
+				return;
+			}
+			ArrayExtensions.Remove(ref _sidecar.collections, collection);
+		}
+
+		public void MoveCollection(int index, int newIdx)
+		{
+			Collections.Offset(index, newIdx - index, true);
 		}
 
 		public void MarkDirty<T>(string name) where T : IItem
@@ -191,11 +211,9 @@ namespace VisualPinball.Unity
 			// replace sound container
 			table.SetSoundContainer(_sidecar.sounds);
 
-			// replace collection container
-			table.SetCollectionContainer(_sidecar.collections);
-
 			// restore game items with no game object (yet!)
 			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
+			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
@@ -250,5 +268,6 @@ namespace VisualPinball.Unity
 				table.Add(create(d));
 			}
 		}
+
 	}
 }
