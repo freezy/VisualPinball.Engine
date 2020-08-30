@@ -5,7 +5,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>	
     <Title>VisualPinball.Engine.Test</Title>
     <Description>A .NET port of Visual Pinball in C#</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke;ecurtz</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
