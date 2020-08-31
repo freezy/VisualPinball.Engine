@@ -1,0 +1,14 @@
+- name: Visual Pinball Engine
+  items: 
+  - name: Overview
+    href: vpe/overview.md
+  - name: Features
+    href: vpe/features.md
+- name: First Steps
+  items:
+  - name: Installing VPE
+    href: first-steps/installing-vpe.md
+  - name: Running VPE
+    href: first-steps/running-vpe.md
+  - name: Updating VPE
+    href: first-steps/updating-vpe.md

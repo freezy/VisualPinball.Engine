@@ -23,8 +23,8 @@
       },
       {
         "files": [
-          "articles/**.md",
-          "articles/**/toc.yml",
+          "creator/**.md",
+          "creator/**/toc.yml",
           "toc.yml",
           "*.md"
         ]
@@ -54,7 +54,14 @@
     "template": [
       "default"
     ],
-    "postProcessors": [],
+    "postProcessors": [ "ExtractSearchIndex" ],
+    "globalMetadata": {
+      "_appTitle": "VPE Documentation",
+      "_appFooter": "<span>Copyright © 2020 VPE Team",
+      "_gitContribute": {
+        "branch": "master"
+      }
+    },
     "markdownEngineName": "markdig",
     "noLangKeyword": false,
     "keepFileLink": false,
