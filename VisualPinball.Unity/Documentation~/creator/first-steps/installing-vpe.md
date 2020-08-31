@@ -25,9 +25,7 @@ You'll have the choice between:
 We recommend using HDRP. It's not as mature as the built-in renderer, but it's able to achieve better visuals, and it's what Unity will be focusing on in the future.
 
 > [!NOTE]
-> If you're just creating a throw-away project for testing out gameplay, the built-in renderer is more tested and faster to set up.
-> 
-> We also support the URP, but it's not as well tested as the other two pipelines.
+> If you're just creating a throw-away project for testing out gameplay, the built-in renderer is more tested and faster to set up. We also support the URP, but it's not as well tested as the other two pipelines.
 
 Next, enter a project name and a location for your project. We recommend putting the render pipeline into the name, because in the future you might test out other pipelines and thus need to create additional projects.
 
@@ -40,7 +38,7 @@ Clicking *Create* launches the Unity editor, pulls in all the dependencies for t
 
 ### HDRP Setup
 
-If you create a HDRP project, Unity provides you with a sample scene: 
+If you create an HDRP project, Unity provides you with a sample scene: 
 
 ![HDRP Sample Scene](unity-hdrp-default-scene.png)
 
@@ -54,7 +52,7 @@ Similarly, to clean up the project, get rid of the extra assets in the project v
 
 ![ExampleAssets, TutorialInfo](unity-hdrp-to-delete-assets.png)
 
-## VPE
+## VPE Source Code
 
 Now you have your project and scene set up, let's bring VPE into the project. Go to the GitHub page and [download the source code](https://github.com/freezy/VisualPinball.Engine). You can do that by clicking on the green *Code* button, and choosing *Downlaod ZIP*.
 

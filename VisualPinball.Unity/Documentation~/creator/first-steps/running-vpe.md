@@ -1,6 +1,6 @@
 # Running VPE
 
-Now we can get begin with some simple game play. Open VPX, create a new "blank" table, and save it somewhere. In Unity, go to *Visual Pinball -> Import VPX* and choose the new `.vpx` file.
+Now we can get begin with some simple game play. Open Visual Pinball, create a new "blank" table, and save it somewhere. In Unity, go to *Visual Pinball -> Import VPX* and choose the new `.vpx` file.
 
 You should now see Visual Pinball's blank table in the Editor's scene view:
 
@@ -8,7 +8,7 @@ You should now see Visual Pinball's blank table in the Editor's scene view:
 
 Now, we don't see much of our table. That's because the scene view's camera doesn't really point on it. Using the right mouse button and the `A` `W` `S` `D` keys while keeping right mouse button pressed, fly somewhere you have a better view of the table.
 
-> [!NOTE]
+> [!TIP]
 > Check Unity's documentation on [Scene view navigation](https://docs.unity3d.com/Manual/SceneViewNavigation.html) for a more complete list of ways to move the camera around the scene.
 
 Now that you have the camera of the scene view somewhat aligned.
@@ -22,7 +22,7 @@ The view in the scene tab is not the camera used in game. The *Scene View* reall
 
 During game play, another camera is used. It's the one already in your scene hierarchy (called *Main Camera*), and you can look through it by switching to the [Game View](https://docs.unity3d.com/Manual/GameView.html) window.
 
-This camera can be moved using Unity's gizmos, by selecting it in the hierarchy and moving and tilting it around. 
+This camera can be moved [using Unity's gizmos](https://docs.unity3d.com/Manual/PositioningGameObjects.html), by selecting it in the hierarchy and moving and tilting it around. 
 
 > [!TIP]
 > A quick way to fix the game camera is to align it with the scene view camera. To do that, select the camera in the hierarchy, then click on the *GameObject* menu and select *Align with view*.
@@ -31,7 +31,7 @@ Now, click on the play button. This will run your scene. Test that the shift key
 
 The choppiness is also due to running the game inside the editor, fetching data during gameplay, and the code not being optimized.
 
-This should all go away if you choose *Build and Run* under the *File* menu. Running it as "build" should give you 60+ frames per second during gameplay, depending on your hardware.
+This should all go away if you choose *Build and Run* under the *File* menu. Running it as "build" should give you significantly smoother gameplay.
 
 > [!TIP]
 > If you want to enter play mode more quickly, you can check the experimental play mode option described [here](https://blogs.unity3d.com/2019/11/05/enter-play-mode-faster-in-unity-2019-3/).
