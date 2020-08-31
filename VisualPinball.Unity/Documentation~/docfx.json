@@ -54,7 +54,8 @@
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],
     "template": [
-      "default"
+      "default",
+      "template/vpe"
     ],
     "postProcessors": [ "ExtractSearchIndex" ],
     "globalMetadata": {
