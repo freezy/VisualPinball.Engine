@@ -1,0 +1,36 @@
+# Updating VPE
+
+VPE is under heavy development, so it's frequently updated, usually multiple times per week. In order to not have to delete your `VisualPinball.Engine` folder each time and download and extract the entire code on each update, we recommend using git.
+
+Git is a distributed version control system. It's very sophisticated but can also be a bit overwhelming to use. However, with the cheat sheets below you should be able to handle it.
+
+First you need to [download git](https://git-scm.com/downloads). Make sure it's on your `PATH` environment variable. There are free GUIs for git such as [Fork](https://git-fork.com/), [GitKraken](https://www.gitkraken.com/) or [Source Tree](https://www.sourcetreeapp.com/), but we'll focus on command line instructions here.
+
+Open a command prompt by pressing the Windows key and typing `cmd`, followed by the enter key. Make sure that git is installed by typing `git --version`. This should return something like `git version 2.18.0.windows.1`.
+
+Second, go to the folder where you want to have VPE installed. If there is already a folder where you've extracted VPE from before, delete it. 
+
+Following the recommended file structure, you would type:
+
+```cmd
+cd %userprofile%\VPE
+git clone https://github.com/freezy/VisualPinball.Engine.git
+```
+
+This downloads VPE into `%userprofile%\VPE\VisualPinball.Engine` and keeps a link to GitHub. In the future, if you want to update VPE, it's matter of going into the folder and pull the changes:
+
+```cmd
+cd %userprofile%\VPE\VisualPinball.Engine
+git pull
+```
+
+However, you might have fiddled in the VPE folder to test out stuff, and git complains it can't update. Here is a way to discard all local changes and pull in what's on GitHub:
+
+```cmd
+git fetch --prune
+git checkout -- **
+git reset --hard origin/master
+```
+
+> [!WARNING]
+> Should you have *committed* changes (as in, you've developed something, and added and commited it to git), this will also discard those changes. But if you have done that you're probably a seasoned developer and know what you're doing, right? :)
