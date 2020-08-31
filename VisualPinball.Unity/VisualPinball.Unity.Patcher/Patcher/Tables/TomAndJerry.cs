@@ -1,7 +1,6 @@
 ﻿// ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Unity.Patcher.Matcher.Table;
 
 namespace VisualPinball.Unity.Patcher
@@ -14,7 +13,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MuscleswithknifeSHADOW")]
 		public void HideGameObject(GameObject gameObject)
 		{
-			PatcherUtils.Hide(gameObject);
+			PatcherUtil.Hide(gameObject);
 		}
 
 		[NameMatch("sw51")]
@@ -31,9 +30,11 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw64")]
 		[NameMatch("sw73")]
 		[NameMatch("sw73a")]
+		[NameMatch("BumperCap2")] // Jerry Bumper
+		[NameMatch("BumperCap3")] // Tom Bumper
 		public void SetOpaque(GameObject gameObject)
 		{
-			PatcherUtils.SetOpaque(gameObject);
+			PatcherUtil.SetOpaque(gameObject);
 		}
 
 		/// <summary>
@@ -45,11 +46,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MusclesKnife")]
 		public void SetAlphaClip(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.EnableKeyword("_ALPHATEST_ON");
-			unityMat.SetFloat("_AlphaCutoff", 0.05f);
-			unityMat.SetInt("_AlphaCutoffEnable", 1);
+			PatcherUtil.SetAlphaCutOff(gameObject, 0.05f);
 		}
 
 		/// <summary>
@@ -66,7 +63,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			PatcherUtils.SetDoubleSided(gameObject);
+			PatcherUtil.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Ramp5")]
@@ -76,8 +73,16 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ramp20")]
 		public void SetMetallic(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-			unityMat.SetFloat("_Metallic", 1.0f);
+			PatcherUtil.SetMetallic(gameObject, 1.0f);
+		}
+
+		[NameMatch("Lflip", Ref = "Flippers/LeftFlipper")]
+		[NameMatch("Rflip", Ref = "Flippers/RightFlipper")]
+		[NameMatch("LFlip1", Ref = "Flippers/LeftFlipper1")]
+		[NameMatch("Rflip1", Ref = "Flippers/RightFlipper1")]
+		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+		{
+			PatcherUtil.Reparent(gameObject, parent);
 		}
 	}
 }
