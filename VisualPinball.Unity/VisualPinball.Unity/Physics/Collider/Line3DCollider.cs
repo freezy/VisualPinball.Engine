@@ -6,7 +6,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	public struct Line3DCollider
+	internal struct Line3DCollider
 	{
 		private ColliderHeader _header;
 

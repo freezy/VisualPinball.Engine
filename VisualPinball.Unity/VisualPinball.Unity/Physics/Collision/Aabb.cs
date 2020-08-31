@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct Aabb
+	internal struct Aabb
 	{
 		public int ColliderId;
 		public Entity ColliderEntity;

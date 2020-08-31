@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct QuadTreeData : IComponentData
+	internal struct QuadTreeData : IComponentData
 	{
 		public BlobAssetReference<QuadTreeBlob> Value;
 	}

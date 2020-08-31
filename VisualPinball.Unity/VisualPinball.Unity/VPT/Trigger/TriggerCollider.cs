@@ -5,7 +5,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class TriggerCollider
+	internal static class TriggerCollider
 	{
 		/// <summary>
 		/// Collides without triggering the animation, which is what the

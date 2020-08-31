@@ -7,7 +7,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <remarks>It's what VPX calls `m_vpVolObjs`</remarks>
 	[InternalBufferCapacity(0)]
-	public struct BallInsideOfBufferElement : IBufferElementData
+	internal struct BallInsideOfBufferElement : IBufferElementData
 	{
 		public Entity Value;
 	}

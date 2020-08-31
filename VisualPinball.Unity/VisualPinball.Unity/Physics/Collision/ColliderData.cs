@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct ColliderData : IComponentData
+	internal struct ColliderData : IComponentData
 	{
 		public BlobAssetReference<ColliderBlob> Value;
 	}

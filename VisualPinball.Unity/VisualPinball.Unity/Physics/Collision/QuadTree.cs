@@ -4,7 +4,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	public struct QuadTree
+	internal struct QuadTree
 	{
 		public BlobArray<BlobPtr<QuadTree>> Children;
 		public BlobArray<BlobPtr<Aabb>> Bounds;

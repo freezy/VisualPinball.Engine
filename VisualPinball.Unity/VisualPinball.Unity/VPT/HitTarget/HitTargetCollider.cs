@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public static class HitTargetCollider
+	internal static class HitTargetCollider
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,

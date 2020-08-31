@@ -8,7 +8,7 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperCollider : ICollider, ICollidable
+	internal struct FlipperCollider : ICollider, ICollidable
 	{
 		private ColliderHeader _header;
 

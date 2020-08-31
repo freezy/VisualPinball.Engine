@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct KdNode
+	internal struct KdNode
 	{
 		public Aabb Bounds;                                                    // m_rectbounds
 		public int Start;                                                      // m_start
