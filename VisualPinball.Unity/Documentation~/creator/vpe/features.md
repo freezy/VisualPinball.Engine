@@ -10,7 +10,7 @@ This section documents what's already working. If it's not, then that's a bug, a
 
 ### Materials
 
-We convert Visual Pinball's materials to a materials compatible with the active render pipeline. That means while there's still a lot of potential left to tweak materials using the full material configuration of Unity, materials look somewhat similar to Visual Pinball.
+We convert Visual Pinball's materials to materials compatible with the active render pipeline. That means  materials look similar to Visual Pinball by default, while there's still a lot of potential left to tweak materials using the full material configuration of Unity.
 
 ![Material Comparison](comparison-vpx-vpe.jpg)
 
@@ -18,7 +18,7 @@ We convert Visual Pinball's materials to a materials compatible with the active 
 
 ### Meshes
 
-Visual Pinball generates meshes for most of the game items. VPE has ported that code and does the same when loading a table.
+Visual Pinball dynamically generates meshes for most of the game items. VPE has ported that code and does the same when loading a table.
 
 ![Material Comparison](mesh-example.jpg)
 
@@ -26,7 +26,7 @@ Visual Pinball generates meshes for most of the game items. VPE has ported that 
 
 ### Physics
 
-We have nearly finished porting Visual Pinball's physics engine to VPE. That means the ball- and flipper behavior should be identical to Visual Pinball.
+We have nearly finished porting Visual Pinball's physics engine to VPE. That means the ball and flipper behavior should be identical to Visual Pinball.
 
 > [!Video https://www.youtube.com/embed/S1DDY9iBBqo]
 
@@ -34,7 +34,7 @@ This includes physics-based movement from flippers, gates and spinners, as well 
 
 ### Events
 
-The physics engine emits the same events as Visual Pinball. That means you can subscribe to collision events and other game item-specific events. For example, for subscribing to a flip event of a flipper, you would do:
+The physics engine emits the same events as Visual Pinball. That means you can subscribe to collision events and other game item-specific events. For example, for subscribing to the flip event of a flipper, you would do:
 
 ```cs
 table.Flipper("LeftFlipper").LimitEos += (sender, args) => {
@@ -43,11 +43,11 @@ table.Flipper("LeftFlipper").LimitEos += (sender, args) => {
 ```
 
 > [!NOTE]
-> While it's not clear how we'll handle scripting, most of the events can probably be configured visually in the editor and don't need to be handled via scripting.
+> While it's not clear how we'll handle scripting, most events can probably be configured visually in the editor and don't need to be handled via scripting.
 
 ### Cross Platform
 
-Unity supports [a lot of platforms](https://unity.com/features/multiplatform). Our continuous integration builds for Windows (x86/x64), MacOS (x64) and Linux (x64). Besides Windows, some of our developers work on MacOS, so that's a fairly well tested platform as well. And we regularly test on Linux as well.
+Unity supports [a lot of platforms](https://unity.com/features/multiplatform). Our continuous integration builds for Windows (x86/x64), macOS (x64) and Linux (x64). Besides Windows, some of our developers work on macOS, and we regularly test on Linux as well.
 
 ## Editor features
 
@@ -60,7 +60,7 @@ We care about backwards-compatibility to Visual Pinball. VPE can read and write 
 
 ### Editor Extensions
 
-Unity allows full editor customization. So what we're doing is adding the managers, panels and toolboxes from Visual Pinball to the editor:
+Unity allows full editor customization. So we're adding the managers, panels, and toolboxes from Visual Pinball into the Unity editor:
 
 ![Extended editor](unity-editor.jpg)
 
@@ -80,7 +80,7 @@ VPE is also able to edit drag points. Moving those (in 3D!) re-generates the mes
 
 ![Drag Points](unity-drag-points.jpg)
 
-Lastly, we can visualize the colliders of any object. This can be useful to debug, but also to check whether you have objects set to collide which actually aren't (or vice versa)!
+Lastly, we can visualize the colliders of any object. This can be useful to debug, and also to check whether you may have objects set to collide which actually shouldn't (or vice versa)!
 
 ![Colliders](unity-colliders.jpg)
 
@@ -107,13 +107,13 @@ When building the table, performance is okay but still not satisfactory. We thin
 
 ## Runtime Import
 
-Right now, when you "build" your game and run it, Unity will compile it into binary assets. What we want to avoid is authors distributing those binaries, because they hide how things are done prevent further modding by other creators.
+Right now, when you "build" your game and run it, Unity will compile it into binary assets. We want to avoid authors distributing those binaries, because they hide how things are done prevent further modding by other creators.
 
-Both of these aspects are crucial in building an ecosystem, so the goal is to only compile a player and load the tables at runtime.
+Both of these aspects are crucial in building an ecosystem, so the goal is to only compile the player itself and load the tables at runtime.
 
 ## Ball Destruction
 
-Currently balls can't get destroyed during gameplay, so every drain will just keep them on the table, resulting in poor performance.
+Currently balls can't be destroyed during gameplay, so every drain will just leave them on the table, resulting in poor performance.
 
 # Planned Features
 
