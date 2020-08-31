@@ -300,7 +300,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void UndoPerformed()
+		protected virtual void UndoPerformed()
 		{
 			Reload();
 		}
