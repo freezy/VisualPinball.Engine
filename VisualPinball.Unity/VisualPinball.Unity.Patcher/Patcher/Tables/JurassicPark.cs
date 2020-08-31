@@ -32,9 +32,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("TrexMain")]
 		public void FixBrokenNormalMap(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-			unityMat.SetTexture("_NormalMap", null);
-			unityMat.DisableKeyword("_NORMALMAP");
+			PatcherUtil.SetNormalMapDisabled(gameObject);
 		}
 
 
@@ -43,7 +41,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("RFLogo1", Ref="Flippers/UpperRightFlipper")]
 		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
 		{
-			PatcherUtils.Reparent(gameObject, parent);
+			PatcherUtil.Reparent(gameObject, parent);
 		}
 
 		[NameMatch("PLeftFlipper")]
@@ -51,15 +49,13 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-			unityMat.SetFloat("_AlphaCutoffEnable", 1);
-			unityMat.EnableKeyword("_ALPHATEST_ON");
+			PatcherUtil.SetAlphaCutOffEnabled(gameObject);
 		}
 
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			PatcherUtils.SetOpaque(gameObject);
+			PatcherUtil.SetOpaque(gameObject);
 		}
 	}
 }
