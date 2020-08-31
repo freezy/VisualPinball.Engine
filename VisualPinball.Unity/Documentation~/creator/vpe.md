@@ -1,12 +1,5 @@
 
-## Feature List
-
-# First Steps
-
-
-
-
-#
+## Features
 
 ## Tutorial
 
