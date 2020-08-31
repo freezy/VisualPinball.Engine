@@ -1,6 +1,6 @@
 # Updating VPE
 
-VPE is under heavy development, so it's frequently updated, usually multiple times per week. In order to not have to delete your existing `VisualPinball.Engine` folder, download and extract the code, and make a new project each time we recommend using git.
+VPE is under heavy development, so it's frequently updated, usually multiple times per week. In order to not have to delete your existing `VisualPinball.Engine` folder and download and extract the code each time we recommend using git.
 
 Git is a distributed version control system. It's very sophisticated but can also be a bit overwhelming to use. However, with the cheat sheet below you should be able to handle it.
 
@@ -17,7 +17,7 @@ cd %userprofile%\VPE
 git clone https://github.com/freezy/VisualPinball.Engine.git
 ```
 
-This downloads the latest version of VPE into `%userprofile%\VPE\VisualPinball.Engine` and keeps a link to GitHub. In the future, if you want to update VPE, it's simply matter of going into the folder and "pull" the changes:
+This downloads the latest version of VPE into `%userprofile%\VPE\VisualPinball.Engine` and keeps a link to GitHub. In the future, if you want to update VPE, it's simply a matter of going into the folder and "pull" the changes:
 
 ```cmd
 cd %userprofile%\VPE\VisualPinball.Engine
