@@ -6,9 +6,9 @@ uid: vpe-overview
 
 # Overview
 
-The Visual Pinball Engine (which we call "VPE") is an open source pinball simulator that you can use to create pinball games for Windows, macOS, and Linux. It's based on the famous Visual Pinball (often abbreviated "VP", or "VPX" for its latest version 10) meaning VPE's physics simulation matches that in VPX, and it can read and write the same file format.
+The Visual Pinball Engine (which we call "VPE") is an open source pinball simulator that you can use to create pinball games for Windows, macOS, and Linux. It's based on the famous [Visual Pinball](https://sourceforge.net/projects/vpinball/) (often abbreviated "VP", or "VPX" for its latest version 10) meaning VPE's physics simulation matches that in VPX, and it can read and write the same file format.
 
-VPE uses Unity for its underlying game architecture. Unity is one of the leading cross-platform game engines and provides VPE with an advanced render pipeline that produces high-quality visuals and is continuously maintained and updated to work with new hardware features. Unity also comes with an amazing editor, which VPE extends to make the table creation process as easy as possible.
+VPE uses [Unity](https://unity.com/) for its underlying game architecture. Unity is one of the leading cross-platform game engines and provides VPE with an advanced render pipeline that produces high-quality visuals and is continuously maintained and updated to work with new hardware features. Unity also comes with an amazing editor, which VPE extends to make the table creation process as easy as possible.
 
 > [!NOTE] 
 > Technically, VPE is what we call a "library". A library is not executable per se, because it needs a host application. 
