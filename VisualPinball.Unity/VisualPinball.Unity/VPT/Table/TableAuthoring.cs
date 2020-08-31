@@ -1,4 +1,4 @@
-﻿// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
 using System;
@@ -100,6 +100,12 @@ namespace VisualPinball.Unity
 		public void AddTexture(string name, Texture2D texture)
 		{
 			_unityTextures[name.ToLower()] = texture;
+		}
+
+		public void RestoreCollections(List<CollectionData> collections)
+		{
+			Collections.Clear();
+			Collections.AddRange(collections);
 		}
 
 		public void MarkDirty<T>(string name) where T : IItem

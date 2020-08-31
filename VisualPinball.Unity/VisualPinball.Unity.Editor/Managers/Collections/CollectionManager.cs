@@ -26,6 +26,13 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+		private class SerializedCollections : ScriptableObject
+		{
+			public TableAuthoring Table;
+			public List<CollectionData> Collections = new List<CollectionData>();
+		}
+		private SerializedCollections _recordCollections;
+
 		[MenuItem("Visual Pinball/Collection Manager", false, 105)]
 		public static void ShowWindow()
 		{
@@ -41,13 +48,11 @@ namespace VisualPinball.Unity.Editor
 			_collectionItems.Reload();
 
 			ItemInspector.ItemRenamed += OnItemRenamed;
-			Undo.undoRedoPerformed += RebuildItemLists;
 		}
 
 		protected virtual void OnDisable()
 		{
 			ItemInspector.ItemRenamed -= OnItemRenamed;
-			Undo.undoRedoPerformed -= RebuildItemLists;
 			if (_availableItems != null) {
 				_availableItems.ItemDoubleClicked -= OnAvailableDoubleClick;
 			}
@@ -187,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 			var itemNames = collectionData.ItemNames?.ToList() ?? new List<string>();
 			itemNames.AddRange(names);
 
-			RecordUndo($"Add {itemNames.Count} item(s) to collection {collectionData.Name}", _selectedItem.CollectionData);
+			RecordUndo($"Add {itemNames.Count} item(s) to collection {collectionData.Name}");
 
 			collectionData.ItemNames = itemNames.Distinct().ToArray();
 			_availableItems.SetSelection(new List<int>());
@@ -200,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 			CollectionData collectionData = _selectedItem.CollectionData;
 			var itemNames = collectionData.ItemNames.Except(names).ToArray();
 
-			RecordUndo($"Remove {itemNames.Length} item(s) from collection {collectionData.Name}", _selectedItem.CollectionData);
+			RecordUndo($"Remove {itemNames.Length} item(s) from collection {collectionData.Name}");
 
 			_selectedItem.CollectionData.ItemNames = itemNames.Distinct().ToArray();
 			_collectionItems.SetSelection(new List<int>());
@@ -217,8 +222,7 @@ namespace VisualPinball.Unity.Editor
 			var selectedItems = _collectionItems.GetSelectedElements().Select(e => e.Name)
 								.OrderBy(e => Array.IndexOf(items, e) * (Math.Sign(increment) ? 1 : -1))
 								.ToArray();
-			string undoName = "Move Item(s) In Collection";
-			RecordUndo(undoName, _selectedItem.CollectionData);
+			RecordUndo($"Move {selectedItems.Length} item(s) In Collection {_selectedItem.CollectionData.Name}");
 			foreach (var item in selectedItems) {
 				OffsetSelectedItem(item, increment, selectedItems);
 			}
@@ -295,8 +299,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			Undo.RecordObject(_table, undoName);
-
+			RecordUndo(undoName);
 			var newCol = new CollectionData(newName);
 			_table.Collections.Add(newCol);
 			UpdateTableCollections();
@@ -304,16 +307,14 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void RemoveData(string undoName, CollectionListData data)
 		{
-			Undo.RecordObject(_table, undoName);
-
+			RecordUndo(undoName);
 			_table.Collections.Remove(data.CollectionData);
 			UpdateTableCollections();
 		}
 
 		protected override void CloneData(string undoName, string newName, CollectionListData data)
 		{
-			Undo.RecordObject(_table, undoName);
-
+			RecordUndo(undoName);
 			var newCol = new CollectionData(newName, data.CollectionData);
 			_table.Collections.Add(newCol);
 			UpdateTableCollections();
@@ -321,6 +322,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override int MoveData(string undoName, CollectionListData data, int increment)
 		{
+			RecordUndo(undoName);
 			var index = _table.Collections.IndexOf(data.CollectionData);
 			if (index >= 0) {
 				var newIdx = math.clamp(index + increment, 0, _table.Collections.Count - 1);
@@ -335,29 +337,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDataChanged(string undoName, CollectionData collectionData)
 		{
-			RecordUndo(undoName, collectionData);
-		}
-
-		private void RecordUndo(string undoName, CollectionData collectionData)
-		{
-			if (_table == null) { return; }
-
-			// Run over table's collection scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableCol in _table.Collections) {
-				if (tableCol == collectionData) {
-//					Undo.RecordObject(tableCol, undoName);
-					break;
-				}
-			}
+			RecordUndo(undoName);
 		}
 
 		protected override void RenameExistingItem(CollectionListData data, string newName)
 		{
-			string oldName = data.CollectionData.Name;
-
 			// give each editable item a chance to update its fields
-			string undoName = "Rename Collection";
-			RecordUndo(undoName, data.CollectionData);
+			RecordUndo($"Rename Collection from {data.CollectionData.Name} to {newName}");
 
 			data.CollectionData.Name = newName;
 		}
@@ -365,6 +351,36 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDataSelected()
 		{
 			RebuildItemLists();
+		}
+		#endregion
+
+		#region Undo Redo
+		private void RestoreTableCollections()
+		{
+			if (_recordCollections == null) { return; }
+			if (_table == null) { return; }
+			if (_recordCollections.Table == _table) {
+				_table.RestoreCollections(_recordCollections.Collections);
+			}
+		}
+
+		protected override void UndoPerformed()
+		{
+			RestoreTableCollections();
+			base.UndoPerformed();
+			RebuildItemLists();
+		}
+
+		private void RecordUndo(string undoName)
+		{
+			if (_table == null) { return; }
+			if (_recordCollections == null) {
+				_recordCollections = CreateInstance<SerializedCollections>();
+			}
+			_recordCollections.Table = _table;
+			_recordCollections.Collections.Clear();
+			_recordCollections.Collections.AddRange(_table?.Collections);
+			Undo.RecordObjects( new UnityEngine.Object[] { this, _recordCollections} , undoName);
 		}
 		#endregion
 
