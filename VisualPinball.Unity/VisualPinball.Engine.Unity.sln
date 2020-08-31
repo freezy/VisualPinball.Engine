@@ -20,6 +20,12 @@ ProjectSection(SolutionItems) = preProject
 	..\package.json = ..\package.json
 EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{B9F198A5-1C98-4855-B423-8DF3880627A1}"
+ProjectSection(SolutionItems) = preProject
+	..\.github\workflows\VisualPinball.Engine.yml = ..\.github\workflows\VisualPinball.Engine.yml
+	..\.github\workflows\VisualPinball.Engine.Unity.Documentation.yml = ..\.github\workflows\VisualPinball.Engine.Unity.Documentation.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +120,8 @@ Global
 		{18A13253-671A-4092-A787-8AB04FEA25A8}.Release|x86.Build.0 = Release|Any CPU
 		{18A13253-671A-4092-A787-8AB04FEA25A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18A13253-671A-4092-A787-8AB04FEA25A8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B9F198A5-1C98-4855-B423-8DF3880627A1} = {06C1F94F-D7A6-4BB5-BB0A-9A45B0F6F503}
 	EndGlobalSection
 EndGlobal
