@@ -10,7 +10,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public struct Poly3DCollider : ICollider, ICollidable
+	internal struct Poly3DCollider : ICollider, ICollidable
 	{
 
 		private ColliderHeader _header;

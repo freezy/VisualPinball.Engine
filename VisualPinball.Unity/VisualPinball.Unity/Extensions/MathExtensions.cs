@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
 
-		public static Aabb ToAabb(this Rect3D rect, int colliderId)
+		internal static Aabb ToAabb(this Rect3D rect, int colliderId)
 		{
 			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 			return ratio * 100.0f;
 		}
 
-		public static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
+		internal static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
 		{
 			aabb.ColliderId = colliderId;
 			aabb.Left = rect.Left;

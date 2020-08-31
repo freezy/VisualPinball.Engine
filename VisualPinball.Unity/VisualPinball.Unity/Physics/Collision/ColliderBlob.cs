@@ -5,7 +5,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	public struct ColliderBlob : IComponentData
+	internal struct ColliderBlob : IComponentData
 	{
 		public BlobArray<BlobPtr<Collider>> Colliders;
 		public int PlayfieldColliderId;

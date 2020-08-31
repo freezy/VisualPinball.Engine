@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct PlungerColliderData : IComponentData
+	internal struct PlungerColliderData : IComponentData
 	{
 		public LineCollider LineSegSide0;
 		public LineCollider LineSegSide1;

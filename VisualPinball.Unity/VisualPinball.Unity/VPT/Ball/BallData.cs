@@ -4,7 +4,7 @@ using Unity.Mathematics;
 namespace VisualPinball.Unity
 {
 	// todo split this into at least 2 components
-	public struct BallData : IComponentData
+	internal struct BallData : IComponentData
 	{
 		public int Id;
 		public float3 Position;

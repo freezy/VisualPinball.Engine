@@ -6,7 +6,7 @@ namespace VisualPinball.Unity
 	// This is to work around C# wanting to treat any struct containing the generic Unity.BlobArray<T> as a managed struct.
 	// Taken from Unity.Physics
 	// TODO: Use Unity.Blobs instead
-	public struct BlobArray
+	internal struct BlobArray
 	{
 		internal int Offset;
 		internal int Length;    // number of T, not number of bytes

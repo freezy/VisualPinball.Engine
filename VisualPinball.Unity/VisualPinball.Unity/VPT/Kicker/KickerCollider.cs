@@ -6,7 +6,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class KickerCollider
+	internal static class KickerCollider
 	{
 		/// <summary>
 		/// Legacy mode adds about 300 iterations to the physics loop,

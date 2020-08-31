@@ -4,7 +4,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct KdRoot : IDisposable
+	internal struct KdRoot : IDisposable
 	{
 		public int NumNodes;                                                   // m_num_nodes
 		public NativeArray<int> OrgIdx;                                        // m_org_idx

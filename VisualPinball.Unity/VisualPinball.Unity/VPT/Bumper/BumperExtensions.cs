@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class BumperExtensions
+	internal static class BumperExtensions
 	{
 		public static BumperAuthoring SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj, RenderObjectGroup rog)
 		{

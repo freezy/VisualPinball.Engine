@@ -4,13 +4,15 @@
       "src": [
         {
           "files": [
-            "src/**.csproj"
-          ]
+            "VisualPinball.Unity/**.csproj"
+          ],
+          "src": "../" 
         }
       ],
       "dest": "api",
       "disableGitFeatures": false,
-      "disableDefaultFilter": false
+      "disableDefaultFilter": false,
+      "filter": "filterConfig.yml"
     }
   ],
   "build": {

@@ -3,7 +3,7 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
-	public static class BallCollider
+	internal static class BallCollider
 	{
 		private const float HardScatter = 0.0f;
 

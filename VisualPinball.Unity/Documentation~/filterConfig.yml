@@ -1,0 +1,7 @@
+apiRules:
+  - exclude:
+      uidRegex: '^VisualPinball\.Unity\..*?Authoring$'
+      type: Type
+  - exclude:
+      uidRegex: '^VisualPinball\.Unity\..*?System$'
+      type: Type    
