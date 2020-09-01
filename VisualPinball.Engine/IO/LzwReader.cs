@@ -246,7 +246,7 @@ namespace VisualPinball.Engine.IO
 					_pBytes = new BufferPtr(_byteBuff);
 					_numAvailBytes = GetByte();
 					if (_numAvailBytes < 0) {
-						return (_numAvailBytes);
+						return _numAvailBytes;
 
 					}
 

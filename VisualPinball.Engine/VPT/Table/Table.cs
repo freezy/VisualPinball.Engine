@@ -32,8 +32,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
-		public bool IsCollidable => true;
-
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();

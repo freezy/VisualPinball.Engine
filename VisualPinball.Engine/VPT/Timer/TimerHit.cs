@@ -1,5 +1,3 @@
-using VisualPinball.Engine.Game;
-
 namespace VisualPinball.Engine.VPT.Timer
 {
 	public class TimerHit

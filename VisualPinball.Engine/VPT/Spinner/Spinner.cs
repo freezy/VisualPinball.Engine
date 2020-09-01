@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using VisualPinball.Engine.Game;
@@ -10,7 +9,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 	{
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
-		public bool IsCollidable => true;
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
 		private readonly SpinnerHitGenerator _hitGenerator;
@@ -52,12 +50,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 			return new HitObject[] {_hitSpinner}
 				.Concat(_hitCircles)
 				.ToArray();
-		}
-
-		public IMoverObject GetMover()
-		{
-			// not needed in unity ECS
-			throw new NotImplementedException();
 		}
 	}
 }

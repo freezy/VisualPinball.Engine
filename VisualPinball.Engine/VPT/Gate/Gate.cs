@@ -8,8 +8,6 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class Gate : Item<GateData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
-
 		private readonly GateMeshGenerator _meshGenerator;
 		private readonly GateHitGenerator _hitGenerator;
 		private GateHit _hitGate;
@@ -54,12 +52,6 @@ namespace VisualPinball.Engine.VPT.Gate
 				.Concat(_hitLines ?? new HitObject[0])
 				.Concat(_hitCircles ?? new HitObject[0])
 				.ToArray();
-		}
-
-		public IMoverObject GetMover()
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
 		}
 	}
 }
