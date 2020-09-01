@@ -25,45 +25,6 @@ namespace VisualPinball.Engine.Physics
 			CreateNextLevel(bounds, 0, 0);
 		}
 
-		public void HitTestBall(Ball ball, CollisionEvent coll, PlayerPhysics physics)
-		{
-			foreach (var vho in HitObjects) {
-				if (ball.Hit != vho // ball can not hit itself
-				    && vho.HitBBox.IntersectRect(ball.Hit.HitBBox)
-				    && vho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.HitRadiusSqr))
-				{
-					vho.DoHitTest(ball, coll, physics);
-				}
-			}
-
-			if (!IsLeaf) {
-				var isLeft = ball.Hit.HitBBox.Left <= Center.X;
-				var isRight = ball.Hit.HitBBox.Right >= Center.X;
-
-				if (ball.Hit.HitBBox.Top <= Center.Y) {
-					// Top
-					if (isLeft) {
-						Children[0].HitTestBall(ball, coll, physics);
-					}
-
-					if (isRight) {
-						Children[1].HitTestBall(ball, coll, physics);
-					}
-				}
-
-				if (ball.Hit.HitBBox.Bottom >= Center.Y) {
-					// Bottom
-					if (isLeft) {
-						Children[2].HitTestBall(ball, coll, physics);
-					}
-
-					if (isRight) {
-						Children[3].HitTestBall(ball, coll, physics);
-					}
-				}
-			}
-		}
-
 		private void CreateNextLevel(Rect3D bounds, int level, int levelEmpty)
 		{
 			if (HitObjects.Count <= 4) {

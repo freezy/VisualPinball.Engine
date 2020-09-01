@@ -28,60 +28,6 @@ namespace VisualPinball.Engine.Physics
 			Items = 0;
 		}
 
-		public void HitTestBall(Ball ball, CollisionEvent coll, PlayerPhysics physics, HitKd hitOct) {
-
-			var orgItems = Items & 0x3FFFFFFF;
-			var axis = Items >> 30;
-
-			for (var i = Start; i < Start + orgItems; i++) {
-				var pho = hitOct.GetItemAt(i);
-				if (ball.Hit != pho && pho.HitBBox.IntersectSphere(ball.State.Pos, ball.Hit.HitRadiusSqr)) {
-					pho.DoHitTest(ball, coll, physics);
-				}
-			}
-
-			if (_children != null) {
-				switch (axis) {
-					// not a leaf
-					case 0: {
-						var vCenter = (RectBounds.Left + RectBounds.Right) * 0.5f;
-						if (ball.Hit.HitBBox.Left <= vCenter) {
-							_children[0].HitTestBall(ball, coll, physics, hitOct);
-						}
-
-						if (ball.Hit.HitBBox.Right >= vCenter) {
-							_children[1].HitTestBall(ball, coll, physics, hitOct);
-						}
-						break;
-					}
-
-					case 1: {
-						var vCenter = (RectBounds.Top + RectBounds.Bottom) * 0.5f;
-						if (ball.Hit.HitBBox.Top <= vCenter) {
-							_children[0].HitTestBall(ball, coll, physics, hitOct);
-						}
-
-						if (ball.Hit.HitBBox.Bottom >= vCenter) {
-							_children[1].HitTestBall(ball, coll, physics, hitOct);
-						}
-						break;
-					}
-
-					default: {
-						var vCenter = (RectBounds.ZLow + RectBounds.ZHigh) * 0.5f;
-						if (ball.Hit.HitBBox.ZLow <= vCenter) {
-							_children[0].HitTestBall(ball, coll, physics, hitOct);
-						}
-
-						if (ball.Hit.HitBBox.ZHigh >= vCenter) {
-							_children[1].HitTestBall(ball, coll, physics, hitOct);
-						}
-						break;
-					}
-				}
-			}
-		}
-
 		/* istanbul ignore never next executed below the "magic" check (https://www.vpforums.org/index.php?showtopic=42690) */
 		public void CreateNextLevel(int level, int levelEmpty, HitKd hitOct) {
 			var orgItems = Items & 0x3FFFFFFF;

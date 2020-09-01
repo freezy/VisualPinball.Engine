@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 			);
 		}
 
-		public void OnBallCreated(PlayerPhysics physics, Ball ball)
+		public void OnBallCreated(Ball ball)
 		{
 			// nothing to do
 		}

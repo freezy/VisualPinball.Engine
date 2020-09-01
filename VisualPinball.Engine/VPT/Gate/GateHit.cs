@@ -58,17 +58,5 @@ namespace VisualPinball.Engine.VPT.Gate
 			LineSeg0.CalcHitBBox();
 			HitBBox = LineSeg0.HitBBox;
 		}
-
-		public override float HitTest(Ball.Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
 	}
 }

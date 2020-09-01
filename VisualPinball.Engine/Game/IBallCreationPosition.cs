@@ -14,6 +14,6 @@ namespace VisualPinball.Engine.Game
 
 		Vertex3D GetBallCreationVelocity(Table table);
 
-		void OnBallCreated(PlayerPhysics physics, Ball ball);
+		void OnBallCreated(Ball ball);
 	}
 }

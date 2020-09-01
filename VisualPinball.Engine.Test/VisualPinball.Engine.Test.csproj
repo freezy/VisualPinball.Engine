@@ -38,6 +38,9 @@
       <HintPath>$(NuGetPackageRoot)\fluentassertions\5.10.3\lib\net47\FluentAssertions.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Physics" />
+  </ItemGroup>
   <Target Name="PluginsDeploy" AfterTargets="Build">
     <ItemGroup>
       <Plugins Include="$(OutDir)FluentAssertions.dll" />
