@@ -6,7 +6,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class Flipper : Item<FlipperData>, IRenderable, IMovable, IHittable
 	{
-		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
 
 		private readonly FlipperMeshGenerator _meshGenerator;
@@ -29,8 +28,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hit = new FlipperHit(Data, EventProxy, table);
+			_hit = new FlipperHit(Data, table, this);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

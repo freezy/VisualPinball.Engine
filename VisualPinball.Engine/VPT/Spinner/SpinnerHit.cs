@@ -6,10 +6,10 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class SpinnerHit : HitObject
 	{
-		public LineSeg LineSeg0;
-		public LineSeg LineSeg1;
+		public readonly LineSeg LineSeg0;
+		public readonly LineSeg LineSeg1;
 
-		public SpinnerHit(SpinnerData data, float height) : base(ItemType.Spinner)
+		public SpinnerHit(SpinnerData data, float height, IItem item) : base(ItemType.Spinner, item)
 		{
 			var halfLength = data.Length * 0.5f;
 
@@ -26,8 +26,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
 			);
 
-			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
-			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
+			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner, item);
+			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner, item);
 		}
 
 		public override void SetIndex(int index, int version)

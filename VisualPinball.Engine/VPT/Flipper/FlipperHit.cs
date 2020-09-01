@@ -13,16 +13,14 @@ namespace VisualPinball.Engine.VPT.Flipper
 		private readonly FlipperMover _mover;
 		private readonly FlipperData _data;
 		private readonly TableData _tableData;
-		private readonly EventProxy _events;
 		private uint _lastHitTime;                                             // m_last_hittime
 
 		public HitCircle HitCircleBase => _mover.HitCircleBase;
 
-		public FlipperHit(FlipperData data, EventProxy events, Table.Table table) : base(ItemType.Flipper)
+		public FlipperHit(FlipperData data, Table.Table table, IItem item) : base(ItemType.Flipper, item)
 		{
 			data.UpdatePhysicsSettings(table);
-			_events = events;
-			_mover = new FlipperMover(data, events, table);
+			_mover = new FlipperMover(data, table, item);
 			_data = data;
 			_tableData = table.Data;
 			UpdatePhysicsFromFlipper();

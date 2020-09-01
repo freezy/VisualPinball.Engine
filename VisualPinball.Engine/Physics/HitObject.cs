@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.Physics
 		/// Mainly used as IFireEvents, but also as HitTarget or Primitive or
 		/// Trigger or Kicker or Gate.
 		/// </summary>
-		public EventProxy Obj;                                                 // m_obj
+		public IItem Item;                                                 // m_obj
 
 		/// <summary>
 		/// Threshold for firing an event (usually (always??) normal dot
@@ -51,9 +51,10 @@ namespace VisualPinball.Engine.Physics
 		public int ItemIndex;
 		public int ItemVersion;
 
-		protected HitObject(ItemType objType)
+		protected HitObject(ItemType objType, IItem item)
 		{
 			ObjType = objType;
+			Item = item;
 		}
 
 		public abstract void CalcHitBBox();

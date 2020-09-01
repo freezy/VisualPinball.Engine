@@ -12,8 +12,8 @@ namespace VisualPinball.Engine.Physics
 		private readonly SurfaceData _surfaceData;
 		private float _eventTimeReset = 0;
 
-		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType itemType)
-			: base(p1, p2, zLow, zHigh, itemType)
+		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType itemType, IItem item)
+			: base(p1, p2, zLow, zHigh, itemType, item)
 		{
 			_surfaceData = surfaceData;
 		}

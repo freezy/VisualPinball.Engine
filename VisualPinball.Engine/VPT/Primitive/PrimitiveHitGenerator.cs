@@ -22,10 +22,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = primitive.Data;
 		}
 
-		public HitObject[] GenerateHitObjects(Table.Table table, PrimitiveMeshGenerator meshGenerator)
+		public HitObject[] GenerateHitObjects(Table.Table table, PrimitiveMeshGenerator meshGenerator, IItem item)
 		{
-
-
 			if (_data.Name == "playfield_mesh") {
 				_data.IsVisible = false;
 				_primitive.UseAsPlayfield = true;
@@ -48,10 +46,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			return MeshToHitObjects(mesh, ItemType.Primitive).Select(ho => SetupHitObject(ho, table)).ToArray();
+			return MeshToHitObjects(mesh, ItemType.Primitive, item).Select(ho => SetupHitObject(ho, table)).ToArray();
 		}
 
-		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType)
+		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
 			var addedEdges = new EdgeSet();
@@ -70,16 +68,16 @@ namespace VisualPinball.Engine.VPT.Primitive
 					mesh.Vertices[i1].GetVertex(),
 				};
 
-				hitObjects.Add(new HitTriangle(rgv3D, itemType));
+				hitObjects.Add(new HitTriangle(rgv3D, itemType, item));
 
-				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], itemType));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], itemType));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], itemType));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], itemType, item));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], itemType, item));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], itemType, item));
 			}
 
 			// add collision vertices
 			foreach (var vertex in mesh.Vertices) {
-				hitObjects.Add(new HitPoint(vertex.GetVertex(), itemType));
+				hitObjects.Add(new HitPoint(vertex.GetVertex(), itemType, item));
 			}
 
 			return hitObjects;

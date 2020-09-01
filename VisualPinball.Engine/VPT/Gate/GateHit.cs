@@ -10,7 +10,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		public LineSeg LineSeg1;
 		public bool TwoWay;
 
-		public GateHit(GateData data, float height) : base(ItemType.Gate)
+		public GateHit(GateData data, float height, IItem item) : base(ItemType.Gate, item)
 		{
 			var data1 = data;
 			var height1 = height;
@@ -31,7 +31,8 @@ namespace VisualPinball.Engine.VPT.Gate
 				),
 				height1,
 				height1 + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
+				ItemType.Gate,
+				item
 			);
 
 			LineSeg1 = new LineSeg(
@@ -39,7 +40,8 @@ namespace VisualPinball.Engine.VPT.Gate
 				new Vertex2D(LineSeg0.V1.X, LineSeg0.V1.Y),
 				height,
 				height + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
+				ItemType.Gate,
+				item
 			);
 
 			TwoWay = false;

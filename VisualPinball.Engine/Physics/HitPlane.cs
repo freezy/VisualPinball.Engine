@@ -8,7 +8,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D Normal;
 		public readonly float D;
 
-		public HitPlane(Vertex3D normal, float d) : base(ItemType.Table)
+		public HitPlane(Vertex3D normal, float d, IItem item) : base(ItemType.Table, item)
 		{
 			Normal = normal;
 			D = d;

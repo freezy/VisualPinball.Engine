@@ -7,7 +7,7 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex3D P;
 
-		public HitPoint(Vertex3D p, ItemType itemType) : base(itemType)
+		public HitPoint(Vertex3D p, ItemType itemType, IItem item) : base(itemType, item)
 		{
 			P = p;
 		}

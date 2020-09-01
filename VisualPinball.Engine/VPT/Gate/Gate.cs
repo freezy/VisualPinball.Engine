@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class Gate : Item<GateData>, IRenderable, IMovable, IHittable
 	{
-		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
 
 		private readonly GateMeshGenerator _meshGenerator;
@@ -39,10 +38,9 @@ namespace VisualPinball.Engine.VPT.Gate
 			var radAngle = MathF.DegToRad(Data.Rotation);
 			var tangent = new Vertex2D(MathF.Cos(radAngle), MathF.Sin(radAngle));
 
-			EventProxy = new EventProxy(this);
-			_hitGate = _hitGenerator.GenerateGateHit(EventProxy, height);
-			_hitLines = _hitGenerator.GenerateLineSegs(height, tangent);
-			_hitCircles = _hitGenerator.GenerateBracketHits(height, tangent);
+			_hitGate = _hitGenerator.GenerateGateHit(height, this);
+			_hitLines = _hitGenerator.GenerateLineSegs(height, tangent, this);
+			_hitCircles = _hitGenerator.GenerateBracketHits(height, tangent, this);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

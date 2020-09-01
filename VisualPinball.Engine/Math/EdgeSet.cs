@@ -16,10 +16,10 @@ namespace VisualPinball.Engine.Math
 			return _edges.Contains(GetKey(i, j));
 		}
 
-		public IEnumerable<HitObject> AddHitEdge(int i, int j, Vertex3D vi, Vertex3D vj, ItemType itemType) {
+		public IEnumerable<HitObject> AddHitEdge(int i, int j, Vertex3D vi, Vertex3D vj, ItemType itemType, IItem item) {
 			if (!Has(i, j)) {   // edge not yet added?
 				Add(i, j);
-				return new[] { new HitLine3D(vi, vj, itemType) };
+				return new[] { new HitLine3D(vi, vj, itemType, item) };
 			}
 			return new HitObject[0];
 		}

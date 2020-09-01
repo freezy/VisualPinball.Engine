@@ -1,4 +1,5 @@
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Engine.Game
 {
@@ -7,7 +8,6 @@ namespace VisualPinball.Engine.Game
 		int Index { get; set; }
 		int Version { get; set; }
 		bool IsCollidable { get; }
-		EventProxy EventProxy { get; }
 		HitObject[] GetHitShapes();
 	}
 }

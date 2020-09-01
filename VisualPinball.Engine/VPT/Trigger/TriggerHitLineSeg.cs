@@ -5,7 +5,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class TriggerHitLineSeg : LineSeg
 	{
-		public TriggerHitLineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh) : base(p1, p2, zLow, zHigh, ItemType.Trigger)
+		public TriggerHitLineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, IItem item) : base(p1, p2, zLow, zHigh, ItemType.Trigger, item)
 		{
 		}
 	}
