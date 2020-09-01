@@ -4,21 +4,24 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.Physics
 {
-	public class HitQuadTree
+	/// <summary>
+	/// Our quadtree, used for static collision.
+	/// </summary>
+	public class QuadTree
 	{
 		private EventProxy _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
 
-		public readonly HitQuadTree[] Children = new HitQuadTree[4];
+		public readonly QuadTree[] Children = new QuadTree[4];
 		public readonly Vertex3D Center = new Vertex3D();
 		public List<HitObject> HitObjects;
 		public bool IsLeaf = true;
 
-		private HitQuadTree()
+		private QuadTree()
 		{
 			HitObjects = new List<HitObject>();
 		}
 
-		public HitQuadTree(List<HitObject> hitObjects, Rect3D bounds)
+		public QuadTree(List<HitObject> hitObjects, Rect3D bounds)
 		{
 			HitObjects = hitObjects;
 			CreateNextLevel(bounds, 0, 0);
@@ -38,10 +41,10 @@ namespace VisualPinball.Engine.Physics
 			Center.Z = (bounds.ZLow + bounds.ZHigh) * 0.5f;
 
 			for (var i = 0; i < 4; i++) {
-				Children[i] = new HitQuadTree();
+				Children[i] = new QuadTree();
 			}
 
-			List<HitObject> vRemain = new List<HitObject>(); // hit objects which did not go to a quadrant
+			var vRemain = new List<HitObject>(); // hit objects which did not go to a quadrant
 
 			// TODO check if casting in C++ results in null if not the cast type
 			_unique = HitObjects[0].E ? HitObjects[0].Obj : null;

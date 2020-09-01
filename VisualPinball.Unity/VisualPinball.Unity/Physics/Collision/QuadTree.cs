@@ -11,7 +11,7 @@ namespace VisualPinball.Unity
 		public float3 Center;
 		public bool IsLeaf;
 
-		public static void Create(HitQuadTree src, ref QuadTree dest, BlobBuilder builder)
+		public static void Create(Engine.Physics.QuadTree src, ref QuadTree dest, BlobBuilder builder)
 		{
 			var children = builder.Allocate(ref dest.Children, 4);
 			for (var i = 0; i < 4; i++) {
