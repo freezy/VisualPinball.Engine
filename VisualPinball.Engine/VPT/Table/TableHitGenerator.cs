@@ -15,7 +15,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_table = table;
 		}
 
-		public IEnumerable<HitObject> GenerateHitObjects()
+		public IEnumerable<HitObject> GenerateHitObjects(IItem item)
 		{
 			var hitObjects = new List<HitObject> {
 
@@ -25,28 +25,32 @@ namespace VisualPinball.Engine.VPT.Table
 					new Vertex2D(_data.Right, _data.Bottom),
 					_table.TableHeight,
 					_table.GlassHeight,
-					ItemType.Table
+					ItemType.Table,
+					item
 				),
 				new LineSeg(
 					new Vertex2D(_data.Left, _data.Bottom),
 					new Vertex2D(_data.Left, _data.Top),
 					_table.TableHeight,
 					_table.GlassHeight,
-					ItemType.Table
+					ItemType.Table,
+					item
 				),
 				new LineSeg(
 					new Vertex2D(_data.Right, _data.Bottom),
 					new Vertex2D(_data.Left, _data.Bottom),
 					_table.TableHeight,
 					_table.GlassHeight,
-					ItemType.Table
+					ItemType.Table,
+					item
 				),
 				new LineSeg(
 					new Vertex2D(_data.Left, _data.Top),
 					new Vertex2D(_data.Right, _data.Top),
 					_table.TableHeight,
 					_table.GlassHeight,
-					ItemType.Table
+					ItemType.Table,
+					item
 				)
 			};
 
@@ -57,7 +61,7 @@ namespace VisualPinball.Engine.VPT.Table
 				new Vertex3D(_data.Right, _data.Bottom, _table.GlassHeight),
 				new Vertex3D(_data.Left, _data.Bottom, _table.GlassHeight)
 			};
-			var hit3DPoly = new Hit3DPoly(rgv3D, ItemType.Table);
+			var hit3DPoly = new Hit3DPoly(rgv3D, ItemType.Table, item);
 			hit3DPoly.CalcHitBBox();
 			hitObjects.AddRange(hit3DPoly.ConvertToTriangles());
 
@@ -69,8 +73,8 @@ namespace VisualPinball.Engine.VPT.Table
 			return hitObjects;
 		}
 
-		public HitPlane GeneratePlayfieldHit() {
-			var playfieldHit = new HitPlane(new Vertex3D(0, 0, 1), _table.TableHeight);
+		public HitPlane GeneratePlayfieldHit(IItem item) {
+			var playfieldHit = new HitPlane(new Vertex3D(0, 0, 1), _table.TableHeight, item);
 			playfieldHit
 				.SetFriction(_data.GetFriction())
 				.SetElasticity(_data.GetElasticity(), _data.GetElasticityFalloff())
@@ -80,9 +84,9 @@ namespace VisualPinball.Engine.VPT.Table
 			return playfieldHit;
 		}
 
-		public HitPlane GenerateGlassHit()
+		public HitPlane GenerateGlassHit(IItem item)
 		{
-			var glassHit = new HitPlane(new Vertex3D(0, 0, -1), _table.GlassHeight);
+			var glassHit = new HitPlane(new Vertex3D(0, 0, -1), _table.GlassHeight, item);
 			glassHit.SetElasticity(0.2f);
 			glassHit.ItemIndex = _table.Index;
 			glassHit.ItemVersion = _table.Version;

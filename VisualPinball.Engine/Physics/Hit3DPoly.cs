@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D[] Rgv;                                      // m_rgv
 		public readonly Vertex3D Normal = new Vertex3D();                    // m_normal
 
-		public Hit3DPoly(Vertex3D[] rgv, ItemType objType) : base(objType)
+		public Hit3DPoly(Vertex3D[] rgv, ItemType objType, IItem item) : base(objType, item)
 		{
 			Rgv = rgv;
 
@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Physics
 				outputIndices
 			);
 
-			var hitObjects = PrimitiveHitGenerator.MeshToHitObjects(mesh, ObjType).ToArray();
+			var hitObjects = PrimitiveHitGenerator.MeshToHitObjects(mesh, ObjType, Item).ToArray();
 			foreach (var hitObject in hitObjects) {
 				hitObject.ItemIndex = ItemIndex;
 				hitObject.ItemVersion = ItemVersion;

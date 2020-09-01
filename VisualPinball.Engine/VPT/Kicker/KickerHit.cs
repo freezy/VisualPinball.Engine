@@ -7,7 +7,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 	{
 		public readonly Vertex3D[] HitMesh;
 
-		public KickerHit(KickerData data, float radius, float height, Table.Table table) : base(data.Center.Clone(), radius, height, height + data.HitHeight, ItemType.Kicker)
+		public KickerHit(KickerData data, float radius, float height, Table.Table table, IItem item)
+			: base(data.Center.Clone(), radius, height, height + data.HitHeight, ItemType.Kicker, item)
 		{
 			HitMesh = new Vertex3D[KickerHitMesh.Vertices.Length];
 			if (!data.LegacyMode) {

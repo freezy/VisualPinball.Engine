@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 	public class Ramp : Item<RampData>, IRenderable, IHittable
 	{
 		public bool IsCollidable => true;
-		public EventProxy EventProxy { get; private set; }
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly RampMeshGenerator _meshGenerator;
@@ -41,8 +40,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(table, EventProxy);
+			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

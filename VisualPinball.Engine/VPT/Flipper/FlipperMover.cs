@@ -1,19 +1,13 @@
 ﻿// ReSharper disable CommentTypo
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class FlipperMover
 	{
-		private readonly FlipperData _data;
-		private readonly EventProxy _events;
-		private readonly TableData _tableData;
-
 		public readonly HitCircle HitCircleBase;                               // m_hitcircleBase
 		public readonly float EndRadius;                                       // m_endradius
 		public readonly float FlipperRadius;                                   // m_flipperradius
@@ -33,29 +27,18 @@ namespace VisualPinball.Engine.VPT.Flipper
 		/// </summary>
 		public short EnableRotateEvent;                                        // m_enableRotateEvent
 
-		public float AngleStart;                                               // m_angleStart
-		public float AngleEnd;                                                 // m_angleEnd
-		public float AngleSpeed;                                               // m_angleSpeed
-		public float ContactTorque;                                            // m_contactTorque
-
-		public bool IsInContact;                                               // m_isInContact
-		public bool LastHitFace;                                               // m_lastHitFace
-
-		private readonly bool _direction;                                      // m_direction
-		private float _angularMomentum;                                        // m_angularMomentum
-		private float _angularAcceleration;                                    // m_angularAcceleration
-		private float _curTorque;                                              // m_curTorque
+		public readonly float AngleStart;                                               // m_angleStart
+		public readonly float AngleEnd;                                                 // m_angleEnd
+		public readonly float AngleSpeed;                                               // m_angleSpeed
 
 		/// <summary>
 		/// is solenoid enabled?
 		/// </summary>
 		private bool _solState; // m_solState
 
-		public FlipperMover(FlipperData data, EventProxy events, Table.Table table)
+		public FlipperMover(FlipperData data, Table.Table table, IItem item)
 		{
-			_data = data;
-			_events = events;
-			_tableData = table.Data;
+			var tableData = table.Data;
 
 			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
 				data.FlipperRadius = data.FlipperRadiusMax - (data.FlipperRadiusMax - data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
@@ -77,25 +60,18 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 			var height = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y);
 			var baseRadius = MathF.Max(data.BaseRadius, 0.01f);
-			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height, ItemType.Flipper);
+			HitCircleBase = new HitCircle(data.Center, baseRadius, height, height + data.Height, ItemType.Flipper, item);
 
-			IsInContact = false;
 			EnableRotateEvent = 0;
 			AngleSpeed = 0;
 
-			_direction = AngleEnd >= AngleStart;
 			_solState = false;
-			_curTorque = 0.0f;
-			_angularMomentum = 0;
-			_angularAcceleration = 0;
 
 			var ratio = (baseRadius - EndRadius) / FlipperRadius;
 
 			// model inertia of flipper as that of rod of length flipr around its end
-			var mass = _data.GetFlipperMass(_tableData);
+			var mass = data.GetFlipperMass(tableData);
 			Inertia = (float) (1.0 / 3.0) * mass * (FlipperRadius * FlipperRadius);
-
-			LastHitFace = false; // used to optimize hit face search order
 
 			// F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
 			ZeroAngNorm.X = MathF.Sqrt(1.0f - ratio * ratio);

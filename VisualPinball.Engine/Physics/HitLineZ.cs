@@ -7,12 +7,12 @@ namespace VisualPinball.Engine.Physics
 	{
 		public readonly Vertex2D Xy;
 
-		protected HitLineZ(Vertex2D xy, ItemType itemType) : base(itemType)
+		protected HitLineZ(Vertex2D xy, ItemType itemType, IItem item) : base(itemType, item)
 		{
 			Xy = xy;
 		}
 
-		public HitLineZ(Vertex2D xy, float zLow, float zHigh, ItemType itemType) : this(xy, itemType)
+		public HitLineZ(Vertex2D xy, float zLow, float zHigh, ItemType itemType, IItem item) : this(xy, itemType, item)
 		{
 			HitBBox.ZLow = zLow;
 			HitBBox.ZHigh = zHigh;

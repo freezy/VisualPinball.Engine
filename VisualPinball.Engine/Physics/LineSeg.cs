@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex2D Normal = new Vertex2D();
 		public float Length;
 
-		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType objType) : base(objType)
+		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType objType, IItem item) : base(objType, item)
 		{
 			V1 = p1;
 			V2 = p2;

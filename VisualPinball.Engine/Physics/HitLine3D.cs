@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex3D V1;
 		public readonly Vertex3D V2;
 
-		public HitLine3D(Vertex3D v1, Vertex3D v2, ItemType itemType) : base(new Vertex2D(), itemType)
+		public HitLine3D(Vertex3D v1, Vertex3D v2, ItemType itemType, IItem item) : base(new Vertex2D(), itemType, item)
 		{
 			var vLine = v2.Clone().Sub(v1);
 			vLine.Normalize();

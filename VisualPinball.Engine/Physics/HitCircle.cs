@@ -8,7 +8,7 @@ namespace VisualPinball.Engine.Physics
 		public readonly Vertex2D Center;
 		public readonly float Radius;
 
-		public HitCircle(Vertex2D center, float radius, float zLow, float zHigh, ItemType itemType) : base(itemType)
+		public HitCircle(Vertex2D center, float radius, float zLow, float zHigh, ItemType itemType, IItem item) : base(itemType, item)
 		{
 			Center = center;
 			Radius = radius;

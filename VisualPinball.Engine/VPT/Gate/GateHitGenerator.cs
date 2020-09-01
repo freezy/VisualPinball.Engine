@@ -14,7 +14,7 @@ namespace VisualPinball.Engine.VPT.Gate
 			_gateData = gateData;
 		}
 
-		public LineSeg[] GenerateLineSegs(float height, Vertex2D tangent)
+		public LineSeg[] GenerateLineSegs(float height, Vertex2D tangent, IItem item)
 		{
 			if (_gateData.TwoWay) {
 				return new LineSeg[0];
@@ -32,7 +32,7 @@ namespace VisualPinball.Engine.VPT.Gate
 				_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 				_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 			};
-			var lineSeg = new LineSeg(rgv[0], rgv[1], height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Gate); //!! = ball diameter
+			var lineSeg = new LineSeg(rgv[0], rgv[1], height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Gate, item); //!! = ball diameter
 
 			lineSeg.SetElasticity(_gateData.Elasticity);
 			lineSeg.SetFriction(_gateData.Friction);
@@ -40,26 +40,25 @@ namespace VisualPinball.Engine.VPT.Gate
 			return new[] {lineSeg};
 		}
 
-		public GateHit GenerateGateHit(EventProxy events, float height)
+		public GateHit GenerateGateHit(float height, IItem item)
 		{
-			var hit = new GateHit(_gateData, height) {
+			var hit = new GateHit(_gateData, height, item) {
 				TwoWay = _gateData.TwoWay,
-				Obj = events,
 				FireEvents = true,
 				IsEnabled = _gateData.IsCollidable
 			};
 			return hit;
 		}
 
-		public HitCircle[] GenerateBracketHits(float height, Vertex2D tangent)
+		public HitCircle[] GenerateBracketHits(float height, Vertex2D tangent, IItem item)
 		{
 			var halfLength = _gateData.Length * 0.5f;
 			if (_gateData.ShowBracket) {
 				return new[] {
 					new HitCircle(_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
-						height, height + _gateData.Height, ItemType.Gate),
+						height, height + _gateData.Height, ItemType.Gate, item),
 					new HitCircle(_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
-						height, height + _gateData.Height, ItemType.Gate),
+						height, height + _gateData.Height, ItemType.Gate, item)
 				};
 			}
 

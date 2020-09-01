@@ -10,7 +10,7 @@ namespace VisualPinball.Engine.Physics
 
 		public bool IsDegenerate => Normal.IsZero();
 
-		public HitTriangle(Vertex3D[] rgv, ItemType itemType) : base (itemType)
+		public HitTriangle(Vertex3D[] rgv, ItemType itemType, IItem item) : base (itemType, item)
 		{
 			Rgv = rgv;
 			/* NB: due to the swapping of the order of e0 and e1,

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Engine.Physics
 {
@@ -9,7 +9,7 @@ namespace VisualPinball.Engine.Physics
 	/// </summary>
 	public class QuadTree
 	{
-		private EventProxy _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
+		private Primitive _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
 
 		public readonly QuadTree[] Children = new QuadTree[4];
 		public readonly Vertex3D Center = new Vertex3D();
@@ -46,14 +46,13 @@ namespace VisualPinball.Engine.Physics
 
 			var vRemain = new List<HitObject>(); // hit objects which did not go to a quadrant
 
-			// TODO check if casting in C++ results in null if not the cast type
-			_unique = HitObjects[0].E ? HitObjects[0].Obj : null;
+			_unique = HitObjects[0].E ? HitObjects[0].Item as Primitive : null;
 
 			// sort items into appropriate child nodes
 			foreach (var hitObject in HitObjects) {
 				int oct;
 
-				if ((hitObject.E ? hitObject.Obj : null) != _unique) {
+				if ((hitObject.E ? hitObject.Item : null) != _unique) {
 					// are all objects in current node unique/belong to the same primitive?
 					_unique = null;
 				}

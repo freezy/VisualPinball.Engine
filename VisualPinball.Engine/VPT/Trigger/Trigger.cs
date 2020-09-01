@@ -9,7 +9,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 	{
 		public bool IsCollidable => true;
 		public HitObject[] GetHitShapes() => _hits;
-		public EventProxy EventProxy { get; private set; }
 
 		private readonly TriggerMeshGenerator _meshGenerator;
 		private readonly TriggerHitGenerator _hitGenerator;
@@ -41,8 +40,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(table, EventProxy);
+			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

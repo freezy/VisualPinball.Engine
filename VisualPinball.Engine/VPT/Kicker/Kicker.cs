@@ -8,7 +8,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable
 	{
 		public bool IsCollidable => true;
-		public EventProxy EventProxy { get; private set; }
 		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 
@@ -37,7 +36,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
-			_hit = new KickerHit(Data, radius, height, table); // height of kicker hit cylinder
+			_hit = new KickerHit(Data, radius, height, table, this); // height of kicker hit cylinder
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

@@ -10,7 +10,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 	{
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
-		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => true;
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
@@ -39,9 +38,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 
-			EventProxy = new EventProxy(this);
-			_hitSpinner = new SpinnerHit(Data, height);
-			_hitCircles = _hitGenerator.GetHitCircles(height);
+			_hitSpinner = new SpinnerHit(Data, height, this);
+			_hitCircles = _hitGenerator.GetHitCircles(height, this);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)

@@ -7,7 +7,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable, IHittable
 	{
-		public EventProxy EventProxy { get; private set; }
 		public bool IsCollidable => Data.IsCollidable;
 		public HitObject[] GetHitShapes() => _hits;
 
@@ -51,8 +50,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(EventProxy, table);
+			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 	}
 }

@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 			_data = data;
 		}
 
-		public HitCircle[] GetHitCircles(float height) {
+		public HitCircle[] GetHitCircles(float height, IItem item) {
 
 			var h = _data.Height + 30.0f;
 
@@ -29,14 +29,16 @@ namespace VisualPinball.Engine.VPT.Spinner
 						_data.Length * 0.075f,
 						height + _data.Height,
 						height + h,
-						ItemType.Spinner
+						ItemType.Spinner,
+						item
 					),
 					new HitCircle(
 						new Vertex2D(_data.Center.X - cs * halfLength, _data.Center.Y - sn * halfLength),
 						_data.Length * 0.075f,
 						height + _data.Height,
 						height + h,
-						ItemType.Spinner
+						ItemType.Spinner,
+						item
 					)
 				};
 			}

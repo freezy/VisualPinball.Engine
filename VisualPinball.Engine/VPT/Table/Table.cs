@@ -33,7 +33,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
 		public bool IsCollidable => true;
-		public EventProxy EventProxy { get; }
 
 		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
@@ -443,10 +442,10 @@ namespace VisualPinball.Engine.VPT.Table
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
-		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects().ToArray();
+		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
 
-		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit();
-		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit();
+		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
+		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);
 
 		public void Save(string fileName)
 		{

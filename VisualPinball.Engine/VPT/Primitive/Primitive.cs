@@ -13,7 +13,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 	public class Primitive : Item<PrimitiveData>, IRenderable, IHittable
 	{
 		public bool IsCollidable => true;
-		public EventProxy EventProxy { get; private set; }
 
 		public bool UseAsPlayfield;
 
@@ -33,8 +32,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(table, _meshGenerator);
+			_hits = _hitGenerator.GenerateHitObjects(table, _meshGenerator, this);
 		}
 
 		public static Primitive GetDefault(Table.Table table)
