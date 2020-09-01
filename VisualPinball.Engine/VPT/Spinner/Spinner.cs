@@ -6,7 +6,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Spinner
 {
-	public class Spinner : Item<SpinnerData>, IRenderable, IMovable, IHittable
+	public class Spinner : Item<SpinnerData>, IRenderable, IHittable
 	{
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
