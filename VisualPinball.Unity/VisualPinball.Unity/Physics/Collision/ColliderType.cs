@@ -15,7 +15,6 @@
 		Plane,
 		Plunger,
 		Point,
-		Poly3D,
 		Spinner,
 		Triangle,
 		TriggerCircle,

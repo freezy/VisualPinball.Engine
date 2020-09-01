@@ -3,7 +3,6 @@
 using System;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 using Object = UnityEngine.Object;
@@ -163,23 +162,14 @@ namespace VisualPinball.Unity
 							case ColliderType.LineZ:
 							case ColliderType.Plane:
 							case ColliderType.Point:
-							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
 
 								// hit target
 								if (coll.Header.ItemType == ItemType.HitTarget) {
 
-									float3 normal;
-									if (coll.Type == ColliderType.Poly3D) {
-										normal = ((Poly3DCollider*) collider)->Normal();
-
-									} else if (coll.Type == ColliderType.Triangle) {
-										normal = ((TriangleCollider*) collider)->Normal();
-
-									} else {
-										normal = collEvent.HitNormal;
-									}
-
+									var normal = coll.Type == ColliderType.Triangle
+										? ((TriangleCollider*) collider)->Normal()
+										: collEvent.HitNormal;
 									var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
 									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
 										in normal, in collEvent, in coll, ref random);

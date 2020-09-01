@@ -122,8 +122,6 @@ namespace VisualPinball.Unity
 						return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Plane:
 						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Poly3D:
-						return ((Poly3DCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Spinner:
 						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
@@ -175,9 +173,6 @@ namespace VisualPinball.Unity
 					case ColliderType.Point:
 						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
-					case ColliderType.Poly3D:
-						((Poly3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
-						break;
 					case ColliderType.Triangle:
 						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
@@ -218,9 +213,6 @@ namespace VisualPinball.Unity
 		{
 			fixed (Collider* collider = &coll) {
 				switch (collider->Type) {
-					case ColliderType.Poly3D:
-						return ((Poly3DCollider*)collider)->ToString();
-
 					default:
 						return collider->ToString();
 				}
