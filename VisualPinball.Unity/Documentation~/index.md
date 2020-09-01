@@ -4,4 +4,6 @@ Welcome to the documentation of the
 # Visual Pinball Engine
 
 [Start here with the creator's guide](xref:vpe-overview).
+
+*Be aware we're at the very beginning of writing documentation. You'll see weird content.*
 </center>
