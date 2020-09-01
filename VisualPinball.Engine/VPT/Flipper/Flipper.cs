@@ -4,7 +4,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
-	public class Flipper : Item<FlipperData>, IRenderable, IMovable, IHittable
+	public class Flipper : Item<FlipperData>, IRenderable, IHittable
 	{
 		public bool IsCollidable => true;
 

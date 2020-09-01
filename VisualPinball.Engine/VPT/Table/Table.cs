@@ -138,11 +138,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public IEnumerable<IMovable> Movables => new IMovable[0]
-			.Concat(_flippers.Values)
-			.Concat(_gates.Values)
-			.Concat(_spinners.Values);
-
 		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)

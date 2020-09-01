@@ -6,7 +6,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Gate
 {
-	public class Gate : Item<GateData>, IRenderable, IMovable, IHittable
+	public class Gate : Item<GateData>, IRenderable, IHittable
 	{
 		public bool IsCollidable => true;
 
