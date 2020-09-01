@@ -10,7 +10,7 @@ using VisualPinball.Engine.Game;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	public class SpinnerDisplacementSystem : SystemBase
+	internal class SpinnerDisplacementSystem : SystemBase
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

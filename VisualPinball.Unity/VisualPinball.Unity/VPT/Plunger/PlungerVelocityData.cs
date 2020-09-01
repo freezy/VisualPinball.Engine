@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct PlungerVelocityData : IComponentData
+	internal struct PlungerVelocityData : IComponentData
 	{
 		/// <summary>
 		/// Recent history of mechanical plunger readings.  We keep the

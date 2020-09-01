@@ -9,7 +9,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public class BallManager
+	internal class BallManager
 	{
 		private int _id;
 

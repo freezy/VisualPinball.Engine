@@ -8,7 +8,7 @@ using VisualPinball.Engine.Game;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	public class PlungerDisplacementSystem : SystemBase
+	internal class PlungerDisplacementSystem : SystemBase
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

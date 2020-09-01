@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class SurfaceExtensions
+	internal static class SurfaceExtensions
 	{
 		public static SurfaceAuthoring SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
 		{

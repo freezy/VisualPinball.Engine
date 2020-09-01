@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class FlipperExtensions
+	internal static class FlipperExtensions
 	{
 		public static FlipperAuthoring SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
 		{

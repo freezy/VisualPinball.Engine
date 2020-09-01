@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class KickerExtensions
+	internal static class KickerExtensions
 	{
 		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj, RenderObjectGroup rog)
 		{

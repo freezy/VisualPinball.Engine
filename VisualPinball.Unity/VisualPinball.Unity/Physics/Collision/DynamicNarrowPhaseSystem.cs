@@ -4,7 +4,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class DynamicNarrowPhaseSystem : SystemBase
+	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 

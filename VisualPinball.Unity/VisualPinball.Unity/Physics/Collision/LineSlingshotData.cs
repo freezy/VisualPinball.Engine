@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct LineSlingshotData : IComponentData
+	internal struct LineSlingshotData : IComponentData
 	{
 		public bool IsDisabled;
 		public float Threshold;

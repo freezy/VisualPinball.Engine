@@ -4,7 +4,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class BallRingCounterSystem : SystemBase
+	internal class BallRingCounterSystem : SystemBase
 	{
 		public const int MaxBallTrailPos = 10;
 

@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct ColliderMeshData : IComponentData
+	internal struct ColliderMeshData : IComponentData
 	{
 		public BlobAssetReference<KickerMeshVertexBlobAsset> Value;
 	}

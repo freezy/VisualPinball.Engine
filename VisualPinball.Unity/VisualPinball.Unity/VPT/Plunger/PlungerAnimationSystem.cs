@@ -4,7 +4,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	public class PlungerAnimationSystem : SystemBase
+	internal class PlungerAnimationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerAnimationSystem");
 

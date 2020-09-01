@@ -4,7 +4,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class StaticBroadPhaseSystem : SystemBase
+	internal class StaticBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _quadTreeEntityQuery;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhaseSystem");

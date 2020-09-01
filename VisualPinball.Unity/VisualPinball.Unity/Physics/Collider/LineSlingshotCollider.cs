@@ -7,7 +7,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	internal struct LineSlingshotCollider : ICollider, ICollidable
+	internal struct LineSlingshotCollider
 	{
 		private ColliderHeader _header;
 

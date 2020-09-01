@@ -7,7 +7,7 @@ using ILogger = UnityEngine.ILogger;
 namespace VisualPinball.Unity
 {
 	[Target("Unity")]
-	public class UnityTarget : TargetWithLayout
+	internal class UnityTarget : TargetWithLayout
 	{
 		private static readonly ILogger Logger = Debug.unityLogger;
 		private const string Tag = "VisualPinball";

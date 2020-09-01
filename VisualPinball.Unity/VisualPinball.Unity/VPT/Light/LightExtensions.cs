@@ -3,7 +3,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class LightExtensions
+	internal static class LightExtensions
 	{
 		public static LightAuthoring SetupGameObject(this Engine.VPT.Light.Light light, GameObject obj, RenderObjectGroup rog)
 		{

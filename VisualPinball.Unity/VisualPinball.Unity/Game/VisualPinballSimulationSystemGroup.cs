@@ -12,7 +12,7 @@ namespace VisualPinball.Unity
 	/// Main physics simulation system, executed once per frame.
 	/// </summary>
 	[UpdateBefore(typeof(TransformSystemGroup))]
-	public class VisualPinballSimulationSystemGroup : ComponentSystemGroup
+	internal class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
 		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);

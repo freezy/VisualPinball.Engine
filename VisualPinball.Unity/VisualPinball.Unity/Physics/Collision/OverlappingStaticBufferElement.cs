@@ -3,7 +3,7 @@
 namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(0)]
-	public struct OverlappingStaticColliderBufferElement : IBufferElementData
+	internal struct OverlappingStaticColliderBufferElement : IBufferElementData
 	{
 		public int Value;
 	}

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class PlungerTransformationSystem : SystemBase
+	internal class PlungerTransformationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
 

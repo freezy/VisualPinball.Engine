@@ -10,7 +10,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class ContactSystem : SystemBase
+	internal class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private float3 _gravity;

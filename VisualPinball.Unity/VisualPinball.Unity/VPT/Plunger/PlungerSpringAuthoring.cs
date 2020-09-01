@@ -7,7 +7,7 @@ namespace VisualPinball.Unity
 {
 	public class PlungerSpringAuthoring : PlungerChildAuthoring
 	{
-		protected override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
+		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
 		{
 			staticData.SpringEntity = entity;
 		}

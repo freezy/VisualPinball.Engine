@@ -6,7 +6,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	internal struct PlungerCollider : ICollider, ICollidable
+	internal struct PlungerCollider
 	{
 		private ColliderHeader _header;
 

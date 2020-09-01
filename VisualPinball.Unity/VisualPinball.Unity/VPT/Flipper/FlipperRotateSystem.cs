@@ -7,7 +7,7 @@ namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class FlipperRotateSystem : SystemBase
+	internal class FlipperRotateSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperRotateSystem");
 

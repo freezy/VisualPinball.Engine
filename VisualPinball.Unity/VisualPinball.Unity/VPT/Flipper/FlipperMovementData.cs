@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperMovementData : IComponentData
+	internal struct FlipperMovementData : IComponentData
 	{
 		public float Angle;
 		public float AngleSpeed;

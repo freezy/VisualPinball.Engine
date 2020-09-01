@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct SpinnerStaticData : IComponentData
+	internal struct SpinnerStaticData : IComponentData
 	{
 		public float AngleMin;
 		public float AngleMax;

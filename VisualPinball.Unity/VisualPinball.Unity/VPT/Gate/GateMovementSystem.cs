@@ -6,7 +6,7 @@ using Unity.Transforms;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class GateMovementSystem : SystemBase
+	internal class GateMovementSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateMovementSystem");
 

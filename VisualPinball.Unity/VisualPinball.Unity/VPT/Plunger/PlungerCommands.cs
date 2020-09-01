@@ -1,6 +1,6 @@
 namespace VisualPinball.Unity
 {
-	public static class PlungerCommands
+	internal static class PlungerCommands
 	{
 
 		public static void PullBack(float speed, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData)

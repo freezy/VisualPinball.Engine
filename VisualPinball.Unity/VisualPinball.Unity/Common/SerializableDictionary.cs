@@ -5,7 +5,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
+	internal class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
 	{
 		[SerializeField]
 		private List<TKey> keys = new List<TKey>();

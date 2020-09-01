@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity
 {
-	public class ScaleNormalizer
+	internal class ScaleNormalizer
 	{
 		public static void Normalize(GameObject rootGameObject, float scale) {
 			var transforms = FindObjectsOfTypeAll<Transform>();

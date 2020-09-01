@@ -6,7 +6,7 @@ using VisualPinball.Engine.Game;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	public class HitTargetAnimationSystem : SystemBase
+	internal class HitTargetAnimationSystem : SystemBase
 	{
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;

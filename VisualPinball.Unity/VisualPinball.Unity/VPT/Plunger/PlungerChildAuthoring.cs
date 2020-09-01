@@ -9,7 +9,7 @@ namespace VisualPinball.Unity
 {
 	public abstract class PlungerChildAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 	{
-		protected abstract void SetChildEntity(ref PlungerStaticData staticData, Entity entity);
+		internal abstract void SetChildEntity(ref PlungerStaticData staticData, Entity entity);
 
 		protected abstract IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame);
 

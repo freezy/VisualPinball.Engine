@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct BumperSkirtAnimationData : IComponentData
+	internal struct BumperSkirtAnimationData : IComponentData
 	{
 		// dynamic
 		public bool HitEvent;

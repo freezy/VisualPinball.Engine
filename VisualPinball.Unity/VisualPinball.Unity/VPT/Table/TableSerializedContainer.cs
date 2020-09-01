@@ -6,12 +6,12 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Base container class to handle in a Dictionnary-like way objects based on <see cref="TableSerializedData{TData}"/> generic class
+	/// Base container class to handle in a Dictionary-like way objects based on <see cref="TableSerializedData{TData}"/> generic class
 	/// </summary>
 	/// <typeparam name="T">IItem derived class encapsulating the handled ItemData object</typeparam>
 	/// <typeparam name="TData">ItemData derived class which will be encapsulated in a <see cref="TableSerializedData{TData}"/></typeparam>
 	/// <typeparam name="TSerialized">The full description of the <see cref="TableSerializedData{TData}"/> which will be used in this container</typeparam>
-	public abstract class TableSerializedContainer<T, TData, TSerialized> : ITableResourceContainer<T> 
+	public abstract class TableSerializedContainer<T, TData, TSerialized> : ITableResourceContainer<T>
 		where T : IItem
 		where TData : ItemData
 		where TSerialized : TableSerializedData<TData>

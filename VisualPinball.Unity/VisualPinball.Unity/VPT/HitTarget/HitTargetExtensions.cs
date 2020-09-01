@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class HitTargetExtensions
+	internal static class HitTargetExtensions
 	{
 		public static HitTargetAuthoring SetupGameObject(this Engine.VPT.HitTarget.HitTarget hitTarget, GameObject obj, RenderObjectGroup rog)
 		{
