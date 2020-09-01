@@ -4,6 +4,7 @@
     href: introduction/overview.md
   - name: Features
     href: introduction/features.md
+
 - name: Setup
   items:
   - name: Installing VPE
@@ -12,3 +13,11 @@
     href: setup/running-vpe.md
   - name: Updating VPE
     href: setup/updating-vpe.md
+
+- name: Manual
+  href: manual/manual.md
+  items:
+    - name: Game Items
+      items:
+      - name: Flippers
+        href: manual/items/flippers.md
