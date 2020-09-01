@@ -1,8 +1,6 @@
 // ReSharper disable CommentTypo
 
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
 {
