@@ -6,8 +6,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class Bumper : Item<BumperData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
-
 		private readonly BumperMeshGenerator _meshGenerator;
 
 		private HitObject[] _hits;

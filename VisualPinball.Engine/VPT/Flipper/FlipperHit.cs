@@ -1,7 +1,6 @@
 ﻿// ReSharper disable CommentTypo
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT.Table;

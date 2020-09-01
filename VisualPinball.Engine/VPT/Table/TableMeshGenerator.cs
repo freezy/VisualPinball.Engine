@@ -51,7 +51,7 @@ namespace VisualPinball.Engine.VPT.Table
 				rgv[i].Nz = 1.0f;
 
 				rgv[i].Tv = (i & 2) > 0 ? 1.0f : 0.0f;
-				rgv[i].Tu = (i == 1 || i == 2) ? 1.0f : 0.0f;
+				rgv[i].Tu = i == 1 || i == 2 ? 1.0f : 0.0f;
 			}
 
 			var offs = 0;

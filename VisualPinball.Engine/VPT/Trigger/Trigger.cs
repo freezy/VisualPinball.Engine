@@ -7,7 +7,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class Trigger : Item<TriggerData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly TriggerMeshGenerator _meshGenerator;

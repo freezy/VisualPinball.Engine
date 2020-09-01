@@ -7,7 +7,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 {
 	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable
 	{
-		public bool IsCollidable => true;
 		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 

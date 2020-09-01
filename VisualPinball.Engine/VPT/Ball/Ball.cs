@@ -8,14 +8,12 @@ namespace VisualPinball.Engine.VPT.Ball
 		public string Name => Data.GetName();
 
 		public readonly BallData Data;
-		public readonly BallState State;
 
 		public static uint IdCounter = 0;
 
-		public Ball(BallData data, BallState state, Vertex3D initialVelocity, Table.Table table)
+		public Ball(BallData data, Vertex3D initialVelocity, Table.Table table)
 		{
 			Data = data;
-			State = state;
 		}
 	}
 }

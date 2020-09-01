@@ -6,7 +6,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly HitTargetMeshGenerator _meshGenerator;

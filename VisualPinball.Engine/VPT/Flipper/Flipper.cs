@@ -6,8 +6,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class Flipper : Item<FlipperData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
-
 		private readonly FlipperMeshGenerator _meshGenerator;
 		private FlipperHit _hit;
 

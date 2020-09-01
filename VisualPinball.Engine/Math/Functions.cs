@@ -12,7 +12,7 @@ namespace VisualPinball.Engine.Math
 			}
 			discr = MathF.Sqrt(discr);
 
-			var invA = (-0.5f) / a;
+			var invA = -0.5f / a;
 
 			return new Tuple<float, float>(
 				(b + discr) * invA,

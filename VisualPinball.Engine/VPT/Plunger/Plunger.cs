@@ -6,7 +6,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class Plunger : Item<PlungerData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => true;
 		public PlungerHit PlungerHit { get; private set; }
 
 		public const float PlungerHeight = 50.0f;

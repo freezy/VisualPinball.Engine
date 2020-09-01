@@ -7,7 +7,6 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class Surface : Item<SurfaceData>, IRenderable, IHittable
 	{
-		public bool IsCollidable => Data.IsCollidable;
 
 		public HitObject[] GetHitShapes() => _hits;
 

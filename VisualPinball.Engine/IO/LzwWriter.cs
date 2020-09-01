@@ -84,7 +84,7 @@ namespace VisualPinball.Engine.IO
 			++_iPixelCur;
 			++_iXCur;
 			if (_iXCur == _width) {
-				_iPixelCur += (_pitch - _width);
+				_iPixelCur += _pitch - _width;
 				_iXCur = 0;
 			}
 			return ch;
@@ -190,7 +190,7 @@ namespace VisualPinball.Engine.IO
 			_curAccum &= Masks[_curBits];
 
 			if (_curBits > 0) {
-				_curAccum |= (code << _curBits);
+				_curAccum |= code << _curBits;
 
 			} else {
 				_curAccum = code;
