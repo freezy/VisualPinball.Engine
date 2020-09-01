@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
 {

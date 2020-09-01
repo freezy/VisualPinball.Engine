@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Math.Triangulator;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Engine.Physics
