@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal static class Math
+	public static class Math
 	{
 		private static Random _random = new Random(6429845);
 
