@@ -8,6 +8,10 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// The scripting API of the flipper.
+	/// </summary>
+	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
 		IApiRotatable, IApiCollidable
 	{
@@ -41,7 +45,7 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
+		internal FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
 		}
 
