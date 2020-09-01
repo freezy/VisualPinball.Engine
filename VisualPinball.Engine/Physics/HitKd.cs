@@ -57,17 +57,6 @@ namespace VisualPinball.Engine.Physics
 			_rootNode.CreateNextLevel(0, 0, this);
 		}
 
-		// call when the bounding boxes of the HitObjects have changed to update the tree
-		public void Update()
-		{
-			FillFromVector(_orgHitObjects);
-		}
-
-		public void HitTestBall(Ball ball, CollisionEvent collision, PlayerPhysics physics)
-		{
-			_rootNode.HitTestBall(ball, collision, physics, this);
-		}
-
 		public HitObject GetItemAt(int i)
 		{
 			return _orgHitObjects[OrgIdx[i]];

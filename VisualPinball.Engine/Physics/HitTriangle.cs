@@ -38,17 +38,5 @@ namespace VisualPinball.Engine.Physics
 			HitBBox.ZLow = System.Math.Min(Rgv[0].Z, System.Math.Min(Rgv[1].Z, Rgv[2].Z));
 			HitBBox.ZHigh = System.Math.Max(Rgv[0].Z, System.Math.Max(Rgv[1].Z, Rgv[2].Z));
 		}
-
-		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			return -1;
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
 	}
 }

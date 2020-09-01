@@ -4,8 +4,8 @@ namespace VisualPinball.Engine.Physics
 {
 	public interface IMoverObject
 	{
-		void UpdateDisplacements(float dTime);
+		void UpdateDisplacements();
 
-		void UpdateVelocities(PlayerPhysics physics);
+		void UpdateVelocities();
 	}
 }

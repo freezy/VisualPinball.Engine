@@ -58,50 +58,5 @@ namespace VisualPinball.Engine.Physics
 		public override void CalcHitBBox() {
 			// already one in constructor
 		}
-
-		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics) {
-
-			if (!IsEnabled) {
-				return -1.0f;
-			}
-
-			// transform ball to cylinder coordinate system
-			var oldPos = ball.State.Pos.Clone();
-			var oldVel = ball.Hit.Vel.Clone();
-			ball.State.Pos.ApplyMatrix2D(Matrix);
-			ball.State.Pos.ApplyMatrix2D(Matrix);
-
-			// and update z bounds of LineZ with transformed coordinates
-			var oldZ = new Vertex2D(HitBBox.ZLow, HitBBox.ZHigh);
-			HitBBox.ZLow = ZLow; // HACK; needed below // evil cast to non-const, should actually change the stupid HitLineZ to have explicit z coordinates!
-			HitBBox.ZHigh = ZHigh; // dto.
-
-			var hitTime = base.HitTest(ball, dTime, coll, physics);
-
-			ball.State.Pos.Set(oldPos.X, oldPos.Y, oldPos.Z); // see above
-			ball.Hit.Vel.Set(oldVel.X, oldVel.Y, oldVel.Z);
-			HitBBox.ZLow = oldZ.X; // HACK
-			HitBBox.ZHigh = oldZ.Y; // dto.
-
-			if (hitTime >= 0) {
-				// transform hit normal back to world coordinate system
-				coll.HitNormal.Set(Matrix.MultiplyVectorT(coll.HitNormal));
-			}
-
-			return hitTime;
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics) {
-			var ball = coll.Ball;
-			var hitNormal = coll.HitNormal;
-
-			var dot = -hitNormal.Dot(ball.Hit.Vel);
-			ball.Hit.Collide3DWall(hitNormal, Elasticity, ElasticityFalloff, Friction, Scatter);
-
-			// manage item-specific logic
-			if (Obj != null && FireEvents && dot >= Threshold) {
-				Obj.OnCollision?.Invoke(this, ball, dot);
-			}
-		}
 	}
 }

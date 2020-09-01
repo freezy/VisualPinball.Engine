@@ -20,11 +20,6 @@ namespace VisualPinball.Engine.Test.Test
 			LogManager.Configuration = config;
 			Logger = LogManager.GetCurrentClassLogger();
 		}
-
-		protected static Ball CreateBall(Player player, float x, float y, float z, float vx = 0, float vy = 0, float vz = 0)
-		{
-			return player.CreateBall(new TestBallCreator(x, y, z, vx, vy, vz));
-		}
 	}
 
 	[Target("Test")]
@@ -53,7 +48,7 @@ namespace VisualPinball.Engine.Test.Test
 
 		public Vertex3D GetBallCreationVelocity(Table table) => _vel;
 
-		public void OnBallCreated(PlayerPhysics physics, Ball ball)
+		public void OnBallCreated(Ball ball)
 		{
 			// do nothing
 		}
