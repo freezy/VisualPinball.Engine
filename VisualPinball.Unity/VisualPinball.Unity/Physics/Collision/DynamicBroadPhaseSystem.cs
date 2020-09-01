@@ -5,7 +5,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class DynamicBroadPhaseSystem : SystemBase
+	internal class DynamicBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _ballQuery;
 		private static readonly ProfilerMarker PerfMarker1 = new ProfilerMarker("DynamicBroadPhaseSystem.CreateKdTree");

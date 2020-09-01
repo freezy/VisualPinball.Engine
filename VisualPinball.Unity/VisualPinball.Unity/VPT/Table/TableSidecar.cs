@@ -10,7 +10,6 @@ using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -19,7 +18,7 @@ namespace VisualPinball.Unity
     /// a vpx table. We're storing this off on a different object so that selecting the table itself
     /// doesn't cause the editor to slow to a crawl
     /// </summary>
-	public class TableSidecar : ScriptableObject
+	internal class TableSidecar : ScriptableObject
     {
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
 		[HideInInspector] public TableSerializedTextureContainer textures = new TableSerializedTextureContainer();

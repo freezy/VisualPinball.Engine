@@ -5,7 +5,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public static class PlungerExtensions
+	internal static class PlungerExtensions
 	{
 		public static PlungerAuthoring SetupGameObject(this Plunger plunger, GameObject obj, RenderObjectGroup rog)
 		{

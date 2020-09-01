@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct CollisionEventData : IComponentData
+	internal struct CollisionEventData : IComponentData
 	{
 		public float HitTime;
 		public float3 HitNormal;

@@ -5,7 +5,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class BallSpinHackSystem : SystemBase
+	internal class BallSpinHackSystem : SystemBase
 	{
 		protected override void OnUpdate()
 		{

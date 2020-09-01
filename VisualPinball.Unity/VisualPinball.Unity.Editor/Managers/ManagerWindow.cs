@@ -5,7 +5,6 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {

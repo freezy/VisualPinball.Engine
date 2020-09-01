@@ -10,7 +10,7 @@ namespace VisualPinball.Unity
 	///
 	/// These are all read-only.
 	/// </summary>
-	public struct ColliderHeader
+	internal struct ColliderHeader
 	{
 		public ColliderType Type;
 		public ItemType ItemType;

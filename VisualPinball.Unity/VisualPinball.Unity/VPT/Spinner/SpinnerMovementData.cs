@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct SpinnerMovementData : IComponentData
+	internal struct SpinnerMovementData : IComponentData
 	{
 		public float Angle;
 		public float AngleSpeed;

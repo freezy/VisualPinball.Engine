@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace VisualPinball.Unity
 {
-	public static class MemHelper
+	internal static class MemHelper
 	{
 		public static CopiedPtr<byte[]> ToByteArray(IntPtr ptr, int len)
 		{
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public class CopiedPtr<T> : IDisposable
+	internal class CopiedPtr<T> : IDisposable
 	{
 		private readonly IntPtr _ptr;
 

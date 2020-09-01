@@ -6,7 +6,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
-	public static class PrimitiveExtensions
+	internal static class PrimitiveExtensions
 	{
 		public static PrimitiveAuthoring SetupGameObject(this Primitive primitive, GameObject obj, RenderObjectGroup rog)
 		{

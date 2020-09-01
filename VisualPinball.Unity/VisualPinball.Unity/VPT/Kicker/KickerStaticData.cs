@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct KickerStaticData : IComponentData
+	internal struct KickerStaticData : IComponentData
 	{
 		public bool LegacyMode;
 		public bool FallThrough;

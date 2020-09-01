@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct BumperRingAnimationData : IComponentData
+	internal struct BumperRingAnimationData : IComponentData
 	{
 		public bool IsHit;
 		public float DropOffset;

@@ -4,7 +4,7 @@ using Unity.Mathematics;
 namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(1)]
-	public struct PlungerUvBufferElement : IBufferElementData
+	internal struct PlungerUvBufferElement : IBufferElementData
 	{
 		public float2 Value;
 

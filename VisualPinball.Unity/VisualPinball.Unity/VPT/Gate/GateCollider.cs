@@ -6,7 +6,7 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	internal struct GateCollider : ICollider, ICollidable
+	internal struct GateCollider
 	{
 		private ColliderHeader _header;
 

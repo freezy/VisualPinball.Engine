@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsMaterialData : IComponentData
+	internal struct PhysicsMaterialData : IComponentData
 	{
 		public float Elasticity;
 		public float ElasticityFalloff;

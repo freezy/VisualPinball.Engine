@@ -8,7 +8,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
-	public class QuadTreeConversionSystem : GameObjectConversionSystem
+	internal class QuadTreeConversionSystem : GameObjectConversionSystem
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

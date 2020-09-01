@@ -3,7 +3,7 @@
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class UpdateDisplacementSystemGroup : ComponentSystemGroup
+	internal class UpdateDisplacementSystemGroup : ComponentSystemGroup
 	{
 	}
 }

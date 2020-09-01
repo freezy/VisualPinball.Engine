@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct BumperStaticData : IComponentData
+	internal struct BumperStaticData : IComponentData
 	{
 		public float Force;
 		public float Threshold;

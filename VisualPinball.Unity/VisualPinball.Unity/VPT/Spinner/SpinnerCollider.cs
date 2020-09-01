@@ -5,7 +5,7 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	internal struct SpinnerCollider : ICollider, ICollidable
+	internal struct SpinnerCollider
 	{
 		private ColliderHeader _header;
 

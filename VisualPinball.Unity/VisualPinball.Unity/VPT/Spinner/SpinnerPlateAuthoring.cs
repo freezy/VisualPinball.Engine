@@ -5,7 +5,7 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAuthoring : ItemAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
+	internal class SpinnerPlateAuthoring : ItemAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new string[0];
 

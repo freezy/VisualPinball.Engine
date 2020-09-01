@@ -3,7 +3,7 @@
 namespace VisualPinball.Unity
 {
 	[InternalBufferCapacity(1)]
-	public struct ContactBufferElement : IBufferElementData
+	internal struct ContactBufferElement : IBufferElementData
 	{
 		public CollisionEventData CollisionEvent;
 		public int ColliderId;

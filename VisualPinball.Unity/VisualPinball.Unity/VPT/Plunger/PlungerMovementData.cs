@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct PlungerMovementData : IComponentData
+	internal struct PlungerMovementData : IComponentData
 	{
 		/// <summary>
 		/// Current rod speed, in table distance units per second(?)

@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperHitData : IComponentData
+	internal struct FlipperHitData : IComponentData
 	{
 		public bool LastHitFace;
 		public float2 HitVelocity;

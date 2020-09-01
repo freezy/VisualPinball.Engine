@@ -8,7 +8,7 @@ namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class BallMovementSystem : SystemBase
+	internal class BallMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallMovementSystem");

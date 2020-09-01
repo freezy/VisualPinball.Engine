@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct KickerCollisionData : IComponentData
+	internal struct KickerCollisionData : IComponentData
 	{
 		public bool HasBall;
 		public Entity LastCapturedBallEntity;

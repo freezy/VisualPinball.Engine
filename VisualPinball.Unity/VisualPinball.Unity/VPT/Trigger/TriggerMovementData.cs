@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct TriggerMovementData : IComponentData
+	internal struct TriggerMovementData : IComponentData
 	{
 		public float HeightOffset;
 	}

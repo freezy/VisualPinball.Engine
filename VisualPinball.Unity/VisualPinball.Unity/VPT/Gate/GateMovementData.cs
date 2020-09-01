@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct GateMovementData : IComponentData
+	internal struct GateMovementData : IComponentData
 	{
 		public float Angle;
 		public float AngleSpeed;

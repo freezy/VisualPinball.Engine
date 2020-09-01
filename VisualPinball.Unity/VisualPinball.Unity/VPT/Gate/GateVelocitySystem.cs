@@ -8,7 +8,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	public class GateVelocitySystem : SystemBase
+	internal class GateVelocitySystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
 

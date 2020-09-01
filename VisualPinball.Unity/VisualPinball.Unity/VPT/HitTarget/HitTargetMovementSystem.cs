@@ -7,7 +7,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	public class HitTargetMovementSystem : SystemBase
+	internal class HitTargetMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("HitTargetMovementSystem");

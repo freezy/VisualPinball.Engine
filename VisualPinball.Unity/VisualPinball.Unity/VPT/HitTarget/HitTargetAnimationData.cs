@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct HitTargetAnimationData : IComponentData
+	internal struct HitTargetAnimationData : IComponentData
 	{
 		public bool HitEvent;
 		public uint TimeMsec;

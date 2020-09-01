@@ -2,7 +2,7 @@
 
 namespace VisualPinball.Unity
 {
-	public struct PlungerStaticData : IComponentData
+	internal struct PlungerStaticData : IComponentData
 	{
 		// general
 		public Entity RodEntity;

@@ -7,7 +7,7 @@ namespace VisualPinball.Unity
 	/// The ball's last positions
 	/// </summary>
 	[InternalBufferCapacity(BallRingCounterSystem.MaxBallTrailPos)]
-	public struct BallLastPositionsBufferElement : IBufferElementData
+	internal struct BallLastPositionsBufferElement : IBufferElementData
 	{
 		public float3 Value;
 	}

@@ -4,7 +4,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class DynamicCollisionSystem : SystemBase
+	internal class DynamicCollisionSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicCollisionSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

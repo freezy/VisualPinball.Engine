@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct HitTargetStaticData : IComponentData
+	internal struct HitTargetStaticData : IComponentData
 	{
 		public int TargetType;
 		public float DropSpeed;

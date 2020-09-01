@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class BumperSkirtAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	internal class BumperSkirtAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

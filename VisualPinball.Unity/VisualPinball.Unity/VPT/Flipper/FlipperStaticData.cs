@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperStaticData : IComponentData
+	internal struct FlipperStaticData : IComponentData
 	{
 		public float Inertia;
 		public float AngleStart;

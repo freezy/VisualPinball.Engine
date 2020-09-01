@@ -12,7 +12,7 @@ using Random = UnityEngine.Random;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class StaticCollisionSystem : SystemBase
+	internal class StaticCollisionSystem : SystemBase
 	{
 		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;

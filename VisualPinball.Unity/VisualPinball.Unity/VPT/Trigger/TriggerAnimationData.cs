@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct TriggerAnimationData : IComponentData
+	internal struct TriggerAnimationData : IComponentData
 	{
 		public bool HitEvent;
 		public bool UnHitEvent;

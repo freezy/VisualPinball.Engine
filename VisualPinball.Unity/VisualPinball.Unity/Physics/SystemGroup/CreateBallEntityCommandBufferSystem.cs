@@ -3,7 +3,7 @@
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class CreateBallEntityCommandBufferSystem : EntityCommandBufferSystem
+	internal class CreateBallEntityCommandBufferSystem : EntityCommandBufferSystem
 	{
 
 	}

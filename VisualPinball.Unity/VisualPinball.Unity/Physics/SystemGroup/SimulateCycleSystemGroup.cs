@@ -10,7 +10,7 @@ namespace VisualPinball.Unity
 	/// The main simulation loop
 	/// </summary>
 	[DisableAutoCreation]
-	public class SimulateCycleSystemGroup : ComponentSystemGroup
+	internal class SimulateCycleSystemGroup : ComponentSystemGroup
 	{
 		/// <summary>
 		/// Time of the next collision; other systems can update this.

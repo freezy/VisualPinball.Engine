@@ -1,6 +1,6 @@
 using VisualPinball.Engine.VPT;
 
-namespace VisualPinball.Unity.VPT.Table
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Scriptable object wrapper for plain VPX texture data. This will allow us to operate on texture data one a time
