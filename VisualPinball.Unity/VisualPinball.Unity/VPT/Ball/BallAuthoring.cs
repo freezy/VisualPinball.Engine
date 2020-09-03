@@ -139,5 +139,13 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+		public static void DestroyEntity(Entity ballEntity)
+		{
+			World.DefaultGameObjectInjectionWorld
+				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()
+				.CreateCommandBuffer()
+				.DestroyEntity(ballEntity);
+		}
 	}
 }
