@@ -57,10 +57,14 @@ namespace VisualPinball.Unity
 				Center = data.Center.ToUnityFloat2(),
 				FallThrough = data.FallThrough,
 				HitAccuracy = data.HitAccuracy,
+				Scatter = data.Scatter,
 				LegacyMode = data.LegacyMode,
 				ZLow = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y) * table.GetScaleZ()
 			});
-			dstManager.AddComponentData(entity, new KickerCollisionData());
+			dstManager.AddComponentData(entity, new KickerCollisionData {
+				BallEntity = Entity.Null,
+				LastCapturedBallEntity = Entity.Null
+			});
 
 			if (!data.LegacyMode) {
 				using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {

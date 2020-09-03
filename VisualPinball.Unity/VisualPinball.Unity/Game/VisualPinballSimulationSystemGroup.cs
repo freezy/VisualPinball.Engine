@@ -32,7 +32,6 @@ namespace VisualPinball.Unity
 	{
 		public double PhysicsDiffTime;
 		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);
-
 		public uint TimeMsec;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
@@ -51,6 +50,8 @@ namespace VisualPinball.Unity
 		private BallRingCounterSystem _ballRingCounterSystem;
 		private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
+
+		private readonly List<Action> _afterBallQueues = new List<Action>();
 
 		private const TimingMode Timing = TimingMode.UnityTime;
 
@@ -86,6 +87,10 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			_createBallEntityCommandBufferSystem.Update();
+			foreach (var action in _afterBallQueues) {
+				action();
+			}
+			_afterBallQueues.Clear();
 
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();
@@ -152,6 +157,11 @@ namespace VisualPinball.Unity
 			Atleast60,
 			Locked60
 		};
+
+		public void QueueAfterBallCreation(Action action)
+		{
+			_afterBallQueues.Add(action);
+		}
 	}
 
 }

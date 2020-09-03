@@ -56,10 +56,13 @@ namespace VisualPinball.Unity
 			dstManager.AddBuffer<BallInsideOfBufferElement>(entity);
 		}
 
-		public static EntityCommandBuffer CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
-			float3 worldPos, float scale, float3 localPos, float3 velocity, float radius, float mass)
+		public static void CreateEntity(EntityManager entityManager, Mesh mesh, Material material,
+			float3 worldPos, float scale, float3 localPos, float3 velocity, float radius, float mass, Entity kickerEntity)
 		{
-			var ecbs = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
+			var world = World.DefaultGameObjectInjectionWorld;
+			// var vpssg = world.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			// var ecb = vpssg.GetCommandBuffer();
+			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			var ecb = ecbs.CreateCommandBuffer();
 
 			var archetype = entityManager.CreateArchetype(
@@ -104,7 +107,8 @@ namespace VisualPinball.Unity
 				Mass = mass,
 				Velocity = velocity,
 				Orientation = float3x3.identity,
-				RingCounterOldPos = 0
+				RingCounterOldPos = 0,
+				AngularMomentum = float3.zero
 			});
 
 			ecb.SetComponent(entity, new CollisionEventData {
@@ -122,7 +126,18 @@ namespace VisualPinball.Unity
 				);
 			}
 
-			return ecb;
+			// handle inside-kicker creation
+			if (kickerEntity != Entity.Null) {
+				var kickerData = entityManager.GetComponentData<KickerStaticData>(kickerEntity);
+				if (!kickerData.FallThrough) {
+					var kickerCollData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+					var inside = ecb.AddBuffer<BallInsideOfBufferElement>(entity);
+					BallData.SetInsideOf(ref inside, kickerEntity);
+					kickerCollData.BallEntity = entity;
+					kickerCollData.LastCapturedBallEntity = entity;
+					ecb.SetComponent(kickerEntity, kickerCollData);
+				}
+			}
 		}
 	}
 }

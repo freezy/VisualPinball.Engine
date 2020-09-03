@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			_table = table;
 		}
 
-		public void CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
+		public void CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass, in Entity kickerRef)
 		{
 			// calculate mass and scale
 			var ltw = player.TableToWorld;
@@ -60,14 +60,14 @@ namespace VisualPinball.Unity
 
 			// create ball entity
 			EngineProvider<IPhysicsEngine>.Get()
-				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
+				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public static EntityCommandBuffer CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius)
+		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			return BallAuthoring.CreateEntity(entityManager, mesh, material, worldPos, scale, localPos, localVel, radius, mass);
+			BallAuthoring.CreateEntity(entityManager, mesh, material, worldPos, scale, localPos, localVel, radius, mass, kickerEntity);
 		}
 
 		/// <summary>

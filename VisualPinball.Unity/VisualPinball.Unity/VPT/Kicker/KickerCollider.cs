@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
 							BallData.SetInsideOf(ref insideOfs, collEntity); // add kicker to ball's volume set
-							collData.HasBall = true;
+							collData.BallEntity = ballEntity;
 							collData.LastCapturedBallEntity = ballEntity;
 						}
 
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 							ball.Position = new float3(staticData.Center.x, staticData.Center.y, posZ);
 
 						} else {
-							collData.HasBall = false; // make sure
+							collData.BallEntity = Entity.Null; // make sure
 						}
 					}
 
