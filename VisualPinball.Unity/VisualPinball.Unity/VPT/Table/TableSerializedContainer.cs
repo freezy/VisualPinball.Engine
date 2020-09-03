@@ -35,13 +35,18 @@ namespace VisualPinball.Unity
 		where TSerialized : TableSerializedData<TData>
 	{
 		public int Count => _serializedData.Count;
-		public IEnumerable<T> Values => _data.Values;
+		public IEnumerable<T> Values => Data.Values;
 		public IEnumerable<TSerialized> SerializedObjects => _serializedData;
 
-		[UnityEngine.SerializeField] protected List<TSerialized> _serializedData = new List<TSerialized>();
-		[UnityEngine.SerializeField] protected bool _dictDirty = false;
-		protected Dictionary<string, T> Data => _data == null || _dictDirty ? (_data = CreateDict()) : _data;
-		protected Dictionary<string, T> _data = null;
+		[UnityEngine.SerializeField]
+		protected readonly List<TSerialized> _serializedData = new List<TSerialized>();
+
+		[UnityEngine.SerializeField]
+		protected bool _dictDirty;
+
+		private Dictionary<string, T> Data => _data == null || _dictDirty ? _data = CreateDict() : _data;
+
+		private Dictionary<string, T> _data;
 
 		public T this[string k] => Get(k);
 		public T Get(string k)
