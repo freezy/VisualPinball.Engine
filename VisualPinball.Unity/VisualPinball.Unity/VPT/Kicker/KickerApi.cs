@@ -64,6 +64,30 @@ namespace VisualPinball.Unity
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, angle, speed, inclination, 0, 0, 0));
 		}
 
+		public void DestroyBall()
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+			var ballEntity = kickerCollisionData.BallEntity;
+			if (ballEntity != Entity.Null) {
+				BallAuthoring.DestroyEntity(ballEntity);
+				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
+			}
+		}
+
+		private static void DestroyBall(Entity kickerEntity)
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+			var ballEntity = kickerCollisionData.BallEntity;
+			if (ballEntity != Entity.Null) {
+
+				// update kicker status
+				kickerCollisionData.BallEntity = Entity.Null;
+				entityManager.SetComponentData(kickerEntity, kickerCollisionData);
+			}
+		}
+
 		private static void KickXYZ(Table table, Entity kickerEntity, float angle, float speed, float inclination, float x, float y, float z)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
