@@ -205,10 +205,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
+		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
 		{
 			// todo callback and other stuff
-			return _ballManager.CreateBall(this, ballCreator, radius, mass);
+			_ballManager.CreateBall(this, ballCreator, radius, mass);
 		}
 
 		public float3 GetGravity()

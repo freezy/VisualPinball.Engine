@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public Vertex3D GetBallCreationPosition(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			return new Vertex3D(Data.Center.X, Data.Center.Y, height); // TODO get position from hit object
+			return new Vertex3D(Data.Center.X, Data.Center.Y, height);
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table.Table table)

@@ -42,19 +42,21 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public BallApi CreateBall()
+		public void CreateBall()
 		{
-			return Player.CreateBall(Item);
+			var meshData = EntityManager.GetComponentData<KickerCollisionData>(Entity);
+			var staticData = EntityManager.GetComponentData<KickerStaticData>(Entity);
+			Player.CreateBall(Item);
 		}
 
-		public BallApi CreateSizedBallWithMass(float radius, float mass)
+		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			return Player.CreateBall(Item, radius, mass);
+			Player.CreateBall(Item, radius, mass);
 		}
 
-		public BallApi CreateSizedBall(float radius)
+		public void CreateSizedBall(float radius)
 		{
-			return Player.CreateBall(Item, radius);
+			Player.CreateBall(Item, radius);
 		}
 
 		#region Events
