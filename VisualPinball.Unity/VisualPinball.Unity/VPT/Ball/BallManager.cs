@@ -38,21 +38,21 @@ namespace VisualPinball.Unity
 			_table = table;
 		}
 
-		public BallApi CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
+		public void CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
 		{
 			// calculate mass and scale
-			var m = player.TableToWorld;
+			var ltw = player.TableToWorld;
 
 			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
 			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
 			localPos.z += radius;
 			//float4x4 model = player.TableToWorld * Matrix4x4.TRS(localPos, Quaternion.identity, new float3(radius));
 
-			var worldPos = m.MultiplyPoint(localPos);
+			var worldPos = ltw.MultiplyPoint(localPos);
 			var scale3 = new Vector3(
-				m.GetColumn(0).magnitude,
-				m.GetColumn(1).magnitude,
-				m.GetColumn(2).magnitude
+				ltw.GetColumn(0).magnitude,
+				ltw.GetColumn(1).magnitude,
+				ltw.GetColumn(2).magnitude
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
 			var material = BallMaterial.CreateMaterial();
@@ -61,53 +61,13 @@ namespace VisualPinball.Unity
 			// create ball entity
 			EngineProvider<IPhysicsEngine>.Get()
 				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
-
-			return null;
 		}
 
-		public static Entity CreatePureEntity(Mesh mesh, Material material, float3 position, float scale)
-		{
-			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-			Entity entity = entityManager.CreateEntity(
-				typeof(Translation),
-				typeof(Scale),
-				typeof(Rotation),
-				typeof(RenderMesh),
-				typeof(LocalToWorld),
-				typeof(RenderBounds));
-
-			entityManager.SetSharedComponentData(entity, new RenderMesh
-			{
-				mesh = mesh,
-				material = material
-			});
-
-			entityManager.SetComponentData(entity, new RenderBounds
-			{
-				Value = mesh.bounds.ToAABB()
-			});
-
-			entityManager.SetComponentData(entity, new Translation
-			{
-				Value = position
-			});
-
-			entityManager.SetComponentData(entity, new Scale
-			{
-				Value = scale
-			});
-
-			return entity;
-		}
-
-		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public static EntityCommandBuffer CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			BallAuthoring.CreateEntity(entityManager,
-				mesh, material, worldPos, scale, localPos,
-					localVel, radius, mass);
+			return BallAuthoring.CreateEntity(entityManager, mesh, material, worldPos, scale, localPos, localVel, radius, mass);
 		}
 
 		/// <summary>
