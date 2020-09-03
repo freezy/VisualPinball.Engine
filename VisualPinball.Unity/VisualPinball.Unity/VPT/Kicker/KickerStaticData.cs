@@ -26,5 +26,6 @@ namespace VisualPinball.Unity
 		public float2 Center;
 		public float ZLow;
 		public float HitAccuracy;
+		public float Scatter;
 	}
 }

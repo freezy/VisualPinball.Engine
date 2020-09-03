@@ -16,13 +16,15 @@
 
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Table;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable
 	{
-
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -44,19 +46,83 @@ namespace VisualPinball.Unity
 
 		public void CreateBall()
 		{
-			var meshData = EntityManager.GetComponentData<KickerCollisionData>(Entity);
-			var staticData = EntityManager.GetComponentData<KickerStaticData>(Entity);
-			Player.CreateBall(Item);
+			Player.CreateBall(Item, Entity);
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			Player.CreateBall(Item, radius, mass);
+			Player.CreateBall(Item, Entity, radius, mass);
 		}
 
 		public void CreateSizedBall(float radius)
 		{
-			Player.CreateBall(Item, radius);
+			Player.CreateBall(Item, Entity, radius);
+		}
+
+		public void Kick(float angle, float speed, float inclination = 0)
+		{
+			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, angle, speed, inclination, 0, 0, 0));
+		}
+
+		private static void KickXYZ(Table table, Entity kickerEntity, float angle, float speed, float inclination, float x, float y, float z)
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+			var kickerStaticData = entityManager.GetComponentData<KickerStaticData>(kickerEntity);
+			var ballEntity = kickerCollisionData.BallEntity;
+			if (ballEntity != Entity.Null) {
+				var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
+
+				if (math.abs(inclination) > (float) (System.Math.PI / 2.0)) {
+					// radians or degrees?  if greater PI/2 assume degrees
+					inclination *= (float) (System.Math.PI / 180.0); // convert to radians
+				}
+
+				// if < 0 use global value
+				var scatterAngle = kickerStaticData.Scatter < 0.0f ? 0.0f : math.radians(kickerStaticData.Scatter);
+				scatterAngle *= table.Data.GlobalDifficulty; // apply difficulty weighting
+
+				if (scatterAngle > 1.0e-5f) { // ignore near zero angles
+					var scatter = new Random().NextFloat(-1f, 1f); // -1.0f..1.0f
+					scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle; // shape quadratic distribution and scale
+					angleRad += scatter;
+				}
+
+				var speedZ = math.sin(inclination) * speed;
+				if (speedZ > 0.0f) {
+					speed *= math.cos(inclination);
+				}
+
+				// update ball data
+				var ballData = entityManager.GetComponentData<BallData>(ballEntity);
+				ballData.Position = new float3(
+					ballData.Position.x + x,
+					ballData.Position.y + y,
+					ballData.Position.z + z
+				);
+				ballData.Velocity = new float3(
+					math.sin(angleRad) * speed,
+					-math.cos(angleRad) * speed,
+					speedZ
+				);
+				ballData.IsFrozen = false;
+				ballData.AngularMomentum = float3.zero;
+				entityManager.SetComponentData(ballEntity, ballData);
+
+				// update collision event
+				var collEvent = entityManager.GetComponentData<CollisionEventData>(ballEntity);
+				collEvent.HitDistance = 0.0f;
+				collEvent.HitTime = -1.0f;
+				collEvent.HitNormal = float3.zero;
+				collEvent.HitVelocity = float2.zero;
+				collEvent.HitFlag = false;
+				collEvent.IsContact = false;
+				entityManager.SetComponentData(ballEntity, collEvent);
+
+				// update kicker status
+				kickerCollisionData.BallEntity = Entity.Null;
+				entityManager.SetComponentData(kickerEntity, kickerCollisionData);
+			}
 		}
 
 		#region Events

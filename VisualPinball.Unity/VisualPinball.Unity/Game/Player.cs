@@ -39,8 +39,13 @@ namespace VisualPinball.Unity
 {
 	public class Player : MonoBehaviour
 	{
+		public Table Table { get; private set; }
+		public float GlobalDifficulty => Table.Data.GlobalDifficulty;
+
+		// shortcuts
+		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+
 		// table related
-		private Table _table;
 		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
@@ -49,9 +54,6 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
-
-		// shortcuts
-		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		public Player()
 		{
@@ -205,24 +207,23 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
+		public void CreateBall(IBallCreationPosition ballCreator, in Entity kickerEntity, float radius = 25, float mass = 1)
 		{
-			// todo callback and other stuff
-			_ballManager.CreateBall(this, ballCreator, radius, mass);
+			_ballManager.CreateBall(this, ballCreator, radius, mass, kickerEntity);
 		}
 
 		public float3 GetGravity()
 		{
-			var slope = _table.Data.AngleTiltMin + (_table.Data.AngleTiltMax - _table.Data.AngleTiltMin) * _table.Data.GlobalDifficulty;
-			var strength = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity;
+			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
+			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
 			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 		}
 
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			_table = tableComponent.CreateTable();
-			_ballManager = new BallManager(_table);
+			Table = tableComponent.CreateTable();
+			_ballManager = new BallManager(Table);
 		}
 
 		private void Start()
@@ -256,7 +257,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (Input.GetKeyUp("b")) {
-				CreateBall(new DebugBallCreator());
+				CreateBall(new DebugBallCreator(), Entity.Null);
 				// _player.CreateBall(new DebugBallCreator(425, 1325));
 				// _player.CreateBall(new DebugBallCreator(390, 1125));
 
@@ -265,8 +266,13 @@ namespace VisualPinball.Unity
 			}
 
 			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(_table.Width / 2f, _table.Height / 2f - 300f, 0, -5));
+				CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5), Entity.Null);
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyUp("k")) {
+				_tableApi.Kicker("Kicker1").CreateBall();
+				_tableApi.Kicker("Kicker1").Kick(0, -5f);
 			}
 
 			if (Input.GetKeyDown(KeyCode.Return)) {

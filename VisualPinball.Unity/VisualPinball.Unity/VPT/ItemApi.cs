@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -25,7 +26,12 @@ namespace VisualPinball.Unity
 		protected readonly Player Player;
 		internal readonly Entity Entity;
 
+		protected TData Data => Item.Data;
+		protected Table Table => Player.Table;
+
 		protected readonly EntityManager EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		protected ItemApi(T item, Entity entity, Player player)
 		{

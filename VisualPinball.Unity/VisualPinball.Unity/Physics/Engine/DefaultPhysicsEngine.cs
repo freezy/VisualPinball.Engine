@@ -58,10 +58,10 @@ namespace VisualPinball.Unity
 		}
 
 		public void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius)
+			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
 		{
 			BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
-				scale * radius * 2, in mass, in radius);
+				scale * radius * 2, in mass, in radius, in kickerRef);
 		}
 
 		public void BallManualRoll(in Entity entity, in float3 targetWorldPosition)

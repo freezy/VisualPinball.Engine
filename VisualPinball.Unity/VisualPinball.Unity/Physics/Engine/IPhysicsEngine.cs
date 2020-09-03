@@ -47,8 +47,9 @@ namespace VisualPinball.Unity
 		/// <param name="scale">Scale relative to ball mesh</param>
 		/// <param name="mass">Physics mass</param>
 		/// <param name="radius">Radius in local space</param>
+		/// <param name="kickerRef">If created within a kicker, this is the kicker entity</param>
 		void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos, in float3 localVel,
-			in float scale, in float mass, in float radius);
+			in float scale, in float mass, in float radius, in Entity kickerRef);
 
 		/// <summary>
 		/// Rolls the ball manually to a position on the playfield.
