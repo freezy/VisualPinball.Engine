@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable
 	{
+		private BallManager _ballManager;
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -46,17 +48,17 @@ namespace VisualPinball.Unity
 
 		public void CreateBall()
 		{
-			Player.CreateBall(Item, Entity);
+			_ballManager.CreateBall(Item, 25f, 1f, Entity);
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			Player.CreateBall(Item, Entity, radius, mass);
+			_ballManager.CreateBall(Item, radius, mass, Entity);
 		}
 
 		public void CreateSizedBall(float radius)
 		{
-			Player.CreateBall(Item, Entity, radius);
+			_ballManager.CreateBall(Item, radius, 1f, Entity);
 		}
 
 		public void Kick(float angle, float speed, float inclination = 0)
@@ -70,7 +72,7 @@ namespace VisualPinball.Unity
 			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
 			var ballEntity = kickerCollisionData.BallEntity;
 			if (ballEntity != Entity.Null) {
-				BallAuthoring.DestroyEntity(ballEntity);
+				BallManager.DestroyEntity(ballEntity);
 				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
 			}
 		}
@@ -153,6 +155,7 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit()
 		{
+			_ballManager = BallManager.Instance(Player.Table, Player.TableToWorld);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 

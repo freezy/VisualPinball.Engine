@@ -40,7 +40,6 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public float GlobalDifficulty => Table.Data.GlobalDifficulty;
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -59,6 +58,78 @@ namespace VisualPinball.Unity
 		{
 			_initializables.Add(_tableApi);
 		}
+
+		#region Lifecycle
+
+		private void Awake()
+		{
+			var tableComponent = gameObject.GetComponent<TableAuthoring>();
+			Table = tableComponent.CreateTable();
+			_ballManager = new BallManager(Table, TableToWorld);
+		}
+
+		private void Start()
+		{
+			// bootstrap table script(s)
+			var tableScripts = GetComponents<VisualPinballScript>();
+			foreach (var tableScript in tableScripts) {
+				tableScript.OnAwake(_tableApi);
+			}
+
+			// trigger init events now
+			foreach (var i in _initializables) {
+				i.OnInit();
+			}
+		}
+
+		private void Update()
+		{
+			// flippers will be handled via script later, but until scripting works, do it here.
+			if (Input.GetKeyDown("left shift")) {
+				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
+			}
+			if (Input.GetKeyUp("left shift")) {
+				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
+			}
+			if (Input.GetKeyDown("right shift")) {
+				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
+			}
+			if (Input.GetKeyUp("right shift")) {
+				_tableApi.Flipper("RightFlipper")?.RotateToStart();
+			}
+
+			if (Input.GetKeyUp("b")) {
+				_ballManager.CreateBall(new DebugBallCreator());
+				// _player.CreateBall(new DebugBallCreator(425, 1325));
+				// _player.CreateBall(new DebugBallCreator(390, 1125));
+
+				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
+				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyUp("n")) {
+				_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
+				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
+			}
+
+			if (Input.GetKeyUp("k")) {
+				_tableApi.Kicker("Kicker1").CreateBall();
+				_tableApi.Kicker("Kicker1").Kick(0, -5f);
+			}
+
+			if (Input.GetKeyDown(KeyCode.Return)) {
+				_tableApi.Plunger("CustomPlunger")?.PullBack();
+				_tableApi.Plunger("Plunger001")?.PullBack();
+				_tableApi.Plunger("Plunger002")?.PullBack();
+			}
+			if (Input.GetKeyUp(KeyCode.Return)) {
+				_tableApi.Plunger("CustomPlunger")?.Fire();
+				_tableApi.Plunger("Plunger001")?.Fire();
+				_tableApi.Plunger("Plunger002")?.Fire();
+			}
+		}
+
+		#endregion
 
 		#region Registrations
 
@@ -168,6 +239,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Events
+
 		public void OnEvent(in EventData eventData)
 		{
 			switch (eventData.eventId) {
@@ -207,84 +280,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, in Entity kickerEntity, float radius = 25, float mass = 1)
-		{
-			_ballManager.CreateBall(this, ballCreator, radius, mass, kickerEntity);
-		}
+		#endregion
 
 		public float3 GetGravity()
 		{
 			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
 			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
 			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
-		}
-
-		private void Awake()
-		{
-			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			Table = tableComponent.CreateTable();
-			_ballManager = new BallManager(Table);
-		}
-
-		private void Start()
-		{
-			// bootstrap table script(s)
-			var tableScripts = GetComponents<VisualPinballScript>();
-			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi);
-			}
-
-			// trigger init events now
-			foreach (var i in _initializables) {
-				i.OnInit();
-			}
-		}
-
-		private void Update()
-		{
-			// flippers will be handled via script later, but until scripting works, do it here.
-			if (Input.GetKeyDown("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-			}
-			if (Input.GetKeyDown("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToStart();
-			}
-
-			if (Input.GetKeyUp("b")) {
-				CreateBall(new DebugBallCreator(), Entity.Null);
-				// _player.CreateBall(new DebugBallCreator(425, 1325));
-				// _player.CreateBall(new DebugBallCreator(390, 1125));
-
-				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
-				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5), Entity.Null);
-				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyUp("k")) {
-				_tableApi.Kicker("Kicker1").CreateBall();
-				_tableApi.Kicker("Kicker1").Kick(0, -5f);
-			}
-
-			if (Input.GetKeyDown(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.PullBack();
-				_tableApi.Plunger("Plunger001")?.PullBack();
-				_tableApi.Plunger("Plunger002")?.PullBack();
-			}
-			if (Input.GetKeyUp(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.Fire();
-				_tableApi.Plunger("Plunger001")?.Fire();
-				_tableApi.Plunger("Plunger002")?.Fire();
-			}
 		}
 	}
 }
