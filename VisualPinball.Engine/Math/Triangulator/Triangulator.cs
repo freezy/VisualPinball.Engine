@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -90,18 +106,18 @@ namespace VisualPinball.Engine.Math.Triangulator
 			{
 				for (int i = 0; i < triangles.Count; i++)
 				{
-					indices[i * 3] = triangles[i].A.Index;
-					indices[i * 3 + 1] = triangles[i].B.Index;
-					indices[i * 3 + 2] = triangles[i].C.Index;
+					indices[(i * 3)] = triangles[i].A.Index;
+					indices[(i * 3) + 1] = triangles[i].B.Index;
+					indices[(i * 3) + 2] = triangles[i].C.Index;
 				}
 			}
 			else
 			{
 				for (int i = 0; i < triangles.Count; i++)
 				{
-					indices[i * 3] = triangles[i].C.Index;
-					indices[i * 3 + 1] = triangles[i].B.Index;
-					indices[i * 3 + 2] = triangles[i].A.Index;
+					indices[(i * 3)] = triangles[i].C.Index;
+					indices[(i * 3) + 1] = triangles[i].B.Index;
+					indices[(i * 3) + 2] = triangles[i].A.Index;
 				}
 			}
 		}
@@ -169,8 +185,8 @@ namespace VisualPinball.Engine.Math.Triangulator
 				Vertex b = polygonVertices[i + 1].Value;
 
 				if ((a.Position.X > rightMostHoleVertex.Position.X || b.Position.X > rightMostHoleVertex.Position.X) &&
-					(a.Position.Y >= rightMostHoleVertex.Position.Y && b.Position.Y <= rightMostHoleVertex.Position.Y ||
-					a.Position.Y <= rightMostHoleVertex.Position.Y && b.Position.Y >= rightMostHoleVertex.Position.Y))
+					((a.Position.Y >= rightMostHoleVertex.Position.Y && b.Position.Y <= rightMostHoleVertex.Position.Y) ||
+					(a.Position.Y <= rightMostHoleVertex.Position.Y && b.Position.Y >= rightMostHoleVertex.Position.Y)))
 					segmentsToTest.Add(new LineSegment(a, b));
 			}
 
@@ -198,7 +214,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 
 			//otherwise we can find our mutually visible vertex to split the polygon
 			Vector2 I = rightMostHoleVertex.Position + Vector2.UnitX * closestPoint.Value;
-			Vertex P = closestSegment.A.Position.X > closestSegment.B.Position.X
+			Vertex P = (closestSegment.A.Position.X > closestSegment.B.Position.X)
 				? closestSegment.A
 				: closestSegment.B;
 
@@ -352,7 +368,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 				p1 = p2;
 			}
 
-			return clockWiseCount > counterClockWiseCount
+			return (clockWiseCount > counterClockWiseCount)
 				? WindingOrder.Clockwise
 				: WindingOrder.CounterClockwise;
 		}
@@ -525,7 +541,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 			Vector2 d2 = Vector2.Normalize(n.Position - c.Position);
 			Vector2 n2 = new Vector2(-d2.Y, d2.X);
 
-			return Vector2.Dot(d1, n2) <= 0f;
+			return (Vector2.Dot(d1, n2) <= 0f);
 		}
 
 		#endregion
