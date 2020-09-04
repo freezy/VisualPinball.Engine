@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
 								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
-									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity, false
+									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity
 								);
 								SetComponent(coll.Entity, kickerCollisionData);
 								break;

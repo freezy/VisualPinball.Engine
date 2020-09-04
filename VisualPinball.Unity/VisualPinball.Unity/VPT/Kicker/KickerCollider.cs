@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
 			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
-			in Entity collEntity, in Entity ballEntity, bool newBall)
+			in Entity collEntity, in Entity ballEntity)
 		{
 			// a previous ball already in kicker?
 			if (collData.HasBall) {
@@ -50,9 +50,9 @@ namespace VisualPinball.Unity
 			var isBallInside = BallData.IsInsideOf(in insideOfs, collEntity);
 
 			// New or (Hit && !Vol || UnHit && Vol)
-			if (newBall || hitBit == isBallInside) {
+			if (hitBit == isBallInside) {
 
-				if (legacyMode || newBall) {
+				if (legacyMode) {
 					ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
 				}
 
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 					var grabHeight = (staticData.ZLow + ball.Radius) * staticData.HitAccuracy;
 
 					// early out here if the ball is slow and we are near the kicker center
-					var hitEvent = ball.Position.z < grabHeight || legacyMode || newBall;
+					var hitEvent = ball.Position.z < grabHeight || legacyMode;
 
 					if (!hitEvent) {
 
@@ -78,9 +78,8 @@ namespace VisualPinball.Unity
 						}
 
 						ball.OldVelocity = ball.Velocity;
-					}
 
-					if (hitEvent) {
+					} else {
 
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
@@ -89,11 +88,8 @@ namespace VisualPinball.Unity
 							collData.LastCapturedBallEntity = ballEntity;
 						}
 
-						// Don't fire the hit event if the ball was just created
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						if (!newBall) {
-							events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, true));
-						}
+						events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, true));
 
 						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
 
