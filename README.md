@@ -57,4 +57,5 @@ Special thanks go to JetBrains for their awesome IDE and support of the Open Sou
 
 ## License
 
-GPLv2, see [LICENSE](LICENSE).
+Since [4616dcbb](https://github.com/freezy/VisualPinball.Engine/commit/4616dcbb), [GPL-3.0](LICENSE). Before [4616dcbb](https://github.com/freezy/VisualPinball.Engine/commit/4616dcbb), [GPL-2.0](https://github.com/freezy/VisualPinball.Engine/blob/32fd8f48d11ba961b50c72cd7f82fc4c34eba26e/LICENSE).
+
