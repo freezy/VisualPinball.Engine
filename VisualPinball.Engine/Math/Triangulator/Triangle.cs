@@ -57,8 +57,8 @@ namespace VisualPinball.Engine.Math.Triangulator
 
 		static bool checkPointToSegment(Vertex sA, Vertex sB, Vertex point)
 		{
-			if ((sA.Position.Y < point.Position.Y && sB.Position.Y >= point.Position.Y) ||
-			    (sB.Position.Y < point.Position.Y && sA.Position.Y >= point.Position.Y))
+			if (sA.Position.Y < point.Position.Y && sB.Position.Y >= point.Position.Y ||
+			    sB.Position.Y < point.Position.Y && sA.Position.Y >= point.Position.Y)
 			{
 				float x =
 					sA.Position.X +
