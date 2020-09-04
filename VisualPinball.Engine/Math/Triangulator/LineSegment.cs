@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 		public float? IntersectsWithRay(Vector2 origin, Vector2 direction)
 		{
 			float largestDistance = MathHelper.Max(A.Position.X - origin.X, B.Position.X - origin.X) * 2f;
-			LineSegment raySegment = new LineSegment(new Vertex(origin, 0), new Vertex(origin + (direction * largestDistance), 0));
+			LineSegment raySegment = new LineSegment(new Vertex(origin, 0), new Vertex(origin + direction * largestDistance, 0));
 
 			Vector2? intersection = FindIntersection(this, raySegment);
 			float? value = null;

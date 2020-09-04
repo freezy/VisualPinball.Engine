@@ -106,18 +106,18 @@ namespace VisualPinball.Engine.Math.Triangulator
 			{
 				for (int i = 0; i < triangles.Count; i++)
 				{
-					indices[(i * 3)] = triangles[i].A.Index;
-					indices[(i * 3) + 1] = triangles[i].B.Index;
-					indices[(i * 3) + 2] = triangles[i].C.Index;
+					indices[i * 3] = triangles[i].A.Index;
+					indices[i * 3 + 1] = triangles[i].B.Index;
+					indices[i * 3 + 2] = triangles[i].C.Index;
 				}
 			}
 			else
 			{
 				for (int i = 0; i < triangles.Count; i++)
 				{
-					indices[(i * 3)] = triangles[i].C.Index;
-					indices[(i * 3) + 1] = triangles[i].B.Index;
-					indices[(i * 3) + 2] = triangles[i].A.Index;
+					indices[i * 3] = triangles[i].C.Index;
+					indices[i * 3 + 1] = triangles[i].B.Index;
+					indices[i * 3 + 2] = triangles[i].A.Index;
 				}
 			}
 		}
@@ -185,8 +185,8 @@ namespace VisualPinball.Engine.Math.Triangulator
 				Vertex b = polygonVertices[i + 1].Value;
 
 				if ((a.Position.X > rightMostHoleVertex.Position.X || b.Position.X > rightMostHoleVertex.Position.X) &&
-					((a.Position.Y >= rightMostHoleVertex.Position.Y && b.Position.Y <= rightMostHoleVertex.Position.Y) ||
-					(a.Position.Y <= rightMostHoleVertex.Position.Y && b.Position.Y >= rightMostHoleVertex.Position.Y)))
+					(a.Position.Y >= rightMostHoleVertex.Position.Y && b.Position.Y <= rightMostHoleVertex.Position.Y ||
+					a.Position.Y <= rightMostHoleVertex.Position.Y && b.Position.Y >= rightMostHoleVertex.Position.Y))
 					segmentsToTest.Add(new LineSegment(a, b));
 			}
 
@@ -214,7 +214,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 
 			//otherwise we can find our mutually visible vertex to split the polygon
 			Vector2 I = rightMostHoleVertex.Position + Vector2.UnitX * closestPoint.Value;
-			Vertex P = (closestSegment.A.Position.X > closestSegment.B.Position.X)
+			Vertex P = closestSegment.A.Position.X > closestSegment.B.Position.X
 				? closestSegment.A
 				: closestSegment.B;
 
@@ -368,7 +368,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 				p1 = p2;
 			}
 
-			return (clockWiseCount > counterClockWiseCount)
+			return clockWiseCount > counterClockWiseCount
 				? WindingOrder.Clockwise
 				: WindingOrder.CounterClockwise;
 		}
@@ -541,7 +541,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 			Vector2 d2 = Vector2.Normalize(n.Position - c.Position);
 			Vector2 n2 = new Vector2(-d2.Y, d2.X);
 
-			return (Vector2.Dot(d1, n2) <= 0f);
+			return Vector2.Dot(d1, n2) <= 0f;
 		}
 
 		#endregion
