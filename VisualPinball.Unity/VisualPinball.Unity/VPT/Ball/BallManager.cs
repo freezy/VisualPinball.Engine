@@ -35,7 +35,8 @@ namespace VisualPinball.Unity
 
 		private readonly Table _table;
 		private readonly Matrix4x4 _ltw;
-		private readonly EntityManager _entityManager;
+
+		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
 
 		private static BallManager _instance;
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
@@ -46,7 +47,6 @@ namespace VisualPinball.Unity
 		{
 			_table = table;
 			_ltw = ltw;
-			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 		}
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			var ecb = ecbs.CreateCommandBuffer();
 
-			var archetype = _entityManager.CreateArchetype(
+			var archetype = EntityManager.CreateArchetype(
 				typeof(Translation),
 				typeof(Scale),
 				typeof(Rotation),
@@ -146,9 +146,9 @@ namespace VisualPinball.Unity
 
 			// handle inside-kicker creation
 			if (kickerEntity != Entity.Null) {
-				var kickerData = _entityManager.GetComponentData<KickerStaticData>(kickerEntity);
+				var kickerData = EntityManager.GetComponentData<KickerStaticData>(kickerEntity);
 				if (!kickerData.FallThrough) {
-					var kickerCollData = _entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+					var kickerCollData = EntityManager.GetComponentData<KickerCollisionData>(kickerEntity);
 					var inside = ecb.AddBuffer<BallInsideOfBufferElement>(entity);
 					BallData.SetInsideOf(ref inside, kickerEntity);
 					kickerCollData.BallEntity = entity;
