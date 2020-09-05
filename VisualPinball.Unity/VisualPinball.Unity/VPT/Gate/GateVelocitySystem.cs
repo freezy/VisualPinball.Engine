@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 						movementData.AngleSpeed = 0.0f;
 					}
 					if (math.abs(movementData.AngleSpeed) != 0.0f && movementData.Angle != data.AngleMin) {
-						movementData.AngleSpeed -= math.sin(movementData.Angle) * data.GravityFactor * (PhysicsConstants.PhysFactor / 100.0f); // Center of gravity towards bottom of object, makes it stop vertical
+						movementData.AngleSpeed -= math.sin(movementData.Angle) * data.GravityFactor * (float)(PhysicsConstants.PhysFactor / 100.0); // Center of gravity towards bottom of object, makes it stop vertical
 						movementData.AngleSpeed *= data.Damping;
 					}
 				}

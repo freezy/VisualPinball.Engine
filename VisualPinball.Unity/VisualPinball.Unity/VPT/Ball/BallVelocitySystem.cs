@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
-				ball.Velocity += gravity * PhysicsConstants.PhysFactor;
+				ball.Velocity += gravity * (float)PhysicsConstants.PhysFactor;
 
 				marker.End();
 
