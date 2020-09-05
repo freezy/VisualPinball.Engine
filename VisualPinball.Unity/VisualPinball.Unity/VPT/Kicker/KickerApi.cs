@@ -66,6 +66,13 @@ namespace VisualPinball.Unity
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, angle, speed, inclination, 0, 0, 0));
 		}
 
+		/// <summary>
+		/// Queues the ball to be destroyed at the next cycle.
+		/// </summary>
+		///
+		/// <remarks>
+		/// If there is not ball in the kicker, this does nothing.
+		/// </remarks>
 		public void DestroyBall()
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
