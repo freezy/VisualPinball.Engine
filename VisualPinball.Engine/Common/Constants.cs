@@ -53,12 +53,12 @@ namespace VisualPinball.Engine.Common
 		/// <summary>
 		/// step time in seconds
 		/// </summary>
-		public const float PhysicsStepTimeS = PhysicsStepTime * 1e-6f;         // PHYSICS_STEPTIME_S
+		public const double PhysicsStepTimeS = PhysicsStepTime * 1e-6;         // PHYSICS_STEPTIME_S
 
 		/// <summary>
 		/// default physics rate: 1000Hz
 		/// </summary>
-		public const float DefaultStepTime = 10000f;                           // DEFAULT_STEPTIME
+		public const double DefaultStepTime = 10000;                           // DEFAULT_STEPTIME
 
 		/// <summary>
 		/// default physics rate: 1000Hz
@@ -66,7 +66,7 @@ namespace VisualPinball.Engine.Common
 		public const float DefaultStepTimeS = 0.01f;                           // DEFAULT_STEPTIME_S
 
 
-		public const float PhysFactor = PhysicsStepTimeS / DefaultStepTimeS;   // PHYS_FACTOR
+		public const double PhysFactor = PhysicsStepTimeS / DefaultStepTimeS;  // PHYS_FACTOR
 
 
 		public const float LowNormVel = 0.0001f;                               // C_LOWNORMVEL

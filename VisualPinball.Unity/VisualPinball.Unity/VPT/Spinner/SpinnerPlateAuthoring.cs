@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 			dstManager.AddComponentData(entity, new SpinnerStaticData {
 				AngleMax = math.radians(data.AngleMax),
 				AngleMin = math.radians(data.AngleMin),
-				Damping = math.pow(data.Damping, PhysicsConstants.PhysFactor),
+				Damping = math.pow(data.Damping, (float)PhysicsConstants.PhysFactor),
 				Elasticity = data.Elasticity,
 				Height = data.Height
 			});

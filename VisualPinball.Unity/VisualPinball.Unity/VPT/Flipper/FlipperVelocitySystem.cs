@@ -69,10 +69,10 @@ namespace VisualPinball.Unity
 				// update current torque linearly towards desired torque
 				// (simple model for coil hysteresis)
 				if (desiredTorque >= vState.CurrentTorque) {
-					vState.CurrentTorque = math.min(vState.CurrentTorque + torqueRampUpSpeed * PhysicsConstants.PhysFactor, desiredTorque);
+					vState.CurrentTorque = math.min(vState.CurrentTorque + torqueRampUpSpeed * (float)PhysicsConstants.PhysFactor, desiredTorque);
 
 				} else {
-					vState.CurrentTorque = math.max(vState.CurrentTorque - torqueRampUpSpeed * PhysicsConstants.PhysFactor, desiredTorque);
+					vState.CurrentTorque = math.max(vState.CurrentTorque - torqueRampUpSpeed * (float)PhysicsConstants.PhysFactor, desiredTorque);
 				}
 
 				// resolve contacts with stoppers
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				mState.AngularMomentum += PhysicsConstants.PhysFactor * torque;
+				mState.AngularMomentum += (float)PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 

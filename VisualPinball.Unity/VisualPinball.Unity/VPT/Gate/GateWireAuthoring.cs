@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 				AngleMin = data.AngleMin,
 				AngleMax = data.AngleMax,
 				Height = data.Height,
-				Damping = math.pow(data.Damping, PhysicsConstants.PhysFactor),
+				Damping = math.pow(data.Damping, (float)PhysicsConstants.PhysFactor),
 				GravityFactor = data.GravityFactor,
 				TwoWay = data.TwoWay
 			});

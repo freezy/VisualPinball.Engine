@@ -307,7 +307,7 @@ namespace VisualPinball.Unity
 				//#endif
 			}
 
-			// fixme script
+			// todo script
 			// send ball/ball collision event to script function
 			// if (dot < -0.25f) {   // only collisions with at least some small true impact velocity (no contacts)
 			//      g_pplayer->m_ptable->InvokeBallBallCollisionCallback(this, pball, -dot);
@@ -338,7 +338,7 @@ namespace VisualPinball.Unity
 			}
 
 			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
-			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
+			var impulse = -(float)(1.0 + 0.8) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
 
 			if (!ball.IsFrozen) {
 				ball.Velocity -= impulse * myInvMass * vNormal;
