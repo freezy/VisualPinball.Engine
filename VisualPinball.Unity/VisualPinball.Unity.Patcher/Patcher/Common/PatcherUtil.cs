@@ -1,7 +1,9 @@
-﻿using System;
+﻿using NLog;
+using System;
 using UnityEngine;
 using VisualPinball.Unity.Patcher.Matcher;
 using RenderPipeline = VisualPinball.Unity.Patcher.Matcher.RenderPipeline;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -10,6 +12,8 @@ namespace VisualPinball.Unity.Patcher
 	/// </summary>
 	static class PatcherUtil
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// Hide the gameobject.
 		/// </summary>
@@ -47,7 +51,8 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetOpaque", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -60,10 +65,6 @@ namespace VisualPinball.Unity.Patcher
 					material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
 					material.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
 					material.DisableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
@@ -83,7 +84,8 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetDoubleSided", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -95,10 +97,6 @@ namespace VisualPinball.Unity.Patcher
 
 					material.SetInt("_CullMode", 0);
 					material.SetInt("_CullModeForward", 0);
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
@@ -117,7 +115,8 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetAlphaCutOff", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -126,10 +125,6 @@ namespace VisualPinball.Unity.Patcher
 
 					// set the cut-off value
 					material.SetFloat("_AlphaCutoff", value);
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
@@ -148,16 +143,13 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetAlphaCutOffEnabled", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
 					material.EnableKeyword("_ALPHATEST_ON");
 					material.SetInt("_AlphaCutoffEnable", 1);
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
@@ -176,16 +168,13 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetNormalMapDisabled", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
 					material.SetTexture("_NormalMap", null);
 					material.DisableKeyword("_NORMALMAP");
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
@@ -204,16 +193,13 @@ namespace VisualPinball.Unity.Patcher
 			switch (RenderPipeline.Current)
 			{
 				case RenderPipelineType.BuiltIn:
-					// TODO
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented: {0} for {1}", "SetMetallic", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
 					var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
 					unityMat.SetFloat("_Metallic", value);
-					break;
-
-				case RenderPipelineType.Urp:
-					// TODO
 					break;
 
 				default:
