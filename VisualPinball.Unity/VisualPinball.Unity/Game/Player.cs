@@ -100,11 +100,6 @@ namespace VisualPinball.Unity
 
 			if (Input.GetKeyUp("b")) {
 				_ballManager.CreateBall(new DebugBallCreator());
-				// _player.CreateBall(new DebugBallCreator(425, 1325));
-				// _player.CreateBall(new DebugBallCreator(390, 1125));
-
-				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
-				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
 			}
 
 			if (Input.GetKeyUp("n")) {
@@ -112,20 +107,11 @@ namespace VisualPinball.Unity
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 
-			if (Input.GetKeyUp("k")) {
-				_tableApi.Kicker("Kicker1").CreateBall();
-				_tableApi.Kicker("Kicker1").Kick(0, -5f);
-			}
-
 			if (Input.GetKeyDown(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.PullBack();
-				_tableApi.Plunger("Plunger001")?.PullBack();
-				_tableApi.Plunger("Plunger002")?.PullBack();
+				_tableApi.Plunger("Plunger")?.PullBack();
 			}
 			if (Input.GetKeyUp(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.Fire();
-				_tableApi.Plunger("Plunger001")?.Fire();
-				_tableApi.Plunger("Plunger002")?.Fire();
+				_tableApi.Plunger("Plunger")?.Fire();
 			}
 		}
 
