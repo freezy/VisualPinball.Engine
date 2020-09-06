@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetOpaque", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetOpaque", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetDoubleSided", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetDoubleSided", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetAlphaCutOff", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetAlphaCutOff", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetAlphaCutOffEnabled", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetAlphaCutOffEnabled", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetNormalMapDisabled", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetNormalMapDisabled", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
@@ -194,7 +194,7 @@ namespace VisualPinball.Unity.Patcher
 			{
 				case RenderPipelineType.BuiltIn:
 				case RenderPipelineType.Urp:
-					Logger.Info("Not implemented: {0} for {1}", "SetMetallic", RenderPipeline.Current);
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetMetallic", RenderPipeline.Current);
 					break;
 
 				case RenderPipelineType.Hdrp:
