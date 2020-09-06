@@ -22,9 +22,20 @@ namespace VisualPinball.Unity
 	{
 		public virtual void OnAwake(TableApi table)
 		{
-			// table.Kicker("Kicker2").Hit += (sender, args) => {
-			// 	((KickerApi)sender).DestroyBall();
-			// };
+			table.Plunger("Plunger").Init += (sender, args) => {
+				KickNewBallToPlunger(table);
+			};
+
+			table.Kicker("Drain").Hit += (sender, args) => {
+				((KickerApi)sender).DestroyBall();
+				KickNewBallToPlunger(table);
+			};
+		}
+
+		public void KickNewBallToPlunger(TableApi table)
+		{
+			table.Kicker("BallRelease").CreateBall();
+			table.Kicker("BallRelease").Kick(90, 7);
 		}
 	}
 }
