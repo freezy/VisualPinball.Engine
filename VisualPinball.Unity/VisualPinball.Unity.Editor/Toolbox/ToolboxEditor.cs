@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (_table == null) {
-				GUI.enabled = false;
+				return;
 			}
 
 			GUILayout.Label(_table.name);
@@ -189,8 +189,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			GUILayout.EndHorizontal();
-
-			GUI.enabled = true;
 		}
 
 		private static bool CreateButton(string label, Texture icon, float iconSize, GUIStyle buttonStyle)
