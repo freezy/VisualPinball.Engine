@@ -29,9 +29,6 @@
     <Reference Include="UnityEngine.UIElementsModule">
       <HintPath>..\Plugins\.unity\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\Plugins\.unity\UnityEngine.InputLegacyModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>..\Plugins\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
@@ -58,6 +55,9 @@
     </Reference>
     <Reference Include="Unity.Transforms">
       <HintPath>..\Plugins\.unity\Unity.Transforms.dll</HintPath>
+    </Reference>
+    <Reference Include="UnitEngine.InputSystem">
+      <HintPath>..\Plugins\.unity\Unity.InputSystem.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
