@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Bumper;
@@ -85,35 +86,33 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			// flippers will be handled via script later, but until scripting works, do it here.
-			if (Input.GetKeyDown("left shift")) {
+			if (Keyboard.current.leftShiftKey.wasPressedThisFrame) { 
 				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
 			}
-			if (Input.GetKeyUp("left shift")) {
+			if (Keyboard.current.leftShiftKey.wasReleasedThisFrame) {
 				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
 			}
-			if (Input.GetKeyDown("right shift")) {
+			if (Keyboard.current.rightShiftKey.wasPressedThisFrame) {
 				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
 			}
-			if (Input.GetKeyUp("right shift")) {
+			if (Keyboard.current.rightShiftKey.wasReleasedThisFrame) {
 				_tableApi.Flipper("RightFlipper")?.RotateToStart();
 			}
 
-			if (Input.GetKeyUp("b")) {
+			if (Keyboard.current.bKey.wasReleasedThisFrame) {
 				_ballManager.CreateBall(new DebugBallCreator());
 			}
 
-			if (Input.GetKeyUp("n")) {
+			if (Keyboard.current.nKey.wasReleasedThisFrame) {
 				//_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
 				_tableApi.Kicker("Kicker1").CreateBall();
 				_tableApi.Kicker("Kicker1").Kick(0, -1);
-
-				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 
-			if (Input.GetKeyDown(KeyCode.Return)) {
+			if (Keyboard.current.enterKey.wasPressedThisFrame) {
 				_tableApi.Plunger("Plunger")?.PullBack();
 			}
-			if (Input.GetKeyUp(KeyCode.Return)) {
+			if (Keyboard.current.enterKey.wasReleasedThisFrame) {
 				_tableApi.Plunger("Plunger")?.Fire();
 			}
 		}
