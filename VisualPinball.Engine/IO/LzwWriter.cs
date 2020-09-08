@@ -1,18 +1,13 @@
-﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+﻿// GIF Image compression - modified 'compress'
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Based on: compress.c - File compression ala IEEE Computer, June 1984.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// By Authors:  Spencer W. Thomas      (decvax!harpo!utah-cs!utah-gr!thomas)
+//              Jim McKie              (decvax!mcvax!jim)
+//              Steve Davies           (decvax!vax135!petsd!peora!srd)
+//              Ken Turkowski          (decvax!decwrl!turtlevax!ken)
+//              James A. Woods         (decvax!ihnp4!ames!jaw)
+//              Joe Orost              (decvax!vax135!petsd!joe)
 
 using System.Collections.Generic;
 using System.IO;

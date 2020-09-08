@@ -1,18 +1,18 @@
-// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// DECODE.C - An LZW decoder for GIF
+// Copyright (C) 1987, by Steven A. Bennett
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Permission is given by the author to freely redistribute and include
+// this code in any program as long as this credit is given where due.
 //
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// In accordance with the above, I want to credit Steve Wilhite who wrote
+// the code which this is heavily inspired by...
 //
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// GIF and 'Graphics Interchange Format' are trademarks (tm) of
+// Compuserve, Incorporated, an H&R Block Company.
+//
+// Release Notes: This file contains a decoder routine for GIF images
+// which is similar, structurally, to the original routine by Steve Wilhite.
+// It is, however, somewhat noticably faster in most cases.
 
 #region ReSharper
 // ReSharper disable IdentifierTypo
