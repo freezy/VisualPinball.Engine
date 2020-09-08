@@ -18,10 +18,9 @@ namespace VisualPinball.Engine.Math
 {
 	public class RenderVertex2D : Vertex2D, IRenderVertex
 	{
-		public IRenderVertex Set(Vertex3D v)
+		public void Set(Vertex3D v)
 		{
 			base.Set(v.X, v.Y);
-			return this;
 		}
 
 		public bool Smooth { get; set; }
@@ -34,10 +33,9 @@ namespace VisualPinball.Engine.Math
 
 	public class RenderVertex3D : Vertex3D, IRenderVertex
 	{
-		public new IRenderVertex Set(Vertex3D v)
+		public new void Set(Vertex3D v)
 		{
 			base.Set(v);
-			return this;
 		}
 
 		public bool Smooth { get; set; }
@@ -50,7 +48,7 @@ namespace VisualPinball.Engine.Math
 
 	public interface IRenderVertex
 	{
-		IRenderVertex Set(Vertex3D v);
+		void Set(Vertex3D v);
 
 		float GetX();
 		float GetY();
@@ -59,10 +57,4 @@ namespace VisualPinball.Engine.Math
 		bool IsSlingshot { get; set; }
 		bool IsControlPoint { get; set; }
 	}
-	//
-	// public interface IVertex {
-	// 	IVertex Clone();
-	// 	IVertex Sub(IVertex v);
-	// 	float Length();
-	// }
 }

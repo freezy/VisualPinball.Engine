@@ -51,19 +51,5 @@ namespace VisualPinball.Engine.VPT.Flipper
 		}
 
 		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
-
-		#region API
-		// todo move to api
-		public void RotateToEnd() {
-			_hit.GetMoverObject().EnableRotateEvent = 1;
-			_hit.GetMoverObject().SetSolenoidState(true);
-		}
-
-		// todo move to api
-		public void RotateToStart() {
-			_hit.GetMoverObject().EnableRotateEvent = -1;
-			_hit.GetMoverObject().SetSolenoidState(false);
-		}
-		#endregion
 	}
 }

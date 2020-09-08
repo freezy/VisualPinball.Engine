@@ -29,6 +29,7 @@ namespace VisualPinball.Engine.VPT
 
 		protected Tuple<Matrix3D, Matrix3D> GetPreMatrix(Table.Table table, Origin origin, bool asRightHanded)
 		{
+			// todo adjust position, see kicker.cpp#419+
 			switch (origin) {
 				case Origin.Original:
 					return asRightHanded

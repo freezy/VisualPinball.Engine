@@ -74,12 +74,5 @@ namespace VisualPinball.Engine.VPT.Kicker
 		{
 			return new Vertex3D(0.1f, 0, 0);
 		}
-
-		public void OnBallCreated(Ball.Ball ball)
-		{
-			//ball.Coll.HitFlag = true;                        // HACK: avoid capture leaving kicker
-			//var hitNormal = new Vertex3D(Constants.FloatMax, Constants.FloatMax, Constants.FloatMax); // unused due to newBall being true
-			// TODO this.hit!.doCollide(physics, ball, hitNormal, false, true);
-		}
 	}
 }

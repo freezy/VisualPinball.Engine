@@ -94,16 +94,5 @@ namespace VisualPinball.Engine.VPT.Flipper
 			// F1 norm, change sign of x component, i.E -zeroAngNorm.X // = -cosf(faceNormOffset)
 			ZeroAngNorm.Y = -ratio;
 		}
-
-		public void SetSolenoidState(bool s)
-		{
-			_solState = s;
-		}
-
-		// rigid body functions
-		public Vertex3D SurfaceVelocity(Vertex3D surfP)
-		{
-			return Vertex3D.CrossZ(AngleSpeed, surfP);
-		}
 	}
 }

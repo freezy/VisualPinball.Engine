@@ -121,9 +121,6 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		/* multiplyVector() has moved to {@link Vertex3D.multiplyMatrix()} */
-		/* multiplyVectorNoTranslate() has moved to {@link Vertex3D.multiplyMatrixNoTranslate()} */
-
 		public Matrix3D Multiply(Matrix3D a, Matrix3D b = null) {
 			var product = b != null
 				? MultiplyMatrices(a, b)
@@ -132,18 +129,7 @@ namespace VisualPinball.Engine.Math
 			return Set(product._matrix);
 		}
 
-		public Matrix3D PreMultiply(Matrix3D a) {
-			var product = MultiplyMatrices(a, this);
-			return Set(product._matrix);
-		}
-
-		public Matrix3D ToRightHanded() {
-			var tempMat = new Matrix3D().SetScaling(1, 1, -1);
-			return Multiply(tempMat);
-		}
-
 		private static Matrix3D MultiplyMatrices(Matrix3D a, Matrix3D b) {
-			/* istanbul ignore else: we always recycle now */
 			var result = new Matrix3D();
 			for (var i = 0; i < 4; ++i) {
 				for (var l = 0; l < 4; ++l) {

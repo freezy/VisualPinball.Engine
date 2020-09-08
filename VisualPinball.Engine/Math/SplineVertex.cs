@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
-
 // ReSharper disable CommentTypo
 // ReSharper disable ConvertIfStatementToSwitchStatement
+
 namespace VisualPinball.Engine.Math
 {
 	public class SplineVertex
