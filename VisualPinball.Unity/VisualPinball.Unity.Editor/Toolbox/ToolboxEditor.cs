@@ -119,73 +119,73 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Wall", _surfaceIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Surface.GetDefault, "Wall");
+				CreateItem(Surface.GetDefault, "Wall");
 			}
 
 			if (CreateButton("Gate", _gateIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Ramp.GetDefault, "New Ramp");
+				CreateItem(Ramp.GetDefault, "New Ramp");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Ramp", _rampIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Ramp.GetDefault, "New Ramp");
+				CreateItem(Ramp.GetDefault, "New Ramp");
 			}
 
 			if (CreateButton("Flipper", _flipperIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Flipper.GetDefault, "New Flipper");
+				CreateItem(Flipper.GetDefault, "New Flipper");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Plunger", _plungerIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Plunger.GetDefault, "New Plunger");
+				CreateItem(Plunger.GetDefault, "New Plunger");
 			}
 
 			if (CreateButton("Bumper", _bumperIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Bumper.GetDefault, "New Bumper");
+				CreateItem(Bumper.GetDefault, "New Bumper");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Spinner", _spinnerIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Spinner.GetDefault, "New Spinner");
+				CreateItem(Spinner.GetDefault, "New Spinner");
 			}
 
 			if (CreateButton("Trigger", _triggerIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Trigger.GetDefault, "New Trigger");
+				CreateItem(Trigger.GetDefault, "New Trigger");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Kicker", _kickerIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Kicker.GetDefault, "New Kicker");
+				CreateItem(Kicker.GetDefault, "New Kicker");
 			}
 
 			if (CreateButton("Light", _lightIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Light.GetDefault, "New Light");
+				CreateItem(Light.GetDefault, "New Light");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Target", _targetIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, HitTarget.GetDefault, "New Target");
+				CreateItem(HitTarget.GetDefault, "New Target");
 			}
 
 			if (CreateButton("Rubber", _rubberIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Rubber.GetDefault, "New Rubber");
+				CreateItem(Rubber.GetDefault, "New Rubber");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Primitive", _primitiveIcon, iconSize, buttonStyle)) {
-				CreateItem(_table, Primitive.GetDefault, "New Primitive");
+				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
 			GUILayout.EndHorizontal();
@@ -201,20 +201,20 @@ namespace VisualPinball.Unity.Editor
 			);
 		}
 
-		private static void CreateItem<TItem>(TableAuthoring tableAuth, Func<Table, TItem> create, string actionName) where TItem : IItem
+		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var table = tableAuth.Table;
+			var table = _table.Table;
 			var item = create(table);
 			table.Add(item, true);
-			Selection.activeGameObject = CreateRenderable(tableAuth, item as IRenderable);
+			Selection.activeGameObject = CreateRenderable(item as IRenderable);
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
 		}
 
-		private static GameObject CreateRenderable(TableAuthoring tableAuth, IRenderable renderable)
+		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			var rog = renderable.GetRenderObjects(tableAuth.Table, Origin.Original, false);
-			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(tableAuth, rog), tableAuth, out var obj);
+			var rog = renderable.GetRenderObjects(_table.Table, Origin.Original, false);
+			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(_table, rog), _table, out var obj);
 			return obj;
 		}
 
