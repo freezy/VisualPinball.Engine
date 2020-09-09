@@ -1,0 +1,12 @@
+﻿html,
+body {
+	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
+    font-size: 100%;
+}
+
+.btn.btn-default.active, .btn.btn-default:active {
+	outline: 0;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	background-color: rgba(1,1,1,0.08);
+}

@@ -40,7 +40,16 @@
           "../VisualPinball.Unity.Editor/Resources/Icons/*.png",
           "CNAME"
         ]
+      },
+      {
+        "files": "static/**/*.woff*",
+        "dest": "/fonts"
+      },
+      {
+        "files": "static/*.css",
+        "dest": "/styles"
       }
+
     ],
     "overwrite": [
       {
