@@ -151,7 +151,7 @@ namespace VisualPinball.Unity
 
 					if (coll.ItemType != ItemType.Trigger               // not a trigger
 					    /*todo   || !ball.m_vpVolObjs*/
-					    // is a trigger, so test:
+					    // it's a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
 					    || inside == BallData.IsInsideOf(in insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
 					{
@@ -159,7 +159,7 @@ namespace VisualPinball.Unity
 					}
 
 					hitTime = 0;
-					isUnHit = !inside; // ball on outside is UnHit, otherwise it"s a Hit
+					isUnHit = !inside; // ball on outside is UnHit, otherwise it's a Hit
 
 				} else {
 					hitTime = bnd / -bnv;
