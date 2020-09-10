@@ -65,7 +65,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return MeshToHitObjects(mesh, ItemType.Primitive, item).Select(ho => SetupHitObject(ho, table)).ToArray();
 		}
 
-		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType, IItem item)
+		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType, IItem item, bool onlyTriangles = false)
 		{
 			var hitObjects = new List<HitObject>();
 			var addedEdges = new EdgeSet();
@@ -86,14 +86,18 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 				hitObjects.Add(new HitTriangle(rgv3D, itemType, item));
 
-				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], itemType, item));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], itemType, item));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], itemType, item));
+				if (!onlyTriangles) {
+					hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], itemType, item));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], itemType, item));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], itemType, item));
+				}
 			}
 
 			// add collision vertices
-			foreach (var vertex in mesh.Vertices) {
-				hitObjects.Add(new HitPoint(vertex.GetVertex(), itemType, item));
+			if (!onlyTriangles) {
+				foreach (var vertex in mesh.Vertices) {
+					hitObjects.Add(new HitPoint(vertex.GetVertex(), itemType, item));
+				}
 			}
 
 			return hitObjects;

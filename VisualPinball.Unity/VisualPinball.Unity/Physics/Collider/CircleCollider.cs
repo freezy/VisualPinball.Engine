@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(ref insideOfs, in _header.Entity)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set

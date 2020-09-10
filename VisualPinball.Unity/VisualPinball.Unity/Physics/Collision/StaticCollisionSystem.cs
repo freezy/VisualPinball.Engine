@@ -153,13 +153,15 @@ namespace VisualPinball.Unity
 
 							case ColliderType.TriggerCircle:
 							case ColliderType.TriggerLine:
+							{
 								var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
 								TriggerCollider.Collide(
-									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
+									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
+									in coll
 								);
 								SetComponent(coll.Entity, triggerAnimationData);
 								break;
-
+							}
 							case ColliderType.KickerCircle:
 								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.Entity);
 								var kickerStaticData = GetComponent<KickerStaticData>(coll.Entity);
@@ -194,7 +196,11 @@ namespace VisualPinball.Unity
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
-									TriggerCollider.Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
+									var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
+									TriggerCollider.Collide(
+										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
+									);
+									SetComponent(coll.Entity, triggerAnimationData);
 
 								} else {
 									Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);

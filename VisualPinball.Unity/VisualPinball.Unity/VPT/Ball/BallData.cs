@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			insideOfs.Add(new BallInsideOfBufferElement {Value = entity});
 		}
 
-		public static bool IsOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
+		public static bool IsOutsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
 			return !IsInsideOf(in insideOfs, in entity);
 		}
