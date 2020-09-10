@@ -66,8 +66,19 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+
 		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			if (data == null || data.DragPoints.Length == 0) {
+				return;
+			}
+			var diff = pos.ToVertex3D().Sub(data.Center);
+			foreach (var pt in data.DragPoints) {
+				pt.Center = pt.Center.Add(new Vertex3D(diff.X, diff.Y, 0f));
+			}
+			data.Center = pos.ToVertex2Dxy();
+		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
