@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor.Physics
 					var hitObjects = hittableObj.Hittable.GetHitShapes() ?? new HitObject[0];
 					_currentColliders = hitObjects
 						.Where(h => h != null)
-						.Select((h, i) => $"[{i}] {h.GetType().Name}")
+						.Select((h, i) => $"[{i}] {h.GetType().Name} ({h.ObjType})")
 						.ToArray();
 
 					if (_currentColliders.Length == 0) {

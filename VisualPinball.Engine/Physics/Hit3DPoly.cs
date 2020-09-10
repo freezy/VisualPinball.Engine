@@ -61,7 +61,7 @@ namespace VisualPinball.Engine.Physics
 				outputIndices
 			);
 
-			var hitObjects = PrimitiveHitGenerator.MeshToHitObjects(mesh, ObjType, Item).ToArray();
+			var hitObjects = PrimitiveHitGenerator.MeshToHitObjects(mesh, ObjType, Item, true).ToArray();
 			foreach (var hitObject in hitObjects) {
 				hitObject.ItemIndex = ItemIndex;
 				hitObject.ItemVersion = ItemVersion;

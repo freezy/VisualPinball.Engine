@@ -20,6 +20,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -55,7 +56,7 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			// if (!this.isEnabled) {
 			// 	return -1.0;
@@ -129,6 +130,11 @@ namespace VisualPinball.Unity
 			var pointInTriangle = u >= 0 && v >= 0 && u + v <= 1;
 
 			if (pointInTriangle) {
+
+				if (_header.ItemType == ItemType.Trigger && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
+					collEvent.HitFlag = bnd > 0;
+				}
+
 				collEvent.HitNormal = _normal;
 				collEvent.HitDistance = bnd;                        // 3dhit actual contact distance ...
 				//coll.m_hitRigid = true;                      // collision type

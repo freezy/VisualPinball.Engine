@@ -25,6 +25,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 	{
 		private readonly TriggerData _data;
 
+		private bool IsRound => _data.Shape == TriggerShape.TriggerStar || _data.Shape == TriggerShape.TriggerButton;
+
 		public TriggerHitGenerator(TriggerData data)
 		{
 			_data = data;
@@ -32,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public HitObject[] GenerateHitObjects(Table.Table table, IItem item)
 		{
-			if (_data.Shape == TriggerShape.TriggerStar || _data.Shape == TriggerShape.TriggerButton) {
+			if (IsRound) {
 				return GenerateRoundHitObjects(table, item);
 			}
 			return GenerateCurvedHitObjects(table, item);

@@ -16,6 +16,7 @@
 
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 
@@ -23,17 +24,6 @@ namespace VisualPinball.Unity
 {
 	internal static class TriggerCollider
 	{
-		/// <summary>
-		/// Collides without triggering the animation, which is what the
-		/// <see cref="Poly3DCollider"/> does.
-		/// </summary>
-		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Collider coll)
-		{
-			var _ = default(TriggerAnimationData);
-			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref _, in coll, false);
-		}
-
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref TriggerAnimationData animationData, in Collider coll)

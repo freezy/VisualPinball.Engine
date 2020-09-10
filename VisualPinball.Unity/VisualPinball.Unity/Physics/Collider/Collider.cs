@@ -141,7 +141,7 @@ namespace VisualPinball.Unity
 					case ColliderType.Spinner:
 						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
-						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
 					case ColliderType.KickerCircle:
 					case ColliderType.TriggerCircle:
 						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
