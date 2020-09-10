@@ -155,7 +155,7 @@ namespace VisualPinball.Unity
 
 				} else {
 					// this will add the ball to the trigger space without a Hit
-					isUnhit = bnd > 0; // ball on outside is UnHit, otherwise it"s a Hit
+					isUnhit = bnd > 0; // ball on outside is UnHit, otherwise it's a Hit
 				}
 
 			} else {

@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 			// 4. Check if point is in triangle
-			var pointInTriangle = (u >= 0) && (v >= 0) && (u + v <= 1);
+			var pointInTriangle = u >= 0 && v >= 0 && u + v <= 1;
 
 			if (pointInTriangle) {
 				collEvent.HitNormal = _normal;
@@ -145,7 +145,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		// todo identical with Poly3DCollider.Collider, refactor?
 		public void Collide(ref BallData ball,  ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in CollisionEventData collEvent, ref Random random)
 		{
