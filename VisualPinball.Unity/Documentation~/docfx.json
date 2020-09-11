@@ -77,6 +77,11 @@
         "branch": "master"
       }
     },
+    "sitemap":{
+        "baseUrl": "https://docs.visualpinball.org/",
+        "priority": 0.5,
+        "changefreq": "weekly"        
+    },
     "markdownEngineName": "markdig",
     "noLangKeyword": false,
     "keepFileLink": false,
