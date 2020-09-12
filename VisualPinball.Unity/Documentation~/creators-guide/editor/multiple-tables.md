@@ -7,7 +7,7 @@ With VPE, you can create or import multiple tables into your scene. VPE's manage
 > [!tip]
 > You can lock a manager window to the selected table by clicking on the small lock in the top right corner:
 >
-> ![lock icon](multi-table-lock.jpg)
+> ![lock icon](multiple-tables-lock.jpg)
 
 
 > [!warning]
