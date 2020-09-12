@@ -14,6 +14,11 @@
   - name: Updating VPE
     href: setup/updating-vpe.md
 
+- name: Editor
+  items:
+    - name: Multiple Tables
+      href: editor/multiple-tables.md
+
 - name: Manual
   href: manual/manual.md
   items:
