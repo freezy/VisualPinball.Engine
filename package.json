@@ -4,7 +4,7 @@
   "displayName": "Visual Pinball Engine",
   "description": "Work In Progress!",
   "unity": "2020.1",
-  "unityRelease": "4f1",
+  "unityRelease": "5f1",
   "dependencies": {
     "com.unity.burst": "1.3.4",
     "com.unity.collections": "0.12.0-preview.13",

@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Gate")]
-	public class GateAuthoring : ItemAuthoring<Gate, GateData>, IHittableAuthoring
+	public class GateAuthoring : ItemAuthoring<Gate, GateData>, IHittableAuthoring, ISwitchableAuthoring
 	{
 		protected override string[] Children => new []{"Wire", "Bracket"};
 

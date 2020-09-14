@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 	public abstract class ManagerWindow<T> : LockingTableEditorWindow, IHasCustomMenu where T: class, IManagerListData
 	{
 		protected virtual string DataTypeName => "";
+		protected virtual bool DetailsEnabled => true;
 		protected virtual float DetailsMaxWidth => 300f;
 
 		protected virtual void OnButtonBarGUI() { }
@@ -39,9 +40,12 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnDataChanged(string undoName, T data) { }
 		protected virtual void AddNewData(string undoName, string newName) { }
 		protected virtual void RemoveData(string undoName, T data) { }
-		protected virtual int  MoveData(string undoName, T data, int increment) { return 0; }
+		protected virtual int MoveData(string undoName, T data, int increment) { return 0; }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
 		protected virtual void OnDataSelected() { }
+
+		protected virtual bool ListViewItemRendererEnabled => false;
+		protected virtual void OnListViewItemRenderer(T data, Rect rect, int column) { }
 
 		protected T _selectedItem;
 
@@ -64,6 +68,11 @@ namespace VisualPinball.Unity.Editor
 				_data = CollectData();
 				_listView.SetData(_data);
 			}
+		}
+
+		protected void ResizeToFit()
+		{
+			_listView.multiColumnHeader.ResizeToFit();
 		}
 
 		protected virtual void OnEnable()
@@ -165,40 +174,53 @@ namespace VisualPinball.Unity.Editor
 			var listRect = new Rect(r.x, r.y, r.width, position.height - r.y);
 			_listView?.OnGUI(listRect);
 
-			// options
-			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth));
-			if (_selectedItem != null) {
-				EditorGUILayout.BeginHorizontal();
-				if (_renaming) {
-					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
-					if (GUILayout.Button("Save")) {
-						string newName = GetUniqueName(_renameBuffer, _selectedItem);
-						if (!string.IsNullOrEmpty(newName)) {
-							RenameExistingItem(_selectedItem, newName);
+			if (DetailsEnabled)
+			{
+				// options
+				EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth));
+				if (_selectedItem != null)
+				{
+					EditorGUILayout.BeginHorizontal();
+					if (_renaming)
+					{
+						_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
+						if (GUILayout.Button("Save"))
+						{
+							string newName = GetUniqueName(_renameBuffer, _selectedItem);
+							if (!string.IsNullOrEmpty(newName))
+							{
+								RenameExistingItem(_selectedItem, newName);
+							}
+							_renaming = false;
+							Reload();
 						}
-						_renaming = false;
-						Reload();
+						if (GUILayout.Button("Cancel"))
+						{
+							_renaming = false;
+							GUI.FocusControl(""); // de-focus on cancel because unity will retain previous buffer text until focus changes
+						}
 					}
-					if (GUILayout.Button("Cancel")) {
-						_renaming = false;
-						GUI.FocusControl(""); // de-focus on cancel because unity will retain previous buffer text until focus changes
+					else
+					{
+						EditorGUILayout.LabelField(_selectedItem.Name);
+						if (_isImplRenameExistingItem && GUILayout.Button("Rename"))
+						{
+							_renaming = true;
+							_renameBuffer = _selectedItem.Name;
+						}
 					}
-				} else {
-					EditorGUILayout.LabelField(_selectedItem.Name);
-					if (_isImplRenameExistingItem && GUILayout.Button("Rename")) {
-						_renaming = true;
-						_renameBuffer = _selectedItem.Name;
-					}
-				}
-				EditorGUILayout.EndHorizontal();
+					EditorGUILayout.EndHorizontal();
 
-				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
-				OnDataDetailGUI();
-				EditorGUILayout.EndScrollView();
-			} else {
-				EditorGUILayout.LabelField("Nothing selected");
+					_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+					OnDataDetailGUI();
+					EditorGUILayout.EndScrollView();
+				}
+				else
+				{
+					EditorGUILayout.LabelField("Nothing selected");
+				}
+				EditorGUILayout.EndVertical();
 			}
-			EditorGUILayout.EndVertical();
 
 			EditorGUILayout.EndHorizontal();
 		}
@@ -334,7 +356,15 @@ namespace VisualPinball.Unity.Editor
 			if (_table != null) {
 				_data = CollectData();
 			}
-			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
+
+			if (ListViewItemRendererEnabled)
+			{
+				_listView = new ManagerListView<T>(_treeViewState, _data, OnListViewItemRenderer, ItemSelected);
+			}
+			else
+			{
+				_listView = new ManagerListView<T>(_treeViewState, _data, null, ItemSelected);
+			}
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IHittableAuthoring, IConvertGameObjectToEntity
+	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IHittableAuthoring, ISwitchableAuthoring, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
 
