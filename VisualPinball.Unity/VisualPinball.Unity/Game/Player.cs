@@ -103,7 +103,10 @@ namespace VisualPinball.Unity
 			}
 
 			if (Input.GetKeyUp("n")) {
-				_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
+				//_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
+				_tableApi.Kicker("Kicker1").CreateBall();
+				_tableApi.Kicker("Kicker1").Kick(0, -1);
+
 				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
 			}
 

@@ -182,7 +182,7 @@ namespace VisualPinball.Unity
 			var d = ball.Position - otherBall.Position;                    // delta position
 			var dv = ball.Velocity - otherBall.Velocity;                            // delta velocity
 
-			var bcddSq = math.lengthsq(d);                                         // square of ball center"s delta distance
+			var bcddSq = math.lengthsq(d);                                         // square of ball center's delta distance
 			var bcdd = math.sqrt(bcddSq);                                     // length of delta
 
 			// if (bcdd < 1.0e-8) {
