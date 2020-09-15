@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 						var collBall = balls[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
+						//var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
 
 						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
