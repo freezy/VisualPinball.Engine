@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 				.WithNativeDisableParallelForRestriction(balls)
 				.WithNativeDisableParallelForRestriction(contactsBuffer)
 				.WithReadOnly(overlappingEntitiesBuffer)
-				.ForEach((Entity entity, ref BallData ball, ref CollisionEventData collEvent) => {
+				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent) => {
 
 					// don't play with frozen balls
 					if (ball.IsFrozen) {
@@ -45,17 +45,17 @@ namespace VisualPinball.Unity
 
 					marker.Begin();
 
-					var contacts = contactsBuffer[entity];
-					var overlappingEntities = overlappingEntitiesBuffer[entity];
+					var overlappingEntities = overlappingEntitiesBuffer[ballEntity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
 						var collBallEntity = overlappingEntities[k].Value;
 						var collBall = balls[collBallEntity];
+						var collBallContacts = contactsBuffer[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
 						//var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
 
-						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in collBallEntity, newTime);
+						SaveCollisions(ref collEvent, ref newCollEvent, ref collBallContacts, in collBallEntity, newTime);
 
 						// write back
 						balls[collBallEntity] = collBall;

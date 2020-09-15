@@ -59,11 +59,8 @@ namespace VisualPinball.Unity
 
 						//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
-						if (BallCollider.Collide(
-							ref otherBall, ref ball,
-							in collEvent, in otherCollEvent,
-							swapBallCollisionHandling
-						)) {
+						if (BallCollider.Collide(ref otherBall, ref ball,in collEvent, in otherCollEvent,swapBallCollisionHandling)) {
+						//if (BallCollider.Collide(ref ball, ref otherBall,in collEvent, in otherCollEvent,swapBallCollisionHandling)) {
 							balls[otherEntity] = otherBall;
 						}
 
