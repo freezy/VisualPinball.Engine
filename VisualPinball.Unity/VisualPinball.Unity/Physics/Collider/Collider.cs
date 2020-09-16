@@ -149,10 +149,10 @@ namespace VisualPinball.Unity
 						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 
 					case ColliderType.Plunger:
-                        throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
-                    case ColliderType.Flipper:
-                        throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
-                    case ColliderType.LineSlingShot:
+						throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
+					case ColliderType.Flipper:
+						throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
+					case ColliderType.LineSlingShot:
 						throw new InvalidOperationException("ColliderType.LineSlingShot must be hit-tested separately!");
 
 					default:
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 						break;
 
 					default:
-                        break;
+						break;
 				}
 			}
 		}
