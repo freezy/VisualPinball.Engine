@@ -53,7 +53,6 @@ namespace VisualPinball.Unity
 					marker.Begin();
 
 					var contacts = contactsLookup[collEntity];
-
 					var overlappingEntities = overlappingEntitiesBuffer[ballEntity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
 						var collBallEntity = overlappingEntities[k].Value;
@@ -65,7 +64,7 @@ namespace VisualPinball.Unity
 						var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 						if (newCollEvent.IsContact || validHit) {
-							newCollEvent.SetCollider(ballEntity);
+							newCollEvent.SetCollider(collBallEntity);
 							newCollEvent.HitTime = newTime;
 							if (newCollEvent.IsContact) {
 								contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
