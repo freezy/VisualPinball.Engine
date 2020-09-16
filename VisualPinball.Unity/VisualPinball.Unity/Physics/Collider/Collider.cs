@@ -149,9 +149,11 @@ namespace VisualPinball.Unity
 						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 
 					case ColliderType.Plunger:
-					case ColliderType.Flipper:
-					case ColliderType.LineSlingShot:
-						throw new InvalidOperationException(coll.Type + " must be hit-tested separately!");
+                        throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
+                    case ColliderType.Flipper:
+                        throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
+                    case ColliderType.LineSlingShot:
+						throw new InvalidOperationException("ColliderType.LineSlingShot must be hit-tested separately!");
 
 					default:
 						return -1;
@@ -194,7 +196,7 @@ namespace VisualPinball.Unity
 						break;
 
 					default:
-						throw new InvalidOperationException("Missing collider implementation for " + collider->Type);
+                        break;
 				}
 			}
 		}
@@ -223,16 +225,6 @@ namespace VisualPinball.Unity
 		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
-		}
-
-		public static unsafe string ToString(ref Collider coll)
-		{
-			fixed (Collider* collider = &coll) {
-				switch (collider->Type) {
-					default:
-						return collider->ToString();
-				}
-			}
 		}
 	}
 }
