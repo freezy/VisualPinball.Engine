@@ -37,5 +37,8 @@
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>..\Plugins\.unity\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnitEngine.InputSystem">
+      <HintPath>..\Plugins\.unity\Unity.InputSystem.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.InputSystem;
 using System;
+using System.IO;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -58,6 +60,10 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_switch_no.png"));
 
 			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables);
+
+			InputActionAsset asset = Input.GetDefaultInputActions();
+			File.WriteAllText(@"Assets/VPE.inputactions", asset.ToJson());
+			AssetDatabase.Refresh();
 
 			base.OnEnable();
 
