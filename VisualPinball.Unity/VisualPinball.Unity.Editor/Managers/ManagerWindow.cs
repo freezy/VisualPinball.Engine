@@ -72,7 +72,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected void ResizeToFit()
 		{
-			_listView.multiColumnHeader.ResizeToFit();
+			if (_table != null) {
+				_listView.multiColumnHeader.ResizeToFit();
+			}
 		}
 
 		protected virtual void OnEnable()

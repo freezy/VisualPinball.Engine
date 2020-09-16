@@ -5,6 +5,7 @@
 		"Unity.Entities.Hybrid",
 		"Unity.Mathematics",
 		"Unity.Transforms",
+		"Unity.InputSystem",
 		"VisualPinball.Engine",
 		"VisualPinball.Unity",
 		"VisualPinball.Unity.Patcher"
