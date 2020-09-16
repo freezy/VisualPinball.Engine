@@ -77,6 +77,7 @@ namespace VisualPinball.Unity
 			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
 			DstEntityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
 			DstEntityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
+			DstEntityManager.AddBuffer<ContactBufferElement>(collEntity);
 
 			Logger.Info("Static QuadTree initialized.");
 		}

@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 			for (var i = Start; i < Start + orgItems; i++) {
 				var aabb = hitOct.GetItemAt(i);
 				if (entity != aabb.ColliderEntity && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					overlappingEntities.Add(new OverlappingDynamicBufferElement { Value = aabb.ColliderEntity });
+					overlappingEntities.Add(aabb.ColliderEntity);
 				}
 			}
 

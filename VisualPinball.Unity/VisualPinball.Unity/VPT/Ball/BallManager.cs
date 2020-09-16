@@ -94,7 +94,6 @@ namespace VisualPinball.Unity
 				typeof(CollisionEventData),
 				typeof(OverlappingStaticColliderBufferElement),
 				typeof(OverlappingDynamicBufferElement),
-				typeof(ContactBufferElement),
 				typeof(BallInsideOfBufferElement),
 				typeof(BallLastPositionsBufferElement)
 			);

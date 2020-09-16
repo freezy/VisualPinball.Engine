@@ -23,18 +23,25 @@ namespace VisualPinball.Unity
 	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
+		private EntityQuery _collDataEntityQuery;
+
+		protected override void OnCreate()
+		{
+			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+		}
 
 		protected override void OnUpdate()
 		{
 			var balls = GetComponentDataFromEntity<BallData>();
 			var overlappingEntitiesBuffer = GetBufferFromEntity<OverlappingDynamicBufferElement>(true);
-			var contactsBuffer = GetBufferFromEntity<ContactBufferElement>();
+			var contactsLookup = GetBufferFromEntity<ContactBufferElement>();
+			var collEntity = _collDataEntityQuery.GetSingletonEntity();
+
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("DynamicNarrowPhaseJob")
 				.WithNativeDisableParallelForRestriction(balls)
-				.WithNativeDisableParallelForRestriction(contactsBuffer)
 				.WithReadOnly(overlappingEntitiesBuffer)
 				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent) => {
 
@@ -45,17 +52,28 @@ namespace VisualPinball.Unity
 
 					marker.Begin();
 
+					var contacts = contactsLookup[collEntity];
+
 					var overlappingEntities = overlappingEntitiesBuffer[ballEntity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
 						var collBallEntity = overlappingEntities[k].Value;
 						var collBall = balls[collBallEntity];
-						var collBallContacts = contactsBuffer[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
 						//var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
+						var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
-						SaveCollisions(ref collEvent, ref newCollEvent, ref collBallContacts, in collBallEntity, newTime);
+						if (newCollEvent.IsContact || validHit) {
+							newCollEvent.SetCollider(ballEntity);
+							newCollEvent.HitTime = newTime;
+							if (newCollEvent.IsContact) {
+								contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
+
+							} else { // if (validhit)
+								collEvent = newCollEvent;
+							}
+						}
 
 						// write back
 						balls[collBallEntity] = collBall;
@@ -65,22 +83,5 @@ namespace VisualPinball.Unity
 
 				}).Run();
 		}
-
-		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-				ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, float newTime)
-			{
-				var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
-
-				if (newCollEvent.IsContact || validHit) {
-					newCollEvent.SetCollider(ballEntity);
-					newCollEvent.HitTime = newTime;
-					if (newCollEvent.IsContact) {
-						contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
-
-					} else {                         // if (validhit)
-						collEvent = newCollEvent;
-					}
-				}
-			}
 	}
 }

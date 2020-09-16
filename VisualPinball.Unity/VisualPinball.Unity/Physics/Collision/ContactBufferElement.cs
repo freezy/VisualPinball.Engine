@@ -18,26 +18,16 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	[InternalBufferCapacity(1)]
+	[InternalBufferCapacity(8)]
 	internal struct ContactBufferElement : IBufferElementData
 	{
-		public CollisionEventData CollisionEvent;
-		public int ColliderId;
-		public Entity ColliderEntity;
+		public CollisionEventData CollEvent;
+		public Entity BallEntity;
 
-		public ContactBufferElement(int colliderId, CollisionEventData collEvent)
+		public ContactBufferElement(Entity ballEntity, CollisionEventData collEvent)
 		{
-			CollisionEvent = collEvent;
-			ColliderId = colliderId;
-			ColliderEntity = Entity.Null;
-		}
-
-		public ContactBufferElement(Entity colliderEntity, CollisionEventData collEvent)
-		{
-			CollisionEvent = collEvent;
-			ColliderId = -1;
-			ColliderEntity = colliderEntity;
+			BallEntity = ballEntity;
+			CollEvent = collEvent;
 		}
 	}
-
 }
