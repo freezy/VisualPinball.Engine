@@ -19,6 +19,7 @@ using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
 using VisualPinball.Engine.Common;
+using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
 {
@@ -56,14 +57,16 @@ namespace VisualPinball.Unity
 
 		private float _staticCounts;
 		private EntityQuery _flipperDataQuery;
-		private EntityQuery _collisionDataQuery;
+		private EntityQuery _collisionEventDataQuery;
+		private EntityQuery _colliderDataQuery;
 
 		private Stopwatch _simulationTime = new Stopwatch();
 
 		protected override void OnCreate()
 		{
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
-			_collisionDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
+			_collisionEventDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
+			_colliderDataQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
@@ -99,6 +102,7 @@ namespace VisualPinball.Unity
 				HitTime = (float)dTime;
 
 				ApplyFlipperTime();
+				ClearContacts();
 
 				_dynamicBroadPhaseSystem.Update();
 				_staticBroadPhaseSystem.Update();
@@ -111,6 +115,9 @@ namespace VisualPinball.Unity
 				_dynamicCollisionSystem.Update();
 				_staticCollisionSystem.Update();
 				_contactSystem.Update();
+
+				ClearContacts();
+
 				_ballSpinHackSystem.Update();
 
 				dTime -= HitTime;
@@ -125,6 +132,17 @@ namespace VisualPinball.Unity
 				PhysicsEngine.PushPendingCreateBallNotifications();
 				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(sim.CurrentPhysicsTime, numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
 			}
+		}
+
+		private void ClearContacts()
+		{
+			var collEntity = _colliderDataQuery.GetSingletonEntity();
+			var contacts = EntityManager.GetBuffer<ContactBufferElement>(collEntity);
+			// if (contacts.Length > 0) {
+			// 	Debug.Break();
+			// }
+
+			contacts.Clear();;
 		}
 
 		private void ApplyFlipperTime()
@@ -147,7 +165,7 @@ namespace VisualPinball.Unity
 		private void ApplyStaticTime()
 		{
 			// for each collision event
-			var entities = _collisionDataQuery.ToEntityArray(Allocator.TempJob);
+			var entities = _collisionEventDataQuery.ToEntityArray(Allocator.TempJob);
 			foreach (var entity in entities) {
 				var collEvent = EntityManager.GetComponentData<CollisionEventData>(entity);
 				if (collEvent.HasCollider() && collEvent.HitTime <= HitTime) {       // smaller hit time??

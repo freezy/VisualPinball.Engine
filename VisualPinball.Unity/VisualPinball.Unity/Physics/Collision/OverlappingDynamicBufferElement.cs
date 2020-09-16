@@ -22,5 +22,15 @@ namespace VisualPinball.Unity
 	internal struct OverlappingDynamicBufferElement : IBufferElementData
 	{
 		public Entity Value;
+
+		public static implicit operator Entity(OverlappingDynamicBufferElement e)
+		{
+			return e.Value;
+		}
+
+		public static implicit operator OverlappingDynamicBufferElement(Entity e)
+		{
+			return new OverlappingDynamicBufferElement { Value = e };
+		}
 	}
 }

@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using Unity.Profiling;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -38,12 +39,13 @@ namespace VisualPinball.Unity
 
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
+			var contactsLookup = GetBufferFromEntity<ContactBufferElement>();
 
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var marker = PerfMarker;
 
-			Entities.WithName("DynamicNarrowPhaseJob").ForEach((ref CollisionEventData collEvent,
-				ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			Entities.WithName("DynamicNarrowPhaseJob").ForEach((Entity ballEntity, ref CollisionEventData collEvent,
+				ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
 				// don't play with frozen balls
@@ -53,18 +55,19 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
+				var contacts = contactsLookup[collEntity];
+
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
 				ref var playfieldCollider = ref colliders[collData.Value.Value.PlayfieldColliderId].Value;
 				ref var glassCollider = ref colliders[collData.Value.Value.GlassColliderId].Value;
 
 				// init contacts and event
-				contacts.Clear();
 				collEvent.ClearCollider(hitTime); // search upto current hittime
 
 				// check playfield and glass first
-				HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballData);
-				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballData);
+				HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
+				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
 
 				// statics first (todo: randomly switch order)
 				for (var i = 0; i < colliderIds.Length; i++) {
@@ -82,19 +85,19 @@ namespace VisualPinball.Unity
 
 								case ColliderType.Flipper:
 									if (HasComponent<FlipperHitData>(coll.Entity) &&
-											HasComponent<FlipperMovementData>(coll.Entity) &&
-											HasComponent<FlipperStaticData>(coll.Entity))
-										{
-											var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
-											var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-											var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-											newTime = ((FlipperCollider*)collider)->HitTest(
-												ref newCollEvent, ref insideOfs, ref flipperHitData,
-												in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
-											);
+									    HasComponent<FlipperMovementData>(coll.Entity) &&
+									    HasComponent<FlipperStaticData>(coll.Entity))
+									{
+										var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
+										var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
+										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
+										newTime = ((FlipperCollider*)collider)->HitTest(
+											ref newCollEvent, ref insideOfs, ref flipperHitData,
+											in flipperMovementData, in flipperMaterialData, in ballData, collEvent.HitTime
+										);
 
-											SetComponent(coll.Entity, flipperHitData);
-										}
+										SetComponent(coll.Entity, flipperHitData);
+									}
 									break;
 
 								case ColliderType.Plunger:
@@ -121,7 +124,7 @@ namespace VisualPinball.Unity
 						}
 					}
 
-					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime);
+					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
 				}
 
 				// no negative time allowed
@@ -136,7 +139,7 @@ namespace VisualPinball.Unity
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			in BallData ballData) {
+			in Entity ballEntity, in BallData ballData) {
 
 			// todo
 			// if (collider.obj && collider.obj.abortHitTest && collider.obj.abortHitTest()) {
@@ -146,11 +149,11 @@ namespace VisualPinball.Unity
 			var newCollEvent = new CollisionEventData();
 			var newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 
-			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in coll, newTime);
+			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
 		}
 
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-			ref DynamicBuffer<ContactBufferElement> contacts, in Collider coll, float newTime)
+			ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, in Collider coll, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
@@ -158,9 +161,9 @@ namespace VisualPinball.Unity
 				newCollEvent.SetCollider(coll.Id);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
-					contacts.Add(new ContactBufferElement(coll.Id, newCollEvent));
+					contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
 
-				} else {                         // if (validhit)
+				} else { // if (validhit)
 					collEvent = newCollEvent;
 				}
 			}

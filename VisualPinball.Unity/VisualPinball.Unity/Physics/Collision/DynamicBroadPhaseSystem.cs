@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			var marker = PerfMarker2;
 
 			Entities
-				.WithName("StaticBroadPhaseJob")
+				.WithName("DynamicBroadPhaseJob")
 				.WithNativeDisableParallelForRestriction(overlappingEntities)
 				.ForEach((Entity entity, in BallData ball) => {
 
