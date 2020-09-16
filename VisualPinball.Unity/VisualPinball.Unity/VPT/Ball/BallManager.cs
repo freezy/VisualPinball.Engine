@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal class BallManager
 	{
-		public static int NumBallsCreated { get; private set; }
+		public static int NumBallsCreated { get; set; }
 
 		private readonly Table _table;
 		private readonly Matrix4x4 _ltw;

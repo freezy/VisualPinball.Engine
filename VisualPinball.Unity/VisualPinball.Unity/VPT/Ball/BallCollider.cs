@@ -280,8 +280,6 @@ namespace VisualPinball.Unity
 			in CollisionEventData ballCollEvent, in CollisionEventData otherCollEvent,
 			bool swapBallCollisionHandling)
 		{
-			//Debug.Break();
-
 			// make sure we process each ball/ball collision only once
 			// (but if we are frozen, there won't be a second collision event, so deal with it now!)
 			if ((swapBallCollisionHandling && otherBall.Id >= ball.Id ||
