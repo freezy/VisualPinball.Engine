@@ -31,7 +31,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal class BallManager
 	{
-		public static int NumBallsCreated { get; set; }
+		public static int NumBallsCreated { get; private set; }
+		public static int NumBalls { get; private set; }
 
 		private readonly Table _table;
 		private readonly Matrix4x4 _ltw;
@@ -47,6 +48,12 @@ namespace VisualPinball.Unity
 		{
 			_table = table;
 			_ltw = ltw;
+		}
+
+		public static void Init()
+		{
+			NumBallsCreated = 0;
+			NumBalls = 0;
 		}
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
@@ -76,7 +83,7 @@ namespace VisualPinball.Unity
 				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
 		{
 			var world = World.DefaultGameObjectInjectionWorld;
@@ -155,6 +162,8 @@ namespace VisualPinball.Unity
 					ecb.SetComponent(kickerEntity, kickerCollData);
 				}
 			}
+
+			NumBalls++;
 		}
 
 		public static void DestroyEntity(Entity ballEntity)
@@ -163,6 +172,8 @@ namespace VisualPinball.Unity
 				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()
 				.CreateCommandBuffer()
 				.DestroyEntity(ballEntity);
+
+			NumBalls--;
 		}
 
 		/// <summary>
