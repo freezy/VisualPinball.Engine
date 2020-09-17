@@ -36,18 +36,14 @@ namespace VisualPinball.Unity
 			// create kdtree
 			PerfMarker1.Begin();
 
-			var ballEntities = _ballQuery.ToEntityArray(Allocator.TempJob);
-			var balls = GetComponentDataFromEntity<BallData>(true);
-			var kdRoot = new KdRoot();
-			Job.WithCode(() => {
-				var ballBounds = new NativeArray<Aabb>(ballEntities.Length, Allocator.Temp);
-				for (var i = 0; i < ballEntities.Length; i++) {
-					ballBounds[i] = balls[ballEntities[i]].GetAabb(ballEntities[i]);
-				}
-				kdRoot.Init(ballBounds, Allocator.TempJob);
+			var ballBounds = new NativeArray<Aabb>(BallManager.NumBallsCreated, Allocator.TempJob);
+			Entities.ForEach((Entity ballEntity, int entityInQueryIndex, in BallData ballData) => {
+				ballBounds[entityInQueryIndex] = ballData.GetAabb(ballEntity);
 			}).Run();
 
-			ballEntities.Dispose();
+			var kdRoot = new KdRoot();
+			Job.WithCode(() => kdRoot.Init(ballBounds, Allocator.TempJob)).Run();
+
 			PerfMarker1.End();
 
 			var overlappingEntities = GetBufferFromEntity<OverlappingDynamicBufferElement>();
