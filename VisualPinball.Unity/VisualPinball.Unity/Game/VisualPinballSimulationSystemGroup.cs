@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 		{
 			_currentPhysicsTime = GetTargetTime();
 			_nextPhysicsFrameTime = _currentPhysicsTime + PhysicsConstants.PhysicsStepTime;
-			BallManager.NumBallsCreated = 0;
+			BallManager.Init();
 		}
 
 		protected override void OnUpdate()
