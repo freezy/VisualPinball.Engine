@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Table;
-using System.IO;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -27,7 +26,12 @@ namespace VisualPinball.Unity
 
 		public Input()
 		{
+			var textFile = UnityEngine.Resources.Load<InputActionAsset>("VPE");
+
+			Debug.Log(textFile.ToJson());
+
 		}
+
 
 
 		public static InputActionAsset GetDefaultInputActions()

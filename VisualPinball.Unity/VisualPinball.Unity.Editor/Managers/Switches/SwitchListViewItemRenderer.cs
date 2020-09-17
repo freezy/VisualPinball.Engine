@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor
 
 		List<string> _ids;
 		List<ISwitchableAuthoring> _switchables;
+		List<string> _inputSystem;
 
 		public enum SwitchListColumn
 		{
@@ -45,10 +46,11 @@ namespace VisualPinball.Unity.Editor
 			Off = 6
 		}
 
-		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables)
+		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, List<string> inputSystem)
 		{
 			_ids = ids;
 			_switchables = switchables;
+			_inputSystem = inputSystem;
 		}
 
 		public void Render(SwitchListData data, Rect cellRect, int column, Action updateAction)
@@ -194,11 +196,15 @@ namespace VisualPinball.Unity.Editor
 			{
 				case SwitchSource.InputSystem:
 					{
-						string[] options = new string[] {
-							"Left Flipper", "Right Flipper", "Left Magna Save", "Right Magna Save", "Start", "Plunger",
-							"Coin Door 1", "Coin Door 2", "Coin Door 3", "Coin Door 4" };
+						List<string> options = new List<string>();
+
+						foreach (var item in _inputSystem)
+						{
+							options.Add(item.Replace('/', '\u2215'));
+						}
+
 						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, Array.IndexOf(options, switchListData.Element), options);
+						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Element), options.ToArray());
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Element = options[index];
