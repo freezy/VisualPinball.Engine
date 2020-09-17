@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
+		const string resourcesPath = "Assets/Resources";
 		const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
 		protected override string DataTypeName => "Switch";
@@ -45,6 +46,8 @@ namespace VisualPinball.Unity.Editor
 		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
 
 		private List<SwitchListData> _listData = new List<SwitchListData>();
+		private List<string> _inputSystem = new List<string>();
+
 
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
@@ -59,11 +62,9 @@ namespace VisualPinball.Unity.Editor
 			titleContent = new GUIContent("Switch Manager",
 				AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_switch_no.png"));
 
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputSystem);
 
-			InputActionAsset asset = Input.GetDefaultInputActions();
-			File.WriteAllText(@"Assets/VPE.inputactions", asset.ToJson());
-			AssetDatabase.Refresh();
+			RefreshInputActions();
 
 			base.OnEnable();
 
@@ -115,6 +116,55 @@ namespace VisualPinball.Unity.Editor
 		
 		}
 		#endregion
+
+		private void RefreshInputActions()
+		{
+			InputActionAsset asset = null;
+
+			try
+			{
+				if (!Directory.Exists(resourcesPath))
+				{
+					Directory.CreateDirectory(resourcesPath);
+				}
+
+				var inputActionsPath = resourcesPath + "/VPE.inputactions";
+
+				if (File.Exists(inputActionsPath))
+				{
+					asset = InputActionAsset.FromJson(File.ReadAllText(inputActionsPath));
+				}
+				else
+				{
+					asset = Input.GetDefaultInputActions();
+
+					File.WriteAllText(inputActionsPath, asset.ToJson());
+					AssetDatabase.Refresh();
+				}
+			}
+
+			catch(Exception e)
+			{
+				Debug.Log(e);
+			}
+
+			if (asset == null)
+			{
+				asset = Input.GetDefaultInputActions();
+			}
+
+			_inputSystem.Clear();
+
+			foreach (var map in asset.actionMaps)
+			{
+				foreach (var inputAction in map.actions)
+				{
+					_inputSystem.Add(inputAction.name);
+
+					Debug.Log(inputAction.name);
+				}
+			}
+		}
 
 		private void RefreshSwitchables()
 		{
