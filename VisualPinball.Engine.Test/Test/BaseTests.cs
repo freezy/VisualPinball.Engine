@@ -19,7 +19,6 @@ using NLog.Targets;
 using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.Test
@@ -63,10 +62,5 @@ namespace VisualPinball.Engine.Test.Test
 		public Vertex3D GetBallCreationPosition(Table table) => _pos;
 
 		public Vertex3D GetBallCreationVelocity(Table table) => _vel;
-
-		public void OnBallCreated(Ball ball)
-		{
-			// do nothing
-		}
 	}
 }

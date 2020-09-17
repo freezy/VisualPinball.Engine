@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Game
