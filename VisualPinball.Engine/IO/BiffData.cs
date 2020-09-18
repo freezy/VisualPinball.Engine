@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.IO
 {
 	public enum StoragePrefix
 	{
-		GameItem, Collection, Sound, Image
+		GameItem, Collection, Sound, Image, MappingConfig
 	}
 
 	/// <summary>

@@ -157,6 +157,9 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffInt("SCOL", Pos = 111)]
 		public int NumCollections;
 
+		[BiffInt("SMCF", Pos = 113)]
+		public int NumMappingConfigs;
+
 		[BiffBool("BIMN", Pos = 63)]
 		public bool ImageBackdropNightDay;
 
