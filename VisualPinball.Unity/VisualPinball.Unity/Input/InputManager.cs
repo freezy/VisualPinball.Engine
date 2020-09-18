@@ -65,6 +65,12 @@ namespace VisualPinball.Unity
 
 			asset.AddActionMap(map);
 
+			map = new InputActionMap("Visual Pinball Engine");
+			map.AddAction("Create Ball", InputActionType.Button, "<Keyboard>/b");
+			map.AddAction("Kicker 1", InputActionType.Button, "<Keyboard>/n");
+
+			asset.AddActionMap(map);
+
 			return asset;
 		}
 

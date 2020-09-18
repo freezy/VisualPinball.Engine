@@ -132,29 +132,20 @@ namespace VisualPinball.Unity
 									_tableApi.Plunger("Plunger")?.Fire();
 								}
 							}
-
+							else if (action.name == "Create Ball")
+							{
+								_ballManager.CreateBall(new DebugBallCreator());
+							}
+							else if (action.name == "Kicker 1")
+							{
+								_tableApi.Kicker("Kicker1").CreateBall();
+								_tableApi.Kicker("Kicker1").Kick(0, -1);
+							}
 
 							Debug.Log($"{((InputAction)obj).name} {change}");
 							break;
-
-
-
-
 					}
 				};
-		}
-
-		private void Update()
-		{
-			if (Keyboard.current.bKey.wasReleasedThisFrame) {
-				_ballManager.CreateBall(new DebugBallCreator());
-			}
-
-			if (Keyboard.current.nKey.wasReleasedThisFrame) {
-				//_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
-				_tableApi.Kicker("Kicker1").CreateBall();
-				_tableApi.Kicker("Kicker1").Kick(0, -1);
-			}
 		}
 
 		#endregion

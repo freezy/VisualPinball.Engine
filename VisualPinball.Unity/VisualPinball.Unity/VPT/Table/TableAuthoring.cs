@@ -27,6 +27,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.MappingConfig;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
@@ -46,6 +47,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
+
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
 using Texture = VisualPinball.Engine.VPT.Texture;
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
 		public List<CollectionData> Collections => _sidecar?.collections;
+		public List<MappingConfigData> MappingConfigs => _sidecar?.mappingConfigs;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -216,6 +219,7 @@ namespace VisualPinball.Unity
 			// restore game items with no game object (yet!)
 			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
 			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
+			Restore(_sidecar.mappingConfigs, table.MappingConfigs, d => new MappingConfig(d));
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
