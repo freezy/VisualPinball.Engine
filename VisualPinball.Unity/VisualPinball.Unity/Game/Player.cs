@@ -55,6 +55,9 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
+		// input related
+		private InputManager _inputManager;
+
 		public Player()
 		{
 			_initializables.Add(_tableApi);
@@ -67,6 +70,7 @@ namespace VisualPinball.Unity
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
 			Table = tableComponent.CreateTable();
 			_ballManager = new BallManager(Table, TableToWorld);
+			_inputManager = new InputManager();
 		}
 
 		private void Start()
@@ -81,24 +85,67 @@ namespace VisualPinball.Unity
 			foreach (var i in _initializables) {
 				i.OnInit();
 			}
+
+			_inputManager._asset.Enable();
+
+			InputSystem.onActionChange +=
+				(obj, change) =>
+				{
+					switch (change)
+					{
+						case InputActionChange.ActionStarted:
+						case InputActionChange.ActionPerformed:
+						case InputActionChange.ActionCanceled:
+
+							var action = (InputAction)obj;
+
+							if (action.name == "Left Flipper")
+							{
+								if (change == InputActionChange.ActionStarted)
+								{
+									_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
+								}
+								else if (change == InputActionChange.ActionCanceled)
+								{
+									_tableApi.Flipper("LeftFlipper")?.RotateToStart();
+								}
+							}
+							else if (action.name == "Right Flipper")
+							{
+								if (change == InputActionChange.ActionStarted)
+								{
+									_tableApi.Flipper("RightFlipper")?.RotateToEnd();
+								}
+								else if (change == InputActionChange.ActionCanceled)
+								{
+									_tableApi.Flipper("RightFlipper")?.RotateToStart();
+								}
+							}
+							else if (action.name == "Plunger")
+							{
+								if (change == InputActionChange.ActionStarted)
+								{
+									_tableApi.Plunger("Plunger")?.PullBack();
+								}
+								else if (change == InputActionChange.ActionCanceled)
+								{
+									_tableApi.Plunger("Plunger")?.Fire();
+								}
+							}
+
+
+							Debug.Log($"{((InputAction)obj).name} {change}");
+							break;
+
+
+
+
+					}
+				};
 		}
 
 		private void Update()
 		{
-			// flippers will be handled via script later, but until scripting works, do it here.
-			if (Keyboard.current.leftShiftKey.wasPressedThisFrame) { 
-				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-			}
-			if (Keyboard.current.leftShiftKey.wasReleasedThisFrame) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-			}
-			if (Keyboard.current.rightShiftKey.wasPressedThisFrame) {
-				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-			}
-			if (Keyboard.current.rightShiftKey.wasReleasedThisFrame) {
-				_tableApi.Flipper("RightFlipper")?.RotateToStart();
-			}
-
 			if (Keyboard.current.bKey.wasReleasedThisFrame) {
 				_ballManager.CreateBall(new DebugBallCreator());
 			}
@@ -107,13 +154,6 @@ namespace VisualPinball.Unity
 				//_ballManager.CreateBall(new DebugBallCreator(Table.Width / 2f, Table.Height / 2f - 300f, 0, -5));
 				_tableApi.Kicker("Kicker1").CreateBall();
 				_tableApi.Kicker("Kicker1").Kick(0, -1);
-			}
-
-			if (Keyboard.current.enterKey.wasPressedThisFrame) {
-				_tableApi.Plunger("Plunger")?.PullBack();
-			}
-			if (Keyboard.current.enterKey.wasReleasedThisFrame) {
-				_tableApi.Plunger("Plunger")?.Fire();
 			}
 		}
 

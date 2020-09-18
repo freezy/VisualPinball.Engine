@@ -128,7 +128,7 @@ namespace VisualPinball.Unity.Editor
 					Directory.CreateDirectory(resourcesPath);
 				}
 
-				var inputActionsPath = resourcesPath + "/VPE.inputactions";
+				var inputActionsPath = resourcesPath + "/" + InputManager.RESOURCE_NAME + ".inputactions";
 
 				if (File.Exists(inputActionsPath))
 				{
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				else
 				{
-					asset = Input.GetDefaultInputActions();
+					asset = InputManager.GetDefaultInputActionAsset();
 
 					File.WriteAllText(inputActionsPath, asset.ToJson());
 					AssetDatabase.Refresh();
@@ -150,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (asset == null)
 			{
-				asset = Input.GetDefaultInputActions();
+				asset = InputManager.GetDefaultInputActionAsset();
 			}
 
 			_inputSystem.Clear();

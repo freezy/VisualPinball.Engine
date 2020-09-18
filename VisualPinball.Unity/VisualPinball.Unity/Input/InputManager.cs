@@ -15,26 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine.InputSystem;
-using VisualPinball.Engine.VPT.Table;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class Input : MonoBehaviour
+	public class InputManager : MonoBehaviour
 	{
-		public Table Table { get; private set; }
+		public static readonly string RESOURCE_NAME = "VPE";
 
-		public Input()
+		public InputActionAsset _asset;
+
+		public InputManager()
 		{
-			var textFile = UnityEngine.Resources.Load<InputActionAsset>("VPE");
+			_asset = UnityEngine.Resources.Load<InputActionAsset>(RESOURCE_NAME);
 
-			Debug.Log(textFile.ToJson());
-
+			if (_asset == null)
+			{
+				_asset = GetDefaultInputActionAsset();
+			}
 		}
 
-
-
-		public static InputActionAsset GetDefaultInputActions()
+		public static InputActionAsset GetDefaultInputActionAsset()
 		{
 			var asset = ScriptableObject.CreateInstance<InputActionAsset>();
 

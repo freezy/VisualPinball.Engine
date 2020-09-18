@@ -54,6 +54,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
+		public readonly Dictionary<string, MappingConfig.MappingConfig> MappingConfigs = new Dictionary<string, MappingConfig.MappingConfig>();
 
 		#region GameItems
 
