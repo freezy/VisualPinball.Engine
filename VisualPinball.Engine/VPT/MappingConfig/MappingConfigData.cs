@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
 
-		[BiffString("NAME", IsWideString = true, Pos = 16)]
+		[BiffString("NAME", IsWideString = true, Pos = 1)]
 		public string Name;
 
 		[BiffDragPoint("MENT", TagAll = true, Pos = 2000)]
@@ -54,6 +54,16 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 			Init(typeof(MappingConfigData), Attributes);
 		}
 
+		public MappingConfigData(string name) : base(StoragePrefix.MappingConfig)
+		{
+			Name = name;
+		}
+
+		public MappingConfigData(string name, MappingConfigData data) : base(StoragePrefix.MappingConfig)
+		{
+			Name = name;
+		}
+
 		public MappingConfigData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
@@ -61,7 +71,6 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
-			writer.Write((int)ItemType.Surface);
 			WriteRecord(writer, Attributes, hashWriter);
 			WriteEnd(writer, hashWriter);
 		}
