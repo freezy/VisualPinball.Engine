@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("DynamicBroadPhaseJob")
+				.WithDisposeOnCompletion(kdRoot)
 				.WithNativeDisableParallelForRestriction(overlappingEntities)
 				.ForEach((Entity entity, in BallData ball) => {
 
@@ -67,9 +68,7 @@ namespace VisualPinball.Unity
 
 					marker.End();
 
-				}).Run();
-
-			kdRoot.Dispose();
+				}).ScheduleParallel();
 		}
 	}
 }

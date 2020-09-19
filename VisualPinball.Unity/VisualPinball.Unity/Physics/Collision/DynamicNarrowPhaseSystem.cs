@@ -32,18 +32,18 @@ namespace VisualPinball.Unity
 
 		protected override void OnUpdate()
 		{
-			var balls = GetComponentDataFromEntity<BallData>();
-			var overlappingEntitiesBuffer = GetBufferFromEntity<OverlappingDynamicBufferElement>(true);
+			var ballsLookup = GetComponentDataFromEntity<BallData>();
 			var contactsLookup = GetBufferFromEntity<ContactBufferElement>();
-			var collEntity = _collDataEntityQuery.GetSingletonEntity();
+			var collDataEntity = _collDataEntityQuery.GetSingletonEntity();
 
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("DynamicNarrowPhaseJob")
-				.WithNativeDisableParallelForRestriction(balls)
-				.WithReadOnly(overlappingEntitiesBuffer)
-				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent) => {
+				.WithNativeDisableParallelForRestriction(ballsLookup)
+				//.WithReadOnly(overlappingEntitiesBuffer)
+				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent,
+					in DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) => {
 
 					// don't play with frozen balls
 					if (ball.IsFrozen) {
@@ -52,14 +52,12 @@ namespace VisualPinball.Unity
 
 					marker.Begin();
 
-					var contacts = contactsLookup[collEntity];
-					var overlappingEntities = overlappingEntitiesBuffer[ballEntity];
+					var contacts = contactsLookup[collDataEntity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
 						var collBallEntity = overlappingEntities[k].Value;
-						var collBall = balls[collBallEntity];
+						var collBall = ballsLookup[collBallEntity];
 
 						var newCollEvent = new CollisionEventData();
-						//var newTime = BallCollider.HitTest(ref newCollEvent, ref collBall, in ball, collEvent.HitTime);
 						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
 						var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
@@ -75,7 +73,7 @@ namespace VisualPinball.Unity
 						}
 
 						// write back
-						balls[collBallEntity] = collBall;
+						ballsLookup[collBallEntity] = collBall;
 					}
 
 					marker.End();
