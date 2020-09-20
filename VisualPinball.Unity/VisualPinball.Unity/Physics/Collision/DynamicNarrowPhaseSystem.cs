@@ -23,28 +23,27 @@ namespace VisualPinball.Unity
 	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
-		private EntityQuery _collDataEntityQuery;
+		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
 		protected override void OnCreate()
 		{
-			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
+			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
 		protected override void OnUpdate()
 		{
 			var ballsLookup = GetComponentDataFromEntity<BallData>();
-			var contactsLookup = GetBufferFromEntity<ContactBufferElement>();
-			var collDataEntity = _collDataEntityQuery.GetSingletonEntity();
+			var contacts = _simulateCycleSystemGroup.Contacts;
 
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("DynamicNarrowPhaseJob")
+				.WithReadOnly(contacts)
 				.WithNativeDisableParallelForRestriction(ballsLookup)
-				//.WithReadOnly(overlappingEntitiesBuffer)
 				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent,
-					in DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) => {
-
+					in DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) =>
+				{
 					// don't play with frozen balls
 					if (ball.IsFrozen) {
 						return;
@@ -52,7 +51,7 @@ namespace VisualPinball.Unity
 
 					marker.Begin();
 
-					var contacts = contactsLookup[collDataEntity];
+					//var contacts = contactsLookup[collDataEntity];
 					for (var k = 0; k < overlappingEntities.Length; k++) {
 						var collBallEntity = overlappingEntities[k].Value;
 						var collBall = ballsLookup[collBallEntity];
@@ -78,7 +77,8 @@ namespace VisualPinball.Unity
 
 					marker.End();
 
-				}).Run();
+				}
+			).ScheduleParallel();
 		}
 	}
 }

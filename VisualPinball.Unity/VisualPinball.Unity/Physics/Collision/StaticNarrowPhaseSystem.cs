@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
@@ -39,9 +40,9 @@ namespace VisualPinball.Unity
 
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
-			var contactsLookup = GetBufferFromEntity<ContactBufferElement>();
-
+			var contacts = _simulateCycleSystemGroup.Contacts;
 			var hitTime = _simulateCycleSystemGroup.HitTime;
+
 			var marker = PerfMarker;
 
 			Entities.WithName("DynamicNarrowPhaseJob").ForEach((Entity ballEntity, ref CollisionEventData collEvent,
@@ -54,8 +55,6 @@ namespace VisualPinball.Unity
 				}
 
 				marker.Begin();
-
-				var contacts = contactsLookup[collEntity];
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
@@ -138,7 +137,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
-			ref DynamicBuffer<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+			ref NativeList<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			in Entity ballEntity, in BallData ballData) {
 
 			// todo
@@ -153,7 +152,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-			ref DynamicBuffer<ContactBufferElement> contacts, in Entity ballEntity, in Collider coll, float newTime)
+			ref NativeList<ContactBufferElement> contacts, in Entity ballEntity, in Collider coll, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 

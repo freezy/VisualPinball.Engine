@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			// retrieve reference to static collider data
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
-			var contactsLookup = GetBufferFromEntity<ContactBufferElement>(true);
+			var contacts = _simulateCycleSystemGroup.Contacts;
 			var ballsLookup = GetComponentDataFromEntity<BallData>();
 
 			var marker = PerfMarker;
@@ -61,7 +61,6 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				ref var colliders = ref collData.Value.Value.Colliders;
-				var contacts = contactsLookup[collEntity];
 
 				//if (rnd.NextBool()) { // swap order of contact handling randomly
 				for (var i = 0; i < contacts.Length; i++) {
