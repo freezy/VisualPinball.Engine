@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 		public DefaultPhysicsEngine PhysicsEngine;
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
+		public NativeList<ContactBufferElement> Contacts;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 
@@ -86,6 +87,13 @@ namespace VisualPinball.Unity
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
 			_systemsToUpdate.Add(_ballSpinHackSystem);
+
+			Contacts = new NativeList<ContactBufferElement>(Allocator.Persistent);
+		}
+
+		protected override void OnDestroy()
+		{
+			Contacts.Dispose();
 		}
 
 		protected override void OnUpdate()
@@ -136,13 +144,11 @@ namespace VisualPinball.Unity
 
 		private void ClearContacts()
 		{
-			var collEntity = _colliderDataQuery.GetSingletonEntity();
-			var contacts = EntityManager.GetBuffer<ContactBufferElement>(collEntity);
 			// if (contacts.Length > 0) {
 			// 	Debug.Break();
 			// }
 
-			contacts.Clear();;
+			Contacts.Clear();;
 		}
 
 		private void ApplyFlipperTime()
