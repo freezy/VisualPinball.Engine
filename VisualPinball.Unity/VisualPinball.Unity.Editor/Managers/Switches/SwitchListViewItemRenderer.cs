@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -149,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 			int index = EditorGUI.Popup(cellRect, (int)switchListData.Source, OPTIONS_SWITCH_SOURCE);
 			if (EditorGUI.EndChangeCheck())
 			{
-				switchListData.Source = (SwitchSource)index;
+				switchListData.Source = index;
 
 				if (switchListData.Source == SwitchSource.InputSystem)
 				{
@@ -235,7 +236,7 @@ namespace VisualPinball.Unity.Editor
 						int index = EditorGUI.Popup(cellRect, (int)switchListData.Constant, OPTIONS_SWITCH_CONSTANT);
 						if (EditorGUI.EndChangeCheck())
 						{
-							switchListData.Constant = (SwitchConstant)index;
+							switchListData.Constant = index;
 							updateAction();
 						}
 					}
@@ -251,7 +252,7 @@ namespace VisualPinball.Unity.Editor
 				int index = EditorGUI.Popup(cellRect, (int)switchListData.Type, OPTIONS_SWITCH_TYPE);
 				if (EditorGUI.EndChangeCheck())
 				{
-					switchListData.Type = (SwitchType)index;
+					switchListData.Type = index;
 					updateAction();
 				}
 			}
@@ -328,7 +329,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private Texture GetIcon(SwitchListData switchListData)
+		private UnityEngine.Texture GetIcon(SwitchListData switchListData)
 		{
 			string image = null;
 
@@ -385,7 +386,7 @@ namespace VisualPinball.Unity.Editor
 			else if (switchListData.Source == SwitchSource.Constant)
 			{
 				image = "switch_" +
-					(switchListData.Constant == SwitchConstant.NC ? "nc" : "no");
+					(switchListData.Constant == SwitchConstant.NormallyClosed ? "nc" : "no");
 			}
 
 			if (image != null)

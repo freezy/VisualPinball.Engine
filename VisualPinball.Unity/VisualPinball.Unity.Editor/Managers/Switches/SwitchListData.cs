@@ -14,27 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.MappingConfig;
+
 namespace VisualPinball.Unity.Editor
 {
-	public enum SwitchSource
-	{
-		InputSystem = 0,
-		Playfield = 1,
-		Constant = 2
-	}
-
-	public enum SwitchConstant
-	{
-		NC = 0,
-		NO = 1
-	}
-
-	public enum SwitchType
-	{
-		OnOff = 0,
-		Pulse = 1
-	}
-
 	public enum SwitchEvent
 	{
 		None = 0,
@@ -53,13 +37,13 @@ namespace VisualPinball.Unity.Editor
 		public string Description;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 120)]
-		public SwitchSource Source = SwitchSource.Constant;
+		public int Source = SwitchSource.Constant;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 150)]
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
-		public SwitchType Type = SwitchType.OnOff;
+		public int Type = SwitchType.OnOff;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Trigger", Width = 100)]
 		public SwitchEvent Trigger;
@@ -68,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 		public string Off = "";
 
 		public string ID;
-		public SwitchConstant Constant = SwitchConstant.NC;
+		public int Constant = SwitchConstant.NormallyClosed;
 		public int Pulse = 10;
 
 		public SwitchListData()
@@ -76,61 +60,12 @@ namespace VisualPinball.Unity.Editor
 			ID = "";
 		}
 
-		public SwitchListData(string id, ISwitchableAuthoring item)
-		{
-			ID = id;
-			Source = SwitchSource.Playfield;
-			Element = item.Name;
-			
-			if (item is BumperAuthoring)
-			{
-				Description = "Bumper";
-			}
-			else if (item is FlipperAuthoring)
-			{
-				Description = "Flipper";
-			}
-			else if (item is GateAuthoring)
-			{
-				Description = "Gate";
-			}
-			else if (item is HitTargetAuthoring)
-			{
-				Description = "Target";
-			}
-			else if (item is KickerAuthoring)
-			{
-				Description = "Kicker";
-			}
-			else if (item is PrimitiveAuthoring)
-			{
-				Description = "Primitive";
-			}
-			else if (item is RubberAuthoring)
-			{
-				Description = "Rubber";
-			}
-			else if (item is SurfaceAuthoring)
-			{
-				Description = "Surface";
-			}
-			else if (item is TriggerAuthoring)
-			{
-				Description = "Trigger";
-			}
-			else if (item is SpinnerAuthoring)
-			{
-				Description = "Spinner";
-			}
-
-			if (item is KickerAuthoring || item is TriggerAuthoring)
-			{
-				Type = SwitchType.OnOff;
-			}
-			else
-			{
-				Type = SwitchType.Pulse;
-			}
+		public SwitchListData(MappingEntryData mappingEntry) {
+			ID = mappingEntry.ID;
+			Description = mappingEntry.Description;
+			Element = mappingEntry.Element;
+			Source = mappingEntry.Source;
+			Type = mappingEntry.Type;
 		}
 	}
 }
