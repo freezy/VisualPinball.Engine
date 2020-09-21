@@ -56,7 +56,11 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			Job.WithName("ContactJob").WithCode(() => {
+			Job
+				.WithName("ContactJob")
+				.WithReadOnly(ballsLookup)
+				.WithCode(() =>
+			{
 
 				marker.Begin();
 

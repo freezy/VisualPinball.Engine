@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Run();
+			}).ScheduleParallel();
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {

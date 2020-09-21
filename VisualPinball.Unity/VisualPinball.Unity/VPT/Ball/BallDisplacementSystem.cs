@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Run();
+			}).ScheduleParallel();
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

@@ -23,18 +23,12 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[UpdateInGroup(typeof(GameObjectAfterConversionGroup))]
-	internal class QuadTreeConversionSystem : GameObjectConversionSystem
+	internal static class QuadTreeCreationSystem
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected override void OnUpdate()
+		public static void Create(EntityManager entityManager)
 		{
-			// fixme
-			if (DstEntityManager.CreateEntityQuery(typeof(QuadTreeData)).CalculateEntityCount() > 0) {
-				return;
-			}
-
 			var table = Object.FindObjectOfType<TableAuthoring>().Table;
 
 			foreach (var playable in table.Playables) {
@@ -73,10 +67,10 @@ namespace VisualPinball.Unity
 			var colliderBlob = ColliderBlob.CreateBlobAssetReference(hitObjects, playfieldHitObject.Id, glassHitObject.Id);
 
 			// save it to entity
-			var collEntity = DstEntityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
+			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
 			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
-			DstEntityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
-			DstEntityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
+			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
+			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
 
 			Logger.Info("Static QuadTree initialized.");
 		}
