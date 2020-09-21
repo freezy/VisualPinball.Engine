@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			var deps = JobHandle.CombineDependencies(_dynamicNarrowPhaseSystem.Dep, _staticNarrowPhaseSystem.Dep);
+			var deps = JobHandle.CombineDependencies(_dynamicNarrowPhaseSystem.Deps, _staticNarrowPhaseSystem.Deps);
 
 			Job
 				.WithName("ContactJob")

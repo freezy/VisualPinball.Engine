@@ -24,7 +24,8 @@ namespace VisualPinball.Unity
 	[DisableAutoCreation]
 	internal class StaticNarrowPhaseSystem : SystemBase
 	{
-		public JobHandle Dep => Dependency;
+		public JobHandle Deps { get; private set; }
+
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticNarrowPhaseSystem");
@@ -46,7 +47,7 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			Entities
+			Deps = Entities
 				.WithName("DynamicNarrowPhaseJob")
 				.ForEach((Entity ballEntity, ref CollisionEventData collEvent,
 					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
@@ -137,7 +138,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Schedule();
+			}).Schedule(Dependency);
 		}
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
