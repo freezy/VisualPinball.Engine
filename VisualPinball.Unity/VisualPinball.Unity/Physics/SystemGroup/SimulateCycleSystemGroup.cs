@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using VisualPinball.Engine.Common;
 using Debug = UnityEngine.Debug;
 
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 		public NativeList<ContactBufferElement> Contacts;
+		public JobHandle ContactsDependencies;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 
@@ -59,7 +61,6 @@ namespace VisualPinball.Unity
 		private float _staticCounts;
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _collisionEventDataQuery;
-		private EntityQuery _colliderDataQuery;
 
 		private Stopwatch _simulationTime = new Stopwatch();
 
@@ -67,7 +68,6 @@ namespace VisualPinball.Unity
 		{
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			_collisionEventDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
-			_colliderDataQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
@@ -89,6 +89,11 @@ namespace VisualPinball.Unity
 			_systemsToUpdate.Add(_ballSpinHackSystem);
 
 			Contacts = new NativeList<ContactBufferElement>(Allocator.Persistent);
+		}
+
+		protected override void OnStartRunning()
+		{
+			QuadTreeCreationSystem.Create(EntityManager);
 		}
 
 		protected override void OnDestroy()

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 
 		public static BlobAssetReference<ColliderBlob> CreateBlobAssetReference(List<HitObject> hitObjects, int playfieldColliderId, int glassColliderId)
 		{
-			using (var builder = new BlobBuilder(Allocator.Temp)) {
+			using (var builder = new BlobBuilder(Allocator.TempJob)) {
 				ref var root = ref builder.ConstructRoot<ColliderBlob>();
 				var colliders = builder.Allocate(ref root.Colliders, hitObjects.Count);
 

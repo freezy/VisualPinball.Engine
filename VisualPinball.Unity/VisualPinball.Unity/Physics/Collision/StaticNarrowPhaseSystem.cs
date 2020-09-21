@@ -17,7 +17,6 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -45,9 +44,12 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			Entities.WithName("DynamicNarrowPhaseJob").ForEach((Entity ballEntity, ref CollisionEventData collEvent,
-				ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-				in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
+			Entities
+				.WithName("DynamicNarrowPhaseJob")
+				.ForEach((Entity ballEntity, ref CollisionEventData collEvent,
+					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+					in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) =>
+				{
 
 				// don't play with frozen balls
 				if (ballData.IsFrozen) {
@@ -133,7 +135,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Run();
+			}).Schedule();
 		}
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
