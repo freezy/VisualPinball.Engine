@@ -17,6 +17,7 @@
 // ReSharper disable ClassNeverInstantiated.Global
 
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
@@ -27,14 +28,19 @@ namespace VisualPinball.Unity
 	internal class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
-		private float3 _gravity;
+		private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
+		private DynamicNarrowPhaseSystem _dynamicNarrowPhaseSystem;
+
 		private EntityQuery _collDataEntityQuery;
+		private float3 _gravity;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("ContactSystem");
 
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_dynamicNarrowPhaseSystem = World.GetOrCreateSystem<DynamicNarrowPhaseSystem>();
+			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 
@@ -51,10 +57,12 @@ namespace VisualPinball.Unity
 			// retrieve reference to static collider data
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
-			var contacts = _simulateCycleSystemGroup.Contacts;
+			var contacts = _simulateCycleSystemGroup.Contacts.AsDeferredJobArray();
 			var ballsLookup = GetComponentDataFromEntity<BallData>();
 
 			var marker = PerfMarker;
+
+			var deps = JobHandle.CombineDependencies(_dynamicNarrowPhaseSystem.Dep, _staticNarrowPhaseSystem.Dep);
 
 			Job
 				.WithName("ContactJob")
@@ -103,7 +111,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Run();
+			}).Schedule(deps);
 		}
 	}
 }

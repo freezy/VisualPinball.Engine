@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -22,6 +23,7 @@ namespace VisualPinball.Unity
 	[DisableAutoCreation]
 	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
+		public JobHandle Dep => Dependency;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
