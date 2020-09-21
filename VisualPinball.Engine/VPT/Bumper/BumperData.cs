@@ -65,7 +65,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public float Threshold = 1.0f;
 
 		[BiffFloat("FORC", Pos = 6)]
-		public float Force;
+		public float Force = 15f;
 
 		[BiffFloat("BSCT", Pos = 7)]
 		public float Scatter;

@@ -22,6 +22,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
@@ -123,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (CreateButton("Gate", _gateIcon, iconSize, buttonStyle)) {
-				CreateItem(Ramp.GetDefault, "New Ramp");
+				CreateItem(Gate.GetDefault, "New Gate");
 			}
 
 			GUILayout.EndHorizontal();
