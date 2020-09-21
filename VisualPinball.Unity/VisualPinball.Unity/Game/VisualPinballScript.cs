@@ -20,15 +20,27 @@ namespace VisualPinball.Unity
 {
 	public class VisualPinballScript : MonoBehaviour
 	{
-		public virtual void OnAwake(TableApi table)
+		public virtual void OnAwake(TableApi table, BallManager ballManager)
 		{
-			table.Plunger("Plunger").Init += (sender, args) => {
-				KickNewBallToPlunger(table);
-			};
+			// table.Plunger("Plunger").Init += (sender, args) => {
+			// 	KickNewBallToPlunger(table);
+			// };
+			//
+			// table.Kicker("Drain").Hit += (sender, args) => {
+			// 	((KickerApi)sender).DestroyBall();
+			// 	KickNewBallToPlunger(table);
+			// };
 
-			table.Kicker("Drain").Hit += (sender, args) => {
-				((KickerApi)sender).DestroyBall();
-				KickNewBallToPlunger(table);
+			table.Init += (sender, args) => {
+
+				ballManager.CreateBall(new DebugBallCreator(200f, 620f));
+				ballManager.CreateBall(new DebugBallCreator(330f, 360f));
+				ballManager.CreateBall(new DebugBallCreator(400f, 700f));
+				ballManager.CreateBall(new DebugBallCreator(620f, 820f));
+				ballManager.CreateBall(new DebugBallCreator(720f, 400f));
+				ballManager.CreateBall(new DebugBallCreator(830f, 870f));
+				ballManager.CreateBall(new DebugBallCreator(470f, 230f));
+				ballManager.CreateBall(new DebugBallCreator(620f, 1200f));
 			};
 		}
 

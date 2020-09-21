@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
 			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi);
+				tableScript.OnAwake(_tableApi, _ballManager);
 			}
 
 			// trigger init events now

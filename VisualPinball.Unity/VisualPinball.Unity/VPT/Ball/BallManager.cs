@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A singleton class that handles ball creation and destruction.
 	/// </summary>
-	internal class BallManager
+	public class BallManager
 	{
 		public static int NumBallsCreated { get; private set; }
 		public static int NumBalls { get; private set; }
