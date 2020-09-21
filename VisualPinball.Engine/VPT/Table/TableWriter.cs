@@ -112,6 +112,13 @@ namespace VisualPinball.Engine.VPT.Table
 			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
+
+			// 4. Mapping Configs
+			var mappingConfigs = _table.MappingConfigs.Values.ToArray();
+			foreach (var mappingConfig in mappingConfigs.Select(c => c.Data).OrderBy(c => c.StorageIndex))
+			{
+				mappingConfig.WriteData(_gameStorage, hashWriter);
+			}
 		}
 
 		private void WriteImages()

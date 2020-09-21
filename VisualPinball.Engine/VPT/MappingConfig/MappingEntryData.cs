@@ -31,19 +31,35 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.MappingConfig
 {
 	[Serializable]
-	public class MappingEntry : BiffData
+	public class MappingEntryData : BiffData
 	{
-		[BiffString("DESC", IsWideString = true, Pos = 16)]
+		[BiffString("ID", IsWideString = true, Pos = 1)]
+		public string ID;
+
+		[BiffString("DESC", IsWideString = true, Pos = 2)]
 		public string Description;
+
+		[BiffString("ELEM", IsWideString = true, Pos = 3)]
+		public string Element;
+
+		[BiffInt("SSRC", Pos = 4)]
+		public int Source = VPT.SwitchSource.Playfield;
+
+		[BiffInt("STYP", Pos = 5)]
+		public int Type = VPT.SwitchType.OnOff;
 
 		#region BIFF
 
-		static MappingEntry()
+		static MappingEntryData()
 		{
-			Init(typeof(MappingEntry), Attributes);
+			Init(typeof(MappingEntryData), Attributes);
 		}
 
-		public MappingEntry(BinaryReader reader) : base(null)
+		public MappingEntryData() : base(null)
+		{
+		}
+
+		public MappingEntryData(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
 		}

@@ -22,6 +22,9 @@ using UnityEditor;
 using UnityEngine.InputSystem;
 using System;
 using System.IO;
+using VisualPinball.Engine.VPT.MappingConfig;
+using System.Linq;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -44,11 +47,8 @@ namespace VisualPinball.Unity.Editor
 
 		private List<string> _ids = new List<string>();
 		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
-
 		private List<SwitchListData> _listData = new List<SwitchListData>();
 		private List<string> _inputSystem = new List<string>();
-
-
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
 		[MenuItem("Visual Pinball/Switch Manager", false, 106)]
@@ -75,46 +75,118 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
-				FindSwSitchables((switchableItem, id) =>
-				{
-					if (_listData.Find((listDataItem) => listDataItem.ID == id) == null)
-					{
-						_listData.Add(new SwitchListData(id, switchableItem));
-					}
-				});
+				var mappingConfigData = FindSwitchMappingConfig();
 
-				Reload();
+				if (mappingConfigData != null)
+				{ 
+					FindSwSwitchables((switchableItem, id) =>
+					{
+						MappingEntryData entry = new MappingEntryData();
+						entry.ID = id;
+						entry.Element = switchableItem.Name;
+						entry.Source = SwitchSource.Playfield;
+
+						if (switchableItem is BumperAuthoring)
+						{
+							entry.Description = "Bumper";
+						}
+						else if (switchableItem is FlipperAuthoring)
+						{
+							entry.Description = "Flipper";
+						}
+						else if (switchableItem is GateAuthoring)
+						{
+							entry.Description = "Gate";
+						}
+						else if (switchableItem is HitTargetAuthoring)
+						{
+							entry.Description = "Target";
+						}
+						else if (switchableItem is KickerAuthoring)
+						{
+							entry.Description = "Kicker";
+						}
+						else if (switchableItem is PrimitiveAuthoring)
+						{
+							entry.Description = "Primitive";
+						}
+						else if (switchableItem is RubberAuthoring)
+						{
+							entry.Description = "Rubber";
+						}
+						else if (switchableItem is SurfaceAuthoring)
+						{
+							entry.Description = "Surface";
+						}
+						else if (switchableItem is TriggerAuthoring)
+						{
+							entry.Description = "Trigger";
+						}
+						else if (switchableItem is SpinnerAuthoring)
+						{
+							entry.Description = "Spinner";
+						}
+
+						if (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring)
+						{
+							entry.Type = SwitchType.OnOff;
+						}
+						else
+						{
+							entry.Type = SwitchType.Pulse;
+						}
+
+						mappingConfigData.MappingEntries =
+						   mappingConfigData.MappingEntries.Append(entry).ToArray();
+					});
+
+					Reload();
+				}
 			}
 		}
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(data, cellRect, column, () => {});
+			_listViewItemRenderer.Render(data, cellRect, column, () => { });
 		}
 
 		#region Data management
 		protected override List<SwitchListData> CollectData()
 		{
+			List<SwitchListData> data = new List<SwitchListData>();
+
+			var mappingConfigData = FindSwitchMappingConfig();
+
+			foreach (var mappingEntry in mappingConfigData.MappingEntries)
+			{
+				data.Add(new SwitchListData(mappingEntry));
+			}
+			
 			RefreshSwitchables();
 			RefreshIDs();
 
-			return _listData; 
+			return data;
 		}
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			_listData.Add(new SwitchListData());
+			var mappingConfigData = FindSwitchMappingConfig();
+
+			var entry = new MappingEntryData();
+			entry.ID = "";
+
+			mappingConfigData.MappingEntries =
+			   mappingConfigData.MappingEntries.Append(entry).ToArray();
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
 		{
-			_listData.Remove(data);
 		}
 
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
-		
 		}
+
 		#endregion
 
 		private void RefreshInputActions()
@@ -143,7 +215,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			catch(Exception e)
+			catch (Exception e)
 			{
 				Debug.Log(e);
 			}
@@ -183,7 +255,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshIDs()
 		{
-			FindSwSitchables((item, id) =>
+			FindSwSwitchables((item, id) =>
 			{
 				if (_ids.IndexOf(id) == -1)
 				{
@@ -194,7 +266,7 @@ namespace VisualPinball.Unity.Editor
 			_ids.Sort();
 		}
 
-		private void FindSwSitchables(Action<ISwitchableAuthoring, string> action)
+		private void FindSwSwitchables(Action<ISwitchableAuthoring, string> action)
 		{
 			foreach (var item in _switchables)
 			{
@@ -204,6 +276,22 @@ namespace VisualPinball.Unity.Editor
 					action(item, match.Groups[2].Value);
 				}
 			}
+		}
+
+		private MappingConfigData FindSwitchMappingConfig()
+		{
+			if (_table != null)
+			{
+				if (_table.MappingConfigs.Count == 0)
+				{
+					_table.MappingConfigs.Add(new MappingConfigData("Switch", new MappingEntryData[0]));
+					_table.Item.Data.NumMappingConfigs = 1;
+				}
+
+				return _table.MappingConfigs[0];
+			}
+
+			return null;
 		}
 	}
 }
