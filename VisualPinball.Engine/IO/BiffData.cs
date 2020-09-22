@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.IO
 
 		public string StorageName => _storageName ?? $"{StoragePrefix}{StorageIndex}";
 
-		public readonly StoragePrefix StoragePrefix;
+		public StoragePrefix StoragePrefix;
 		public int StorageIndex;
 		public readonly List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
 		private readonly string _storageName;
