@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 		[BiffString("NAME", IsWideString = true, Pos = 1)]
 		public string Name;
 
-		[BiffMappingEntryAttribute("MENT", TagAll = true, Pos = 2000)]
+		[BiffMappingEntryAttribute("MENT", TagAll = true, Pos = 1000)]
 		public MappingEntryData[] MappingEntries;
 
 		public MappingConfigData(string name, MappingEntryData[] mappingEntries) : base(StoragePrefix.MappingConfig)

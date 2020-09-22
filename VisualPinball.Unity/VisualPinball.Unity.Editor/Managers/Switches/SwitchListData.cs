@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.MappingConfig;
 
 namespace VisualPinball.Unity.Editor
@@ -43,38 +42,46 @@ namespace VisualPinball.Unity.Editor
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
-		public int Type = SwitchType.OnOff;
+		public int Type;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Trigger", Width = 100)]
 		public SwitchEvent Trigger;
 
 		[ManagerListColumn(Order = 6, HeaderName = "Off", Width = 100)]
-		public string Off = "";
+		public string Off;
 
 		public string ID;
-		public int Constant = SwitchConstant.NormallyClosed;
-		public int Pulse = 10;
+		public string InputActionMap;
+		public string InputAction;
+		public string PlayfieldItem;
+		public int Constant;
+		public int Pulse;
 
 		public MappingEntryData MappingEntryData;
 
 		public SwitchListData(MappingEntryData mappingEntryData) {
 			ID = mappingEntryData.ID;
 			Description = mappingEntryData.Description;
-			Element = mappingEntryData.Element;
 			Source = mappingEntryData.Source;
+			InputActionMap = mappingEntryData.InputActionMap;
+			InputAction = mappingEntryData.InputAction;
+			PlayfieldItem = mappingEntryData.PlayfieldItem;
+			Constant = mappingEntryData.Constant;
 			Type = mappingEntryData.Type;
 			Pulse = mappingEntryData.Pulse;
 
 			MappingEntryData = mappingEntryData;
-
 		}
 
 		public void Update()
 		{
 			MappingEntryData.ID = ID;
 			MappingEntryData.Description = Description;
-			MappingEntryData.Element = Element;
 			MappingEntryData.Source = Source;
+			MappingEntryData.InputActionMap = InputActionMap;
+			MappingEntryData.InputAction = InputAction;
+			MappingEntryData.PlayfieldItem = PlayfieldItem;
+			MappingEntryData.Constant = Constant;
 			MappingEntryData.Type = Type;
 			MappingEntryData.Pulse = Pulse;
 		}

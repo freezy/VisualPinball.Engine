@@ -24,19 +24,21 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListViewItemRenderer
 	{
-		string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+		readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
-		string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
-		string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
-		string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
-		string[] OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM = { "Action Started", "Action Cancelled" };
-		string[] OPTIONS_SWITCH_TRIGGER_PLAYFIELD = { "Hit", "UnHit" };
+		readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
+		readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
+		readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
+		readonly string[] OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM = { "Action Started", "Action Cancelled" };
+		readonly string[] OPTIONS_SWITCH_TRIGGER_PLAYFIELD = { "Hit", "UnHit" };
 
-		List<string> _ids;
-		List<ISwitchableAuthoring> _switchables;
-		InputManager _inputManager;
+		private struct InputSystemEntry
+		{
+			public string ActionMapName;
+			public string ActionName;
+		};
 
-		public enum SwitchListColumn
+		private enum SwitchListColumn
 		{
 			ID = 0,
 			Description = 1,
@@ -46,6 +48,10 @@ namespace VisualPinball.Unity.Editor
 			Trigger = 5,
 			Off = 6
 		}
+
+		List<string> _ids;
+		List<ISwitchableAuthoring> _switchables;
+		InputManager _inputManager;
 
 		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
 		{
@@ -197,26 +203,47 @@ namespace VisualPinball.Unity.Editor
 			{
 				case SwitchSource.InputSystem:
 					{
+						List<InputSystemEntry> inputSystemList = new List<InputSystemEntry>();
+
+						var tmpIndex = 0;
+						var selectedIndex = -1;
+						
 						List<string> options = new List<string>();
 
-						foreach (var mapName in _inputManager.GetActionMapNames())
+						foreach (var actionMapName in _inputManager.GetActionMapNames())
 						{
 							if (options.Count > 0)
 							{
 								options.Add("");
+								inputSystemList.Add(new InputSystemEntry());
+								tmpIndex++;
 							}
 
-							foreach (var actionName in _inputManager.GetActionNames(mapName))
+							foreach (var actionName in _inputManager.GetActionNames(actionMapName))
 							{
+								inputSystemList.Add(new InputSystemEntry
+								{
+									ActionMapName = actionMapName,
+									ActionName = actionName
+								});
+
 								options.Add(actionName.Replace('/', '\u2215'));
+
+								if (actionMapName == switchListData.InputActionMap && actionName == switchListData.InputAction)
+								{
+									selectedIndex = tmpIndex;
+								}
+
+								tmpIndex++;
 							}
 						}
 
 						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Element), options.ToArray());
+						int index = EditorGUI.Popup(cellRect, selectedIndex, options.ToArray());
 						if (EditorGUI.EndChangeCheck())
 						{
-							switchListData.Element = options[index];
+							switchListData.InputActionMap = inputSystemList[index].ActionMapName;
+							switchListData.InputAction = inputSystemList[index].ActionName;
 							updateAction(switchListData);
 						}
 					}
@@ -230,10 +257,10 @@ namespace VisualPinball.Unity.Editor
 						}
 
 						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Element), options.ToArray());
+						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.PlayfieldItem), options.ToArray());
 						if (EditorGUI.EndChangeCheck())
 						{
-							switchListData.Element = options[index];
+							switchListData.PlayfieldItem = options[index];
 							updateAction(switchListData);
 						}
 					}
@@ -318,11 +345,11 @@ namespace VisualPinball.Unity.Editor
 				else if (switchListData.Type == SwitchType.Pulse)
 				{
 					var labelRect = cellRect;
-					labelRect.x = labelRect.x + labelRect.width - 20;
+					labelRect.x += labelRect.width - 20;
 					labelRect.width = 20;
 
 					var intFieldRect = cellRect;
-					intFieldRect.width = intFieldRect.width - 25;
+					intFieldRect.width -= 25;
 
 					EditorGUI.BeginChangeCheck();
 					var pulse = EditorGUI.IntField(intFieldRect, switchListData.Pulse);
@@ -345,7 +372,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var item in _switchables)
 				{
-					if (item.Name == switchListData.Element)
+					if (item.Name == switchListData.PlayfieldItem)
 					{
 						if (item is BumperAuthoring)
 						{
