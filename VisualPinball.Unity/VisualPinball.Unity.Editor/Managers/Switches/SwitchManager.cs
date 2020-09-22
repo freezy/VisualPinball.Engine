@@ -81,63 +81,68 @@ namespace VisualPinball.Unity.Editor
 				{ 
 					FindSwSwitchables((switchableItem, id) =>
 					{
-						MappingEntryData entry = new MappingEntryData();
-						entry.ID = id;
-						entry.Element = switchableItem.Name;
-						entry.Source = SwitchSource.Playfield;
+						if (FindSwitchMappingEntryById(id) == null)
+						{
+							MappingEntryData entry = new MappingEntryData
+							{
+								ID = id,
+								Element = switchableItem.Name,
+								Source = SwitchSource.Playfield
+							};
 
-						if (switchableItem is BumperAuthoring)
-						{
-							entry.Description = "Bumper";
-						}
-						else if (switchableItem is FlipperAuthoring)
-						{
-							entry.Description = "Flipper";
-						}
-						else if (switchableItem is GateAuthoring)
-						{
-							entry.Description = "Gate";
-						}
-						else if (switchableItem is HitTargetAuthoring)
-						{
-							entry.Description = "Target";
-						}
-						else if (switchableItem is KickerAuthoring)
-						{
-							entry.Description = "Kicker";
-						}
-						else if (switchableItem is PrimitiveAuthoring)
-						{
-							entry.Description = "Primitive";
-						}
-						else if (switchableItem is RubberAuthoring)
-						{
-							entry.Description = "Rubber";
-						}
-						else if (switchableItem is SurfaceAuthoring)
-						{
-							entry.Description = "Surface";
-						}
-						else if (switchableItem is TriggerAuthoring)
-						{
-							entry.Description = "Trigger";
-						}
-						else if (switchableItem is SpinnerAuthoring)
-						{
-							entry.Description = "Spinner";
-						}
+							if (switchableItem is BumperAuthoring)
+							{
+								entry.Description = "Bumper";
+							}
+							else if (switchableItem is FlipperAuthoring)
+							{
+								entry.Description = "Flipper";
+							}
+							else if (switchableItem is GateAuthoring)
+							{
+								entry.Description = "Gate";
+							}
+							else if (switchableItem is HitTargetAuthoring)
+							{
+								entry.Description = "Target";
+							}
+							else if (switchableItem is KickerAuthoring)
+							{
+								entry.Description = "Kicker";
+							}
+							else if (switchableItem is PrimitiveAuthoring)
+							{
+								entry.Description = "Primitive";
+							}
+							else if (switchableItem is RubberAuthoring)
+							{
+								entry.Description = "Rubber";
+							}
+							else if (switchableItem is SurfaceAuthoring)
+							{
+								entry.Description = "Surface";
+							}
+							else if (switchableItem is TriggerAuthoring)
+							{
+								entry.Description = "Trigger";
+							}
+							else if (switchableItem is SpinnerAuthoring)
+							{
+								entry.Description = "Spinner";
+							}
 
-						if (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring)
-						{
-							entry.Type = SwitchType.OnOff;
-						}
-						else
-						{
-							entry.Type = SwitchType.Pulse;
-						}
+							if (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring)
+							{
+								entry.Type = SwitchType.OnOff;
+							}
+							else
+							{
+								entry.Type = SwitchType.Pulse;
+							}
 
-						mappingConfigData.MappingEntries =
-						   mappingConfigData.MappingEntries.Append(entry).ToArray();
+							mappingConfigData.MappingEntries =
+							   mappingConfigData.MappingEntries.Append(entry).ToArray();
+						}
 					});
 
 					Reload();
@@ -172,8 +177,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			var mappingConfigData = FindSwitchMappingConfig();
 
-			var entry = new MappingEntryData();
-			entry.ID = "";
+			var entry = new MappingEntryData
+			{
+				ID = ""
+			};
 
 			mappingConfigData.MappingEntries =
 			   mappingConfigData.MappingEntries.Append(entry).ToArray();
@@ -289,6 +296,24 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				return _table.MappingConfigs[0];
+			}
+
+			return null;
+		}
+
+		private MappingEntryData FindSwitchMappingEntryById(string id)
+		{
+			var mappingConfigData = FindSwitchMappingConfig();
+
+			if (mappingConfigData != null)
+			{
+				foreach (var mappingEntry in mappingConfigData.MappingEntries)
+				{
+					if (mappingEntry.ID == id)
+					{
+						return mappingEntry;
+					}
+				}
 			}
 
 			return null;
