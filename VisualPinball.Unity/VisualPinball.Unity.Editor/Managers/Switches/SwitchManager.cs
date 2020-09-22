@@ -47,7 +47,6 @@ namespace VisualPinball.Unity.Editor
 
 		private List<string> _ids = new List<string>();
 		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
-		private List<SwitchListData> _listData = new List<SwitchListData>();
 		private List<string> _inputSystem = new List<string>();
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
@@ -81,7 +80,7 @@ namespace VisualPinball.Unity.Editor
 				{ 
 					FindSwSwitchables((switchableItem, id) =>
 					{
-						if (FindSwitchMappingEntryById(id) == null)
+						if (FindSwitchMappingEntryByID(id) == null)
 						{
 							MappingEntryData entry = new MappingEntryData
 							{
@@ -152,7 +151,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(data, cellRect, column, () => { });
+			_listViewItemRenderer.Render(data, cellRect, column, (switchListData) => {
+				switchListData.Update();
+			});
 		}
 
 		#region Data management
@@ -162,11 +163,11 @@ namespace VisualPinball.Unity.Editor
 
 			var mappingConfigData = FindSwitchMappingConfig();
 
-			foreach (var mappingEntry in mappingConfigData.MappingEntries)
+			foreach (var mappingEntryData in mappingConfigData.MappingEntries)
 			{
-				data.Add(new SwitchListData(mappingEntry));
+				data.Add(new SwitchListData(mappingEntryData));
 			}
-			
+
 			RefreshSwitchables();
 			RefreshIDs();
 
@@ -193,9 +194,9 @@ namespace VisualPinball.Unity.Editor
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
 		}
-
 		#endregion
 
+		#region Helper methods
 		private void RefreshInputActions()
 		{
 			InputActionAsset asset = null;
@@ -238,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var inputAction in map.actions)
 				{
-					_inputSystem.Add(inputAction.name);
+					_inputSystem.Add(map.name + "/" + inputAction.name);
 
 					Debug.Log(inputAction.name);
 				}
@@ -301,22 +302,23 @@ namespace VisualPinball.Unity.Editor
 			return null;
 		}
 
-		private MappingEntryData FindSwitchMappingEntryById(string id)
+		private MappingEntryData FindSwitchMappingEntryByID(string id)
 		{
 			var mappingConfigData = FindSwitchMappingConfig();
 
 			if (mappingConfigData != null)
 			{
-				foreach (var mappingEntry in mappingConfigData.MappingEntries)
+				foreach (var mappingEntryData in mappingConfigData.MappingEntries)
 				{
-					if (mappingEntry.ID == id)
+					if (mappingEntryData.ID == id)
 					{
-						return mappingEntry;
+						return mappingEntryData;
 					}
 				}
 			}
 
 			return null;
 		}
+		#endregion
 	}
 }
