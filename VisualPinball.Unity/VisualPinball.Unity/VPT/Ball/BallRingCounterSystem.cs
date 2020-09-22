@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 					ball.RingCounterOldPos = 0;
 				}
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

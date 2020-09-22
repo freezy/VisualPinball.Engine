@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 					}
 				}
 
-			}).ScheduleParallel();
+			}).Run();
 		}
 	}
 }

@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 
 						marker.End();
 					}
-				}).ScheduleParallel();
+				}).Run();
 		}
 	}
 }

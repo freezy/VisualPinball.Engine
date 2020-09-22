@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			Deps = Entities
+			Entities
 				.WithName("DynamicNarrowPhaseJob")
 				.ForEach((Entity ballEntity, ref CollisionEventData collEvent,
 					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Schedule(Dependency);
+			}).Run();
 		}
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,

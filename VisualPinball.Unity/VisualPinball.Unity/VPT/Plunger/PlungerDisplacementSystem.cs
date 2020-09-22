@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 				UpdateCollider(movementData.Position, ref colliderData);
 
 				marker.End();
-			}).ScheduleParallel();
+			}).Run();
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {

@@ -23,8 +23,6 @@ namespace VisualPinball.Unity
 	[DisableAutoCreation]
 	internal class DynamicNarrowPhaseSystem : SystemBase
 	{
-		public JobHandle Deps { get; private set; }
-
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -40,7 +38,7 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			Deps = Entities
+			Entities
 				.WithName("DynamicNarrowPhaseJob")
 				.WithReadOnly(contacts)
 				.WithNativeDisableParallelForRestriction(ballsLookup)
@@ -81,7 +79,7 @@ namespace VisualPinball.Unity
 					marker.End();
 
 				}
-			).ScheduleParallel(Dependency);
+			).Run();
 		}
 	}
 }
