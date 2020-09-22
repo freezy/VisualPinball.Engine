@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 
 					marker.End();
 
-				}).Run();
+				}).ScheduleParallel();
 		}
 
 		private static void UpdateSkirt(ref BumperSkirtAnimationData data)
