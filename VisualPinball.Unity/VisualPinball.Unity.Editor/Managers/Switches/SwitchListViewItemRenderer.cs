@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 
 		List<string> _ids;
 		List<ISwitchableAuthoring> _switchables;
-		List<string> _inputSystem;
+		InputManager _inputManager;
 
 		public enum SwitchListColumn
 		{
@@ -47,11 +47,11 @@ namespace VisualPinball.Unity.Editor
 			Off = 6
 		}
 
-		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, List<string> inputSystem)
+		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
 		{
 			_ids = ids;
 			_switchables = switchables;
-			_inputSystem = inputSystem;
+			_inputManager = inputManager;
 		}
 
 		public void Render(SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
@@ -199,9 +199,17 @@ namespace VisualPinball.Unity.Editor
 					{
 						List<string> options = new List<string>();
 
-						foreach (var item in _inputSystem)
+						foreach (var mapName in _inputManager.GetActionMapNames())
 						{
-							options.Add(item.Replace('/', '\u2215'));
+							if (options.Count > 0)
+							{
+								options.Add("");
+							}
+
+							foreach (var actionName in _inputManager.GetActionNames(mapName))
+							{
+								options.Add(actionName.Replace('/', '\u2215'));
+							}
 						}
 
 						EditorGUI.BeginChangeCheck();

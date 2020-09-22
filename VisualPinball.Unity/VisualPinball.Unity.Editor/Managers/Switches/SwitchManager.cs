@@ -19,9 +19,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.InputSystem;
 using System;
-using System.IO;
 using VisualPinball.Engine.VPT.MappingConfig;
 using System.Linq;
 using VisualPinball.Engine.VPT;
@@ -35,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
-		const string resourcesPath = "Assets/Resources";
+		const string RESOURCE_PATH = "Assets/Resources";
 		const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
 		protected override string DataTypeName => "Switch";
@@ -47,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 
 		private List<string> _ids = new List<string>();
 		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
-		private List<string> _inputSystem = new List<string>();
+		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
 		[MenuItem("Visual Pinball/Switch Manager", false, 106)]
@@ -61,9 +59,10 @@ namespace VisualPinball.Unity.Editor
 			titleContent = new GUIContent("Switch Manager",
 				AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_switch_no.png"));
 
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputSystem);
+			_inputManager = new InputManager(RESOURCE_PATH);
+			AssetDatabase.Refresh();
 
-			RefreshInputActions();
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputManager);
 
 			base.OnEnable();
 
@@ -197,55 +196,6 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Helper methods
-		private void RefreshInputActions()
-		{
-			InputActionAsset asset = null;
-
-			try
-			{
-				if (!Directory.Exists(resourcesPath))
-				{
-					Directory.CreateDirectory(resourcesPath);
-				}
-
-				var inputActionsPath = resourcesPath + "/" + InputManager.RESOURCE_NAME + ".inputactions";
-
-				if (File.Exists(inputActionsPath))
-				{
-					asset = InputActionAsset.FromJson(File.ReadAllText(inputActionsPath));
-				}
-				else
-				{
-					asset = InputManager.GetDefaultInputActionAsset();
-
-					File.WriteAllText(inputActionsPath, asset.ToJson());
-					AssetDatabase.Refresh();
-				}
-			}
-
-			catch (Exception e)
-			{
-				Debug.Log(e);
-			}
-
-			if (asset == null)
-			{
-				asset = InputManager.GetDefaultInputActionAsset();
-			}
-
-			_inputSystem.Clear();
-
-			foreach (var map in asset.actionMaps)
-			{
-				foreach (var inputAction in map.actions)
-				{
-					_inputSystem.Add(map.name + "/" + inputAction.name);
-
-					Debug.Log(inputAction.name);
-				}
-			}
-		}
-
 		private void RefreshSwitchables()
 		{
 			_switchables.Clear();
