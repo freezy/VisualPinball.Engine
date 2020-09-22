@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 				var transform = (target as MonoBehaviour).transform;
 				if (transform != null && transform.parent != null) {
 					position = transform.parent.TransformPoint(position);
-					var axis = transform.TransformDirection(Vector3.up);
+					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
 					var worldScale = 0.5f * VpxConverter.GlobalScale;
 					var scale = _gate.Item.Data.Length * worldScale;
 					Handles.color = Color.white;
@@ -60,9 +60,9 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = Color.white;
 					var ratioscale = 2.0f;
 					var arrowscale = (worldScale * (100.0f - ratioscale)) + Mathf.PingPong(Time.realtimeSinceStartup * worldScale * ratioscale * 2.0f, worldScale * ratioscale);
-					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
+					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowscale, EventType.Repaint);
 					if (_gate.Item.Data.TwoWay) {
-						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowscale, EventType.Repaint);
+						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
 					}
 				}
 				HandleUtility.Repaint();
