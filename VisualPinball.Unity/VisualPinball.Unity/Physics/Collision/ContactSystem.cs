@@ -62,8 +62,6 @@ namespace VisualPinball.Unity
 
 			var marker = PerfMarker;
 
-			var deps = JobHandle.CombineDependencies(_dynamicNarrowPhaseSystem.Deps, _staticNarrowPhaseSystem.Deps);
-
 			Job
 				.WithName("ContactJob")
 				.WithReadOnly(ballsLookup)
@@ -111,7 +109,7 @@ namespace VisualPinball.Unity
 
 				marker.End();
 
-			}).Schedule(deps);
+			}).Run();
 		}
 	}
 }
