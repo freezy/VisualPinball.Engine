@@ -27,8 +27,10 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var lastPositionBuffer = GetBufferFromEntity<BallLastPositionsBufferElement>();
-			Entities.ForEach((Entity entity, ref BallData ball) => {
-
+			Entities
+				.WithNativeDisableParallelForRestriction(lastPositionBuffer)
+				.ForEach((Entity entity, ref BallData ball) =>
+			{
 				var posIdx = ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime);
 				var lastPositions = lastPositionBuffer[entity];
 				var lastPosition = lastPositions[posIdx];
@@ -40,7 +42,7 @@ namespace VisualPinball.Unity
 					ball.RingCounterOldPos = 0;
 				}
 
-			}).Run();
+			}).ScheduleParallel();
 		}
 	}
 }
