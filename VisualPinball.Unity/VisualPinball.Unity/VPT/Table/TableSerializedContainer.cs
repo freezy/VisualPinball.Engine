@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		public IEnumerable<TSerialized> SerializedObjects => _serializedData;
 
 		[UnityEngine.SerializeField]
-		protected readonly List<TSerialized> _serializedData = new List<TSerialized>();
+		protected List<TSerialized> _serializedData = new List<TSerialized>();
 
 		[UnityEngine.SerializeField]
 		protected bool _dictDirty;
