@@ -39,16 +39,25 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 		[BiffString("DESC", IsWideString = true, Pos = 2)]
 		public string Description;
 
-		[BiffString("ELEM", IsWideString = true, Pos = 3)]
-		public string Element;
+		[BiffInt("SSRC", Pos = 3)]
+		public int Source = SwitchSource.Playfield;
 
-		[BiffInt("SSRC", Pos = 4)]
-		public int Source = VPT.SwitchSource.Playfield;
+		[BiffString("INPM", IsWideString = true, Pos = 4)]
+		public string InputActionMap;
 
-		[BiffInt("STYP", Pos = 5)]
-		public int Type = VPT.SwitchType.OnOff;
+		[BiffString("INPA", IsWideString = true, Pos = 5)]
+		public string InputAction;
 
-		[BiffInt("PLSE", Pos = 6)]
+		[BiffString("PITM", IsWideString = true, Pos = 6)]
+		public string PlayfieldItem;
+
+		[BiffInt("CNST", Pos = 7)]
+		public int Constant;
+
+		[BiffInt("STYP", Pos = 8)]
+		public int Type = SwitchType.OnOff;
+
+		[BiffInt("PLSE", Pos = 9)]
 		public int Pulse = 10;
 
 		#region BIFF
