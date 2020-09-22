@@ -16,6 +16,9 @@
 
 using UnityEngine.InputSystem;
 using UnityEngine;
+using System.IO;
+using System;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
@@ -33,6 +36,69 @@ namespace VisualPinball.Unity
 			{
 				_asset = GetDefaultInputActionAsset();
 			}
+		}
+
+		public InputManager(string directory)
+		{
+			try
+			{
+				if (!Directory.Exists(directory))
+				{
+					Directory.CreateDirectory(directory);
+				}
+
+				var path = directory + "/" + RESOURCE_NAME + ".inputactions";
+
+				if (File.Exists(path))
+				{
+					_asset = InputActionAsset.FromJson(File.ReadAllText(path));
+				}
+				else
+				{
+					_asset = GetDefaultInputActionAsset();
+
+					File.WriteAllText(path, _asset.ToJson());
+				}
+			}
+
+			catch(Exception e)
+			{
+				Debug.Log(e);
+			}
+
+			if (_asset == null)
+			{
+				_asset = GetDefaultInputActionAsset();
+			}
+		}
+
+		public List<string> GetActionMapNames()
+		{
+			List<string> list = new List<string>();
+
+			foreach (var map in _asset.actionMaps)
+			{
+				list.Add(map.name);
+			}
+
+			return list;
+		}
+
+		public List<string> GetActionNames(string mapName)
+		{
+			List<string> list = new List<string>();
+
+			var map = _asset.FindActionMap(mapName);
+
+			if (map != null)
+			{
+				foreach (var action in map)
+				{
+					list.Add(action.name);
+				}
+			}
+
+			return list;
 		}
 
 		public static InputActionAsset GetDefaultInputActionAsset()

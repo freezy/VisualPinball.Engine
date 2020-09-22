@@ -48,6 +48,9 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 		[BiffInt("STYP", Pos = 5)]
 		public int Type = VPT.SwitchType.OnOff;
 
+		[BiffInt("PLSE", Pos = 6)]
+		public int Pulse = 10;
+
 		#region BIFF
 
 		static MappingEntryData()

@@ -63,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 			Element = mappingEntryData.Element;
 			Source = mappingEntryData.Source;
 			Type = mappingEntryData.Type;
+			Pulse = mappingEntryData.Pulse;
 
 			MappingEntryData = mappingEntryData;
 
@@ -75,6 +76,7 @@ namespace VisualPinball.Unity.Editor
 			MappingEntryData.Element = Element;
 			MappingEntryData.Source = Source;
 			MappingEntryData.Type = Type;
+			MappingEntryData.Pulse = Pulse;
 		}
 	}
 }
