@@ -32,6 +32,8 @@ namespace VisualPinball.Unity.Editor
 		private static string[] _gateTypeStrings = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
 		private static int[] _gateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
 
+		private static readonly string TwoWayLabel = "Two Way";
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -46,7 +48,8 @@ namespace VisualPinball.Unity.Editor
 				if (transform != null && transform.parent != null) {
 					position = transform.parent.TransformPoint(position);
 					var axis = transform.TransformDirection(Vector3.up);
-					var scale = _gate.Item.Data.Length * 0.0005f;
+					var worldScale = 0.5f * VpxConverter.GlobalScale;
+					var scale = _gate.Item.Data.Length * worldScale;
 					Handles.color = Color.white;
 					Handles.DrawWireDisc(position, axis, scale);
 					Color col = Color.grey;
@@ -55,7 +58,8 @@ namespace VisualPinball.Unity.Editor
 					Handles.DrawSolidDisc(position, axis, scale);
 
 					Handles.color = Color.white;
-					var arrowscale = 0.048f + Mathf.PingPong(Time.realtimeSinceStartup * 0.005f, 0.002f);
+					var ratioscale = 2.0f;
+					var arrowscale = (worldScale * (100.0f - ratioscale)) + Mathf.PingPong(Time.realtimeSinceStartup * worldScale * ratioscale * 2.0f, worldScale * ratioscale);
 					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
 					if (_gate.Item.Data.TwoWay) {
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowscale, EventType.Repaint);
@@ -93,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Damping", ref _gate.data.Damping, dirtyMesh: false);
 				ItemDataField("Gravity Factor", ref _gate.data.GravityFactor, dirtyMesh: false);
 				ItemDataField("Collidable", ref _gate.data.IsCollidable, dirtyMesh: false);
-				ItemDataField("Two Way", ref _gate.data.TwoWay, dirtyMesh: false);
+				ItemDataField(TwoWayLabel, ref _gate.data.TwoWay, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -108,7 +112,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void FinishEdit(string label, bool dirtyMesh = true)
 		{
-			if (label == "Two Way") {
+			if (label == TwoWayLabel) {
 				SceneView.RepaintAll();
 			}
 			base.FinishEdit(label, dirtyMesh);
