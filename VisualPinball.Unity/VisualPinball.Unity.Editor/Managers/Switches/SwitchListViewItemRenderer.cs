@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 		string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
 		string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
 		string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
-		string[] OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM = { "KeyDown", "KeyUp" };
+		string[] OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM = { "Action Started", "Action Cancelled" };
 		string[] OPTIONS_SWITCH_TRIGGER_PLAYFIELD = { "Hit", "UnHit" };
 
 		List<string> _ids;
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 			_inputSystem = inputSystem;
 		}
 
-		public void Render(SwitchListData data, Rect cellRect, int column, Action updateAction)
+		public void Render(SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
 		{
 			switch ((SwitchListColumn)column)
 			{
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderID(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderID(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			var options = new List<string>(_ids);
 
@@ -108,19 +108,19 @@ namespace VisualPinball.Unity.Editor
 
 						switchListData.ID = newId;
 
-						updateAction();
+						updateAction(switchListData);
 					}));
 				}
 				else
 				{
 					switchListData.ID = _ids[index];
 
-					updateAction();
+					updateAction(switchListData);
 				}
 			}
 		}
 
-		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			var icon = GetIcon(switchListData);
 
@@ -140,11 +140,11 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck())
 			{
 				switchListData.Description = value;
-				updateAction();
+				updateAction(switchListData);
 			}
 		}
 
-		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
 			int index = EditorGUI.Popup(cellRect, (int)switchListData.Source, OPTIONS_SWITCH_SOURCE);
@@ -187,11 +187,11 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
-				updateAction();
+				updateAction(switchListData);
 			}
 		}
 
-		private void RenderElement(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			switch (switchListData.Source)
 			{
@@ -209,7 +209,7 @@ namespace VisualPinball.Unity.Editor
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Element = options[index];
-							updateAction();
+							updateAction(switchListData);
 						}
 					}
 					break;
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity.Editor
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Element = options[index];
-							updateAction();
+							updateAction(switchListData);
 						}
 					}
 					break;
@@ -237,14 +237,14 @@ namespace VisualPinball.Unity.Editor
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Constant = index;
-							updateAction();
+							updateAction(switchListData);
 						}
 					}
 					break;
 			}
 		}
 
-		private void RenderType(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderType(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
 			{
@@ -253,12 +253,12 @@ namespace VisualPinball.Unity.Editor
 				if (EditorGUI.EndChangeCheck())
 				{
 					switchListData.Type = index;
-					updateAction();
+					updateAction(switchListData);
 				}
 			}
 		}
 
-		private void RenderTrigger(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderTrigger(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == SwitchSource.InputSystem)
 			{
@@ -267,7 +267,7 @@ namespace VisualPinball.Unity.Editor
 				if (EditorGUI.EndChangeCheck())
 				{
 					switchListData.Trigger = (index == 1) ? SwitchEvent.KeyUp : SwitchEvent.KeyDown;
-					updateAction();
+					updateAction(switchListData);
 				}
 			}
 			else if (switchListData.Source == SwitchSource.Playfield)
@@ -276,12 +276,12 @@ namespace VisualPinball.Unity.Editor
 				if (EditorGUI.EndChangeCheck())
 				{
 					switchListData.Trigger = (index == 1) ? SwitchEvent.UnHit : SwitchEvent.Hit;
-					updateAction(); 
+					updateAction(switchListData); 
 				}
 			}
 		}
 
-		private void RenderOff(SwitchListData switchListData, Rect cellRect, Action updateAction)
+		private void RenderOff(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
 			{
@@ -294,7 +294,7 @@ namespace VisualPinball.Unity.Editor
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Trigger = (index == 0) ? SwitchEvent.KeyUp : SwitchEvent.KeyDown;
-							updateAction();
+							updateAction(switchListData);
 						}
 					}
 					else if (switchListData.Source == SwitchSource.Playfield)
@@ -303,7 +303,7 @@ namespace VisualPinball.Unity.Editor
 						if (EditorGUI.EndChangeCheck())
 						{
 							switchListData.Trigger = (index == 0) ? SwitchEvent.UnHit : SwitchEvent.Hit;
-							updateAction();
+							updateAction(switchListData);
 						}
 					}
 				}
@@ -321,7 +321,7 @@ namespace VisualPinball.Unity.Editor
 					if (EditorGUI.EndChangeCheck())
 					{
 						switchListData.Pulse = pulse;
-						updateAction();
+						updateAction(switchListData);
 					}
 
 					EditorGUI.LabelField(labelRect, "ms");

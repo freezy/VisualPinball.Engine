@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 		public string Description;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 120)]
-		public int Source = SwitchSource.Constant;
+		public int Source;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 150)]
 		public string Element;
@@ -55,17 +55,26 @@ namespace VisualPinball.Unity.Editor
 		public int Constant = SwitchConstant.NormallyClosed;
 		public int Pulse = 10;
 
-		public SwitchListData()
-		{
-			ID = "";
+		public MappingEntryData MappingEntryData;
+
+		public SwitchListData(MappingEntryData mappingEntryData) {
+			ID = mappingEntryData.ID;
+			Description = mappingEntryData.Description;
+			Element = mappingEntryData.Element;
+			Source = mappingEntryData.Source;
+			Type = mappingEntryData.Type;
+
+			MappingEntryData = mappingEntryData;
+
 		}
 
-		public SwitchListData(MappingEntryData mappingEntry) {
-			ID = mappingEntry.ID;
-			Description = mappingEntry.Description;
-			Element = mappingEntry.Element;
-			Source = mappingEntry.Source;
-			Type = mappingEntry.Type;
+		public void Update()
+		{
+			MappingEntryData.ID = ID;
+			MappingEntryData.Description = Description;
+			MappingEntryData.Element = Element;
+			MappingEntryData.Source = Source;
+			MappingEntryData.Type = Type;
 		}
 	}
 }
