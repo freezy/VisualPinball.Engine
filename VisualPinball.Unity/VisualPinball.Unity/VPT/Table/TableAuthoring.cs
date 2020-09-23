@@ -127,6 +127,12 @@ namespace VisualPinball.Unity
 			Collections.AddRange(collections);
 		}
 
+		public void RestoreMappingConfigs(List<MappingConfigData> mappingConfigs)
+		{
+			MappingConfigs.Clear();
+			MappingConfigs.AddRange(mappingConfigs);
+		}
+
 		public void MarkDirty<T>(string name) where T : IItem
 		{
 			if (!_dirtySerializables.ContainsKey(typeof(T))) {

@@ -70,13 +70,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ResizeToFit()
-		{
-			if (_table != null) {
-				_listView.multiColumnHeader.ResizeToFit();
-			}
-		}
-
 		protected virtual void OnEnable()
 		{
 			_isImplAddNewData = IsImplemented("AddNewData");
@@ -175,7 +168,7 @@ namespace VisualPinball.Unity.Editor
 			var r = GUILayoutUtility.GetLastRect();
 			var listRect = new Rect(r.x, r.y, r.width, position.height - r.y);
 			_listView?.OnGUI(listRect);
-
+			
 			if (DetailsEnabled)
 			{
 				// options
@@ -225,6 +218,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.EndHorizontal();
+
 		}
 
 		protected void FloatField(string label, ref float field)

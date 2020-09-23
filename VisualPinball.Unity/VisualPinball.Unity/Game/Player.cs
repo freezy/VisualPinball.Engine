@@ -86,66 +86,60 @@ namespace VisualPinball.Unity
 				i.OnInit();
 			}
 
-			_inputManager._asset.Enable();
-
-			InputSystem.onActionChange +=
-				(obj, change) =>
+			_inputManager.Enable((obj, change) => {
+				switch (change)
 				{
-					switch (change)
-					{
-						case InputActionChange.ActionStarted:
-						case InputActionChange.ActionPerformed:
-						case InputActionChange.ActionCanceled:
+					case InputActionChange.ActionStarted:
+					case InputActionChange.ActionCanceled:
+						var action = (InputAction)obj;
 
-							var action = (InputAction)obj;
+						if (action.name == "Left Flipper")
+						{
+							if (change == InputActionChange.ActionStarted)
+							{
+								_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
+							}
+							else if (change == InputActionChange.ActionCanceled)
+							{
+								_tableApi.Flipper("LeftFlipper")?.RotateToStart();
+							}
+						}
+						else if (action.name == "Right Flipper")
+						{
+							if (change == InputActionChange.ActionStarted)
+							{
+								_tableApi.Flipper("RightFlipper")?.RotateToEnd();
+							}
+							else if (change == InputActionChange.ActionCanceled)
+							{
+								_tableApi.Flipper("RightFlipper")?.RotateToStart();
+							}
+						}
+						else if (action.name == "Plunger")
+						{
+							if (change == InputActionChange.ActionStarted)
+							{
+								_tableApi.Plunger("Plunger")?.PullBack();
+							}
+							else if (change == InputActionChange.ActionCanceled)
+							{
+								_tableApi.Plunger("Plunger")?.Fire();
+							}
+						}
+						else if (action.name == InputManager.VPE_ACTION_CREATE_BALL)
+						{
+							_ballManager.CreateBall(new DebugBallCreator());
+						}
+						else if (action.name == InputManager.VPE_ACTION_KICKER)
+						{
+							_tableApi.Kicker("Kicker1").CreateBall();
+							_tableApi.Kicker("Kicker1").Kick(0, -1);
+						}
 
-							if (action.name == "Left Flipper")
-							{
-								if (change == InputActionChange.ActionStarted)
-								{
-									_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-								}
-								else if (change == InputActionChange.ActionCanceled)
-								{
-									_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-								}
-							}
-							else if (action.name == "Right Flipper")
-							{
-								if (change == InputActionChange.ActionStarted)
-								{
-									_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-								}
-								else if (change == InputActionChange.ActionCanceled)
-								{
-									_tableApi.Flipper("RightFlipper")?.RotateToStart();
-								}
-							}
-							else if (action.name == "Plunger")
-							{
-								if (change == InputActionChange.ActionStarted)
-								{
-									_tableApi.Plunger("Plunger")?.PullBack();
-								}
-								else if (change == InputActionChange.ActionCanceled)
-								{
-									_tableApi.Plunger("Plunger")?.Fire();
-								}
-							}
-							else if (action.name == "Create Ball")
-							{
-								_ballManager.CreateBall(new DebugBallCreator());
-							}
-							else if (action.name == "Kicker 1")
-							{
-								_tableApi.Kicker("Kicker1").CreateBall();
-								_tableApi.Kicker("Kicker1").Kick(0, -1);
-							}
-
-							Debug.Log($"{((InputAction)obj).name} {change}");
-							break;
-					}
-				};
+						Debug.Log($"{((InputAction)obj).name} {change}");
+						break;
+				}
+			});
 		}
 
 		#endregion

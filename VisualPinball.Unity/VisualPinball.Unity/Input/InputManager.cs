@@ -22,11 +22,14 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public class InputManager : MonoBehaviour
+	public class InputManager
 	{
-		public static readonly string RESOURCE_NAME = "VPE";
+		public static readonly string VPE_ACTION_CREATE_BALL = "Create Ball";
+		public static readonly string VPE_ACTION_KICKER = "Kicker";
 
-		public InputActionAsset _asset;
+		private static readonly string RESOURCE_NAME = "VPE";
+
+		private InputActionAsset _asset;
 
 		public InputManager()
 		{
@@ -70,6 +73,13 @@ namespace VisualPinball.Unity
 			{
 				_asset = GetDefaultInputActionAsset();
 			}
+		}
+
+		public void Enable(Action<object, InputActionChange> action)
+		{
+			_asset.Enable();
+
+			InputSystem.onActionChange += action;
 		}
 
 		public List<string> GetActionMapNames()
@@ -132,13 +142,12 @@ namespace VisualPinball.Unity
 			asset.AddActionMap(map);
 
 			map = new InputActionMap("Visual Pinball Engine");
-			map.AddAction("Create Ball", InputActionType.Button, "<Keyboard>/b");
-			map.AddAction("Kicker 1", InputActionType.Button, "<Keyboard>/n");
+			map.AddAction(VPE_ACTION_CREATE_BALL, InputActionType.Button, "<Keyboard>/b");
+			map.AddAction(VPE_ACTION_KICKER, InputActionType.Button, "<Keyboard>/n");
 
 			asset.AddActionMap(map);
 
 			return asset;
 		}
-
 	}
 }
