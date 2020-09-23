@@ -65,7 +65,6 @@ namespace VisualPinball.Unity.Editor
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
 					}
 				}
-				//HandleUtility.Repaint();
 			}
 		}
 		public override void OnInspectorGUI()
