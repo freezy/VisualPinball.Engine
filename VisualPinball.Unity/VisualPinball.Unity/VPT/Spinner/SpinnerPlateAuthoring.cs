@@ -23,6 +23,9 @@ namespace VisualPinball.Unity
 {
 	internal class SpinnerPlateAuthoring : ItemAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
 	{
+		public override string IconName => null;
+		public override string DefaultDescription => "Spinner Plate";
+
 		protected override string[] Children => new string[0];
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

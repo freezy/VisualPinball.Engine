@@ -28,6 +28,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Light")]
 	public class LightAuthoring : ItemAuthoring<Engine.VPT.Light.Light, LightData>
 	{
+		public override string IconName => "light";
+		public override string DefaultDescription => "Light";
+
 		protected override string[] Children => new[] { "Bulb", "Socket" };
 
 		private UnityEngine.Light _unityLight;

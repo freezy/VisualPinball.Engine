@@ -57,6 +57,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemAuthoring<Table, TableData>
 	{
+		public override string IconName => null;
+		public override string DefaultDescription => "Table";
+
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;

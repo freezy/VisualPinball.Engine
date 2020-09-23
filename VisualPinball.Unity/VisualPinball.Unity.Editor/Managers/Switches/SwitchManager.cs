@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
 		private readonly string RESOURCE_PATH = "Assets/Resources";
-		private readonly string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+		private readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
 		protected override string DataTypeName => "Switch";
 
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			titleContent = new GUIContent("Switch Manager",
-				AssetDatabase.LoadAssetAtPath<Texture2D>($"{iconPath}/icon_switch_no.png"));
+				AssetDatabase.LoadAssetAtPath<Texture2D>($"{ICON_PATH}/icon_switch_no.png"));
 
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();
@@ -90,57 +90,9 @@ namespace VisualPinball.Unity.Editor
 								ID = id,
 								Source = SwitchSource.Playfield,
 								PlayfieldItem = switchableItem.Name,
+								Description = switchableItem.DefaultDescription,
+								Type = (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring) ? SwitchType.OnOff : SwitchType.Pulse
 							};
-
-							if (switchableItem is BumperAuthoring)
-							{
-								entry.Description = "Bumper";
-							}
-							else if (switchableItem is FlipperAuthoring)
-							{
-								entry.Description = "Flipper";
-							}
-							else if (switchableItem is GateAuthoring)
-							{
-								entry.Description = "Gate";
-							}
-							else if (switchableItem is HitTargetAuthoring)
-							{
-								entry.Description = "Target";
-							}
-							else if (switchableItem is KickerAuthoring)
-							{
-								entry.Description = "Kicker";
-							}
-							else if (switchableItem is PrimitiveAuthoring)
-							{
-								entry.Description = "Primitive";
-							}
-							else if (switchableItem is RubberAuthoring)
-							{
-								entry.Description = "Rubber";
-							}
-							else if (switchableItem is SurfaceAuthoring)
-							{
-								entry.Description = "Surface";
-							}
-							else if (switchableItem is TriggerAuthoring)
-							{
-								entry.Description = "Trigger";
-							}
-							else if (switchableItem is SpinnerAuthoring)
-							{
-								entry.Description = "Spinner";
-							}
-
-							if (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring)
-							{
-								entry.Type = SwitchType.OnOff;
-							}
-							else
-							{
-								entry.Type = SwitchType.Pulse;
-							}
 
 							mappingConfigData.MappingEntries =
 								mappingConfigData.MappingEntries.Append(entry).ToArray();
@@ -155,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
 			_listViewItemRenderer.Render(data, cellRect, column, (switchListData) => {
-				RecordUndo("Switch Data Change");
+				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
 			});

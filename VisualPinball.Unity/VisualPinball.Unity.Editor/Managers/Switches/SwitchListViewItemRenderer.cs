@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
 		private readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
-		
+
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -147,11 +147,20 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			int index = EditorGUI.Popup(cellRect, (int)switchListData.Source, OPTIONS_SWITCH_SOURCE);
+			int index = EditorGUI.Popup(cellRect, switchListData.Source, OPTIONS_SWITCH_SOURCE);
 			if (EditorGUI.EndChangeCheck())
 			{
-				switchListData.Source = index;
-				updateAction(switchListData);
+				if (switchListData.Source != index)
+				{
+					switchListData.Source = index;
+
+					if (switchListData.Source != SwitchSource.Playfield)
+					{
+						switchListData.Description = "";
+					}
+
+					updateAction(switchListData);
+				}
 			}
 		}
 
@@ -218,8 +227,12 @@ namespace VisualPinball.Unity.Editor
 						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.PlayfieldItem), options.ToArray());
 						if (EditorGUI.EndChangeCheck())
 						{
-							switchListData.PlayfieldItem = options[index];
-							updateAction(switchListData);
+							if (index != options.IndexOf(switchListData.PlayfieldItem))
+							{
+								switchListData.PlayfieldItem = options[index];
+								switchListData.Description = _switchables[index].DefaultDescription;
+								updateAction(switchListData);
+							}
 						}
 					}
 					break;
@@ -287,47 +300,7 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (item.Name == switchListData.PlayfieldItem)
 					{
-						if (item is BumperAuthoring)
-						{
-							image = "bumper"; 
-						}
-						else if (item is FlipperAuthoring)
-						{
-							image = "flipper";
-						}
-						else if (item is GateAuthoring)
-						{
-							image = "gate";
-						}
-						else if (item is HitTargetAuthoring)
-						{
-							image = "target";
-						}
-						else if (item is KickerAuthoring)
-						{
-							image = "kicker";
-						}
-						else if (item is PrimitiveAuthoring)
-						{
-							image = "primitive";
-						}
-						else if (item is RubberAuthoring)
-						{
-							image = "rubber";
-						}
-						else if (item is SurfaceAuthoring)
-						{
-							image = "surface";
-						}
-						else if (item is TriggerAuthoring)
-						{
-							image = "trigger";
-						}
-						else if (item is SpinnerAuthoring)
-						{
-							image = "spinner";
-						}
-						break;
+						image = item.IconName;
 					}
 				}
 			}

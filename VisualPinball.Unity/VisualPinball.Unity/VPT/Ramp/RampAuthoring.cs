@@ -33,6 +33,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Ramp")]
 	public class RampAuthoring : ItemAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
 	{
+		public override string IconName => "ramp";
+		public override string DefaultDescription => "Ramp";
+
 		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
 
 		protected override Ramp GetItem() => new Ramp(data);

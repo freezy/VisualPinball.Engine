@@ -30,6 +30,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Primitive")]
 	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, ISwitchableAuthoring, IConvertGameObjectToEntity
 	{
+		public override string IconName => "primitive";
+		public override string DefaultDescription => "Primitive";
+
 		protected override string[] Children => null;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

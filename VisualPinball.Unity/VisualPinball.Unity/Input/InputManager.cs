@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine.InputSystem;
+using NLog;
+using Logger = NLog.Logger;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.IO;
 using System;
 using System.Collections.Generic;
@@ -28,6 +30,8 @@ namespace VisualPinball.Unity
 		public static readonly string VPE_ACTION_KICKER = "Kicker";
 
 		private static readonly string RESOURCE_NAME = "VPE";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private InputActionAsset _asset;
 
@@ -66,7 +70,7 @@ namespace VisualPinball.Unity
 
 			catch(Exception e)
 			{
-				Debug.Log(e);
+				Logger.Error(e);
 			}
 
 			if (_asset == null)
