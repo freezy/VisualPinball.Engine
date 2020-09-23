@@ -24,11 +24,11 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListViewItemRenderer
 	{
-		readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+		private readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
-		readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
-		readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
-		readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
+		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
+		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
+		private readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
 		
 		private struct InputSystemEntry
 		{
@@ -46,9 +46,9 @@ namespace VisualPinball.Unity.Editor
 			Off = 5
 		}
 
-		List<string> _ids;
-		List<ISwitchableAuthoring> _switchables;
-		InputManager _inputManager;
+		private List<string> _ids;
+		private List<ISwitchableAuthoring> _switchables;
+		private InputManager _inputManager;
 
 		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
 		{

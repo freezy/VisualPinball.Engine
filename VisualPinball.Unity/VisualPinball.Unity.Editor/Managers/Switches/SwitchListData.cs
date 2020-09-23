@@ -23,10 +23,10 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 120)]
 		public string Name => ID;
 
-		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 120)]
+		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
 		public string Description;
 
-		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 120)]
+		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 150)]
 		public int Source;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]

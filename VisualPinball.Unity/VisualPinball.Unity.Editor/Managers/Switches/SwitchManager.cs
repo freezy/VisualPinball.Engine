@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -33,8 +32,8 @@ namespace VisualPinball.Unity.Editor
 
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
-		readonly string RESOURCE_PATH = "Assets/Resources";
-		readonly string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+		private readonly string RESOURCE_PATH = "Assets/Resources";
+		private readonly string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
 
 		protected override string DataTypeName => "Switch";
 
@@ -44,8 +43,14 @@ namespace VisualPinball.Unity.Editor
 		private List<string> _ids = new List<string>();
 		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
 		private InputManager _inputManager;
-
 		private SwitchListViewItemRenderer _listViewItemRenderer;
+
+		private class SerializedMappingConfigs : ScriptableObject
+		{
+			public TableAuthoring Table;
+			public List<MappingConfigData> MappingConfigs = new List<MappingConfigData>();
+		}
+		private SerializedMappingConfigs _recordMappingConfigs;
 
 		[MenuItem("Visual Pinball/Switch Manager", false, 106)]
 		public static void ShowWindow()
@@ -64,18 +69,18 @@ namespace VisualPinball.Unity.Editor
 			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputManager);
 
 			base.OnEnable();
-
-			ResizeToFit();
 		}
 
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
-				var mappingConfigData = GetSwitchMappingConfig();
+				if (_table != null)
+				{
+					RecordUndo("Populate All");
 
-				if (mappingConfigData != null)
-				{ 
+					var mappingConfigData = GetSwitchMappingConfig();
+
 					FindSwSwitchables((switchableItem, id) =>
 					{
 						if (GetSwitchMappingEntryByID(id) == null)
@@ -138,7 +143,7 @@ namespace VisualPinball.Unity.Editor
 							}
 
 							mappingConfigData.MappingEntries =
-							   mappingConfigData.MappingEntries.Append(entry).ToArray();
+								mappingConfigData.MappingEntries.Append(entry).ToArray();
 						}
 					});
 
@@ -150,6 +155,8 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
 			_listViewItemRenderer.Render(data, cellRect, column, (switchListData) => {
+				RecordUndo("Switch Data Change");
+
 				switchListData.Update();
 			});
 		}
@@ -174,46 +181,43 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
+			RecordUndo(undoName);
+
 			var mappingConfigData = GetSwitchMappingConfig();
 
-			if (mappingConfigData != null)
-			{
-				mappingConfigData.MappingEntries =
-					mappingConfigData.MappingEntries.Append(new MappingEntryData { ID = "" }).ToArray();
-			}
+			mappingConfigData.MappingEntries =
+				mappingConfigData.MappingEntries.Append(new MappingEntryData { ID = "" }).ToArray();
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
 		{
+			RecordUndo(undoName);
+
 			var mappingConfigData = GetSwitchMappingConfig();
 
-			if (mappingConfigData != null)
-			{
-				mappingConfigData.MappingEntries =
-					mappingConfigData.MappingEntries.Except(new[] { data.MappingEntryData }).ToArray();
-			}
+			mappingConfigData.MappingEntries =
+				mappingConfigData.MappingEntries.Except(new[] { data.MappingEntryData }).ToArray();
 		}
 
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
+			RecordUndo(undoName);
+
 			var mappingConfigData = GetSwitchMappingConfig();
 
-			if (mappingConfigData != null)
-			{
-				mappingConfigData.MappingEntries =
-					mappingConfigData.MappingEntries.Append(new MappingEntryData
-					{
-						ID = data.ID,
-						Description = data.Description,
-						Source = data.Source,
-						InputActionMap = data.InputActionMap,
-						InputAction = data.InputAction,
-						PlayfieldItem = data.PlayfieldItem,
-						Constant = data.Constant,
-						Type = data.Type,
-						Pulse = data.Pulse
-					}).ToArray();
-			}
+			mappingConfigData.MappingEntries =
+				mappingConfigData.MappingEntries.Append(new MappingEntryData
+				{
+					ID = data.ID,
+					Description = data.Description,
+					Source = data.Source,
+					InputActionMap = data.InputActionMap,
+					InputAction = data.InputAction,
+					PlayfieldItem = data.PlayfieldItem,
+					Constant = data.Constant,
+					Type = data.Type,
+					Pulse = data.Pulse
+				}).ToArray();
 		}
 		#endregion
 
@@ -300,6 +304,38 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			return null;
+		}
+		#endregion
+
+		#region Undo Redo
+		private void RestoreTableMappingConfigs()
+		{
+			if (_recordMappingConfigs == null) { return; }
+			if (_table == null) { return; }
+			if (_recordMappingConfigs.Table == _table)
+			{
+				_table.RestoreMappingConfigs(_recordMappingConfigs.MappingConfigs);
+			}
+		}
+
+		protected override void UndoPerformed()
+		{
+			RestoreTableMappingConfigs();
+			base.UndoPerformed();
+		}
+
+		private void RecordUndo(string undoName)
+		{
+			if (_table == null) { return; }
+			if (_recordMappingConfigs == null)
+			{
+				_recordMappingConfigs = CreateInstance<SerializedMappingConfigs>();
+			}
+			_recordMappingConfigs.Table = _table;
+			_recordMappingConfigs.MappingConfigs.Clear();
+			_recordMappingConfigs.MappingConfigs.AddRange(_table?.MappingConfigs);
+
+			Undo.RecordObjects(new UnityEngine.Object[] { this, _recordMappingConfigs }, undoName);
 		}
 		#endregion
 	}
