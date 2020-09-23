@@ -108,14 +108,14 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 3. Collections
-			var collections = _table.Collections.Values.ToArray();
+			var collections = _table.Collections.Values;
 			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 
 			// 4. Mapping Configs
-			var mappingConfigs = _table.MappingConfigs.Values.ToArray();
-			foreach (var mappingConfig in mappingConfigs.Select(c => c.Data).OrderBy(c => c.StorageIndex))
+			var mappingConfigs = _table.MappingConfigs.Values;
+			foreach (var mappingConfig in mappingConfigs.Select(mc => mc.Data).OrderBy(mc => mc.StorageIndex))
 			{
 				mappingConfig.WriteData(_gameStorage, hashWriter);
 			}

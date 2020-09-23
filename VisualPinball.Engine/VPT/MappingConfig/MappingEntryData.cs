@@ -33,7 +33,7 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 	[Serializable]
 	public class MappingEntryData : BiffData
 	{
-		[BiffString("ID", IsWideString = true, Pos = 1)]
+		[BiffString("MPID", IsWideString = true, Pos = 1)]
 		public string ID;
 
 		[BiffString("DESC", IsWideString = true, Pos = 2)]

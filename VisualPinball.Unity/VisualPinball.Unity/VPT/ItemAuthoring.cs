@@ -38,6 +38,9 @@ namespace VisualPinball.Unity
 	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour, IEditableItemAuthoring, IIdentifiableItemAuthoring,
 		ILayerableItemAuthoring where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
+		public abstract string IconName { get; }
+		public abstract string DefaultDescription { get; }
+
 		[SerializeField]
 		public TData data;
 

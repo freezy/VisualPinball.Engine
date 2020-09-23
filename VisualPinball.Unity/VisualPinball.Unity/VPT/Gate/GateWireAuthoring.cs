@@ -23,6 +23,9 @@ namespace VisualPinball.Unity
 {
 	public class GateWireAuthoring : ItemAuthoring<Gate, GateData>, IConvertGameObjectToEntity
 	{
+		public override string IconName => null;
+		public override string DefaultDescription => "Gate Wire";
+
 		protected override string[] Children => new string[0];
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
