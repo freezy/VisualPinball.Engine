@@ -35,6 +35,8 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private readonly List<Vector3> _pathPoints = new List<Vector3>();
 
+		private bool _curveTravellerMoved = false;
+
 		public float CurveWidth { get; set; } = 10.0f;
 
 		public float ControlPointsSizeRatio { get; set; } = 1.0f;
@@ -132,8 +134,13 @@ namespace VisualPinball.Unity.Editor
 						_pathPoints.AddRange(segments);
 					}
 
+					_curveTravellerMoved = false;
 					if (_pathPoints.Count > 1) {
-						_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+						var newPos = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
+							_handler.CurveTravellerPosition = newPos;
+							_curveTravellerMoved = true;
+						}
 					}
 
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
@@ -191,7 +198,9 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = Color.grey;
 					Handles.SphereHandleCap(_handler.CurveTravellerControlId, _handler.CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
 					_handler.CurveTravellerVisible = true;
-					HandleUtility.Repaint();
+					if (SceneView.mouseOverWindow && _curveTravellerMoved) {
+						HandleUtility.Repaint();
+					}
 				}
 			}
 		}
