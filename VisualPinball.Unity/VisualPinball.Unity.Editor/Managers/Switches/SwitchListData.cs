@@ -18,15 +18,6 @@ using VisualPinball.Engine.VPT.MappingConfig;
 
 namespace VisualPinball.Unity.Editor
 {
-	public enum SwitchEvent
-	{
-		None = 0,
-		KeyDown = 1,
-		KeyUp = 2,
-		Hit = 3,
-		UnHit = 4
-	}
-
 	public class SwitchListData : IManagerListData
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 120)]
@@ -38,16 +29,13 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 120)]
 		public int Source;
 
-		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 150)]
+		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
 		public int Type;
 
-		[ManagerListColumn(Order = 5, HeaderName = "Trigger", Width = 100)]
-		public SwitchEvent Trigger;
-
-		[ManagerListColumn(Order = 6, HeaderName = "Off", Width = 100)]
+		[ManagerListColumn(Order = 5, HeaderName = "Off", Width = 100)]
 		public string Off;
 
 		public string ID;
