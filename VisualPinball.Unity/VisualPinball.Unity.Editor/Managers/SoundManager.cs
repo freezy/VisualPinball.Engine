@@ -79,9 +79,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void Update()
 		{
-			if (_shouldDisplaySoundPosition) {
-				SceneView.RepaintAll();
-			}
+//			if (_shouldDisplaySoundPosition) {
+//				HandleUtility.Repaint();
+//			}
 		}
 
 		void OnSceneGUI(SceneView sceneView)

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using UnityEngine;
 using UnityEditor;
 using VisualPinball.Engine.VPT;
 
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
 					}
 				}
-				HandleUtility.Repaint();
+				//HandleUtility.Repaint();
 			}
 		}
 		public override void OnInspectorGUI()
