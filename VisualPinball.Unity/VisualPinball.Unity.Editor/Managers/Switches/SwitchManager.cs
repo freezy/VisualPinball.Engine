@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
-using System;
 using VisualPinball.Engine.VPT.MappingConfig;
-using System.Linq;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 
 					var mappingConfigData = GetSwitchMappingConfig();
 
-					FindSwSwitchables((switchableItem, id) =>
+					FindNamedSwitchables((switchableItem, id) =>
 					{
 						if (GetSwitchMappingEntryByID(id) == null)
 						{
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshIDs()
 		{
-			FindSwSwitchables((item, id) =>
+			FindNamedSwitchables((item, id) =>
 			{
 				if (_ids.IndexOf(id) == -1)
 				{
@@ -212,7 +212,7 @@ namespace VisualPinball.Unity.Editor
 			_ids.Sort();
 		}
 
-		private void FindSwSwitchables(Action<ISwitchableAuthoring, string> action)
+		private void FindNamedSwitchables(Action<ISwitchableAuthoring, string> action)
 		{
 			foreach (var item in _switchables)
 			{
