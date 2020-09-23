@@ -29,9 +29,7 @@ namespace VisualPinball.Unity.Editor
 		readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
 		readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
 		readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
-		readonly string[] OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM = { "Action Started", "Action Cancelled" };
-		readonly string[] OPTIONS_SWITCH_TRIGGER_PLAYFIELD = { "Hit", "UnHit" };
-
+		
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -45,8 +43,7 @@ namespace VisualPinball.Unity.Editor
 			Source = 2,
 			Element = 3,
 			Type = 4,
-			Trigger = 5,
-			Off = 6
+			Off = 5
 		}
 
 		List<string> _ids;
@@ -78,9 +75,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case SwitchListColumn.Type:
 					RenderType(data, cellRect, updateAction);
-					break;
-				case SwitchListColumn.Trigger:
-					RenderTrigger(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Off:
 					RenderOff(data, cellRect, updateAction);
@@ -157,42 +151,6 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck())
 			{
 				switchListData.Source = index;
-
-				if (switchListData.Source == SwitchSource.InputSystem)
-				{
-					switch (switchListData.Trigger)
-					{
-						case SwitchEvent.Hit:
-							switchListData.Trigger = SwitchEvent.KeyDown;
-							break;
-
-						case SwitchEvent.UnHit:
-							switchListData.Trigger = SwitchEvent.KeyUp;
-							break;
-
-						case SwitchEvent.None:
-							switchListData.Trigger = SwitchEvent.KeyDown;
-							break;
-					}
-				}
-				else if (switchListData.Source == SwitchSource.Playfield)
-				{
-					switch (switchListData.Trigger)
-					{
-						case SwitchEvent.KeyDown:
-							switchListData.Trigger = SwitchEvent.Hit;
-							break;
-
-						case SwitchEvent.KeyUp:
-							switchListData.Trigger = SwitchEvent.UnHit;
-							break;
-
-						case SwitchEvent.None:
-							switchListData.Trigger = SwitchEvent.Hit;
-							break;
-					}
-				}
-
 				updateAction(switchListData);
 			}
 		}
@@ -293,56 +251,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderTrigger(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			if (switchListData.Source == SwitchSource.InputSystem)
-			{
-				EditorGUI.BeginChangeCheck();
-				int index = EditorGUI.Popup(cellRect, (switchListData.Trigger == SwitchEvent.KeyUp) ? 1 : 0, OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM);
-				if (EditorGUI.EndChangeCheck())
-				{
-					switchListData.Trigger = (index == 1) ? SwitchEvent.KeyUp : SwitchEvent.KeyDown;
-					updateAction(switchListData);
-				}
-			}
-			else if (switchListData.Source == SwitchSource.Playfield)
-			{
-				int index = EditorGUI.Popup(cellRect, (switchListData.Trigger == SwitchEvent.UnHit) ? 1 : 0, OPTIONS_SWITCH_TRIGGER_PLAYFIELD);
-				if (EditorGUI.EndChangeCheck())
-				{
-					switchListData.Trigger = (index == 1) ? SwitchEvent.UnHit : SwitchEvent.Hit;
-					updateAction(switchListData); 
-				}
-			}
-		}
-
 		private void RenderOff(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
 			{
-				if (switchListData.Type == SwitchType.OnOff)
-				{
-					if (switchListData.Source == SwitchSource.InputSystem)
-					{
-						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, (switchListData.Trigger == SwitchEvent.KeyUp) ? 0 : 1, OPTIONS_SWITCH_TRIGGER_INPUT_SYSTEM);
-						if (EditorGUI.EndChangeCheck())
-						{
-							switchListData.Trigger = (index == 0) ? SwitchEvent.KeyUp : SwitchEvent.KeyDown;
-							updateAction(switchListData);
-						}
-					}
-					else if (switchListData.Source == SwitchSource.Playfield)
-					{
-						int index = EditorGUI.Popup(cellRect, (switchListData.Trigger == SwitchEvent.UnHit) ? 0 : 1, OPTIONS_SWITCH_TRIGGER_PLAYFIELD);
-						if (EditorGUI.EndChangeCheck())
-						{
-							switchListData.Trigger = (index == 0) ? SwitchEvent.UnHit : SwitchEvent.Hit;
-							updateAction(switchListData);
-						}
-					}
-				}
-				else if (switchListData.Type == SwitchType.Pulse)
+				if (switchListData.Type == SwitchType.Pulse)
 				{
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
