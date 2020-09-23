@@ -77,13 +77,6 @@ namespace VisualPinball.Unity.Editor
 
 		private bool _shouldDisplaySoundPosition => (_table != null && _displaySoundPosition && _selectedItem != null && _selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
 
-		private void Update()
-		{
-//			if (_shouldDisplaySoundPosition) {
-//				HandleUtility.Repaint();
-//			}
-		}
-
 		void OnSceneGUI(SceneView sceneView)
 		{
 			//Draw the sound position based on Balance/Fade data
