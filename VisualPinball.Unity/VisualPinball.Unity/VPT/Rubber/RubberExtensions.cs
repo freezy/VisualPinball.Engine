@@ -23,12 +23,13 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static void SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
 		{
+			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
 				case RenderObjectGroup.ItemSubComponent.None:
 
-					obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+					mb = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 					obj.AddComponent<RubberColliderAuthoring>();
 					break;
 
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
+			return mb;
 		}
 	}
 }

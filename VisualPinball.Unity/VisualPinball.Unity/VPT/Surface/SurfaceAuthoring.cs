@@ -56,6 +56,15 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 
+
+		public void RemoveHittableComponent()
+		{
+			var hc = gameObject.GetComponent<SurfaceColliderAuthoring>();
+			if (hc != null) {
+				DestroyImmediate(hc);
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() {
 			if (data == null || data.DragPoints.Length == 0) {

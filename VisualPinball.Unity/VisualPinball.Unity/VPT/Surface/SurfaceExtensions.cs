@@ -23,12 +23,13 @@ namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static void SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
 		{
+			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
 				case RenderObjectGroup.ItemSubComponent.None:
 
-					obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
+					mb = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
 					obj.AddComponent<SurfaceColliderAuthoring>();
 					break;
 
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
+			return mb;
 		}
 	}
 }

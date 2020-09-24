@@ -131,7 +131,8 @@ namespace VisualPinball.Unity
 
 		private void ConvertRenderables(GameObject tableGameObject)
 		{
-			var createdRootObjs = new Dictionary<string, GameObject>();
+			var createMainObjs = new Dictionary<string, GameObject>();
+			var createdMainMbs = new Dictionary<string, MonoBehaviour>();
 			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
 			var renderObjects = from entry
 				in _renderObjects orderby entry.Value.SubComponent select entry;
@@ -148,19 +149,22 @@ namespace VisualPinball.Unity
 				}
 
 				// create object(s)
-				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent], _tableAuthoring, out var rootObj);
+				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent], _tableAuthoring,
+					out var rootObj, out var rootMb);
 
 				// if the object's names was parsed to be part of another object, re-link to other object.
 				if (rog.SubComponent != RenderObjectGroup.ItemSubComponent.None) {
-					if (!createdRootObjs.ContainsKey(rog.ComponentName.ToLower())) {
+					if (!createMainObjs.ContainsKey(rog.ComponentName.ToLower())) {
 						Logger.Warn($"Cannot find component \"{rog.ComponentName.ToLower()}\" that is supposed to be the parent of \"{rog.Name}\".");
 
 					} else {
-						var mainObj = createdRootObjs[rog.ComponentName.ToLower()];
+						var mainObj = createMainObjs[rog.ComponentName.ToLower()];
+						var mainMb = createdMainMbs[rog.ComponentName.ToLower()];
 						rootObj.transform.SetParent(mainObj.transform, false);
 					}
 				} else {
-					createdRootObjs[rog.Name.ToLower()] = rootObj;
+					createMainObjs[rog.Name.ToLower()] = rootObj;
+					createdMainMbs[rog.Name.ToLower()] = rootMb;
 				}
 			}
 
@@ -172,7 +176,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableAuthoring tb, out GameObject obj)
+		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog,
+			GameObject parent, TableAuthoring tb, out GameObject obj, out MonoBehaviour mb)
 		{
 			obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
@@ -184,7 +189,15 @@ namespace VisualPinball.Unity
 			// apply transformation
 			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 
-			// add unity component
+			// add unity components
+			mb = SetupGameObjectComponents(item, obj, rog);
+
+			return createdObjs;
+		}
+
+		private static MonoBehaviour SetupGameObjectComponents(IRenderable item, GameObject obj, RenderObjectGroup rog)
+		{
+			MonoBehaviour mb = null;
 			switch (item) {
 				case Bumper bumper:             bumper.SetupGameObject(obj, rog); break;
 				case Flipper flipper:           flipper.SetupGameObject(obj, rog); break;
@@ -195,13 +208,14 @@ namespace VisualPinball.Unity
 				case Plunger plunger:           plunger.SetupGameObject(obj, rog); break;
 				case Primitive primitive:       primitive.SetupGameObject(obj, rog); break;
 				case Ramp ramp:                 ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:             rubber.SetupGameObject(obj, rog); break;
+				case Rubber rubber:             mb = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:           spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:           surface.SetupGameObject(obj, rog); break;
+				case Surface surface:           mb = surface.SetupGameObject(obj, rog); break;
 				case Table table:               table.SetupGameObject(obj, rog); break;
 				case Trigger trigger:           trigger.SetupGameObject(obj, rog); break;
 			}
-			return createdObjs;
+
+			return mb;
 		}
 
 		private static IEnumerable<Tuple<GameObject, RenderObject>> SetupRenderObject(GameObject obj, RenderObjectGroup rog, TableAuthoring tb)

@@ -68,6 +68,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
 		}
 
+		public void RemoveHittableComponent()
+		{
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
 		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();

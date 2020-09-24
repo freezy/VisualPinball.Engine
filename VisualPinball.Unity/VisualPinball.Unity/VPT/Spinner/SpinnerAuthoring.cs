@@ -44,6 +44,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void RemoveHittableComponent()
+		{
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(data.Height);
 		public override void SetEditorPosition(Vector3 pos)
