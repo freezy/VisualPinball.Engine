@@ -14,33 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemColliderInspector<TAuthoring> : ItemInspector where TAuthoring : MonoBehaviour
+	public class ItemColliderInspector<TItem, TData, TAuthoring, TColliderAuthoring> : ItemInspector
+		where TColliderAuthoring : ItemColliderAuthoring<TItem, TData, TAuthoring>
+		where TData : ItemData
+		where TItem : Item<TData>, IHittable, IRenderable
+		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
-		protected TAuthoring GetAuthoring()
+		public TData Data {
+			get {
+				var mb = target as TColliderAuthoring;
+				return mb == null ? null : mb.Data;
+			}
+		}
+
+		protected void NoDataPanel()
 		{
-			var mb = target as MonoBehaviour;
-			if (mb == null) {
-				return null;
-			}
-			var go = mb.gameObject;
-
-			var auth = go.GetComponent<TAuthoring>();
-			if (auth == null && go.transform.parent != null) {
-				auth = go.transform.parent.GetComponent<TAuthoring>();
-			}
-
-			if (auth == null && go.transform.parent.transform.parent != null) {
-				auth = go.transform.parent.transform.parent.GetComponent<TAuthoring>();
-			}
-
-			if (auth == null) {
-				Debug.LogWarning("No parent rubber authoring component found.");
-			}
-			return auth;
+			// todo add more details
+			GUILayout.Label("No data! Parent missing?");
 		}
 	}
 }

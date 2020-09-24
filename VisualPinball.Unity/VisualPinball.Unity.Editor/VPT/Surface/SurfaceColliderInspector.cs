@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceColliderAuthoring))]
-	public class SurfaceColliderInspector : ItemColliderInspector<SurfaceAuthoring>
+	public class SurfaceColliderInspector : ItemColliderInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceColliderAuthoring>
 	{
 		private SurfaceData _surfaceData;
 
@@ -33,16 +33,13 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
-			var surfaceAuthoring = GetAuthoring();
-			if (surfaceAuthoring != null) {
-				_surfaceData = surfaceAuthoring.data;
-			}
+			_surfaceData = Data;
 		}
 
 		public override void OnInspectorGUI()
 		{
 			if (_surfaceData == null) {
+				NoDataPanel();
 				return;
 			}
 
@@ -80,33 +77,6 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			EditorGUI.EndDisabledGroup();
-
-
-
-
-			// ItemDataField("Collidable", ref _surfaceData.IsCollidable, false);
-			//
-			// EditorGUI.BeginDisabledGroup(!_surfaceData.IsCollidable);
-			// ItemDataField("Has Hit Event", ref _surfaceData.HitEvent, false);
-			// ItemDataField("Hit Height", ref _surfaceData.HitHeight, false);
-			// EditorGUI.EndDisabledGroup();
-			//
-			// if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-			// 	EditorGUI.BeginDisabledGroup(_rubberData.OverwritePhysics || !_rubberData.IsCollidable);
-			// 	MaterialField("Preset", ref _rubberData.PhysicsMaterial, false);
-			// 	EditorGUI.EndDisabledGroup();
-			//
-			// 	EditorGUI.BeginDisabledGroup(!_rubberData.IsCollidable);
-			// 	ItemDataField("Overwrite Preset", ref _rubberData.OverwritePhysics, false);
-			// 	EditorGUI.EndDisabledGroup();
-			//
-			// 	EditorGUI.BeginDisabledGroup(!_rubberData.OverwritePhysics || !_rubberData.IsCollidable);
-			// 	ItemDataField("Elasticity", ref _rubberData.Elasticity, false);
-			// 	ItemDataField("Elasticity Falloff", ref _rubberData.ElasticityFalloff, false);
-			// 	ItemDataField("Friction", ref _rubberData.Friction, false);
-			// 	ItemDataField("Scatter Angle", ref _rubberData.Scatter, false);
-			// 	EditorGUI.EndDisabledGroup();
-			// }
 		}
 	}
 }
