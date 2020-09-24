@@ -30,6 +30,10 @@ namespace VisualPinball.Engine.Game
 		public readonly RenderObject[] RenderObjects;
 		public readonly Matrix3D TransformationMatrix;
 
+		public readonly string ComponentName;
+		public readonly ItemSubComponent SubComponent;
+		public readonly string SubName;
+
 		public bool ForceChild { get; set; }
 		public bool HasOnlyChild => RenderObjects.Length == 1;
 		public bool HasChildren => RenderObjects.Length > 0;
@@ -42,28 +46,29 @@ namespace VisualPinball.Engine.Game
 			Parent = parent;
 			RenderObjects = renderObjects;
 			TransformationMatrix = matrix;
+			(ComponentName, SubComponent, SubName) = SplitName();
 		}
 
-		public enum ItemSubType
+		public enum ItemSubComponent
 		{
 			None, Collider, Mesh
 		}
 
-		public (string, ItemSubType, string) SplitName()
+		private (string, ItemSubComponent, string) SplitName()
 		{
 			var names = Name.Split(new[] {'_'}, 3, StringSplitOptions.None);
 			if (names.Length == 1) {
-				return (Name, ItemSubType.None, null);
+				return (Name, ItemSubComponent.None, null);
 			}
 			switch (names[1].ToLower()) {
 				case "collider":
-					return (names[0], ItemSubType.Collider, names.Length > 2 ? names[2] : null);
+					return (names[0], ItemSubComponent.Collider, names.Length > 2 ? names[2] : null);
 
 				case "mesh":
-					return (names[0], ItemSubType.Mesh, names.Length > 2 ? names[2] : null);
+					return (names[0], ItemSubComponent.Mesh, names.Length > 2 ? names[2] : null);
 
 				default:
-					return (Name, ItemSubType.None, null);
+					return (Name, ItemSubComponent.None, null);
 			}
 		}
 	}
