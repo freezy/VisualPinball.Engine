@@ -118,35 +118,9 @@ namespace VisualPinball.Unity
 				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
 				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables);
 			}
-		}
 
-		public static GameObject ConvertRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
-		{
-			if (ro.Mesh == null) {
-				Logger.Warn($"No mesh for object {obj.name}, skipping.");
-				return null;
-			}
-
-			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
-			// apply mesh to game object
-			var mf = obj.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
-
-			// apply material
-			if (ro.Mesh.AnimationFrames.Count > 0) {
-				var smr = obj.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				smr.sharedMesh = mesh;
-				smr.enabled = ro.IsVisible;
-			}
-			else {
-				var mr = obj.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				mr.enabled = ro.IsVisible;
-			}
-
-			return obj;
+			// don't need that anymore.
+			DestroyImmediate(this);
 		}
 
 		private void ConvertGameItems(GameObject tableGameObject)
@@ -160,11 +134,14 @@ namespace VisualPinball.Unity
 			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
 			foreach (var renderable in _renderObjects.Keys) {
 				var ro = _renderObjects[renderable];
+
+				// create item type parent
 				if (!_parents.ContainsKey(ro.Parent)) {
 					var parent = new GameObject(ro.Parent);
 					parent.transform.parent = gameObject.transform;
 					_parents[ro.Parent] = parent;
 				}
+
 				createdObjs[renderable] = ConvertRenderObjects(renderable, ro, _parents[ro.Parent], _tableAuthoring, out _);
 			}
 
@@ -178,13 +155,15 @@ namespace VisualPinball.Unity
 
 		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableAuthoring tb, out GameObject obj)
 		{
+			var (name, subType, childName) = rog.SplitName();
+
 			obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
 
 			var createdObjs = new Tuple<GameObject, RenderObject>[0];
 
 			if (rog.HasOnlyChild && !rog.ForceChild) {
-				ConvertRenderObject(rog.RenderObjects[0], obj, tb);
+				SetupRenderObject(rog.RenderObjects[0], obj, tb);
 				createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
 
 			} else if (rog.HasChildren) {
@@ -194,7 +173,7 @@ namespace VisualPinball.Unity
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.SetParent(obj.transform, false);
 					subObj.layer = ChildObjectsLayer;
-					ConvertRenderObject(ro, subObj, tb);
+					SetupRenderObject(ro, subObj, tb);
 					createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
 				}
 			}
@@ -220,6 +199,32 @@ namespace VisualPinball.Unity
 				case Trigger trigger:            trigger.SetupGameObject(obj, rog); break;
 			}
 			return createdObjs;
+		}
+
+		private static void SetupRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
+		{
+			if (ro.Mesh == null) {
+				Logger.Warn($"No mesh for object {obj.name}, skipping.");
+				return;
+			}
+
+			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
+
+			// apply mesh to game object
+			var mf = obj.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply material
+			if (ro.Mesh.AnimationFrames.Count > 0) {
+				var smr = obj.AddComponent<SkinnedMeshRenderer>();
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				smr.sharedMesh = mesh;
+				smr.enabled = ro.IsVisible;
+			} else {
+				var mr = obj.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				mr.enabled = ro.IsVisible;
+			}
 		}
 
 		private void MakeSerializable(GameObject go, Table table)

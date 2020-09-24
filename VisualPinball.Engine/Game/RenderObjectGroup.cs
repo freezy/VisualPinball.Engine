@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using VisualPinball.Engine.Math;
 
@@ -41,6 +42,29 @@ namespace VisualPinball.Engine.Game
 			Parent = parent;
 			RenderObjects = renderObjects;
 			TransformationMatrix = matrix;
+		}
+
+		public enum ItemSubType
+		{
+			None, Collider, Mesh
+		}
+
+		public (string, ItemSubType, string) SplitName()
+		{
+			var names = Name.Split(new[] {'_'}, 3, StringSplitOptions.None);
+			if (names.Length == 1) {
+				return (Name, ItemSubType.None, null);
+			}
+			switch (names[1].ToLower()) {
+				case "collider":
+					return (names[0], ItemSubType.Collider, names.Length > 2 ? names[2] : null);
+
+				case "mesh":
+					return (names[0], ItemSubType.Mesh, names.Length > 2 ? names[2] : null);
+
+				default:
+					return (Name, ItemSubType.None, null);
+			}
 		}
 	}
 }
