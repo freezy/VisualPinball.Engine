@@ -36,6 +36,8 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public override string ItemType => "Table";
 
+		public readonly List<IHittable> Hittables2 = new List<IHittable>();
+
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
