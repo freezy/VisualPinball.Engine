@@ -132,8 +132,12 @@ namespace VisualPinball.Unity
 		private void ConvertRenderables(GameObject tableGameObject)
 		{
 			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
-			foreach (var renderable in _renderObjects.Keys) {
-				var ro = _renderObjects[renderable];
+			var renderObjects = from entry
+				in _renderObjects orderby entry.Value.SubComponent select entry;
+
+			foreach (var kv in renderObjects) {
+				var renderable = kv.Key;
+				var ro = kv.Value;
 
 				// create item type parent
 				if (!_parents.ContainsKey(ro.Parent)) {
@@ -155,8 +159,6 @@ namespace VisualPinball.Unity
 
 		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableAuthoring tb, out GameObject obj)
 		{
-			var (name, subType, childName) = rog.SplitName();
-
 			obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
 
