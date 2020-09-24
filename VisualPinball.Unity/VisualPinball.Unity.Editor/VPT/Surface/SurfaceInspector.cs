@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
@@ -54,33 +56,6 @@ namespace VisualPinball.Unity.Editor
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
 				ItemDataField("Top Height", ref _targetSurf.data.HeightTop);
 				ItemDataField("Bottom Height", ref _targetSurf.data.HeightBottom);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				ItemDataField("Has Hit Event", ref _targetSurf.data.HitEvent, dirtyMesh: false);
-				EditorGUI.BeginDisabledGroup(!_targetSurf.data.HitEvent);
-				ItemDataField("Hit Threshold", ref _targetSurf.data.Threshold, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Slingshot Force", ref _targetSurf.data.SlingshotForce, dirtyMesh: false);
-				ItemDataField("Slingshot Threshold", ref _targetSurf.data.SlingshotThreshold, dirtyMesh: false);
-
-				EditorGUI.BeginDisabledGroup(_targetSurf.data.OverwritePhysics);
-				MaterialField("Physics Material", ref _targetSurf.data.PhysicsMaterial, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Overwrite Material Settings", ref _targetSurf.data.OverwritePhysics, dirtyMesh: false);
-
-				EditorGUI.BeginDisabledGroup(!_targetSurf.data.OverwritePhysics);
-				ItemDataField("Elasticity", ref _targetSurf.data.Elasticity, dirtyMesh: false);
-				ItemDataField("Friction", ref _targetSurf.data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _targetSurf.data.Scatter, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Can Drop", ref _targetSurf.data.IsDroppable, dirtyMesh: false);
-				ItemDataField("Collidable", ref _targetSurf.data.IsCollidable, dirtyMesh: false);
-				ItemDataField("Is Bottom Collidable", ref _targetSurf.data.IsBottomSolid, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

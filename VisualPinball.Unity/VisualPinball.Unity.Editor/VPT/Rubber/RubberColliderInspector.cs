@@ -50,24 +50,23 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.BeginDisabledGroup(!_rubberData.IsCollidable);
 			ItemDataField("Has Hit Event", ref _rubberData.HitEvent, false);
 			ItemDataField("Hit Height", ref _rubberData.HitHeight, false);
-			EditorGUI.EndDisabledGroup();
 
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-				EditorGUI.BeginDisabledGroup(_rubberData.OverwritePhysics || !_rubberData.IsCollidable);
+				EditorGUI.BeginDisabledGroup(_rubberData.OverwritePhysics);
 				MaterialField("Preset", ref _rubberData.PhysicsMaterial, false);
 				EditorGUI.EndDisabledGroup();
 
-				EditorGUI.BeginDisabledGroup(!_rubberData.IsCollidable);
 				ItemDataField("Overwrite Preset", ref _rubberData.OverwritePhysics, false);
-				EditorGUI.EndDisabledGroup();
 
-				EditorGUI.BeginDisabledGroup(!_rubberData.OverwritePhysics || !_rubberData.IsCollidable);
+				EditorGUI.BeginDisabledGroup(!_rubberData.OverwritePhysics);
 				ItemDataField("Elasticity", ref _rubberData.Elasticity, false);
 				ItemDataField("Elasticity Falloff", ref _rubberData.ElasticityFalloff, false);
 				ItemDataField("Friction", ref _rubberData.Friction, false);
 				ItemDataField("Scatter Angle", ref _rubberData.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 			}
+
+			EditorGUI.EndDisabledGroup();
 		}
 	}
 }
