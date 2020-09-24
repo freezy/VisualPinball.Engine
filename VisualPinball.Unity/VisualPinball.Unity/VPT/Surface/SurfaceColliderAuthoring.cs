@@ -20,8 +20,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
-	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData>
+	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
-
 	}
 }

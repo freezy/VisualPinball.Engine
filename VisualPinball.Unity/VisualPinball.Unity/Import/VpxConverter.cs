@@ -177,10 +177,38 @@ namespace VisualPinball.Unity
 			obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
 
-			var createdObjs = new Tuple<GameObject, RenderObject>[0];
+			var createdObjs = rog.SubComponent == RenderObjectGroup.ItemSubComponent.Collider
+				? new Tuple<GameObject, RenderObject>[0]
+				: SetupRenderObject(obj, rog, tb);
 
+			// apply transformation
+			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+
+			// add unity component
+			switch (item) {
+				case Bumper bumper:             bumper.SetupGameObject(obj, rog); break;
+				case Flipper flipper:           flipper.SetupGameObject(obj, rog); break;
+				case Gate gate:                 gate.SetupGameObject(obj, rog); break;
+				case HitTarget hitTarget:       hitTarget.SetupGameObject(obj, rog); break;
+				case Kicker kicker:             kicker.SetupGameObject(obj, rog); break;
+				case Engine.VPT.Light.Light lt: lt.SetupGameObject(obj, rog); break;
+				case Plunger plunger:           plunger.SetupGameObject(obj, rog); break;
+				case Primitive primitive:       primitive.SetupGameObject(obj, rog); break;
+				case Ramp ramp:                 ramp.SetupGameObject(obj, rog); break;
+				case Rubber rubber:             rubber.SetupGameObject(obj, rog); break;
+				case Spinner spinner:           spinner.SetupGameObject(obj, rog); break;
+				case Surface surface:           surface.SetupGameObject(obj, rog); break;
+				case Table table:               table.SetupGameObject(obj, rog); break;
+				case Trigger trigger:           trigger.SetupGameObject(obj, rog); break;
+			}
+			return createdObjs;
+		}
+
+		private static IEnumerable<Tuple<GameObject, RenderObject>> SetupRenderObject(GameObject obj, RenderObjectGroup rog, TableAuthoring tb)
+		{
+			var createdObjs = new Tuple<GameObject, RenderObject>[0];
 			if (rog.HasOnlyChild && !rog.ForceChild) {
-				SetupRenderObject(rog.RenderObjects[0], obj, tb);
+				SetupMesh(obj, rog.RenderObjects[0], tb);
 				createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
 
 			} else if (rog.HasChildren) {
@@ -190,35 +218,15 @@ namespace VisualPinball.Unity
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.SetParent(obj.transform, false);
 					subObj.layer = ChildObjectsLayer;
-					SetupRenderObject(ro, subObj, tb);
+					SetupMesh(subObj, ro, tb);
 					createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
 				}
 			}
 
-			// apply transformation
-			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
-
-			// add unity component
-			switch (item) {
-				case Bumper bumper:              bumper.SetupGameObject(obj, rog); break;
-				case Flipper flipper:            flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:                  gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:        hitTarget.SetupGameObject(obj, rog); break;
-				case Kicker kicker:              kicker.SetupGameObject(obj, rog); break;
-				case Engine.VPT.Light.Light lt:  lt.SetupGameObject(obj, rog); break;
-				case Plunger plunger:            plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:        primitive.SetupGameObject(obj, rog); break;
-				case Ramp ramp:                  ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:              rubber.SetupGameObject(obj, rog); break;
-				case Spinner spinner:            spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:            surface.SetupGameObject(obj, rog); break;
-				case Table table:                table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:            trigger.SetupGameObject(obj, rog); break;
-			}
 			return createdObjs;
 		}
 
-		private static void SetupRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
+		private static void SetupMesh(GameObject obj, RenderObject ro, TableAuthoring ta)
 		{
 			if (ro.Mesh == null) {
 				Logger.Warn($"No mesh for object {obj.name}, skipping.");

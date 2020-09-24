@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -24,8 +25,23 @@ namespace VisualPinball.Unity
 	{
 		public static void SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
 		{
-			obj.AddComponent<RubberAuthoring>().SetItem(rubber);
-			obj.AddComponent<RubberColliderAuthoring>();
+			switch (rog.SubComponent) {
+				case RenderObjectGroup.ItemSubComponent.None:
+
+					obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+					obj.AddComponent<RubberColliderAuthoring>();
+					break;
+
+				case RenderObjectGroup.ItemSubComponent.Collider:
+					obj.AddComponent<RubberColliderAuthoring>().SetItem(rubber, rog);
+					break;
+
+				case RenderObjectGroup.ItemSubComponent.Mesh:
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
 		}
 	}

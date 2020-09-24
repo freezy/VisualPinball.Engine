@@ -19,11 +19,10 @@
 using UnityEditor;
 using VisualPinball.Engine.VPT.Rubber;
 
-
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RubberColliderAuthoring))]
-	public class RubberColliderInspector : ItemColliderInspector<RubberAuthoring>
+	public class RubberColliderInspector : ItemColliderInspector<Rubber, RubberData, RubberAuthoring, RubberColliderAuthoring>
 	{
 		private RubberData _rubberData;
 
@@ -32,16 +31,13 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
-			var rubberAuthoring = GetAuthoring();
-			if (rubberAuthoring != null) {
-				_rubberData = rubberAuthoring.data;
-			}
+			_rubberData = Data;
 		}
 
 		public override void OnInspectorGUI()
 		{
 			if (_rubberData == null) {
+				NoDataPanel();
 				return;
 			}
 

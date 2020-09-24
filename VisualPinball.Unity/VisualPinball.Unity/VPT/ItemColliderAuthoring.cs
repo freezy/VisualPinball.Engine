@@ -14,27 +14,51 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public class ItemColliderAuthoring<TItem, TData> : MonoBehaviour where TData : ItemData where TItem : Item<TData>, IHittable
+	public class ItemColliderAuthoring<TItem, TData, TAuthoring> : MonoBehaviour
+		where TData : ItemData
+		where TItem : Item<TData>, IHittable, IRenderable
+		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
-		[NonSerialized]
-		public TData Data;
+		public TData Data => GetData();
 
-		[NonSerialized]
-		public TItem Item;
+		private TData _data;
 
-		public ItemColliderAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
+		public void SetItem(TItem item, RenderObjectGroup rog)
 		{
-			Item = item;
-			Data = item.Data;
-			name = (gameObjectName ?? Data.GetName()) + " (collider)";
-			return this;
+			_data = item.Data;
+			name = rog.ComponentName + " (collider)";
+		}
+
+		private TData GetData()
+		{
+			// if data is set, this is a full-fledged item
+			if (_data != null) {
+				return _data;
+			}
+
+			// otherwise, retrieve data from parent
+			var go = gameObject;
+			var ac = go.GetComponent<TAuthoring>();
+			if (ac == null && go.transform.parent != null) {
+				ac = go.transform.parent.GetComponent<TAuthoring>();
+			}
+
+			if (ac == null && go.transform.parent.transform.parent != null) {
+				ac = go.transform.parent.transform.parent.GetComponent<TAuthoring>();
+			}
+
+			if (ac != null) {
+				return ac.data;
+			}
+
+			Debug.LogWarning("No same- or parent authoring component found.");
+			return null;
 		}
 	}
 }
