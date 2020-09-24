@@ -64,4 +64,8 @@ In Unity, go to *Window -> Package Manager*. Click on the "plus" icon on the top
 
 ![New Unity Project](unity-package-manager.png)
 
-This will take a moment as Unity downloads and compiles all of VPE's dependencies. When complete, you should now have a *Visual Pinball* menu in the editor.
+This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
+
+![Unity Input System Warning](unity-input-system-warning.png)
+
+Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the editor.
