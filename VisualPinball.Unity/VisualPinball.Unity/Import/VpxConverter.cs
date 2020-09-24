@@ -131,22 +131,37 @@ namespace VisualPinball.Unity
 
 		private void ConvertRenderables(GameObject tableGameObject)
 		{
+			var createdRootObjs = new Dictionary<string, GameObject>();
 			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
 			var renderObjects = from entry
 				in _renderObjects orderby entry.Value.SubComponent select entry;
 
 			foreach (var kv in renderObjects) {
 				var renderable = kv.Key;
-				var ro = kv.Value;
+				var rog = kv.Value;
 
 				// create item type parent
-				if (!_parents.ContainsKey(ro.Parent)) {
-					var parent = new GameObject(ro.Parent);
+				if (!_parents.ContainsKey(rog.Parent)) {
+					var parent = new GameObject(rog.Parent);
 					parent.transform.parent = gameObject.transform;
-					_parents[ro.Parent] = parent;
+					_parents[rog.Parent] = parent;
 				}
 
-				createdObjs[renderable] = ConvertRenderObjects(renderable, ro, _parents[ro.Parent], _tableAuthoring, out _);
+				// create object(s)
+				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent], _tableAuthoring, out var rootObj);
+
+				// if the object's names was parsed to be part of another object, re-link to other object.
+				if (rog.SubComponent != RenderObjectGroup.ItemSubComponent.None) {
+					if (!createdRootObjs.ContainsKey(rog.ComponentName.ToLower())) {
+						Logger.Warn($"Cannot find component \"{rog.ComponentName.ToLower()}\" that is supposed to be the parent of \"{rog.Name}\".");
+
+					} else {
+						var mainObj = createdRootObjs[rog.ComponentName.ToLower()];
+						rootObj.transform.SetParent(mainObj.transform, false);
+					}
+				} else {
+					createdRootObjs[rog.Name.ToLower()] = rootObj;
+				}
 			}
 
 			// now we have all renderables imported, patch them.
