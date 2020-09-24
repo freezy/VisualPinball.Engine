@@ -54,6 +54,14 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, gameObject);
 		}
 
+		public void RemoveHittableComponent()
+		{
+			var hc = gameObject.GetComponent<RubberColliderAuthoring>();
+			if (hc != null) {
+				DestroyImmediate(hc);
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition()
 		{

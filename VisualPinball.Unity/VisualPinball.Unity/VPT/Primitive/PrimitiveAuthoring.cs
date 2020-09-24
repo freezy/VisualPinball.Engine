@@ -41,6 +41,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, gameObject);
 		}
 
+		public void RemoveHittableComponent()
+		{
+		}
+
 		protected override Primitive GetItem() => new Primitive(data);
 
 		public IHittable Hittable => Item;

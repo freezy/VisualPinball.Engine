@@ -47,6 +47,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
 		}
 
+		public void RemoveHittableComponent()
+		{
+		}
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {

@@ -21,5 +21,7 @@ namespace VisualPinball.Unity
 	public interface IHittableAuthoring
 	{
 		IHittable Hittable { get; }
+
+		void RemoveHittableComponent();
 	}
 }
