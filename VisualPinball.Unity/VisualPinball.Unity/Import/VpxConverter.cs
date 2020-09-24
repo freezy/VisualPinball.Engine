@@ -203,22 +203,21 @@ namespace VisualPinball.Unity
 			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 
 			// add unity component
-			MonoBehaviour ic = null;
 			switch (item) {
-				case Bumper bumper:					ic = bumper.SetupGameObject(obj, rog); break;
-				case Flipper flipper:				ic = flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:			ic = hitTarget.SetupGameObject(obj, rog); break;
-				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
-				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
-				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = primitive.SetupGameObject(obj, rog); break;
-				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
-				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
-				case Table table:					ic = table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
+				case Bumper bumper:              bumper.SetupGameObject(obj, rog); break;
+				case Flipper flipper:            flipper.SetupGameObject(obj, rog); break;
+				case Gate gate:                  gate.SetupGameObject(obj, rog); break;
+				case HitTarget hitTarget:        hitTarget.SetupGameObject(obj, rog); break;
+				case Kicker kicker:              kicker.SetupGameObject(obj, rog); break;
+				case Engine.VPT.Light.Light lt:  lt.SetupGameObject(obj, rog); break;
+				case Plunger plunger:            plunger.SetupGameObject(obj, rog); break;
+				case Primitive primitive:        primitive.SetupGameObject(obj, rog); break;
+				case Ramp ramp:                  ramp.SetupGameObject(obj, rog); break;
+				case Rubber rubber:              rubber.SetupGameObject(obj, rog); break;
+				case Spinner spinner:            spinner.SetupGameObject(obj, rog); break;
+				case Surface surface:            surface.SetupGameObject(obj, rog); break;
+				case Table table:                table.SetupGameObject(obj, rog); break;
+				case Trigger trigger:            trigger.SetupGameObject(obj, rog); break;
 			}
 			return createdObjs;
 		}
