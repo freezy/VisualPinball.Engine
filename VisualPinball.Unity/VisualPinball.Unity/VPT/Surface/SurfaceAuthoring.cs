@@ -25,6 +25,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
@@ -56,13 +57,17 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 
-
 		public void RemoveHittableComponent()
 		{
 			var hc = gameObject.GetComponent<SurfaceColliderAuthoring>();
 			if (hc != null) {
 				DestroyImmediate(hc);
 			}
+		}
+
+		public void LinkChild(IItemAuthoring item)
+		{
+
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

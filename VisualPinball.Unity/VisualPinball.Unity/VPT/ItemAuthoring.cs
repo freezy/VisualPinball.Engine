@@ -35,7 +35,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour, IEditableItemAuthoring, IIdentifiableItemAuthoring,
+	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour, IItemAuthoring, IEditableItemAuthoring, IIdentifiableItemAuthoring,
 		ILayerableItemAuthoring where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		[SerializeField]
@@ -192,7 +192,6 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
-
 
 		private static void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableAuthoring table)
 		{

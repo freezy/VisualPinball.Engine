@@ -149,8 +149,7 @@ namespace VisualPinball.Unity
 				}
 
 				// create object(s)
-				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent],
-					_tableAuthoring, out var rootObj);
+				createdObjs[renderable] = ConvertRenderObjects(rog, _parents[rog.Parent], _tableAuthoring, out var rootObj);
 
 				// if the object's names was parsed to be part of another object, re-link to other object.
 				if (rog.SubComponent != RenderObjectGroup.ItemSubComponent.None) {
@@ -179,7 +178,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog,
+		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(RenderObjectGroup rog,
 			GameObject parent, TableAuthoring tb, out GameObject obj)
 		{
 			obj = new GameObject(rog.Name);

@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 		private SurfaceAuthoring _targetSurf;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
 		protected override void OnEnable()

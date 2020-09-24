@@ -20,20 +20,23 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public class ItemColliderAuthoring<TItem, TData, TAuthoring> : MonoBehaviour
+	public abstract class ItemColliderAuthoring<TItem, TData, TAuthoring> : ItemAuthoring<TItem, TData>
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
 		public TData Data => GetData();
 
-		private TData _data;
+		protected TData _data;
 
-		public void SetItem(TItem item, RenderObjectGroup rog)
+		public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
 		{
 			_data = item.Data;
 			name = rog.ComponentName + " (collider)";
+			return this;
 		}
+
+		protected override string[] Children => new string[0];
 
 		private TData GetData()
 		{
