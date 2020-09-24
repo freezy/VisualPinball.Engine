@@ -18,7 +18,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public interface IHittableAuthoring
+	public interface IHittableAuthoring : IExtendableAuthoring
 	{
 		IHittable Hittable { get; }
 

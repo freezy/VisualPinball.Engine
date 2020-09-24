@@ -22,5 +22,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
 	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
+		protected override Surface GetItem() => new Surface(_data);
 	}
 }

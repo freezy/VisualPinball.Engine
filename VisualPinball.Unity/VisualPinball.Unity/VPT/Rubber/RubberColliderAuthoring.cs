@@ -22,5 +22,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Rubber Collider")]
 	public class RubberColliderAuthoring : ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>
 	{
+		protected override Rubber GetItem() => new Rubber(_data);
 	}
 }

@@ -98,6 +98,10 @@ namespace VisualPinball.Unity
 		{
 		}
 
+		public void LinkChild(IItemAuthoring item)
+		{
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
 		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex3D();

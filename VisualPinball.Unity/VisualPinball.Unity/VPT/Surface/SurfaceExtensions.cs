@@ -35,9 +35,10 @@ namespace VisualPinball.Unity
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Collider:
-					obj.AddComponent<SurfaceColliderAuthoring>().SetItem(surface, rog);
+					var ia = obj.AddComponent<SurfaceColliderAuthoring>().SetItem(surface, rog);
 					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
+						hittableAuthoring.LinkChild(ia);
 					}
 					break;
 

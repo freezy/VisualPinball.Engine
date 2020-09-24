@@ -35,6 +35,9 @@ namespace VisualPinball.Unity
 
 				case RenderObjectGroup.ItemSubComponent.Collider:
 					obj.AddComponent<RubberColliderAuthoring>().SetItem(rubber, rog);
+					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Mesh:
