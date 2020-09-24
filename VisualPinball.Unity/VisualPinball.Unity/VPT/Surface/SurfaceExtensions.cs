@@ -23,7 +23,8 @@ namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj,
+			RenderObjectGroup rog, MonoBehaviour mainMb)
 		{
 			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
@@ -35,6 +36,9 @@ namespace VisualPinball.Unity
 
 				case RenderObjectGroup.ItemSubComponent.Collider:
 					obj.AddComponent<SurfaceColliderAuthoring>().SetItem(surface, rog);
+					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Mesh:

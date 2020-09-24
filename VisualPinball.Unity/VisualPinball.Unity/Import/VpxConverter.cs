@@ -149,20 +149,23 @@ namespace VisualPinball.Unity
 				}
 
 				// create object(s)
-				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent], _tableAuthoring,
-					out var rootObj, out var rootMb);
+				createdObjs[renderable] = ConvertRenderObjects(renderable, rog, _parents[rog.Parent],
+					_tableAuthoring, out var rootObj);
 
 				// if the object's names was parsed to be part of another object, re-link to other object.
 				if (rog.SubComponent != RenderObjectGroup.ItemSubComponent.None) {
 					if (!createMainObjs.ContainsKey(rog.ComponentName.ToLower())) {
 						Logger.Warn($"Cannot find component \"{rog.ComponentName.ToLower()}\" that is supposed to be the parent of \"{rog.Name}\".");
+						SetupGameObjectComponents(renderable, rootObj, rog);
 
 					} else {
 						var mainObj = createMainObjs[rog.ComponentName.ToLower()];
 						var mainMb = createdMainMbs[rog.ComponentName.ToLower()];
 						rootObj.transform.SetParent(mainObj.transform, false);
+						SetupGameObjectComponents(renderable, rootObj, rog, mainMb);
 					}
 				} else {
+					var rootMb = SetupGameObjectComponents(renderable, rootObj, rog);
 					createMainObjs[rog.Name.ToLower()] = rootObj;
 					createdMainMbs[rog.Name.ToLower()] = rootMb;
 				}
@@ -177,7 +180,7 @@ namespace VisualPinball.Unity
 		}
 
 		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog,
-			GameObject parent, TableAuthoring tb, out GameObject obj, out MonoBehaviour mb)
+			GameObject parent, TableAuthoring tb, out GameObject obj)
 		{
 			obj = new GameObject(rog.Name);
 			obj.transform.parent = parent.transform;
@@ -189,13 +192,11 @@ namespace VisualPinball.Unity
 			// apply transformation
 			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
 
-			// add unity components
-			mb = SetupGameObjectComponents(item, obj, rog);
-
 			return createdObjs;
 		}
 
-		private static MonoBehaviour SetupGameObjectComponents(IRenderable item, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObjectComponents(IRenderable item, GameObject obj,
+			RenderObjectGroup rog, MonoBehaviour mainMb = null)
 		{
 			MonoBehaviour mb = null;
 			switch (item) {
@@ -208,9 +209,9 @@ namespace VisualPinball.Unity
 				case Plunger plunger:           plunger.SetupGameObject(obj, rog); break;
 				case Primitive primitive:       primitive.SetupGameObject(obj, rog); break;
 				case Ramp ramp:                 ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:             mb = rubber.SetupGameObject(obj, rog); break;
+				case Rubber rubber:             mb = rubber.SetupGameObject(obj, rog, mainMb); break;
 				case Spinner spinner:           spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:           mb = surface.SetupGameObject(obj, rog); break;
+				case Surface surface:           mb = surface.SetupGameObject(obj, rog, mainMb); break;
 				case Table table:               table.SetupGameObject(obj, rog); break;
 				case Trigger trigger:           trigger.SetupGameObject(obj, rog); break;
 			}

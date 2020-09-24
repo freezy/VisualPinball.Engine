@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog, MonoBehaviour mainMb)
 		{
 			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
