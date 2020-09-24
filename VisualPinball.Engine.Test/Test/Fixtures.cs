@@ -24,6 +24,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string Bumper = PathHelper.GetFixturePath("BumperTest.vpx");
 		public static readonly string BumperVPX1070 = PathHelper.GetFixturePath("BumperTestVPX1070.vpx");
 		public static readonly string Collection = PathHelper.GetFixturePath("CollectionTest.vpx");
+		public static readonly string MappingConfig = PathHelper.GetFixturePath("MappingConfigTest.vpx");
 		public static readonly string Decal = PathHelper.GetFixturePath("DecalTest.vpx");
 		public static readonly string DispReel = PathHelper.GetFixturePath("DispReelTest.vpx");
 		public static readonly string Flasher = PathHelper.GetFixturePath("FlasherTest.vpx");
