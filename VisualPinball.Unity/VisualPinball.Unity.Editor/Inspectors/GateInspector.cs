@@ -57,9 +57,8 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = col;
 					Handles.DrawSolidDisc(position, axis, scale);
 
+					var arrowscale = worldScale * 100.0f;
 					Handles.color = Color.white;
-					var ratioscale = 2.0f;
-					var arrowscale = (worldScale * (100.0f - ratioscale)) + Mathf.PingPong(Time.realtimeSinceStartup * worldScale * ratioscale * 2.0f, worldScale * ratioscale);
 					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowscale, EventType.Repaint);
 					if (_gate.Item.Data.TwoWay) {
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
