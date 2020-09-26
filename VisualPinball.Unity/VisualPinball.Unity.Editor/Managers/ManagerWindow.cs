@@ -66,8 +66,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected virtual void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
+
 			_isImplAddNewData = IsImplemented("AddNewData");
 			_isImplRemoveData = IsImplemented("RemoveData");
 			_isImplCloneData = IsImplemented("CloneData");
