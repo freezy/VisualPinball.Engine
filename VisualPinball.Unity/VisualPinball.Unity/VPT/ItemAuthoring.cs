@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
+		public IItem IItem => _item;
+
 		public string ItemType => Item.ItemType;
 
 		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
@@ -144,6 +146,14 @@ namespace VisualPinball.Unity
 			Item.Version = entity.Version;
 		}
 
+
+		public void LinkChild(IItemAuthoring childItem)
+		{
+			if (childItem is IItemColliderAuthoring) {
+				Table.AddColliderOverride(Item, childItem.IItem as IHittable);
+			}
+		}
+
 		protected virtual void OnDrawGizmos()
 		{
 			// handle dirty whenever scene view draws just in case a field or dependant changed and our
@@ -164,7 +174,8 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnDrawGizmosSelected()
 		{
-			if (PhysicsDebug.ShowAabbs || PhysicsDebug.ShowColliders) {
+			var isColliderComponent = this is IItemColliderAuthoring;
+			if (PhysicsDebug.ShowAabbs || PhysicsDebug.ShowColliders || isColliderComponent) {
 				var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
 
 				if (Item is IHittable hittable) {
@@ -185,7 +196,7 @@ namespace VisualPinball.Unity
 							hit.CalcHitBBox();
 							DrawAabb(ltw, hit.HitBBox, i == PhysicsDebug.SelectedCollider);
 						}
-						if (PhysicsDebug.ShowColliders) {
+						if (PhysicsDebug.ShowColliders || isColliderComponent) {
 							DrawCollider(ltw, hit, i == PhysicsDebug.SelectedCollider);
 						}
 					}

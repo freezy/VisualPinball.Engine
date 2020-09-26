@@ -1,4 +1,5 @@
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -7,6 +8,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IItemAuthoring
 	{
+		IItem IItem { get; }
 		ItemDataTransformType EditorPositionType { get; }
 		Vector3 GetEditorPosition();
 		void SetEditorPosition(Vector3 pos);
