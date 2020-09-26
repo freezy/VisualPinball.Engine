@@ -21,7 +21,6 @@ using UnityEditor;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Editor.Utils;
-using System.Data;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -31,12 +30,21 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
+		/// <summary>
+		/// Sound positions display
+		/// </summary>
 		private bool _displaySoundPosition = true;
 		private bool _displayAllSounds = false;
-		private bool _autoFrame = true;
 
+		/// <summary>
+		/// Auto framing, going to Top view and frame on whole table when focused to ease sound position visualization
+		/// </summary>
+		private bool _autoFrame = true;
 		private bool _needFraming = false;
 
+		/// <summary>
+		/// Table & selected sound position & size used for display
+		/// </summary>
 		private Vector3 _tableCenter = Vector3.zero;
 		private Vector2 _tableSize = Vector2.zero;
 		private Vector3 _selectedSoundPos = Vector3.zero;

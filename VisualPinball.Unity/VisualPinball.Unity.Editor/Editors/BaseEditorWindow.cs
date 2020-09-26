@@ -6,18 +6,11 @@ namespace VisualPinball.Unity.Editor
 	/// <summary>
 	/// This base class for all our Editor Window centralize all common features our editor windows could use
 	/// </summary>
+	/// <remarks>
+	/// Focus region : focusedEditor flag management taking into account SceneView selection (for camera manipulation)
+	/// </remarks>
 	public class BaseEditorWindow : EditorWindow
 	{
-		#region Focus
-		/// <summary>
-		/// Tells if the implemented editor is the current or last one being focused
-		/// </summary>
-		protected bool _isCurrentOrLastFocusedEditor = false;
-		/// <summary>
-		/// Tells if we keep this editor as being focused if the scene view is the next focused editor
-		/// </summary>
-		protected bool _allowSceneViewFocus = true;
-
 		protected virtual void OnEnable()
 		{
 			SceneView.beforeSceneGui += CheckFocusedEditor;
@@ -27,6 +20,16 @@ namespace VisualPinball.Unity.Editor
 		{
 			SceneView.beforeSceneGui -= CheckFocusedEditor;
 		}
+
+		#region Focus
+		/// <summary>
+		/// Tells if the implemented editor is the current or last one being focused
+		/// </summary>
+		protected bool _isCurrentOrLastFocusedEditor = false;
+		/// <summary>
+		/// Tells if we keep this editor as being focused if the scene view is the next focused editor
+		/// </summary>
+		protected bool _allowSceneViewFocus = true;
 
 		protected virtual void OnEditorFocused() { }
 		protected virtual bool ValidateFocusOnSceneView() { return _allowSceneViewFocus; }
