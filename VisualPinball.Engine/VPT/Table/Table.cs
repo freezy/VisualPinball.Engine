@@ -36,8 +36,6 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public override string ItemType => "Table";
 
-		public readonly List<IHittable> Hittables2 = new List<IHittable>();
-
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
@@ -57,6 +55,36 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 		public Mappings.Mappings Mappings = new Mappings.Mappings();
+
+		#region Overrides
+
+		private readonly Dictionary<IItem, List<IHittable>> _colliderOverrides = new Dictionary<IItem, List<IHittable>>();
+
+		public void AddColliderOverride(IItem item, IHittable childItem)
+		{
+			if (!_colliderOverrides.ContainsKey(item)) {
+				_colliderOverrides.Add(item, new List<IHittable>());
+			}
+			_colliderOverrides[item].Add(childItem);
+		}
+
+		private IEnumerable<IHittable> ApplyColliderOverrides(IHittable hittable)
+		{
+			if (hittable == null) {
+				throw new ArgumentNullException();
+			}
+
+			if (!(hittable is IItem item)) {
+				return new []{hittable};
+			}
+
+			if (_colliderOverrides.ContainsKey(item)) {
+				return _colliderOverrides[item];
+			}
+			return new []{hittable};
+		}
+
+		#endregion
 
 		#region GameItems
 
@@ -157,7 +185,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
+		public IEnumerable<IHittable> Hittables => new IHittable[] {this}
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
@@ -169,7 +197,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
 			.Concat(_surfaces.Values)
-			.Concat(_triggers.Values);
+			.Concat(_triggers.Values)
+			.SelectMany(ApplyColliderOverrides);
+
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(_bumpers.Values)

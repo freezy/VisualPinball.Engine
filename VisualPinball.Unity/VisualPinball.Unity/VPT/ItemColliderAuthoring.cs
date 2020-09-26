@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemColliderAuthoring<TItem, TData, TAuthoring> : ItemAuthoring<TItem, TData>
+	public abstract class ItemColliderAuthoring<TItem, TData, TAuthoring> : ItemAuthoring<TItem, TData>, IItemColliderAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemAuthoring<TItem, TData>

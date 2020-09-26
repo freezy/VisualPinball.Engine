@@ -63,10 +63,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void LinkChild(IItemAuthoring item)
-		{
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition()
 		{

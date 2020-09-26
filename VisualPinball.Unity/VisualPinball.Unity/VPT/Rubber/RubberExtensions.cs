@@ -23,7 +23,8 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog, MonoBehaviour mainMb)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj,
+			RenderObjectGroup rog, MonoBehaviour mainMb)
 		{
 			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
@@ -34,9 +35,10 @@ namespace VisualPinball.Unity
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Collider:
-					obj.AddComponent<RubberColliderAuthoring>().SetItem(rubber, rog);
+					var ia = obj.AddComponent<RubberColliderAuthoring>().SetItem(rubber, rog);
 					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
+						hittableAuthoring.LinkChild(ia);
 					}
 					break;
 
