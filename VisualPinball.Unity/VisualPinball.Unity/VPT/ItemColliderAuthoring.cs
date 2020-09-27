@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -27,12 +26,18 @@ namespace VisualPinball.Unity
 		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
 		/// <summary>
-		/// We're in a sub component here, so this will:
-		///   1. Check if <see cref="ItemAuthoring{TItem,TData}._data"/> is set (e.g. it's a serialized item)
-		///   2. Check if <see cref="_dataRef"/> is set (e.g. the cached reference to the main component's data)
-		///   3. Find the main component in the hierarchy and return its data.
+		/// We're in a sub component here, so in order to retrieve the data,
+		/// this will:
+		/// 1. Check if <see cref="ItemAuthoring{TItem,TData}._data"/> is set (e.g. it's a serialized item)
+		/// 2. Find the main component in the hierarchy and return its data.
 		/// </summary>
-		public override TData Data => GetData();
+		///
+		/// <remarks>
+		/// We deliberately don't cache this, because if we do we need to find
+		/// a way to invalidate the cache in case the game object gets
+		/// re-attached to another parent.
+		/// </remarks>
+		public override TData Data => _data ?? FindData();
 
 		/// <summary>
 		/// Since we're in a sub component, we don't instantiate the item, but
@@ -45,14 +50,10 @@ namespace VisualPinball.Unity
 		/// the component is somewhere in the hierarchy where it doesn't make
 		/// sense, and a warning should be printed.
 		/// </remarks>
-		public override TItem Item => _item ?? (_item = FindItem());
+		public override TItem Item => _item ?? FindItem();
 
-		/// <summary>
-		/// The cached reference to the data of the main component, so we
-		/// don't have to find it on every access.
-		/// </summary>
-		[NonSerialized]
-		private TData _dataRef;
+		public bool ShowColliderMesh;
+		public bool ShowAabbs;
 
 		protected override string[] Children => new string[0];
 
@@ -60,23 +61,8 @@ namespace VisualPinball.Unity
 		{
 			_item = item;
 			_data = item.Data;
-			_dataRef = item.Data;
 			name = rog.ComponentName + " (collider)";
 			return this;
-		}
-
-		private TData GetData()
-		{
-			if (_data != null) {
-				return _data;
-			}
-
-			if (_dataRef != null) {
-				return _dataRef;
-			}
-
-			_dataRef = FindData();
-			return _dataRef;
 		}
 
 		private TData FindData()
