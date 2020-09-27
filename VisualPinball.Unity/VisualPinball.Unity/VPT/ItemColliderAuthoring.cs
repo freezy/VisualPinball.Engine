@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
-		public TData Data => GetData();
+		public override TData Data => _data ?? (_data = FindData());
 
-		protected TData _data;
+		public override TItem Item => _item ?? (_item = FindItem());
 
 		public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
 		{
@@ -38,14 +38,20 @@ namespace VisualPinball.Unity
 
 		protected override string[] Children => new string[0];
 
-		private TData GetData()
+		private TItem FindItem()
 		{
-			// if data is set, this is a full-fledged item
-			if (_data != null) {
-				return _data;
-			}
+			var ac = FindParentAuthoring();
+			return ac != null ? ac.Item : null;
+		}
 
-			// otherwise, retrieve data from parent
+		private TData FindData()
+		{
+			var ac = FindParentAuthoring();
+			return ac != null ? ac.Data : null;
+		}
+
+		private TAuthoring FindParentAuthoring()
+		{
 			var go = gameObject;
 			var ac = go.GetComponent<TAuthoring>();
 			if (ac == null && go.transform.parent != null) {
@@ -56,12 +62,11 @@ namespace VisualPinball.Unity
 				ac = go.transform.parent.transform.parent.GetComponent<TAuthoring>();
 			}
 
-			if (ac != null) {
-				return ac.data;
+			if (ac == null) {
+				Debug.LogWarning("No same- or parent authoring component found.");
 			}
 
-			Debug.LogWarning("No same- or parent authoring component found.");
-			return null;
+			return ac;
 		}
 	}
 }

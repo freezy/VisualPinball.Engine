@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => null;
 
-		protected override Kicker GetItem() => new Kicker(data);
+		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
@@ -55,19 +55,19 @@ namespace VisualPinball.Unity
 			Item.Init(table);
 
 			dstManager.AddComponentData(entity, new KickerStaticData {
-				Center = data.Center.ToUnityFloat2(),
-				FallThrough = data.FallThrough,
-				HitAccuracy = data.HitAccuracy,
-				Scatter = data.Scatter,
-				LegacyMode = data.LegacyMode,
-				ZLow = table.GetSurfaceHeight(data.Surface, data.Center.X, data.Center.Y) * table.GetScaleZ()
+				Center = Data.Center.ToUnityFloat2(),
+				FallThrough = Data.FallThrough,
+				HitAccuracy = Data.HitAccuracy,
+				Scatter = Data.Scatter,
+				LegacyMode = Data.LegacyMode,
+				ZLow = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ()
 			});
 			dstManager.AddComponentData(entity, new KickerCollisionData {
 				BallEntity = Entity.Null,
 				LastCapturedBallEntity = Entity.Null
 			});
 
-			if (!data.LegacyMode) {
+			if (!Data.LegacyMode) {
 				using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
 					ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
 					var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
@@ -96,11 +96,11 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.Orientation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.Orientation = rot.x;
 	}
 }

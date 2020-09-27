@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => null;
 
-		protected override Rubber GetItem() => new Rubber(data);
+		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 
 		public IHittable Hittable => Item;
 
@@ -66,42 +66,42 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition()
 		{
-			if (data == null || data.DragPoints.Length == 0) {
+			if (Data == null || Data.DragPoints.Length == 0) {
 				return Vector3.zero;
 			}
-			return data.DragPoints[0].Center.ToUnityVector3(data.Height);
+			return Data.DragPoints[0].Center.ToUnityVector3(Data.Height);
 		}
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			if (data == null || data.DragPoints.Length == 0) {
+			if (Data == null || Data.DragPoints.Length == 0) {
 				return;
 			}
 
-			data.Height = pos.z;
+			Data.Height = pos.z;
 			pos.z = 0f;
-			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Center);
+			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
 			diff.Z = 0f;
-			data.DragPoints[0].Center = pos.ToVertex3D();
-			for (int i = 1; i < data.DragPoints.Length; i++) {
-				var pt = data.DragPoints[i];
+			Data.DragPoints[0].Center = pos.ToVertex3D();
+			for (int i = 1; i < Data.DragPoints.Length; i++) {
+				var pt = Data.DragPoints[i];
 				pt.Center = pt.Center.Add(diff);
 			}
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.RotX, data.RotY, data.RotZ);
+		public override Vector3 GetEditorRotation() => new Vector3(Data.RotX, Data.RotY, Data.RotZ);
 		public override void SetEditorRotation(Vector3 rot)
 		{
-			data.RotX = rot.x;
-			data.RotY = rot.y;
-			data.RotZ = rot.z;
+			Data.RotX = rot.x;
+			Data.RotY = rot.y;
+			Data.RotZ = rot.z;
 		}
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HitHeight);
+		public DragPointData[] GetDragPoints() => Data.DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HitHeight);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping() => true;
 		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth };

@@ -152,20 +152,20 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			var newMat = new Engine.VPT.Material(newName);
-			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Append(newMat).ToArray();
-			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
+			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Append(newMat).ToArray();
+			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
 		}
 
 		protected override void RemoveData(string undoName, MaterialListData data) {
-			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Where(m => m != data.Material).ToArray();
-			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
+			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Where(m => m != data.Material).ToArray();
+			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
 		}
 
 		protected override void CloneData(string undoName, string newName, MaterialListData data)
 		{
 			var newMat = data.Material.Clone(newName);
-			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Append(newMat).ToArray();
-			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
+			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Append(newMat).ToArray();
+			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
 		}
 	}
 }

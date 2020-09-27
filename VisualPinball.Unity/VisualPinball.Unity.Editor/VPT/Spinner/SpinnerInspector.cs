@@ -38,33 +38,33 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Visible", ref _spinner.data.IsVisible);
-				TextureField("Image", ref _spinner.data.Image);
-				MaterialField("Material", ref _spinner.data.Material);
-				ItemDataField("Show Bracket", ref _spinner.data.ShowBracket);
+				ItemDataField("Visible", ref _spinner.Data.IsVisible);
+				TextureField("Image", ref _spinner.Data.Image);
+				MaterialField("Material", ref _spinner.Data.Material);
+				ItemDataField("Show Bracket", ref _spinner.Data.ShowBracket);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _spinner.data.Center);
-				ItemDataField("Length", ref _spinner.data.Length);
-				ItemDataField("Height", ref _spinner.data.Height);
-				ItemDataField("Rotation", ref _spinner.data.Rotation);
-				ItemDataField("Angle Max", ref _spinner.data.AngleMax, dirtyMesh: false);
-				ItemDataField("Angle Min", ref _spinner.data.AngleMin, dirtyMesh: false);
-				ItemDataField("Elasticity", ref _spinner.data.Elasticity, dirtyMesh: false);
-				SurfaceField("Surface", ref _spinner.data.Surface);
+				ItemDataField("", ref _spinner.Data.Center);
+				ItemDataField("Length", ref _spinner.Data.Length);
+				ItemDataField("Height", ref _spinner.Data.Height);
+				ItemDataField("Rotation", ref _spinner.Data.Rotation);
+				ItemDataField("Angle Max", ref _spinner.Data.AngleMax, dirtyMesh: false);
+				ItemDataField("Angle Min", ref _spinner.Data.AngleMin, dirtyMesh: false);
+				ItemDataField("Elasticity", ref _spinner.Data.Elasticity, dirtyMesh: false);
+				SurfaceField("Surface", ref _spinner.Data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Damping", ref _spinner.data.Damping, dirtyMesh: false);
+				ItemDataField("Damping", ref _spinner.Data.Damping, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _spinner.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _spinner.data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref _spinner.Data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _spinner.Data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

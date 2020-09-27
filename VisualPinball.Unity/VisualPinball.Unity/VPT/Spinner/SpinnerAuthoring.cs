@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => new [] { "Plate", "Bracket" };
 
-		protected override Spinner GetItem() => new Spinner(data);
+		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
@@ -53,19 +53,19 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(data.Height);
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(Data.Height);
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			data.Center = pos.ToVertex2Dxy();
-			data.Height = pos.z;
+			Data.Center = pos.ToVertex2Dxy();
+			Data.Height = pos.z;
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.Rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => data.Length = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Data.Length, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Data.Length = scale.x;
 	}
 }

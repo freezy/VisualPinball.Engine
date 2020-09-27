@@ -71,37 +71,37 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref _gate.data.GateType, _gateTypeStrings, _gateTypeValues);
-				ItemDataField("Visible", ref _gate.data.IsVisible);
-				ItemDataField("Show Bracket", ref _gate.data.ShowBracket);
-				MaterialField("Material", ref _gate.data.Material);
+				DropDownField("Type", ref _gate.Data.GateType, _gateTypeStrings, _gateTypeValues);
+				ItemDataField("Visible", ref _gate.Data.IsVisible);
+				ItemDataField("Show Bracket", ref _gate.Data.ShowBracket);
+				MaterialField("Material", ref _gate.Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _gate.data.Center);
-				ItemDataField("Length", ref _gate.data.Length);
-				ItemDataField("Height", ref _gate.data.Height);
-				ItemDataField("Rotation", ref _gate.data.Rotation);
-				ItemDataField("Open Angle", ref _gate.data.AngleMax, dirtyMesh: false);
-				ItemDataField("Close Angle", ref _gate.data.AngleMin, dirtyMesh: false);
-				SurfaceField("Surface", ref _gate.data.Surface);
+				ItemDataField("", ref _gate.Data.Center);
+				ItemDataField("Length", ref _gate.Data.Length);
+				ItemDataField("Height", ref _gate.Data.Height);
+				ItemDataField("Rotation", ref _gate.Data.Rotation);
+				ItemDataField("Open Angle", ref _gate.Data.AngleMax, dirtyMesh: false);
+				ItemDataField("Close Angle", ref _gate.Data.AngleMin, dirtyMesh: false);
+				SurfaceField("Surface", ref _gate.Data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Elasticity", ref _gate.data.Elasticity, dirtyMesh: false);
-				ItemDataField("Friction", ref _gate.data.Friction, dirtyMesh: false);
-				ItemDataField("Damping", ref _gate.data.Damping, dirtyMesh: false);
-				ItemDataField("Gravity Factor", ref _gate.data.GravityFactor, dirtyMesh: false);
-				ItemDataField("Collidable", ref _gate.data.IsCollidable, dirtyMesh: false);
-				ItemDataField(TwoWayLabel, ref _gate.data.TwoWay, dirtyMesh: false);
+				ItemDataField("Elasticity", ref _gate.Data.Elasticity, dirtyMesh: false);
+				ItemDataField("Friction", ref _gate.Data.Friction, dirtyMesh: false);
+				ItemDataField("Damping", ref _gate.Data.Damping, dirtyMesh: false);
+				ItemDataField("Gravity Factor", ref _gate.Data.GravityFactor, dirtyMesh: false);
+				ItemDataField("Collidable", ref _gate.Data.IsCollidable, dirtyMesh: false);
+				ItemDataField(TwoWayLabel, ref _gate.Data.TwoWay, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _gate.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _gate.data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref _gate.Data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _gate.Data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

@@ -90,9 +90,9 @@ namespace VisualPinball.Unity
 			// that would just be everything at this level
 		}
 
-		protected override Table GetItem()
+		protected override Table InstantiateItem(TableData data)
 		{
-			return RecreateTable();
+			return RecreateTable(data);
 		}
 
 		internal TableSidecar GetOrCreateSidecar()
@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		public Table CreateTable()
+		public Table CreateTable(TableData data)
 		{
 			Logger.Info("Restoring table...");
 			// restore table data
@@ -241,9 +241,9 @@ namespace VisualPinball.Unity
 			return table;
 		}
 
-		public Table RecreateTable()
+		public Table RecreateTable(TableData tableData)
 		{
-			var table = CreateTable();
+			var table = CreateTable(tableData);
 
 			Logger.Info("Table restored.");
 			return table;

@@ -39,28 +39,28 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				TextureField("Image", ref _rubber.data.Image);
-				MaterialField("Material", ref _rubber.data.Material);
-				ItemDataField("Visible", ref _rubber.data.IsVisible);
-				ItemDataField("Static", ref _rubber.data.StaticRendering);
+				TextureField("Image", ref _rubber.Data.Image);
+				MaterialField("Material", ref _rubber.Data.Material);
+				ItemDataField("Visible", ref _rubber.Data.IsVisible);
+				ItemDataField("Static", ref _rubber.Data.StaticRendering);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("Height", ref _rubber.data.Height);
-				ItemDataField("Thickness", ref _rubber.data.Thickness);
+				ItemDataField("Height", ref _rubber.Data.Height);
+				ItemDataField("Thickness", ref _rubber.Data.Thickness);
 				EditorGUILayout.LabelField("Orientation");
 				EditorGUI.indentLevel++;
-				ItemDataField("RotX", ref _rubber.data.RotX);
-				ItemDataField("RotY", ref _rubber.data.RotY);
-				ItemDataField("RotZ", ref _rubber.data.RotZ);
+				ItemDataField("RotX", ref _rubber.Data.RotX);
+				ItemDataField("RotY", ref _rubber.Data.RotY);
+				ItemDataField("RotZ", ref _rubber.Data.RotZ);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _rubber.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _rubber.data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref _rubber.Data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _rubber.Data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

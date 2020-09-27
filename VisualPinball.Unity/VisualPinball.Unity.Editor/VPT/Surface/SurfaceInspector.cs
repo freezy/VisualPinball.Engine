@@ -39,28 +39,28 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Top Visible", ref _targetSurf.data.IsTopBottomVisible);
-				TextureField("Top Image", ref _targetSurf.data.Image);
-				MaterialField("Top Material", ref _targetSurf.data.TopMaterial);
-				ItemDataField("Side Visible", ref _targetSurf.data.IsSideVisible);
-				TextureField("Side Image", ref _targetSurf.data.SideImage);
-				MaterialField("Side Material", ref _targetSurf.data.SideMaterial);
-				MaterialField("Slingshot Material", ref _targetSurf.data.SlingShotMaterial);
-				ItemDataField("Animate Slingshot", ref _targetSurf.data.SlingshotAnimation, dirtyMesh: false);
-				ItemDataField("Flipbook", ref _targetSurf.data.IsFlipbook, dirtyMesh: false);
+				ItemDataField("Top Visible", ref _targetSurf.Data.IsTopBottomVisible);
+				TextureField("Top Image", ref _targetSurf.Data.Image);
+				MaterialField("Top Material", ref _targetSurf.Data.TopMaterial);
+				ItemDataField("Side Visible", ref _targetSurf.Data.IsSideVisible);
+				TextureField("Side Image", ref _targetSurf.Data.SideImage);
+				MaterialField("Side Material", ref _targetSurf.Data.SideMaterial);
+				MaterialField("Slingshot Material", ref _targetSurf.Data.SlingShotMaterial);
+				ItemDataField("Animate Slingshot", ref _targetSurf.Data.SlingshotAnimation, dirtyMesh: false);
+				ItemDataField("Flipbook", ref _targetSurf.Data.IsFlipbook, dirtyMesh: false);
 			}
 
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("Top Height", ref _targetSurf.data.HeightTop);
-				ItemDataField("Bottom Height", ref _targetSurf.data.HeightBottom);
+				ItemDataField("Top Height", ref _targetSurf.Data.HeightTop);
+				ItemDataField("Bottom Height", ref _targetSurf.Data.HeightBottom);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _targetSurf.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _targetSurf.data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref _targetSurf.Data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _targetSurf.Data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

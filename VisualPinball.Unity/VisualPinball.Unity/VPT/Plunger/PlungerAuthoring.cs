@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
 		};
 
-		protected override Plunger GetItem() => new Plunger(data);
+		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 
 		public IHittable Hittable => Item;
 
@@ -51,14 +51,14 @@ namespace VisualPinball.Unity
 			hit.SetIndex(entity.Index, entity.Version);
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
-				MomentumXfer = data.MomentumXfer,
-				ScatterVelocity = data.ScatterVelocity,
+				MomentumXfer = Data.MomentumXfer,
+				ScatterVelocity = Data.ScatterVelocity,
 				FrameStart = hit.FrameBottom,
 				FrameEnd = hit.FrameTop,
 				FrameLen = hit.FrameLen,
 				RestPosition = hit.RestPos,
-				IsAutoPlunger = data.AutoPlunger,
-				SpeedFire = data.SpeedFire,
+				IsAutoPlunger = Data.AutoPlunger,
+				SpeedFire = Data.SpeedFire,
 				NumFrames = Item.MeshGenerator.NumFrames
 			});
 
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 				AutoFireTimer = 0,
 				AddRetractMotion = false,
 				RetractWaitLoop = 0,
-				MechStrength = data.MechStrength
+				MechStrength = Data.MechStrength
 			});
 		}
 
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex3D();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex3D();
 	}
 }

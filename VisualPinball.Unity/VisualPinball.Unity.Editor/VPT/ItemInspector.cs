@@ -80,11 +80,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_table == null) return;
 
-			if (_table.data.Materials != null) {
-				_allMaterials = new string[_table.data.Materials.Length + 1];
+			if (_table.Data.Materials != null) {
+				_allMaterials = new string[_table.Data.Materials.Length + 1];
 				_allMaterials[0] = "- none -";
-				for (var i = 0; i < _table.data.Materials.Length; i++) {
-					_allMaterials[i + 1] = _table.data.Materials[i].Name;
+				for (var i = 0; i < _table.Data.Materials.Length; i++) {
+					_allMaterials[i + 1] = _table.Data.Materials[i].Name;
 				}
 				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 			}
