@@ -99,9 +99,9 @@ namespace VisualPinball.Unity
 			Data.Height = scale.z;
 		}
 
-		protected override void OnDrawGizmosSelected()
+		protected void OnDrawGizmosSelected()
 		{
-			base.OnDrawGizmosSelected();
+			//base.OnDrawGizmosSelected();
 
 			// draw end position mesh
 			var mfs = GetComponentsInChildren<MeshFilter>();

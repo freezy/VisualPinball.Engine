@@ -25,7 +25,6 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
