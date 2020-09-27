@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -25,23 +26,57 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
-		public override TData Data => _data ?? (_data = FindData());
+		/// <summary>
+		/// We're in a sub component here, so this will:
+		///   1. Check if <see cref="ItemAuthoring{TItem,TData}._data"/> is set (e.g. it's a serialized item)
+		///   2. Check if <see cref="_dataRef"/> is set (e.g. the cached reference to the main component's data)
+		///   3. Find the main component in the hierarchy and return its data.
+		/// </summary>
+		public override TData Data => GetData();
 
+		/// <summary>
+		/// Since we're in a sub component, we don't instantiate the item, but
+		/// look for the main component and retrieve the item from there (which
+		/// will instantiate it itself if necessary).
+		/// </summary>
+		///
+		/// <remarks>
+		/// If no main component found, this yields to `null`, and in this case
+		/// the component is somewhere in the hierarchy where it doesn't make
+		/// sense, and a warning should be printed.
+		/// </remarks>
 		public override TItem Item => _item ?? (_item = FindItem());
+
+		/// <summary>
+		/// The cached reference to the data of the main component, so we
+		/// don't have to find it on every access.
+		/// </summary>
+		[NonSerialized]
+		private TData _dataRef;
+
+		protected override string[] Children => new string[0];
 
 		public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
 		{
+			_item = item;
 			_data = item.Data;
+			_dataRef = item.Data;
 			name = rog.ComponentName + " (collider)";
 			return this;
 		}
 
-		protected override string[] Children => new string[0];
-
-		private TItem FindItem()
+		private TData GetData()
 		{
-			var ac = FindParentAuthoring();
-			return ac != null ? ac.Item : null;
+			if (_data != null) {
+				return _data;
+			}
+
+			if (_dataRef != null) {
+				return _dataRef;
+			}
+
+			_dataRef = FindData();
+			return _dataRef;
 		}
 
 		private TData FindData()
@@ -50,15 +85,32 @@ namespace VisualPinball.Unity
 			return ac != null ? ac.Data : null;
 		}
 
+		private TItem FindItem()
+		{
+			var ac = FindParentAuthoring();
+			return ac != null ? ac.Item : null;
+		}
+
 		private TAuthoring FindParentAuthoring()
 		{
 			var go = gameObject;
+
+			// search on current game object
 			var ac = go.GetComponent<TAuthoring>();
-			if (ac == null && go.transform.parent != null) {
-				ac = go.transform.parent.GetComponent<TAuthoring>();
+			if (ac != null) {
+				return ac;
 			}
 
-			if (ac == null && go.transform.parent.transform.parent != null) {
+			// search on parent
+			if (go.transform.parent != null) {
+				ac = go.transform.parent.GetComponent<TAuthoring>();
+			}
+			if (ac != null) {
+				return ac;
+			}
+
+			// search on grand parent
+			if (go.transform.parent.transform.parent != null) {
 				ac = go.transform.parent.transform.parent.GetComponent<TAuthoring>();
 			}
 
