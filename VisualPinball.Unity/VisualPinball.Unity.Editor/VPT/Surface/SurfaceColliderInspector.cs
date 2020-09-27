@@ -77,6 +77,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			EditorGUI.EndDisabledGroup();
+
+			base.OnInspectorGUI();
 		}
 	}
 }
