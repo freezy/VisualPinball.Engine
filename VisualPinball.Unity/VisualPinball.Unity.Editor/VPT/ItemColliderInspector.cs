@@ -16,10 +16,11 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
@@ -30,52 +31,78 @@ namespace VisualPinball.Unity.Editor
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemAuthoring<TItem, TData>
 	{
-		public TData Data {
-			get {
-				var mb = target as TColliderAuthoring;
-				return mb == null ? null : mb.Data;
-			}
-		}
+		private TColliderAuthoring _colliderAuthoring;
+
+		protected TData Data => _colliderAuthoring == null ? null : _colliderAuthoring.Data;
 
 		private bool _foldoutSceneView = true;
+		private bool _foldoutColliders;
+		private string[] _currentColliders;
+		private Vector2 _scrollPos;
 
 		protected override void OnEnable()
 		{
-			if (target is TColliderAuthoring mb) {
-				mb.ShowGizmos = true;
+			_colliderAuthoring = target as TColliderAuthoring;
+			if (_colliderAuthoring != null) {
+				_colliderAuthoring.ShowGizmos = true;
 			}
 			base.OnEnable();
 		}
 
 		private void OnDestroy()
 		{
-			if (target is TColliderAuthoring mb) {
-				mb.ShowGizmos = false;
+			if (_colliderAuthoring != null) {
+				_colliderAuthoring.ShowGizmos = false;
 			}
 		}
 
 		public override void OnInspectorGUI()
 		{
-			var mb = target as TColliderAuthoring;
-			if (mb == null) {
+			if (_colliderAuthoring == null) {
 				return;
 			}
 
+			var refresh = false;
+
+			// scene view toggles
 			if (_foldoutSceneView = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutSceneView, "Scene View")) {
 
-				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", mb.ShowAabbs);
-				var refresh = showAabbs == mb.ShowAabbs;
-				mb.ShowAabbs = showAabbs;
+				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", _colliderAuthoring.ShowAabbs);
+				refresh = showAabbs == _colliderAuthoring.ShowAabbs;
+				_colliderAuthoring.ShowAabbs = showAabbs;
 
-				var showColliders = EditorGUILayout.Toggle("Show Colliders", mb.ShowColliderMesh);
-				refresh = refresh || showColliders == mb.ShowColliderMesh;
-				mb.ShowColliderMesh = showColliders;
-
-				if (refresh) {
-					EditorWindow.GetWindow<SceneView>().Repaint();
-				}
+				var showColliders = EditorGUILayout.Toggle("Show Colliders", _colliderAuthoring.ShowColliderMesh);
+				refresh = refresh || showColliders == _colliderAuthoring.ShowColliderMesh;
+				_colliderAuthoring.ShowColliderMesh = showColliders;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			// individual collider list
+			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
+
+				var hitObjects = _colliderAuthoring.HitObjects ?? new HitObject[0];
+				_currentColliders = hitObjects
+					.Where(h => h != null)
+					.Select((h, i) => $"[{i}] {h.GetType().Name} ({h.ObjType})")
+					.ToArray();
+
+				if (_currentColliders.Length == 0) {
+					GUILayout.Label("No colliders for this item.");
+				}
+
+				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true),
+					GUILayout.ExpandHeight(true));
+				var selectedCollider = GUILayout.SelectionGrid(_colliderAuthoring.SelectedCollider, _currentColliders, 1);
+				refresh = refresh || selectedCollider == _colliderAuthoring.SelectedCollider;
+				_colliderAuthoring.SelectedCollider = selectedCollider;
+				EditorGUILayout.EndScrollView();
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			// refresh scene view manually
+			if (refresh) {
+				EditorWindow.GetWindow<SceneView>().Repaint();
+			}
 		}
 
 		protected void NoDataPanel()

@@ -61,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Scatter Angle", ref _rubberData.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			EditorGUI.EndDisabledGroup();
 

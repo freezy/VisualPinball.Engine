@@ -24,6 +24,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -44,7 +45,7 @@ namespace VisualPinball.Unity
 		/// a way to invalidate the cache in case the game object gets
 		/// re-attached to another parent.
 		/// </remarks>
-		public override TData Data => _data ?? FindData();
+		public override TData Data => _isSubComponent ? FindData() : _data;
 
 		/// <summary>
 		/// Since we're in a sub component, we don't instantiate the item, but
@@ -63,15 +64,33 @@ namespace VisualPinball.Unity
 		public bool ShowGizmos;
 		public bool ShowColliderMesh;
 		public bool ShowAabbs;
+		[NonSerialized]
+		public int SelectedCollider = -1;
+		public HitObject[] HitObjects { get; private set; }
+
+		[SerializeField]
+		private bool _isSubComponent;
 
 		protected override string[] Children => new string[0];
+
+		private static readonly Color AabbColor = new Color32(255, 0, 252, 8);
+		private static readonly Color SelectedAabbColor = new Color32(255, 0, 252, 255);
+		private static readonly Color ColliderColor = new Color32(0, 255, 75, 8);
+		private static readonly Color SelectedColliderColor = new Color32(0, 255, 75, 255);
 
 		public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
 		{
 			_item = item;
 			_data = item.Data;
+			_isSubComponent = false;
 			name = rog.ComponentName + " (collider)";
 			return this;
+		}
+
+		public void SetMainItem(TItem item)
+		{
+			_item = item;
+			_isSubComponent = true;
 		}
 
 		private TData FindData()
@@ -83,7 +102,7 @@ namespace VisualPinball.Unity
 		private TItem FindItem()
 		{
 			// if _data is set then it's an item of its own and we don't need to find the parent
-			if (_data != null) {
+			if (!_isSubComponent) {
 				_item  = InstantiateItem(_data);
 				return _item;
 			}
@@ -129,29 +148,24 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			// todo remove check because IItemColliderAuthoring should only be on IHittables
-			if (Item is IHittable hittable) {
-				var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
-				hittable.Init(Table);
-				var hits = hittable.GetHitShapes();
+			var item = Item;
+			if (item == null) {
+				return;
+			}
 
-				// new hittable selected?
-				if (hittable != PhysicsDebug.SelectedHittable) {
-					PhysicsDebug.SelectedCollider = hits.Length == 1 ? 0 : -1;
-					PhysicsDebug.SelectedHittable = hittable;
-					PhysicsDebug.OnItemSelected(hittable);
+			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
+			item.Init(Table);
+			HitObjects = item.GetHitShapes();
+
+			// draw aabbs and colliders
+			for (var i = 0; i < HitObjects.Length; i++) {
+				var hit = HitObjects[i];
+				if (ShowAabbs) {
+					hit.CalcHitBBox();
+					DrawAabb(ltw, hit.HitBBox, i == SelectedCollider);
 				}
-
-				// draw aabbs and colliders
-				for (var i = 0; i < hits.Length; i++) {
-					var hit = hits[i];
-					if (ShowAabbs) {
-						hit.CalcHitBBox();
-						DrawAabb(ltw, hit.HitBBox, i == PhysicsDebug.SelectedCollider);
-					}
-					if (ShowColliderMesh) {
-						DrawCollider(ltw, hit, i == PhysicsDebug.SelectedCollider);
-					}
+				if (ShowColliderMesh) {
+					DrawCollider(ltw, hit, i == SelectedCollider);
 				}
 			}
 		}
@@ -170,7 +184,7 @@ namespace VisualPinball.Unity
 			var p12 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZLow));
 			var p13 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZLow));
 
-			Gizmos.color = isSelected ? PhysicsDebug.SelectedAabbColor : PhysicsDebug.AabbColor;
+			Gizmos.color = isSelected ? SelectedAabbColor : AabbColor;
 			Gizmos.DrawLine(p00, p01);
 			Gizmos.DrawLine(p01, p02);
 			Gizmos.DrawLine(p02, p03);
@@ -189,7 +203,7 @@ namespace VisualPinball.Unity
 
 		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject, bool isSelected)
 		{
-			Gizmos.color = isSelected ? PhysicsDebug.SelectedColliderColor : PhysicsDebug.ColliderColor;
+			Gizmos.color = isSelected ? SelectedColliderColor : ColliderColor;
 			switch (hitObject) {
 
 				case HitPoint hitPoint: {
