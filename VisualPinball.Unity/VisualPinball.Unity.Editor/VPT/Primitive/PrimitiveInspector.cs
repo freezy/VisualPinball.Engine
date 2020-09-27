@@ -44,72 +44,72 @@ namespace VisualPinball.Unity.Editor
 				if (GUILayout.Button("Export Mesh")) ExportMesh();
 				GUILayout.EndHorizontal();
 
-				TextureField("Image", ref _prim.data.Image);
-				TextureField("Normal Map", ref _prim.data.NormalMap);
+				TextureField("Image", ref _prim.Data.Image);
+				TextureField("Normal Map", ref _prim.Data.NormalMap);
 				EditorGUI.indentLevel++;
-				ItemDataField("Object Space", ref _prim.data.ObjectSpaceNormalMap);
+				ItemDataField("Object Space", ref _prim.Data.ObjectSpaceNormalMap);
 				EditorGUI.indentLevel--;
-				MaterialField("Material", ref _prim.data.Material);
+				MaterialField("Material", ref _prim.Data.Material);
 
-				ItemDataField("Visible", ref _prim.data.IsVisible);
+				ItemDataField("Visible", ref _prim.Data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position & Translation")) {
 				EditorGUILayout.LabelField("Base Position");
 				EditorGUI.indentLevel++;
-				ItemDataField("", ref _prim.data.Position);
+				ItemDataField("", ref _prim.Data.Position);
 				EditorGUI.indentLevel--;
 
 				EditorGUILayout.LabelField("Base Size");
 				EditorGUI.indentLevel++;
-				ItemDataField("", ref _prim.data.Size);
+				ItemDataField("", ref _prim.Data.Size);
 				EditorGUI.indentLevel--;
 
 				EditorGUILayout.LabelField("Rotation and Transposition");
 				EditorGUI.indentLevel++;
-				ItemDataField("0: RotX", ref _prim.data.RotAndTra[0]);
-				ItemDataField("1: RotY", ref _prim.data.RotAndTra[1]);
-				ItemDataField("2: RotZ", ref _prim.data.RotAndTra[2]);
-				ItemDataField("3: TransX", ref _prim.data.RotAndTra[3]);
-				ItemDataField("4: TransY", ref _prim.data.RotAndTra[4]);
-				ItemDataField("5: TransZ", ref _prim.data.RotAndTra[5]);
-				ItemDataField("6: ObjRotX", ref _prim.data.RotAndTra[6]);
-				ItemDataField("7: ObjRotY", ref _prim.data.RotAndTra[7]);
-				ItemDataField("8: ObjRotZ", ref _prim.data.RotAndTra[8]);
+				ItemDataField("0: RotX", ref _prim.Data.RotAndTra[0]);
+				ItemDataField("1: RotY", ref _prim.Data.RotAndTra[1]);
+				ItemDataField("2: RotZ", ref _prim.Data.RotAndTra[2]);
+				ItemDataField("3: TransX", ref _prim.Data.RotAndTra[3]);
+				ItemDataField("4: TransY", ref _prim.Data.RotAndTra[4]);
+				ItemDataField("5: TransZ", ref _prim.Data.RotAndTra[5]);
+				ItemDataField("6: ObjRotX", ref _prim.Data.RotAndTra[6]);
+				ItemDataField("7: ObjRotY", ref _prim.Data.RotAndTra[7]);
+				ItemDataField("8: ObjRotZ", ref _prim.Data.RotAndTra[8]);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				EditorGUI.BeginDisabledGroup(_prim.data.IsToy || !_prim.data.IsCollidable);
+				EditorGUI.BeginDisabledGroup(_prim.Data.IsToy || !_prim.Data.IsCollidable);
 
-				ItemDataField("Has Hit Event", ref _prim.data.HitEvent, dirtyMesh: false);
-				EditorGUI.BeginDisabledGroup(!_prim.data.HitEvent);
-				ItemDataField("Has Hit Event", ref _prim.data.Threshold, dirtyMesh: false);
+				ItemDataField("Has Hit Event", ref _prim.Data.HitEvent, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(!_prim.Data.HitEvent);
+				ItemDataField("Has Hit Event", ref _prim.Data.Threshold, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				EditorGUI.BeginDisabledGroup(_prim.data.OverwritePhysics);
-				MaterialField("Physics Material", ref _prim.data.PhysicsMaterial, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(_prim.Data.OverwritePhysics);
+				MaterialField("Physics Material", ref _prim.Data.PhysicsMaterial, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
-				ItemDataField("Overwrite Material Settings", ref _prim.data.OverwritePhysics, dirtyMesh: false);
-				EditorGUI.BeginDisabledGroup(!_prim.data.OverwritePhysics);
-				ItemDataField("Elasticity", ref _prim.data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref _prim.data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref _prim.data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _prim.data.Scatter, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
+				ItemDataField("Overwrite Material Settings", ref _prim.Data.OverwritePhysics, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(!_prim.Data.OverwritePhysics);
+				ItemDataField("Elasticity", ref _prim.Data.Elasticity, dirtyMesh: false);
+				ItemDataField("Elasticity Falloff", ref _prim.Data.ElasticityFalloff, dirtyMesh: false);
+				ItemDataField("Friction", ref _prim.Data.Friction, dirtyMesh: false);
+				ItemDataField("Scatter Angle", ref _prim.Data.Scatter, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				EditorGUI.BeginDisabledGroup(_prim.data.IsToy);
-				ItemDataField("Collidable", ref _prim.data.IsCollidable, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Toy", ref _prim.data.IsToy, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(_prim.Data.IsToy);
+				ItemDataField("Collidable", ref _prim.Data.IsCollidable, dirtyMesh: false);
+				EditorGUI.EndDisabledGroup();
 
-				EditorGUI.BeginDisabledGroup(_prim.data.IsToy);
-				ItemDataSlider("Reduce Polygons By", ref _prim.data.CollisionReductionFactor, 0f, 1f, dirtyMesh: false);
+				ItemDataField("Toy", ref _prim.Data.IsToy, dirtyMesh: false);
+
+				EditorGUI.BeginDisabledGroup(_prim.Data.IsToy);
+				ItemDataSlider("Reduce Polygons By", ref _prim.Data.CollisionReductionFactor, 0f, 1f, dirtyMesh: false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -126,8 +126,8 @@ namespace VisualPinball.Unity.Editor
 			var mesh = (Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(Mesh), false);
 			if (mesh != null && EditorGUI.EndChangeCheck()) {
 				FinishEdit("Import Mesh", true);
-				_prim.data.Use3DMesh = true;
-				_prim.data.Mesh = mesh.ToVpMesh();
+				_prim.Data.Use3DMesh = true;
+				_prim.Data.Mesh = mesh.ToVpMesh();
 			}
 		}
 

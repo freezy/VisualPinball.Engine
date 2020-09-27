@@ -22,6 +22,7 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
@@ -32,10 +33,7 @@ namespace VisualPinball.Unity
 
 		private UnityEngine.Light _unityLight;
 
-		protected override Engine.VPT.Light.Light GetItem()
-		{
-			return new Engine.VPT.Light.Light(data);
-		}
+		protected override Light InstantiateItem(LightData data) => new Light(data);
 
 		protected override void ItemDataChanged()
 		{
@@ -54,9 +52,9 @@ namespace VisualPinball.Unity
 
 			if (_unityLight != null) {
 				// Set color and position
-				_unityLight.color = data.Color2.ToUnityColor();
-				_unityLight.intensity = data.Intensity / 2f;
-				_unityLight.range = data.Falloff * 0.001f;
+				_unityLight.color = Data.Color2.ToUnityColor();
+				_unityLight.intensity = Data.Intensity / 2f;
+				_unityLight.range = Data.Falloff * 0.001f;
 				// TODO: vpe specific data for height
 				_unityLight.transform.localPosition = new Vector3(0f, 0f, 25f);
 
@@ -68,11 +66,11 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector2();
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector2();
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.MeshRadius, data.MeshRadius, data.MeshRadius);
-		public override void SetEditorScale(Vector3 scale) => data.MeshRadius = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Data.MeshRadius, Data.MeshRadius, Data.MeshRadius);
+		public override void SetEditorScale(Vector3 scale) => Data.MeshRadius = scale.x;
 	}
 }

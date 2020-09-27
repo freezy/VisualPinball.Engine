@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => null;
 
-		protected override HitTarget GetItem() => new HitTarget(data);
+		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
@@ -51,15 +51,15 @@ namespace VisualPinball.Unity
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 
 			dstManager.AddComponentData(entity, new HitTargetStaticData {
-				TargetType = data.TargetType,
-				DropSpeed = data.DropSpeed,
-				RaiseDelay = data.RaiseDelay,
-				UseHitEvent = data.UseHitEvent,
-				RotZ = data.RotZ,
+				TargetType = Data.TargetType,
+				DropSpeed = Data.DropSpeed,
+				RaiseDelay = Data.RaiseDelay,
+				UseHitEvent = Data.UseHitEvent,
+				RotZ = Data.RotZ,
 				TableScaleZ = table.GetScaleZ()
 			});
 			dstManager.AddComponentData(entity, new HitTargetAnimationData {
-				IsDropped = data.IsDropped
+				IsDropped = Data.IsDropped
 			});
 			dstManager.AddComponentData(entity, new HitTargetMovementData());
 
@@ -77,15 +77,15 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
-		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();
+		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();
+		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.RotZ, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.RotZ = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.RotZ, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.RotZ = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
-		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
+		public override Vector3 GetEditorScale() => Data.Size.ToUnityVector3();
+		public override void SetEditorScale(Vector3 scale) => Data.Size = scale.ToVertex3D();
 	}
 }

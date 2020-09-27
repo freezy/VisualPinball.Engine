@@ -38,40 +38,40 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialField("Cap Material", ref _bumper.data.CapMaterial);
-				MaterialField("Base Material", ref _bumper.data.BaseMaterial);
-				MaterialField("Ring Material", ref _bumper.data.RingMaterial);
-				MaterialField("Skirt Material", ref _bumper.data.SocketMaterial);
-				ItemDataField("Radius", ref _bumper.data.Radius);
-				ItemDataField("Height Scale", ref _bumper.data.HeightScale);
-				ItemDataField("Orientation", ref _bumper.data.Orientation);
-				ItemDataField("Ring Speed", ref _bumper.data.RingSpeed, dirtyMesh: false);
-				ItemDataField("Ring Drop Offset", ref _bumper.data.RingDropOffset, dirtyMesh: false);
-				ItemDataField("Cap Visible", ref _bumper.data.IsCapVisible);
-				ItemDataField("Base Visible", ref _bumper.data.IsBaseVisible);
-				ItemDataField("Ring Visible", ref _bumper.data.IsRingVisible);
-				ItemDataField("Skirt Visible", ref _bumper.data.IsSocketVisible);
+				MaterialField("Cap Material", ref _bumper.Data.CapMaterial);
+				MaterialField("Base Material", ref _bumper.Data.BaseMaterial);
+				MaterialField("Ring Material", ref _bumper.Data.RingMaterial);
+				MaterialField("Skirt Material", ref _bumper.Data.SocketMaterial);
+				ItemDataField("Radius", ref _bumper.Data.Radius);
+				ItemDataField("Height Scale", ref _bumper.Data.HeightScale);
+				ItemDataField("Orientation", ref _bumper.Data.Orientation);
+				ItemDataField("Ring Speed", ref _bumper.Data.RingSpeed, dirtyMesh: false);
+				ItemDataField("Ring Drop Offset", ref _bumper.Data.RingDropOffset, dirtyMesh: false);
+				ItemDataField("Cap Visible", ref _bumper.Data.IsCapVisible);
+				ItemDataField("Base Visible", ref _bumper.Data.IsBaseVisible);
+				ItemDataField("Ring Visible", ref _bumper.Data.IsRingVisible);
+				ItemDataField("Skirt Visible", ref _bumper.Data.IsSocketVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _bumper.data.Center);
-				SurfaceField("Surface", ref _bumper.data.Surface);
+				ItemDataField("", ref _bumper.Data.Center);
+				SurfaceField("Surface", ref _bumper.Data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref _bumper.data.HitEvent, dirtyMesh: false);
-				ItemDataField("Force", ref _bumper.data.Force, dirtyMesh: false);
-				ItemDataField("Hit Threshold", ref _bumper.data.Threshold, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _bumper.data.Scatter, dirtyMesh: false);
-				ItemDataField("Collidable", ref _bumper.data.IsCollidable, dirtyMesh: false);
+				ItemDataField("Has Hit Event", ref _bumper.Data.HitEvent, dirtyMesh: false);
+				ItemDataField("Force", ref _bumper.Data.Force, dirtyMesh: false);
+				ItemDataField("Hit Threshold", ref _bumper.Data.Threshold, dirtyMesh: false);
+				ItemDataField("Scatter Angle", ref _bumper.Data.Scatter, dirtyMesh: false);
+				ItemDataField("Collidable", ref _bumper.Data.IsCollidable, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _bumper.data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _bumper.data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref _bumper.Data.IsTimerEnabled, dirtyMesh: false);
+				ItemDataField("Timer Interval", ref _bumper.Data.TimerInterval, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

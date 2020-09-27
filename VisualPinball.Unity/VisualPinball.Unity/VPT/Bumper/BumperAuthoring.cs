@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 	{
 		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
 
-		protected override Bumper GetItem() => new Bumper(data);
+		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
@@ -49,9 +49,9 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 			dstManager.AddComponentData(entity, new BumperStaticData {
-				Force = data.Force,
-				HitEvent = data.HitEvent,
-				Threshold = data.Threshold
+				Force = Data.Force,
+				HitEvent = Data.HitEvent,
+				Threshold = Data.Threshold
 			});
 
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, gameObject);
@@ -66,15 +66,15 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.Orientation, 0, 0);
+		public override void SetEditorRotation(Vector3 rot) => Data.Orientation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.Radius, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => data.Radius = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Data.Radius, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Data.Radius = scale.x;
 	}
 }

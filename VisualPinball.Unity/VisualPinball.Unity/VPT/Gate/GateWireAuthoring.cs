@@ -30,15 +30,15 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			dstManager.AddComponentData(entity, new GateStaticData {
-				AngleMin = data.AngleMin,
-				AngleMax = data.AngleMax,
-				Height = data.Height,
-				Damping = math.pow(data.Damping, (float)PhysicsConstants.PhysFactor),
-				GravityFactor = data.GravityFactor,
-				TwoWay = data.TwoWay
+				AngleMin = Data.AngleMin,
+				AngleMax = Data.AngleMax,
+				Height = Data.Height,
+				Damping = math.pow(Data.Damping, (float)PhysicsConstants.PhysFactor),
+				GravityFactor = Data.GravityFactor,
+				TwoWay = Data.TwoWay
 			});
 			dstManager.AddComponentData(entity, new GateMovementData {
-				Angle = data.AngleMin,
+				Angle = Data.AngleMin,
 				AngleSpeed = 0,
 				ForcedMove = false,
 				IsOpen = false
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterGate(gate, entity, gameObject);
 		}
 
-		protected override Gate GetItem()
+		protected override Gate InstantiateItem(GateData data)
 		{
 			return transform.parent.gameObject.GetComponent<GateAuthoring>().Item;
 		}

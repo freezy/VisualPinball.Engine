@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,19 +37,73 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// The base class for all authoring components on the playfield.<p/>
+	/// </summary>
+	/// <typeparam name="TItem"></typeparam>
+	/// <typeparam name="TData"></typeparam>
 	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour, IItemAuthoring, IEditableItemAuthoring, IIdentifiableItemAuthoring,
 		ILayerableItemAuthoring where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
+		/// <summary>
+		/// The serialized data. Having this set means it's a real game item
+		/// that ends up or is imported from game item in the VPX file.
+		///
+		/// However, this can also be `null`, in which case the component only
+		/// deals with a sub set of the main component (collision, mesh generation,
+		/// or movement).
+		/// </summary>
 		[SerializeField]
-		public TData data;
+		protected TData _data;
 
-		public TItem Item => _item ?? (_item = GetItem());
+		/// <summary>
+		/// The game item object. This is not serialized and gets re-instantiated
+		/// and cached here.
+		/// </summary>
+		[NonSerialized]
+		protected TItem _item;
+
+		/// <summary>
+		/// Returns the data object relevant for this component. If this
+		/// returns `null`, then it's wrongly attached to a game object
+		/// where it can't find its main component.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The default implementation here represents the one of a main
+		/// component. It's overridden for the sub components (<see cref="ItemColliderAuthoring{TItem,TData,TAuthoring}"/>, etc)
+		/// </remarks>
+		public virtual TData Data => _data;
+
+		/// <summary>
+		/// Returns the item object for this component. If this
+		/// returns `null`, then it's wrongly attached to a game object
+		/// where it can't find its main component.
+		/// </summary>
+		///
+		/// <remarks>
+		/// For any game item, we only serialize its data and re-instantiate
+		/// the actual item on the fly (and cache it). So in <see cref="SetItem"/>,
+		/// which initializes the component after creation, <see cref="_item"/>
+		/// is only set to avoid a cache miss.
+		/// </remarks>
+		public virtual TItem Item => _item ?? (_item = InstantiateItem(_data));
+
+		/// <summary>
+		/// A non-typed version of the item.
+		/// </summary>
 		public IItem IItem => _item;
+
+		/// <summary>
+		/// The data-oriented version of the item.
+		/// </summary>
+		public ItemData ItemData => _data;
+
 
 		public string ItemType => Item.ItemType;
 
-		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
-		public ItemData ItemData => data;
+		public bool IsLocked { get => _data.IsLocked; set => _data.IsLocked = value; }
+
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
@@ -55,7 +111,6 @@ namespace VisualPinball.Unity
 
 		protected Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableAuthoring>()?.Item);
 
-		private TItem _item;
 		private List<MemberInfo> _materialRefs;
 		private List<MemberInfo> _textureRefs;
 
@@ -70,21 +125,21 @@ namespace VisualPinball.Unity
 		public ItemAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
-			data = item.Data;
-			name = gameObjectName ?? data.GetName();
+			_data = item.Data;
+			name = gameObjectName ?? _data.GetName();
 			ItemDataChanged();
 			return this;
 		}
 
 		public void RebuildMeshes()
 		{
-			if (data == null) {
+			if (_data == null) {
 				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
 				return;
 			}
 			var table = transform.GetComponentInParent<TableAuthoring>();
 			if (table == null) {
-				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", data.GetName());
+				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", _data.GetName());
 				return;
 			}
 
@@ -175,9 +230,10 @@ namespace VisualPinball.Unity
 		protected virtual void OnDrawGizmosSelected()
 		{
 			var isColliderComponent = this is IItemColliderAuthoring;
-			if (PhysicsDebug.ShowAabbs || PhysicsDebug.ShowColliders || isColliderComponent) {
+			if (isColliderComponent) {
 				var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
 
+				// todo remove check because IItemColliderAuthoring should only be on IHittables
 				if (Item is IHittable hittable) {
 					hittable.Init(Table);
 					var hits = hittable.GetHitShapes();
@@ -196,9 +252,9 @@ namespace VisualPinball.Unity
 							hit.CalcHitBBox();
 							DrawAabb(ltw, hit.HitBBox, i == PhysicsDebug.SelectedCollider);
 						}
-						if (PhysicsDebug.ShowColliders || isColliderComponent) {
+						//if (PhysicsDebug.ShowColliders && isColliderComponent) {
 							DrawCollider(ltw, hit, i == PhysicsDebug.SelectedCollider);
-						}
+						//}
 					}
 				}
 			}
@@ -398,13 +454,13 @@ namespace VisualPinball.Unity
 
 		protected abstract string[] Children { get; }
 
-		protected abstract TItem GetItem();
+		protected abstract TItem InstantiateItem(TData data);
 
 		public string Name { get => Item.Name; set => Item.Name = value; }
 
-		public int EditorLayer { get => data.EditorLayer; set => data.EditorLayer = value; }
-		public string EditorLayerName { get => data.EditorLayerName; set => data.EditorLayerName = value; }
-		public bool EditorLayerVisibility { get => data.EditorLayerVisibility; set => data.EditorLayerVisibility = value; }
+		public int EditorLayer { get => _data.EditorLayer; set => _data.EditorLayer = value; }
+		public string EditorLayerName { get => _data.EditorLayerName; set => _data.EditorLayerName = value; }
+		public bool EditorLayerVisibility { get => _data.EditorLayerVisibility; set => _data.EditorLayerVisibility = value; }
 	}
 
 	/// <summary>
