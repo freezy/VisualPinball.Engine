@@ -26,12 +26,13 @@ namespace VisualPinball.Unity
 		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj,
 			RenderObjectGroup rog, MonoBehaviour mainMb)
 		{
+
 			MonoBehaviour mb = null;
 			switch (rog.SubComponent) {
 				case RenderObjectGroup.ItemSubComponent.None:
 
 					mb = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
-					obj.AddComponent<SurfaceColliderAuthoring>();
+					obj.AddComponent<SurfaceColliderAuthoring>().SetMainItem(surface);;
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Collider:

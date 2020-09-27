@@ -39,13 +39,14 @@ namespace VisualPinball.Unity
 		ILayerableItemAuthoring where TData : ItemData where TItem : Item<TData>, IRenderable
 	{
 		/// <summary>
-		/// The serialized data. Having this set means it's a real game item
-		/// that ends up or is imported from game item in the VPX file.
-		///
-		/// However, this can also be `null`, in which case the component only
-		/// deals with a sub set of the main component (collision, mesh generation,
-		/// or movement).
+		/// The serialized data, as written to the .vpx file.
 		/// </summary>
+		///
+		/// <remarks>
+		/// This might be "empty" (since Unity can't serialize it as `null`), so
+		/// the component authoring classes keep a flag whether to read the data
+		/// from this field or retrieve it from the parent in the hierarchy.
+		/// </remarks>
 		[SerializeField]
 		protected TData _data;
 
@@ -264,34 +265,5 @@ namespace VisualPinball.Unity
 		public int EditorLayer { get => _data.EditorLayer; set => _data.EditorLayer = value; }
 		public string EditorLayerName { get => _data.EditorLayerName; set => _data.EditorLayerName = value; }
 		public bool EditorLayerVisibility { get => _data.EditorLayerVisibility; set => _data.EditorLayerVisibility = value; }
-	}
-
-	/// <summary>
-	/// The intermediate class through which the physics debug window communicates.
-	/// </summary>
-	public static class PhysicsDebug
-	{
-		public static bool ShowAabbs;
-
-		public static Color AabbColor = new Color32(255, 0, 252, 8);
-
-		public static Color SelectedAabbColor = new Color32(255, 0, 252, 255);
-
-		public static bool ShowColliders;
-
-		public static IHittable SelectedHittable;
-
-		public static int SelectedCollider;
-
-		public static Color ColliderColor = new Color32(0, 255, 75, 8);
-
-		public static Color SelectedColliderColor = new Color32(0, 255, 75, 255);
-
-		public static event EventHandler ItemSelected;
-
-		internal static void OnItemSelected(IHittable hittable)
-		{
-			ItemSelected?.Invoke(hittable, EventArgs.Empty);
-		}
 	}
 }

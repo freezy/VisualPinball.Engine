@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 				case RenderObjectGroup.ItemSubComponent.None:
 
 					mb = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
-					obj.AddComponent<RubberColliderAuthoring>();
+					obj.AddComponent<RubberColliderAuthoring>().SetMainItem(rubber);
 					break;
 
 				case RenderObjectGroup.ItemSubComponent.Collider:
