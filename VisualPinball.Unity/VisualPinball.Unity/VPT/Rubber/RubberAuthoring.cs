@@ -25,7 +25,6 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
@@ -73,6 +72,7 @@ namespace VisualPinball.Unity
 		}
 		public override void SetEditorPosition(Vector3 pos)
 		{
+			SetEditorPositionChildren(pos);
 			if (Data == null || Data.DragPoints.Length == 0) {
 				return;
 			}
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
 			diff.Z = 0f;
 			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (int i = 1; i < Data.DragPoints.Length; i++) {
+			for (var i = 1; i < Data.DragPoints.Length; i++) {
 				var pt = Data.DragPoints[i];
 				pt.Center = pt.Center.Add(diff);
 			}

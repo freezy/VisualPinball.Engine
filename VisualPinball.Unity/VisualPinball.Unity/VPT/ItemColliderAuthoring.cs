@@ -70,6 +70,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		private bool _isSubComponent;
+		public bool IsSubComponent => _isSubComponent;
 
 		protected override string[] Children => new string[0];
 

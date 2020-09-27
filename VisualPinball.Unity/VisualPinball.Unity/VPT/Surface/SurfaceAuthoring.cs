@@ -64,11 +64,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void LinkChild(IItemAuthoring item)
-		{
-
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() {
 			if (Data == null || Data.DragPoints.Length == 0) {

@@ -195,6 +195,16 @@ namespace VisualPinball.Unity
 			Item.Version = entity.Version;
 		}
 
+		protected void SetEditorPositionChildren(Vector3 pos)
+		{
+			var children = GetComponentsInChildren<IItemColliderAuthoring>();
+			foreach (var child in children)
+			{
+				if (!child.IsSubComponent) {
+					child.SetEditorPosition(pos);
+				}
+			}
+		}
 
 		public void LinkChild(IItemAuthoring childItem)
 		{
