@@ -1,7 +1,11 @@
+---
+title: Welcome
+---
+
 <center>
 Welcome to the documentation of the
 
-# <b>Visual Pinball Engine</b>
+![Visual Pinball Engine](vpe.svg)
 
 [Start here with the creator's guide](xref:vpe-overview).
 

@@ -1,3 +1,7 @@
+---
+title: Scripting API
+---
+
 <center>
 <p/>
 

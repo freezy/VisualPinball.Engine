@@ -2,6 +2,7 @@
 body {
 	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
     font-size: 100%;
+
 }
 
 .btn.btn-default.active, .btn.btn-default:active {
@@ -9,4 +10,29 @@ body {
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	background-color: rgba(1,1,1,0.08);
+}
+
+.navbar-brand > svg {
+	margin-top: 6px;
+}
+
+.navbar-default {
+	background-color: rgba(1,1,1,0.05);
+	border-color: rgba(1,1,1,0.1);
+}
+
+#sidetoc .sidefilter {
+	top: 94px;
+}
+
+#sidetoc .sidetoc.shiftup {
+  bottom: 0;
+}
+
+img[alt="Visual Pinball Engine"] {
+	margin-top: 15px;
+}
+
+h1, h2 {
+	font-weight: bold;
 }

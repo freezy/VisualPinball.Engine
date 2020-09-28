@@ -37,6 +37,9 @@
         "files": [
           "**/*.png",
           "**/*.jpg",
+          "**/*.svg",
+          "**/*.ico",
+          "**/*.webmanifest",
           "../VisualPinball.Unity.Editor/Resources/Icons/*.png",
           "CNAME"
         ]
