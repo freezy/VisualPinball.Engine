@@ -101,21 +101,22 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : MonoBehaviour
 		{
-			if (typeof(T) == typeof(BumperAuthoring)) return Bumper(size, color);
-			if (typeof(T) == typeof(FlipperAuthoring)) return Flipper(size, color);
-			if (typeof(T) == typeof(GateAuthoring)) return Gate(size, color);
-			if (typeof(T) == typeof(KickerAuthoring)) return Kicker(size, color);
-			if (typeof(T) == typeof(LightAuthoring)) return Light(size, color);
-			if (typeof(T) == typeof(PlungerAuthoring)) return Plunger(size, color);
-			if (typeof(T) == typeof(PrimitiveAuthoring)) return Primitive(size, color);
-			if (typeof(T) == typeof(RampAuthoring)) return Ramp(size, color);
-			if (typeof(T) == typeof(RubberAuthoring)) return Rubber(size, color);
-			if (typeof(T) == typeof(SpinnerAuthoring)) return Spinner(size, color);
-			if (typeof(T) == typeof(SurfaceAuthoring)) return Surface(size, color);
-			if (typeof(T) == typeof(HitTargetAuthoring)) return Target(size, color);
-			if (typeof(T) == typeof(TriggerAuthoring)) return Trigger(size, color);
-
-			return null;
+			switch (mb) {
+				case BumperAuthoring _: return Bumper(size, color);
+				case FlipperAuthoring _: return Flipper(size, color);
+				case GateAuthoring _: return Gate(size, color);
+				case KickerAuthoring _: return Kicker(size, color);
+				case LightAuthoring _: return Light(size, color);
+				case PlungerAuthoring _: return Plunger(size, color);
+				case PrimitiveAuthoring _: return Primitive(size, color);
+				case RampAuthoring _: return Ramp(size, color);
+				case RubberAuthoring _: return Rubber(size, color);
+				case SpinnerAuthoring _: return Spinner(size, color);
+				case SurfaceAuthoring _: return Surface(size, color);
+				case HitTargetAuthoring _: return Target(size, color);
+				case TriggerAuthoring _: return Trigger(size, color);
+				default: return null;
+			}
 		}
 
 		[UnityEditor.Callbacks.DidReloadScripts]
