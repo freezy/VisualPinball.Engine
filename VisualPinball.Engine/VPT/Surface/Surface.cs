@@ -23,6 +23,7 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class Surface : Item<SurfaceData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Wall";
 
 		public HitObject[] GetHitShapes() => _hits;
 

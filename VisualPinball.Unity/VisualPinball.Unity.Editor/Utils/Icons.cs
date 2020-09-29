@@ -98,6 +98,24 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 
+		public static Texture2D ByComponent<T>(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : MonoBehaviour
+		{
+			if (typeof(T) == typeof(BumperAuthoring)) return Bumper(size, color);
+			if (typeof(T) == typeof(FlipperAuthoring)) return Flipper(size, color);
+			if (typeof(T) == typeof(GateAuthoring)) return Gate(size, color);
+			if (typeof(T) == typeof(KickerAuthoring)) return Kicker(size, color);
+			if (typeof(T) == typeof(LightAuthoring)) return Light(size, color);
+			if (typeof(T) == typeof(PlungerAuthoring)) return Plunger(size, color);
+			if (typeof(T) == typeof(PrimitiveAuthoring)) return Primitive(size, color);
+			if (typeof(T) == typeof(RampAuthoring)) return Ramp(size, color);
+			if (typeof(T) == typeof(RubberAuthoring)) return Rubber(size, color);
+			if (typeof(T) == typeof(SpinnerAuthoring)) return Spinner(size, color);
+			if (typeof(T) == typeof(SurfaceAuthoring)) return Surface(size, color);
+			if (typeof(T) == typeof(HitTargetAuthoring)) return Target(size, color);
+			if (typeof(T) == typeof(TriggerAuthoring)) return Trigger(size, color);
+
+			return null;
+		}
 
 		[UnityEditor.Callbacks.DidReloadScripts]
 		public static void OnScriptsReloaded()

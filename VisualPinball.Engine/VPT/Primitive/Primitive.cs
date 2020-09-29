@@ -28,6 +28,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Primitive";
+
 		public bool UseAsPlayfield;
 
 		private readonly PrimitiveMeshGenerator _meshGenerator;

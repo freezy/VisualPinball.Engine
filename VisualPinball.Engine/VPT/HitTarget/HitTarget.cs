@@ -22,6 +22,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Target";
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly HitTargetMeshGenerator _meshGenerator;

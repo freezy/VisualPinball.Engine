@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT.Flasher
 {
 	public class Flasher : Item<FlasherData>
 	{
+		public override string ItemType => "Flasher";
+
 		public Flasher(FlasherData data) : base(data)
 		{
 		}

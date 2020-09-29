@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT.Timer
 {
 	public class Timer : Item<TimerData>
 	{
+		public override string ItemType => "Timer";
+
 		public Timer(TimerData data) : base(data)
 		{
 		}

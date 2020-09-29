@@ -23,8 +23,9 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class Spinner : Item<SpinnerData>, IRenderable, IHittable
 	{
-		public const string BracketMaterialName = "__spinnerBracketMaterial";
+		public override string ItemType => "Spinner";
 
+		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
 		private readonly SpinnerHitGenerator _hitGenerator;

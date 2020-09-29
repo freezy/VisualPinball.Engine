@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 		public TData data;
 
 		public TItem Item => _item ?? (_item = GetItem());
+		public string ItemType => Item.ItemType;
+
 		public bool IsLocked { get => data.IsLocked; set => data.IsLocked = value; }
 		public ItemData ItemData => data;
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());

@@ -24,6 +24,8 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class Gate : Item<GateData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Gate";
+
 		private readonly GateMeshGenerator _meshGenerator;
 		private readonly GateHitGenerator _hitGenerator;
 		private GateHit _hitGate;

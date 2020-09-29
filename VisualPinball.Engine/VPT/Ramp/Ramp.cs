@@ -23,6 +23,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class Ramp : Item<RampData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Ramp";
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly RampMeshGenerator _meshGenerator;

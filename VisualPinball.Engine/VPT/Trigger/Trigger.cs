@@ -23,6 +23,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class Trigger : Item<TriggerData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Trigger";
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly TriggerMeshGenerator _meshGenerator;

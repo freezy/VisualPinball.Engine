@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT.TextBox
 {
 	public class TextBox : Item<TextBoxData>
 	{
+		public override string ItemType => "Text Box";
+
 		public TextBox(TextBoxData data) : base(data)
 		{
 		}

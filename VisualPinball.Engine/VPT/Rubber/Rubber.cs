@@ -23,6 +23,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Rubber";
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly RubberMeshGenerator _meshGenerator;

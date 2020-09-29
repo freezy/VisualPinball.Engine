@@ -22,6 +22,8 @@ namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class Bumper : Item<BumperData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Bumper";
+
 		private readonly BumperMeshGenerator _meshGenerator;
 
 		private HitObject[] _hits;

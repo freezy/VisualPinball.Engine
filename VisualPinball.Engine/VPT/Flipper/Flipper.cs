@@ -22,6 +22,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class Flipper : Item<FlipperData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Flasher";
+
 		private readonly FlipperMeshGenerator _meshGenerator;
 		private FlipperHit _hit;
 

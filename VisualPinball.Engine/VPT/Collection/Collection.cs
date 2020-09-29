@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT.Collection
 {
 	public class Collection : Item<CollectionData>
 	{
+		public override string ItemType => "Collection";
+
 		public Collection(CollectionData data) : base(data)
 		{
 		}
