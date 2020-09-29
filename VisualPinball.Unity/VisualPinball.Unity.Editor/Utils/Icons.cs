@@ -49,6 +49,8 @@ namespace VisualPinball.Unity.Editor
 		private const string SurfaceName = "surface";
 		private const string HitTargetName = "target";
 		private const string TriggerName = "trigger";
+		private const string SwitchNcName = "switch_nc";
+		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
 			BumperName, FlipperName, GateName, KickerName, LightName, PlungerName, PrimitiveName, RampName, RubberName,
@@ -97,6 +99,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
+		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : MonoBehaviour
