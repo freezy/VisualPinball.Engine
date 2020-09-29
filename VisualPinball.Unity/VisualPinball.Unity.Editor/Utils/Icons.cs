@@ -59,6 +59,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly MethodInfo CopyMonoScriptIconToImporters = typeof(MonoImporter).GetMethod("CopyMonoScriptIconToImporters", BindingFlags.Static|BindingFlags.NonPublic);
 		private static readonly MethodInfo SetIconForObject = typeof(EditorGUIUtility).GetMethod("SetIconForObject", BindingFlags.Static|BindingFlags.NonPublic);
 		private static readonly MethodInfo SetGizmoEnabled = Assembly.GetAssembly(typeof(UnityEditor.Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+		private static readonly MethodInfo SetIconEnabled = Assembly.GetAssembly(typeof(UnityEditor.Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
 
 		// see https://docs.unity3d.com/Manual/ClassIDReference.html
 		private static readonly int MonoBehaviourClassID = 114;
@@ -97,6 +98,25 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 
+
+		[UnityEditor.Callbacks.DidReloadScripts]
+		public static void OnScriptsReloaded()
+		{
+			DisableGizmo<BumperAuthoring>();
+			DisableGizmo<FlipperAuthoring>();
+			DisableGizmo<GateAuthoring>();
+			DisableGizmo<HitTargetAuthoring>();
+			DisableGizmo<KickerAuthoring>();
+			DisableGizmo<LightAuthoring>();
+			DisableGizmo<PlungerAuthoring>();
+			DisableGizmo<PrimitiveAuthoring>();
+			DisableGizmo<RampAuthoring>();
+			DisableGizmo<RubberAuthoring>();
+			DisableGizmo<SpinnerAuthoring>();
+			DisableGizmo<SurfaceAuthoring>();
+			DisableGizmo<TriggerAuthoring>();
+		}
+
 		public static void ApplyToComponent<T>(Object target, Texture2D tex) where T : MonoBehaviour
 		{
 			if (target == null || tex == null) {
@@ -127,52 +147,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static void DisableGizmo<T>() where T : MonoBehaviour
 		{
-			// var asm = Assembly
-			// 	.GetAssembly(typeof(UnityEditor.Editor))
-			// 	.GetType("UnityEditor.AnnotationUtility")
-			// 	.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
-			// Type type = asm.GetType("UnityEditor.AnnotationUtility");
-			// MethodInfo setGizmoEnabled = type.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
-
 			var className = typeof(T).Name;
 			SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
-		}
-
-		public static void ToggleGizmos(bool gizmosOn)
-		{
-			int val = gizmosOn ? 1 : 0;
-			Assembly asm = Assembly.GetAssembly(typeof(UnityEditor.Editor));
-			Type type = asm.GetType("UnityEditor.AnnotationUtility");
-			if (type != null)
-			{
-				MethodInfo getAnnotations = type.GetMethod("GetAnnotations", BindingFlags.Static | BindingFlags.NonPublic);
-				MethodInfo setGizmoEnabled = type.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
-				MethodInfo setIconEnabled = type.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
-				var annotations = getAnnotations.Invoke(null, null);
-				var classIDs = new List<int>();
-				var scriptClasses = new List<string>();
-				foreach (var annotation in (IEnumerable) annotations) {
-					Type annotationType = annotation.GetType();
-					FieldInfo classIdField = annotationType.GetField("classID", BindingFlags.Public | BindingFlags.Instance);
-					FieldInfo scriptClassField = annotationType.GetField("scriptClass", BindingFlags.Public | BindingFlags.Instance);
-					classIDs.Add((int)classIdField.GetValue(annotation));
-					scriptClasses.Add((string)scriptClassField.GetValue(annotation));
-				}
-
-				foreach (object annotation in (IEnumerable)annotations)
-				{
-					Type annotationType = annotation.GetType();
-					FieldInfo classIdField = annotationType.GetField("classID", BindingFlags.Public | BindingFlags.Instance);
-					FieldInfo scriptClassField = annotationType.GetField("scriptClass", BindingFlags.Public | BindingFlags.Instance);
-					if (classIdField != null && scriptClassField != null)
-					{
-						int classId = (int)classIdField.GetValue(annotation);
-						string scriptClass = (string)scriptClassField.GetValue(annotation);
-						//setGizmoEnabled.Invoke(null, new object[] { classId, scriptClass, val });
-						//setIconEnabled.Invoke(null, new object[] { classId, scriptClass, val });
-					}
-				}
-			}
+			SetIconEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0 });
 		}
 	}
 }
