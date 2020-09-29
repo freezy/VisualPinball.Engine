@@ -98,7 +98,8 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 
-		public static Texture2D ByComponent<T>(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : MonoBehaviour
+		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
+			where T : MonoBehaviour
 		{
 			if (typeof(T) == typeof(BumperAuthoring)) return Bumper(size, color);
 			if (typeof(T) == typeof(FlipperAuthoring)) return Flipper(size, color);
