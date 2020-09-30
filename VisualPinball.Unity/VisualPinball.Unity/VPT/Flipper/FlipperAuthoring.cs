@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			));
 			foreach (var mf in mfs) {
 				var t = mf.transform;
-				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, data.EndAngle));
+				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, math.radians(data.EndAngle)));
 				Gizmos.DrawWireMesh(mf.sharedMesh, t.position, r, t.lossyScale);
 			}
 		}
