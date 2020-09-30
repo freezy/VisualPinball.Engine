@@ -16,7 +16,6 @@
 
 using System;
 using Unity.Entities;
-using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity

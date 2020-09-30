@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
-using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 

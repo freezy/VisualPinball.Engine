@@ -23,7 +23,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
@@ -83,9 +82,7 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
-			if (_engine != null) {
-				_engine.OnCoilChanged -= OnCoilChanged;
-			}
+			_engine?.OnDestroy();
 		}
 
 		private void Start()
@@ -139,9 +136,7 @@ namespace VisualPinball.Unity
 					});
 				}
 			}
-
-			// debug print stuff
-			_engine.OnCoilChanged += OnCoilChanged;
+			_engine.OnInit(_tableApi);
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
@@ -208,11 +203,6 @@ namespace VisualPinball.Unity
 			// 			break;
 			// 	}
 			// });
-		}
-
-		private void OnCoilChanged(object sender, CoilEventArgs e)
-		{
-			Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
 		}
 
 		#endregion

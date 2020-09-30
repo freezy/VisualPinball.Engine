@@ -15,13 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using NLog;
 
-namespace VisualPinball.Engine.Game.Engine
+namespace VisualPinball.Unity
 {
 	[Serializable]
 	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils
 	{
 		public string Name => "Default Game Engine";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public void OnInit(TableApi tableApi)
+		{
+			// debug print stuff
+			OnCoilChanged += DebugPrintCoil;
+		}
+
+		public void OnDestroy()
+		{
+			OnCoilChanged -= DebugPrintCoil;
+		}
 
 		public string[] AvailableSwitches { get; } = {"s_left_flipper", "s_right_flipper", "s_plunger"};
 
@@ -42,6 +56,12 @@ namespace VisualPinball.Engine.Game.Engine
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_auto_plunger", normallyClosed));
 					break;
 			}
+		}
+
+
+		private void DebugPrintCoil(object sender, CoilEventArgs e)
+		{
+			Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
 		}
 	}
 }

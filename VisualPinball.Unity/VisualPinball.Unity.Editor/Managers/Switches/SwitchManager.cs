@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 using NLog;
 using UnityEngine;
 using UnityEditor;
-using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.MappingConfig;
 using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
