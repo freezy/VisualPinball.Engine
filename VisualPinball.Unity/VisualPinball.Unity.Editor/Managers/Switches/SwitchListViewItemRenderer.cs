@@ -138,12 +138,6 @@ namespace VisualPinball.Unity.Editor
 				if (switchListData.Source != index)
 				{
 					switchListData.Source = index;
-
-					if (switchListData.Source != SwitchSource.Playfield)
-					{
-						switchListData.Description = "";
-					}
-
 					updateAction(switchListData);
 				}
 			}
@@ -230,7 +224,6 @@ namespace VisualPinball.Unity.Editor
 							if (index != options.IndexOf(switchListData.PlayfieldItem))
 							{
 								switchListData.PlayfieldItem = options[index];
-								switchListData.Description = _switchables[index].DefaultDescription;
 								updateAction(switchListData);
 							}
 						}

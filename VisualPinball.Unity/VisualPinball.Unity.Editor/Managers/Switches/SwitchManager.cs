@@ -95,7 +95,6 @@ namespace VisualPinball.Unity.Editor
 								Id = id,
 								Source = SwitchSource.Playfield,
 								PlayfieldItem = switchableItem.Name,
-								Description = switchableItem.DefaultDescription,
 								Type = (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring) ? SwitchType.OnOff : SwitchType.Pulse
 							};
 

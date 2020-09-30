@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Rubber")]
 	public class RubberAuthoring : ItemAuthoring<Rubber, RubberData>, IDragPointsEditable, ISwitchableAuthoring, IConvertGameObjectToEntity
 	{
-		public override string DefaultDescription => "Rubber";
-
 		protected override string[] Children => null;
 
 		protected override Rubber GetItem() => new Rubber(data);
