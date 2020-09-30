@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
 		private readonly string RESOURCE_PATH = "Assets/Resources";
-		
+
 		protected override string DataTypeName => "Switch";
 
 		protected override bool DetailsEnabled => false;
