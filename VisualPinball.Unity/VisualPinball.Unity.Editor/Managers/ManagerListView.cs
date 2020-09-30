@@ -28,9 +28,11 @@ namespace VisualPinball.Unity.Editor
 	/// for use by the manager windows
 	/// </summary>
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
-	public class ManagerListView<T> : TreeView where T: class, IManagerListData 
+	public class ManagerListView<T> : TreeView where T: class, IManagerListData
 	{
 		public event Action<List<T>> ItemSelected;
+
+		public float RowHeight { get => rowHeight; set => rowHeight = value; }
 
 		private List<T> _data = new List<T>();
 		private List<ColumnData> _columns = new List<ColumnData>();

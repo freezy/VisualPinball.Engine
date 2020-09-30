@@ -46,6 +46,17 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual bool ListViewItemRendererEnabled => false;
 		protected virtual void OnListViewItemRenderer(T data, Rect rect, int column) { }
+		protected float RowHeight {
+			get => _rowHeight;
+			set {
+				_rowHeight = value;
+				if (_listView != null) {
+					_listView.RowHeight = value;
+				}
+			}
+		}
+
+		private float _rowHeight;
 
 		protected T _selectedItem;
 
@@ -168,7 +179,7 @@ namespace VisualPinball.Unity.Editor
 			var r = GUILayoutUtility.GetLastRect();
 			var listRect = new Rect(r.x, r.y, r.width, position.height - r.y);
 			_listView?.OnGUI(listRect);
-			
+
 			if (DetailsEnabled)
 			{
 				// options
@@ -361,6 +372,8 @@ namespace VisualPinball.Unity.Editor
 			{
 				_listView = new ManagerListView<T>(_treeViewState, _data, null, ItemSelected);
 			}
+
+			_listView.RowHeight = _rowHeight;
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)
