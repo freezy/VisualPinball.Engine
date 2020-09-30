@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		public MappingEntryData MappingEntryData;
 
 		public SwitchListData(MappingEntryData mappingEntryData) {
-			ID = mappingEntryData.ID;
+			ID = mappingEntryData.Id;
 			Description = mappingEntryData.Description;
 			Source = mappingEntryData.Source;
 			InputActionMap = mappingEntryData.InputActionMap;
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Update()
 		{
-			MappingEntryData.ID = ID;
+			MappingEntryData.Id = ID;
 			MappingEntryData.Description = Description;
 			MappingEntryData.Source = Source;
 			MappingEntryData.InputActionMap = InputActionMap;

@@ -113,7 +113,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		public IEnumerable<IItem> GameItemInterfaces => new IItem[] { }
+		public IEnumerable<IItem> GameItems => new IItem[] { }
 			.Concat(_bumpers.Values)
 			.Concat(_decals.Select(i => i))
 			.Concat(_dispReels.Values)
@@ -134,7 +134,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values)
 			.Concat(_triggers.Values);
 
-		public IEnumerable<ItemData> GameItems => new ItemData[] {}
+		public IEnumerable<ItemData> ItemDatas => new ItemData[] {}
 			.Concat(_bumpers.Values.Select(i => i.Data))
 			.Concat(_decals.Select(i => i.Data))
 			.Concat(_dispReels.Values.Select(i => i.Data))
@@ -186,7 +186,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {
-				item.StorageIndex = GameItems.Count();
+				item.StorageIndex = ItemDatas.Count();
 				Data.NumGameItems = item.StorageIndex + 1;
 			}
 			d[name] = item;
@@ -195,7 +195,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {
-				item.StorageIndex = GameItems.Count();
+				item.StorageIndex = ItemDatas.Count();
 			}
 			d.Add(item);
 		}
@@ -390,7 +390,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			var dict = GetItemDictionary<T>();
 			var removedStorageIndex = dict[name].StorageIndex;
-			var gameItems = GameItems;
+			var gameItems = ItemDatas;
 			foreach (var gameItem in gameItems) {
 				if (gameItem.StorageIndex > removedStorageIndex) {
 					gameItem.StorageIndex--;
@@ -425,6 +425,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public string InfoName => TableInfo.ContainsKey("TableName") ? TableInfo["TableName"] : null;
 		public string InfoRules => TableInfo.ContainsKey("TableRules") ? TableInfo["TableRules"] : null;
 		public string InfoVersion => TableInfo.ContainsKey("TableVersion") ? TableInfo["TableVersion"] : null;
+
 		#endregion
 
 		private readonly TableMeshGenerator _meshGenerator;

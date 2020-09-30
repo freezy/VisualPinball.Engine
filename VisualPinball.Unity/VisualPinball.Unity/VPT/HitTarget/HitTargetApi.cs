@@ -16,11 +16,12 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Unity
 {
 	public class HitTargetApi : ItemApi<Engine.VPT.HitTarget.HitTarget, Engine.VPT.HitTarget.HitTargetData>,
-		IApiInitializable, IApiHittable
+		IApiInitializable, IApiHittable, IApiSwitchable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -87,7 +88,10 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
+			GamelogicEngineWithSwitches?.Switch(Item.Name, true);
 		}
+
+		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 	}

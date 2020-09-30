@@ -16,11 +16,12 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitchable
 	{
 
 		/// <summary>
@@ -47,7 +48,10 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(bool isUnHit)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
+			GamelogicEngineWithSwitches?.Switch(Item.Name, true);
 		}
+
+		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 	}

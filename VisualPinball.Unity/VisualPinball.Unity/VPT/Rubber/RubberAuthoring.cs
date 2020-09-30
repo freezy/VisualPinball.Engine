@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberAuthoring : ItemAuthoring<Rubber, RubberData>, IDragPointsEditable, IHittableAuthoring, ISwitchableAuthoring, IConvertGameObjectToEntity
+	public class RubberAuthoring : ItemAuthoring<Rubber, RubberData>, IDragPointsEditable, ISwitchableAuthoring, IConvertGameObjectToEntity
 	{
 		public override string DefaultDescription => "Rubber";
 

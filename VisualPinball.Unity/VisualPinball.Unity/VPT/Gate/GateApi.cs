@@ -16,10 +16,12 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Unity
 {
-	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable, IApiHittable, IApiRotatable
+	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable,
+		IApiHittable, IApiRotatable, IApiSwitchable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -78,6 +80,7 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(bool _)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
+			GamelogicEngineWithSwitches?.Switch(Item.Name, true);
 		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
@@ -88,6 +91,8 @@ namespace VisualPinball.Unity
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
 		}
+
+		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 

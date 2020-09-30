@@ -18,10 +18,13 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using NLog;
 using UnityEngine;
 using UnityEditor;
+using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.MappingConfig;
 using VisualPinball.Engine.VPT;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -33,6 +36,8 @@ namespace VisualPinball.Unity.Editor
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
 		private readonly string RESOURCE_PATH = "Assets/Resources";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override string DataTypeName => "Switch";
 
@@ -88,7 +93,7 @@ namespace VisualPinball.Unity.Editor
 						{
 							MappingEntryData entry = new MappingEntryData
 							{
-								ID = id,
+								Id = id,
 								Source = SwitchSource.Playfield,
 								PlayfieldItem = switchableItem.Name,
 								Description = switchableItem.DefaultDescription,
@@ -139,7 +144,7 @@ namespace VisualPinball.Unity.Editor
 			var mappingConfigData = GetSwitchMappingConfig();
 
 			mappingConfigData.MappingEntries =
-				mappingConfigData.MappingEntries.Append(new MappingEntryData { ID = "" }).ToArray();
+				mappingConfigData.MappingEntries.Append(new MappingEntryData { Id = "" }).ToArray();
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
@@ -161,7 +166,7 @@ namespace VisualPinball.Unity.Editor
 			mappingConfigData.MappingEntries =
 				mappingConfigData.MappingEntries.Append(new MappingEntryData
 				{
-					ID = data.ID,
+					Id = data.ID,
 					Description = data.Description,
 					Source = data.Source,
 					InputActionMap = data.InputActionMap,
@@ -192,21 +197,32 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshIDs()
 		{
-			FindNamedSwitchables((item, id) =>
-			{
-				if (_ids.IndexOf(id) == -1)
-				{
-					_ids.Add(id);
-				}
-			});
+
+			_ids.Clear();
+			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
+			if (gle != null) {
+				_ids.AddRange(gle.GameEngine.AvailableSwitches);
+
+			} else {
+				// todo show this in the editor window along with instructions.
+				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support switches.");
+			}
+
+			// FindNamedSwitchables((item, id) =>
+			// {
+			// 	if (_ids.IndexOf(id) == -1)
+			// 	{
+			// 		_ids.Add(id);
+			// 	}
+			// });
 
 			var mappingConfigData = GetSwitchMappingConfig();
 
 			foreach (var mappingEntryData in mappingConfigData.MappingEntries)
 			{
-				if (_ids.IndexOf(mappingEntryData.ID) == -1)
+				if (_ids.IndexOf(mappingEntryData.Id) == -1)
 				{
-					_ids.Add(mappingEntryData.ID);
+					_ids.Add(mappingEntryData.Id);
 				}
 			}
 
@@ -249,7 +265,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var mappingEntryData in mappingConfigData.MappingEntries)
 				{
-					if (mappingEntryData.ID == id)
+					if (mappingEntryData.Id == id)
 					{
 						return mappingEntryData;
 					}

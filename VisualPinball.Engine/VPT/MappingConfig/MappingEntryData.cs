@@ -34,22 +34,22 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 	public class MappingEntryData : BiffData
 	{
 		[BiffString("MPID", IsWideString = true, Pos = 1)]
-		public string ID;
+		public string Id = string.Empty;
 
 		[BiffString("DESC", IsWideString = true, Pos = 2)]
-		public string Description;
+		public string Description = string.Empty;
 
 		[BiffInt("SSRC", Pos = 3)]
 		public int Source = SwitchSource.Playfield;
 
 		[BiffString("INPM", IsWideString = true, Pos = 4)]
-		public string InputActionMap;
+		public string InputActionMap = string.Empty;
 
 		[BiffString("INPA", IsWideString = true, Pos = 5)]
-		public string InputAction;
+		public string InputAction = string.Empty;
 
 		[BiffString("PITM", IsWideString = true, Pos = 6)]
-		public string PlayfieldItem;
+		public string PlayfieldItem = string.Empty;
 
 		[BiffInt("CNST", Pos = 7)]
 		public int Constant;

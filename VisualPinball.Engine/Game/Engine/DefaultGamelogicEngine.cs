@@ -18,6 +18,7 @@ using System;
 
 namespace VisualPinball.Engine.Game.Engine
 {
+	[Serializable]
 	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils
 	{
 		public string Name => "Default Game Engine";
