@@ -25,7 +25,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Plunger")]
 	public class PlungerAuthoring : ItemAuthoring<Plunger, PlungerData>, IConvertGameObjectToEntity, IHittableAuthoring
 	{
-		public override string IconName => "plunger";
 		public override string DefaultDescription => "Plunger";
 
 		protected override string[] Children => new [] {

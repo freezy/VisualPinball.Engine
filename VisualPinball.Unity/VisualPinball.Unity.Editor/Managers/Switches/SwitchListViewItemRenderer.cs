@@ -24,8 +24,6 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListViewItemRenderer
 	{
-		private readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
-
 		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
 		private readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
@@ -292,7 +290,7 @@ namespace VisualPinball.Unity.Editor
 
 		private UnityEngine.Texture GetIcon(SwitchListData switchListData)
 		{
-			string image = null;
+			Texture2D icon = null;
 
 			if (switchListData.Source == SwitchSource.Playfield)
 			{
@@ -300,22 +298,16 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (item.Name == switchListData.PlayfieldItem)
 					{
-						image = item.IconName;
+						icon = Icons.ByComponent<ISwitchableAuthoring>(item, color: IconColor.Gray, size: IconSize.Small);
 					}
 				}
 			}
 			else if (switchListData.Source == SwitchSource.Constant)
 			{
-				image = "switch_" +
-					(switchListData.Constant == SwitchConstant.NormallyClosed ? "nc" : "no");
+				icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, color: IconColor.Gray, size: IconSize.Small);
 			}
 
-			if (image != null)
-			{
-				return AssetDatabase.LoadAssetAtPath<Texture2D>($"{ICON_PATH}/icon_" + image + ".png");
-			}
-
-			return null;
+			return icon;
 		}
 	}
 }

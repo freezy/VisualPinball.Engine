@@ -33,7 +33,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trigger")]
 	public class TriggerAuthoring : ItemAuthoring<Trigger, TriggerData>, IHittableAuthoring, ISwitchableAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
 	{
-		public override string IconName => "trigger";
 		public override string DefaultDescription => "Trigger";
 
 		protected override string[] Children => null;

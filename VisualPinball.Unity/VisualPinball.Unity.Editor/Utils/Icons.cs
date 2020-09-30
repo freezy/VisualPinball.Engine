@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BumperName, FlipperName, GateName, KickerName, LightName, PlungerName, PrimitiveName, RampName, RubberName,
-			SpinnerName, SurfaceName, HitTargetName, TriggerName
+			SpinnerName, SurfaceName, HitTargetName, TriggerName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
-			where T : MonoBehaviour
+			where T : class
 		{
 			switch (mb) {
 				case BumperAuthoring _: return Bumper(size, color);
