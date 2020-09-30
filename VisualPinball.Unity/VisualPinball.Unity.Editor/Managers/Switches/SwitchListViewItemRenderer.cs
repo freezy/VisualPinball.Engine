@@ -120,21 +120,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			var icon = GetIcon(switchListData);
-
-			if (icon != null)
-			{
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				EditorGUI.DrawTextureAlpha(iconRect, icon, ScaleMode.ScaleToFit);
-			}
-
-			var textFieldRect = cellRect;
-			textFieldRect.x += 25;
-			textFieldRect.width -= 25;
-
 			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.TextField(textFieldRect, switchListData.Description);
+			var value = EditorGUI.TextField(cellRect, switchListData.Description);
 			if (EditorGUI.EndChangeCheck())
 			{
 				switchListData.Description = value;
@@ -164,6 +151,21 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
+			var icon = GetIcon(switchListData);
+
+			if (icon != null)
+			{
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				var guiColor = GUI.color;
+				GUI.color = Color.clear;
+				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+				GUI.color = guiColor;
+			}
+
+			cellRect.x += 25;
+			cellRect.width -= 25;
+
 			switch (switchListData.Source)
 			{
 				case SwitchSource.InputSystem:
@@ -172,7 +174,7 @@ namespace VisualPinball.Unity.Editor
 
 						var tmpIndex = 0;
 						var selectedIndex = -1;
-						
+
 						List<string> options = new List<string>();
 
 						foreach (var actionMapName in _inputManager.GetActionMapNames())
@@ -292,19 +294,25 @@ namespace VisualPinball.Unity.Editor
 		{
 			Texture2D icon = null;
 
-			if (switchListData.Source == SwitchSource.Playfield)
-			{
-				foreach (var item in _switchables)
-				{
-					if (item.Name == switchListData.PlayfieldItem)
+			switch (switchListData.Source) {
+				case SwitchSource.Playfield: {
+					foreach (var item in _switchables)
 					{
-						icon = Icons.ByComponent<ISwitchableAuthoring>(item, color: IconColor.Gray, size: IconSize.Small);
+						if (item.Name == switchListData.PlayfieldItem)
+						{
+							icon = Icons.ByComponent(item, color: IconColor.Gray, size: IconSize.Small);
+						}
 					}
+
+					break;
 				}
-			}
-			else if (switchListData.Source == SwitchSource.Constant)
-			{
-				icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, color: IconColor.Gray, size: IconSize.Small);
+				case SwitchSource.Constant:
+					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, color: IconColor.Gray, size: IconSize.Small);
+					break;
+
+				case SwitchSource.InputSystem:
+					icon = Icons.Key(IconSize.Small);
+					break;
 			}
 
 			return icon;

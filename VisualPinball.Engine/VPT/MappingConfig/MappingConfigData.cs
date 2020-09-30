@@ -59,11 +59,6 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 			Name = name;
 		}
 
-		public MappingConfigData(string name, MappingConfigData data) : base(StoragePrefix.MappingConfig)
-		{
-			Name = name;
-		}
-
 		public MappingConfigData(BinaryReader reader, string storageName) : base(storageName)
 		{
 			Load(this, reader, Attributes);
