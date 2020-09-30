@@ -6,6 +6,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Logic Engine/Default Game Logic")]
 	public class DefaultGameEngineAuthoring : MonoBehaviour
 	{
-		public IGamelogicEngine GameEngine = new DefaultGamelogicEngine();
+		public DefaultGamelogicEngine GameEngine = new DefaultGamelogicEngine();
 	}
 }

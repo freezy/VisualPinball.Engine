@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.Game.Engine;
+
 namespace VisualPinball.Unity
 {
 	internal interface IApiInitializable
@@ -44,5 +46,10 @@ namespace VisualPinball.Unity
 	internal interface IApiSlingshot
 	{
 		void OnSlingshot();
+	}
+
+	internal interface IApiSwitchable
+	{
+		void SetGamelogicEngine(IGamelogicEngineWithSwitches gle);
 	}
 }

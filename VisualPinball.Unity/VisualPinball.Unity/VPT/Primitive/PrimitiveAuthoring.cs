@@ -28,7 +28,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Primitive")]
-	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, ISwitchableAuthoring, IConvertGameObjectToEntity
+	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		public override string DefaultDescription => "Primitive";
 

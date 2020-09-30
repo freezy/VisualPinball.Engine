@@ -16,11 +16,12 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemApi<Engine.VPT.Trigger.Trigger, Engine.VPT.Trigger.TriggerData>,
-		IApiInitializable, IApiHittable
+		IApiInitializable, IApiHittable, IApiSwitchable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -52,11 +53,15 @@ namespace VisualPinball.Unity
 		{
 			if (isUnHit) {
 				UnHit?.Invoke(this, EventArgs.Empty);
+				GamelogicEngineWithSwitches?.Switch(Item.Name, false);
 
 			} else {
 				Hit?.Invoke(this, EventArgs.Empty);
+				GamelogicEngineWithSwitches?.Switch(Item.Name, true);
 			}
 		}
+
+		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 	}

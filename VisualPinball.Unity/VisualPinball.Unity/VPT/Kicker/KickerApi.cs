@@ -17,13 +17,14 @@
 using System;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitchable
 	{
 		private BallManager _ballManager;
 
@@ -170,11 +171,15 @@ namespace VisualPinball.Unity
 		{
 			if (isUnHit) {
 				UnHit?.Invoke(this, EventArgs.Empty);
+				GamelogicEngineWithSwitches?.Switch(Item.Name, false);
 
 			} else {
 				Hit?.Invoke(this, EventArgs.Empty);
+				GamelogicEngineWithSwitches?.Switch(Item.Name, true);
 			}
 		}
+
+		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 	}

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -25,6 +26,8 @@ namespace VisualPinball.Unity
 		protected readonly T Item;
 		protected readonly Player Player;
 		internal readonly Entity Entity;
+
+		protected IGamelogicEngineWithSwitches GamelogicEngineWithSwitches;
 
 		protected TData Data => Item.Data;
 		protected Table Table => Player.Table;

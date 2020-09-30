@@ -109,8 +109,9 @@ namespace VisualPinball.Unity
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			// finally, add the player script
+			// finally, add the player script and default game engine
 			go.AddComponent<Player>();
+			go.AddComponent<DefaultGameEngineAuthoring>();
 		}
 
 		public static GameObject ConvertRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)

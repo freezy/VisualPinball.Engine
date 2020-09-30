@@ -47,19 +47,19 @@ namespace VisualPinball.Engine.Test.VPT.MappingConfig
 			data.Name.Should().Be("Switch");
 			data.MappingEntries.Length.Should().Be(4);
 
-			data.MappingEntries[0].ID.Should().Be("1");
+			data.MappingEntries[0].Id.Should().Be("1");
 			data.MappingEntries[0].Description.Should().Be("Flipper");
 			data.MappingEntries[0].Source.Should().Be(SwitchSource.Playfield);
 			data.MappingEntries[0].PlayfieldItem.Should().Be("Flipper001");
 			data.MappingEntries[0].Type.Should().Be(SwitchType.OnOff);
 
-			data.MappingEntries[1].ID.Should().Be("2");
+			data.MappingEntries[1].Id.Should().Be("2");
 			data.MappingEntries[1].Description.Should().Be("Flipper");
 			data.MappingEntries[1].Source.Should().Be(SwitchSource.Playfield);
 			data.MappingEntries[1].PlayfieldItem.Should().Be("Flipper002");
 			data.MappingEntries[1].Type.Should().Be(SwitchType.OnOff);
 
-			data.MappingEntries[2].ID.Should().Be("1");
+			data.MappingEntries[2].Id.Should().Be("1");
 			data.MappingEntries[2].Description.Should().Be("Input");
 			data.MappingEntries[2].Source.Should().Be(SwitchSource.InputSystem);
 			data.MappingEntries[2].InputActionMap.Should().Be("Cabinet Switches");
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.Test.VPT.MappingConfig
 			data.MappingEntries[2].Type.Should().Be(SwitchType.Pulse);
 			data.MappingEntries[2].Pulse.Should().Be(20);
 
-			data.MappingEntries[3].ID.Should().Be("3");
+			data.MappingEntries[3].Id.Should().Be("3");
 			data.MappingEntries[3].Description.Should().Be("Open Switch");
 			data.MappingEntries[3].Source.Should().Be(SwitchSource.Constant);
 			data.MappingEntries[3].Constant.Should().Be(SwitchConstant.NormallyOpen);
