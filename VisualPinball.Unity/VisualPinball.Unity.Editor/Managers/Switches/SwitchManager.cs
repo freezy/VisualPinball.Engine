@@ -33,8 +33,7 @@ namespace VisualPinball.Unity.Editor
 	class SwitchManager : ManagerWindow<SwitchListData>
 	{
 		private readonly string RESOURCE_PATH = "Assets/Resources";
-		private readonly string ICON_PATH = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
-
+		
 		protected override string DataTypeName => "Switch";
 
 		protected override bool DetailsEnabled => false;
@@ -61,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			titleContent = new GUIContent("Switch Manager",
-				AssetDatabase.LoadAssetAtPath<Texture2D>($"{ICON_PATH}/icon_switch_no.png"));
+				Icons.Switch(false, color: IconColor.Gray, size: IconSize.Small));
 
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();

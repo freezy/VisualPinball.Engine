@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT.MappingConfig
 {
 	public class MappingConfig : Item<MappingConfigData>
 	{
+		public override string ItemType => "MappingConfig";
+
 		public MappingConfig(MappingConfigData data) : base(data)
 		{
 		}
