@@ -14,15 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine.Game.Engine
+namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A game logic engine is the part that handles the game. <p/>
+	/// A game logic engine working with switches. <p/>
 	///
-	/// There will typically be implementations for PinMAME and MPF.
+	/// It provides a list of available switches and a method for triggering
+	/// them.
 	/// </summary>
-	public interface IGamelogicEngine
+	public interface IGamelogicEngineWithSwitches
 	{
-		string Name { get; }
+		/// <summary>
+		/// A list of available switches supported by the game logic engine.
+		/// </summary>
+		string[] AvailableSwitches { get; }
+
+		/// <summary>
+		/// Enables or disables a switch.
+		/// </summary>
+		/// <param name="id">Name of the switch, as defined by <see cref="AvailableSwitches"/>.</param>
+		/// <param name="normallyClosed">True for normally closed (NC) i.e. contact, a.k.a. "on". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
+		void Switch(string id, bool normallyClosed);
 	}
 }

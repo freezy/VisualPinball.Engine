@@ -17,7 +17,6 @@
 using System;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
 using Random = Unity.Mathematics.Random;

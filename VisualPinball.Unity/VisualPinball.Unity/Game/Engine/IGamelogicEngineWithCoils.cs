@@ -16,7 +16,7 @@
 
 using System;
 
-namespace VisualPinball.Engine.Game.Engine
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// A game logic engine working with coils (solenoids). <p/>
