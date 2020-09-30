@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Kicker")]
 	public class KickerAuthoring : ItemAuthoring<Kicker, KickerData>, IConvertGameObjectToEntity, IHittableAuthoring, ISwitchableAuthoring
 	{
-		public override string DefaultDescription => "Kicker";
-
 		protected override string[] Children => null;
 
 		protected override Kicker GetItem() => new Kicker(data);

@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Surface")]
 	public class SurfaceAuthoring : ItemAuthoring<Surface, SurfaceData>, IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
 	{
-		public override string DefaultDescription => "Surface";
-
 		protected override string[] Children => new [] { "Side", "Top" };
 
 		protected override Surface GetItem() => new Surface(data);

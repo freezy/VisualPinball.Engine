@@ -18,8 +18,6 @@ namespace VisualPinball.Unity
 {
 	public interface IIdentifiableItemAuthoring
 	{
-		string DefaultDescription { get; }
-
 		string Name { get; set; }
 	}
 }
