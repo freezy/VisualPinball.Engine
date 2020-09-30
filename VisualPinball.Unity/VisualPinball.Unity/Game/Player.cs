@@ -64,6 +64,7 @@ namespace VisualPinball.Unity
 
 		// input related
 		private InputManager _inputManager;
+		private DefaultGamelogicEngine _engine;
 
 		public Player()
 		{
@@ -80,13 +81,20 @@ namespace VisualPinball.Unity
 			_inputManager = new InputManager();
 		}
 
+		private void OnDestroy()
+		{
+			if (_engine != null) {
+				_engine.OnCoilChanged -= OnCoilChanged;
+			}
+		}
+
 		private void Start()
 		{
 			// hook-up game engine
 			var engineBehavior = GetComponent<DefaultGameEngineAuthoring>();
-			var engine = engineBehavior.GameEngine;
-			if (engine is IGamelogicEngineWithSwitches engineWithSwitches) {
-				var config = Table.MappingConfigs["switch"];
+			_engine = engineBehavior.GameEngine;
+			if (_engine is IGamelogicEngineWithSwitches engineWithSwitches) {
+				var config = Table.MappingConfigs["Switch"];
 				var keyBindings = new Dictionary<string, string>();
 				foreach (var mappingEntry in config.Data.MappingEntries) {
 					switch (mappingEntry.Source) {
@@ -97,11 +105,10 @@ namespace VisualPinball.Unity
 							break;
 						}
 
-						case SwitchSource.InputSystem when _switchables.ContainsKey(mappingEntry.PlayfieldItem):
-							keyBindings[mappingEntry.InputAction] = mappingEntry.PlayfieldItem;
+						case SwitchSource.InputSystem:
+							keyBindings[mappingEntry.InputAction] = mappingEntry.Id;
 							break;
 
-						case SwitchSource.InputSystem:
 						case SwitchSource.Playfield:
 							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
 							break;
@@ -134,9 +141,7 @@ namespace VisualPinball.Unity
 			}
 
 			// debug print stuff
-			engine.OnCoilChanged += (sender, args) => {
-				Logger.Info("Coil {0} set to {1}.", args.Name, args.IsEnabled);
-			};
+			_engine.OnCoilChanged += OnCoilChanged;
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
@@ -203,6 +208,11 @@ namespace VisualPinball.Unity
 			// 			break;
 			// 	}
 			// });
+		}
+
+		private void OnCoilChanged(object sender, CoilEventArgs e)
+		{
+			Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
 		}
 
 		#endregion
