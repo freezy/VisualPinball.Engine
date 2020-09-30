@@ -62,6 +62,8 @@ namespace VisualPinball.Unity.Editor
 			titleContent = new GUIContent("Switch Manager",
 				Icons.Switch(false, color: IconColor.Gray, size: IconSize.Small));
 
+			RowHeight = 22;
+
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();
 
