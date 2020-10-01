@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();
 
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_table, _ids, _switchables, _inputManager);
 
 			base.OnEnable();
 		}
