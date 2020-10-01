@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (_table != null)
 				{
-					RecordUndo("Populate All");
+					RecordUndo("Populate all switch mappings");
 
 					var mappingConfigData = GetSwitchMappingConfig();
 
@@ -103,6 +103,19 @@ namespace VisualPinball.Unity.Editor
 						}
 					});
 
+					Reload();
+				}
+			}
+
+			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
+			{
+				if (_table != null)
+				{
+					if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
+						RecordUndo("Remove all switch mappings");
+						var mappingConfigData = GetSwitchMappingConfig();
+						mappingConfigData.MappingEntries = new MappingEntryData[0];
+					}
 					Reload();
 				}
 			}
