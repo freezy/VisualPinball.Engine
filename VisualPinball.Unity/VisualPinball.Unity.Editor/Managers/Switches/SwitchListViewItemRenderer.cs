@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
@@ -44,12 +45,15 @@ namespace VisualPinball.Unity.Editor
 			Off = 5
 		}
 
+		private TableAuthoring _tableAuthoring;
 		private List<string> _ids;
 		private List<ISwitchableAuthoring> _switchables;
 		private InputManager _inputManager;
+		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
+		public SwitchListViewItemRenderer(TableAuthoring tableAuthoring, List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
 		{
+			_tableAuthoring = tableAuthoring;
 			_ids = ids;
 			_switchables = switchables;
 			_inputManager = inputManager;
@@ -225,22 +229,22 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPlayfieldElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			var options = new List<string>();
-			foreach (var item in _switchables)
+			if (GUI.Button(cellRect, switchListData.PlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
 			{
-				options.Add(item.Name);
-			}
-
-			EditorGUI.BeginChangeCheck();
-
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.PlayfieldItem), options.ToArray());
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (index != options.IndexOf(switchListData.PlayfieldItem))
-				{
-					switchListData.PlayfieldItem = options[index];
-					updateAction(switchListData);
+				if (_itemPickDropdownState == null) {
+					_itemPickDropdownState = new AdvancedDropdownState();
 				}
+
+				var dropdown = new ItemSearchableDropdown<ISwitchableAuthoring>(
+					_itemPickDropdownState,
+					_tableAuthoring,
+					"Switchable Items",
+					item => {
+						switchListData.PlayfieldItem = item.Name;
+						updateAction(switchListData);
+					}
+				);
+				dropdown.Show(cellRect);
 			}
 		}
 
