@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 			options.Add("Add...");
 
 			EditorGUI.BeginChangeCheck();
-			int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.ID), options.ToArray());
+			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.ID), options.ToArray());
 			if (EditorGUI.EndChangeCheck())
 			{
 				if (index == options.Count - 1)
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			int index = EditorGUI.Popup(cellRect, switchListData.Source, OPTIONS_SWITCH_SOURCE);
+			var index = EditorGUI.Popup(cellRect, switchListData.Source, OPTIONS_SWITCH_SOURCE);
 			if (EditorGUI.EndChangeCheck())
 			{
 				if (switchListData.Source != index)
@@ -163,83 +163,95 @@ namespace VisualPinball.Unity.Editor
 			switch (switchListData.Source)
 			{
 				case SwitchSource.InputSystem:
-					{
-						List<InputSystemEntry> inputSystemList = new List<InputSystemEntry>();
-
-						var tmpIndex = 0;
-						var selectedIndex = -1;
-
-						List<string> options = new List<string>();
-
-						foreach (var actionMapName in _inputManager.GetActionMapNames())
-						{
-							if (options.Count > 0)
-							{
-								options.Add("");
-								inputSystemList.Add(new InputSystemEntry());
-								tmpIndex++;
-							}
-
-							foreach (var actionName in _inputManager.GetActionNames(actionMapName))
-							{
-								inputSystemList.Add(new InputSystemEntry
-								{
-									ActionMapName = actionMapName,
-									ActionName = actionName
-								});
-
-								options.Add(actionName.Replace('/', '\u2215'));
-
-								if (actionMapName == switchListData.InputActionMap && actionName == switchListData.InputAction)
-								{
-									selectedIndex = tmpIndex;
-								}
-
-								tmpIndex++;
-							}
-						}
-
-						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, selectedIndex, options.ToArray());
-						if (EditorGUI.EndChangeCheck())
-						{
-							switchListData.InputActionMap = inputSystemList[index].ActionMapName;
-							switchListData.InputAction = inputSystemList[index].ActionName;
-							updateAction(switchListData);
-						}
-					}
+					RenderInputSystemElement(switchListData, cellRect, updateAction);
 					break;
+
 				case SwitchSource.Playfield:
+					RenderPlayfieldElement(switchListData, cellRect, updateAction);
+					break;
+
+				case SwitchSource.Constant:
+					RenderConstantElement(switchListData, cellRect, updateAction);
+					break;
+			}
+		}
+
+		private void RenderInputSystemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			{
+				var inputSystemList = new List<InputSystemEntry>();
+				var tmpIndex = 0;
+				var selectedIndex = -1;
+				var options = new List<string>();
+
+				foreach (var actionMapName in _inputManager.GetActionMapNames())
+				{
+					if (options.Count > 0)
 					{
-						List<string> options = new List<string>();
-						foreach (var item in _switchables)
+						options.Add("");
+						inputSystemList.Add(new InputSystemEntry());
+						tmpIndex++;
+					}
+
+					foreach (var actionName in _inputManager.GetActionNames(actionMapName))
+					{
+						inputSystemList.Add(new InputSystemEntry
 						{
-							options.Add(item.Name);
+							ActionMapName = actionMapName,
+							ActionName = actionName
+						});
+
+						options.Add(actionName.Replace('/', '\u2215'));
+
+						if (actionMapName == switchListData.InputActionMap && actionName == switchListData.InputAction)
+						{
+							selectedIndex = tmpIndex;
 						}
 
-						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.PlayfieldItem), options.ToArray());
-						if (EditorGUI.EndChangeCheck())
-						{
-							if (index != options.IndexOf(switchListData.PlayfieldItem))
-							{
-								switchListData.PlayfieldItem = options[index];
-								updateAction(switchListData);
-							}
-						}
+						tmpIndex++;
 					}
-					break;
-				case SwitchSource.Constant:
-					{
-						EditorGUI.BeginChangeCheck();
-						int index = EditorGUI.Popup(cellRect, (int)switchListData.Constant, OPTIONS_SWITCH_CONSTANT);
-						if (EditorGUI.EndChangeCheck())
-						{
-							switchListData.Constant = index;
-							updateAction(switchListData);
-						}
-					}
-					break;
+				}
+
+				EditorGUI.BeginChangeCheck();
+				var index = EditorGUI.Popup(cellRect, selectedIndex, options.ToArray());
+				if (EditorGUI.EndChangeCheck())
+				{
+					switchListData.InputActionMap = inputSystemList[index].ActionMapName;
+					switchListData.InputAction = inputSystemList[index].ActionName;
+					updateAction(switchListData);
+				}
+			}
+		}
+
+		private void RenderPlayfieldElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			var options = new List<string>();
+			foreach (var item in _switchables)
+			{
+				options.Add(item.Name);
+			}
+
+			EditorGUI.BeginChangeCheck();
+
+			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.PlayfieldItem), options.ToArray());
+			if (EditorGUI.EndChangeCheck())
+			{
+				if (index != options.IndexOf(switchListData.PlayfieldItem))
+				{
+					switchListData.PlayfieldItem = options[index];
+					updateAction(switchListData);
+				}
+			}
+		}
+
+		private void RenderConstantElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			EditorGUI.BeginChangeCheck();
+			var index = EditorGUI.Popup(cellRect, (int)switchListData.Constant, OPTIONS_SWITCH_CONSTANT);
+			if (EditorGUI.EndChangeCheck())
+			{
+				switchListData.Constant = index;
+				updateAction(switchListData);
 			}
 		}
 
@@ -248,7 +260,7 @@ namespace VisualPinball.Unity.Editor
 			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
 			{
 				EditorGUI.BeginChangeCheck();
-				int index = EditorGUI.Popup(cellRect, (int)switchListData.Type, OPTIONS_SWITCH_TYPE);
+				var index = EditorGUI.Popup(cellRect, (int)switchListData.Type, OPTIONS_SWITCH_TYPE);
 				if (EditorGUI.EndChangeCheck())
 				{
 					switchListData.Type = index;
