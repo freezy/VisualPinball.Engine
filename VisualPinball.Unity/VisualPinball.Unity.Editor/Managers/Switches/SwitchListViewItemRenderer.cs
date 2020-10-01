@@ -45,13 +45,14 @@ namespace VisualPinball.Unity.Editor
 			Off = 5
 		}
 
-		private TableAuthoring _tableAuthoring;
-		private List<string> _ids;
-		private List<ISwitchableAuthoring> _switchables;
-		private InputManager _inputManager;
+		private readonly List<string> _ids;
+		private readonly TableAuthoring _tableAuthoring;
+		private readonly Dictionary<string, ISwitchableAuthoring> _switchables;
+		private readonly InputManager _inputManager;
+
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(TableAuthoring tableAuthoring, List<string> ids, List<ISwitchableAuthoring> switchables, InputManager inputManager)
+		public SwitchListViewItemRenderer(TableAuthoring tableAuthoring, List<string> ids, Dictionary<string, ISwitchableAuthoring> switchables, InputManager inputManager)
 		{
 			_tableAuthoring = tableAuthoring;
 			_ids = ids;
@@ -86,6 +87,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderID(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
+			// add some padding
+			cellRect.x += 2;
+			cellRect.width -= 4;
+
 			var options = new List<string>(_ids);
 
 			if (options.Count > 0)
@@ -305,14 +310,9 @@ namespace VisualPinball.Unity.Editor
 
 			switch (switchListData.Source) {
 				case SwitchSource.Playfield: {
-					foreach (var item in _switchables)
-					{
-						if (item.Name == switchListData.PlayfieldItem)
-						{
-							icon = Icons.ByComponent(item, color: IconColor.Gray, size: IconSize.Small);
-						}
+					if (_switchables.ContainsKey(switchListData.PlayfieldItem)) {
+						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem], color: IconColor.Gray, size: IconSize.Small);
 					}
-
 					break;
 				}
 				case SwitchSource.Constant:

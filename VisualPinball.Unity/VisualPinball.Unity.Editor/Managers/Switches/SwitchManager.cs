@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 		protected override bool ListViewItemRendererEnabled => true;
 
 		private List<string> _ids = new List<string>();
-		private List<ISwitchableAuthoring> _switchables = new List<ISwitchableAuthoring>();
+		private Dictionary<string, ISwitchableAuthoring> _switchables = new Dictionary<string, ISwitchableAuthoring>();
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
@@ -186,10 +186,8 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var item in _table.GetComponentsInChildren<ISwitchableAuthoring>())
 				{
-					_switchables.Add(item);
+					_switchables.Add(item.Name, item);
 				}
-
-				_switchables.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
 			}
 		}
 
@@ -229,7 +227,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FindNamedSwitchables(Action<ISwitchableAuthoring, string> action)
 		{
-			foreach (var item in _switchables)
+			foreach (var item in _switchables.Values)
 			{
 				var match = new Regex(@"^(sw)(\d+)$").Match(item.Name);
 				if (match.Success)

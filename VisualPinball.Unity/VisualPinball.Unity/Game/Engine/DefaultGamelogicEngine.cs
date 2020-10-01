@@ -16,6 +16,7 @@
 
 using System;
 using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -26,8 +27,12 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		private TableApi _tableApi;
+
 		public void OnInit(TableApi tableApi)
 		{
+			_tableApi = tableApi;
+
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
 		}
@@ -47,11 +52,23 @@ namespace VisualPinball.Unity
 		{
 			switch (id) {
 				case "s_left_flipper":
+					if (normallyClosed) {
+						_tableApi.Flipper("FlipperLeft").RotateToEnd();
+					} else {
+						_tableApi.Flipper("FlipperLeft").RotateToStart();
+					}
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_left_flipper", normallyClosed));
 					break;
+
 				case "s_right_flipper":
+					if (normallyClosed) {
+						_tableApi.Flipper("FlipperRight").RotateToEnd();
+					} else {
+						_tableApi.Flipper("FlipperRight").RotateToStart();
+					}
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_right_flipper", normallyClosed));
 					break;
+
 				case "s_plunger":
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_auto_plunger", normallyClosed));
 					break;
