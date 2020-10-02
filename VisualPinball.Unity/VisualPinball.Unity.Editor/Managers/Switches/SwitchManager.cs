@@ -64,14 +64,14 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			titleContent = new GUIContent("Switch Manager",
-				Icons.Switch(false, color: IconColor.Gray, size: IconSize.Small));
+				Icons.Switch(false, size: IconSize.Small));
 
 			RowHeight = 22;
 
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();
 
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_table, _ids, _switchables, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputManager);
 
 			base.OnEnable();
 		}
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(data, cellRect, column, (switchListData) => {
+			_listViewItemRenderer.Render(_table, data, cellRect, column, (switchListData) => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
