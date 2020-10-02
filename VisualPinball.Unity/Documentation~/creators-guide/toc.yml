@@ -16,8 +16,6 @@
 
 - name: Editor
   items:
-    - name: Gamelogic Engine
-      href: editor/gamelogic-engine.md
     - name: Switch Manager
       href: editor/switch-manager.md
     - name: Multiple Tables
@@ -26,6 +24,8 @@
 - name: Manual
   href: manual/manual.md
   items:
+    - name: Gamelogic Engine
+      href: manual/gamelogic-engine.md
     - name: Game Items
       items:
       - name: Flippers
