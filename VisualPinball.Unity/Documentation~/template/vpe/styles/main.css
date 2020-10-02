@@ -36,3 +36,16 @@ img[alt="Visual Pinball Engine"] {
 h1, h2 {
 	font-weight: bold;
 }
+
+.table-bordered, 
+.table-bordered>tbody>tr>td,
+.table-bordered>tbody>tr>th,
+.table-bordered>tfoot>tr>td,
+.table-bordered>tfoot>tr>th,
+.table-bordered>thead>tr>td,
+.table-bordered>thead>tr>th {
+	border-color: rgba(1,1,1,0.15);
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(1,1,1,0.03)
+}
