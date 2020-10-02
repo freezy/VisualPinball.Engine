@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			_engine = engineBehavior.GameEngine;
 			if (_engine is IGamelogicEngineWithSwitches engineWithSwitches) {
 				var config = Table.MappingConfigs["Switch"];
-				var keyBindings = new Dictionary<string, string>();
+				var keyBindings = new Dictionary<string, List<string>>();
 				foreach (var mappingEntry in config.Data.MappingEntries) {
 					switch (mappingEntry.Source) {
 
@@ -103,7 +103,10 @@ namespace VisualPinball.Unity
 						}
 
 						case SwitchSource.InputSystem:
-							keyBindings[mappingEntry.InputAction] = mappingEntry.Id;
+							if (!keyBindings.ContainsKey(mappingEntry.InputAction)) {
+								keyBindings[mappingEntry.InputAction] = new List<string>();
+							}
+							keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
 							break;
 
 						case SwitchSource.Playfield:
@@ -125,9 +128,10 @@ namespace VisualPinball.Unity
 							case InputActionChange.ActionStarted:
 							case InputActionChange.ActionCanceled:
 								var action = (InputAction) obj;
-
 								if (keyBindings.ContainsKey(action.name)) {
-									engineWithSwitches.Switch(keyBindings[action.name],change == InputActionChange.ActionStarted);
+									foreach (var switchId in keyBindings[action.name]) {
+										engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
+									}
 								} else {
 									Logger.Info($"Unmapped input command \"{action.name}\".");
 								}
