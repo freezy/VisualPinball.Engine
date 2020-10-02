@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -113,35 +114,26 @@ namespace VisualPinball.Unity.Editor
 				_forceSelectItemWithName = null;
 			}
 
+			// shift+enter adds a new item
+			if (focusedWindow == this
+			    && Event.current.keyCode == KeyCode.Return
+			    && Event.current.modifiers == EventModifiers.Shift
+			    && Event.current.type == EventType.KeyDown)
+			{
+				Add();
+			}
+
 			EditorGUILayout.BeginHorizontal();
 			if (_isImplAddNewData && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
-				// use a serialized field to force list item selection in the next gui pass
-				// this way undo will cause it to happen again, and if its no there anymore, just deselect any
-				string newDataName = GetUniqueName("New " + DataTypeName);
-				string undoName = "Add " + DataTypeName;
-				_forceSelectItemWithName = newDataName;
-				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				AddNewData(undoName, newDataName);
-				Reload();
-				SetSelection(_data.Count - 1);
+				Add();
 			}
 			if (_isImplRemoveData && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
-					string undoName = "Remove " + DataTypeName;
-					Undo.RecordObjects(new Object[] { this, _table }, undoName);
-					RemoveData(undoName, _selectedItem);
-					Reload();
-					SetSelection(0);
+					Delete();
 				}
 			}
 			if (_isImplCloneData && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
-				string newDataName = GetUniqueName(_selectedItem.Name);
-				string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
-				_forceSelectItemWithName = newDataName;
-				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				CloneData(undoName, newDataName, _selectedItem);
-				Reload();
-				SetSelection(_data.Count - 1);
+				Clone();
 			}
 			OnButtonBarGUI();
 			EditorGUILayout.EndHorizontal();
@@ -232,6 +224,41 @@ namespace VisualPinball.Unity.Editor
 
 		}
 
+		protected void Add()
+		{
+			// use a serialized field to force list item selection in the next gui pass
+			// this way undo will cause it to happen again, and if its no there anymore, just deselect any
+			string newDataName = GetUniqueName("New " + DataTypeName);
+			string undoName = "Add " + DataTypeName;
+			_forceSelectItemWithName = newDataName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			AddNewData(undoName, newDataName);
+			Reload();
+			SetSelection(_data.Count - 1);
+		}
+
+		private void Clone()
+		{
+			string newDataName = GetUniqueName(_selectedItem.Name);
+			string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
+			_forceSelectItemWithName = newDataName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			CloneData(undoName, newDataName, _selectedItem);
+			Reload();
+			SetSelection(_data.Count - 1);
+		}
+
+		private void Delete()
+		{
+			string undoName = "Remove " + DataTypeName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			RemoveData(undoName, _selectedItem);
+			Reload();
+			SetSelection(0);
+		}
+
+		#region Fields
+
 		protected void FloatField(string label, ref float field)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -296,6 +323,8 @@ namespace VisualPinball.Unity.Editor
 				FinalizeChange(label, ref field, optionValues[selectedIndex]);
 			}
 		}
+
+		#endregion
 
 		protected void FinalizeChange<TField>(string label, ref TField field, TField val)
 		{

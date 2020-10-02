@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_table, data, cellRect, column, (switchListData) => {
+			_listViewItemRenderer.Render(_table, data, cellRect, column, switchListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
@@ -183,7 +183,7 @@ namespace VisualPinball.Unity.Editor
 			mappingConfigData.MappingEntries =
 				mappingConfigData.MappingEntries.Append(new MappingEntryData
 				{
-					Id = data.ID,
+					Id = data.Id,
 					Description = data.Description,
 					Source = data.Source,
 					InputActionMap = data.InputActionMap,
