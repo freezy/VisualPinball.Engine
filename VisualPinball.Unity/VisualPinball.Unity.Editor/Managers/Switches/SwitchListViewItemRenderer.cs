@@ -308,8 +308,8 @@ namespace VisualPinball.Unity.Editor
 
 			switch (switchListData.Source) {
 				case SwitchSource.Playfield: {
-					if (_switchables.ContainsKey(switchListData.PlayfieldItem)) {
-						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem], size: IconSize.Small);
+					if (_switchables.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
+						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem.ToLower()], size: IconSize.Small);
 					}
 					break;
 				}
