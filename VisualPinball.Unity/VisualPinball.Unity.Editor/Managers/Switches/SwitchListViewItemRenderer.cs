@@ -46,21 +46,19 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private readonly List<string> _ids;
-		private readonly TableAuthoring _tableAuthoring;
 		private readonly Dictionary<string, ISwitchableAuthoring> _switchables;
 		private readonly InputManager _inputManager;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(TableAuthoring tableAuthoring, List<string> ids, Dictionary<string, ISwitchableAuthoring> switchables, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<string> ids, Dictionary<string, ISwitchableAuthoring> switchables, InputManager inputManager)
 		{
-			_tableAuthoring = tableAuthoring;
 			_ids = ids;
 			_switchables = switchables;
 			_inputManager = inputManager;
 		}
 
-		public void Render(SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
+		public void Render(TableAuthoring tableAuthoring, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
 		{
 			switch ((SwitchListColumn)column)
 			{
@@ -74,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 					RenderSource(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Element:
-					RenderElement(data, cellRect, updateAction);
+					RenderElement(tableAuthoring, data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Type:
 					RenderType(data, cellRect, updateAction);
@@ -152,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			var icon = GetIcon(switchListData);
 
@@ -176,7 +174,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 
 				case SwitchSource.Playfield:
-					RenderPlayfieldElement(switchListData, cellRect, updateAction);
+					RenderPlayfieldElement(tableAuthoring, switchListData, cellRect, updateAction);
 					break;
 
 				case SwitchSource.Constant:
@@ -232,7 +230,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderPlayfieldElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderPlayfieldElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (GUI.Button(cellRect, switchListData.PlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
 			{
@@ -242,7 +240,7 @@ namespace VisualPinball.Unity.Editor
 
 				var dropdown = new ItemSearchableDropdown<ISwitchableAuthoring>(
 					_itemPickDropdownState,
-					_tableAuthoring,
+					tableAuthoring,
 					"Switchable Items",
 					item => {
 						switchListData.PlayfieldItem = item.Name;
@@ -311,12 +309,12 @@ namespace VisualPinball.Unity.Editor
 			switch (switchListData.Source) {
 				case SwitchSource.Playfield: {
 					if (_switchables.ContainsKey(switchListData.PlayfieldItem)) {
-						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem], color: IconColor.Gray, size: IconSize.Small);
+						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem], size: IconSize.Small);
 					}
 					break;
 				}
 				case SwitchSource.Constant:
-					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, color: IconColor.Gray, size: IconSize.Small);
+					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, size: IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:
