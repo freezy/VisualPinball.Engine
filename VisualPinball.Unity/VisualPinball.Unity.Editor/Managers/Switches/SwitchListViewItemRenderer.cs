@@ -99,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 			options.Add("Add...");
 
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.ID), options.ToArray());
+			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Id), options.ToArray());
 			if (EditorGUI.EndChangeCheck())
 			{
 				if (index == options.Count - 1)
@@ -111,14 +111,14 @@ namespace VisualPinball.Unity.Editor
 							_ids.Add(newId);
 						}
 
-						switchListData.ID = newId;
+						switchListData.Id = newId;
 
 						updateAction(switchListData);
 					}));
 				}
 				else
 				{
-					switchListData.ID = _ids[index];
+					switchListData.Id = _ids[index];
 
 					updateAction(switchListData);
 				}

@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Editor
 	public class SwitchListData : IManagerListData
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 120)]
-		public string Name => ID;
+		public string Name => Id;
 
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
 		public string Description;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 5, HeaderName = "Off", Width = 100)]
 		public string Off;
 
-		public string ID;
+		public string Id;
 		public string InputActionMap;
 		public string InputAction;
 		public string PlayfieldItem;
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		public MappingEntryData MappingEntryData;
 
 		public SwitchListData(MappingEntryData mappingEntryData) {
-			ID = mappingEntryData.Id;
+			Id = mappingEntryData.Id;
 			Description = mappingEntryData.Description;
 			Source = mappingEntryData.Source;
 			InputActionMap = mappingEntryData.InputActionMap;
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Update()
 		{
-			MappingEntryData.Id = ID;
+			MappingEntryData.Id = Id;
 			MappingEntryData.Description = Description;
 			MappingEntryData.Source = Source;
 			MappingEntryData.InputActionMap = InputActionMap;
