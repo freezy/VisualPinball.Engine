@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Linq;
 using NLog;
-using UnityEngine;
 using UnityEditor;
-using VisualPinball.Engine.VPT.MappingConfig;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.MappingConfig;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
@@ -43,8 +41,9 @@ namespace VisualPinball.Unity.Editor
 		protected override bool DetailsEnabled => false;
 		protected override bool ListViewItemRendererEnabled => true;
 
-		private List<string> _ids = new List<string>();
-		private Dictionary<string, ISwitchableAuthoring> _switchables = new Dictionary<string, ISwitchableAuthoring>();
+		private readonly List<string> _ids = new List<string>();
+		private readonly Dictionary<string, ISwitchableAuthoring> _switchables = new Dictionary<string, ISwitchableAuthoring>();
+
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
@@ -86,25 +85,30 @@ namespace VisualPinball.Unity.Editor
 
 					var mappingConfigData = GetSwitchMappingConfig();
 
-					FindNamedSwitchables((switchableItem, id) =>
-					{
-						if (GetSwitchMappingEntryByID(id) == null)
-						{
-							MappingEntryData entry = new MappingEntryData
-							{
-								Id = id,
+					foreach (var switchId in _ids) {
+
+						if (GetSwitchMappingEntryByID(switchId) == null) {
+
+							var matchKey = int.TryParse(switchId, out var numericSwitchId)
+								? $"sw{numericSwitchId}"
+								: switchId;
+
+							var matchedItem = _switchables.ContainsKey(matchKey)
+								? _switchables[matchKey]
+								: null;
+
+							var entry = new MappingEntryData {
+								Id = switchId,
 								Source = SwitchSource.Playfield,
-								PlayfieldItem = switchableItem.Name,
-								Type = switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring
+								PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
+								Type = matchedItem is KickerAuthoring || matchedItem is TriggerAuthoring
 									? SwitchType.OnOff
 									: SwitchType.Pulse
 							};
 
-							mappingConfigData.MappingEntries =
-								mappingConfigData.MappingEntries.Append(entry).ToArray();
+							mappingConfigData.MappingEntries = mappingConfigData.MappingEntries.Append(entry).ToArray();
 						}
-					});
-
+					}
 					Reload();
 				}
 			}
@@ -201,14 +205,13 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var item in _table.GetComponentsInChildren<ISwitchableAuthoring>())
 				{
-					_switchables.Add(item.Name, item);
+					_switchables.Add(item.Name.ToLower(), item);
 				}
 			}
 		}
 
 		private void RefreshIDs()
 		{
-
 			_ids.Clear();
 			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
 			if (gle != null) {
@@ -230,18 +233,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			_ids.Sort();
-		}
-
-		private void FindNamedSwitchables(Action<ISwitchableAuthoring, string> action)
-		{
-			foreach (var item in _switchables.Values)
-			{
-				var match = new Regex(@"^(sw)(\d+)$").Match(item.Name);
-				if (match.Success)
-				{
-					action(item, match.Groups[2].Value);
-				}
-			}
 		}
 
 		private MappingConfigData GetSwitchMappingConfig()
@@ -297,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 			_recordMappingConfigs.MappingConfigs.Clear();
 			_recordMappingConfigs.MappingConfigs.AddRange(_table?.MappingConfigs);
 
-			Undo.RecordObjects(new UnityEngine.Object[] { this, _recordMappingConfigs }, undoName);
+			Undo.RecordObjects(new Object[] { this, _recordMappingConfigs }, undoName);
 		}
 		#endregion
 	}

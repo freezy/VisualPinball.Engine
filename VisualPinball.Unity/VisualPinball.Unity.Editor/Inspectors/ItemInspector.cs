@@ -35,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnEnable()
 		{
+
 #if UNITY_EDITOR
 			// for convenience move item behavior to the top of the list
 			// we're opting to due this here as opposed to at import time since modifying objects
@@ -46,7 +47,6 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 #endif
-
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 			EditorApplication.hierarchyChanged += OnHierarchyChange;
@@ -89,8 +89,16 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			var item = (target as IEditableItemAuthoring);
-			if (item == null) return;
+			if (!(target is IEditableItemAuthoring item)) {
+				return;
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit("Name", false);
+				item.ItemData.SetName(val);
+			}
 
 			EditorGUI.BeginChangeCheck();
 			bool newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
@@ -295,7 +303,7 @@ namespace VisualPinball.Unity.Editor
 			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				var item = (target as IEditableItemAuthoring);
+				var item = target as IEditableItemAuthoring;
 				if (item != null) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);

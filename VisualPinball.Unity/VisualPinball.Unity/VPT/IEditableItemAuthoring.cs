@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public interface IEditableItemAuthoring
+	public interface IEditableItemAuthoring : IIdentifiableItemAuthoring
 	{
 		bool IsLocked { get; set; }
 		bool MeshDirty { get; set; }
