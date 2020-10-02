@@ -16,6 +16,7 @@
 
 using System;
 using NLog;
+using UnityEngine;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -50,22 +51,23 @@ namespace VisualPinball.Unity
 
 		public void Switch(string id, bool normallyClosed)
 		{
+			Debug.Log("switched " + id);
 			switch (id) {
 				case "s_left_flipper":
-					if (normallyClosed) {
-						_tableApi.Flipper("FlipperLeft").RotateToEnd();
-					} else {
-						_tableApi.Flipper("FlipperLeft").RotateToStart();
-					}
+					// if (normallyClosed) {
+					// 	_tableApi.Flipper("FlipperLeft").RotateToEnd();
+					// } else {
+					// 	_tableApi.Flipper("FlipperLeft").RotateToStart();
+					// }
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_left_flipper", normallyClosed));
 					break;
 
 				case "s_right_flipper":
-					if (normallyClosed) {
-						_tableApi.Flipper("FlipperRight").RotateToEnd();
-					} else {
-						_tableApi.Flipper("FlipperRight").RotateToStart();
-					}
+					// if (normallyClosed) {
+					// 	_tableApi.Flipper("FlipperRight").RotateToEnd();
+					// } else {
+					// 	_tableApi.Flipper("FlipperRight").RotateToStart();
+					// }
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_right_flipper", normallyClosed));
 					break;
 
