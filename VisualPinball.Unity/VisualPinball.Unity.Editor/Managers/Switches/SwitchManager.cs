@@ -75,6 +75,29 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
+		protected override bool SetupCompleted()
+		{
+			if (_table == null) {
+				return true;
+			}
+			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
+			if (gle != null) {
+				return true;
+			}
+
+			// show error centered
+			GUILayout.BeginHorizontal();
+			GUILayout.BeginVertical();
+			GUILayout.FlexibleSpace();
+			var style = new GUIStyle(GUI.skin.label) {alignment = TextAnchor.MiddleCenter};
+			EditorGUILayout.LabelField("No gamelogic engine set.", style, GUILayout.ExpandWidth(true));
+			GUILayout.FlexibleSpace();
+			GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+
+			return false;
+		}
+
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))

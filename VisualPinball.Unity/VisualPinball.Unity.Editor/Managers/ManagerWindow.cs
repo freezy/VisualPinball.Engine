@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Color = VisualPinball.Engine.Math.Color;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -44,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual int MoveData(string undoName, T data, int increment) { return 0; }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
 		protected virtual void OnDataSelected() { }
+		protected virtual bool SetupCompleted() => true;
 
 		protected virtual bool ListViewItemRendererEnabled => false;
 		protected virtual void OnListViewItemRenderer(T data, Rect rect, int column) { }
@@ -107,6 +110,10 @@ namespace VisualPinball.Unity.Editor
 			if (_table == null) {
 				_selectedItem = null;
 				_listView?.SetData(null);
+			}
+
+			if (!SetupCompleted()) {
+				return;
 			}
 
 			if (!string.IsNullOrEmpty(_forceSelectItemWithName)) {
@@ -295,16 +302,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ColorField(string label, ref Engine.Math.Color field, string tooltip = "")
+		protected void ColorField(string label, ref Color field, string tooltip = "")
 		{
 			EditorGUI.BeginChangeCheck();
-			Engine.Math.Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
+			Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
 			if (EditorGUI.EndChangeCheck()) {
 				FinalizeChange(label, ref field, val);
 			}
 		}
 
-		protected void DropDownField<TField>(string label, ref TField field, string[] optionStrings, TField[] optionValues) where TField : System.IEquatable<TField>
+		protected void DropDownField<TField>(string label, ref TField field, string[] optionStrings, TField[] optionValues) where TField : IEquatable<TField>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
