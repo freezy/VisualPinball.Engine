@@ -95,7 +95,9 @@ namespace VisualPinball.Unity.Editor
 								Id = id,
 								Source = SwitchSource.Playfield,
 								PlayfieldItem = switchableItem.Name,
-								Type = (switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring) ? SwitchType.OnOff : SwitchType.Pulse
+								Type = switchableItem is KickerAuthoring || switchableItem is TriggerAuthoring
+									? SwitchType.OnOff
+									: SwitchType.Pulse
 							};
 
 							mappingConfigData.MappingEntries =
@@ -217,14 +219,6 @@ namespace VisualPinball.Unity.Editor
 				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support switches.");
 			}
 
-			// FindNamedSwitchables((item, id) =>
-			// {
-			// 	if (_ids.IndexOf(id) == -1)
-			// 	{
-			// 		_ids.Add(id);
-			// 	}
-			// });
-
 			var mappingConfigData = GetSwitchMappingConfig();
 
 			foreach (var mappingEntryData in mappingConfigData.MappingEntries)
@@ -269,19 +263,9 @@ namespace VisualPinball.Unity.Editor
 		private MappingEntryData GetSwitchMappingEntryByID(string id)
 		{
 			var mappingConfigData = GetSwitchMappingConfig();
-
-			if (mappingConfigData != null)
-			{
-				foreach (var mappingEntryData in mappingConfigData.MappingEntries)
-				{
-					if (mappingEntryData.Id == id)
-					{
-						return mappingEntryData;
-					}
-				}
-			}
-
-			return null;
+			return mappingConfigData?
+				.MappingEntries
+				.FirstOrDefault(mappingEntryData => mappingEntryData.Id == id);
 		}
 		#endregion
 
