@@ -120,13 +120,16 @@ namespace VisualPinball.Unity.Editor
 								? _switchables[matchKey]
 								: null;
 
+							var source = GuessSource(switchId);
 							var entry = new MappingEntryData {
 								Id = switchId,
-								Source = SwitchSource.Playfield,
+								Source = source,
 								PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
-								Type = matchedItem is KickerAuthoring || matchedItem is TriggerAuthoring
+								Type = matchedItem is KickerAuthoring || matchedItem is TriggerAuthoring || source == SwitchSource.InputSystem
 									? SwitchType.OnOff
-									: SwitchType.Pulse
+									: SwitchType.Pulse,
+								InputActionMap = GuessInputMap(switchId),
+								InputAction = source == SwitchSource.InputSystem ? GuessInputAction(switchId) : null,
 							};
 
 							mappingConfigData.MappingEntries = mappingConfigData.MappingEntries.Append(entry).ToArray();
@@ -148,6 +151,44 @@ namespace VisualPinball.Unity.Editor
 					Reload();
 				}
 			}
+		}
+
+		private int GuessSource(string switchId)
+		{
+			if (switchId.Contains("left_flipper")) {
+				return SwitchSource.InputSystem;
+			}
+			if (switchId.Contains("right_flipper")) {
+				return SwitchSource.InputSystem;
+			}
+			if (switchId.Contains("create_ball")) {
+				return SwitchSource.InputSystem;
+			}
+
+			return SwitchSource.Playfield;
+		}
+
+		private string GuessInputMap(string switchId)
+		{
+			if (switchId.Contains("create_ball")) {
+				return InputManager.MapDebug;
+			}
+			return InputManager.MapCabinetSwitches;
+		}
+
+		private string GuessInputAction(string switchId)
+		{
+			if (switchId.Contains("left_flipper")) {
+				return InputManager.ActionLeftFlipper;
+			}
+			if (switchId.Contains("right_flipper")) {
+				return InputManager.ActionRightFlipper;
+			}
+			if (switchId.Contains("create_ball")) {
+				return InputManager.ActionCreateBall;
+			}
+
+			return string.Empty;
 		}
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)

@@ -21,13 +21,40 @@ using UnityEngine.InputSystem;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using Unity.Entities.UniversalDelegates;
 
 namespace VisualPinball.Unity
 {
 	public class InputManager
 	{
-		public static readonly string VPE_ACTION_CREATE_BALL = "Create Ball";
-		public static readonly string VPE_ACTION_KICKER = "Kicker";
+		public const string MapCabinetSwitches = "Cabinet Switches";
+		public const string MapDebug = "Visual Pinball Engine";
+
+		public const string ActionCreateBall = "Create Ball";
+		public const string ActionKicker = "Kicker";
+
+		public const string ActionUpperLeftFlipper = "Upper Left Flipper";
+		public const string ActionUpperRightFlipper = "Upper Right Flipper";
+		public const string ActionLeftFlipper = "Left Flipper";
+		public const string ActionRightFlipper = "Right Flipper";
+		public const string ActionRightMagnasave = "Right Magnasave";
+		public const string ActionLeftMagnasave = "Left Magnasave";
+		public const string ActionFire1 = "Fire 1";
+		public const string ActionFire2 = "Fire 2";
+		public const string ActionFrontBuyIn = "Front (buy-in)";
+		public const string ActionStartGame = "Start Game";
+		public const string ActionPlunger = "Plunger";
+		public const string ActionInsertCoin1 = "Insert Coin Slot 1";
+		public const string ActionInsertCoin2 = "Insert Coin Slot 2";
+		public const string ActionInsertCoin3 = "Insert Coin Slot 3";
+		public const string ActionInsertCoin4 = "Insert Coin Slot 4";
+		public const string ActionCoinDoorOpenClose = "Coin Door Open/Close";
+		public const string ActionCoinDoorCancel = "Coin Door Cancel (WPC)";
+		public const string ActionCoinDoorDown = "Coin Door Down (WPC)";
+		public const string ActionCoinDoorUp = "Coin Door Up (WPC)";
+		public const string ActionCoinDoorAdvance = "Coin Door Advance";
+		public const string ActionCoinDoorUpDown = "Coin Door Up/Down";
+		public const string ActionSlamTilt = "Slam Tilt";
 
 		private static readonly string RESOURCE_NAME = "VPE";
 
@@ -119,35 +146,35 @@ namespace VisualPinball.Unity
 		{
 			var asset = ScriptableObject.CreateInstance<InputActionAsset>();
 
-			var map = new InputActionMap("Cabinet Switches");
-			map.AddAction("Upper Left Flipper", InputActionType.Button, "<Keyboard>/a");
-			map.AddAction("Upper Right Flipper", InputActionType.Button, "<Keyboard>/quote");
-			map.AddAction("Left Flipper", InputActionType.Button, "<Keyboard>/leftShift");
-			map.AddAction("Right Flipper", InputActionType.Button, "<Keyboard>/rightShift");
-			map.AddAction("Right Magnasave", InputActionType.Button, "<Keyboard>/rightCtrl");
-			map.AddAction("Left Magnasave", InputActionType.Button, "<Keyboard>/leftCtrl");
-			map.AddAction("Fire 1", InputActionType.Button, "<Keyboard>/leftCtrl");
-			map.AddAction("Fire 2", InputActionType.Button, "<Keyboard>/rightAlt");
-			map.AddAction("Front (buy-in)", InputActionType.Button, "<Keyboard>/2");
-			map.AddAction("Start Game", InputActionType.Button, "<Keyboard>/1");
-			map.AddAction("Plunger", InputActionType.Button, "<Keyboard>/enter");
-			map.AddAction("Insert Coin Slot 1", InputActionType.Button, "<Keyboard>/3");
-			map.AddAction("Insert Coin Slot 2", InputActionType.Button, "<Keyboard>/4");
-			map.AddAction("Insert Coin Slot 3", InputActionType.Button, "<Keyboard>/5");
-			map.AddAction("Insert Coin Slot 4", InputActionType.Button, "<Keyboard>/6");
-			map.AddAction("Coin Door Open/Close", InputActionType.Button, "<Keyboard>/end");
-			map.AddAction("Coin Door Cancel (WPC)", InputActionType.Button, "<Keyboard>/7");
-			map.AddAction("Coin Door Down (WPC)", InputActionType.Button, "<Keyboard>/8");
-			map.AddAction("Coin Door Up (WPC)", InputActionType.Button, "<Keyboard>/9");
-			map.AddAction("Coin Door Advance", InputActionType.Button, "<Keyboard>/8");
-			map.AddAction("Coin Door Up/Down", InputActionType.Button, "<Keyboard>/7");
-			map.AddAction("Slam Tilt", InputActionType.Button, "<Keyboard>/home");
+			var map = new InputActionMap(MapCabinetSwitches);
+			map.AddAction(ActionUpperLeftFlipper, InputActionType.Button, "<Keyboard>/a");
+			map.AddAction(ActionUpperRightFlipper, InputActionType.Button, "<Keyboard>/quote");
+			map.AddAction(ActionLeftFlipper, InputActionType.Button, "<Keyboard>/leftShift");
+			map.AddAction(ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift");
+			map.AddAction(ActionRightMagnasave, InputActionType.Button, "<Keyboard>/rightCtrl");
+			map.AddAction(ActionLeftMagnasave, InputActionType.Button, "<Keyboard>/leftCtrl");
+			map.AddAction(ActionFire1, InputActionType.Button, "<Keyboard>/leftCtrl");
+			map.AddAction(ActionFire2, InputActionType.Button, "<Keyboard>/rightAlt");
+			map.AddAction(ActionFrontBuyIn, InputActionType.Button, "<Keyboard>/2");
+			map.AddAction(ActionStartGame, InputActionType.Button, "<Keyboard>/1");
+			map.AddAction(ActionPlunger, InputActionType.Button, "<Keyboard>/enter");
+			map.AddAction(ActionInsertCoin1, InputActionType.Button, "<Keyboard>/3");
+			map.AddAction(ActionInsertCoin2, InputActionType.Button, "<Keyboard>/4");
+			map.AddAction(ActionInsertCoin3, InputActionType.Button, "<Keyboard>/5");
+			map.AddAction(ActionInsertCoin4, InputActionType.Button, "<Keyboard>/6");
+			map.AddAction(ActionCoinDoorOpenClose, InputActionType.Button, "<Keyboard>/end");
+			map.AddAction(ActionCoinDoorCancel, InputActionType.Button, "<Keyboard>/7");
+			map.AddAction(ActionCoinDoorDown, InputActionType.Button, "<Keyboard>/8");
+			map.AddAction(ActionCoinDoorUp, InputActionType.Button, "<Keyboard>/9");
+			map.AddAction(ActionCoinDoorAdvance, InputActionType.Button, "<Keyboard>/8");
+			map.AddAction(ActionCoinDoorUpDown, InputActionType.Button, "<Keyboard>/7");
+			map.AddAction(ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");
 
 			asset.AddActionMap(map);
 
-			map = new InputActionMap("Visual Pinball Engine");
-			map.AddAction(VPE_ACTION_CREATE_BALL, InputActionType.Button, "<Keyboard>/b");
-			map.AddAction(VPE_ACTION_KICKER, InputActionType.Button, "<Keyboard>/n");
+			map = new InputActionMap(MapDebug);
+			map.AddAction(ActionCreateBall, InputActionType.Button, "<Keyboard>/b");
+			map.AddAction(ActionKicker, InputActionType.Button, "<Keyboard>/n");
 
 			asset.AddActionMap(map);
 
