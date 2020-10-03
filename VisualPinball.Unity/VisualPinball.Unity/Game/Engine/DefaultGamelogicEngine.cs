@@ -16,23 +16,39 @@
 
 using System;
 using NLog;
-using UnityEngine;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// The default gamelogic engine will be a showcase of how to implement a
+	/// gamelogic engine. For now it just tries to find the flippers and hook
+	/// them up to the switches.
+	/// </summary>
 	[Serializable]
 	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils
 	{
 		public string Name => "Default Game Engine";
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		public string[] AvailableSwitches { get; } = {SwLeftFlipper, SwRightFlipper, SwPlunger, SwCreateBall};
+
+		public string[] AvailableCoils { get; } = {CoilLeftFlipper, CoilRightFlipper, CoilAutoPlunger};
+
+		private const string SwLeftFlipper = "s_left_flipper";
+		private const string SwRightFlipper = "s_right_flipper";
+		private const string SwPlunger = "s_plunger";
+		private const string SwCreateBall = "s_create_ball";
+
+		private const string CoilLeftFlipper = "c_left_flipper";
+		private const string CoilRightFlipper = "c_right_flipper";
+		private const string CoilAutoPlunger = "c_auto_plunger";
 
 		private TableApi _tableApi;
 		private BallManager _ballManager;
 
 		private FlipperApi _leftFlipper;
 		private FlipperApi _rightFlipper;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
@@ -58,17 +74,13 @@ namespace VisualPinball.Unity
 			OnCoilChanged -= DebugPrintCoil;
 		}
 
-		public string[] AvailableSwitches { get; } = {"s_left_flipper", "s_right_flipper", "s_plunger", "s_create_ball"};
-
-		public string[] AvailableCoils { get; } = {"c_left_flipper", "c_right_flipper", "c_auto_plunger"};
-
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
 
 		public void Switch(string id, bool normallyClosed)
 		{
 			switch (id) {
 
-				case "s_left_flipper":
+				case SwLeftFlipper:
 
 					// todo remove when solenoids are done
 					if (normallyClosed) {
@@ -76,10 +88,10 @@ namespace VisualPinball.Unity
 					} else {
 						_leftFlipper?.RotateToStart();
 					}
-					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_left_flipper", normallyClosed));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipper, normallyClosed));
 					break;
 
-				case "s_right_flipper":
+				case SwRightFlipper:
 
 					// todo remove when solenoids are done
 					if (normallyClosed) {
@@ -88,14 +100,14 @@ namespace VisualPinball.Unity
 						_rightFlipper?.RotateToStart();
 					}
 
-					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_right_flipper", normallyClosed));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipper, normallyClosed));
 					break;
 
-				case "s_plunger":
-					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_auto_plunger", normallyClosed));
+				case SwPlunger:
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilAutoPlunger, normallyClosed));
 					break;
 
-				case "s_create_ball": {
+				case SwCreateBall: {
 					if (normallyClosed) {
 						_ballManager.CreateBall(new DebugBallCreator());
 					}
@@ -103,7 +115,6 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
-
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
