@@ -48,6 +48,8 @@ namespace VisualPinball.Unity
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
+		public DefaultGamelogicEngine GameEngine;
+
 		// table related
 		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
@@ -63,7 +65,6 @@ namespace VisualPinball.Unity
 
 		// input related
 		private InputManager _inputManager;
-		private DefaultGamelogicEngine _engine;
 
 		public Player()
 		{
@@ -75,22 +76,26 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
+			var engineComponent = GetComponent<DefaultGameEngineAuthoring>();
+
 			Table = tableComponent.CreateTable();
 			_ballManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
+
+			if (engineComponent != null) {
+				GameEngine = engineComponent.GameEngine;
+			}
 		}
 
 		private void OnDestroy()
 		{
-			_engine?.OnDestroy();
+			GameEngine?.OnDestroy();
 		}
 
 		private void Start()
 		{
-			// hook-up game engine
-			var engineBehavior = GetComponent<DefaultGameEngineAuthoring>();
-			_engine = engineBehavior.GameEngine;
-			if (_engine is IGamelogicEngineWithSwitches engineWithSwitches) {
+			// hook-up game switches
+			if (GameEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
 				var config = Table.MappingConfigs["Switch"];
 				var keyBindings = new Dictionary<string, List<string>>();
 				foreach (var mappingEntry in config.Data.MappingEntries) {
@@ -98,7 +103,7 @@ namespace VisualPinball.Unity
 
 						case SwitchSource.Playfield when _switchables.ContainsKey(mappingEntry.PlayfieldItem): {
 							var element = _switchables[mappingEntry.PlayfieldItem];
-							element.SetGamelogicEngine(engineWithSwitches);
+							element.AddSwitchId(mappingEntry.Id);
 							break;
 						}
 
@@ -140,7 +145,7 @@ namespace VisualPinball.Unity
 					});
 				}
 			}
-			_engine.OnInit(_tableApi);
+			GameEngine.OnInit(_tableApi, _ballManager);
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -25,8 +26,6 @@ namespace VisualPinball.Unity
 		protected readonly T Item;
 		protected readonly Player Player;
 		internal readonly Entity Entity;
-
-		protected IGamelogicEngineWithSwitches GamelogicEngineWithSwitches;
 
 		protected TData Data => Item.Data;
 		protected Table Table => Player.Table;
@@ -40,6 +39,31 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			Player = player;
+			_gamelogicEngineWithSwitches = player.GameEngine;
 		}
+
+		#region IApiSwitchable
+
+		private List<string> _switchIds;
+		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
+
+		protected void AddSwitchId(string switchId)
+		{
+			if (_switchIds == null) {
+				_switchIds = new List<string>();
+			}
+			_switchIds.Add(switchId);
+		}
+
+		protected void OnSwitch(bool normallyClosed)
+		{
+			if (_gamelogicEngineWithSwitches != null && _switchIds != null) {
+				foreach (var switchId in _switchIds) {
+					_gamelogicEngineWithSwitches.Switch(switchId, normallyClosed);
+				}
+			}
+		}
+
+		#endregion
 	}
 }

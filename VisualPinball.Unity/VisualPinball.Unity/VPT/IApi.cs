@@ -48,6 +48,6 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitchable
 	{
-		void SetGamelogicEngine(IGamelogicEngineWithSwitches gle);
+		void AddSwitchId(string mappingEntryId);
 	}
 }

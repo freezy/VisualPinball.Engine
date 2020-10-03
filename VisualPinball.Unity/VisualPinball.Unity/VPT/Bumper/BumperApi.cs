@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 		{
 		}
 
+		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+
 		#region Events
 
 		void IApiInitializable.OnInit()
@@ -47,11 +49,10 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(bool isUnHit)
 		{
 			Hit?.Invoke(this, EventArgs.Empty);
-			GamelogicEngineWithSwitches?.Switch(Item.Name, true);
+			OnSwitch(true);
 		}
 
-		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
-
 		#endregion
+
 	}
 }

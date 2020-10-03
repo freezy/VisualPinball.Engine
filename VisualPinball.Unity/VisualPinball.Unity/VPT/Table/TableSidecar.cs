@@ -23,7 +23,6 @@ using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;

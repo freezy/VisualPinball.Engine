@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity

@@ -17,7 +17,6 @@
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
