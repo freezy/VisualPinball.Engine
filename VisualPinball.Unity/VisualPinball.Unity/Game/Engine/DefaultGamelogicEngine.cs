@@ -31,10 +31,23 @@ namespace VisualPinball.Unity
 		private TableApi _tableApi;
 		private BallManager _ballManager;
 
+		private FlipperApi _leftFlipper;
+		private FlipperApi _rightFlipper;
+
 		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
 			_tableApi = tableApi;
 			_ballManager = ballManager;
+
+			// flippers
+			_leftFlipper = _tableApi.Flipper("LeftFlipper")
+			             ?? _tableApi.Flipper("FlipperLeft")
+			             ?? _tableApi.Flipper("FlipperL")
+			             ?? _tableApi.Flipper("LFlipper");
+			_rightFlipper = _tableApi.Flipper("RightFlipper")
+			             ?? _tableApi.Flipper("FlipperRight")
+			             ?? _tableApi.Flipper("FlipperR")
+			             ?? _tableApi.Flipper("RFlipper");
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -45,7 +58,7 @@ namespace VisualPinball.Unity
 			OnCoilChanged -= DebugPrintCoil;
 		}
 
-		public string[] AvailableSwitches { get; } = {"s_left_flipper", "s_right_flipper", "s_plunger"};
+		public string[] AvailableSwitches { get; } = {"s_left_flipper", "s_right_flipper", "s_plunger", "s_create_ball"};
 
 		public string[] AvailableCoils { get; } = {"c_left_flipper", "c_right_flipper", "c_auto_plunger"};
 
@@ -53,23 +66,28 @@ namespace VisualPinball.Unity
 
 		public void Switch(string id, bool normallyClosed)
 		{
-			Debug.Log("switched " + id);
 			switch (id) {
+
 				case "s_left_flipper":
-					// if (normallyClosed) {
-					// 	_tableApi.Flipper("FlipperLeft").RotateToEnd();
-					// } else {
-					// 	_tableApi.Flipper("FlipperLeft").RotateToStart();
-					// }
+
+					// todo remove when solenoids are done
+					if (normallyClosed) {
+						_leftFlipper?.RotateToEnd();
+					} else {
+						_leftFlipper?.RotateToStart();
+					}
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_left_flipper", normallyClosed));
 					break;
 
 				case "s_right_flipper":
-					// if (normallyClosed) {
-					// 	_tableApi.Flipper("FlipperRight").RotateToEnd();
-					// } else {
-					// 	_tableApi.Flipper("FlipperRight").RotateToStart();
-					// }
+
+					// todo remove when solenoids are done
+					if (normallyClosed) {
+						_rightFlipper?.RotateToEnd();
+					} else {
+						_rightFlipper?.RotateToStart();
+					}
+
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_right_flipper", normallyClosed));
 					break;
 
@@ -77,7 +95,7 @@ namespace VisualPinball.Unity
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_auto_plunger", normallyClosed));
 					break;
 
-				case "ball": {
+				case "s_create_ball": {
 					if (normallyClosed) {
 						_ballManager.CreateBall(new DebugBallCreator());
 					}
@@ -89,7 +107,7 @@ namespace VisualPinball.Unity
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
-			Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
+			//Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
 		}
 	}
 }

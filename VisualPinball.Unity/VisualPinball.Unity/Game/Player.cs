@@ -101,7 +101,10 @@ namespace VisualPinball.Unity
 				foreach (var mappingEntry in config.Data.MappingEntries) {
 					switch (mappingEntry.Source) {
 
-						case SwitchSource.Playfield when _switchables.ContainsKey(mappingEntry.PlayfieldItem): {
+						case SwitchSource.Playfield
+							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
+							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
+						{
 							var element = _switchables[mappingEntry.PlayfieldItem];
 							element.AddSwitchId(mappingEntry.Id);
 							break;
