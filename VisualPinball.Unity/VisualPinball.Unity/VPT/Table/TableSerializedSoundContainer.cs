@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using VisualPinball.Engine.VPT.Sound;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

@@ -64,6 +64,8 @@ namespace VisualPinball.Unity
 		{
 		}
 
+		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+
 		#region Events
 
 		void IApiInitializable.OnInit()
@@ -74,7 +76,7 @@ namespace VisualPinball.Unity
 		void IApiSpinnable.OnSpin()
 		{
 			Spin?.Invoke(this, EventArgs.Empty);
-			GamelogicEngineWithSwitches?.Switch(Item.Name, true);
+			OnSwitch(true);
 		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
@@ -85,8 +87,6 @@ namespace VisualPinball.Unity
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
 		}
-
-		void IApiSwitchable.SetGamelogicEngine(IGamelogicEngineWithSwitches gle) => GamelogicEngineWithSwitches = gle;
 
 		#endregion
 	}

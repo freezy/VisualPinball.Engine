@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
 using Random = Unity.Mathematics.Random;
 

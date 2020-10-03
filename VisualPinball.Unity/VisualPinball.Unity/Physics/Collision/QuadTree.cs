@@ -16,7 +16,6 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {

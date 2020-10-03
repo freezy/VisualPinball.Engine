@@ -41,7 +41,6 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
@@ -50,7 +49,6 @@ using VisualPinball.Engine.VPT.Trigger;
 
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
-using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {

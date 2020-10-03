@@ -17,7 +17,6 @@
 // ReSharper disable ClassNeverInstantiated.Global
 
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;

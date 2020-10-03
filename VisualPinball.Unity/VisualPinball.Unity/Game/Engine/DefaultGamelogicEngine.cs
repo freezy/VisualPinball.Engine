@@ -29,10 +29,12 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private TableApi _tableApi;
+		private BallManager _ballManager;
 
-		public void OnInit(TableApi tableApi)
+		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
 			_tableApi = tableApi;
+			_ballManager = ballManager;
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -74,6 +76,13 @@ namespace VisualPinball.Unity
 				case "s_plunger":
 					OnCoilChanged?.Invoke(this, new CoilEventArgs("c_auto_plunger", normallyClosed));
 					break;
+
+				case "ball": {
+					if (normallyClosed) {
+						_ballManager.CreateBall(new DebugBallCreator());
+					}
+					break;
+				}
 			}
 		}
 
