@@ -49,13 +49,11 @@ namespace VisualPinball.Unity.Editor
 #endif
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
-			EditorApplication.hierarchyChanged += OnHierarchyChange;
 		}
 		protected virtual void OnDisable()
 		{
-			EditorApplication.hierarchyChanged -= OnHierarchyChange;
 		}
-
+		
 		protected void PopulateDropDownOptions()
 		{
 			if (_table == null) return;
@@ -73,17 +71,6 @@ namespace VisualPinball.Unity.Editor
 				_allTextures[0] = "- none -";
 				_table.Textures.Select(tex => tex.Name).ToArray().CopyTo(_allTextures, 1);
 				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
-			}
-		}
-
-		private void OnHierarchyChange()
-		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
-				if (item.Name != bh.gameObject.name) {
-					var oldName = item.Name;
-					item.Name = bh.gameObject.name;
-					ItemRenamed?.Invoke(item, oldName, bh.gameObject.name);
-				}
 			}
 		}
 
@@ -107,6 +94,14 @@ namespace VisualPinball.Unity.Editor
 				FinishEdit("IsLocked");
 				item.IsLocked = newLock;
 				SceneView.RepaintAll();
+			}
+
+			if (target is IIdentifiableItemAuthoring identity && target is MonoBehaviour bh) {
+				if (identity.Name != bh.gameObject.name) {
+					var oldName = identity.Name;
+					identity.Name = bh.gameObject.name;
+					ItemRenamed?.Invoke(identity, oldName, bh.gameObject.name);
+				}
 			}
 		}
 
