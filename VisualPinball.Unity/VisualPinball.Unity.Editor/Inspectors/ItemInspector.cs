@@ -21,13 +21,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
-			EditorApplication.hierarchyChanged += OnHierarchyChange;
 		}
 		protected virtual void OnDisable()
 		{
-			EditorApplication.hierarchyChanged -= OnHierarchyChange;
 		}
-
+		
 		protected void PopulateDropDownOptions()
 		{
 			if (_table == null) return;
@@ -48,17 +46,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnHierarchyChange()
-		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
-				if (item.Name != bh.gameObject.name) {
-					var oldName = item.Name;
-					item.Name = bh.gameObject.name;
-					ItemRenamed?.Invoke(item, oldName, bh.gameObject.name);
-				}
-			}
-		}
-
 		protected void OnPreInspectorGUI()
 		{
 			var item = (target as IEditableItemAuthoring);
@@ -71,6 +58,14 @@ namespace VisualPinball.Unity.Editor
 				FinishEdit("IsLocked");
 				item.IsLocked = newLock;
 				SceneView.RepaintAll();
+			}
+
+			if (target is IIdentifiableItemAuthoring identity && target is MonoBehaviour bh) {
+				if (identity.Name != bh.gameObject.name) {
+					var oldName = identity.Name;
+					identity.Name = bh.gameObject.name;
+					ItemRenamed?.Invoke(identity, oldName, bh.gameObject.name);
+				}
 			}
 		}
 
