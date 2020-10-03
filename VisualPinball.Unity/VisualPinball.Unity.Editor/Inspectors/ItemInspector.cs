@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Linq;
 using UnityEditor;
@@ -19,6 +35,18 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnEnable()
 		{
+
+#if UNITY_EDITOR
+			// for convenience move item behavior to the top of the list
+			// we're opting to due this here as opposed to at import time since modifying objects
+			// in this way caused them to not be part of the created object undo stack
+			if (target != null && target is MonoBehaviour mb) {
+				int numComp = mb.GetComponents<MonoBehaviour>().Length;
+				for (int i = 0; i <= numComp; i++) {
+					UnityEditorInternal.ComponentUtility.MoveComponentUp(mb);
+				}
+			}
+#endif
 			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 		}
@@ -48,8 +76,16 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			var item = (target as IEditableItemAuthoring);
-			if (item == null) return;
+			if (!(target is IEditableItemAuthoring item)) {
+				return;
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit("Name", false);
+				item.ItemData.SetName(val);
+			}
 
 			EditorGUI.BeginChangeCheck();
 			bool newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
@@ -262,7 +298,7 @@ namespace VisualPinball.Unity.Editor
 			string undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				var item = (target as IEditableItemAuthoring);
+				var item = target as IEditableItemAuthoring;
 				if (item != null) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);

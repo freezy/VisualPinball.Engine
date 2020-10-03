@@ -1,4 +1,20 @@
-﻿// ReSharper disable ClassNeverInstantiated.Global
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
 using System;
@@ -11,6 +27,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.MappingConfig;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
@@ -24,13 +41,12 @@ using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.VPT.Table;
+
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
 
@@ -42,6 +58,8 @@ namespace VisualPinball.Unity
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
+		public List<CollectionData> Collections => _sidecar?.collections;
+		public List<MappingConfigData> MappingConfigs => _sidecar?.mappingConfigs;
 		public Patcher.Patcher Patcher { get; internal set; }
 
 		protected override string[] Children => null;
@@ -54,15 +72,10 @@ namespace VisualPinball.Unity
 		// will cache miss and get recreated as well
 		private readonly Dictionary<PbrMaterial, UnityEngine.Material> _unityMaterials = new Dictionary<PbrMaterial, UnityEngine.Material>();
 		/// <summary>
-		/// Keeps a list of texture names that need recreation, serialized and
+		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
 		/// </summary>
-		[HideInInspector] [SerializeField] private List<string> _dirtyTextures = new List<string>();
-		/// <summary>
-		/// Keeps a list of sounds names that need recreation, serialized and
-		/// lazy so when undo happens they'll be considered dirty again
-		/// </summary>
-		[HideInInspector] [SerializeField] private List<string> _dirtySounds = new List<string>();
+		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -106,14 +119,43 @@ namespace VisualPinball.Unity
 			_unityTextures[name.ToLower()] = texture;
 		}
 
-		public void MarkTextureDirty(string name)
+		public void RestoreCollections(List<CollectionData> collections)
 		{
-			_dirtyTextures.Add(name.ToLower());
+			Collections.Clear();
+			Collections.AddRange(collections);
 		}
 
-		public void MarkSoundDirty(string name)
+		public void RestoreMappingConfigs(List<MappingConfigData> mappingConfigs)
 		{
-			_dirtySounds.Add(name.ToLower());
+			MappingConfigs.Clear();
+			MappingConfigs.AddRange(mappingConfigs);
+		}
+
+		public void MarkDirty<T>(string name) where T : IItem
+		{
+			if (!_dirtySerializables.ContainsKey(typeof(T))) {
+				_dirtySerializables[typeof(T)] = new List<string>();
+			}
+			_dirtySerializables[typeof(T)].Add(name.ToLower());
+		}
+
+		private bool CheckDirty<T>(string name, Func<bool> action = null) where T : IItem
+		{
+			List<string> lst;
+			if (_dirtySerializables.TryGetValue(typeof(T), out lst)) {
+				if (lst.Contains(name)) {
+					bool remove = true;
+					if (action != null) {
+						remove = action.Invoke();
+					}
+					if (remove) {
+						_dirtySerializables[typeof(T)].Remove(name);
+					}
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public Texture2D GetTexture(string name)
@@ -121,9 +163,8 @@ namespace VisualPinball.Unity
 			var lowerName = name.ToLower();
 			bool forceRecreate = false;
 			// check to see if the texture we're after has been flagged as dirty and thus needs to be recreated from table data
-			if (_dirtyTextures.Contains(lowerName)) {
+			if (CheckDirty<Engine.VPT.Texture>(lowerName)) {
 				forceRecreate = true;
-				_dirtyTextures.Remove(lowerName);
 			}
 			// don't need to recreate it, and we have the texture in cache
 			if (!forceRecreate && _unityTextures.ContainsKey(lowerName)) {
@@ -182,6 +223,7 @@ namespace VisualPinball.Unity
 			// restore game items with no game object (yet!)
 			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
 			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
+			Restore(_sidecar.mappingConfigs, table.MappingConfigs, d => new MappingConfig(d));
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
@@ -236,5 +278,6 @@ namespace VisualPinball.Unity
 				table.Add(create(d));
 			}
 		}
+
 	}
 }

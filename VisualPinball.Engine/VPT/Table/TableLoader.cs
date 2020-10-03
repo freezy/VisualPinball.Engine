@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.IO;
 using NLog;
@@ -32,6 +48,7 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadTextures(table, gameStorage);
 					LoadSounds(table, gameStorage, fileVersion);
 					LoadCollections(table, gameStorage);
+					LoadMappingConfigs(table, gameStorage);
 					LoadTableMeta(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
@@ -261,6 +278,26 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var reader = new BinaryReader(stream)) {
 					var collection = new Collection.Collection(reader, collectionName);
 					table.Collections[collection.Name.ToLower()] = collection;
+				}
+			}
+		}
+
+		private static void LoadMappingConfigs(Table table, CFStorage storage)
+		{
+			for (var i = 0; i < table.Data.NumMappingConfigs; i++)
+			{
+				var mappingConfigName = $"MappingConfig{i}";
+				storage.TryGetStream(mappingConfigName, out var mappingConfigStream);
+				if (mappingConfigStream == null)
+				{
+					Logger.Warn("Could not find stream {0}, skipping.", mappingConfigName);
+					continue;
+				}
+				using (var stream = new MemoryStream(mappingConfigStream.GetData()))
+				using (var reader = new BinaryReader(stream))
+				{
+					var mappingConfig = new MappingConfig.MappingConfig(reader, mappingConfigName);
+					table.MappingConfigs[mappingConfig.Name.ToLower()] = mappingConfig;
 				}
 			}
 		}

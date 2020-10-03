@@ -1,17 +1,32 @@
-﻿using Unity.Entities;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	public struct QuadTree
+	internal struct QuadTree
 	{
 		public BlobArray<BlobPtr<QuadTree>> Children;
 		public BlobArray<BlobPtr<Aabb>> Bounds;
 		public float3 Center;
 		public bool IsLeaf;
 
-		public static void Create(HitQuadTree src, ref QuadTree dest, BlobBuilder builder)
+		public static void Create(Engine.Physics.QuadTree src, ref QuadTree dest, BlobBuilder builder)
 		{
 			var children = builder.Allocate(ref dest.Children, 4);
 			for (var i = 0; i < 4; i++) {

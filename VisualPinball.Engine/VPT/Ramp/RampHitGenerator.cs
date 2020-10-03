@@ -1,8 +1,23 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
@@ -19,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_meshGenerator = meshGenerator;
 		}
 
-		public HitObject[] GenerateHitObjects(Table.Table table, EventProxy events)
+		public HitObject[] GenerateHitObjects(Table.Table table, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
 			var rv = _meshGenerator.GetRampVertex(table, PhysicsConstants.HitShapeDetailLevel, true);
@@ -38,18 +53,18 @@ namespace VisualPinball.Engine.VPT.Ramp
 					pv3 = rgvLocal[i + 1];
 
 					hitObjects.AddRange(GenerateWallLineSeg(pv2, pv3, i > 0,
-						rgHeight1[i], rgHeight1[i + 1], wallHeightRight));
+						rgHeight1[i], rgHeight1[i + 1], wallHeightRight, item));
 					hitObjects.AddRange(GenerateWallLineSeg(pv3, pv2, i < vertexCount - 2,
-						rgHeight1[i], rgHeight1[i + 1], wallHeightRight));
+						rgHeight1[i], rgHeight1[i + 1], wallHeightRight, item));
 
 					// add joints at start and end of right wall
 					if (i == 0) {
-						hitObjects.Add(GenerateJoint2D(pv2, rgHeight1[0], rgHeight1[0] + wallHeightRight));
+						hitObjects.Add(GenerateJoint2D(pv2, rgHeight1[0], rgHeight1[0] + wallHeightRight, item));
 					}
 
 					if (i == vertexCount - 2) {
 						hitObjects.Add(GenerateJoint2D(pv3, rgHeight1[vertexCount - 1],
-							rgHeight1[vertexCount - 1] + wallHeightRight));
+							rgHeight1[vertexCount - 1] + wallHeightRight, item));
 					}
 				}
 			}
@@ -61,18 +76,18 @@ namespace VisualPinball.Engine.VPT.Ramp
 					pv3 = rgvLocal[vertexCount + i + 1];
 
 					hitObjects.AddRange(GenerateWallLineSeg(pv2, pv3, i > 0,
-						rgHeight1[vertexCount - i - 2],  rgHeight1[vertexCount - i - 1], wallHeightLeft));
+						rgHeight1[vertexCount - i - 2],  rgHeight1[vertexCount - i - 1], wallHeightLeft, item));
 					hitObjects.AddRange(GenerateWallLineSeg(pv3, pv2, i < vertexCount - 2,
-						rgHeight1[vertexCount - i - 2], rgHeight1[vertexCount - i - 1], wallHeightLeft));
+						rgHeight1[vertexCount - i - 2], rgHeight1[vertexCount - i - 1], wallHeightLeft, item));
 
 					// add joints at start and end of left wall
 					if (i == 0) {
 						hitObjects.Add(GenerateJoint2D(pv2, rgHeight1[vertexCount - 1],
-							rgHeight1[vertexCount - 1] + wallHeightLeft));
+							rgHeight1[vertexCount - 1] + wallHeightLeft, item));
 					}
 
 					if (i == vertexCount - 2) {
-						hitObjects.Add(GenerateJoint2D(pv3, rgHeight1[0], rgHeight1[0] + wallHeightLeft));
+						hitObjects.Add(GenerateJoint2D(pv3, rgHeight1[0], rgHeight1[0] + wallHeightLeft, item));
 					}
 				}
 			}
@@ -104,18 +119,18 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				// add joint for starting edge of ramp
 				if (i == 0) {
-					hitObjects.Add(GenerateJoint(rgv3D[0], rgv3D[1]));
+					hitObjects.Add(GenerateJoint(rgv3D[0], rgv3D[1], item));
 				}
 
 				// add joint for left edge
-				hitObjects.Add(GenerateJoint(rgv3D[0], rgv3D[2]));
+				hitObjects.Add(GenerateJoint(rgv3D[0], rgv3D[2], item));
 
 				//!! this is not efficient at all, use native triangle-soup directly somehow
-				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
 
 				if (!ph3dpoly.IsDegenerate) { // degenerate triangles happen if width is 0 at some point
 					hitObjects.Add(ph3dpoly);
-					hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly));
+					hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly, item));
 					ph3dpolyOld = ph3dpoly;
 				}
 
@@ -127,13 +142,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 				};
 
 				// add joint for right edge
-				hitObjects.Add(GenerateJoint(rgv3D[1], rgv3D[2]));
+				hitObjects.Add(GenerateJoint(rgv3D[1], rgv3D[2], item));
 
-				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
 				if (!ph3dpoly.IsDegenerate)
 					hitObjects.Add(ph3dpoly);
 
-				hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly));
+				hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly, item));
 				ph3dpolyOld = ph3dpoly;
 			}
 
@@ -141,7 +156,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				// add joint for final edge of ramp
 				var v1 = new Vertex3D(pv4.X, pv4.Y, rgHeight1[vertexCount - 1]);
 				var v2 = new Vertex3D(pv3.X, pv3.Y, rgHeight1[vertexCount - 1]);
-				hitObjects.Add(GenerateJoint(v1, v2));
+				hitObjects.Add(GenerateJoint(v1, v2, item));
 			}
 
 			// add outside bottom,
@@ -163,7 +178,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 					new Vertex3D(pv3.X, pv3.Y, rgHeight1[i + 1])
 				};
 
-				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
 				if (!ph3dpoly.IsDegenerate) {
 					hitObjects.Add(ph3dpoly);
 				}
@@ -175,14 +190,14 @@ namespace VisualPinball.Engine.VPT.Ramp
 					new Vertex3D(pv1.X, pv1.Y, rgHeight1[i])
 				};
 
-				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp);
+				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
 				if (!ph3dpoly.IsDegenerate) {
 					hitObjects.Add(ph3dpoly);
 				}
 			}
 
 			return hitObjects
-				.Select(obj => SetupHitObject(obj, events, table))
+				.Select(obj => SetupHitObject(obj, table))
 				.ToArray();
 		}
 
@@ -200,30 +215,30 @@ namespace VisualPinball.Engine.VPT.Ramp
 			}
 		}
 
-		private List<HitObject> GenerateWallLineSeg(Vertex2D pv1, Vertex2D pv2, bool pv3Exists, float height1, float height2, float wallHeight)
+		private List<HitObject> GenerateWallLineSeg(Vertex2D pv1, Vertex2D pv2, bool pv3Exists, float height1, float height2, float wallHeight, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
 
 			//!! Hit-walls are still done via 2D line segments with only a single lower and upper border, so the wall will always reach below and above the actual ramp -between- two points of the ramp
 			// Thus, subdivide until at some point the approximation error is 'subtle' enough so that one will usually not notice (i.e. dependent on ball size)
 			if (height2 - height1 > 2.0 * PhysicsConstants.PhysSkin) { //!! use ballsize
-				hitObjects.AddRange(GenerateWallLineSeg(pv1, pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight));
-				hitObjects.AddRange(GenerateWallLineSeg(pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv2, true, (height1 + height2) * 0.5f, height2, wallHeight));
+				hitObjects.AddRange(GenerateWallLineSeg(pv1, pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight, item));
+				hitObjects.AddRange(GenerateWallLineSeg(pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv2, true, (height1 + height2) * 0.5f, height2, wallHeight, item));
 
 			} else {
-				hitObjects.Add(new LineSeg(pv1, pv2, height1, height2 + wallHeight, ItemType.Ramp));
+				hitObjects.Add(new LineSeg(pv1, pv2, height1, height2 + wallHeight, ItemType.Ramp, item));
 				if (pv3Exists) {
-					hitObjects.Add(GenerateJoint2D(pv1, height1, height2 + wallHeight));
+					hitObjects.Add(GenerateJoint2D(pv1, height1, height2 + wallHeight, item));
 				}
 			}
 			return hitObjects;
 		}
 
-		private static HitLineZ GenerateJoint2D(Vertex2D p, float zLow, float zHigh) => new HitLineZ(p, zLow, zHigh, ItemType.Ramp);
+		private static HitLineZ GenerateJoint2D(Vertex2D p, float zLow, float zHigh, IItem item) => new HitLineZ(p, zLow, zHigh, ItemType.Ramp, item);
 
-		private static HitLine3D GenerateJoint(Vertex3D v1, Vertex3D v2) => new HitLine3D(v1, v2, ItemType.Ramp);
+		private static HitLine3D GenerateJoint(Vertex3D v1, Vertex3D v2, IItem item) => new HitLine3D(v1, v2, ItemType.Ramp, item);
 
-		private static List<HitObject> CheckJoint(HitTriangle ph3d1, HitTriangle ph3d2)
+		private static List<HitObject> CheckJoint(HitTriangle ph3d1, HitTriangle ph3d2, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
 			if (ph3d1 != null) {   // may be null in case of degenerate triangles
@@ -234,16 +249,15 @@ namespace VisualPinball.Engine.VPT.Ramp
 			}
 			// By convention of the calling function, points 1 [0] and 2 [1] of the second polygon will
 			// be the common-edge points
-			hitObjects.Add(GenerateJoint(ph3d2.Rgv[0], ph3d2.Rgv[1]));
+			hitObjects.Add(GenerateJoint(ph3d2.Rgv[0], ph3d2.Rgv[1], item));
 			return hitObjects;
 		}
 
-		private HitObject SetupHitObject(HitObject obj, EventProxy events, Table.Table table) {
+		private HitObject SetupHitObject(HitObject obj, Table.Table table) {
 			obj.ApplyPhysics(_data, table);
 
 			// hard coded threshold for now
 			obj.Threshold = _data.Threshold;
-			obj.Obj = events;
 			obj.FireEvents = _data.HitEvent;
 			return obj;
 		}

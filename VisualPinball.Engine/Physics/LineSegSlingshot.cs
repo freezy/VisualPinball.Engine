@@ -1,4 +1,19 @@
-﻿using VisualPinball.Engine.Game;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
@@ -11,59 +26,12 @@ namespace VisualPinball.Engine.Physics
 		public bool DoHitEvent = false;
 
 		private readonly SurfaceData _surfaceData;
-		private readonly SlingshotAnimObject _slingshotAnim = new SlingshotAnimObject();
 		private float _eventTimeReset = 0;
 
-		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType itemType)
-			: base(p1, p2, zLow, zHigh, itemType)
+		public LineSegSlingshot(SurfaceData surfaceData, Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType itemType, IItem item)
+			: base(p1, p2, zLow, zHigh, itemType, item)
 		{
 			_surfaceData = surfaceData;
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			var ball = coll.Ball;
-			var hitNormal = coll.HitNormal;
-
-			var dot = coll.HitNormal.Dot(coll.Ball.Hit.Vel); // normal velocity to slingshot
-			var threshold = dot <= -_surfaceData.SlingshotThreshold; // normal greater than threshold?
-
-			if (!_surfaceData.IsDisabled && threshold) {
-				// enabled and if velocity greater than threshold level
-				var len = (V2.X - V1.X) * hitNormal.Y - (V2.Y - V1.Y) * hitNormal.X; // length of segment, Unit TAN points from V1 to V2
-
-				var vHitPoint = new Vertex2D(
-					ball.State.Pos.X - hitNormal.X * ball.Data.Radius, // project ball radius along norm
-					ball.State.Pos.Y - hitNormal.Y * ball.Data.Radius
-				);
-
-				// vHitPoint will now be the point where the ball hits the line
-				// Calculate this distance from the center of the slingshot to get force
-				var btd = (vHitPoint.X - V1.X) * hitNormal.Y - (vHitPoint.Y - V1.Y) * hitNormal.X; // distance to vhit from V1
-				var force = MathF.Abs(len) > 1.0e-6 ? (btd + btd) / len - 1.0f : -1.0f; // -1..+1
-				force = 0.5f * (1.0f - force * force); // !! maximum value 0.5 ...I think this should have been 1.0...Oh well
-				// will match the previous physics
-				force *= Force; //-80;
-
-				// boost velocity, drive into slingshot (counter normal), allow CollideWall to handle the remainder
-				var normForce = hitNormal.Clone().MultiplyScalar(force);
-				ball.Hit.Vel.Sub(normForce);
-			}
-
-			ball.Hit.Collide3DWall(hitNormal, Elasticity, ElasticityFalloff, Friction, Scatter);
-
-			if (Obj != null && FireEvents && !_surfaceData.IsDisabled && Threshold != 0) {
-				// is this the same place as last event? if same then ignore it
-				var eventPos = ball.Hit.EventPos.Clone();
-				var distLs = eventPos.Sub(ball.State.Pos).LengthSq();
-				ball.Hit.EventPos.Set(ball.State.Pos); //remember last collide position
-
-				if (distLs > 0.25) {
-					// must be a new place if only by a little
-					Obj.FireGroupEvent(EventId.SurfaceEventsSlingshot);
-					_slingshotAnim.TimeReset = physics.TimeMsec + 100;
-				}
-			}
 		}
 	}
 }

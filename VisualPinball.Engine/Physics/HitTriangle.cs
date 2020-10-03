@@ -1,7 +1,21 @@
-﻿using VisualPinball.Engine.Game;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Ball;
 
 namespace VisualPinball.Engine.Physics
 {
@@ -12,7 +26,7 @@ namespace VisualPinball.Engine.Physics
 
 		public bool IsDegenerate => Normal.IsZero();
 
-		public HitTriangle(Vertex3D[] rgv, ItemType itemType) : base (itemType)
+		public HitTriangle(Vertex3D[] rgv, ItemType itemType, IItem item) : base (itemType, item)
 		{
 			Rgv = rgv;
 			/* NB: due to the swapping of the order of e0 and e1,
@@ -37,18 +51,6 @@ namespace VisualPinball.Engine.Physics
 			HitBBox.Bottom = System.Math.Max(Rgv[0].Y, System.Math.Max(Rgv[1].Y, Rgv[2].Y));
 			HitBBox.ZLow = System.Math.Min(Rgv[0].Z, System.Math.Min(Rgv[1].Z, Rgv[2].Z));
 			HitBBox.ZHigh = System.Math.Max(Rgv[0].Z, System.Math.Max(Rgv[1].Z, Rgv[2].Z));
-		}
-
-		public override float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
 		}
 	}
 }

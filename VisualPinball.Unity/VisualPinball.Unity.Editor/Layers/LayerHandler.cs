@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,10 +86,10 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, List<MonoBehaviour>> _layers = new Dictionary<string, List<MonoBehaviour>>();
 
 		/// <summary>
-		/// Is called by the <see cref="LayerEditor"/> when a new TableAuthoring is created/deleted
+		/// Populates the layer data from the given table
 		/// </summary>
 		/// <param name="tableAuthoring"></param>
-		public void OnHierarchyChange(TableAuthoring tableAuthoring)
+		public void SetTable(TableAuthoring tableAuthoring)
 		{
 			var tableChanged = _tableAuthoring != tableAuthoring;
 			_tableAuthoring = tableAuthoring;

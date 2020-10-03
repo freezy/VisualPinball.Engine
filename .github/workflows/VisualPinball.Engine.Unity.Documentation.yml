@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-publish-docfx:
+    runs-on: ubuntu-latest
+    name: Build and publish documentation
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nikeee/docfx-action@v1.0.0
+        name: Build Documentation
+        with:
+          args: VisualPinball.Unity/Documentation~/docfx.json
+
+      # Publish generated site using GitHub Pages
+      - uses: maxheld83/ghpages@master
+        name: Publish Documentation on GitHub Pages
+        env:
+          BUILD_DIR: VisualPinball.Unity/Documentation~/_site # docfx's default output directory is _site
+          GH_PAT: ${{ secrets.GH_PAT }} # See https://github.com/maxheld83/ghpages

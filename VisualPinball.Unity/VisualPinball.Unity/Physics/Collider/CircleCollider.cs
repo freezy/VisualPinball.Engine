@@ -1,4 +1,20 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
@@ -7,7 +23,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public struct CircleCollider : ICollider, ICollidable
+	internal struct CircleCollider
 	{
 		private ColliderHeader _header;
 
@@ -129,7 +145,7 @@ namespace VisualPinball.Unity
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(ref insideOfs, in _header.Entity)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set
@@ -139,7 +155,7 @@ namespace VisualPinball.Unity
 
 				} else {
 					// this will add the ball to the trigger space without a Hit
-					isUnhit = bnd > 0; // ball on outside is UnHit, otherwise it"s a Hit
+					isUnhit = bnd > 0; // ball on outside is UnHit, otherwise it's a Hit
 				}
 
 			} else {

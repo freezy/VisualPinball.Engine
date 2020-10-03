@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using NLog;
 using Unity.Collections;
 using Unity.Entities;
@@ -21,7 +37,7 @@ namespace VisualPinball.Unity
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : ICollider, IComponentData
+	internal struct Collider : IComponentData
 	{
 		public ColliderHeader Header;
 
@@ -82,9 +98,6 @@ namespace VisualPinball.Unity
 				case HitPoint hitPoint:
 					PointCollider.Create(builder, hitPoint, ref dest);
 					break;
-				case Hit3DPoly hit3DPoly:
-					Poly3DCollider.Create(builder, hit3DPoly, ref dest);
-					break;
 				case HitPlane hitPlane:
 					PlaneCollider.Create(builder, hitPlane, ref dest);
 					break;
@@ -98,7 +111,7 @@ namespace VisualPinball.Unity
 					TriangleCollider.Create(builder, hitTriangle, ref dest);
 					break;
 				default:
-					Logger.Warn("Unknown collider {0}, skipping.", src.GetType().Name);
+					Logger.Warn("Unsupported collider {0}, skipping.", src.GetType().Name);
 					break;
 			}
 		}
@@ -125,12 +138,10 @@ namespace VisualPinball.Unity
 						return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Plane:
 						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Poly3D:
-						return ((Poly3DCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Spinner:
 						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
-						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
 					case ColliderType.KickerCircle:
 					case ColliderType.TriggerCircle:
 						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
@@ -138,9 +149,11 @@ namespace VisualPinball.Unity
 						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 
 					case ColliderType.Plunger:
+						throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
 					case ColliderType.Flipper:
+						throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
 					case ColliderType.LineSlingShot:
-						throw new InvalidOperationException(coll.Type + " must be hit-tested separately!");
+						throw new InvalidOperationException("ColliderType.LineSlingShot must be hit-tested separately!");
 
 					default:
 						return -1;
@@ -178,15 +191,12 @@ namespace VisualPinball.Unity
 					case ColliderType.Point:
 						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
-					case ColliderType.Poly3D:
-						((Poly3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
-						break;
 					case ColliderType.Triangle:
 						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
 						break;
 
 					default:
-						throw new InvalidOperationException("Missing collider implementation for " + collider->Type);
+						break;
 				}
 			}
 		}
@@ -214,20 +224,7 @@ namespace VisualPinball.Unity
 
 		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
-			BallCollider.HandleStaticContact(ref ball, collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
-		}
-
-		public static unsafe string ToString(ref Collider coll)
-		{
-			fixed (Collider* collider = &coll) {
-				switch (collider->Type) {
-					case ColliderType.Poly3D:
-						return ((Poly3DCollider*)collider)->ToString();
-
-					default:
-						return collider->ToString();
-				}
-			}
+			BallCollider.HandleStaticContact(ref ball, in collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
 		}
 	}
 }

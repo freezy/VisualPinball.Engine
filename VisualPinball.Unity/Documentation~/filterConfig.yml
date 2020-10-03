@@ -1,0 +1,7 @@
+apiRules:
+  - include:
+      hasAttribute:
+        uid: VisualPinball.Unity.ApiAttribute
+  - exclude:
+      uidRegex: '^VisualPinball\.Unity\..*'
+      type: Type

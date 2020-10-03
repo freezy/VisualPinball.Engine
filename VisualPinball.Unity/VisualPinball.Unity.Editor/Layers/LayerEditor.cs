@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -13,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	/// It does mostly coordination. The main logic is implemented in <see cref="LayerHandler"/>,
 	/// and tree view of the layers in <see cref="LayerTreeView"/>.
 	/// </summary>
-	public class LayerEditor : EditorWindow
+	public class LayerEditor : LockingTableEditorWindow
 	{
 		/// <summary>
 		/// The search box control. <p/>
@@ -40,11 +56,13 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
 		{
-			GetWindow<LayerEditor>("Layer Manager");
+			GetWindow<LayerEditor>();
 		}
 
 		private void OnEnable()
 		{
+			titleContent = new GUIContent("Layer Manager", EditorGUIUtility.IconContent("ToggleUVOverlay").image);
+
 			if (_layerHandler== null) {
 				_layerHandler = new LayerHandler();
 			}
@@ -95,12 +113,16 @@ namespace VisualPinball.Unity.Editor
 			// will notify the TreeView if Synchronize Selection is set
 			Selection.selectionChanged += SelectionChanged;
 
-			// trigger handler update on enable
-			OnHierarchyChange();
+			// auto select a table to show data for
+			FindTable();
 		}
 
 		private void ToolBoxItemCreated(GameObject obj)
 		{
+			if (obj.GetComponentInParent<TableAuthoring>() != _table) {
+				// don't assign to a layer that's not part if this table
+				return;
+			}
 			var layerName = _treeView.GetFirstSelectedLayer();
 			_layerHandler.AssignToLayer(obj, layerName);
 		}
@@ -251,12 +273,9 @@ namespace VisualPinball.Unity.Editor
 			return null;
 		}
 
-		/// <summary>
-		/// Called each time something is changed in the scene hierarchy (event GameObjects renaming)
-		/// </summary>
-		private void OnHierarchyChange()
+		protected override void SetTable(TableAuthoring table)
 		{
-			_layerHandler.OnHierarchyChange(FindObjectOfType<TableAuthoring>());
+			_layerHandler.SetTable(table);
 		}
 
 		/// <summary>
@@ -272,7 +291,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void OnUndoRedoPerformed()
 		{
-			OnHierarchyChange();
+			FindTable();
 		}
 
 		/// <summary>

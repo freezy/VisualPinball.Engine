@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +26,15 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public abstract class TreeElement
 	{
+		/// <summary>
+		/// This Unique Id is automatically set & increment on each TreeElement CTor so you don't need to worry about its unicity
+		/// </summary>
+		/// <remarks>
+		/// Could be useful when constructing an array of TreeElemnt in a delegate for instance, without having to manage a local counter
+		/// Of course, this Id can be overridden afterward
+		/// </remarks>
+		private static int UniqueId = typeof(TreeElement).GUID.ToString().GetHashCode();
+
 		/// <summary>
 		/// Unique ID of this <see cref="TreeElement"/> within the tree structure
 		/// </summary>
@@ -47,9 +72,26 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasChildren => Children != null && Children.Count > 0;
 
+		public TreeElement()
+		{
+			Id = UniqueId++;
+		}
+
+		public TreeElement(int id)
+		{
+			Id = id;
+		}
+
 		public void AddChild(TreeElement child)
 		{
 			child?.ReParent(this);
+		}
+
+		public void AddChildren(TreeElement[] children)
+		{
+			foreach (var child in children) {
+				child.ReParent(this);
+			}
 		}
 
 		public virtual TreeElement ReParent(TreeElement newParent)

@@ -1,11 +1,28 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.VPT.Table;
+using Color = VisualPinball.Engine.Math.Color;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -13,9 +30,11 @@ namespace VisualPinball.Unity.Editor
 	/// Base class for VPX-style "Manager" windows, such as the Material Manager
 	/// </summary>
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
-	public abstract class ManagerWindow<T> : EditorWindow where T: class, IManagerListData
+	public abstract class ManagerWindow<T> : LockingTableEditorWindow, IHasCustomMenu where T: class, IManagerListData
 	{
 		protected virtual string DataTypeName => "";
+		protected virtual bool DetailsEnabled => true;
+		protected virtual float DetailsMaxWidth => 300f;
 
 		protected virtual void OnButtonBarGUI() { }
 		protected virtual void OnDataDetailGUI() { }
@@ -24,9 +43,25 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnDataChanged(string undoName, T data) { }
 		protected virtual void AddNewData(string undoName, string newName) { }
 		protected virtual void RemoveData(string undoName, T data) { }
+		protected virtual int MoveData(string undoName, T data, int increment) { return 0; }
 		protected virtual void CloneData(string undoName, string newName, T data) { }
+		protected virtual void OnDataSelected() { }
+		protected virtual bool SetupCompleted() => true;
 
-		protected TableAuthoring _table;
+		protected virtual bool ListViewItemRendererEnabled => false;
+		protected virtual void OnListViewItemRenderer(T data, Rect rect, int column) { }
+		protected float RowHeight {
+			get => _rowHeight;
+			set {
+				_rowHeight = value;
+				if (_listView != null) {
+					_listView.RowHeight = value;
+				}
+			}
+		}
+
+		private float _rowHeight;
+
 		protected T _selectedItem;
 
 		private List<T> _data = new List<T>();
@@ -38,12 +73,16 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplAddNewData = false;
 		private bool _isImplRemoveData = false;
 		private bool _isImplCloneData = false;
+		private bool _isImplMoveData = false;
 		private bool _isImplRenameExistingItem = false;
+		private Vector2 _scrollPos = Vector2.zero;
 
 		protected void Reload()
 		{
-			_data = CollectData();
-			_listView.SetData(_data);
+			if (_table != null) {
+				_data = CollectData();
+				_listView.SetData(_data);
+			}
 		}
 
 		protected virtual void OnEnable()
@@ -51,6 +90,7 @@ namespace VisualPinball.Unity.Editor
 			_isImplAddNewData = IsImplemented("AddNewData");
 			_isImplRemoveData = IsImplemented("RemoveData");
 			_isImplCloneData = IsImplemented("CloneData");
+			_isImplMoveData = IsImplemented("MoveData");
 			_isImplRenameExistingItem = IsImplemented("RenameExistingItem");
 
 			// force gui draw when we perform an undo so we see the fields change back
@@ -64,14 +104,6 @@ namespace VisualPinball.Unity.Editor
 			FindTable();
 		}
 
-		protected virtual void OnHierarchyChange()
-		{
-			// if we don't have a table, look for one when stuff in the scene changes
-			if (_table == null) {
-				FindTable();
-			}
-		}
-
 		protected virtual void OnGUI()
 		{
 			// if the table went away, clear the selected material and list data
@@ -80,41 +112,64 @@ namespace VisualPinball.Unity.Editor
 				_listView?.SetData(null);
 			}
 
+			if (!SetupCompleted()) {
+				return;
+			}
+
 			if (!string.IsNullOrEmpty(_forceSelectItemWithName)) {
 				_listView.SelectItemWithName(_forceSelectItemWithName);
 				_forceSelectItemWithName = null;
 			}
 
+			// shift+enter adds a new item
+			if (focusedWindow == this
+			    && Event.current.keyCode == KeyCode.Return
+			    && Event.current.modifiers == EventModifiers.Shift
+			    && Event.current.type == EventType.KeyDown)
+			{
+				Add();
+			}
+
 			EditorGUILayout.BeginHorizontal();
 			if (_isImplAddNewData && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
-				// use a serialized field to force list item selection in the next gui pass
-				// this way undo will cause it to happen again, and if its no there anymore, just deselect any
-				string newDataName = GetUniqueName("New " + DataTypeName);
-				string undoName = "Add " + DataTypeName;
-				_forceSelectItemWithName = newDataName;
-				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				AddNewData(undoName, newDataName);
-				Reload();
+				Add();
 			}
 			if (_isImplRemoveData && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
 				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
-					string undoName = "Remove " + DataTypeName;
-					Undo.RecordObjects(new Object[] { this, _table }, undoName);
-					RemoveData(undoName, _selectedItem);
-					_selectedItem = null;
-					Reload();
+					Delete();
 				}
 			}
 			if (_isImplCloneData && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
-				string newDataName = GetUniqueName(_selectedItem.Name);
-				string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
-				_forceSelectItemWithName = newDataName;
-				Undo.RecordObjects(new Object[] { this, _table }, undoName);
-				CloneData(undoName, newDataName, _selectedItem);
-				Reload();
+				Clone();
 			}
 			OnButtonBarGUI();
 			EditorGUILayout.EndHorizontal();
+
+			if (_isImplMoveData && _selectedItem != null) {
+				EditorGUILayout.BeginHorizontal();
+				GUILayout.Label("Move ", GUILayout.ExpandWidth(false));
+				int moveIncrement = 0;
+				if (GUILayout.Button("Top", GUILayout.ExpandWidth(false))) {
+					moveIncrement = -_data.Count;
+				}
+				if (GUILayout.Button("Up", GUILayout.ExpandWidth(false))) {
+					moveIncrement = -1;
+				}
+				if (GUILayout.Button("Down", GUILayout.ExpandWidth(false))) {
+					moveIncrement = 1;
+				}
+				if (GUILayout.Button("Bottom", GUILayout.ExpandWidth(false))) {
+					moveIncrement = _data.Count;
+				}
+				if (moveIncrement != 0) {
+					string undoName = "Move " + DataTypeName;
+					Undo.RecordObjects(new Object[] { this, _table }, undoName);
+					int newIdx = MoveData(undoName, _selectedItem, moveIncrement);
+					SetSelection(newIdx);
+					Reload();
+				}
+				EditorGUILayout.EndHorizontal();
+			}
 
 			EditorGUILayout.BeginHorizontal();
 
@@ -124,41 +179,92 @@ namespace VisualPinball.Unity.Editor
 			var listRect = new Rect(r.x, r.y, r.width, position.height - r.y);
 			_listView?.OnGUI(listRect);
 
-			// options
-			EditorGUILayout.BeginVertical(GUILayout.MaxWidth(300));
-			if (_selectedItem != null) {
-				EditorGUILayout.BeginHorizontal();
-				if (_renaming) {
-					_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
-					if (GUILayout.Button("Save")) {
-						string newName = GetUniqueName(_renameBuffer, _selectedItem);
-						if (!string.IsNullOrEmpty(newName)) {
-							RenameExistingItem(_selectedItem, newName);
+			if (DetailsEnabled)
+			{
+				// options
+				EditorGUILayout.BeginVertical(GUILayout.MaxWidth(DetailsMaxWidth));
+				if (_selectedItem != null)
+				{
+					EditorGUILayout.BeginHorizontal();
+					if (_renaming)
+					{
+						_renameBuffer = EditorGUILayout.TextField(_renameBuffer);
+						if (GUILayout.Button("Save"))
+						{
+							string newName = GetUniqueName(_renameBuffer, _selectedItem);
+							if (!string.IsNullOrEmpty(newName))
+							{
+								RenameExistingItem(_selectedItem, newName);
+							}
+							_renaming = false;
+							Reload();
 						}
-						_renaming = false;
-						Reload();
+						if (GUILayout.Button("Cancel"))
+						{
+							_renaming = false;
+							GUI.FocusControl(""); // de-focus on cancel because unity will retain previous buffer text until focus changes
+						}
 					}
-					if (GUILayout.Button("Cancel")) {
-						_renaming = false;
-						GUI.FocusControl(""); // de-focus on cancel because unity will retain previous buffer text until focus changes
+					else
+					{
+						EditorGUILayout.LabelField(_selectedItem.Name);
+						if (_isImplRenameExistingItem && GUILayout.Button("Rename"))
+						{
+							_renaming = true;
+							_renameBuffer = _selectedItem.Name;
+						}
 					}
-				} else {
-					EditorGUILayout.LabelField(_selectedItem.Name);
-					if (_isImplRenameExistingItem && GUILayout.Button("Rename")) {
-						_renaming = true;
-						_renameBuffer = _selectedItem.Name;
-					}
-				}
-				EditorGUILayout.EndHorizontal();
+					EditorGUILayout.EndHorizontal();
 
-				OnDataDetailGUI();
-			} else {
-				EditorGUILayout.LabelField("Nothing selected");
+					_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+					OnDataDetailGUI();
+					EditorGUILayout.EndScrollView();
+				}
+				else
+				{
+					EditorGUILayout.LabelField("Nothing selected");
+				}
+				EditorGUILayout.EndVertical();
 			}
-			EditorGUILayout.EndVertical();
 
 			EditorGUILayout.EndHorizontal();
+
 		}
+
+		protected void Add()
+		{
+			// use a serialized field to force list item selection in the next gui pass
+			// this way undo will cause it to happen again, and if its no there anymore, just deselect any
+			string newDataName = GetUniqueName("New " + DataTypeName);
+			string undoName = "Add " + DataTypeName;
+			_forceSelectItemWithName = newDataName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			AddNewData(undoName, newDataName);
+			Reload();
+			SetSelection(_data.Count - 1);
+		}
+
+		private void Clone()
+		{
+			string newDataName = GetUniqueName(_selectedItem.Name);
+			string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
+			_forceSelectItemWithName = newDataName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			CloneData(undoName, newDataName, _selectedItem);
+			Reload();
+			SetSelection(_data.Count - 1);
+		}
+
+		private void Delete()
+		{
+			string undoName = "Remove " + DataTypeName;
+			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			RemoveData(undoName, _selectedItem);
+			Reload();
+			SetSelection(0);
+		}
+
+		#region Fields
 
 		protected void FloatField(string label, ref float field)
 		{
@@ -196,16 +302,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ColorField(string label, ref Engine.Math.Color field, string tooltip = "")
+		protected void ColorField(string label, ref Color field, string tooltip = "")
 		{
 			EditorGUI.BeginChangeCheck();
-			Engine.Math.Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
+			Color val = EditorGUILayout.ColorField(new GUIContent(label, tooltip), field.ToUnityColor()).ToEngineColor();
 			if (EditorGUI.EndChangeCheck()) {
 				FinalizeChange(label, ref field, val);
 			}
 		}
 
-		protected void DropDownField<TField>(string label, ref TField field, string[] optionStrings, TField[] optionValues) where TField : System.IEquatable<TField>
+		protected void DropDownField<TField>(string label, ref TField field, string[] optionStrings, TField[] optionValues) where TField : IEquatable<TField>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
@@ -224,6 +330,8 @@ namespace VisualPinball.Unity.Editor
 				FinalizeChange(label, ref field, optionValues[selectedIndex]);
 			}
 		}
+
+		#endregion
 
 		protected void FinalizeChange<TField>(string label, ref TField field, TField val)
 		{
@@ -269,7 +377,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void UndoPerformed()
+		protected virtual void UndoPerformed()
 		{
 			Reload();
 		}
@@ -280,18 +388,28 @@ namespace VisualPinball.Unity.Editor
 			if (selectedItems.Count > 0) {
 				_selectedItem = selectedItems[0]; // not supporting multi select for now
 				_renaming = false;
+				OnDataSelected();
 			}
 			Repaint();
 		}
 
-		private void FindTable()
+		protected override void SetTable(TableAuthoring table)
 		{
-			_table = FindObjectOfType<TableAuthoring>();
 			_data.Clear();
 			if (_table != null) {
 				_data = CollectData();
 			}
-			_listView = new ManagerListView<T>(_treeViewState, _data, ItemSelected);
+
+			if (ListViewItemRendererEnabled)
+			{
+				_listView = new ManagerListView<T>(_treeViewState, _data, OnListViewItemRenderer, ItemSelected);
+			}
+			else
+			{
+				_listView = new ManagerListView<T>(_treeViewState, _data, null, ItemSelected);
+			}
+
+			_listView.RowHeight = _rowHeight;
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)
@@ -313,6 +431,11 @@ namespace VisualPinball.Unity.Editor
 				appendNum++;
 			}
 			return acceptedName;
+		}
+
+		protected void SetSelection(int idx)
+		{
+			_listView.SetSelection(new int[] { idx }.ToList());
 		}
 
 		// check is a concrete class implements the given method name

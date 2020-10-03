@@ -1,4 +1,20 @@
-﻿using Unity.Collections;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -8,7 +24,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public struct LineCollider : ICollider, ICollidable
+	internal struct LineCollider
 	{
 		private ColliderHeader _header;
 
@@ -135,7 +151,7 @@ namespace VisualPinball.Unity
 
 					if (coll.ItemType != ItemType.Trigger               // not a trigger
 					    /*todo   || !ball.m_vpVolObjs*/
-					    // is a trigger, so test:
+					    // it's a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
 					    || inside == BallData.IsInsideOf(in insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
 					{
@@ -143,7 +159,7 @@ namespace VisualPinball.Unity
 					}
 
 					hitTime = 0;
-					isUnHit = !inside; // ball on outside is UnHit, otherwise it"s a Hit
+					isUnHit = !inside; // ball on outside is UnHit, otherwise it's a Hit
 
 				} else {
 					hitTime = bnd / -bnv;

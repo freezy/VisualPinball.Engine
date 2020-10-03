@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
+    <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
@@ -27,9 +28,6 @@
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
       <HintPath>..\Plugins\.unity\UnityEngine.UIElementsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\Plugins\.unity\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>..\Plugins\.unity\UnityEngine.ImageConversionModule.dll</HintPath>
@@ -58,5 +56,14 @@
     <Reference Include="Unity.Transforms">
       <HintPath>..\Plugins\.unity\Unity.Transforms.dll</HintPath>
     </Reference>
+    <Reference Include="UnitEngine.InputSystem">
+      <HintPath>..\Plugins\.unity\Unity.InputSystem.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="obj\**" />
   </ItemGroup>
 </Project>

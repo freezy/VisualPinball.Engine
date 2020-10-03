@@ -1,5 +1,20 @@
-﻿using System.IO;
-using VisualPinball.Engine.Common;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
@@ -8,8 +23,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 {
 	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable
 	{
-		public bool IsCollidable => true;
-		public EventProxy EventProxy { get; private set; }
+		public override string ItemType => "Kicker";
+
 		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 
@@ -38,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
-			_hit = new KickerHit(Data, radius, height, table); // height of kicker hit cylinder
+			_hit = new KickerHit(Data, radius, height, table, this); // height of kicker hit cylinder
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
@@ -54,19 +69,12 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public Vertex3D GetBallCreationPosition(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			return new Vertex3D(Data.Center.X, Data.Center.Y, height); // TODO get position from hit object
+			return new Vertex3D(Data.Center.X, Data.Center.Y, height);
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table.Table table)
 		{
 			return new Vertex3D(0.1f, 0, 0);
-		}
-
-		public void OnBallCreated(PlayerPhysics physics, Ball.Ball ball)
-		{
-			ball.Coll.HitFlag = true;                        // HACK: avoid capture leaving kicker
-			var hitNormal = new Vertex3D(Constants.FloatMax, Constants.FloatMax, Constants.FloatMax); // unused due to newBall being true
-			// TODO this.hit!.doCollide(physics, ball, hitNormal, false, true);
 		}
 	}
 }

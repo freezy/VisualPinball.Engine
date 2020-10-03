@@ -1,4 +1,20 @@
-﻿using Unity.Entities;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -6,92 +22,158 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A singleton class that handles ball creation and destruction.
+	/// </summary>
 	public class BallManager
 	{
-		private int _id;
+		public static int NumBallsCreated { get; private set; }
+		public static int NumBalls { get; private set; }
 
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly Table _table;
+		private readonly Matrix4x4 _ltw;
 
+		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
+
+		private static BallManager _instance;
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
-		public BallManager(Engine.VPT.Table.Table table)
+		public static BallManager Instance(Table table, Matrix4x4 ltw) => _instance ?? (_instance = new BallManager(table, ltw));
+
+		public BallManager(Table table, Matrix4x4 ltw)
 		{
 			_table = table;
+			_ltw = ltw;
 		}
 
-		public BallApi CreateBall(Player player, IBallCreationPosition ballCreator, float radius, float mass)
+		public static void Init()
 		{
-			// calculate mass and scale
-			var m = player.TableToWorld;
+			NumBallsCreated = 0;
+			NumBalls = 0;
+		}
 
+		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
+		{
+			CreateBall(ballCreator, radius, mass, Entity.Null);
+		}
+
+		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, in Entity kickerRef)
+		{
 			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
 			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
 			localPos.z += radius;
-			//float4x4 model = player.TableToWorld * Matrix4x4.TRS(localPos, Quaternion.identity, new float3(radius));
 
-			var worldPos = m.MultiplyPoint(localPos);
+			var worldPos = _ltw.MultiplyPoint(localPos);
 			var scale3 = new Vector3(
-				m.GetColumn(0).magnitude,
-				m.GetColumn(1).magnitude,
-				m.GetColumn(2).magnitude
+				_ltw.GetColumn(0).magnitude,
+				_ltw.GetColumn(1).magnitude,
+				_ltw.GetColumn(2).magnitude
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
 			var material = BallMaterial.CreateMaterial();
 			var mesh = GetSphereMesh();
 
 			// create ball entity
-			EngineProvider<IPhysicsEngine>.Get()
-				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius);
-
-			return null;
+			EngineProvider<IPhysicsEngine>
+				.Get()
+				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public static Entity CreatePureEntity(Mesh mesh, Material material, float3 position, float scale)
+		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
 		{
-			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var world = World.DefaultGameObjectInjectionWorld;
+			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
+			var ecb = ecbs.CreateCommandBuffer();
 
-			Entity entity = entityManager.CreateEntity(
+			var archetype = EntityManager.CreateArchetype(
 				typeof(Translation),
 				typeof(Scale),
 				typeof(Rotation),
 				typeof(RenderMesh),
 				typeof(LocalToWorld),
-				typeof(RenderBounds));
+				typeof(RenderBounds),
+				typeof(BallData),
+				typeof(CollisionEventData),
+				typeof(OverlappingStaticColliderBufferElement),
+				typeof(OverlappingDynamicBufferElement),
+				typeof(BallInsideOfBufferElement),
+				typeof(BallLastPositionsBufferElement)
+			);
+			var entity = ecb.CreateEntity(archetype);
 
-			entityManager.SetSharedComponentData(entity, new RenderMesh
-			{
+			ecb.SetSharedComponent(entity, new RenderMesh {
 				mesh = mesh,
 				material = material
 			});
 
-			entityManager.SetComponentData(entity, new RenderBounds
-			{
+			ecb.SetComponent(entity, new RenderBounds {
 				Value = mesh.bounds.ToAABB()
 			});
 
-			entityManager.SetComponentData(entity, new Translation
-			{
-				Value = position
+			ecb.SetComponent(entity, new Translation {
+				Value = worldPos
 			});
 
-			entityManager.SetComponentData(entity, new Scale
-			{
+			ecb.SetComponent(entity, new Scale {
 				Value = scale
 			});
 
-			return entity;
+			ecb.SetComponent(entity, new BallData {
+				Id = NumBallsCreated++,
+				IsFrozen = false,
+				Position = localPos,
+				Radius = radius,
+				Mass = mass,
+				Velocity = localVel,
+				Orientation = float3x3.identity,
+				RingCounterOldPos = 0,
+				AngularMomentum = float3.zero
+			});
+
+			ecb.SetComponent(entity, new CollisionEventData {
+				HitTime = -1,
+				HitDistance = 0,
+				HitFlag = false,
+				IsContact = false,
+				HitNormal = new float3(0, 0, 0),
+			});
+
+			var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
+			for (var i = 0; i < BallRingCounterSystem.MaxBallTrailPos; i++) {
+				lastBallPostBuffer.Add(new BallLastPositionsBufferElement
+					{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
+				);
+			}
+
+			// handle inside-kicker creation
+			if (kickerEntity != Entity.Null) {
+				var kickerData = EntityManager.GetComponentData<KickerStaticData>(kickerEntity);
+				if (!kickerData.FallThrough) {
+					var kickerCollData = EntityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+					var inside = ecb.AddBuffer<BallInsideOfBufferElement>(entity);
+					BallData.SetInsideOf(ref inside, kickerEntity);
+					kickerCollData.BallEntity = entity;
+					kickerCollData.LastCapturedBallEntity = entity;
+					ecb.SetComponent(kickerEntity, kickerCollData);
+				}
+			}
+
+			NumBalls++;
 		}
 
-		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius)
+		public static void DestroyEntity(Entity ballEntity)
 		{
-			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			BallAuthoring.CreateEntity(entityManager,
-				mesh, material, worldPos, scale, localPos,
-					localVel, radius, mass);
+			World.DefaultGameObjectInjectionWorld
+				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()
+				.CreateCommandBuffer()
+				.DestroyEntity(ballEntity);
+
+			NumBalls--;
 		}
 
 		/// <summary>
@@ -111,25 +193,6 @@ namespace VisualPinball.Unity
 			return _unitySphereMesh;
 		}
 
-		private GameObject CreateSphere(Material material, float3 pos, float3 scale)
-		{
-			// create go
-			var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			go.name = $"Ball{++_id}";
-
-			// set material
-			go.GetComponent<Renderer>().material = material;
-
-			// set position and scale
-			go.transform.localPosition = pos;
-			go.transform.localScale = scale;
-
-			// mark to convert
-			go.AddComponent<ConvertToEntity>();
-
-			return go;
-		}
-
 		#region Material
 
 		/// <summary>
@@ -143,14 +206,12 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		private static IBallMaterial CreateBallMaterial()
 		{
-			if (GraphicsSettings.renderPipelineAsset != null)
-			{
-				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset"))
-				{
+			if (GraphicsSettings.renderPipelineAsset != null) {
+				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
 					return new UrpBallMaterial();
 				}
-				else if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset"))
-				{
+
+				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
 					return new HdrpBallMaterial();
 				}
 			}
@@ -159,6 +220,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
 	}
 }

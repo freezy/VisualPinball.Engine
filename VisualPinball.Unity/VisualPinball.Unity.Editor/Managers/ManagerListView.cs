@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,15 +28,20 @@ namespace VisualPinball.Unity.Editor
 	/// for use by the manager windows
 	/// </summary>
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
-	public class ManagerListView<T> : TreeView where T: IManagerListData
+	public class ManagerListView<T> : TreeView where T: class, IManagerListData
 	{
 		public event Action<List<T>> ItemSelected;
 
+		public float RowHeight { get => rowHeight; set => rowHeight = value; }
+
 		private List<T> _data = new List<T>();
 		private List<ColumnData> _columns = new List<ColumnData>();
+		private Action<T, Rect, int> _itemRenderer;
 
-		public ManagerListView(TreeViewState treeViewState, IEnumerable<T> data, Action<List<T>> itemSelected) : base(treeViewState)
+		public ManagerListView(TreeViewState treeViewState, IEnumerable<T> data, Action<T, Rect, int> itemRenderer, Action<List<T>> itemSelected) : base(treeViewState)
 		{
+			_itemRenderer = itemRenderer;
+
 			ItemSelected += itemSelected;
 
 			// collect up all column attribute flagged fields and properties, then cache the associated member info
@@ -157,13 +178,25 @@ namespace VisualPinball.Unity.Editor
 		protected override void RowGUI(RowGUIArgs args)
 		{
 			for (int i = 0; i < args.GetNumVisibleColumns(); ++i) {
-				CellGUI(args.GetCellRect(i), args.item, args.GetColumn(i));
+				var data = (args.item as RowData).Data;
+
+				var cellRect = args.GetCellRect(i);
+
+				CenterRectUsingSingleLineHeight(ref cellRect);
+
+				if (_itemRenderer != null)
+				{
+					_itemRenderer(data, cellRect, args.GetColumn(i));
+				}
+				else
+				{
+					CellGUI(cellRect, args.item, args.GetColumn(i));
+				}
 			}
 		}
 
 		private void CellGUI(Rect cellRect, TreeViewItem item, int column)
 		{
-			CenterRectUsingSingleLineHeight(ref cellRect);
 			var val = GetColumnValue(item, column);
 			if (val != null) {
 				if (val is bool bVal) {

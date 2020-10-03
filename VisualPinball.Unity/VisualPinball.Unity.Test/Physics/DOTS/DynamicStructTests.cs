@@ -1,4 +1,20 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -46,18 +62,6 @@ namespace VisualPinball.Unity.Test
 			//
 			// Assert.AreEqual(hit.Rgv[0].ToUnityFloat3(), coll.Value._rgv[0]);
 			// Assert.AreEqual(hit.Rgv[1].ToUnityFloat3(), coll.Value._rgv[1]);
-		}
-
-		[Test]
-		public void ShouldSerializePoly3DCollider()
-		{
-			var colliderBlob = ColliderBlob.CreateBlobAssetReference( new List<HitObject> {
-				new Hit3DPoly(new[] { new Vertex3D(1, 2, 3), new Vertex3D(4, 5, 6) }, ItemType.Table)
-			}, 0, 0);
-
-			ref var poly3DCollider = ref colliderBlob.Value.Colliders[0].Value;
-
-			Assert.AreEqual("Poly3DCollider, rgv[0] = float3(1f, 2f, 3f)", Unity.Collider.ToString(ref poly3DCollider));
 		}
 	}
 

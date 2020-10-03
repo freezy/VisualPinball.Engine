@@ -1,7 +1,21 @@
-using VisualPinball.Engine.Game;
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Ball;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Physics
@@ -16,7 +30,7 @@ namespace VisualPinball.Engine.Physics
 		/// Mainly used as IFireEvents, but also as HitTarget or Primitive or
 		/// Trigger or Kicker or Gate.
 		/// </summary>
-		public EventProxy Obj;                                                 // m_obj
+		public IItem Item;                                                 // m_obj
 
 		/// <summary>
 		/// Threshold for firing an event (usually (always??) normal dot
@@ -52,30 +66,15 @@ namespace VisualPinball.Engine.Physics
 		public int ItemIndex;
 		public int ItemVersion;
 
-		protected HitObject(ItemType objType)
+		protected HitObject(ItemType objType, IItem item)
 		{
 			ObjType = objType;
+			Item = item;
 		}
 
 		public abstract void CalcHitBBox();
 
-		public abstract float HitTest(Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics);
-
-		public abstract void Collide(CollisionEvent coll, PlayerPhysics physics);
-
 		protected const float HardScatter = 0.0f;
-
-		/// <summary>
-		/// Apply contact forces for the given time interval. Ball, Spinner and
-		/// Gate do nothing here, Flipper has a specialized handling
-		/// </summary>
-		/// <param name="coll"></param>
-		/// <param name="dTime"></param>
-		/// <param name="physics"></param>
-		public virtual void Contact(CollisionEvent coll, float dTime, PlayerPhysics physics)
-		{
-			coll.Ball.Hit.HandleStaticContact(coll, Friction, dTime, physics);
-		}
 
 		public HitObject SetFriction(float friction)
 		{
@@ -87,27 +86,6 @@ namespace VisualPinball.Engine.Physics
 		{
 			Scatter = scatter;
 			return this;
-		}
-
-		public void FireHitEvent(Ball ball)
-		{
-			if (Obj != null && FireEvents && IsEnabled)
-			{
-				// is this the same place as last event? if same then ignore it
-				var posDiff = ball.Hit.EventPos.Clone().Sub(ball.State.Pos);
-				var distLs = posDiff.LengthSq();
-
-				// remember last collide position
-				ball.Hit.EventPos.Set(ball.State.Pos.X, ball.State.Pos.Y, ball.State.Pos.Z);
-
-				// hit targets when used with a captured ball have always a too small distance
-				var normalDist = ObjType == ItemType.HitTarget ? 0.0f : 0.25f; // magic distance
-
-				if (distLs > normalDist) {
-					// must be a new place if only by a little
-					Obj.FireGroupEvent(EventId.HitEventsHit);
-				}
-			}
 		}
 
 		public HitObject SetElasticity(float elasticity)
@@ -133,47 +111,6 @@ namespace VisualPinball.Engine.Physics
 		public void SetEnabled(bool isEnabled)
 		{
 			IsEnabled = isEnabled;
-		}
-
-		public void DoHitTest(Ball ball, CollisionEvent coll, PlayerPhysics physics)
-		{
-			if (ball == null) {
-				return;
-			}
-
-			if (Obj?.AbortHitTest != null && Obj.AbortHitTest()) {
-				return;
-			}
-
-			var newColl = new CollisionEvent(ball);
-			var newTime = HitTest(ball, coll.HitTime, !physics.RecordContacts ? coll : newColl, physics);
-			var validHit = newTime >= 0 && newTime <= coll.HitTime;
-
-			if (!physics.RecordContacts) {
-				// simply find first event
-				if (validHit) {
-					coll.Ball = ball;
-					coll.Obj = this;
-					coll.HitTime = newTime;
-				}
-
-			} else {
-				// find first collision, but also remember all contacts
-				if (newColl.IsContact || validHit) {
-					newColl.Ball = ball;
-					newColl.Obj = this;
-
-					if (newColl.IsContact) {
-						physics.Contacts.Add(newColl);
-
-					} else {
-						// if (validhit)
-						coll.Set(newColl);
-						coll.HitTime = newTime;
-					}
-
-				}
-			}
 		}
 
 		public void ApplyPhysics(IPhysicalData data, Table table)

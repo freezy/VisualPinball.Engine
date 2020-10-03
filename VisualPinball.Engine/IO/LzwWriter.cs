@@ -1,4 +1,15 @@
-﻿using System.Collections.Generic;
+﻿// GIF Image compression - modified 'compress'
+//
+// Based on: compress.c - File compression ala IEEE Computer, June 1984.
+//
+// By Authors:  Spencer W. Thomas      (decvax!harpo!utah-cs!utah-gr!thomas)
+//              Jim McKie              (decvax!mcvax!jim)
+//              Steve Davies           (decvax!vax135!petsd!peora!srd)
+//              Ken Turkowski          (decvax!decwrl!turtlevax!ken)
+//              James A. Woods         (decvax!ihnp4!ames!jaw)
+//              Joe Orost              (decvax!vax135!petsd!joe)
+
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -84,7 +95,7 @@ namespace VisualPinball.Engine.IO
 			++_iPixelCur;
 			++_iXCur;
 			if (_iXCur == _width) {
-				_iPixelCur += (_pitch - _width);
+				_iPixelCur += _pitch - _width;
 				_iXCur = 0;
 			}
 			return ch;
@@ -190,7 +201,7 @@ namespace VisualPinball.Engine.IO
 			_curAccum &= Masks[_curBits];
 
 			if (_curBits > 0) {
-				_curAccum |= (code << _curBits);
+				_curAccum |= code << _curBits;
 
 			} else {
 				_curAccum = code;

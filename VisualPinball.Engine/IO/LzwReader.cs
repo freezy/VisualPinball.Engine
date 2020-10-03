@@ -1,3 +1,19 @@
+// DECODE.C - An LZW decoder for GIF
+// Copyright (C) 1987, by Steven A. Bennett
+//
+// Permission is given by the author to freely redistribute and include
+// this code in any program as long as this credit is given where due.
+//
+// In accordance with the above, I want to credit Steve Wilhite who wrote
+// the code which this is heavily inspired by...
+//
+// GIF and 'Graphics Interchange Format' are trademarks (tm) of
+// Compuserve, Incorporated, an H&R Block Company.
+//
+// Release Notes: This file contains a decoder routine for GIF images
+// which is similar, structurally, to the original routine by Steve Wilhite.
+// It is, however, somewhat noticably faster in most cases.
+
 #region ReSharper
 // ReSharper disable IdentifierTypo
 #endregion
@@ -246,7 +262,7 @@ namespace VisualPinball.Engine.IO
 					_pBytes = new BufferPtr(_byteBuff);
 					_numAvailBytes = GetByte();
 					if (_numAvailBytes < 0) {
-						return (_numAvailBytes);
+						return _numAvailBytes;
 
 					}
 

@@ -1,4 +1,20 @@
-﻿#region ReSharper
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+#region ReSharper
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
@@ -87,7 +103,7 @@ namespace VisualPinball.Unity
 			));
 			foreach (var mf in mfs) {
 				var t = mf.transform;
-				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, data.EndAngle));
+				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, math.radians(data.EndAngle)));
 				Gizmos.DrawWireMesh(mf.sharedMesh, t.position, r, t.lossyScale);
 			}
 		}

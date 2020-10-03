@@ -1,4 +1,19 @@
-﻿using VisualPinball.Engine.Game;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
@@ -23,7 +38,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private readonly float _y;
 		private readonly float _x2;
 
-		public PlungerHit(PlungerData data, float zHeight) : base(ItemType.Plunger)
+		public PlungerHit(PlungerData data, float zHeight, IItem item) : base(ItemType.Plunger, item)
 		{
 			_data = data;
 			_zHeight = zHeight;
@@ -38,16 +53,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Position = FrameTop + RestPos * FrameLen;
 
 			// static
-			LineSegBase = new LineSeg(new Vertex2D(_x, _y), new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			JointBase[0] = new HitLineZ(new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			JointBase[1] = new HitLineZ(new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			LineSegBase = new LineSeg(new Vertex2D(_x, _y), new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			JointBase[0] = new HitLineZ(new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			JointBase[1] = new HitLineZ(new Vertex2D(_x2, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
 
 			// dynamic
-			LineSegSide[0] = new LineSeg(new Vertex2D(_x + 0.0001f, Position), new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			LineSegSide[1] = new LineSeg(new Vertex2D(_x2, _y), new Vertex2D(_x2 + 0.0001f, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			LineSegEnd = new LineSeg(new Vertex2D(_x2, Position), new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			JointEnd[0] = new HitLineZ(new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
-			JointEnd[1] = new HitLineZ(new Vertex2D(_x2, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger);
+			LineSegSide[0] = new LineSeg(new Vertex2D(_x + 0.0001f, Position), new Vertex2D(_x, _y), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			LineSegSide[1] = new LineSeg(new Vertex2D(_x2, _y), new Vertex2D(_x2 + 0.0001f, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			LineSegEnd = new LineSeg(new Vertex2D(_x2, Position), new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			JointEnd[0] = new HitLineZ(new Vertex2D(_x, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
+			JointEnd[1] = new HitLineZ(new Vertex2D(_x2, Position), zHeight, zHeight + Plunger.PlungerHeight, ItemType.Plunger, item);
 		}
 
 		public override void SetIndex(int index, int version)
@@ -75,18 +90,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 				_zHeight,
 				_zHeight + Plunger.PlungerHeight
 			);
-		}
-
-		public override float HitTest(Ball.Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
 		}
 	}
 }

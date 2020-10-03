@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Linq;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
@@ -87,16 +103,21 @@ namespace VisualPinball.Engine.VPT.Table
 			_table.Data.WriteData(_gameStorage, hashWriter);
 
 			// 2. game items
-			foreach (var writeable in _table.GameItems.OrderBy(gi => gi.StorageIndex)) {
+			foreach (var writeable in _table.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
 				writeable.WriteData(_gameStorage);
 			}
 
 			// 3. Collections
-			var collections = _table.Collections.Values.ToArray();
-			int i = 0;
+			var collections = _table.Collections.Values;
 			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
-				collection.StorageIndex = i++;
 				collection.WriteData(_gameStorage, hashWriter);
+			}
+
+			// 4. Mapping Configs
+			var mappingConfigs = _table.MappingConfigs.Values;
+			foreach (var mappingConfig in mappingConfigs.Select(mc => mc.Data).OrderBy(mc => mc.StorageIndex))
+			{
+				mappingConfig.WriteData(_gameStorage, hashWriter);
 			}
 		}
 

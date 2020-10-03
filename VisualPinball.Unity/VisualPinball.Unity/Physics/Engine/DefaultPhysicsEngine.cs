@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +28,7 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default VPX";
 
+		private BallManager _ballManager;
 		private EntityManager _entityManager;
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _ballDataQuery;
@@ -30,6 +47,7 @@ namespace VisualPinball.Unity
 				ComponentType.ReadOnly<SolenoidStateData>()
 			);
 
+			_ballManager = BallManager.Instance(tableAuthoring.Table, tableAuthoring.gameObject.transform.localToWorldMatrix);
 			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
 
 			var visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
@@ -42,10 +60,10 @@ namespace VisualPinball.Unity
 		}
 
 		public void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius)
+			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
 		{
 			BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
-				scale * radius * 2, in mass, in radius);
+				scale * radius * 2, in mass, in radius, in kickerRef);
 		}
 
 		public void BallManualRoll(in Entity entity, in float3 targetWorldPosition)
@@ -133,11 +151,11 @@ namespace VisualPinball.Unity
 
 		public void PushPendingCreateBallNotifications()
 		{
-			if (_nextBallIdToNotifyDebugUI == BallAuthoring.NumBallsCreated)
+			if (_nextBallIdToNotifyDebugUI == BallManager.NumBallsCreated)
 				return; // nothing to report
 
 			var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
-			int numBallsToReport = BallAuthoring.NumBallsCreated - _nextBallIdToNotifyDebugUI;
+			int numBallsToReport = BallManager.NumBallsCreated - _nextBallIdToNotifyDebugUI;
 			foreach (var entity in entities)
 			{
 				var ballData = _entityManager.GetComponentData<BallData>(entity);
@@ -150,7 +168,7 @@ namespace VisualPinball.Unity
 
 			// error checking
 			Assert.AreEqual(0, numBallsToReport);
-			_nextBallIdToNotifyDebugUI = BallAuthoring.NumBallsCreated;
+			_nextBallIdToNotifyDebugUI = BallManager.NumBallsCreated;
 		}
 	}
 }

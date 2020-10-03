@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,8 +32,10 @@ namespace VisualPinball.Engine.VPT.Table
 	/// A table contains all the playfield elements, as well as a set of
 	/// global data.
 	/// </summary>
-	public class Table : Item<TableData>, IRenderable
+	public class Table : Item<TableData>, IRenderable, IHittable
 	{
+		public override string ItemType => "Table";
+
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
@@ -36,6 +54,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
+		public readonly Dictionary<string, MappingConfig.MappingConfig> MappingConfigs = new Dictionary<string, MappingConfig.MappingConfig>();
 
 		#region GameItems
 
@@ -94,7 +113,28 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		public IEnumerable<ItemData> GameItems => new ItemData[] {}
+		public IEnumerable<IItem> GameItems => new IItem[] { }
+			.Concat(_bumpers.Values)
+			.Concat(_decals.Select(i => i))
+			.Concat(_dispReels.Values)
+			.Concat(_flippers.Values)
+			.Concat(_flashers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_lights.Values)
+			.Concat(_lightSeqs.Values)
+			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
+			.Concat(_ramps.Values)
+			.Concat(_rubbers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_surfaces.Values)
+			.Concat(_textBoxes.Values)
+			.Concat(_timers.Values)
+			.Concat(_triggers.Values);
+
+		public IEnumerable<ItemData> ItemDatas => new ItemData[] {}
 			.Concat(_bumpers.Values.Select(i => i.Data))
 			.Concat(_decals.Select(i => i.Data))
 			.Concat(_dispReels.Values.Select(i => i.Data))
@@ -115,18 +155,14 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public IEnumerable<IMovable> Movables => new IMovable[0]
-			.Concat(_flippers.Values)
-			.Concat(_gates.Values)
-			.Concat(_spinners.Values);
-
-		public IEnumerable<IHittable> Hittables => new IHittable[0]
+		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
 			.Concat(_hitTargets.Values)
 			.Concat(_kickers.Values)
 			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
 			.Concat(_ramps.Values)
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
@@ -140,6 +176,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_hitTargets.Values)
 			.Concat(_kickers.Values)
 			.Concat(_plungers.Values)
+			.Concat(_primitives.Values)
 			.Concat(_ramps.Values)
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
@@ -149,17 +186,16 @@ namespace VisualPinball.Engine.VPT.Table
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {
-				item.StorageIndex = GameItems.Count();
+				item.StorageIndex = ItemDatas.Count();
 				Data.NumGameItems = item.StorageIndex + 1;
 			}
 			d[name] = item;
-
 		}
 
 		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {
-				item.StorageIndex = GameItems.Count();
+				item.StorageIndex = ItemDatas.Count();
 			}
 			d.Add(item);
 		}
@@ -249,6 +285,10 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		#endregion
+
+		public void Init(Table table)
+		{
+		}
 
 		/// <summary>
 		/// Adds a game item to the table.
@@ -350,7 +390,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			var dict = GetItemDictionary<T>();
 			var removedStorageIndex = dict[name].StorageIndex;
-			var gameItems = GameItems;
+			var gameItems = ItemDatas;
 			foreach (var gameItem in gameItems) {
 				if (gameItem.StorageIndex > removedStorageIndex) {
 					gameItem.StorageIndex--;
@@ -385,6 +425,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public string InfoName => TableInfo.ContainsKey("TableName") ? TableInfo["TableName"] : null;
 		public string InfoRules => TableInfo.ContainsKey("TableRules") ? TableInfo["TableRules"] : null;
 		public string InfoVersion => TableInfo.ContainsKey("TableVersion") ? TableInfo["TableVersion"] : null;
+
 		#endregion
 
 		private readonly TableMeshGenerator _meshGenerator;
@@ -414,9 +455,10 @@ namespace VisualPinball.Engine.VPT.Table
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
-		public IEnumerable<HitObject> GetHitShapes() => _hitGenerator.GenerateHitObjects();
-		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit();
-		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit();
+		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
+
+		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
+		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);
 
 		public void Save(string fileName)
 		{

@@ -1,13 +1,30 @@
-﻿using Unity.Collections;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public struct TriangleCollider : ICollider, ICollidable
+	internal struct TriangleCollider
 	{
 		private ColliderHeader _header;
 
@@ -39,7 +56,7 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			// if (!this.isEnabled) {
 			// 	return -1.0;
@@ -110,9 +127,14 @@ namespace VisualPinball.Unity
 			var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 			// 4. Check if point is in triangle
-			var pointInTriangle = (u >= 0) && (v >= 0) && (u + v <= 1);
+			var pointInTriangle = u >= 0 && v >= 0 && u + v <= 1;
 
 			if (pointInTriangle) {
+
+				if (_header.ItemType == ItemType.Trigger && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
+					collEvent.HitFlag = bnd > 0;
+				}
+
 				collEvent.HitNormal = _normal;
 				collEvent.HitDistance = bnd;                        // 3dhit actual contact distance ...
 				//coll.m_hitRigid = true;                      // collision type
@@ -129,7 +151,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		// todo identical with Poly3DCollider.Collider, refactor?
 		public void Collide(ref BallData ball,  ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in CollisionEventData collEvent, ref Random random)
 		{

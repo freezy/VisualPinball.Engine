@@ -1,4 +1,20 @@
-﻿using Unity.Mathematics;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 
@@ -66,7 +82,7 @@ namespace VisualPinball.Unity
 			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
 
-		public static Aabb ToAabb(this Rect3D rect, int colliderId)
+		internal static Aabb ToAabb(this Rect3D rect, int colliderId)
 		{
 			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
@@ -86,7 +102,7 @@ namespace VisualPinball.Unity
 			return ratio * 100.0f;
 		}
 
-		public static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
+		internal static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
 		{
 			aabb.ColliderId = colliderId;
 			aabb.Left = rect.Left;

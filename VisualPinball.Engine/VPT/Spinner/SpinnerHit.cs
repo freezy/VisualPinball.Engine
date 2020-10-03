@@ -1,5 +1,20 @@
-﻿using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
@@ -7,10 +22,10 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class SpinnerHit : HitObject
 	{
-		public LineSeg LineSeg0;
-		public LineSeg LineSeg1;
+		public readonly LineSeg LineSeg0;
+		public readonly LineSeg LineSeg1;
 
-		public SpinnerHit(SpinnerData data, float height) : base(ItemType.Spinner)
+		public SpinnerHit(SpinnerData data, float height, IItem item) : base(ItemType.Spinner, item)
 		{
 			var halfLength = data.Length * 0.5f;
 
@@ -27,8 +42,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
 			);
 
-			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
-			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner);
+			LineSeg0 = new LineSeg(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner, item);
+			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner, item);
 		}
 
 		public override void SetIndex(int index, int version)
@@ -42,18 +57,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 		{
 			LineSeg0.CalcHitBBox();
 			HitBBox = LineSeg0.HitBBox;
-		}
-
-		public override float HitTest(Ball.Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
 		}
 	}
 }

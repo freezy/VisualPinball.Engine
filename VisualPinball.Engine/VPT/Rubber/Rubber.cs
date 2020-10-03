@@ -1,4 +1,20 @@
-﻿using System.IO;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
@@ -7,8 +23,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable, IHittable
 	{
-		public EventProxy EventProxy { get; private set; }
-		public bool IsCollidable => Data.IsCollidable;
+		public override string ItemType => "Rubber";
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly RubberMeshGenerator _meshGenerator;
@@ -51,8 +67,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public void Init(Table.Table table)
 		{
-			EventProxy = new EventProxy(this);
-			_hits = _hitGenerator.GenerateHitObjects(EventProxy, table);
+			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 	}
 }

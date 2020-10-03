@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #region ReSharper
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
@@ -15,7 +31,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trigger")]
-	public class TriggerAuthoring : ItemAuthoring<Trigger, TriggerData>, IHittableAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
+	public class TriggerAuthoring : ItemAuthoring<Trigger, TriggerData>, IHittableAuthoring, ISwitchableAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override string[] Children => null;
 
@@ -50,8 +66,19 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+
 		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			if (data == null || data.DragPoints.Length == 0) {
+				return;
+			}
+			var diff = pos.ToVertex3D().Sub(data.Center);
+			foreach (var pt in data.DragPoints) {
+				pt.Center = pt.Center.Add(new Vertex3D(diff.X, diff.Y, 0f));
+			}
+			data.Center = pos.ToVertex2Dxy();
+		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);

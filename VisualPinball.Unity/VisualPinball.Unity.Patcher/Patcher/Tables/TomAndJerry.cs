@@ -1,7 +1,22 @@
-﻿// ReSharper disable StringLiteralTypo
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Unity.Patcher.Matcher.Table;
 
 namespace VisualPinball.Unity.Patcher
@@ -14,7 +29,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MuscleswithknifeSHADOW")]
 		public void HideGameObject(GameObject gameObject)
 		{
-			gameObject.SetActive(false);
+			PatcherUtil.Hide(gameObject);
 		}
 
 		[NameMatch("sw51")]
@@ -31,19 +46,11 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw64")]
 		[NameMatch("sw73")]
 		[NameMatch("sw73a")]
+		[NameMatch("BumperCap2")] // Jerry Bumper
+		[NameMatch("BumperCap3")] // Tom Bumper
 		public void SetOpaque(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.SetFloat("_SurfaceType", 0);
-
-			unityMat.SetFloat("_DstBlend", 0);
-			unityMat.SetFloat("_ZWrite", 1);
-
-			unityMat.DisableKeyword("_ALPHATEST_ON");
-			unityMat.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-			unityMat.DisableKeyword("_BLENDMODE_PRE_MULTIPLY");
-			unityMat.DisableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+			PatcherUtil.SetOpaque(gameObject);
 		}
 
 		/// <summary>
@@ -55,11 +62,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MusclesKnife")]
 		public void SetAlphaClip(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.EnableKeyword("_ALPHATEST_ON");
-			unityMat.SetFloat("_AlphaCutoff", 0.05f);
-			unityMat.SetInt("_AlphaCutoffEnable", 1);
+			PatcherUtil.SetAlphaCutOff(gameObject, 0.05f);
 		}
 
 		/// <summary>
@@ -76,16 +79,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-
-			unityMat.EnableKeyword("_DOUBLESIDED_ON");
-			unityMat.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
-
-			unityMat.SetInt("_DoubleSidedEnable", 1);
-			unityMat.SetInt("_DoubleSidedNormalMode", 1);
-
-			unityMat.SetInt("_CullMode", 0);
-			unityMat.SetInt("_CullModeForward", 0);
+			PatcherUtil.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Ramp5")]
@@ -95,8 +89,16 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ramp20")]
 		public void SetMetallic(GameObject gameObject)
 		{
-			var unityMat = gameObject.GetComponent<Renderer>().sharedMaterial;
-			unityMat.SetFloat("_Metallic", 1.0f);
+			PatcherUtil.SetMetallic(gameObject, 1.0f);
+		}
+
+		[NameMatch("Lflip", Ref = "Flippers/LeftFlipper")]
+		[NameMatch("Rflip", Ref = "Flippers/RightFlipper")]
+		[NameMatch("LFlip1", Ref = "Flippers/LeftFlipper1")]
+		[NameMatch("Rflip1", Ref = "Flippers/RightFlipper1")]
+		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+		{
+			PatcherUtil.Reparent(gameObject, parent);
 		}
 	}
 }

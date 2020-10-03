@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 namespace VisualPinball.Engine.VPT
 {
 	public static class BackglassIndex
@@ -122,4 +138,22 @@ namespace VisualPinball.Engine.VPT
 		public const int Backglass = 1;
 	}
 
+	public static class SwitchSource
+	{
+		public const int InputSystem = 0;
+		public const int Playfield = 1;
+		public const int Constant = 2;
+	}
+
+	public static class SwitchConstant
+	{
+		public const int NormallyClosed = 0;
+		public const int NormallyOpen = 1;
+	}
+
+	public static class SwitchType
+	{
+		public const int OnOff = 0;
+		public const int Pulse = 1;
+	}
 }

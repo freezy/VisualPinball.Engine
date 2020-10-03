@@ -1,4 +1,20 @@
-﻿using Unity.Collections;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
@@ -6,7 +22,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public static class KickerCollider
+	internal static class KickerCollider
 	{
 		/// <summary>
 		/// Legacy mode adds about 300 iterations to the physics loop,
@@ -18,7 +34,7 @@ namespace VisualPinball.Unity
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
 			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
-			in Entity collEntity, in Entity ballEntity, bool newBall)
+			in Entity collEntity, in Entity ballEntity)
 		{
 			// a previous ball already in kicker?
 			if (collData.HasBall) {
@@ -34,9 +50,9 @@ namespace VisualPinball.Unity
 			var isBallInside = BallData.IsInsideOf(in insideOfs, collEntity);
 
 			// New or (Hit && !Vol || UnHit && Vol)
-			if (newBall || hitBit == isBallInside) {
+			if (hitBit == isBallInside) {
 
-				if (legacyMode || newBall) {
+				if (legacyMode) {
 					ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
 				}
 
@@ -45,7 +61,7 @@ namespace VisualPinball.Unity
 					var grabHeight = (staticData.ZLow + ball.Radius) * staticData.HitAccuracy;
 
 					// early out here if the ball is slow and we are near the kicker center
-					var hitEvent = ball.Position.z < grabHeight || legacyMode || newBall;
+					var hitEvent = ball.Position.z < grabHeight || legacyMode;
 
 					if (!hitEvent) {
 
@@ -62,22 +78,18 @@ namespace VisualPinball.Unity
 						}
 
 						ball.OldVelocity = ball.Velocity;
-					}
 
-					if (hitEvent) {
+					} else {
 
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
 							BallData.SetInsideOf(ref insideOfs, collEntity); // add kicker to ball's volume set
-							collData.HasBall = true;
+							collData.BallEntity = ballEntity;
 							collData.LastCapturedBallEntity = ballEntity;
 						}
 
-						// Don't fire the hit event if the ball was just created
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						if (!newBall) {
-							events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, true));
-						}
+						events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, true));
 
 						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
 
@@ -88,16 +100,13 @@ namespace VisualPinball.Unity
 							// Only mess with variables if ball was not kicked during event
 							ball.Velocity = float3.zero;
 							ball.AngularMomentum = float3.zero;
-							ball.Position = new float3(staticData.Center.x, staticData.Center.y, ball.Position.z);
-							if (staticData.FallThrough) {
-								ball.Position.z = staticData.ZLow - ball.Radius - 5.0f;
-
-							} else {
-								ball.Position.z = staticData.ZLow + ball.Radius;
-							}
+							var posZ = staticData.FallThrough
+								? staticData.ZLow - ball.Radius - 5.0f
+								: staticData.ZLow + ball.Radius;
+							ball.Position = new float3(staticData.Center.x, staticData.Center.y, posZ);
 
 						} else {
-							collData.HasBall = false; // make sure
+							collData.BallEntity = Entity.Null; // make sure
 						}
 					}
 
@@ -112,7 +121,7 @@ namespace VisualPinball.Unity
 
 		private static void DoChangeBallVelocity(ref BallData ball, in float3 hitNormal, in ColliderMeshData meshData)
 		{
-			var minDistSqr = float.MaxValue;
+			var minDistSqr = Constants.FloatMax;
 			var idx = 0u;
 			ref var hitMesh = ref meshData.Value.Value.Vertices;
 			ref var hitMeshNormals = ref meshData.Value.Value.Normals;

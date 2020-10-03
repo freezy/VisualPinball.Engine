@@ -1,27 +1,33 @@
-﻿using Unity.Entities;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	[InternalBufferCapacity(1)]
-	public struct ContactBufferElement : IBufferElementData
+	[InternalBufferCapacity(8)]
+	internal struct ContactBufferElement : IBufferElementData
 	{
-		public CollisionEventData CollisionEvent;
-		public int ColliderId;
-		public Entity ColliderEntity;
+		public CollisionEventData CollEvent;
+		public Entity BallEntity;
 
-		public ContactBufferElement(int colliderId, CollisionEventData collEvent)
+		public ContactBufferElement(Entity ballEntity, CollisionEventData collEvent)
 		{
-			CollisionEvent = collEvent;
-			ColliderId = colliderId;
-			ColliderEntity = Entity.Null;
-		}
-
-		public ContactBufferElement(Entity colliderEntity, CollisionEventData collEvent)
-		{
-			CollisionEvent = collEvent;
-			ColliderId = -1;
-			ColliderEntity = colliderEntity;
+			BallEntity = ballEntity;
+			CollEvent = collEvent;
 		}
 	}
-
 }

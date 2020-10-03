@@ -1,9 +1,24 @@
-﻿// ReSharper disable ConvertIfStatementToSwitchStatement
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable ConvertIfStatementToSwitchStatement
 
 using System;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 using Object = UnityEngine.Object;
@@ -12,7 +27,7 @@ using Random = UnityEngine.Random;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	public class StaticCollisionSystem : SystemBase
+	internal class StaticCollisionSystem : SystemBase
 	{
 		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
@@ -138,21 +153,24 @@ namespace VisualPinball.Unity
 
 							case ColliderType.TriggerCircle:
 							case ColliderType.TriggerLine:
+							{
 								var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
 								TriggerCollider.Collide(
-									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
+									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
+									in coll
 								);
 								SetComponent(coll.Entity, triggerAnimationData);
 								break;
-
+							}
 							case ColliderType.KickerCircle:
 								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.Entity);
 								var kickerStaticData = GetComponent<KickerStaticData>(coll.Entity);
 								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 								var legacyMode = KickerCollider.ForceLegacyMode || kickerStaticData.LegacyMode;
+								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
 								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
-									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity, false
+									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity
 								);
 								SetComponent(coll.Entity, kickerCollisionData);
 								break;
@@ -163,23 +181,14 @@ namespace VisualPinball.Unity
 							case ColliderType.LineZ:
 							case ColliderType.Plane:
 							case ColliderType.Point:
-							case ColliderType.Poly3D:
 							case ColliderType.Triangle:
 
 								// hit target
 								if (coll.Header.ItemType == ItemType.HitTarget) {
 
-									float3 normal;
-									if (coll.Type == ColliderType.Poly3D) {
-										normal = ((Poly3DCollider*) collider)->Normal();
-
-									} else if (coll.Type == ColliderType.Triangle) {
-										normal = ((TriangleCollider*) collider)->Normal();
-
-									} else {
-										normal = collEvent.HitNormal;
-									}
-
+									var normal = coll.Type == ColliderType.Triangle
+										? ((TriangleCollider*) collider)->Normal()
+										: collEvent.HitNormal;
 									var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
 									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
 										in normal, in collEvent, in coll, ref random);
@@ -187,7 +196,11 @@ namespace VisualPinball.Unity
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
-									TriggerCollider. Collide(ref ballData, ref events, ref collEvent, ref insideOfs, in coll);
+									var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
+									TriggerCollider.Collide(
+										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
+									);
+									SetComponent(coll.Entity, triggerAnimationData);
 
 								} else {
 									Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);

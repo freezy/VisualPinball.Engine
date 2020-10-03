@@ -1,4 +1,20 @@
-﻿// ReSharper disable ConvertIfStatementToReturnStatement
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable RedundantAssignment
 
@@ -93,8 +109,9 @@ namespace VisualPinball.Unity
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			// finally, add the player script
+			// finally, add the player script and default game engine
 			go.AddComponent<Player>();
+			go.AddComponent<DefaultGameEngineAuthoring>();
 		}
 
 		public static GameObject ConvertRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
@@ -189,7 +206,7 @@ namespace VisualPinball.Unity
 				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
 				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
 				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive); break;
+				case Primitive primitive:			ic = primitive.SetupGameObject(obj, rog); break;
 				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
 				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
 				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
@@ -197,15 +214,6 @@ namespace VisualPinball.Unity
 				case Table table:					ic = table.SetupGameObject(obj, rog); break;
 				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
 			}
-#if UNITY_EDITOR
-			// for convenience move item behavior to the top of the list
-			if (ic != null) {
-				int numComp = obj.GetComponents<MonoBehaviour>().Length;
-				for (int i = 0; i <= numComp; i++) {
-					UnityEditorInternal.ComponentUtility.MoveComponentUp(ic);
-				}
-			}
-#endif
 			return createdObjs;
 		}
 
@@ -221,18 +229,17 @@ namespace VisualPinball.Unity
 				sidecar.tableInfo[key] = table.TableInfo[key];
 			}
 
-			// copy each texture ref into the sidecar's serialized storage
+			// copy each serializable ref into the sidecar's serialized storage
 			sidecar.textures.AddRange(table.Textures);
+			sidecar.sounds.AddRange(table.Sounds);
+
 			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
 			table.SetTextureContainer(sidecar.textures);
-
-			// copy each sound ref into the sidecar's serialized storage
-			sidecar.sounds.AddRange(table.Sounds);
-			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
 			table.SetSoundContainer(sidecar.sounds);
 
 			sidecar.customInfoTags = table.CustomInfoTags;
-			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToArray();
+			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToList();
+			sidecar.mappingConfigs = table.MappingConfigs.Values.Select(c => c.Data).ToList();
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();

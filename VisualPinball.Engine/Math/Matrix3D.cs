@@ -1,3 +1,19 @@
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
@@ -83,30 +99,27 @@ namespace VisualPinball.Engine.Math
 
 		public Matrix3D RotateXMatrix(float x) {
 			SetIdentity();
-			_22 = _33 = MathF.Cos((x));
-			_23 = MathF.Sin((x));
+			_22 = _33 = MathF.Cos(x);
+			_23 = MathF.Sin(x);
 			_32 = -_23;
 			return this;
 		}
 
 		public Matrix3D RotateYMatrix(float y) {
 			SetIdentity();
-			_11 = _33 = MathF.Cos((y));
-			_31 = MathF.Sin((y));
+			_11 = _33 = MathF.Cos(y);
+			_31 = MathF.Sin(y);
 			_13 = -_31;
 			return this;
 		}
 
 		public Matrix3D RotateZMatrix(float z) {
 			SetIdentity();
-			_11 = _22 = MathF.Cos((z));
-			_12 = MathF.Sin((z));
+			_11 = _22 = MathF.Cos(z);
+			_12 = MathF.Sin(z);
 			_21 = -_12;
 			return this;
 		}
-
-		/* multiplyVector() has moved to {@link Vertex3D.multiplyMatrix()} */
-		/* multiplyVectorNoTranslate() has moved to {@link Vertex3D.multiplyMatrixNoTranslate()} */
 
 		public Matrix3D Multiply(Matrix3D a, Matrix3D b = null) {
 			var product = b != null
@@ -116,26 +129,15 @@ namespace VisualPinball.Engine.Math
 			return Set(product._matrix);
 		}
 
-		public Matrix3D PreMultiply(Matrix3D a) {
-			var product = MultiplyMatrices(a, this);
-			return Set(product._matrix);
-		}
-
-		public Matrix3D ToRightHanded() {
-			var tempMat = new Matrix3D().SetScaling(1, 1, -1);
-			return Multiply(tempMat);
-		}
-
 		private static Matrix3D MultiplyMatrices(Matrix3D a, Matrix3D b) {
-			/* istanbul ignore else: we always recycle now */
 			var result = new Matrix3D();
 			for (var i = 0; i < 4; ++i) {
 				for (var l = 0; l < 4; ++l) {
 					result._matrix[i][l] =
-						((((a._matrix[0][l] * b._matrix[i][0]) +
-						(a._matrix[1][l] * b._matrix[i][1])) +
-						(a._matrix[2][l] * b._matrix[i][2])) +
-						(a._matrix[3][l] * b._matrix[i][3]));
+						a._matrix[0][l] * b._matrix[i][0] +
+						a._matrix[1][l] * b._matrix[i][1] +
+						a._matrix[2][l] * b._matrix[i][2] +
+						a._matrix[3][l] * b._matrix[i][3];
 				}
 			}
 			return result;
@@ -143,19 +145,19 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex3D MultiplyMatrix(Vertex3D v) {
 			// Transform it through the current matrix set
-			var xp = ((((_11 * v.X) + (_21 * v.Y)) + (_31 * v.Z)) + _41);
-			var yp = ((((_12 * v.X) + (_22 * v.Y)) + (_32 * v.Z)) + _42);
-			var zp = ((((_13 * v.X) + (_23 * v.Y)) + (_33 * v.Z)) + _43);
-			var wp = ((((_14 * v.X) + (_24 * v.Y)) + (_34 * v.Z)) + _44);
-			var invWp = (1.0f / wp);
+			var xp = _11 * v.X + _21 * v.Y + _31 * v.Z + _41;
+			var yp = _12 * v.X + _22 * v.Y + _32 * v.Z + _42;
+			var zp = _13 * v.X + _23 * v.Y + _33 * v.Z + _43;
+			var wp = _14 * v.X + _24 * v.Y + _34 * v.Z + _44;
+			var invWp = 1.0f / wp;
 			return v.Set(xp * invWp, yp * invWp, zp * invWp);
 		}
 
 		public Vertex3D MultiplyMatrixNoTranslate(Vertex3D v) {
 			// Transform it through the current matrix set
-			var xp = ((_11 * v.X) + (_21 * v.Y)) + (_31 * v.Z);
-			var yp = ((_12 * v.X) + (_22 * v.Y)) + (_32 * v.Z);
-			var zp = ((_13 * v.X) + (_23 * v.Y)) + (_33 * v.Z);
+			var xp = _11 * v.X + _21 * v.Y + _31 * v.Z;
+			var yp = _12 * v.X + _22 * v.Y + _32 * v.Z;
+			var zp = _13 * v.X + _23 * v.Y + _33 * v.Z;
 			return v.Set(xp, yp, zp);
 		}
 

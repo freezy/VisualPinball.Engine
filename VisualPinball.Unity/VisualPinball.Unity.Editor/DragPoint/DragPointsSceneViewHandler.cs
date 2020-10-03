@@ -1,4 +1,20 @@
-﻿using System.Collections.Generic;
+// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +34,8 @@ namespace VisualPinball.Unity.Editor
 		/// Curve points
 		/// </summary>
 		private readonly List<Vector3> _pathPoints = new List<Vector3>();
+
+		private bool _curveTravellerMoved = false;
 
 		public float CurveWidth { get; set; } = 10.0f;
 
@@ -96,11 +114,11 @@ namespace VisualPinball.Unity.Editor
 
 					// construct full path
 					_pathPoints.Clear();
-					const float splitRatio = 0.05f;
+					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
-						var segments = controlPointsSegments[controlPoint.Index];
-						if (!controlPoint.DragPoint.IsSmooth && segments.Count == 2) {
+						ref var segments = ref controlPointsSegments[controlPoint.Index];
+						if (segments.Count == 2) {
 							var dir = segments[1] - segments[0];
 							var dist = dir.magnitude;
 							dir = Vector3.Normalize(dir);
@@ -116,7 +134,14 @@ namespace VisualPinball.Unity.Editor
 						_pathPoints.AddRange(segments);
 					}
 
-					_handler.CurveTravellerPosition = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+					_curveTravellerMoved = false;
+					if (_pathPoints.Count > 1) {
+						var newPos = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
+							_handler.CurveTravellerPosition = newPos;
+							_curveTravellerMoved = true;
+						}
+					}
 
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
@@ -155,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 						? Color.green
 						: Color.gray;
 
-				Handles.SphereHandleCap(0,
+				Handles.SphereHandleCap(-1,
 					controlPoint.WorldPos,
 					Quaternion.identity,
 					HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio,
@@ -173,7 +198,9 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = Color.grey;
 					Handles.SphereHandleCap(_handler.CurveTravellerControlId, _handler.CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
 					_handler.CurveTravellerVisible = true;
-					HandleUtility.Repaint();
+					if (SceneView.mouseOverWindow && _curveTravellerMoved) {
+						HandleUtility.Repaint();
+					}
 				}
 			}
 		}

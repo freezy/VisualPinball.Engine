@@ -1,4 +1,20 @@
-﻿using System.Collections.Generic;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
 using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -17,25 +33,25 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			_meshGenerator = meshGenerator;
 		}
 
-		public HitObject[] GenerateHitObjects(Table.Table table)
+		public HitObject[] GenerateHitObjects(Table.Table table, IItem item)
 		{
 			return _data.IsDropTarget
-				? GenerateDropTargetHits(table)
-				: GenerateHitTargetHits(table);
+				? GenerateDropTargetHits(table, item)
+				: GenerateHitTargetHits(table, item);
 		}
 
-		private HitObject[] GenerateDropTargetHits(Table.Table table)
+		private HitObject[] GenerateDropTargetHits(Table.Table table, IItem item)
 		{
 			var addedEdges = new EdgeSet();
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
-			return GenerateCollidables(hitMesh, addedEdges, true, table);
+			return GenerateCollidables(hitMesh, addedEdges, true, table, item);
 		}
 
-		private HitObject[] GenerateHitTargetHits(Table.Table table)
+		private HitObject[] GenerateHitTargetHits(Table.Table table, IItem item)
 		{
 			var addedEdges = new EdgeSet();
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
-			var hitObjects = GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table).ToList();
+			var hitObjects = GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, item).ToList();
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.RotZ));
 			var fullMatrix = new Matrix3D().Multiply(tempMatrix);
@@ -79,21 +95,21 @@ namespace VisualPinball.Engine.VPT.HitTarget
 					// NB: HitTriangle wants CCW vertices, but for rendering we have them in CW order
 					var rgv3D2 = new[] { rgv3D[i0], rgv3D[i2], rgv3D[i1] };
 
-					hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D2, ItemType.HitTarget), true, table));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D2[0], rgv3D2[2], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D2[2], rgv3D2[1], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
-					hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D2[1], rgv3D2[0], ItemType.HitTarget).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D2, ItemType.HitTarget, item), true, table));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D2[0], rgv3D2[2], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D2[2], rgv3D2[1], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, true, table)));
+					hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D2[1], rgv3D2[0], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, true, table)));
 				}
 
 				// add collision vertices
 				for (var i = 0; i < DropTargetHitPlaneVertices.Length; ++i) {
-					hitObjects.Add(SetupHitObject(new HitPoint(rgv3D[i], ItemType.HitTarget), true, table));
+					hitObjects.Add(SetupHitObject(new HitPoint(rgv3D[i], ItemType.HitTarget, item), true, table));
 				}
 			}
 			return hitObjects.ToArray();
 		}
 
-		private HitObject[] GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, Table.Table table)  {
+		private HitObject[] GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, Table.Table table, IItem item)  {
 
 			var hitObjects = new List<HitObject>();
 
@@ -110,15 +126,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 					new Vertex3D(hitMesh.Vertices[i1].X, hitMesh.Vertices[i1].Y, hitMesh.Vertices[i1].Z)
 				};
 
-				hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D, ItemType.HitTarget), setHitObject, table));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
-				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], ItemType.HitTarget).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.Add(SetupHitObject(new HitTriangle(rgv3D, ItemType.HitTarget, item), setHitObject, table));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i0, i1, rgv3D[0], rgv3D[2], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i1, i2, rgv3D[2], rgv3D[1], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, setHitObject, table)));
+				hitObjects.AddRange(addedEdges.AddHitEdge(i2, i0, rgv3D[1], rgv3D[0], ItemType.HitTarget, item).Select(obj => SetupHitObject(obj, setHitObject, table)));
 			}
 
 			// add collision vertices
 			foreach (var vertex in hitMesh.Vertices) {
-				hitObjects.Add(SetupHitObject(new HitPoint(vertex.GetVertex(), ItemType.HitTarget), setHitObject, table));
+				hitObjects.Add(SetupHitObject(new HitPoint(vertex.GetVertex(), ItemType.HitTarget, item), setHitObject, table));
 			}
 
 			return hitObjects.ToArray();

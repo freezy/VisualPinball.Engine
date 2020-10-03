@@ -1,29 +1,56 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public class Player : MonoBehaviour
 	{
+		public Table Table { get; private set; }
+
+		// shortcuts
+		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+
+		public DefaultGamelogicEngine GameEngine;
+
 		// table related
-		private Table _table;
 		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
@@ -32,14 +59,165 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
+		private readonly Dictionary<string, IApiSwitchable> _switchables = new Dictionary<string, IApiSwitchable>();
 
-		// shortcuts
-		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		// input related
+		private InputManager _inputManager;
 
 		public Player()
 		{
 			_initializables.Add(_tableApi);
 		}
+
+		#region Lifecycle
+
+		private void Awake()
+		{
+			var tableComponent = gameObject.GetComponent<TableAuthoring>();
+			var engineComponent = GetComponent<DefaultGameEngineAuthoring>();
+
+			Table = tableComponent.CreateTable();
+			_ballManager = new BallManager(Table, TableToWorld);
+			_inputManager = new InputManager();
+
+			if (engineComponent != null) {
+				GameEngine = engineComponent.GameEngine;
+			}
+		}
+
+		private void OnDestroy()
+		{
+			GameEngine?.OnDestroy();
+		}
+
+		private void Start()
+		{
+			// hook-up game switches
+			if (GameEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
+				var config = Table.MappingConfigs["Switch"];
+				var keyBindings = new Dictionary<string, List<string>>();
+				foreach (var mappingEntry in config.Data.MappingEntries) {
+					switch (mappingEntry.Source) {
+
+						case SwitchSource.Playfield
+							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
+							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
+						{
+							var element = _switchables[mappingEntry.PlayfieldItem];
+							element.AddSwitchId(mappingEntry.Id);
+							break;
+						}
+
+						case SwitchSource.InputSystem:
+							if (!keyBindings.ContainsKey(mappingEntry.InputAction)) {
+								keyBindings[mappingEntry.InputAction] = new List<string>();
+							}
+							keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
+							break;
+
+						case SwitchSource.Playfield:
+							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
+							break;
+
+						case SwitchSource.Constant:
+							break;
+
+						default:
+							Logger.Warn($"Unknown switch source \"{mappingEntry.Source}\".");
+							break;
+					}
+				}
+
+				if (keyBindings.Count > 0) {
+					_inputManager.Enable((obj, change) => {
+						switch (change) {
+							case InputActionChange.ActionStarted:
+							case InputActionChange.ActionCanceled:
+								var action = (InputAction) obj;
+								if (keyBindings.ContainsKey(action.name)) {
+									foreach (var switchId in keyBindings[action.name]) {
+										engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
+									}
+								} else {
+									Logger.Info($"Unmapped input command \"{action.name}\".");
+								}
+								break;
+						}
+					});
+				}
+			}
+			GameEngine.OnInit(_tableApi, _ballManager);
+
+			// bootstrap table script(s)
+			var tableScripts = GetComponents<VisualPinballScript>();
+			foreach (var tableScript in tableScripts) {
+				tableScript.OnAwake(_tableApi, _ballManager);
+			}
+
+			// trigger init events now
+			foreach (var i in _initializables) {
+				i.OnInit();
+			}
+
+			// _inputManager.Enable((obj, change) => {
+			// 	switch (change)
+			// 	{
+			// 		case InputActionChange.ActionStarted:
+			// 		case InputActionChange.ActionCanceled:
+			// 			var action = (InputAction)obj;
+			//
+			// 			if (action.name == "Left Flipper")
+			// 			{
+			// 				if (change == InputActionChange.ActionStarted)
+			// 				{
+			// 					_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
+			// 				}
+			// 				else if (change == InputActionChange.ActionCanceled)
+			// 				{
+			// 					_tableApi.Flipper("LeftFlipper")?.RotateToStart();
+			// 				}
+			// 			}
+			// 			else if (action.name == "Right Flipper")
+			// 			{
+			// 				if (change == InputActionChange.ActionStarted)
+			// 				{
+			// 					_tableApi.Flipper("RightFlipper")?.RotateToEnd();
+			// 				}
+			// 				else if (change == InputActionChange.ActionCanceled)
+			// 				{
+			// 					_tableApi.Flipper("RightFlipper")?.RotateToStart();
+			// 				}
+			// 			}
+			// 			else if (action.name == "Plunger")
+			// 			{
+			// 				if (change == InputActionChange.ActionStarted)
+			// 				{
+			// 					_tableApi.Plunger("Plunger")?.PullBack();
+			// 				}
+			// 				else if (change == InputActionChange.ActionCanceled)
+			// 				{
+			// 					_tableApi.Plunger("Plunger")?.Fire();
+			// 				}
+			// 			}
+			// 			else if (action.name == InputManager.VPE_ACTION_CREATE_BALL)
+			// 			{
+			// 				_ballManager.CreateBall(new DebugBallCreator());
+			// 			}
+			// 			else if (action.name == InputManager.VPE_ACTION_KICKER)
+			// 			{
+			// 				_tableApi.Kicker("Kicker1").CreateBall();
+			// 				_tableApi.Kicker("Kicker1").Kick(0, -1);
+			// 			}
+			//
+			// 			Debug.Log($"{((InputAction)obj).name} {change}");
+			// 			break;
+			// 	}
+			// });
+		}
+
+		#endregion
 
 		#region Registrations
 
@@ -49,6 +227,7 @@ namespace VisualPinball.Unity
 			_tableApi.Bumpers[bumper.Name] = bumperApi;
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
+			_switchables[bumper.Name] = bumperApi;
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -72,6 +251,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
+			_switchables[gate.Name] = gateApi;
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
@@ -80,6 +260,7 @@ namespace VisualPinball.Unity
 			_tableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
+			_switchables[hitTarget.Name] = hitTargetApi;
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -88,6 +269,7 @@ namespace VisualPinball.Unity
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
+			_switchables[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -129,6 +311,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
+			_switchables[spinner.Name] = spinnerApi;
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
@@ -137,9 +320,20 @@ namespace VisualPinball.Unity
 			_tableApi.Triggers[trigger.Name] = triggerApi;
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
+			_switchables[trigger.Name] = triggerApi;
+		}
+
+		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
+		{
+			var primitiveApi = new PrimitiveApi(primitive, entity, this);
+			_tableApi.Primitives[primitive.Name] = primitiveApi;
+			_initializables.Add(primitiveApi);
+			_hittables[entity] = primitiveApi;
 		}
 
 		#endregion
+
+		#region Events
 
 		public void OnEvent(in EventData eventData)
 		{
@@ -180,80 +374,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public BallApi CreateBall(IBallCreationPosition ballCreator, float radius = 25, float mass = 1)
-		{
-			// todo callback and other stuff
-			return _ballManager.CreateBall(this, ballCreator, radius, mass);
-		}
+		#endregion
 
 		public float3 GetGravity()
 		{
-			var slope = _table.Data.AngleTiltMin + (_table.Data.AngleTiltMax - _table.Data.AngleTiltMin) * _table.Data.GlobalDifficulty;
-			var strength = _table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : _table.Data.Gravity;
+			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
+			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
 			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
-		}
-
-		private void Awake()
-		{
-			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			_table = tableComponent.CreateTable();
-			_ballManager = new BallManager(_table);
-		}
-
-		private void Start()
-		{
-			// bootstrap table script(s)
-			var tableScripts = GetComponents<VisualPinballScript>();
-			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi);
-			}
-
-			// trigger init events now
-			foreach (var i in _initializables) {
-				i.OnInit();
-			}
-		}
-
-		private void Update()
-		{
-			// flippers will be handled via script later, but until scripting works, do it here.
-			if (Input.GetKeyDown("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("left shift")) {
-				_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-			}
-			if (Input.GetKeyDown("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-			}
-			if (Input.GetKeyUp("right shift")) {
-				_tableApi.Flipper("RightFlipper")?.RotateToStart();
-			}
-
-			if (Input.GetKeyUp("b")) {
-				CreateBall(new DebugBallCreator());
-				// _player.CreateBall(new DebugBallCreator(425, 1325));
-				// _player.CreateBall(new DebugBallCreator(390, 1125));
-
-				// _player.CreateBall(new DebugBallCreator(475, 1727.5f));
-				// _tableApi.Flippers["RightFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyUp("n")) {
-				CreateBall(new DebugBallCreator(_table.Width / 2f, _table.Height / 2f - 300f, 0, -5));
-				//_tableApi.Flippers["LeftFlipper"].RotateToEnd();
-			}
-
-			if (Input.GetKeyDown(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.PullBack();
-				_tableApi.Plunger("Plunger001")?.PullBack();
-				_tableApi.Plunger("Plunger002")?.PullBack();
-			}
-			if (Input.GetKeyUp(KeyCode.Return)) {
-				_tableApi.Plunger("CustomPlunger")?.Fire();
-				_tableApi.Plunger("Plunger001")?.Fire();
-				_tableApi.Plunger("Plunger002")?.Fire();
-			}
 		}
 	}
 }

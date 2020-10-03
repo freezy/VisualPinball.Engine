@@ -1,7 +1,22 @@
-﻿// ReSharper disable CompareOfFloatsByEqualityOperator
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System.Collections.Generic;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
@@ -18,14 +33,14 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
-		public HitObject[] GenerateHitObjects(EventProxy events, Table.Table table)
+		public HitObject[] GenerateHitObjects(Table.Table table, IItem item)
 		{
-			return UpdateCommonParameters(Generate3DPolys(events, table), events, table);
+			return UpdateCommonParameters(Generate3DPolys(table, item), table);
 		}
 		/// <summary>
 		/// Returns all hit objects for the surface.
 		/// </summary>
-		private HitObject[] Generate3DPolys(EventProxy events, Table.Table table)
+		private HitObject[] Generate3DPolys(Table.Table table, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
 
@@ -48,13 +63,13 @@ namespace VisualPinball.Engine.VPT.Surface
 
 				var pv2 = vVertex[(i + 1) % count];
 				var pv3 = vVertex[(i + 2) % count];
-				hitObjects.AddRange(GenerateLinePolys(pv2, pv3, events, table));
+				hitObjects.AddRange(GenerateLinePolys(pv2, pv3, table, item));
 			}
 
-			hitObjects.Add(new Hit3DPoly(rgv3Dt, ItemType.Surface));
+			hitObjects.AddRange(new Hit3DPoly(rgv3Dt, ItemType.Surface, item).ConvertToTriangles());
 
 			if (rgv3Db != null) {
-				hitObjects.Add(new Hit3DPoly(rgv3Db, ItemType.Surface));
+				hitObjects.AddRange(new Hit3DPoly(rgv3Db, ItemType.Surface, item).ConvertToTriangles());
 			}
 
 			return hitObjects.ToArray();
@@ -63,19 +78,18 @@ namespace VisualPinball.Engine.VPT.Surface
 		/// <summary>
 		/// Returns the hit line polygons for the surface.
 		/// </summary>
-		private IEnumerable<HitObject> GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, EventProxy events, Table.Table table)
+		private IEnumerable<HitObject> GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, Table.Table table, IItem item)
 		{
 			var linePolys = new List<HitObject>();
 			var bottom = _data.HeightBottom + table.TableHeight;
 			var top = _data.HeightTop + table.TableHeight;
 
 			if (!pv1.IsSlingshot) {
-				linePolys.Add(new LineSeg(pv1, pv2, bottom, top, ItemType.Surface));
+				linePolys.Add(new LineSeg(pv1, pv2, bottom, top, ItemType.Surface, item));
 
 			} else {
-				var slingLine = new LineSegSlingshot(_data, pv1, pv2, bottom, top, ItemType.Surface) {
+				var slingLine = new LineSegSlingshot(_data, pv1, pv2, bottom, top, ItemType.Surface, item) {
 					Force = _data.SlingshotForce,
-					Obj = events,
 					FireEvents = true, Threshold = _data.Threshold
 				};
 
@@ -87,21 +101,21 @@ namespace VisualPinball.Engine.VPT.Surface
 
 			if (_data.HeightBottom != 0) {
 				// add lower edge as a line
-				linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, bottom), new Vertex3D(pv2.X, pv2.Y, bottom), ItemType.Surface));
+				linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, bottom), new Vertex3D(pv2.X, pv2.Y, bottom), ItemType.Surface, item));
 			}
 
 			// add upper edge as a line
-			linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, top), new Vertex3D(pv2.X, pv2.Y, top), ItemType.Surface));
+			linePolys.Add(new HitLine3D(new Vertex3D(pv1.X, pv1.Y, top), new Vertex3D(pv2.X, pv2.Y, top), ItemType.Surface, item));
 
 			// create vertical joint between the two line segments
-			linePolys.Add(new HitLineZ(pv1, bottom, top, ItemType.Surface));
+			linePolys.Add(new HitLineZ(pv1, bottom, top, ItemType.Surface, item));
 
 			// add upper and lower end points of line
 			if (_data.HeightBottom != 0) {
-				linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, bottom), ItemType.Surface));
+				linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, bottom), ItemType.Surface, item));
 			}
 
-			linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, top), ItemType.Surface));
+			linePolys.Add(new HitPoint(new Vertex3D(pv1.X, pv1.Y, top), ItemType.Surface, item));
 
 			return linePolys.ToArray();
 		}
@@ -113,13 +127,12 @@ namespace VisualPinball.Engine.VPT.Surface
 		/// <param name="events"></param>
 		/// <param name="table"></param>
 		/// <returns></returns>
-		private HitObject[] UpdateCommonParameters(HitObject[] hitObjects, EventProxy events, Table.Table table) {
+		private HitObject[] UpdateCommonParameters(HitObject[] hitObjects, Table.Table table) {
 			foreach (var obj in hitObjects) {
 
 				obj.ApplyPhysics(_data, table);
 
 				if (_data.HitEvent) {
-					obj.Obj = events;
 					obj.FireEvents = true;
 					obj.Threshold = _data.Threshold;
 				}

@@ -1,9 +1,26 @@
-﻿using Unity.Mathematics;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public static class BallCollider
+	internal static class BallCollider
 	{
 		private const float HardScatter = 0.0f;
 
@@ -114,7 +131,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void ApplyFriction(ref BallData ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity)
+		private static void ApplyFriction(ref BallData ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
@@ -166,19 +183,19 @@ namespace VisualPinball.Unity
 			var d = ball.Position - otherBall.Position;                    // delta position
 			var dv = ball.Velocity - otherBall.Velocity;                            // delta velocity
 
-			var bcddSq = math.lengthsq(d);                                         // square of ball center"s delta distance
+			var bcddSq = math.lengthsq(d);                                         // square of ball center's delta distance
 			var bcdd = math.sqrt(bcddSq);                                     // length of delta
 
-			if (bcdd < 1.0e-8) {
-				// two balls center-over-center embedded
-				d.z = -1.0f;                                                   // patch up
-				otherBall.Position.z -= d.z;                                       // lift up
-
-				bcdd = 1.0f;                                                   // patch up
-				bcddSq = 1.0f;                                                 // patch up
-				dv.z = 0.1f;                                                   // small speed difference
-				otherBall.Velocity.z -= dv.z;
-			}
+			// if (bcdd < 1.0e-8) {
+			// 	// two balls center-over-center embedded
+			// 	d.z = -1.0f;                                                   // patch up
+			// 	otherBall.Position.z -= d.z;                                       // lift up
+			//
+			// 	bcdd = 1.0f;                                                   // patch up
+			// 	bcddSq = 1.0f;                                                 // patch up
+			// 	dv.z = 0.1f;                                                   // small speed difference
+			// 	otherBall.Velocity.z -= dv.z;
+			// }
 
 			var b = math.dot(dv, d);                                                 // inner product
 			var bnv = b / bcdd;                                                // normal speed of balls toward each other
@@ -192,7 +209,8 @@ namespace VisualPinball.Unity
 			var bnd = bcdd - totalRadius;                                      // distance between ball surfaces
 
 			float hitTime;
-			var isContact = false;
+			//#ifdef BALL_CONTACTS
+			//var isContact = false;
 			if (bnd <= PhysicsConstants.PhysTouch) {
 				// in contact?
 				if (bnd < otherBall.Radius * -2.0f) {
@@ -208,9 +226,10 @@ namespace VisualPinball.Unity
 					hitTime = bnd / -bnv;
 				}
 
-				if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
-					isContact = true;
-				}
+				//#ifdef BALL_CONTACTS
+				// if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
+				// 	isContact = true;
+				// }
 
 			} else {
 				var a = math.lengthsq(dv);                                         // square of differential velocity
@@ -246,10 +265,12 @@ namespace VisualPinball.Unity
 
 			collEvent.HitNormal = math.normalize(hitNormal);
 			collEvent.HitDistance = bnd;                                            // actual contact distance
-			collEvent.IsContact = isContact;
-			if (isContact) {
-				collEvent.HitOrgNormalVelocity = bnv;
-			}
+
+			//#ifdef BALL_CONTACTS
+			// collEvent.IsContact = isContact;
+			// if (isContact) {
+			// 	collEvent.HitOrgNormalVelocity = bnv;
+			// }
 
 			return hitTime;
 		}
@@ -291,7 +312,7 @@ namespace VisualPinball.Unity
 				//#endif
 			}
 
-			// fixme script
+			// todo script
 			// send ball/ball collision event to script function
 			// if (dot < -0.25f) {   // only collisions with at least some small true impact velocity (no contacts)
 			//      g_pplayer->m_ptable->InvokeBallBallCollisionCallback(this, pball, -dot);
@@ -322,7 +343,7 @@ namespace VisualPinball.Unity
 			}
 
 			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
-			var impulse = -(1.0f + 0.8f) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
+			var impulse = -(float)(1.0 + 0.8) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
 
 			if (!ball.IsFrozen) {
 				ball.Velocity -= impulse * myInvMass * vNormal;

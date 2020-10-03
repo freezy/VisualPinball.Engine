@@ -1,0 +1,32 @@
+- name: Visual Pinball Engine
+  items: 
+  - name: Overview
+    href: introduction/overview.md
+  - name: Features
+    href: introduction/features.md
+
+- name: Setup
+  items:
+  - name: Installing VPE
+    href: setup/installing-vpe.md
+  - name: Running VPE
+    href: setup/running-vpe.md
+  - name: Updating VPE
+    href: setup/updating-vpe.md
+
+- name: Editor
+  items:
+    - name: Switch Manager
+      href: editor/switch-manager.md
+    - name: Multiple Tables
+      href: editor/multiple-tables.md
+
+- name: Manual
+  href: manual/manual.md
+  items:
+    - name: Gamelogic Engine
+      href: manual/gamelogic-engine.md
+    - name: Game Items
+      items:
+      - name: Flippers
+        href: manual/items/flippers.md

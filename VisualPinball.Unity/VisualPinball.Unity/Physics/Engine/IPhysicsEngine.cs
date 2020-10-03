@@ -1,4 +1,20 @@
-﻿using Unity.Entities;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -31,8 +47,9 @@ namespace VisualPinball.Unity
 		/// <param name="scale">Scale relative to ball mesh</param>
 		/// <param name="mass">Physics mass</param>
 		/// <param name="radius">Radius in local space</param>
+		/// <param name="kickerRef">If created within a kicker, this is the kicker entity</param>
 		void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos, in float3 localVel,
-			in float scale, in float mass, in float radius);
+			in float scale, in float mass, in float radius, in Entity kickerRef);
 
 		/// <summary>
 		/// Rolls the ball manually to a position on the playfield.

@@ -1,5 +1,20 @@
-﻿using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
@@ -11,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		public LineSeg LineSeg1;
 		public bool TwoWay;
 
-		public GateHit(GateData data, float height) : base(ItemType.Gate)
+		public GateHit(GateData data, float height, IItem item) : base(ItemType.Gate, item)
 		{
 			var data1 = data;
 			var height1 = height;
@@ -32,7 +47,8 @@ namespace VisualPinball.Engine.VPT.Gate
 				),
 				height1,
 				height1 + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
+				ItemType.Gate,
+				item
 			);
 
 			LineSeg1 = new LineSeg(
@@ -40,7 +56,8 @@ namespace VisualPinball.Engine.VPT.Gate
 				new Vertex2D(LineSeg0.V1.X, LineSeg0.V1.Y),
 				height,
 				height + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
+				ItemType.Gate,
+				item
 			);
 
 			TwoWay = false;
@@ -57,18 +74,6 @@ namespace VisualPinball.Engine.VPT.Gate
 		{
 			LineSeg0.CalcHitBBox();
 			HitBBox = LineSeg0.HitBBox;
-		}
-
-		public override float HitTest(Ball.Ball ball, float dTime, CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
-		}
-
-		public override void Collide(CollisionEvent coll, PlayerPhysics physics)
-		{
-			// not needed in unity ECS
-			throw new System.NotImplementedException();
 		}
 	}
 }
