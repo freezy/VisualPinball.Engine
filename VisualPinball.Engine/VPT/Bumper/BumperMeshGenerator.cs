@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable CompareOfFloatsByEqualityOperator
-
 using System;
+using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Resources.Meshes;
@@ -30,12 +29,18 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public const string Ring = "Ring";
 		public const string Skirt = "Skirt";
 
-		private static readonly Mesh BaseMesh = new Mesh(Base, BumperBase.Vertices, BumperBase.Indices);
-		private static readonly Mesh CapMesh = new Mesh(Cap, BumperCap.Vertices, BumperCap.Indices);
-		private static readonly Mesh RingMesh = new Mesh(Ring, BumperRing.Vertices, BumperRing.Indices);
-		private static readonly Mesh SocketMesh = new Mesh(Skirt, BumperSocket.Vertices, BumperSocket.Indices);
+		private static readonly Mesh BaseMesh = new Mesh("Base", BumperBase.Vertices, BumperBase.Indices);
+		private static readonly Mesh CapMesh = new Mesh("Cap", BumperCap.Vertices, BumperCap.Indices);
+		private static readonly Mesh RingMesh = new Mesh("Ring", BumperRing.Vertices, BumperRing.Indices);
+		private static readonly Mesh SocketMesh = new Mesh("Skirt", BumperSocket.Vertices, BumperSocket.Indices);
 
 		private readonly BumperData _data;
+
+		private Mesh _scaledBaseMesh;
+		private Mesh _scaledCapMesh;
+		private Mesh _scaledRingMesh;
+		private Mesh _scaledSocketMesh;
+		private float _generatedScale;
 
 		internal BumperMeshGenerator(BumperData data) {
 			_data = data;
@@ -66,6 +71,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 						new PbrMaterial(table.GetMaterial(_data.RingMaterial), Texture.BumperRing),
 						_data.IsRingVisible
 					);
+
 				case Skirt:
 					return new RenderObject(
 						"Skirt",
@@ -77,32 +83,32 @@ namespace VisualPinball.Engine.VPT.Bumper
 			throw new ArgumentException("Unknown bumper mesh \"" + id + "\".");
 		}
 
-
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
+			var meshes = GetMeshes(table, origin);
 			var translationMatrix = GetPostMatrix(origin);
+
 			return new RenderObjectGroup(_data.Name, "Bumpers", translationMatrix,
 				GetRenderObject(table, Base, origin, asRightHanded),
-				GetRenderObject(table, Cap, origin, asRightHanded),
-				GetRenderObject(table, Ring, origin, asRightHanded),
-				GetRenderObject(table, Skirt, origin, asRightHanded)
+				new RenderObject(
+					"Ring",
+					asRightHanded ? meshes["Ring"].Transform(Matrix3D.RightHanded) : meshes["Ring"],
+					new PbrMaterial(table.GetMaterial(_data.RingMaterial), Texture.BumperRing),
+					_data.IsRingVisible
+				),
+				new RenderObject(
+					"Skirt",
+					asRightHanded ? meshes["Skirt"].Transform(Matrix3D.RightHanded) : meshes["Skirt"],
+					new PbrMaterial(table.GetMaterial(_data.SocketMaterial), Texture.BumperSocket),
+					_data.IsSocketVisible
+				),
+				new RenderObject(
+					"Cap",
+					asRightHanded ? meshes["Cap"].Transform(Matrix3D.RightHanded) : meshes["Cap"],
+					new PbrMaterial(table.GetMaterial(_data.CapMaterial), Texture.BumperCap),
+					_data.IsCapVisible
+				)
 			);
-		}
-
-		private Matrix3D GetPostMatrix(Origin origin)
-		{
-			switch (origin) {
-				case Origin.Original:
-					var rotMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
-					var transMatrix = new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
-					return rotMatrix.Multiply(transMatrix);
-
-				case Origin.Global:
-					return Matrix3D.Identity;
-
-				default:
-					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
-			}
 		}
 
 		private Mesh GetMesh(string id, Table.Table table, Origin origin) {
@@ -133,6 +139,44 @@ namespace VisualPinball.Engine.VPT.Bumper
 			}
 
 			throw new ArgumentException("Unknown bumper mesh \"" + id + "\".");
+		}
+
+		private Matrix3D GetPostMatrix(Origin origin)
+		{
+			switch (origin) {
+				case Origin.Original:
+					var rotMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
+					var transMatrix = new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
+					return rotMatrix.Multiply(transMatrix);
+
+				case Origin.Global:
+					return Matrix3D.Identity;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
+			}
+		}
+
+		private Dictionary<string, Mesh> GetMeshes(Table.Table table, Origin origin) {
+			if (_data.Center == null) {
+				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
+			}
+			var matrix = Matrix3D.Identity;
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+
+			//if (_generatedScale != _data.Radius) {
+				_scaledBaseMesh = BaseMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+				_scaledCapMesh = CapMesh.Clone().MakeScale(_data.Radius * 2, _data.Radius * 2, _data.HeightScale);
+				_scaledRingMesh = RingMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+				_scaledSocketMesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
+			//}
+
+			return new Dictionary<string, Mesh> {
+				{ "Base", GenerateMesh(_scaledBaseMesh, matrix, z => z * table.GetScaleZ() + height, origin) },
+				{ "Ring", GenerateMesh(_scaledRingMesh, matrix, z => z * table.GetScaleZ() + height, origin) },
+				{ "Skirt", GenerateMesh(_scaledSocketMesh, matrix, z => z * table.GetScaleZ() + (height + 5.0f), origin) },
+				{ "Cap", GenerateMesh(_scaledCapMesh, matrix, z => (z + _data.HeightScale) * table.GetScaleZ() + height, origin) }
+			};
 		}
 
 		private Mesh GenerateMesh(Mesh mesh, Matrix3D matrix, Func<float, float> zPos, Origin origin) {

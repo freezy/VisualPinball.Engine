@@ -68,7 +68,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			throw new System.NotImplementedException();
+			return _meshGenerator.GetRenderObject(table, id, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
