@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -32,36 +33,138 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, string id, bool asRightHanded, Mesh preGeneratedMesh = null)
+		{
+			var mesh = preGeneratedMesh ?? GenerateMesh(table, id);
+			switch (id) {
+				case Side:
+					return new RenderObject(
+						id,
+						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+						new PbrMaterial(table.GetMaterial(_data.SideMaterial), table.GetTexture(_data.SideImage)),
+						_data.IsSideVisible
+					);
+				case Top:
+					return new RenderObject(
+						id,
+						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+						new PbrMaterial(table.GetMaterial(_data.TopMaterial), table.GetTexture(_data.Image)),
+						_data.IsTopBottomVisible
+					);
+				default:
+					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
+			}
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
-			var meshes = GenerateMeshes(table);
 			var renderObjects = new List<RenderObject>();
-
-			if (meshes.ContainsKey("Side")) {
-				renderObjects.Add(new RenderObject(
-					"Side",
-					asRightHanded ? meshes["Side"].Transform(Matrix3D.RightHanded) : meshes["Side"],
-					new PbrMaterial(table.GetMaterial(_data.SideMaterial), table.GetTexture(_data.SideImage)),
-					_data.IsSideVisible
-				));
+			var sideMesh = GenerateSideMesh(table);
+			var topMesh = GenerateTopMesh(table);
+			if (sideMesh != null) {
+				renderObjects.Add(GetRenderObject(table, Side, asRightHanded, sideMesh));
 			}
-
-			if (meshes.ContainsKey("Top")) {
-				renderObjects.Add(new RenderObject(
-					"Top",
-					asRightHanded ? meshes["Top"].Transform(Matrix3D.RightHanded) : meshes["Top"],
-					new PbrMaterial(table.GetMaterial(_data.TopMaterial), table.GetTexture(_data.Image)),
-					_data.IsTopBottomVisible
-				));
+			if (topMesh != null) {
+				renderObjects.Add(GetRenderObject(table, Top, asRightHanded, topMesh));
 			}
 
 			return new RenderObjectGroup(_data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
-		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table) {
+		private Mesh GenerateMesh(Table.Table table, string id)
+		{
+			switch (id) {
+				case Top: return GenerateTopMesh(table);
+				case Side: return GenerateSideMesh(table);
+				default:
+					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
+			}
+		}
 
-			var meshes = new Dictionary<string, Mesh>();
+		private Mesh GenerateTopMesh(Table.Table table) {
+
 			var topMesh = new Mesh("Top");
+			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
+
+			var numVertices = vVertex.Length;
+			var rgNormal = new Vertex2D[numVertices];
+
+			for (var i = 0; i < numVertices; i++) {
+
+				var pv1 = vVertex[i];
+				var pv2 = vVertex[i < numVertices - 1 ? i + 1 : 0];
+				var dx = pv1.X - pv2.X;
+				var dy = pv1.Y - pv2.Y;
+
+				var invLen = 1.0f / MathF.Sqrt(dx * dx + dy * dy);
+
+				rgNormal[i] = new Vertex2D {X = dy * invLen, Y = dx * invLen};
+			}
+
+			// draw top
+			var vPoly = new List<int>(new int[numVertices]);
+			for (var i = 0; i < numVertices; i++) {
+				vPoly[i] = i;
+			}
+
+			topMesh.Indices = Mesh.PolygonToTriangles(vVertex, vPoly);
+			var numPolys = topMesh.Indices.Length / 3;
+			if (numPolys == 0) {
+				// no polys to render leave vertex buffer undefined
+				return null;
+			}
+
+			var heightNotDropped = _data.HeightTop * table.GetScaleZ();
+			var heightDropped = _data.HeightBottom * table.GetScaleZ() + 0.1;
+
+			var invTableWidth = 1.0f / table.Width;
+			var invTableHeight = 1.0f / table.Height;
+
+			Vertex3DNoTex2[][] vertsTop = { new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices]};
+			for (var i = 0; i < numVertices; i++) {
+
+				var pv0 = vVertex[i];
+
+				vertsTop[0][i] = new Vertex3DNoTex2 {
+					X = pv0.X,
+					Y = pv0.Y,
+					Z = heightNotDropped + table.TableHeight,
+					Tu = pv0.X * invTableWidth,
+					Tv = pv0.Y * invTableHeight,
+					Nx = 0,
+					Ny = 0,
+					Nz = 1.0f
+				};
+
+				vertsTop[1][i] = new Vertex3DNoTex2 {
+					X = pv0.X,
+					Y = pv0.Y,
+					Z = (float) heightDropped,
+					Tu = pv0.X * invTableWidth,
+					Tv = pv0.Y * invTableHeight,
+					Nx = 0,
+					Ny = 0,
+					Nz = 1.0f
+				};
+
+				vertsTop[2][i] = new Vertex3DNoTex2 {
+					X = pv0.X,
+					Y = pv0.Y,
+					Z = _data.HeightBottom,
+					Tu = pv0.X * invTableWidth,
+					Tv = pv0.Y * invTableHeight,
+					Nx = 0,
+					Ny = 0,
+					Nz = -1.0f
+				};
+			}
+			topMesh.Vertices = vertsTop[0];
+
+			return topMesh;
+		}
+
+		private Mesh GenerateSideMesh(Table.Table table) {
+
 			var sideMesh = new Mesh("Side");
 
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
@@ -182,74 +285,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				offset2 += 4;
 			}
 
-			// draw top
-			var vPoly = new List<int>(new int[numVertices]);
-			for (var i = 0; i < numVertices; i++) {
-				vPoly[i] = i;
-			}
-
-			topMesh.Indices = Mesh.PolygonToTriangles(vVertex, vPoly);
-
-			var numPolys = topMesh.Indices.Length / 3;
-			if (numPolys == 0) {
-				// no polys to render leave vertex buffer undefined
-				return meshes;
-			}
-
-			var heightNotDropped = _data.HeightTop * table.GetScaleZ();
-			var heightDropped = _data.HeightBottom * table.GetScaleZ() + 0.1;
-
-			var invTableWidth = 1.0f / table.Width;
-			var invTableHeight = 1.0f / table.Height;
-
-			Vertex3DNoTex2[][] vertsTop = { new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices]};
-			for (var i = 0; i < numVertices; i++) {
-
-				var pv0 = vVertex[i];
-
-				vertsTop[0][i] = new Vertex3DNoTex2 {
-					X = pv0.X,
-					Y = pv0.Y,
-					Z = heightNotDropped + table.TableHeight,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
-					Nx = 0,
-					Ny = 0,
-					Nz = 1.0f
-				};
-
-				vertsTop[1][i] = new Vertex3DNoTex2 {
-					X = pv0.X,
-					Y = pv0.Y,
-					Z = (float) heightDropped,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
-					Nx = 0,
-					Ny = 0,
-					Nz = 1.0f
-				};
-
-				vertsTop[2][i] = new Vertex3DNoTex2 {
-					X = pv0.X,
-					Y = pv0.Y,
-					Z = _data.HeightBottom,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
-					Nx = 0,
-					Ny = 0,
-					Nz = -1.0f
-				};
-			}
-			topMesh.Vertices = vertsTop[0];
-
-			if (topMesh.Vertices.Length > 0) {
-				meshes["Top"] = topMesh;
-			}
-			if (System.Math.Abs(top - bottom) > 0.00001f) {
-				meshes["Side"] = sideMesh;
-			}
-			return meshes;
+			return  sideMesh;
 		}
 	}
-
 }

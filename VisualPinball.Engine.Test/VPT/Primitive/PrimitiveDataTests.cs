@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-﻿using FluentAssertions;
- using NUnit.Framework;
- using VisualPinball.Engine.Test.Test;
- using VisualPinball.Engine.VPT.Primitive;
- using VisualPinball.Engine.VPT.Table;
+using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Table;
 
- namespace VisualPinball.Engine.Test.VPT.Primitive
+namespace VisualPinball.Engine.Test.VPT.Primitive
 {
 	public class PrimitiveDataTests
 	{
