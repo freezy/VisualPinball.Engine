@@ -35,8 +35,10 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <typeparam name="TItem"></typeparam>
 	/// <typeparam name="TData"></typeparam>
-	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour, IItemAuthoring, IEditableItemAuthoring, IIdentifiableItemAuthoring,
-		ILayerableItemAuthoring where TData : ItemData where TItem : Item<TData>, IRenderable
+	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour,
+		IItemAuthoring, IEditableItemAuthoring, ILayerableItemAuthoring
+		where TData : ItemData
+		where TItem : Item<TData>, IRenderable
 	{
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
