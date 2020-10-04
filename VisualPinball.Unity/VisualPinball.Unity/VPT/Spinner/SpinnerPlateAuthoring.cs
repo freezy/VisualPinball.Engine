@@ -21,10 +21,8 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	internal class SpinnerPlateAuthoring : ItemAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
+	internal class SpinnerPlateAuthoring : ItemMainAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new string[0];
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

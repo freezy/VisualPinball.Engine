@@ -8,17 +8,10 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IItemAuthoring
 	{
+		string Name { get; }
+
 		IItem IItem { get; }
-		ItemDataTransformType EditorPositionType { get; }
-		Vector3 GetEditorPosition();
-		void SetEditorPosition(Vector3 pos);
 
-		ItemDataTransformType EditorRotationType { get; }
-		Vector3 GetEditorRotation();
-		void SetEditorRotation(Vector3 rot);
-
-		ItemDataTransformType EditorScaleType { get; }
-		Vector3 GetEditorScale();
-		void SetEditorScale(Vector3 rot);
+		ItemData ItemData { get; }
 	}
 }

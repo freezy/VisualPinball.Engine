@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnSceneGUI()
 		{
-			if (target is IEditableItemAuthoring editable) {
+			if (target is IItemMainAuthoring editable) {
 				var position = editable.GetEditorPosition();
 				var transform = (target as MonoBehaviour).transform;
 				if (transform != null && transform.parent != null) {

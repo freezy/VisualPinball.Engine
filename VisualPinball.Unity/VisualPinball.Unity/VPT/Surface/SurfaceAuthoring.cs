@@ -31,10 +31,9 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Surface")]
-	public class SurfaceAuthoring : ItemMainAuthoring<Surface, SurfaceData>, IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
+	public class SurfaceAuthoring : ItemMainAuthoring<Surface, SurfaceData>,
+		IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
 	{
-		protected override string[] Children => new [] { "Side", "Top" };
-
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
 
 		public IHittable Hittable => Item;

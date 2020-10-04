@@ -377,7 +377,7 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		protected void RenameReflectedFields(string undoName, IEditableItemAuthoring item, List<MemberInfo> mis, string oldName, string newName)
+		protected void RenameReflectedFields(string undoName, IItemMeshAuthoring item, List<MemberInfo> mis, string oldName, string newName)
 		{
 			foreach (var mi in mis) {
 				string fieldVal = GetMemberValue(mi, item.ItemData);

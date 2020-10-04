@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Rubber")]
 	public class RubberAuthoring : ItemMainAuthoring<Rubber, RubberData>, IDragPointsEditable, IHittableAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => null;
-
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 
 		public IHittable Hittable => Item;
@@ -72,7 +70,6 @@ namespace VisualPinball.Unity
 		}
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			SetEditorPositionChildren(pos);
 			if (Data == null || Data.DragPoints.Length == 0) {
 				return;
 			}

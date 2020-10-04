@@ -28,120 +28,25 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemColliderAuthoring<TItem, TData, TAuthoring> : ItemAuthoring<TItem, TData>, IItemColliderAuthoring
+	public abstract class ItemColliderAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
+		IItemColliderAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
-		where TAuthoring : ItemAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-		/// <summary>
-		/// We're in a sub component here, so in order to retrieve the data,
-		/// this will:
-		/// 1. Check if <see cref="ItemAuthoring{TItem,TData}._data"/> is set (e.g. it's a serialized item)
-		/// 2. Find the main component in the hierarchy and return its data.
-		/// </summary>
-		///
-		/// <remarks>
-		/// We deliberately don't cache this, because if we do we need to find
-		/// a way to invalidate the cache in case the game object gets
-		/// re-attached to another parent.
-		/// </remarks>
-		public override TData Data => _isSubComponent ? FindData() : _data;
-
-		/// <summary>
-		/// Since we're in a sub component, we don't instantiate the item, but
-		/// look for the main component and retrieve the item from there (which
-		/// will instantiate it itself if necessary).
-		/// </summary>
-		///
-		/// <remarks>
-		/// If no main component found, this yields to `null`, and in this case
-		/// the component is somewhere in the hierarchy where it doesn't make
-		/// sense, and a warning should be printed.
-		/// </remarks>
-		public override TItem Item => _item ?? FindItem();
-
 		[NonSerialized]
 		public bool ShowGizmos;
-		public bool ShowColliderMesh;
-		public bool ShowAabbs;
-		[NonSerialized]
-		public int SelectedCollider = -1;
-		public HitObject[] HitObjects { get; private set; }
 
 		[SerializeField]
-		private bool _isSubComponent;
-		public bool IsSubComponent => _isSubComponent;
+		public bool ShowColliderMesh;
 
-		protected override string[] Children => new string[0];
+		[SerializeField]
+		public bool ShowAabbs;
 
-		private static readonly Color AabbColor = new Color32(255, 0, 252, 8);
-		private static readonly Color SelectedAabbColor = new Color32(255, 0, 252, 255);
-		private static readonly Color ColliderColor = new Color32(0, 255, 75, 8);
-		private static readonly Color SelectedColliderColor = new Color32(0, 255, 75, 255);
+		[NonSerialized]
+		public int SelectedCollider = -1;
 
-		public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
-		{
-			_item = item;
-			_data = item.Data;
-			_isSubComponent = false;
-			name = rog.ComponentName + " (collider)";
-			return this;
-		}
-
-		public void SetMainItem(TItem item)
-		{
-			_item = item;
-			_isSubComponent = true;
-		}
-
-		private TData FindData()
-		{
-			var ac = FindParentAuthoring();
-			return ac != null ? ac.Data : null;
-		}
-
-		private TItem FindItem()
-		{
-			// if _data is set then it's an item of its own and we don't need to find the parent
-			if (!_isSubComponent) {
-				_item  = InstantiateItem(_data);
-				return _item;
-			}
-
-			// otherwise retrieve from parent
-			var ac = FindParentAuthoring();
-			return ac != null ? ac.Item : null;
-		}
-
-		private TAuthoring FindParentAuthoring()
-		{
-			var go = gameObject;
-
-			// search on current game object
-			var ac = go.GetComponent<TAuthoring>();
-			if (ac != null) {
-				return ac;
-			}
-
-			// search on parent
-			if (go.transform.parent != null) {
-				ac = go.transform.parent.GetComponent<TAuthoring>();
-			}
-			if (ac != null) {
-				return ac;
-			}
-
-			// search on grand parent
-			if (go.transform.parent.transform.parent != null) {
-				ac = go.transform.parent.transform.parent.GetComponent<TAuthoring>();
-			}
-
-			if (ac == null) {
-				Debug.LogWarning("No same- or parent authoring component found.");
-			}
-
-			return ac;
-		}
+		public HitObject[] HitObjects { get; private set; }
 
 		private void OnDrawGizmosSelected()
 		{
@@ -185,7 +90,7 @@ namespace VisualPinball.Unity
 			var p12 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZLow));
 			var p13 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZLow));
 
-			Gizmos.color = isSelected ? SelectedAabbColor : AabbColor;
+			Gizmos.color = isSelected ? ColliderColor.SelectedAabb : ColliderColor.Aabb;
 			Gizmos.DrawLine(p00, p01);
 			Gizmos.DrawLine(p01, p02);
 			Gizmos.DrawLine(p02, p03);
@@ -204,7 +109,7 @@ namespace VisualPinball.Unity
 
 		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject, bool isSelected)
 		{
-			Gizmos.color = isSelected ? SelectedColliderColor : ColliderColor;
+			Gizmos.color = isSelected ? ColliderColor.SelectedCollider : ColliderColor.Collider;
 			switch (hitObject) {
 
 				case HitPoint hitPoint: {
@@ -324,5 +229,13 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+	}
+
+	internal static class ColliderColor
+	{
+		internal static readonly Color Aabb = new Color32(255, 0, 252, 8);
+		internal static readonly Color SelectedAabb = new Color32(255, 0, 252, 255);
+		internal static readonly Color Collider = new Color32(0, 255, 75, 8);
+		internal static readonly Color SelectedCollider = new Color32(0, 255, 75, 255);
 	}
 }

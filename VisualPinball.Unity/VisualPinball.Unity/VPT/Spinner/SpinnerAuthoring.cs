@@ -28,10 +28,9 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Spinner")]
-	public class SpinnerAuthoring : ItemAuthoring<Spinner, SpinnerData>, IHittableAuthoring, ISwitchAuthoring
+	public class SpinnerAuthoring : ItemMainAuthoring<Spinner, SpinnerData>,
+		IHittableAuthoring, ISwitchAuthoring
 	{
-		protected override string[] Children => new [] { "Plate", "Bracket" };
-
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 
 		public IHittable Hittable => Item;

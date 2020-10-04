@@ -53,7 +53,7 @@ using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableAuthoring : ItemAuthoring<Table, TableData>
+	public class TableAuthoring : ItemMainAuthoring<Table, TableData>
 	{
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
@@ -62,8 +62,8 @@ namespace VisualPinball.Unity
 		public MappingsData Mappings => _sidecar?.mappings;
 		public Patcher.Patcher Patcher { get; internal set; }
 
-		protected override string[] Children => null;
-
+		[HideInInspector] [SerializeField] public string physicsEngineId;
+		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material

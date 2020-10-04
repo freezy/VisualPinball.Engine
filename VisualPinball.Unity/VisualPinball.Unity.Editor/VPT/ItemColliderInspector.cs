@@ -25,11 +25,11 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemColliderInspector<TItem, TData, TAuthoring, TColliderAuthoring> : ItemInspector
-		where TColliderAuthoring : ItemColliderAuthoring<TItem, TData, TAuthoring>
+	public class ItemColliderInspector<TItem, TData, TMainAuthoring, TColliderAuthoring> : ItemInspector
+		where TColliderAuthoring : ItemColliderAuthoring<TItem, TData, TMainAuthoring>
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
-		where TAuthoring : ItemAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		private TColliderAuthoring _colliderAuthoring;
 

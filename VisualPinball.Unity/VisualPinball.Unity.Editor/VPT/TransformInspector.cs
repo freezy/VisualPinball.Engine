@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private UnityEditor.Editor _defaultEditor;
 		private Transform _transform;
-		private IEditableItemAuthoring _primaryItem;
+		private IItemMainAuthoring _primaryItem;
 		private List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
 		private ItemDataTransformType _positionType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 
 			bool useDefault = true;
 			foreach (var t in targets) {
-				var item = (t as Transform)?.GetComponent<IEditableItemAuthoring>();
+				var item = (t as Transform)?.GetComponent<IItemMainAuthoring>();
 				if (item != null && !(item is TableAuthoring)) {
 					useDefault = false;
 					if (_primaryItem == null) {
@@ -104,14 +104,15 @@ namespace VisualPinball.Unity.Editor
 
 		private void RebuildMeshes()
 		{
-			if (_primaryItem.MeshDirty) {
-				_primaryItem.RebuildMeshes();
-			}
-			foreach (var secondary in _secondaryItems) {
-				if (secondary.Item.MeshDirty) {
-					secondary.Item.RebuildMeshes();
-				}
-			}
+			// todo meshdirty
+			// if (_primaryItem.MeshDirty) {
+			// 	_primaryItem.RebuildMeshes();
+			// }
+			// foreach (var secondary in _secondaryItems) {
+			// 	if (secondary.Item.MeshDirty) {
+			// 		secondary.Item.RebuildMeshes();
+			// 	}
+			// }
 		}
 
 		protected virtual void OnSceneGUI()
@@ -307,7 +308,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
 		{
-			_primaryItem.MeshDirty = true;
+			// todo meshdirty
+			// _primaryItem.MeshDirty = true;
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -320,7 +322,8 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var secondary in _secondaryItems)
 			{
-				secondary.Item.MeshDirty = true;
+				// todo meshdirty
+				// secondary.Item.MeshDirty = true;
 				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
 				Undo.RecordObject(secondary.Transform, undoLabel);
 				secondary.Item.SetEditorPosition(finalPos + secondary.Offset);
@@ -329,7 +332,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishRotate(Vector3 newEuler)
 		{
-			_primaryItem.MeshDirty = true;
+			// todo meshdirty
+			// _primaryItem.MeshDirty = true;
 			string undoLabel = "Rotate " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -338,7 +342,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishScale(Vector3 newScale)
 		{
-			_primaryItem.MeshDirty = true;
+			// todo meshdirty
+			// _primaryItem.MeshDirty = true;
 			string undoLabel = "Scale " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -348,7 +353,7 @@ namespace VisualPinball.Unity.Editor
 		private class SecondaryItem
 		{
 			public Transform Transform;
-			public IEditableItemAuthoring Item;
+			public IItemMainAuthoring Item;
 			public Vector3 Offset;
 		}
 	}

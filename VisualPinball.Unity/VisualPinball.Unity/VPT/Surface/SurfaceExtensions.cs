@@ -26,25 +26,28 @@ namespace VisualPinball.Unity
 		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj,
 			RenderObjectGroup rog, MonoBehaviour mainMb)
 		{
-
-			MonoBehaviour mb = null;
+			MonoBehaviour mb = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
 			switch (rog.SubComponent) {
 				case RenderObjectGroup.ItemSubComponent.None:
-
-					mb = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
-					obj.AddComponent<SurfaceColliderAuthoring>().SetMainItem(surface);;
+					obj.AddComponent<SurfaceColliderAuthoring>();
+					//obj.AddComponent<SurfaceMeshAuthoring>();
 					break;
 
-				case RenderObjectGroup.ItemSubComponent.Collider:
-					var ia = obj.AddComponent<SurfaceColliderAuthoring>().SetItem(surface, rog);
+				case RenderObjectGroup.ItemSubComponent.Collider: {
+					obj.AddComponent<SurfaceColliderAuthoring>();
 					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
-						hittableAuthoring.LinkChild(ia);
 					}
 					break;
+				}
 
-				case RenderObjectGroup.ItemSubComponent.Mesh:
+				case RenderObjectGroup.ItemSubComponent.Mesh: {
+					//obj.AddComponent<SurfaceMeshAuthoring>();
+					if (mainMb != null && mainMb is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
 					break;
+				}
 
 				default:
 					throw new ArgumentOutOfRangeException();

@@ -18,10 +18,10 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
-	public interface IHittableAuthoring
+	public interface IMeshAuthoring
 	{
-		IHittable Hittable { get; }
+		IRenderable Renderable { get; }
 
-		void RemoveHittableComponent();
+		void RemoveMeshComponent();
 	}
 }

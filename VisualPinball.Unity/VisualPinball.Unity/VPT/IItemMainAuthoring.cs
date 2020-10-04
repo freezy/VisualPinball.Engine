@@ -14,22 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public interface IEditableItemAuthoring : IIdentifiableItemAuthoring
+	public interface IItemMainAuthoring : IItemAuthoring
 	{
 		bool IsLocked { get; set; }
-		bool MeshDirty { get; set; }
-		ItemData ItemData { get; }
-		List<MemberInfo> MaterialRefs { get; }
-		List<MemberInfo> TextureRefs { get; }
-
-		void RebuildMeshes();
 
 		// the following interfaces allow each item behavior to define which axes should
 		// be shown on the scene view gizmo, the gizmo itself will use the associated

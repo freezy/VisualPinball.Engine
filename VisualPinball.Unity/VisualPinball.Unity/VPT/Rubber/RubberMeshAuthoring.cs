@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.Game;
+using UnityEngine;
+using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
-	public interface IHittableAuthoring
+	[ExecuteInEditMode]
+	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
+	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
 	{
-		IHittable Hittable { get; }
 
-		void RemoveHittableComponent();
 	}
 }
