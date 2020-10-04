@@ -23,11 +23,12 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Plunger")]
-	public class PlungerAuthoring : ItemAuthoring<Plunger, PlungerData>, IConvertGameObjectToEntity, IHittableAuthoring, ICoilAuthoring
+	public class PlungerAuthoring : ItemMainAuthoring<Plunger, PlungerData>,
+		IHittableAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new [] {
-			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
-		};
+		// protected override string[] Children => new [] {
+		// 	PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
+		// };
 
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 

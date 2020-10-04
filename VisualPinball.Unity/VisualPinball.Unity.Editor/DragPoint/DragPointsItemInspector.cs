@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IEditableItemAuthoring editable) || editable.IsLocked;
+			return !(target is IItemMainAuthoring editable) || editable.IsLocked;
 		}
 
 		/// <summary>
@@ -138,8 +138,8 @@ namespace VisualPinball.Unity.Editor
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IEditableItemAuthoring editable) {
-				editable.MeshDirty = true;
+			if (rebuilt && target is IItemMeshAuthoring meshAuthoring) {
+				meshAuthoring.MeshDirty = true;
 			}
 		}
 
@@ -174,8 +174,8 @@ namespace VisualPinball.Unity.Editor
 
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
-			if (target is IEditableItemAuthoring editable) {
-				editable.MeshDirty = true;
+			if (target is IItemMeshAuthoring meshAuthoring) {
+				meshAuthoring.MeshDirty = true;
 				recordObjs.Add(this);
 			}
 			recordObjs.Add(target);
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnInspectorGUI();
 
-			var editable = target as IEditableItemAuthoring;
+			var editable = target as IItemMainAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			if (editable == null || dragPointEditable == null) {
 				return;
@@ -238,7 +238,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IEditableItemAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IItemMainAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -251,14 +251,14 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IEditableItemAuthoring item) {
-				item.MeshDirty = true;
+			if (target is IItemMeshAuthoring meshAuthoring) {
+				meshAuthoring.MeshDirty = true;
 			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			var editable = target as IEditableItemAuthoring;
+			var editable = target as IItemMainAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 

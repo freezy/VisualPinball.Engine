@@ -22,27 +22,5 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
 	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
-		protected override Surface InstantiateItem(SurfaceData data) => new Surface(_data);
-
-		public override Vector3 GetEditorPosition() {
-			if (Data == null || Data.DragPoints.Length == 0) {
-				return Vector3.zero;
-			}
-			return Data.DragPoints[0].Center.ToUnityVector3();
-		}
-
-		public override void SetEditorPosition(Vector3 pos) {
-			if (Data == null || Data.DragPoints.Length == 0) {
-				return;
-			}
-
-			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
-			diff.Z = 0f;
-			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (var i = 1; i < Data.DragPoints.Length; i++) {
-				var pt = Data.DragPoints[i];
-				pt.Center = pt.Center.Add(diff);
-			}
-		}
 	}
 }

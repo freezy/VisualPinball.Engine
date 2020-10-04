@@ -27,9 +27,9 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Light")]
-	public class LightAuthoring : ItemAuthoring<Engine.VPT.Light.Light, LightData>
+	public class LightAuthoring : ItemMainAuthoring<Engine.VPT.Light.Light, LightData>
 	{
-		protected override string[] Children => new[] { "Bulb", "Socket" };
+		// protected override string[] Children => new[] { "Bulb", "Socket" };
 
 		private UnityEngine.Light _unityLight;
 

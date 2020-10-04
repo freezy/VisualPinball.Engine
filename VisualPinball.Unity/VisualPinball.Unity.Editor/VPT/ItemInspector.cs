@@ -60,18 +60,19 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!(target is IEditableItemAuthoring item)) {
+			if (!(target is IItemMainAuthoring item)) {
 				return;
 			}
 
-			GUILayout.Space(10);
-			if( GUILayout.Button( "Force Update Mesh" ) ) {
-				item.MeshDirty = true;
-			}
-
-			if (item.MeshDirty) {
-				item.RebuildMeshes();
-			}
+			// todo move to generic mesh inspector
+			// GUILayout.Space(10);
+			// if( GUILayout.Button( "Force Update Mesh" ) ) {
+			// 	item.MeshDirty = true;
+			// }
+			//
+			// if (item.MeshDirty) {
+			// 	item.RebuildMeshes();
+			// }
 		}
 
 		#endregion
@@ -110,7 +111,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			if (!(target is IEditableItemAuthoring item)) {
+			if (!(target is IItemMainAuthoring item)) {
 				return;
 			}
 
@@ -320,7 +321,7 @@ namespace VisualPinball.Unity.Editor
 			var undoLabel = $"[{target?.name}] Edit {label}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				if (target is IEditableItemAuthoring item) {
+				if (target is IItemMeshAuthoring item) {
 					item.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);
 				}

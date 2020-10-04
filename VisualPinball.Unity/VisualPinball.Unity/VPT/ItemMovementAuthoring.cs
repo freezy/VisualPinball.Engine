@@ -14,14 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Physics;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Spinner;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public interface IHittableAuthoring
+	public abstract class ItemMovementAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
+		IItemColliderAuthoring
+		where TData : ItemData
+		where TItem : Item<TData>, IHittable, IRenderable
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-		IHittable Hittable { get; }
-
-		void RemoveHittableComponent();
 	}
 }

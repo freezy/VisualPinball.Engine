@@ -21,10 +21,8 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateWireAuthoring : ItemAuthoring<Gate, GateData>, IConvertGameObjectToEntity
+	public class GateWireAuthoring : ItemMainAuthoring<Gate, GateData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new string[0];
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

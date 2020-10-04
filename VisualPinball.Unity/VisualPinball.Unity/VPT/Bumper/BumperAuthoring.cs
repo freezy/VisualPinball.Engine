@@ -28,11 +28,10 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IHittableAuthoring, ISwitchAuthoring, IConvertGameObjectToEntity, ICoilAuthoring
+	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
+	public class BumperAuthoring : ItemMainAuthoring<Bumper, BumperData>,
+		IHittableAuthoring, ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
-
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
 		public IHittable Hittable => Item;
