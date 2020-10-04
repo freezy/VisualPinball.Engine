@@ -23,7 +23,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Rubber";
+		public override string ItemName { get; } = "Rubber";
+		public override string ItemGroupName { get; } = "Rubbers";
 
 		public HitObject[] GetHitShapes() => _hits;
 
@@ -60,10 +61,21 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new Rubber(rubberData);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public bool IsCollidable => Data.IsCollidable;
 

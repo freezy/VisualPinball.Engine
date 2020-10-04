@@ -16,6 +16,7 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Primitive
@@ -28,7 +29,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Primitive";
+		public override string ItemName { get; } = "Primitive";
+		public override string ItemGroupName { get; } = "Primitives";
 
 		public bool UseAsPlayfield;
 
@@ -57,11 +59,22 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return new Primitive(primitiveData);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
 
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;

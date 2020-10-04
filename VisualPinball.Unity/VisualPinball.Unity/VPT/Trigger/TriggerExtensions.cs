@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class TriggerExtensions
 	{
-		public static TriggerAuthoring SetupGameObject(this Engine.VPT.Trigger.Trigger trigger, GameObject obj, RenderObjectGroup rog)
+		public static TriggerAuthoring SetupGameObject(this Engine.VPT.Trigger.Trigger trigger, GameObject obj)
 		{
 			var ic = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
 			obj.AddComponent<ConvertToEntity>();

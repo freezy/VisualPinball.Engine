@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class HitTargetExtensions
 	{
-		public static HitTargetAuthoring SetupGameObject(this Engine.VPT.HitTarget.HitTarget hitTarget, GameObject obj, RenderObjectGroup rog)
+		public static HitTargetAuthoring SetupGameObject(this Engine.VPT.HitTarget.HitTarget hitTarget, GameObject obj)
 		{
 			var ic = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
 			obj.AddComponent<ConvertToEntity>();

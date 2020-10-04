@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class RampExtensions
 	{
-		public static RampAuthoring SetupGameObject(this Engine.VPT.Ramp.Ramp ramp, GameObject obj, RenderObjectGroup rog)
+		public static RampAuthoring SetupGameObject(this Engine.VPT.Ramp.Ramp ramp, GameObject obj)
 		{
 			var ic = obj.AddComponent<RampAuthoring>().SetItem(ramp);
 			obj.AddComponent<ConvertToEntity>();

@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class TableExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject obj, RenderObjectGroup rog)
+		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject obj)
 		{
 			var ic = obj.AddComponent<PlayfieldAuthoring>();
 			obj.AddComponent<ConvertToEntity>();

@@ -184,17 +184,17 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			var rog = renderable.GetRenderObjects(_tableAuthoring.Table, Origin.Original, false);
-			VpxConverter.ConvertRenderObjects(rog, GetOrCreateParent(_tableAuthoring, rog), _tableAuthoring, out var obj);
-			VpxConverter.SetupGameObjectComponents(renderable, obj, rog, null);
+			//var rog = renderable.GetRenderObjects(_table.Table, Origin.Original, false);
+			var obj = VpxConverter.CreateGameObjects(renderable, GetOrCreateParent(_tableAuthoring, renderable), _tableAuthoring);
+			VpxConverter.SetupGameObjects(renderable, obj);
 			return obj;
 		}
 
-		private static GameObject GetOrCreateParent(Component tb, RenderObjectGroup rog)
+		private static GameObject GetOrCreateParent(Component tb, IItem renderable)
 		{
-			var parent = tb.gameObject.transform.Find(rog.Parent)?.gameObject;
+			var parent = tb.gameObject.transform.Find(renderable.ItemGroupName)?.gameObject;
 			if (parent == null) {
-				parent = new GameObject(rog.Parent);
+				parent = new GameObject(renderable.ItemGroupName);
 				parent.transform.parent = tb.gameObject.transform;
 				parent.transform.localPosition = Vector3.zero;
 				parent.transform.localRotation = Quaternion.identity;

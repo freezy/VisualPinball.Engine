@@ -23,7 +23,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class Ramp : Item<RampData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Ramp";
+		public override string ItemName { get; } = "Ramp";
+		public override string ItemGroupName { get; } = "Ramps";
 
 		public HitObject[] GetHitShapes() => _hits;
 
@@ -60,10 +61,21 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
+
+		#endregion
 
 		public bool IsCollidable => Data.IsCollidable;
 

@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class PrimitiveExtensions
 	{
-		public static PrimitiveAuthoring SetupGameObject(this Primitive primitive, GameObject obj, RenderObjectGroup rog)
+		public static PrimitiveAuthoring SetupGameObject(this Primitive primitive, GameObject obj)
 		{
 			var ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
 

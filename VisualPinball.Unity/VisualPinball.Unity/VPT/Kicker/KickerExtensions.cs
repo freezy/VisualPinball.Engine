@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class KickerExtensions
 	{
-		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj, RenderObjectGroup rog)
+		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj)
 		{
 			var ic = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
 			obj.AddComponent<ConvertToEntity>();

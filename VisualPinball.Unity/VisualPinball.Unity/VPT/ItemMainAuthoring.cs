@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private TItem _item;
 
-		public ItemAuthoring<TItem, TData> SetItem(TItem item, string gameObjectName = null)
+		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
 			_data = item.Data;

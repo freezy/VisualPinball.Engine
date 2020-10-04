@@ -17,33 +17,36 @@
 using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Surface.Surface surface, GameObject obj,
-			RenderObjectGroup rog, MonoBehaviour mainMb)
+		public static IItemMainAuthoring SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			MonoBehaviour mb = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
-			switch (rog.SubComponent) {
-				case RenderObjectGroup.ItemSubComponent.None:
+			var mainAuthoring = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
+
+			switch (surface.SubComponent) {
+				case ItemSubComponent.None:
 					obj.AddComponent<SurfaceColliderAuthoring>();
-					//obj.AddComponent<SurfaceMeshAuthoring>();
+					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
+					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
 					break;
 
-				case RenderObjectGroup.ItemSubComponent.Collider: {
+				case ItemSubComponent.Collider: {
 					obj.AddComponent<SurfaceColliderAuthoring>();
-					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
 					}
 					break;
 				}
 
-				case RenderObjectGroup.ItemSubComponent.Mesh: {
-					//obj.AddComponent<SurfaceMeshAuthoring>();
-					if (mainMb != null && mainMb is IMeshAuthoring meshAuthoring) {
+				case ItemSubComponent.Mesh: {
+					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
+					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
 						meshAuthoring.RemoveMeshComponent();
 					}
 					break;
@@ -53,7 +56,16 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mb;
+			return mainAuthoring;
+		}
+
+		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

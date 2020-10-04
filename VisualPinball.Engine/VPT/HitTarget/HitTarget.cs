@@ -16,13 +16,15 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable, ISwitchable
 	{
-		public override string ItemType => "Target";
+		public override string ItemName { get; } = "Target";
+		public override string ItemGroupName { get; } = "Targets";
 
 		public bool IsPulseSwitch => true;
 
@@ -53,10 +55,21 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public bool IsCollidable => Data.IsCollidable;
 	}

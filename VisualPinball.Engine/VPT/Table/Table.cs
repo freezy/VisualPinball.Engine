@@ -34,7 +34,8 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Table";
+		public override string ItemName { get; } = "Table";
+		public override string ItemGroupName { get; } = "Tables";
 
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -496,10 +497,21 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
 		public bool IsCollidable => true;

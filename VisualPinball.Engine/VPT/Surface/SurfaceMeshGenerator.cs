@@ -22,6 +22,9 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class SurfaceMeshGenerator
 	{
+		public const string Side = "Side";
+		public const string Top = "Top";
+
 		private readonly SurfaceData _data;
 
 		public SurfaceMeshGenerator(SurfaceData data)
