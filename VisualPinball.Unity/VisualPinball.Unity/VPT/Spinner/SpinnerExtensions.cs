@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class SpinnerExtensions
 	{
-		public static SpinnerAuthoring SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj, RenderObjectGroup rog)
+		public static SpinnerAuthoring SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj)
 		{
 			var ic = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
 			obj.AddComponent<ConvertToEntity>();

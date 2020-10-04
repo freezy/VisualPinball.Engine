@@ -23,7 +23,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class Trigger : Item<TriggerData>, IRenderable, IHittable, ISwitchable
 	{
-		public override string ItemType => "Trigger";
+		public override string ItemName { get; } = "Trigger";
+		public override string ItemGroupName { get; } = "Triggers";
 
 		public bool IsPulseSwitch => false;
 
@@ -63,9 +64,20 @@ namespace VisualPinball.Engine.VPT.Trigger
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 	}
 }

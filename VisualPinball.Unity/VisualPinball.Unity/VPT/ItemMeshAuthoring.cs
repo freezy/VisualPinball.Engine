@@ -26,12 +26,12 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemMeshAuthoring<TItem, TData, TAuthoring> : ItemSubAuthoring<TItem, TData, TAuthoring>
+	public abstract class ItemMeshAuthoring<TItem, TData, TAuthoring> : ItemSubAuthoring<TItem, TData, TAuthoring>, IItemMeshAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-
+		protected virtual string MeshId => null;
 
 		#region Creation and destruction
 
@@ -43,9 +43,7 @@ namespace VisualPinball.Unity
 		{
 			if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
 				var ta = GetComponentInParent<TableAuthoring>();
-
-				var rog = Item.GetRenderObjects(ta.Table);
-				var ro = rog.RenderObjects[0];
+				var ro = Item.GetRenderObject(ta.Table, MeshId);
 				var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
 
 				// apply mesh to game object

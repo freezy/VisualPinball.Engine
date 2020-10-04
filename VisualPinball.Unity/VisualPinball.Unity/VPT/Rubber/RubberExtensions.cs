@@ -18,32 +18,33 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj,
-			RenderObjectGroup rog, MonoBehaviour mainMb)
+		public static IItemMainAuthoring SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			MonoBehaviour mb = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
-			switch (rog.SubComponent) {
-				case RenderObjectGroup.ItemSubComponent.None:
+			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+
+			switch (rubber.SubComponent) {
+				case ItemSubComponent.None:
 					obj.AddComponent<RubberColliderAuthoring>();
 					obj.AddComponent<RubberMeshAuthoring>();
 					break;
 
-				case RenderObjectGroup.ItemSubComponent.Collider: {
+				case ItemSubComponent.Collider: {
 					obj.AddComponent<RubberColliderAuthoring>();
-					if (mainMb != null && mainMb is IHittableAuthoring hittableAuthoring) {
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
 					}
 					break;
 				}
 
-				case RenderObjectGroup.ItemSubComponent.Mesh: {
+				case ItemSubComponent.Mesh: {
 					obj.AddComponent<RubberMeshAuthoring>();
-					if (mainMb != null && mainMb is IMeshAuthoring meshAuthoring) {
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
 						meshAuthoring.RemoveMeshComponent();
 					}
 					break;
@@ -53,7 +54,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mb;
+			return mainAuthoring;
 		}
 	}
 }

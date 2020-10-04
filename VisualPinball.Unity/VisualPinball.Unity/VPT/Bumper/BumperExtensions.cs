@@ -17,20 +17,27 @@
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	internal static class BumperExtensions
 	{
-		public static BumperAuthoring SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj, RenderObjectGroup rog)
+		public static BumperAuthoring SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj)
 		{
 			var ic = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
 
 			obj.AddComponent<ConvertToEntity>();
 
-			var ring = obj.transform.Find("Ring").gameObject;
-			var skirt = obj.transform.Find("Skirt").gameObject;
+			var bse = obj.transform.Find(BumperMeshGenerator.Base).gameObject;
+			var cap = obj.transform.Find(BumperMeshGenerator.Cap).gameObject;
+			var ring = obj.transform.Find(BumperMeshGenerator.Ring).gameObject;
+			var skirt = obj.transform.Find(BumperMeshGenerator.Skirt).gameObject;
 
+			bse.AddComponent<BumperBaseMeshAuthoring>();
+			cap.AddComponent<BumperCapMeshAuthoring>();
+			ring.AddComponent<BumperRingMeshAuthoring>();
+			skirt.AddComponent<BumperSkirtMeshAuthoring>();
 			ring.AddComponent<BumperRingAuthoring>();
 			skirt.AddComponent<BumperSkirtAuthoring>();
 

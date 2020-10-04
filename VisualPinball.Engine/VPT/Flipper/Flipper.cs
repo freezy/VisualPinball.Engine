@@ -16,13 +16,15 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class Flipper : Item<FlipperData>, IRenderable, IHittable, ISwitchable, ICoilable
 	{
-		public override string ItemType => "Flasher";
+		public override string ItemName { get; } = "Flasher";
+		public override string ItemGroupName { get; } = "Flashers";
 
 		public bool IsPulseSwitch => false;
 
@@ -49,10 +51,21 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_hit = new FlipperHit(Data, table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
 		public bool IsCollidable => true;

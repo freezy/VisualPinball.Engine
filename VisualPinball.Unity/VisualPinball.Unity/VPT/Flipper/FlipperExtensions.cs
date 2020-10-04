@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class FlipperExtensions
 	{
-		public static FlipperAuthoring SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj, RenderObjectGroup rog)
+		public static FlipperAuthoring SetupGameObject(this Engine.VPT.Flipper.Flipper flipper, GameObject obj)
 		{
 			var ic = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
 			obj.AddComponent<ConvertToEntity>();

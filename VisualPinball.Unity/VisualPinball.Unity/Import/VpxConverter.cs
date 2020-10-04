@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
+		//private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
 		private Table _table;
@@ -75,13 +75,11 @@ namespace VisualPinball.Unity
 
 			MakeSerializable(go, table);
 
-			// set the gameobject name; this needs to happen after MakeSerializable because the name is set there as well
-			if( string.IsNullOrEmpty( tableName))
-			{
+			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
+			if (string.IsNullOrEmpty(tableName)) {
 				go.name = _table.Name;
-			}
-			else
-			{
+
+			} else {
 				go.name = tableName
 					.Replace("%TABLENAME%", _table.Name)
 					.Replace("%INFONAME%", _table.InfoName);
@@ -90,15 +88,15 @@ namespace VisualPinball.Unity
 			_tableAuthoring.Patcher = new Patcher.Patcher(_table, fileName);
 
 			// generate meshes and save (pbr) materials
-			var materials = new Dictionary<string, PbrMaterial>();
-			foreach (var r in _table.Renderables) {
-				_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
-				foreach (var ro in _renderObjects[r].RenderObjects) {
-					if (!materials.ContainsKey(ro.Material.Id)) {
-						materials[ro.Material.Id] = ro.Material;
-					}
-				}
-			}
+			// var materials = new Dictionary<string, PbrMaterial>();
+			// foreach (var r in _table.Renderables) {
+			// 	_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
+			// 	foreach (var ro in _renderObjects[r].RenderObjects) {
+			// 		if (!materials.ContainsKey(ro.Material.Id)) {
+			// 			materials[ro.Material.Id] = ro.Material;
+			// 		}
+			// 	}
+			// }
 
 			// import
 			ConvertGameItems(go);
@@ -125,146 +123,136 @@ namespace VisualPinball.Unity
 
 		private void ConvertGameItems(GameObject tableGameObject)
 		{
-			// convert game objects
-			ConvertRenderables(tableGameObject);
-		}
-
-		private void ConvertRenderables(GameObject tableGameObject)
-		{
 			var createMainObjs = new Dictionary<string, GameObject>();
-			var createdMainMbs = new Dictionary<string, MonoBehaviour>();
-			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
-			var renderObjects = from entry
-				in _renderObjects orderby entry.Value.SubComponent select entry;
+			var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
+			var renderables = from renderable in _table.Renderables
+				orderby renderable.SubComponent
+				select renderable;
 
-			foreach (var kv in renderObjects) {
-				var renderable = kv.Key;
-				var rog = kv.Value;
+			foreach (var renderable in renderables) {
 
-				// create item type parent
-				if (!_parents.ContainsKey(rog.Parent)) {
-					var parent = new GameObject(rog.Parent);
+				// create group parent if not created
+				if (!_parents.ContainsKey(renderable.ItemGroupName)) {
+					var parent = new GameObject(renderable.ItemGroupName);
 					parent.transform.parent = gameObject.transform;
-					_parents[rog.Parent] = parent;
+					_parents[renderable.ItemGroupName] = parent;
 				}
 
 				// create object(s)
-				createdObjs[renderable] = ConvertRenderObjects(rog, _parents[rog.Parent], _tableAuthoring, out var rootObj);
+				var rootObj = CreateGameObjects(renderable, _parents[renderable.ItemGroupName], _tableAuthoring);
 
 				// if the object's names was parsed to be part of another object, re-link to other object.
-				if (rog.SubComponent != RenderObjectGroup.ItemSubComponent.None) {
-					if (!createMainObjs.ContainsKey(rog.ComponentName.ToLower())) {
-						Logger.Warn($"Cannot find component \"{rog.ComponentName.ToLower()}\" that is supposed to be the parent of \"{rog.Name}\".");
-						SetupGameObjectComponents(renderable, rootObj, rog);
+				if (renderable.SubComponent != ItemSubComponent.None) {
+
+					var parentName = renderable.ComponentName.ToLower();
+					if (createMainObjs.ContainsKey(parentName)) {
+						var mainObj = createMainObjs[parentName];
+						var mainMb = createdMainMbs[parentName];
+						rootObj.transform.SetParent(mainObj.transform, false);
+						SetupGameObjects(renderable, rootObj, mainMb);
 
 					} else {
-						var mainObj = createMainObjs[rog.ComponentName.ToLower()];
-						var mainMb = createdMainMbs[rog.ComponentName.ToLower()];
-						rootObj.transform.SetParent(mainObj.transform, false);
-						SetupGameObjectComponents(renderable, rootObj, rog, mainMb);
+						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
+						SetupGameObjects(renderable, rootObj);
 					}
 				} else {
-					var rootMb = SetupGameObjectComponents(renderable, rootObj, rog);
-					createMainObjs[rog.Name.ToLower()] = rootObj;
-					createdMainMbs[rog.Name.ToLower()] = rootMb;
+					var rootMb = SetupGameObjects(renderable, rootObj);
+					createMainObjs[renderable.Name.ToLower()] = rootObj;
+					createdMainMbs[renderable.Name.ToLower()] = rootMb;
 				}
 			}
 
 			// now we have all renderables imported, patch them.
-			foreach (var renderable in createdObjs.Keys) {
-				foreach (var (obj, ro) in createdObjs[renderable]) {
-					_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj, tableGameObject);
-				}
-			}
+			// foreach (var renderable in createdObjs.Keys) {
+			// 	foreach (var (obj, ro) in createdObjs[renderable]) {
+			// 		_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj, tableGameObject);
+			// 	}
+			// }
 		}
 
-		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(RenderObjectGroup rog,
-			GameObject parent, TableAuthoring tb, out GameObject obj)
+		public static GameObject CreateGameObjects(IRenderable renderable, GameObject parent, TableAuthoring tb)
 		{
-			obj = new GameObject(rog.Name);
+			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			var createdObjs = rog.SubComponent == RenderObjectGroup.ItemSubComponent.Collider
-				? new Tuple<GameObject, RenderObject>[0]
-				: SetupRenderObject(obj, rog, tb);
+			SetupGameObjects(renderable, obj);
 
 			// apply transformation
-			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+			obj.transform.SetFromMatrix(renderable.TransformationMatrix(Origin.Original).ToUnityMatrix());
 
-			return createdObjs;
+			return obj;
 		}
 
-		public static MonoBehaviour SetupGameObjectComponents(IRenderable item, GameObject obj,
-			RenderObjectGroup rog, MonoBehaviour mainMb = null)
+		public static IItemMainAuthoring SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
 		{
-			MonoBehaviour mb = null;
+			IItemMainAuthoring mainAuthoring = null;
 			switch (item) {
-				case Bumper bumper:             bumper.SetupGameObject(obj, rog); break;
-				case Flipper flipper:           flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:                 gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:       hitTarget.SetupGameObject(obj, rog); break;
-				case Kicker kicker:             kicker.SetupGameObject(obj, rog); break;
-				case Engine.VPT.Light.Light lt: lt.SetupGameObject(obj, rog); break;
-				case Plunger plunger:           plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:       primitive.SetupGameObject(obj, rog); break;
-				case Ramp ramp:                 ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:             mb = rubber.SetupGameObject(obj, rog, mainMb); break;
-				case Spinner spinner:           spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:           mb = surface.SetupGameObject(obj, rog, mainMb); break;
-				case Table table:               table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:           trigger.SetupGameObject(obj, rog); break;
+				case Bumper bumper:             bumper.SetupGameObject(obj); break;
+				case Flipper flipper:           flipper.SetupGameObject(obj); break;
+				case Gate gate:                 gate.SetupGameObject(obj); break;
+				case HitTarget hitTarget:       hitTarget.SetupGameObject(obj); break;
+				case Kicker kicker:             kicker.SetupGameObject(obj); break;
+				case Engine.VPT.Light.Light lt: lt.SetupGameObject(obj); break;
+				case Plunger plunger:           plunger.SetupGameObject(obj); break;
+				case Primitive primitive:       primitive.SetupGameObject(obj); break;
+				case Ramp ramp:                 ramp.SetupGameObject(obj); break;
+				case Rubber rubber:             mainAuthoring = rubber.SetupGameObject(obj, parentAuthoring); break;
+				case Spinner spinner:           spinner.SetupGameObject(obj); break;
+				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;
+				case Table table:               table.SetupGameObject(obj); break;
+				case Trigger trigger:           trigger.SetupGameObject(obj); break;
 			}
 
-			return mb;
+			return mainAuthoring;
 		}
 
-		private static IEnumerable<Tuple<GameObject, RenderObject>> SetupRenderObject(GameObject obj, RenderObjectGroup rog, TableAuthoring tb)
-		{
-			var createdObjs = new Tuple<GameObject, RenderObject>[0];
-			if (rog.HasOnlyChild && !rog.ForceChild) {
-				SetupMesh(obj, rog.RenderObjects[0], tb);
-				createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
+		// private static IEnumerable<Tuple<GameObject, RenderObject>> SetupRenderObject(GameObject obj, RenderObjectGroup rog, TableAuthoring tb)
+		// {
+		// 	var createdObjs = new Tuple<GameObject, RenderObject>[0];
+		// 	if (rog.HasOnlyChild && !rog.ForceChild) {
+		// 		SetupMesh(obj, rog.RenderObjects[0], tb);
+		// 		createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
+		//
+		// 	} else if (rog.HasChildren) {
+		// 		createdObjs = new Tuple<GameObject, RenderObject>[rog.RenderObjects.Length];
+		// 		var i = 0;
+		// 		foreach (var ro in rog.RenderObjects) {
+		// 			var subObj = new GameObject(ro.Name);
+		// 			subObj.transform.SetParent(obj.transform, false);
+		// 			subObj.layer = ChildObjectsLayer;
+		// 			SetupMesh(subObj, ro, tb);
+		// 			createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
+		// 		}
+		// 	}
+		//
+		// 	return createdObjs;
+		// }
 
-			} else if (rog.HasChildren) {
-				createdObjs = new Tuple<GameObject, RenderObject>[rog.RenderObjects.Length];
-				var i = 0;
-				foreach (var ro in rog.RenderObjects) {
-					var subObj = new GameObject(ro.Name);
-					subObj.transform.SetParent(obj.transform, false);
-					subObj.layer = ChildObjectsLayer;
-					SetupMesh(subObj, ro, tb);
-					createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
-				}
-			}
-
-			return createdObjs;
-		}
-
-		private static void SetupMesh(GameObject obj, RenderObject ro, TableAuthoring ta)
-		{
-			if (ro.Mesh == null) {
-				Logger.Warn($"No mesh for object {obj.name}, skipping.");
-				return;
-			}
-
-			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
-			// apply mesh to game object
-			var mf = obj.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
-
-			// apply material
-			if (ro.Mesh.AnimationFrames.Count > 0) {
-				var smr = obj.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				smr.sharedMesh = mesh;
-				smr.enabled = ro.IsVisible;
-			} else {
-				var mr = obj.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				mr.enabled = ro.IsVisible;
-			}
-		}
+		// private static void SetupMesh(GameObject obj, RenderObject ro, TableAuthoring ta)
+		// {
+		// 	if (ro.Mesh == null) {
+		// 		Logger.Warn($"No mesh for object {obj.name}, skipping.");
+		// 		return;
+		// 	}
+		//
+		// 	var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
+		//
+		// 	// apply mesh to game object
+		// 	var mf = obj.AddComponent<MeshFilter>();
+		// 	mf.sharedMesh = mesh;
+		//
+		// 	// apply material
+		// 	if (ro.Mesh.AnimationFrames.Count > 0) {
+		// 		var smr = obj.AddComponent<SkinnedMeshRenderer>();
+		// 		smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+		// 		smr.sharedMesh = mesh;
+		// 		smr.enabled = ro.IsVisible;
+		// 	} else {
+		// 		var mr = obj.AddComponent<MeshRenderer>();
+		// 		mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+		// 		mr.enabled = ro.IsVisible;
+		// 	}
+		// }
 
 		private void MakeSerializable(GameObject go, Table table)
 		{

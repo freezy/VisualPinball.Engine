@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class GateExtensions
 	{
-		public static GateAuthoring SetupGameObject(this Engine.VPT.Gate.Gate gate, GameObject obj, RenderObjectGroup rog)
+		public static GateAuthoring SetupGameObject(this Engine.VPT.Gate.Gate gate, GameObject obj)
 		{
 			var ic = obj.AddComponent<GateAuthoring>().SetItem(gate);
 			obj.AddComponent<ConvertToEntity>();

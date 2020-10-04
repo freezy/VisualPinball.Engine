@@ -16,13 +16,15 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class Bumper : Item<BumperData>, IRenderable, IHittable, ISwitchable, ICoilable
 	{
-		public override string ItemType => "Bumper";
+		public override string ItemName { get; } = "Bumper";
+		public override string ItemGroupName { get; } = "Bumpers";
 		public bool IsPulseSwitch => true;
 
 		private readonly BumperMeshGenerator _meshGenerator;
@@ -50,10 +52,21 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_hits = new HitObject[] {new BumperHit(Data, height, this)};
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsCollidable;

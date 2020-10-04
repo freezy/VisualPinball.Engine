@@ -31,11 +31,13 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Rubber")]
-	public class RubberAuthoring : ItemMainAuthoring<Rubber, RubberData>, IDragPointsEditable, IHittableAuthoring, IConvertGameObjectToEntity
+	public class RubberAuthoring : ItemMainAuthoring<Rubber, RubberData>,
+		IDragPointsEditable, IHittableAuthoring, IMeshAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 
 		public IHittable Hittable => Item;
+		public IRenderable Renderable => Item;
 
 		private void OnDestroy()
 		{
@@ -50,6 +52,14 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, gameObject);
+		}
+
+		public void RemoveMeshComponent()
+		{
+			var rc = gameObject.GetComponent<RubberMeshAuthoring>();
+			if (rc != null) {
+				DestroyImmediate(rc);
+			}
 		}
 
 		public void RemoveHittableComponent()
@@ -103,5 +113,6 @@ namespace VisualPinball.Unity
 		public bool PointsAreLooping() => true;
 		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth };
 		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
+
 	}
 }

@@ -23,7 +23,8 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class Surface : Item<SurfaceData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Wall";
+		public override string ItemName { get; } = "Wall";
+		public override string ItemGroupName { get; } = "Walls";
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsCollidable;
@@ -56,14 +57,25 @@ namespace VisualPinball.Engine.VPT.Surface
 			return new Surface(surfaceData);
 		}
 
+		public void Init(Table.Table table)
+		{
+			_hits = _hitGenerator.GenerateHitObjects(table, this);
+		}
+
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 
-		public void Init(Table.Table table)
-		{
-			_hits = _hitGenerator.GenerateHitObjects(table, this);
-		}
+		#endregion
 	}
 }
