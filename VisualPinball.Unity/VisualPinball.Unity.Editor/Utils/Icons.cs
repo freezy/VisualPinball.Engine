@@ -128,6 +128,12 @@ namespace VisualPinball.Unity.Editor
 		public static void OnScriptsReloaded()
 		{
 			DisableGizmo<BumperAuthoring>();
+			DisableGizmo<BumperBaseMeshAuthoring>();
+			DisableGizmo<BumperCapMeshAuthoring>();
+			DisableGizmo<BumperRingMeshAuthoring>();
+			DisableGizmo<BumperRingAnimationAuthoring>();
+			DisableGizmo<BumperSkirtMeshAuthoring>();
+			DisableGizmo<BumperSkirtAnimationAuthoring>();
 			DisableGizmo<FlipperAuthoring>();
 			DisableGizmo<GateAuthoring>();
 			DisableGizmo<HitTargetAuthoring>();
@@ -137,10 +143,13 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<PrimitiveAuthoring>();
 			DisableGizmo<RampAuthoring>();
 			DisableGizmo<RubberAuthoring>();
+			DisableGizmo<RubberMeshAuthoring>();
 			DisableGizmo<RubberColliderAuthoring>();
 			DisableGizmo<SpinnerAuthoring>();
 			DisableGizmo<SurfaceAuthoring>();
 			DisableGizmo<SurfaceColliderAuthoring>();
+			DisableGizmo<SurfaceSideMeshAuthoring>();
+			DisableGizmo<SurfaceTopMeshAuthoring>();
 			DisableGizmo<TriggerAuthoring>();
 		}
 

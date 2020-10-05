@@ -15,37 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class BumperRingAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
+	public class BumperSkirtAnimationAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 			var bumper = transform.parent.gameObject.GetComponent<BumperAuthoring>().Item;
 			var bumperEntity = new Entity {Index = bumper.Index, Version = bumper.Version};
 
 			// update parent
 			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
-			bumperStaticData.RingEntity = entity;
+			bumperStaticData.SkirtEntity = entity;
 			dstManager.SetComponentData(bumperEntity, bumperStaticData);
 
 			// add ring data
-			dstManager.AddComponentData(entity, new BumperRingAnimationData {
-
-				// dynamic
-				IsHit = false,
-				Offset = 0,
-				AnimateDown = false,
+			dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
+				BallPosition = default,
+				AnimationCounter = 0f,
 				DoAnimate = false,
-
-				// static
-				DropOffset = bumper.Data.RingDropOffset,
-				HeightScale = bumper.Data.HeightScale,
-				Speed = bumper.Data.RingSpeed,
-				ScaleZ = table.GetScaleZ()
+				DoUpdate = false,
+				EnableAnimation = true,
+				Rotation = new float2(0, 0),
+				HitEvent = bumper.Data.HitEvent,
+				Center = bumper.Data.Center.ToUnityFloat2()
 			});
 		}
 	}
