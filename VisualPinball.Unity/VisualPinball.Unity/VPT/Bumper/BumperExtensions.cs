@@ -14,34 +14,64 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
 {
 	internal static class BumperExtensions
 	{
-		public static BumperAuthoring SetupGameObject(this Engine.VPT.Bumper.Bumper bumper, GameObject obj)
+
+		public static IItemMainAuthoring SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
+			var mainAuthoring = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
 
+			switch (bumper.SubComponent) {
+				case ItemSubComponent.None:
+					//obj.AddComponent<BumperColliderAuthoring>();
+					CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base);
+					CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
+					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
+					var skirt = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
+					ring.AddComponent<BumperRingAuthoring>();
+					skirt.AddComponent<BumperSkirtAuthoring>();
+
+					break;
+
+				case ItemSubComponent.Collider: {
+					//obj.AddComponent<BumperColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					// todo
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
+			return mainAuthoring;
+		}
 
-			var bse = obj.transform.Find(BumperMeshGenerator.Base).gameObject;
-			var cap = obj.transform.Find(BumperMeshGenerator.Cap).gameObject;
-			var ring = obj.transform.Find(BumperMeshGenerator.Ring).gameObject;
-			var skirt = obj.transform.Find(BumperMeshGenerator.Skirt).gameObject;
-
-			bse.AddComponent<BumperBaseMeshAuthoring>();
-			cap.AddComponent<BumperCapMeshAuthoring>();
-			ring.AddComponent<BumperRingMeshAuthoring>();
-			skirt.AddComponent<BumperSkirtMeshAuthoring>();
-			ring.AddComponent<BumperRingAuthoring>();
-			skirt.AddComponent<BumperSkirtAuthoring>();
-
-			return ic as BumperAuthoring;
+		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

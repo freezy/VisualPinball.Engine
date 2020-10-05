@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 		{
 			if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
 				var ta = GetComponentInParent<TableAuthoring>();
-				var ro = Item.GetRenderObject(ta.Table, MeshId);
+				var ro = Item.GetRenderObject(ta.Table, MeshId, asRightHanded: false);
 				var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
 
 				// apply mesh to game object
