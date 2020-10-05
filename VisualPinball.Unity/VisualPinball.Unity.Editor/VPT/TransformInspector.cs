@@ -29,8 +29,17 @@ namespace VisualPinball.Unity.Editor
 	{
 		private UnityEditor.Editor _defaultEditor;
 		private Transform _transform;
+
+		/// <summary>
+		/// The first selected item
+		/// </summary>
 		private IItemMainAuthoring _primaryItem;
-		private List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
+
+		/// <summary>
+		/// On multi-selection, these are the other selected items.
+		/// </summary>
+		private readonly List<SecondaryItem> _secondaryItems = new List<SecondaryItem>();
+
 		private ItemDataTransformType _positionType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _rotationType = ItemDataTransformType.ThreeD;
 		private ItemDataTransformType _scaleType = ItemDataTransformType.ThreeD;
@@ -47,8 +56,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			_transform = target as Transform;
 
-			bool useDefault = true;
+			// use default inspector. we do that when no vpe-authoring items are selected.
+			var useDefault = true;
+
+			// loop through selected objects
 			foreach (var t in targets) {
+
+				// must be main but not the table itself
 				var item = (t as Transform)?.GetComponent<IItemMainAuthoring>();
 				if (item != null && !(item is TableAuthoring)) {
 					useDefault = false;
@@ -164,7 +178,6 @@ namespace VisualPinball.Unity.Editor
 			{
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
-
 			Handles.color = Color.red;
 			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
 			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
