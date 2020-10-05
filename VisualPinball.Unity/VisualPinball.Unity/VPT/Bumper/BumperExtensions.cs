@@ -37,8 +37,8 @@ namespace VisualPinball.Unity
 					CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
 					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
 					var skirt = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
-					ring.AddComponent<BumperRingAuthoring>();
-					skirt.AddComponent<BumperSkirtAuthoring>();
+					ring.AddComponent<BumperRingAnimationAuthoring>();
+					skirt.AddComponent<BumperSkirtAnimationAuthoring>();
 
 					break;
 
