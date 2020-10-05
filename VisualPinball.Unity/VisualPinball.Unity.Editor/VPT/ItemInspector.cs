@@ -64,15 +64,18 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			// todo move to generic mesh inspector
-			// GUILayout.Space(10);
-			// if( GUILayout.Button( "Force Update Mesh" ) ) {
-			// 	item.MeshDirty = true;
-			// }
-			//
-			// if (item.MeshDirty) {
-			// 	item.RebuildMeshes();
-			// }
+			GUILayout.Space(10);
+			if (GUILayout.Button("Force Update Mesh")) {
+				foreach (var meshComponent in item.MeshComponents) {
+					meshComponent.MeshDirty = true;
+				}
+			}
+
+			foreach (var meshComponent in item.MeshComponents) {
+				if (meshComponent.MeshDirty) {
+					meshComponent.RebuildMeshes();
+				}
+			}
 		}
 
 		#endregion

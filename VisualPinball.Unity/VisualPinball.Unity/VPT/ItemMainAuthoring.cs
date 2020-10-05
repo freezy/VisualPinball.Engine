@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -50,12 +52,35 @@ namespace VisualPinball.Unity
 			return this;
 		}
 
+		public IEnumerable<IItemMeshAuthoring> MeshComponents =>
+			GetComponentsInChildren(MeshAuthoringType, true)
+				.Select(c => (IItemMeshAuthoring) c)
+				.Where(ma => ma.ItemData == _data);
+
+		public void MarkMeshesDirty()
+		{
+			foreach (var meshComponent in MeshComponents) {
+				meshComponent.MeshDirty = true;
+			}
+		}
+
+		public void UpdateMeshes()
+		{
+			foreach (var meshComponent in MeshComponents) {
+				if (meshComponent.MeshDirty) {
+					meshComponent.RebuildMeshes();
+				}
+			}
+		}
+
 		/// <summary>
 		/// Instantiates a new item based on the item data.
 		/// </summary>
 		/// <param name="data">Item data</param>
 		/// <returns>New item instance</returns>
 		protected abstract TItem InstantiateItem(TData data);
+
+		protected virtual Type MeshAuthoringType { get; } = null;
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
@@ -95,7 +120,6 @@ namespace VisualPinball.Unity
 		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorScale() => Vector3.zero;
 		public virtual void SetEditorScale(Vector3 rot) { }
-
 
 		public int EditorLayer { get => Data.EditorLayer; set => Data.EditorLayer = value; }
 		public string EditorLayerName { get => Data.EditorLayerName; set => Data.EditorLayerName = value; }

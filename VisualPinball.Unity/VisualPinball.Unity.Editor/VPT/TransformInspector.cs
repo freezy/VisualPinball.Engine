@@ -37,6 +37,7 @@ namespace VisualPinball.Unity.Editor
 
 		// work around for scale handle weirdness
 		private float _scaleFactor = 1.0f;
+
 		// control when to rotate each axis of your custom rotation handle
 		private Matrix4x4? _pauseAxisX = null;
 		private Matrix4x4? _pauseAxisY = null;

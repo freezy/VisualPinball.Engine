@@ -42,26 +42,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
-				var ta = GetComponentInParent<TableAuthoring>();
-				var ro = Item.GetRenderObject(ta.Table, MeshId, asRightHanded: false);
-				var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
-
-				// apply mesh to game object
-				var mf = gameObject.AddComponent<MeshFilter>();
-				mf.sharedMesh = mesh;
-
-				// apply material
-				if (ro.Mesh.AnimationFrames.Count > 0) {
-					var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
-					smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-					smr.sharedMesh = mesh;
-					smr.enabled = ro.IsVisible;
-				} else {
-					var mr = gameObject.AddComponent<MeshRenderer>();
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-					mr.enabled = ro.IsVisible;
-				}
-
+				CreateMesh();
 				_meshCreated = true;
 			}
 		}
@@ -97,10 +78,48 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		private void CreateMesh()
+		{
+			var ta = GetComponentInParent<TableAuthoring>();
+			var ro = Item.GetRenderObject(ta.Table, MeshId, asRightHanded: false);
+			var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
 
+			// apply mesh to game object
+			var mf = gameObject.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
 
+			// apply material
+			if (ro.Mesh.AnimationFrames.Count > 0) {
+				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				smr.sharedMesh = mesh;
+				smr.enabled = ro.IsVisible;
+			} else {
+				var mr = gameObject.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				mr.enabled = ro.IsVisible;
+			}
+		}
 
+		private void UpdateMesh()
+		{
+			var ta = GetComponentInParent<TableAuthoring>();
+			var ro = Item.GetRenderObject(ta.Table, MeshId, asRightHanded: false);
+			var mr = GetComponent<MeshRenderer>();
+			var mf = GetComponent<MeshFilter>();
 
+			if (mf != null) {
+				var unityMesh = mf.sharedMesh;
+				ro.Mesh.ApplyToUnityMesh(unityMesh);
+			}
+
+			if (mr != null) {
+				if (ta != null) {
+					mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				}
+				mr.enabled = true;
+			}
+		}
 
 
 
@@ -127,17 +146,18 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshes()
 		{
-			if (Data == null) {
-				_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
-				return;
-			}
-			var table = transform.GetComponentInParent<TableAuthoring>();
-			if (table == null) {
-				_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", Data.GetName());
-				return;
-			}
-
-			var rog = Item.GetRenderObjects(table.Table, Origin.Original, false);
+			UpdateMesh();
+			// if (Data == null) {
+			// 	_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
+			// 	return;
+			// }
+			// var table = transform.GetComponentInParent<TableAuthoring>();
+			// if (table == null) {
+			// 	_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", Data.GetName());
+			// 	return;
+			// }
+			//
+			// var rog = Item.GetRenderObjects(table.Table, Origin.Original, false);
 
 			// todo can probably ditch this, because components now update themselves
 			// var children = Children;
@@ -171,37 +191,18 @@ namespace VisualPinball.Unity
 			// }
 
 			// update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
-			if (table != this) {
-				transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+			var ta = GetComponentInParent<TableAuthoring>();
+			if (ta != this) {
+				transform.SetFromMatrix(Item.TransformationMatrix(Origin.Original).ToUnityMatrix());
 			}
 
 			ItemDataChanged();
 			_meshDirty = false;
 		}
 
-		private static void UpdateMesh(string childName, GameObject go, RenderObjectGroup rog, TableAuthoring table)
-		{
-			var mr = go.GetComponent<MeshRenderer>();
-			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == childName);
-			if (ro == null || !ro.IsVisible) {
-				if (mr != null) {
-					mr.enabled = false;
-				}
-				return;
-			}
-			var mf = go.GetComponent<MeshFilter>();
-			if (mf != null) {
-				var unityMesh = mf.sharedMesh;
-				ro.Mesh.ApplyToUnityMesh(unityMesh);
-			}
 
-			if (mr != null) {
-				if (table != null) {
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(table);
-				}
-				mr.enabled = true;
-			}
-		}
+
+
 
 		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
 		{
