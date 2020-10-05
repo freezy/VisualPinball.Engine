@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -33,6 +34,8 @@ namespace VisualPinball.Unity
 		IHittableAuthoring, ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

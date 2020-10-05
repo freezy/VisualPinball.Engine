@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -21,6 +22,11 @@ namespace VisualPinball.Unity
 	public interface IItemMainAuthoring : IItemAuthoring
 	{
 		bool IsLocked { get; set; }
+
+		/// <summary>
+		/// Returns all mesh sub components of this component
+		/// </summary>
+		IEnumerable<IItemMeshAuthoring> MeshComponents { get; }
 
 		// the following interfaces allow each item behavior to define which axes should
 		// be shown on the scene view gizmo, the gizmo itself will use the associated
