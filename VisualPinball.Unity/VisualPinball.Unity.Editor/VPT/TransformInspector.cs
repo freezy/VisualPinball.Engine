@@ -64,8 +64,9 @@ namespace VisualPinball.Unity.Editor
 
 				// must be main but not the table itself
 				var item = (t as Transform)?.GetComponent<IItemMainAuthoring>();
+				useDefault = useDefault && (t as Transform)?.GetComponent<IItemAuthoring>() == null;
 				if (item != null && !(item is TableAuthoring)) {
-					useDefault = false;
+
 					if (_primaryItem == null) {
 						_primaryItem = item;
 						_positionType = item.EditorPositionType;

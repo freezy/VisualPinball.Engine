@@ -121,7 +121,24 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		protected virtual void OnDrawGizmos()
+		{
+			// handle dirty whenever scene view draws just in case a field or dependant changed and our
+			// custom inspector window isn't up to process it
+			if (_meshDirty) {
+				RebuildMeshes();
+			}
 
+			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
+			// selects the item itself first, which is most likely what the user would want
+			var mfs = GetComponentsInChildren<MeshFilter>();
+			Gizmos.color = Color.clear;
+			Gizmos.matrix = Matrix4x4.identity;
+			foreach (var mf in mfs) {
+				var t = mf.transform;
+				Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
+			}
+		}
 
 
 
