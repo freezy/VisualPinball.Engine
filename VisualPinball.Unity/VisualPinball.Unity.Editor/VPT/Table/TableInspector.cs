@@ -49,8 +49,6 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
-
-			base.OnInspectorGUI();
 		}
 	}
 }

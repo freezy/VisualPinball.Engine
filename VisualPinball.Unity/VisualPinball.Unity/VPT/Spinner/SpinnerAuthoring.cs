@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Spinner")]
+	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerAuthoring : ItemMainAuthoring<Spinner, SpinnerData>,
 		IHittableAuthoring, ISwitchAuthoring
 	{

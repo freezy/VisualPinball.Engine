@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Gate")]
+	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateAuthoring : ItemMainAuthoring<Gate, GateData>,
 		IHittableAuthoring, ISwitchAuthoring
 	{

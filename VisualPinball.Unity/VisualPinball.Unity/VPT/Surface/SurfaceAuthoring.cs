@@ -30,7 +30,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Surface")]
+	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
 	public class SurfaceAuthoring : ItemMainAuthoring<Surface, SurfaceData>,
 		IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
 	{

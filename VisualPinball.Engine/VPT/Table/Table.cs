@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Table
 	public class Table : Item<TableData>, IRenderable, IHittable
 	{
 		public override string ItemName { get; } = "Table";
-		public override string ItemGroupName { get; } = "Tables";
+		public override string ItemGroupName { get; } = "Playfield";
 
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -503,7 +503,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			throw new NotImplementedException();
+			return _meshGenerator.GetRenderObject(asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)

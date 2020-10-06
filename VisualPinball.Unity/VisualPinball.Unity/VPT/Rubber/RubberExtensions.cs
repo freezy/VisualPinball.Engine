@@ -17,14 +17,14 @@
 using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static IItemMainAuthoring SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 

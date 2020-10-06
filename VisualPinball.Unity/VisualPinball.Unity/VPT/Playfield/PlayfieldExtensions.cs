@@ -16,17 +16,20 @@
 
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	internal static class TableExtensions
+	internal static class PlayfieldExtensions
 	{
-		public static MonoBehaviour SetupGameObject(this Engine.VPT.Table.Table table, GameObject obj)
+		public static void SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<PlayfieldAuthoring>();
+			obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
+			obj.AddComponent<PlayfieldColliderAuthoring>();
+			obj.AddComponent<PlayfieldMeshAuthoring>();
 			obj.AddComponent<ConvertToEntity>();
-			return ic;
+			obj.name = "Default Playfield";
 		}
 	}
 }

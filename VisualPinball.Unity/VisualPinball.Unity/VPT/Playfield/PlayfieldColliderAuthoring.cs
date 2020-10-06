@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
+	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, TableAuthoring>
 	{
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			table.Index = entity.Index;
-			table.Version = entity.Version;
-		}
 	}
 }

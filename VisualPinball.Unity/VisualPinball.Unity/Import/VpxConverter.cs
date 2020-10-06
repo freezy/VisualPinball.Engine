@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 
 		private void ConvertGameItems(GameObject tableGameObject)
 		{
-			var createMainObjs = new Dictionary<string, GameObject>();
+			var createdMainObjs = new Dictionary<string, GameObject>();
 			var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
 			var renderables = from renderable in _table.Renderables
 				orderby renderable.SubComponent
@@ -138,27 +138,25 @@ namespace VisualPinball.Unity
 					_parents[renderable.ItemGroupName] = parent;
 				}
 
-				// create object(s)
-				var rootObj = CreateGameObjects(renderable, _parents[renderable.ItemGroupName], _tableAuthoring);
+				if (renderable.SubComponent == ItemSubComponent.None) {
+					// create object(s)
+					var (rootObj, rootMb) = CreateGameObjects(renderable, _parents[renderable.ItemGroupName]);
 
-				// if the object's names was parsed to be part of another object, re-link to other object.
-				if (renderable.SubComponent != ItemSubComponent.None) {
+					createdMainObjs[renderable.Name.ToLower()] = rootObj;
+					createdMainMbs[renderable.Name.ToLower()] = rootMb;
 
+				} else {
+					// if the object's names was parsed to be part of another object, re-link to other object.
 					var parentName = renderable.ComponentName.ToLower();
-					if (createMainObjs.ContainsKey(parentName)) {
-						var mainObj = createMainObjs[parentName];
+					if (createdMainObjs.ContainsKey(parentName)) {
+						var mainObj = createdMainObjs[parentName];
 						var mainMb = createdMainMbs[parentName];
+						var (rootObj, _) = CreateGameObjects(renderable, _parents[renderable.ItemGroupName], mainMb);
 						rootObj.transform.SetParent(mainObj.transform, false);
-						SetupGameObjects(renderable, rootObj, mainMb);
 
 					} else {
-						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
-						SetupGameObjects(renderable, rootObj);
+						throw new InvalidOperationException($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
 					}
-				} else {
-					var rootMb = SetupGameObjects(renderable, rootObj);
-					createMainObjs[renderable.Name.ToLower()] = rootObj;
-					createdMainMbs[renderable.Name.ToLower()] = rootMb;
 				}
 			}
 
@@ -170,20 +168,20 @@ namespace VisualPinball.Unity
 			// }
 		}
 
-		public static GameObject CreateGameObjects(IRenderable renderable, GameObject parent, TableAuthoring tb)
+		public static (GameObject, IItemMainAuthoring) CreateGameObjects(IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
 		{
 			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			SetupGameObjects(renderable, obj);
+			var mb = SetupGameObjects(renderable, obj, parentAuthoring);
 
 			// apply transformation
 			obj.transform.SetFromMatrix(renderable.TransformationMatrix(Origin.Original).ToUnityMatrix());
 
-			return obj;
+			return (obj, mb);
 		}
 
-		public static IItemMainAuthoring SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
+		private static IItemMainAuthoring SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
 		{
 			IItemMainAuthoring mainAuthoring = null;
 			switch (item) {
@@ -199,7 +197,7 @@ namespace VisualPinball.Unity
 				case Rubber rubber:             mainAuthoring = rubber.SetupGameObject(obj, parentAuthoring); break;
 				case Spinner spinner:           spinner.SetupGameObject(obj); break;
 				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;
-				case Table table:               table.SetupGameObject(obj); break;
+				case Table table:               table.SetupGameObject(obj, parentAuthoring); break;
 				case Trigger trigger:           trigger.SetupGameObject(obj); break;
 			}
 

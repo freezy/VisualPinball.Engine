@@ -30,7 +30,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Ramp")]
+	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
 	{
 		//protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
