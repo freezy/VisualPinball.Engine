@@ -119,15 +119,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void RebuildMeshes()
 		{
-			// todo meshdirty
-			// if (_primaryItem.MeshDirty) {
-			// 	_primaryItem.RebuildMeshes();
-			// }
-			// foreach (var secondary in _secondaryItems) {
-			// 	if (secondary.Item.MeshDirty) {
-			// 		secondary.Item.RebuildMeshes();
-			// 	}
-			// }
+			_primaryItem.RebuildMeshIfDirty();
+			foreach (var secondary in _secondaryItems) {
+				secondary.Item.RebuildMeshIfDirty();
+			}
 		}
 
 		protected virtual void OnSceneGUI()
@@ -322,8 +317,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
 		{
-			// todo meshdirty
-			// _primaryItem.MeshDirty = true;
+			_primaryItem.SetMeshDirty();
 			string undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -336,8 +330,7 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var secondary in _secondaryItems)
 			{
-				// todo meshdirty
-				// secondary.Item.MeshDirty = true;
+				secondary.Item.SetMeshDirty();
 				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
 				Undo.RecordObject(secondary.Transform, undoLabel);
 				secondary.Item.SetEditorPosition(finalPos + secondary.Offset);
@@ -346,8 +339,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishRotate(Vector3 newEuler)
 		{
-			// todo meshdirty
-			// _primaryItem.MeshDirty = true;
+			_primaryItem.SetMeshDirty();
 			string undoLabel = "Rotate " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
@@ -356,8 +348,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishScale(Vector3 newScale)
 		{
-			// todo meshdirty
-			// _primaryItem.MeshDirty = true;
+			_primaryItem.SetMeshDirty();
 			string undoLabel = "Scale " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);

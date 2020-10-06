@@ -66,16 +66,10 @@ namespace VisualPinball.Unity.Editor
 
 			GUILayout.Space(10);
 			if (GUILayout.Button("Force Update Mesh")) {
-				foreach (var meshComponent in item.MeshComponents) {
-					meshComponent.MeshDirty = true;
-				}
+				item.SetMeshDirty();
 			}
 
-			foreach (var meshComponent in item.MeshComponents) {
-				if (meshComponent.MeshDirty) {
-					meshComponent.RebuildMeshes();
-				}
-			}
+			item.RebuildMeshIfDirty();
 		}
 
 		#endregion

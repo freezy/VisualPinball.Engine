@@ -52,19 +52,19 @@ namespace VisualPinball.Unity
 			return this;
 		}
 
-		public IEnumerable<IItemMeshAuthoring> MeshComponents =>
+		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
 			GetComponentsInChildren(MeshAuthoringType, true)
 				.Select(c => (IItemMeshAuthoring) c)
-				.Where(ma => ma.ItemData == _data);
+				.Where(ma => ma.ItemData == _data) : new IItemMeshAuthoring[0];
 
-		public void MarkMeshesDirty()
+		public void SetMeshDirty()
 		{
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.MeshDirty = true;
 			}
 		}
 
-		public void UpdateMeshes()
+		public void RebuildMeshIfDirty()
 		{
 			foreach (var meshComponent in MeshComponents) {
 				if (meshComponent.MeshDirty) {
@@ -92,11 +92,7 @@ namespace VisualPinball.Unity
 		{
 			// handle dirty whenever scene view draws just in case a field or dependant changed and our
 			// custom inspector window isn't up to process it
-
-			// todo rebuild mesh sub components
-			// if (_meshDirty) {
-			// 	RebuildMeshes();
-			// }
+			RebuildMeshIfDirty();
 
 			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
 			// selects the item itself first, which is most likely what the user would want
@@ -104,10 +100,10 @@ namespace VisualPinball.Unity
 			Gizmos.color = Color.clear;
 			Gizmos.matrix = Matrix4x4.identity;
 			foreach (var mf in mfs) {
-				Gizmos.DrawMesh(mf.sharedMesh, mf.transform.position, mf.transform.rotation, mf.transform.lossyScale);
+				var t = mf.transform;
+				Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 			}
 		}
-
 
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorPosition() => Vector3.zero;
