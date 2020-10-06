@@ -25,15 +25,15 @@ namespace VisualPinball.Unity.Editor
 	{
 		private readonly struct IconVariant
 		{
-			private readonly string _name;
-			private readonly IconSize _size;
-			private readonly IconColor _color;
+			public readonly string Name;
+			public readonly IconSize Size;
+			public readonly IconColor Color;
 
 			public IconVariant(string name, IconSize size, IconColor color)
 			{
-				_name = name;
-				_size = size;
-				_color = color;
+				Name = name;
+				Size = size;
+				Color = color;
 			}
 		}
 
@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
 		private const string HitTargetName = "target";
+		private const string TableName = "table";
 		private const string TriggerName = "trigger";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
@@ -56,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BumperName, FlipperName, GateName, KickerName, LightName, PlungerName, PrimitiveName, RampName, RubberName,
-			SpinnerName, SurfaceName, HitTargetName, TriggerName, SwitchNcName, SwitchNoName, KeyName
+			SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName, SwitchNcName, SwitchNoName, KeyName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -99,6 +100,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
+		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
@@ -182,6 +184,10 @@ namespace VisualPinball.Unity.Editor
 
 			if (!_icons.ContainsKey(variant)) {
 				variant = new IconVariant(name, IconSize.Large, IconColor.Gray);
+			}
+
+			if (!_icons.ContainsKey(variant)) {
+				throw new InvalidOperationException($"Cannot find {variant.Size} {variant.Name} icon of color {variant.Color}.");
 			}
 
 			return _icons[variant];
