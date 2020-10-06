@@ -63,6 +63,11 @@ namespace VisualPinball.Unity.Editor
 		private void OnGUI()
 		{
 			const IconColor iconColor = IconColor.Gray;
+			var iconSize = position.width / 2f - 4.5f;
+			var buttonStyle = new GUIStyle(GUI.skin.button) {
+				alignment = TextAnchor.MiddleCenter,
+				imagePosition = ImagePosition.ImageAbove
+			};
 
 			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
@@ -79,13 +84,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			GUILayout.Label(_tableAuthoring.name);
-
-			var iconSize = position.width / 2f - 4.5f;
-			var buttonStyle = new GUIStyle(GUI.skin.button) {
-				alignment = TextAnchor.MiddleCenter,
-				imagePosition = ImagePosition.ImageAbove
-			};
+			EditorGUILayout.Space();
+			GUILayout.Label(_tableAuthoring.name, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
 			GUILayout.BeginHorizontal();
 
