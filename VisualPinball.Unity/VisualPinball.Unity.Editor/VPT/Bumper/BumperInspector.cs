@@ -40,19 +40,11 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialField("Cap Material", ref _bumper.Data.CapMaterial);
-				MaterialField("Base Material", ref _bumper.Data.BaseMaterial);
-				MaterialField("Ring Material", ref _bumper.Data.RingMaterial);
-				MaterialField("Skirt Material", ref _bumper.Data.SocketMaterial);
 				ItemDataField("Radius", ref _bumper.Data.Radius);
 				ItemDataField("Height Scale", ref _bumper.Data.HeightScale);
 				ItemDataField("Orientation", ref _bumper.Data.Orientation);
 				ItemDataField("Ring Speed", ref _bumper.Data.RingSpeed, dirtyMesh: false);
 				ItemDataField("Ring Drop Offset", ref _bumper.Data.RingDropOffset, dirtyMesh: false);
-				ItemDataField("Cap Visible", ref _bumper.Data.IsCapVisible);
-				ItemDataField("Base Visible", ref _bumper.Data.IsBaseVisible);
-				ItemDataField("Ring Visible", ref _bumper.Data.IsRingVisible);
-				ItemDataField("Skirt Visible", ref _bumper.Data.IsSocketVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
