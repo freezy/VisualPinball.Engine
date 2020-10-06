@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using VisualPinball.Unity.Playfield;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -134,11 +135,15 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<BumperRingAnimationAuthoring>();
 			DisableGizmo<BumperSkirtMeshAuthoring>();
 			DisableGizmo<BumperSkirtAnimationAuthoring>();
+			DisableGizmo<DefaultGameEngineAuthoring>();
 			DisableGizmo<FlipperAuthoring>();
 			DisableGizmo<GateAuthoring>();
 			DisableGizmo<HitTargetAuthoring>();
 			DisableGizmo<KickerAuthoring>();
 			DisableGizmo<LightAuthoring>();
+			DisableGizmo<PlayfieldAuthoring>();
+			DisableGizmo<PlayfieldColliderAuthoring>();
+			DisableGizmo<PlayfieldMeshAuthoring>();
 			DisableGizmo<PlungerAuthoring>();
 			DisableGizmo<PrimitiveAuthoring>();
 			DisableGizmo<RampAuthoring>();
@@ -150,6 +155,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<SurfaceColliderAuthoring>();
 			DisableGizmo<SurfaceSideMeshAuthoring>();
 			DisableGizmo<SurfaceTopMeshAuthoring>();
+			DisableGizmo<TableAuthoring>();
 			DisableGizmo<TriggerAuthoring>();
 		}
 

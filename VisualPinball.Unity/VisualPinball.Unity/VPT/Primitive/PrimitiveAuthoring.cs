@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Primitive")]
+	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

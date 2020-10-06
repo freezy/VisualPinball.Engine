@@ -28,7 +28,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Hit Target")]
+	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
 	public class HitTargetAuthoring : ItemMainAuthoring<HitTarget, HitTargetData>,
 		IHittableAuthoring, ISwitchAuthoring, IConvertGameObjectToEntity
 	{
