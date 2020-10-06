@@ -43,6 +43,14 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private TItem _item;
 
+		/// <summary>
+		/// Returns all child mesh components linked to this data.
+		/// </summary>
+		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
+			GetComponentsInChildren(MeshAuthoringType, true)
+				.Select(c => (IItemMeshAuthoring) c)
+				.Where(ma => ma.ItemData == _data) : new IItemMeshAuthoring[0];
+
 		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
@@ -51,11 +59,6 @@ namespace VisualPinball.Unity
 			ItemDataChanged();
 			return this;
 		}
-
-		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
-			GetComponentsInChildren(MeshAuthoringType, true)
-				.Select(c => (IItemMeshAuthoring) c)
-				.Where(ma => ma.ItemData == _data) : new IItemMeshAuthoring[0];
 
 		public void SetMeshDirty()
 		{
@@ -74,13 +77,17 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Authoring type of the child class.
+		/// todo make this abstract
+		/// </summary>
+		protected virtual Type MeshAuthoringType { get; } = null;
+
+		/// <summary>
 		/// Instantiates a new item based on the item data.
 		/// </summary>
 		/// <param name="data">Item data</param>
 		/// <returns>New item instance</returns>
 		protected abstract TItem InstantiateItem(TData data);
-
-		protected virtual Type MeshAuthoringType { get; } = null;
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
@@ -105,6 +112,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		#region Tools
+
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorPosition() => Vector3.zero;
 		public virtual void SetEditorPosition(Vector3 pos) { }
@@ -116,6 +125,8 @@ namespace VisualPinball.Unity
 		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorScale() => Vector3.zero;
 		public virtual void SetEditorScale(Vector3 rot) { }
+
+		#endregion
 
 		public int EditorLayer { get => Data.EditorLayer; set => Data.EditorLayer = value; }
 		public string EditorLayerName { get => Data.EditorLayerName; set => Data.EditorLayerName = value; }
