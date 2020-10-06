@@ -47,16 +47,12 @@ namespace VisualPinball.Unity
 		public abstract TData Data { get; }
 
 		/// <summary>
-		/// Returns the item object for this component. If this
-		/// returns `null`, then it's wrongly attached to a game object
-		/// where it can't find its main component.
+		/// Returns the item object for this component.
 		/// </summary>
 		///
 		/// <remarks>
-		/// For any game item, we only serialize its data and re-instantiate
-		/// the actual item on the fly (and cache it). So in <see cref="SetItem"/>,
-		/// which initializes the component after creation, <see cref="_item"/>
-		/// is only set to avoid a cache miss.
+		/// If this returns `null`, then it's wrongly attached to a game object
+		/// where it can't find its main component.
 		/// </remarks>
 		public abstract TItem Item { get; }
 
