@@ -24,9 +24,10 @@ namespace VisualPinball.Unity
 		bool IsLocked { get; set; }
 
 		/// <summary>
-		/// Returns all mesh sub components of this component
+		/// Sets the mesh of all mesh sub components to dirty.
 		/// </summary>
-		IEnumerable<IItemMeshAuthoring> MeshComponents { get; }
+		void SetMeshDirty();
+		void RebuildMeshIfDirty();
 
 		// the following interfaces allow each item behavior to define which axes should
 		// be shown on the scene view gizmo, the gizmo itself will use the associated
