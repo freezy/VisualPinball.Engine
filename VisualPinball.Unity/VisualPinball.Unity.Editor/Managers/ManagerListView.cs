@@ -161,7 +161,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		// not supporting multi select for now
-		protected override bool CanMultiSelect(TreeViewItem item) => false;
+		protected override bool CanMultiSelect(TreeViewItem item) => true;
 
 		protected override void SelectionChanged(IList<int> selectedIds)
 		{
@@ -173,6 +173,32 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			ItemSelected?.Invoke(selectedData);
+		}
+
+		/// <summary>
+		/// Get a list of all selected rows in the treeview
+		/// </summary>
+		/// <returns></returns>
+		public List<T> GetSelectedData()
+		{
+			List<T> selectedData = new List<T>();
+
+			IList<int> selectedIds = GetSelection();
+			var rows = GetRows();
+
+			foreach (int selectedId in selectedIds)
+			{
+				foreach (var row in rows)
+				{
+					if( (row as RowData).id == selectedId)
+					{
+						selectedData.Add((row as RowData).Data);
+						break;
+					}
+				}
+			}
+
+			return selectedData;
 		}
 
 		protected override void RowGUI(RowGUIArgs args)

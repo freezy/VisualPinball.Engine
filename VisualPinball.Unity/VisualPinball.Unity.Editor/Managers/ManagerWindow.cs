@@ -135,8 +135,17 @@ namespace VisualPinball.Unity.Editor
 				Add();
 			}
 			if (_isImplRemoveData && GUILayout.Button("Remove", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
-				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, $"Are you sure want to delete \"{_selectedItem.Name}\"?", "Delete", "Cancel")) {
-					Delete();
+
+				List<T> selectedData = _listView.GetSelectedData();
+
+				string text = $"Are you sure want to delete \"{_selectedItem.Name}\"?";
+				if ( selectedData.Count > 1)
+				{
+					text = $"Are you sure want to delete the {selectedData.Count} selected rows?";
+				}
+
+				if (EditorUtility.DisplayDialog("Delete " + DataTypeName, text, "Delete", "Cancel")) {
+					Delete( selectedData);
 				}
 			}
 			if (_isImplCloneData && GUILayout.Button("Clone", GUILayout.ExpandWidth(false)) && _selectedItem != null) {
@@ -255,11 +264,16 @@ namespace VisualPinball.Unity.Editor
 			SetSelection(_data.Count - 1);
 		}
 
-		private void Delete()
+		private void Delete(List<T> selectedData)
 		{
 			string undoName = "Remove " + DataTypeName;
 			Undo.RecordObjects(new Object[] { this, _table }, undoName);
-			RemoveData(undoName, _selectedItem);
+
+			foreach( T data in selectedData)
+			{
+				RemoveData(undoName, data);
+			}
+
 			Reload();
 			SetSelection(0);
 		}
