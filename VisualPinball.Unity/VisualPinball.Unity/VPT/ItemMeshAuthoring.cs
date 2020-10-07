@@ -66,12 +66,12 @@ namespace VisualPinball.Unity
 		private void OnDestroy()
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr != null) {
+			if (mr != null && !Application.isPlaying) {
 				DestroyImmediate(mr);
 			}
 
 			var mf = gameObject.GetComponent<MeshFilter>();
-			if (mf != null) {
+			if (mf != null && !Application.isPlaying) {
 				DestroyImmediate(mf);
 			}
 		}
