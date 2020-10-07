@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 
 		private Table _table;
 
-		protected Table Table => _table ?? (_table = gameObject.transform.GetComponentInParent<TableAuthoring>()?.Item);
+		protected Table Table => _table ?? (_table = GetComponentInParent<TableAuthoring>()?.Item);
 
 		protected virtual void ItemDataChanged()
 		{

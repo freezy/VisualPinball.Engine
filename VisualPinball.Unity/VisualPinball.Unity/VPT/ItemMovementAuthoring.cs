@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -34,5 +35,15 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
+		protected Entity Entity {
+			get {
+				var ma = MainAuthoring;
+				if (ma == null) {
+					throw new InvalidOperationException("Cannot find main authoring component of " + name + ".");
+				}
+				var item = ma.Item;
+				return new Entity { Index = item.Index, Version = item.Version };
+			}
+		}
 	}
 }

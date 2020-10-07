@@ -51,6 +51,11 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public override TItem Item => FindItem();
 
+		/// <summary>
+		/// Finds the main authoring component in the parent.
+		/// </summary>
+		protected TMainAuthoring MainAuthoring => FindMainAuthoring();
+
 		// public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
 		// {
 		// 	_item = item;
