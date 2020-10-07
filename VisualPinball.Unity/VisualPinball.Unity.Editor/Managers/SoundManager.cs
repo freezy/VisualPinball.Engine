@@ -46,12 +46,14 @@ namespace VisualPinball.Unity.Editor
 		/// Table & selected sound position & size used for display
 		/// </summary>
 		private Vector3 _tableCenter = Vector3.zero;
-		private Vector2 _tableSize = Vector2.zero;
+		private Vector3 _tableSize = Vector3.zero;
 		private Vector3 _selectedSoundPos = Vector3.zero;
 		private float  _selectedSoundSize = 0.0f;
 
 		private readonly Color _selectedColor = Color.yellow;
 		private readonly Color _unselectedColor = new Color(0.25f, 0.25f, 0.25f, 0.75f);
+		private GUIContent _iconContent;
+		private GUIStyle _iconStyle;
 
 		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
 		public static void ShowWindow()
@@ -98,6 +100,15 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			titleContent = new GUIContent("Sound Manager", EditorGUIUtility.IconContent("SceneViewAudio").image);
+			_iconContent = new GUIContent() {
+				image = EditorGUIUtility.IconContent("AudioSource Gizmo").image
+			};
+			_iconStyle = new GUIStyle() {
+				alignment = TextAnchor.MiddleCenter,
+				imagePosition = ImagePosition.ImageOnly,
+				fixedHeight = 25.0f,
+				fixedWidth = 25.0f
+			};
 			base.OnEnable();
 			SceneView.duringSceneGui += OnSceneGUI;
 		}
@@ -127,6 +138,14 @@ namespace VisualPinball.Unity.Editor
 			SceneView.RepaintAll();
 		}
 
+
+		protected override void OnDataSelected() 
+		{
+			base.OnDataSelected();
+			SceneView.RepaintAll();
+		}
+
+
 		private bool _shouldDisplaySoundPosition => (	_table != null && 
 														Event.current.type == EventType.Repaint &&
 														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _table.gameObject)) && 
@@ -140,24 +159,26 @@ namespace VisualPinball.Unity.Editor
 		{
 			var sndPos = _tableCenter;
 			sndPos.x += _tableSize.x * 0.5f * data.Balance.PercentageToRatio();
-			sndPos.z += _tableSize.y * 0.5f * data.Fade.PercentageToRatio();
+			sndPos.y -= _tableSize.y * 0.25f;
+			sndPos.z += _tableSize.z * 0.5f * data.Fade.PercentageToRatio();
+			Color col = selected ? _selectedColor : _unselectedColor;
 
-			//Sphere size based on sound volume
-			var minSphereSize = 0.1f;
-			var maxSphereSize = 0.5f;
+			//Disc size based on sound volume
+			var minSphereSize = 0.25f;
+			var maxSphereSize = _tableSize.magnitude * 0.5f;
+			
 			//Volume goes from -100 to 100 -> ratio
 			var sphereSizeRatio = (data.Volume + 100) * 0.005f;
-			var sphereSize = HandleUtility.GetHandleSize(_tableCenter) * (minSphereSize + (sphereSizeRatio * (maxSphereSize - minSphereSize)));
-			
-			//Soundwave
-			if (selected) {
-				Handles.color = Color.grey;
-				Handles.DrawWireDisc(sndPos, Vector3.up, sphereSize + Mathf.Repeat(Time.realtimeSinceStartup * 0.5f, _tableSize.magnitude * 0.25f));
-			}
+			var sphereSize = (sphereSizeRatio * (maxSphereSize - minSphereSize));
+			col.a = 0.05f;
+			Handles.color = col;
+			Handles.DrawSolidDisc(sndPos, Vector3.up, sphereSize);
 
-			//SoundPos
-			Handles.color = selected ? _selectedColor : _unselectedColor;
-			Handles.SphereHandleCap(-1, sndPos, Quaternion.identity, sphereSize, EventType.Repaint);
+			//Sound Gizmo
+			col.a = selected ? 1.0f : 0.25f;
+			GUI.color = col;
+			Handles.Label(sndPos, _iconContent, _iconStyle);
+
 			if (selected) {
 				_selectedSoundPos = sndPos;
 				_selectedSoundSize = sphereSize;
@@ -172,10 +193,8 @@ namespace VisualPinball.Unity.Editor
 			var sndData = _selectedItem.SoundData;
 			_tableCenter = new Vector3((bb.Right - bb.Left) * 0.5f, (bb.Bottom - bb.Top) * 0.5f, (bb.ZHigh - bb.ZLow) * 0.5f);
 			_tableCenter = _table.gameObject.transform.TransformPoint(_tableCenter);
-			Vector3 size = new Vector3(bb.Width, bb.Height, bb.Depth);
-			size = _table.gameObject.transform.TransformVector(size);
-			_tableSize.x = size.x;
-			_tableSize.y = size.z;
+			_tableSize = new Vector3(bb.Width, bb.Height, bb.Depth);
+			_tableSize = _table.gameObject.transform.TransformVector(_tableSize);
 
 			if (_shouldDisplaySoundPosition) {
 				if (_displayAllSounds) {
@@ -187,8 +206,6 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				RenderSound(sndData, true);
-
-				HandleUtility.Repaint();
 			}
 
 			//Ask for framing after _tableCenter calculation
@@ -198,7 +215,7 @@ namespace VisualPinball.Unity.Editor
 				var view = SceneView.lastActiveSceneView;
 				var quat = Quaternion.identity;
 				quat.SetLookRotation(Vector3.down);
-				view.LookAt(_tableCenter, quat, Mathf.Max(_tableSize.x, _tableSize.y) * 1.1f);
+				view.LookAt(_tableCenter, quat, Mathf.Max(_tableSize.x, _tableSize.z) * 1.1f);
 
 				_needFraming = false;
 			}
