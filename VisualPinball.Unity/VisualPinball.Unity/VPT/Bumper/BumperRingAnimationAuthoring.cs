@@ -16,17 +16,18 @@
 
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	public class BumperRingAnimationAuthoring : ItemMovementAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			var bumper = transform.parent.gameObject.GetComponent<BumperAuthoring>().Item;
-			var bumperEntity = new Entity {Index = bumper.Index, Version = bumper.Version};
+			var table = Table;
+			var bumper = Item;
+			var bumperEntity = Entity;
 
 			// update parent
 			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);

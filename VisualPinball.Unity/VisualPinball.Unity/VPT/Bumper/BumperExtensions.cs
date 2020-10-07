@@ -19,13 +19,11 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
 {
 	internal static class BumperExtensions
 	{
-
 		public static IItemMainAuthoring SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			var mainAuthoring = obj.AddComponent<BumperAuthoring>().SetItem(bumper);

@@ -17,16 +17,17 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	public class BumperSkirtAnimationAuthoring : ItemMovementAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var bumper = transform.parent.gameObject.GetComponent<BumperAuthoring>().Item;
-			var bumperEntity = new Entity {Index = bumper.Index, Version = bumper.Version};
+			var bumper = Item;
+			var bumperEntity = Entity;
 
 			// update parent
 			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
