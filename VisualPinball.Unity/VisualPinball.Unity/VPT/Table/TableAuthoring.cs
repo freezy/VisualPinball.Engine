@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 		public MappingsData Mappings => _sidecar?.mappings;
 		public Patcher.Patcher Patcher { get; internal set; }
 
-		[HideInInspector] [SerializeField] public string physicsEngineId;
+		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
