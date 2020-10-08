@@ -14,9 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity
+// ReSharper disable AssignmentInConditionalExpression
+
+using UnityEditor;
+using VisualPinball.Engine.VPT.Bumper;
+
+namespace VisualPinball.Unity.Editor
 {
-	public interface IItemColliderAuthoring
+	[CustomEditor(typeof(BumperRingAnimationAuthoring))]
+	public class BumperRingMovementInspector : ItemMovementInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
 	{
+		private BumperData _data;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_data = Data;
+		}
+
+		public override void OnInspectorGUI()
+		{
+			if (Data == null) {
+				NoDataPanel();
+				return;
+			}
+
+			ItemDataField("Ring Speed", ref _data.RingSpeed, false);
+			ItemDataField("Ring Drop Offset", ref _data.RingDropOffset, false);
+
+			base.OnInspectorGUI();
+		}
 	}
 }

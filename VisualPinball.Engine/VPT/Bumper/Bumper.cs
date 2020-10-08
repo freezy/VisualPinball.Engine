@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -54,7 +55,21 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+		Matrix3D IRenderable.TransformationMatrix(Origin origin)
+		{
+			switch (origin) {
+				case Origin.Original:
+					var rotMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(Data.Orientation));
+					var transMatrix = new Matrix3D().SetTranslation(Data.Center.X, Data.Center.Y, 0f);
+					return rotMatrix.Multiply(transMatrix);
+
+				case Origin.Global:
+					return Matrix3D.Identity;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
+			}
+		}
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

@@ -43,8 +43,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Radius", ref _bumper.Data.Radius);
 				ItemDataField("Height Scale", ref _bumper.Data.HeightScale);
 				ItemDataField("Orientation", ref _bumper.Data.Orientation);
-				ItemDataField("Ring Speed", ref _bumper.Data.RingSpeed, dirtyMesh: false);
-				ItemDataField("Ring Drop Offset", ref _bumper.Data.RingDropOffset, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
