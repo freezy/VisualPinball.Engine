@@ -31,7 +31,7 @@ using Color = UnityEngine.Color;
 namespace VisualPinball.Unity
 {
 	public abstract class ItemMovementAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
-		IItemColliderAuthoring
+		IItemMovementAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>

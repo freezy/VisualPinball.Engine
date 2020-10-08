@@ -43,8 +43,11 @@ namespace VisualPinball.Unity.Editor
 // 			// we're opting to due this here as opposed to at import time since modifying objects
 // 			// in this way caused them to not be part of the created object undo stack
 // 			if (target != null && target is MonoBehaviour mb) {
-// 				int numComp = mb.GetComponents<MonoBehaviour>().Length;
-// 				for (int i = 0; i <= numComp; i++) {
+// 				var numComp = mb.GetComponents<MonoBehaviour>().Length;
+// 				if (mb is IItemColliderAuthoring || mb is IItemMeshAuthoring || mb is IItemMovementAuthoring) {
+// 					numComp--;
+// 				}
+// 				for (var i = 0; i <= numComp; i++) {
 // 					UnityEditorInternal.ComponentUtility.MoveComponentUp(mb);
 // 				}
 // 			}
