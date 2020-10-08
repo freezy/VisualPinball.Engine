@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -44,6 +45,12 @@ namespace VisualPinball.Unity
 				var item = ma.Item;
 				return new Entity { Index = item.Index, Version = item.Version };
 			}
+		}
+
+		protected void LinkToParentEntity(Entity entity, EntityManager dstManager)
+		{
+			dstManager.AddComponentData(entity, new Parent {Value = Entity});
+			dstManager.AddComponentData(entity, new LocalToParent());
 		}
 	}
 }

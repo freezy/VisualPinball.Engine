@@ -56,21 +56,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		protected TMainAuthoring MainAuthoring => FindMainAuthoring();
 
-		// public IItemAuthoring SetItem(TItem item, RenderObjectGroup rog)
-		// {
-		// 	_item = item;
-		// 	_data = item.Data;
-		// 	_isSubComponent = false;
-		// 	name = rog.ComponentName + " (collider)";
-		// 	return this;
-		// }
-
-		// public void SetMainItem(TItem item)
-		// {
-		// 	_item = item;
-		// 	_isSubComponent = true;
-		// }
-
 		private TData FindData()
 		{
 			var ac = FindMainAuthoring();

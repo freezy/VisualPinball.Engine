@@ -63,19 +63,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnDestroy()
-		{
-			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr != null && !Application.isPlaying) {
-				DestroyImmediate(mr);
-			}
-
-			var mf = gameObject.GetComponent<MeshFilter>();
-			if (mf != null && !Application.isPlaying) {
-				DestroyImmediate(mf);
-			}
-		}
-
 		#endregion
 
 		private void CreateMesh()

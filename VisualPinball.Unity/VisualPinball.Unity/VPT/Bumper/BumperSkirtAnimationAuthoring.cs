@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -45,6 +46,8 @@ namespace VisualPinball.Unity
 				HitEvent = bumper.Data.HitEvent,
 				Center = bumper.Data.Center.ToUnityFloat2()
 			});
+
+			LinkToParentEntity(entity, dstManager);
 		}
 	}
 }

@@ -49,6 +49,8 @@ namespace VisualPinball.Unity
 				Speed = bumper.Data.RingSpeed,
 				ScaleZ = table.GetScaleZ()
 			});
+
+			LinkToParentEntity(entity, dstManager);
 		}
 	}
 }
