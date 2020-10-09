@@ -16,6 +16,11 @@ body {
 	margin-top: 6px;
 }
 
+.navbar-github > svg {
+	margin-top: 8px;
+	fill: #ccc;
+}
+
 .navbar-default {
 	background-color: rgba(1,1,1,0.05);
 	border-color: rgba(1,1,1,0.1);
