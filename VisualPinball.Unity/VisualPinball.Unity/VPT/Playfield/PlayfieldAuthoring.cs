@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 
 		public IHittable Hittable => Table;
 
+		public override bool CanBeTransformed => false;
+
 		protected override Table InstantiateItem(TableData data) => throw new InvalidOperationException("Table is not instantiated via authoring component.");
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

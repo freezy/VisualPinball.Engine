@@ -140,6 +140,10 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			if (!_primaryItem.CanBeTransformed) {
+				return;
+			}
+
 			var dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
 
 			if (!dragPointEditEnabled) {
