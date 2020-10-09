@@ -233,9 +233,9 @@ namespace VisualPinball.Unity
 
 	internal static class ColliderColor
 	{
-		internal static readonly Color Aabb = new Color32(255, 0, 252, 8);
+		internal static readonly Color Aabb = new Color32(255, 0, 252, 50);
 		internal static readonly Color SelectedAabb = new Color32(255, 0, 252, 255);
-		internal static readonly Color Collider = new Color32(0, 255, 75, 8);
+		internal static readonly Color Collider = new Color32(0, 255, 75, 50);
 		internal static readonly Color SelectedCollider = new Color32(0, 255, 75, 255);
 	}
 }
