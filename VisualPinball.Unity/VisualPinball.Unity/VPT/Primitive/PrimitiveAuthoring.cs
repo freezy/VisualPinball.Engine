@@ -43,10 +43,6 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void LinkChild(IItemAuthoring item)
-		{
-		}
-
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		public IHittable Hittable => Item;

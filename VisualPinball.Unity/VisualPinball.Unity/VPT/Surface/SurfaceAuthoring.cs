@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity
 		IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
 	{
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
 
 		public IHittable Hittable => Item;
 
@@ -78,7 +81,7 @@ namespace VisualPinball.Unity
 			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
 			diff.Z = 0f;
 			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (int i = 1; i < Data.DragPoints.Length; i++) {
+			for (var i = 1; i < Data.DragPoints.Length; i++) {
 				var pt = Data.DragPoints[i];
 				pt.Center = pt.Center.Add(diff);
 			}

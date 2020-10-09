@@ -51,10 +51,6 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void LinkChild(IItemAuthoring item)
-		{
-		}
-
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
