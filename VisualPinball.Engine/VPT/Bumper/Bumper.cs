@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Origin origin)
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin)
 		{
 			switch (origin) {
 				case Origin.Original:

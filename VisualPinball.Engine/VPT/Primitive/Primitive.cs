@@ -61,7 +61,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);

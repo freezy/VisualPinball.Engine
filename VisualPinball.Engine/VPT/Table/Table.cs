@@ -499,7 +499,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Origin origin) => Matrix3D.Identity;
+		Matrix3D IRenderable.TransformationMatrix(Table table, Origin origin) => Matrix3D.Identity;
 
 		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{

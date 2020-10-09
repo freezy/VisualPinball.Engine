@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.Game
 {
 	public interface IRenderable : IItem
 	{
-		Matrix3D TransformationMatrix(Origin origin);
+		Matrix3D TransformationMatrix(Table table, Origin origin);
 
 		RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true);
 

@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 			// update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
 			var ta = GetComponentInParent<TableAuthoring>();
 			if (ta != this) {
-				transform.SetFromMatrix(Item.TransformationMatrix(Origin.Original).ToUnityMatrix());
+				transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
 			}
 		}
 

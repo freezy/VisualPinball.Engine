@@ -24,6 +24,11 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class GateMeshGenerator : MeshGenerator
 	{
+
+		public const string Wire = "Wire";
+		public const string Bracket = "Bracket";
+
+
 		private readonly GateData _data;
 
 		protected override Vertex3D Position => new Vertex3D(_data.Center.X, _data.Center.Y, _data.Height);
@@ -37,22 +42,36 @@ namespace VisualPinball.Engine.VPT.Gate
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			switch (id) {
+				case Wire:
+					return new RenderObject(
+						id,
+						GetBaseMesh().Transform(preMatrix),
+						new PbrMaterial(table.GetMaterial(_data.Material)),
+						_data.IsVisible
+					);
+				case Bracket:
+					return new RenderObject(
+						id,
+						GateBracketMesh.Clone().Transform(preMatrix),
+						new PbrMaterial(table.GetMaterial(_data.Material)),
+						_data.IsVisible && _data.ShowBracket
+					);
+				default:
+					throw new ArgumentException("Unknown gate mesh \"" + id + "\".");
+			}
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Gates", postMatrix, new RenderObject(
-					"Wire",
-					GetBaseMesh().Transform(preMatrix),
-					new PbrMaterial(table.GetMaterial(_data.Material)),
-					_data.IsVisible
-				),
-				new RenderObject(
-					"Bracket",
-					GateBracketMesh.Clone().Transform(preMatrix),
-					new PbrMaterial(table.GetMaterial(_data.Material)),
-					_data.IsVisible && _data.ShowBracket
-				)
+			return new RenderObjectGroup(_data.Name, "Gates", postMatrix,
+				GetRenderObject(table, Wire, origin, asRightHanded),
+				GetRenderObject(table, Bracket, origin, asRightHanded)
 			);
 		}
 
@@ -83,5 +102,6 @@ namespace VisualPinball.Engine.VPT.Gate
 		private static readonly Mesh GateBracketMesh = new Mesh("Bracket", GateBracket.Vertices, GateBracket.Indices);
 
 		#endregion
+
 	}
 }
