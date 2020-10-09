@@ -52,15 +52,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref _bumper.Data.HitEvent, dirtyMesh: false);
-				ItemDataField("Force", ref _bumper.Data.Force, dirtyMesh: false);
-				ItemDataField("Hit Threshold", ref _bumper.Data.Threshold, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _bumper.Data.Scatter, dirtyMesh: false);
-				ItemDataField("Collidable", ref _bumper.Data.IsCollidable, dirtyMesh: false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
 				ItemDataField("Timer Enabled", ref _bumper.Data.IsTimerEnabled, dirtyMesh: false);
 				ItemDataField("Timer Interval", ref _bumper.Data.TimerInterval, dirtyMesh: false);

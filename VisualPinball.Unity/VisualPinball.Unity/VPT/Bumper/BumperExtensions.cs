@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
-					//obj.AddComponent<BumperColliderAuthoring>();
+					obj.AddComponent<BumperColliderAuthoring>();
 					CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base);
 					CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
 					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					//obj.AddComponent<BumperColliderAuthoring>();
+					obj.AddComponent<BumperColliderAuthoring>();
 					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
 						hittableAuthoring.RemoveHittableComponent();
 					}
