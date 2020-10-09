@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-
 
 namespace VisualPinball.Unity.Editor
 {
@@ -72,6 +73,7 @@ namespace VisualPinball.Unity.Editor
 						_positionType = item.EditorPositionType;
 						_rotationType = item.EditorRotationType;
 						_scaleType = item.EditorScaleType;
+
 					} else {
 						// only transform on axes supported by all
 						if (item.EditorPositionType < _positionType) {
@@ -108,15 +110,15 @@ namespace VisualPinball.Unity.Editor
 			Tools.hidden = false;
 		}
 
-		public override void OnInspectorGUI()
-		{
-			if (_defaultEditor != null) {
-				_defaultEditor.OnInspectorGUI();
-				return;
-			}
-
-			GUILayout.Label("VPE item transforms driven by data on the component below.");
-		}
+		// public override void OnInspectorGUI()
+		// {
+		// 	if (_defaultEditor != null) {
+		// 		_defaultEditor.OnInspectorGUI();
+		// 		return;
+		// 	}
+		//
+		// 	GUILayout.Label("VPE item transforms driven by data on the component below.");
+		// }
 
 		private void RebuildMeshes()
 		{
@@ -138,17 +140,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			bool dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
+			var dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
 
 			if (!dragPointEditEnabled) {
-				if (_primaryItem.IsLocked)
-				{
+				if (_primaryItem.IsLocked) {
 					HandleLockedTool();
-				}
-				else
-				{
-					switch (Tools.current)
-					{
+
+				} else {
+					switch (Tools.current) {
 						case Tool.Rotate:
 							HandleRotationTool();
 							break;
@@ -170,8 +169,7 @@ namespace VisualPinball.Unity.Editor
 		private void HandleLockedTool()
 		{
 			var handlePos = _primaryItem.GetEditorPosition();
-			if (_transform.parent != null)
-			{
+			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
 			Handles.color = Color.red;
@@ -213,7 +211,7 @@ namespace VisualPinball.Unity.Editor
 					if (_transform.parent != null) {
 						baseMatrix = Matrix4x4.TRS(handlePos, _transform.parent.transform.rotation, Vector3.one);
 					}
-					Matrix4x4 currentRotTran = Matrix4x4.identity;
+					var currentRotTran = Matrix4x4.identity;
 					currentRotTran *= Matrix4x4.Rotate(Quaternion.Euler(currentRot.x, 0, 0));
 					currentRotTran *= Matrix4x4.Rotate(Quaternion.Euler(0, currentRot.y, 0));
 
@@ -232,9 +230,9 @@ namespace VisualPinball.Unity.Editor
 					if (EditorGUI.EndChangeCheck()) {
 						// check which axis had the biggest change (they'll all change slightly due to float precision)
 						// and pause that axis' local rotation so the gizmo doesn't flip out
-						float xDiff = System.Math.Abs(rotX.eulerAngles.y - currentRot.x);
-						float yDiff = System.Math.Abs(rotY.eulerAngles.y - currentRot.y);
-						float zDiff = System.Math.Abs(rotZ.eulerAngles.y - currentRot.z);
+						var xDiff = System.Math.Abs(rotX.eulerAngles.y - currentRot.x);
+						var yDiff = System.Math.Abs(rotY.eulerAngles.y - currentRot.y);
+						var zDiff = System.Math.Abs(rotZ.eulerAngles.y - currentRot.z);
 						if (_pauseAxisX == null && xDiff > yDiff && xDiff > zDiff) {
 							_pauseAxisX = currentRotTran;
 						} else if (_pauseAxisY == null && yDiff > xDiff && yDiff > zDiff) {
@@ -254,13 +252,14 @@ namespace VisualPinball.Unity.Editor
 
 		private void HandleMoveTool()
 		{
-			Quaternion parentRot = Quaternion.identity;
-			Vector3 handlePos = _primaryItem.GetEditorPosition();
-			if (_transform.parent != null)
-			{
-				handlePos = _transform.parent.TransformPoint(handlePos);
-				parentRot = _transform.parent.transform.rotation;
+			var parentRot = Quaternion.identity;
+			var handlePos = _primaryItem.GetEditorPosition();
+			if (_transform.parent != null) {
+				var pt = _transform.parent;
+				handlePos = pt.TransformPoint(handlePos);
+				parentRot = pt.transform.rotation;
 			}
+
 			EditorGUI.BeginChangeCheck();
 			handlePos = HandlesUtils.HandlePosition(handlePos, _primaryItem.EditorPositionType, parentRot);
 			if (EditorGUI.EndChangeCheck()) {
@@ -285,18 +284,20 @@ namespace VisualPinball.Unity.Editor
 			var handleRot = _transform.rotation;
 			var handleScale = HandleUtility.GetHandleSize(handlePos);
 			switch (_primaryItem.EditorScaleType) {
+
 				case ItemDataTransformType.OneD: {
 					EditorGUI.BeginChangeCheck();
-					float scale = Handles.ScaleSlider(_primaryItem.GetEditorScale().x, handlePos, _transform.right, handleRot, handleScale, 0f);
+					var scale = Handles.ScaleSlider(_primaryItem.GetEditorScale().x, handlePos, _transform.right, handleRot, handleScale, 0f);
 					if (EditorGUI.EndChangeCheck()) {
 						FinishScale(new Vector3(scale, 0f, 0f));
 					}
 					break;
 				}
+
 				case ItemDataTransformType.ThreeD: {
 					EditorGUI.BeginChangeCheck();
-					Vector3 oldScale = _primaryItem.GetEditorScale();
-					Vector3 newScale = Handles.ScaleHandle(oldScale, handlePos, handleRot, handleScale);
+					var oldScale = _primaryItem.GetEditorScale();
+					var newScale = Handles.ScaleHandle(oldScale, handlePos, handleRot, handleScale);
 					if (Mathf.Abs(newScale.x - oldScale.x) > Mathf.Epsilon && Mathf.Abs(newScale.y - oldScale.y) > Mathf.Epsilon && Mathf.Abs(newScale.z - oldScale.z) > Mathf.Epsilon) {
 						// the center bit of the scale handle appears to be doing some extra multiplying, not totally sure what's going on, but experimentally
 						// it seems like its a factor of one of the axes too much, so (on click) we'll update a factor and adjust accordingly
@@ -311,26 +312,23 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 				}
-				default:
-					break;
 			}
 		}
 
 		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
 		{
 			_primaryItem.SetMeshDirty();
-			string undoLabel = "Move " + _transform.gameObject.name;
+			var undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
 			var finalPos = newPosition;
-			if (_transform.parent != null && !isLocalPos)
-			{
+
+			if (_transform.parent != null && !isLocalPos) {
 				finalPos = _transform.parent.InverseTransformPoint(newPosition);
 			}
 			_primaryItem.SetEditorPosition(finalPos);
 
-			foreach (var secondary in _secondaryItems)
-			{
+			foreach (var secondary in _secondaryItems) {
 				secondary.Item.SetMeshDirty();
 				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
 				Undo.RecordObject(secondary.Transform, undoLabel);
@@ -341,7 +339,7 @@ namespace VisualPinball.Unity.Editor
 		private void FinishRotate(Vector3 newEuler)
 		{
 			_primaryItem.SetMeshDirty();
-			string undoLabel = "Rotate " + _transform.gameObject.name;
+			var undoLabel = "Rotate " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
 			_primaryItem.SetEditorRotation(newEuler);
@@ -350,7 +348,7 @@ namespace VisualPinball.Unity.Editor
 		private void FinishScale(Vector3 newScale)
 		{
 			_primaryItem.SetMeshDirty();
-			string undoLabel = "Scale " + _transform.gameObject.name;
+			var undoLabel = "Scale " + _transform.gameObject.name;
 			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
 			Undo.RecordObject(_transform, undoLabel);
 			_primaryItem.SetEditorScale(newScale);

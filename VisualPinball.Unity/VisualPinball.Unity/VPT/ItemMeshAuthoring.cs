@@ -151,54 +151,6 @@ namespace VisualPinball.Unity
 		public void RebuildMeshes()
 		{
 			UpdateMesh();
-			// if (Data == null) {
-			// 	_logger.Warn("Cannot retrieve data component for a {0}.", typeof(TItem).Name);
-			// 	return;
-			// }
-			// var table = transform.GetComponentInParent<TableAuthoring>();
-			// if (table == null) {
-			// 	_logger.Warn("Cannot retrieve table component from {0}, not updating meshes.", Data.GetName());
-			// 	return;
-			// }
-			//
-			// var rog = Item.GetRenderObjects(table.Table, Origin.Original, false);
-
-			// todo can probably ditch this, because components now update themselves
-			// var children = Children;
-			// if (children == null) {
-			// 	UpdateMesh(Item.Name, gameObject, rog, table);
-			// } else {
-			// 	foreach (var child in children) {
-			// 		if (transform.childCount == 0) {
-			// 			//Find the matching  renderObject  and Update it based on base gameObject
-			// 			var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
-			// 			if (ro != null)
-			// 			{
-			// 				UpdateMesh(child, gameObject, rog, table);
-			// 				break;
-			// 			}
-			// 		} else {
-			// 			Transform childTransform = transform.Find(child);
-			// 			if (childTransform != null) {
-			// 				UpdateMesh(child, childTransform.gameObject, rog, table);
-			// 			} else {
-			// 				// child hasn't been created yet (i.e. ramp might have changed type)
-			// 				var ro = rog.RenderObjects.FirstOrDefault(r => r.Name == child);
-			// 				if (ro != null) {
-			// 					var subObj = new GameObject(ro.Name);
-			// 					subObj.transform.SetParent(transform, false);
-			// 					subObj.layer = VpxConverter.ChildObjectsLayer;
-			// 				}
-			// 			}
-			// 		}
-			// 	}
-			// }
-
-			// update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
-			var ta = GetComponentInParent<TableAuthoring>();
-			if (ta != this) {
-				transform.SetFromMatrix(Item.TransformationMatrix(Origin.Original).ToUnityMatrix());
-			}
 
 			ItemDataChanged();
 			_meshDirty = false;
