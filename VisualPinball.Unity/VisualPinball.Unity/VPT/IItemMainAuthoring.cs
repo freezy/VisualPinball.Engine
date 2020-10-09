@@ -22,6 +22,8 @@ namespace VisualPinball.Unity
 	{
 		bool IsLocked { get; set; }
 
+		bool CanBeTransformed { get; }
+
 		/// <summary>
 		/// Sets the mesh of all mesh sub components to dirty.
 		/// </summary>

@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public override TItem Item => _item ?? (_item = InstantiateItem(_data));
 
+		public virtual bool CanBeTransformed => true;
+
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
 		/// </summary>
