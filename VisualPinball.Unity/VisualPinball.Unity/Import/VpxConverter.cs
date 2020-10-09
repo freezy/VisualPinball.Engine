@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					var (rootObj, rootMb) = CreateGameObjects(renderable, _parents[renderable.ItemGroupName]);
+					var (rootObj, rootMb) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
 					createdMainObjs[renderable.Name.ToLower()] = rootObj;
 					createdMainMbs[renderable.Name.ToLower()] = rootMb;
@@ -151,7 +151,7 @@ namespace VisualPinball.Unity
 					if (createdMainObjs.ContainsKey(parentName)) {
 						var mainObj = createdMainObjs[parentName];
 						var mainMb = createdMainMbs[parentName];
-						var (rootObj, _) = CreateGameObjects(renderable, _parents[renderable.ItemGroupName], mainMb);
+						var (rootObj, _) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
 						rootObj.transform.SetParent(mainObj.transform, false);
 
 					} else {
@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 			// }
 		}
 
-		public static (GameObject, IItemMainAuthoring) CreateGameObjects(IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
+		public static (GameObject, IItemMainAuthoring) CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
 		{
 			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			var mb = SetupGameObjects(renderable, obj, parentAuthoring);
 
 			// apply transformation
-			obj.transform.SetFromMatrix(renderable.TransformationMatrix(Origin.Original).ToUnityMatrix());
+			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
 
 			return (obj, mb);
 		}

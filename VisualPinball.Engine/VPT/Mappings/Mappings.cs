@@ -26,7 +26,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 {
 	public class Mappings : Item<MappingsData>
 	{
-		public override string ItemType => "Mappings";
+		public override string ItemName { get; } = "Mapping";
+		public override string ItemGroupName { get; } = "Mappings";
 
 		public Mappings() : this(new MappingsData("Mappings"))
 		{
@@ -252,5 +253,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 		}
 
 		#endregion
+
 	}
 }
