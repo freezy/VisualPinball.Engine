@@ -47,6 +47,9 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			if (GUILayout.Button("Force Update Mesh")) {
+				_meshAuthoring.RebuildMeshes();
+			}
 		}
 
 		protected void NoDataPanel()
