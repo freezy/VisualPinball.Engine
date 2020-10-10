@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Bumper Base Mesh")]
-	public class BumperBaseMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
+	[AddComponentMenu("Visual Pinball/Mesh/Gate Bracket Mesh")]
+	public class GateBracketMeshAuthoring : ItemMeshAuthoring<Gate, GateData, GateAuthoring>
 	{
-		protected override string MeshId => BumperMeshGenerator.Base;
+		protected override string MeshId => GateMeshGenerator.Bracket;
 	}
 }
