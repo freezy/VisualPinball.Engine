@@ -24,10 +24,8 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class GateMeshGenerator : MeshGenerator
 	{
-
 		public const string Wire = "Wire";
 		public const string Bracket = "Bracket";
-
 
 		private readonly GateData _data;
 
@@ -67,7 +65,6 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Gates", postMatrix,
 				GetRenderObject(table, Wire, origin, asRightHanded),

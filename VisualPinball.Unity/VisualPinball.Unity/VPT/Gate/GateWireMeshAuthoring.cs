@@ -20,9 +20,9 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Gate Bracket Mesh")]
-	public class GateBracketMeshAuthoring : ItemMeshAuthoring<Gate, GateData, GateAuthoring>
+	[AddComponentMenu("Visual Pinball/Mesh/Gate Wire Mesh")]
+	public class GateWireMeshAuthoring : ItemMeshAuthoring<Gate, GateData, GateAuthoring>
 	{
-		protected override string MeshId => GateMeshGenerator.Bracket;
+		protected override string MeshId => GateMeshGenerator.Wire;
 	}
 }
