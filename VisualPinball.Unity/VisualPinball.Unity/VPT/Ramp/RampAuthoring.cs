@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
@@ -33,9 +34,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
 	{
-		//protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
-
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);
 
 		public IHittable Hittable => Item;
 

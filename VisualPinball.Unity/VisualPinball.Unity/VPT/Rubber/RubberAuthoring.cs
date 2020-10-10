@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity
 		IDragPointsEditable, IHittableAuthoring, IMeshAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
 
 		public IHittable Hittable => Item;
 		public IRenderable Renderable => Item;

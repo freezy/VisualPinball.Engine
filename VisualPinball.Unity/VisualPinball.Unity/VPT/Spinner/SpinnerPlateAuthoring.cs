@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
@@ -23,6 +24,9 @@ namespace VisualPinball.Unity
 {
 	internal class SpinnerPlateAuthoring : ItemMainAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
 	{
+
+		protected override Type MeshAuthoringType { get; } = null;
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

@@ -14,30 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Profiling;
-using Unity.Transforms;
+using UnityEngine;
+using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class GateMovementSystem : SystemBase
+	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
+	public class GateColliderAuthoring : ItemColliderAuthoring<Gate, GateData, GateAuthoring>
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateMovementSystem");
-
-		protected override void OnUpdate()
-		{
-			var marker = PerfMarker;
-			Entities.WithName("GateMovementJob").ForEach((ref Rotation rot, in GateMovementData movementData) => {
-
-				marker.Begin();
-
-				rot.Value = quaternion.RotateX(-movementData.Angle);
-
-				marker.End();
-
-			}).Run();
-		}
 	}
 }

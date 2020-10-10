@@ -14,23 +14,58 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
 	internal static class GateExtensions
 	{
-		public static GateAuthoring SetupGameObject(this Engine.VPT.Gate.Gate gate, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Gate gate, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<GateAuthoring>().SetItem(gate);
+			var mainAuthoring = obj.AddComponent<GateAuthoring>().SetItem(gate);
+
+			switch (gate.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<GateColliderAuthoring>();
+					CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket);
+					var wire = CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
+					wire.AddComponent<GateWireAnimationAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<GateColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					// todo
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
+			return mainAuthoring;
+		}
 
-			var wire = obj.transform.Find("Wire").gameObject;
-			wire.AddComponent<GateWireAuthoring>().SetItem(gate, "Wire");
-
-			return ic as GateAuthoring;
+		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

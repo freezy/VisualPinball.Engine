@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
@@ -27,13 +28,13 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainAuthoring<Engine.VPT.Light.Light, LightData>
+	public class LightAuthoring : ItemMainAuthoring<Light, LightData>
 	{
-		// protected override string[] Children => new[] { "Bulb", "Socket" };
-
 		private UnityEngine.Light _unityLight;
 
 		protected override Light InstantiateItem(LightData data) => new Light(data);
+
+		protected override Type MeshAuthoringType { get; } = null;
 
 		protected override void ItemDataChanged()
 		{

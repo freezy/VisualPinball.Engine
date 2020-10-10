@@ -86,9 +86,8 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Authoring type of the child class.
-		/// todo make this abstract
 		/// </summary>
-		protected virtual Type MeshAuthoringType { get; } = null;
+		protected abstract Type MeshAuthoringType { get; }
 
 		/// <summary>
 		/// Instantiates a new item based on the item data.

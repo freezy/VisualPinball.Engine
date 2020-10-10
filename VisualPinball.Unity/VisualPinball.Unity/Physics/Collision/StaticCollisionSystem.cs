@@ -116,13 +116,13 @@ namespace VisualPinball.Unity
 								break;
 
 							case ColliderType.Gate:
-								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
+								var gateMovementData = GetComponent<GateMovementData>(gateStaticData.WireEntity);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
 									in coll, in gateStaticData
 								);
-								SetComponent(coll.Entity, gateMovementData);
+								SetComponent(gateStaticData.WireEntity, gateMovementData);
 								break;
 
 							case ColliderType.LineSlingShot:

@@ -20,7 +20,11 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Gate;
 
@@ -29,12 +33,31 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateAuthoring : ItemMainAuthoring<Gate, GateData>,
-		IHittableAuthoring, ISwitchAuthoring
+		IHittableAuthoring, ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Gate InstantiateItem(GateData data) => new Gate(data);
 
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Gate, GateData, GateAuthoring>);
+
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			dstManager.AddComponentData(entity, new GateStaticData {
+				AngleMin = Data.AngleMin,
+				AngleMax = Data.AngleMax,
+				Height = Data.Height,
+				Damping = math.pow(Data.Damping, (float)PhysicsConstants.PhysFactor),
+				GravityFactor = Data.GravityFactor,
+				TwoWay = Data.TwoWay
+			});
+
+			// register
+			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, gameObject);
+		}
 
 		private void OnDestroy()
 		{
