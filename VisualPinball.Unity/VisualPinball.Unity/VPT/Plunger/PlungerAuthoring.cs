@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -31,6 +32,8 @@ namespace VisualPinball.Unity
 		// };
 
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
 		public IHittable Hittable => Item;
 

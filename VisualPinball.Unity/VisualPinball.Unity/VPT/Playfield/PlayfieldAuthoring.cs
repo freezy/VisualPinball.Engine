@@ -33,6 +33,8 @@ namespace VisualPinball.Unity
 
 		protected override Table InstantiateItem(TableData data) => throw new InvalidOperationException("Table is not instantiated via authoring component.");
 
+		protected override Type MeshAuthoringType { get; } = null;
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;

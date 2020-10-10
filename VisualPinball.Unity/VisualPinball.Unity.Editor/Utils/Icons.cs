@@ -141,6 +141,10 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<DefaultGameEngineAuthoring>();
 			DisableGizmo<FlipperAuthoring>();
 			DisableGizmo<GateAuthoring>();
+			DisableGizmo<GateColliderAuthoring>();
+			DisableGizmo<GateBracketMeshAuthoring>();
+			DisableGizmo<GateWireAnimationAuthoring>();
+			DisableGizmo<GateWireMeshAuthoring>();
 			DisableGizmo<HitTargetAuthoring>();
 			DisableGizmo<KickerAuthoring>();
 			DisableGizmo<LightAuthoring>();

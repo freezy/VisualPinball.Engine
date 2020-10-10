@@ -55,6 +55,10 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainAuthoring<Table, TableData>
 	{
+		protected override Table InstantiateItem(TableData data) => RecreateTable(data);
+
+		protected override Type MeshAuthoringType { get; } = null;
+
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
@@ -88,11 +92,6 @@ namespace VisualPinball.Unity
 		{
 			// do nothing, base class draws all child meshes for ease of selection, but
 			// that would just be everything at this level
-		}
-
-		protected override Table InstantiateItem(TableData data)
-		{
-			return RecreateTable(data);
 		}
 
 		internal TableSidecar GetOrCreateSidecar()

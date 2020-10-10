@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -30,6 +31,11 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
 	{
+
+		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -42,8 +48,6 @@ namespace VisualPinball.Unity
 		public void RemoveHittableComponent()
 		{
 		}
-
-		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		public IHittable Hittable => Item;
 

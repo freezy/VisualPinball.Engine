@@ -20,6 +20,7 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Spinner;
@@ -32,6 +33,8 @@ namespace VisualPinball.Unity
 		IHittableAuthoring, ISwitchAuthoring
 	{
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

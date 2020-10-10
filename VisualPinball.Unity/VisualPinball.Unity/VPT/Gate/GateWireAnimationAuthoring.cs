@@ -15,26 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
-using Unity.Mathematics;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateWireAuthoring : ItemMainAuthoring<Gate, GateData>, IConvertGameObjectToEntity
+	public class GateWireAnimationAuthoring : ItemMovementAuthoring<Gate, GateData, GateAuthoring>, IConvertGameObjectToEntity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			Convert(entity, dstManager);
+			var gateEntity = Entity;
 
-			dstManager.AddComponentData(entity, new GateStaticData {
-				AngleMin = Data.AngleMin,
-				AngleMax = Data.AngleMax,
-				Height = Data.Height,
-				Damping = math.pow(Data.Damping, (float)PhysicsConstants.PhysFactor),
-				GravityFactor = Data.GravityFactor,
-				TwoWay = Data.TwoWay
-			});
+			// update parent
+			var gateStaticData = dstManager.GetComponentData<GateStaticData>(gateEntity);
+			gateStaticData.WireEntity = entity;
+			dstManager.SetComponentData(gateEntity, gateStaticData);
+
+			// add movement data
 			dstManager.AddComponentData(entity, new GateMovementData {
 				Angle = Data.AngleMin,
 				AngleSpeed = 0,
@@ -42,14 +38,7 @@ namespace VisualPinball.Unity
 				IsOpen = false
 			});
 
-			// register
-			var gate = transform.parent.gameObject.GetComponent<GateAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterGate(gate, entity, gameObject);
-		}
-
-		protected override Gate InstantiateItem(GateData data)
-		{
-			return transform.parent.gameObject.GetComponent<GateAuthoring>().Item;
+			LinkToParentEntity(entity, dstManager);
 		}
 	}
 }
