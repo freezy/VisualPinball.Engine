@@ -14,41 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	internal class SpinnerPlateAuthoring : ItemMainAuthoring<Spinner, SpinnerData>, IConvertGameObjectToEntity
+	public class SpinnerPlateAnimationAuthoring : ItemMovementAuthoring<Spinner, SpinnerData, SpinnerAuthoring>, IConvertGameObjectToEntity
 	{
-
-		protected override Type MeshAuthoringType { get; } = null;
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			Convert(entity, dstManager);
+			var spinnerEntity = Entity;
 
-			dstManager.AddComponentData(entity, new SpinnerStaticData {
-				AngleMax = math.radians(Data.AngleMax),
-				AngleMin = math.radians(Data.AngleMin),
-				Damping = math.pow(Data.Damping, (float)PhysicsConstants.PhysFactor),
-				Elasticity = Data.Elasticity,
-				Height = Data.Height
-			});
+			// update parent
+			var spinnerStaticData = dstManager.GetComponentData<SpinnerStaticData>(spinnerEntity);
+			spinnerStaticData.PlateEntity = entity;
+			dstManager.SetComponentData(spinnerEntity, spinnerStaticData);
 
 			dstManager.AddComponentData(entity, new SpinnerMovementData {
 				Angle = math.radians(math.clamp(0.0f, Data.AngleMin, Data.AngleMax)),
 				AngleSpeed = 0f
 			});
 
-			// register
-			var spinner = transform.parent.gameObject.GetComponent<SpinnerAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterSpinner(spinner, entity, gameObject);
+			LinkToParentEntity(entity, dstManager);
 		}
-
-		protected override Spinner InstantiateItem(SpinnerData data) => transform.parent.gameObject.GetComponent<SpinnerAuthoring>().Item;
 	}
 }

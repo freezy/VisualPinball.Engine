@@ -14,23 +14,58 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
 	internal static class SpinnerExtensions
 	{
-		public static SpinnerAuthoring SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Spinner spinner, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
+			var mainAuthoring = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
+
+			switch (spinner.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<SpinnerColliderAuthoring>();
+					CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket);
+					var wire = CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
+					wire.AddComponent<SpinnerPlateAnimationAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<SpinnerColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					// todo
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
+			return mainAuthoring;
+		}
 
-			var wire = obj.transform.Find("Plate").gameObject;
-			wire.AddComponent<SpinnerPlateAuthoring>().SetItem(spinner, "Plate");
-
-			return ic as SpinnerAuthoring;
+		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

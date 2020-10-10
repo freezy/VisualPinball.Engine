@@ -120,6 +120,7 @@ namespace VisualPinball.Unity
 				movementData.Angle += movementData.AngleSpeed * dTime;
 
 				SetComponent(data.WireEntity, movementData);
+
 				marker.End();
 
 			}).Run();
