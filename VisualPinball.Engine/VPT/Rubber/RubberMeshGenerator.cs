@@ -37,6 +37,18 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		{
+			var mesh = GetMesh(table);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			return new RenderObject(
+				_data.Name,
+				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				_data.IsVisible
+			);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var mesh = GetMesh(table);
@@ -230,6 +242,5 @@ namespace VisualPinball.Engine.VPT.Rubber
 		{
 			return 0f;
 		}
-
 	}
 }
