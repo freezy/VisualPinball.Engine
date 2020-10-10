@@ -195,7 +195,7 @@ namespace VisualPinball.Unity
 				case Primitive primitive:       primitive.SetupGameObject(obj); break;
 				case Ramp ramp:                 ramp.SetupGameObject(obj); break;
 				case Rubber rubber:             mainAuthoring = rubber.SetupGameObject(obj, parentAuthoring); break;
-				case Spinner spinner:           spinner.SetupGameObject(obj); break;
+				case Spinner spinner:           mainAuthoring = spinner.SetupGameObject(obj, parentAuthoring); break;
 				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;
 				case Table table:               table.SetupGameObject(obj, parentAuthoring); break;
 				case Trigger trigger:           trigger.SetupGameObject(obj); break;

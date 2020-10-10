@@ -31,13 +31,17 @@ namespace VisualPinball.Unity
 			var marker = PerfMarker;
 			Entities
 				.WithName("SpinnerVelocityJob")
-				.ForEach((ref SpinnerMovementData movementData, in SpinnerStaticData data) => {
+				.ForEach((in SpinnerStaticData data) => {
 
 				marker.Begin();
+
+				var movementData = GetComponent<SpinnerMovementData>(data.PlateEntity);
 
 				// Center of gravity towards bottom of object, makes it stop vertical
 				movementData.AngleSpeed -= math.sin(movementData.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
 				movementData.AngleSpeed *= data.Damping;
+
+				SetComponent(data.PlateEntity, movementData);
 
 				marker.End();
 

@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
+using UnityEngine;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	internal struct SpinnerStaticData : IComponentData
+	[ExecuteInEditMode]
+	[AddComponentMenu("Visual Pinball/Mesh/Spinner Bracket Mesh")]
+	public class SpinnerBracketMeshAuthoring : ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
 	{
-		public float AngleMin;
-		public float AngleMax;
-		public float Height;
-		public float Damping;
-		public float Elasticity;
-		public Entity PlateEntity;
+		protected override string MeshId => SpinnerMeshGenerator.Bracket;
 	}
 }
