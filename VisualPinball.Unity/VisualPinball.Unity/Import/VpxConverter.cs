@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 				case Engine.VPT.Light.Light lt: lt.SetupGameObject(obj); break;
 				case Plunger plunger:           plunger.SetupGameObject(obj); break;
 				case Primitive primitive:       primitive.SetupGameObject(obj); break;
-				case Ramp ramp:                 ramp.SetupGameObject(obj); break;
+				case Ramp ramp:                 mainAuthoring = ramp.SetupGameObject(obj, parentAuthoring); break;
 				case Rubber rubber:             mainAuthoring = rubber.SetupGameObject(obj, parentAuthoring); break;
 				case Spinner spinner:           mainAuthoring = spinner.SetupGameObject(obj, parentAuthoring); break;
 				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;

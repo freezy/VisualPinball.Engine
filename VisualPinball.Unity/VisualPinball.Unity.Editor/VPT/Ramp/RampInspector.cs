@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref _ramp.Data.RampType, _rampTypeStrings, _rampTypeValues);
+				DropDownField("Type", ref _ramp.Data.RampType, _rampTypeStrings, _rampTypeValues, onChanged: _ramp.UpdateMeshComponents);
 				TextureField("Image", ref _ramp.Data.Image);
 				MaterialField("Material", ref _ramp.Data.Material);
 				DropDownField("Image Mode", ref _ramp.Data.ImageAlignment, _rampImageAlignmentStrings, _rampImageAlignmentValues);

@@ -101,6 +101,21 @@ namespace VisualPinball.Engine.VPT
 			return this;
 		}
 
+		public Mesh Merge(Mesh mesh)
+		{
+			if (Vertices == null) {
+				Vertices = mesh.Vertices;
+				Indices = mesh.Indices;
+
+			} else {
+				var numVert = Vertices.Length;
+				Vertices = Vertices.Concat(mesh.Vertices).ToArray();
+				Indices = Indices.Concat(mesh.Indices.Select(i => i + numVert).ToArray()).ToArray();
+			}
+
+			return this;
+		}
+
 		public Mesh Clone(string name = null) {
 
 			var mesh = new Mesh {
@@ -440,7 +455,6 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 		#endregion
-
 	}
 
 }

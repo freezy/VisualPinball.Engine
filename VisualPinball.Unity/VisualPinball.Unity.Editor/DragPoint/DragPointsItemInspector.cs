@@ -138,8 +138,8 @@ namespace VisualPinball.Unity.Editor
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IItemMeshAuthoring meshAuthoring) {
-				meshAuthoring.MeshDirty = true;
+			if (rebuilt && target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 			}
 		}
 
@@ -174,8 +174,8 @@ namespace VisualPinball.Unity.Editor
 
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
-			if (target is IItemMeshAuthoring meshAuthoring) {
-				meshAuthoring.MeshDirty = true;
+			if (target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 				recordObjs.Add(this);
 			}
 			recordObjs.Add(target);
@@ -251,8 +251,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IItemMeshAuthoring meshAuthoring) {
-				meshAuthoring.MeshDirty = true;
+			if (target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 			}
 		}
 

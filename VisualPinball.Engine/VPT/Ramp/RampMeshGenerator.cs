@@ -29,11 +29,60 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class RampMeshGenerator
 	{
+		public const string Wall = "Wall";
+		public const string Floor = "Floor";
+		public const string Wires = "Wires";
+
 		private readonly RampData _data;
 
 		public RampMeshGenerator(RampData data)
 		{
 			_data = data;
+		}
+
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			var mesh = new Mesh();
+			if (id == Wires) {
+				var meshes = GenerateWireMeshes(table);
+
+				for (var i = 1; i <= 4; i++) {
+					var name = $"Wire{i}";
+					if (meshes.ContainsKey(name)) {
+						mesh.Merge(meshes[name]);
+					}
+				}
+
+			} else {
+				var rv = GetRampVertex(table, -1, true);
+				switch (id) {
+					case Floor:
+						mesh = GenerateFlatFloorMesh(table, rv);
+						break;
+
+					case Wall:
+						if (_data.RightWallHeightVisible > 0.0) {
+							mesh = mesh.Merge(GenerateFlatRightWall(table, rv));
+						}
+
+						if (_data.LeftWallHeightVisible > 0.0) {
+							mesh = mesh.Merge(GenerateFlatLeftWall(table, rv));
+						}
+						break;
+				}
+
+				if (mesh.Vertices == null) {
+					mesh.Vertices = new Vertex3DNoTex2[0];
+					mesh.Indices = new int[0];
+				}
+			}
+
+			return new RenderObject(
+				id,
+				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				_data.IsVisible
+			);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
@@ -69,13 +118,18 @@ namespace VisualPinball.Engine.VPT.Ramp
 			);
 		}
 
+
 		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table)
 		{
-			if (!IsHabitrail()) {
-				return GenerateFlatMesh(table);
-			}
+			return !IsHabitrail()
+				? GenerateFlatMesh(table)
+				: GenerateWireMeshes(table);
+		}
+
+		private Dictionary<string, Mesh> GenerateWireMeshes(Table.Table table)
+		{
 			var meshes = new Dictionary<string, Mesh>();
-			var (wireMeshA, wireMeshB) = GenerateWireMeshes(table);
+			var (wireMeshA, wireMeshB) = GenerateBaseWires(table);
 			switch (_data.RampType) {
 				case RampType.RampType1Wire: {
 					wireMeshA.Name = "Wire1";
@@ -323,7 +377,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return mesh;
 		}
 
-		private Tuple<Mesh, Mesh> GenerateWireMeshes(Table.Table table)
+		private Tuple<Mesh, Mesh> GenerateBaseWires(Table.Table table)
 		{
 			int accuracy;
 			if (table.GetDetailLevel() < 5) {
