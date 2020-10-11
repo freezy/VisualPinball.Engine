@@ -26,6 +26,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
@@ -59,6 +60,35 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)
+		{
+			var rampFlatBefore = rampTypeBefore == RampType.RampTypeFlat;
+			var rampFlatAfter = rampTypeAfter == RampType.RampTypeFlat;
+			if (rampFlatBefore == rampFlatAfter) {
+				return;
+			}
+
+			if (rampFlatAfter) {
+				var flatRampAuthoring = GetComponentInChildren<RampWireMeshAuthoring>();
+				if (flatRampAuthoring != null) {
+					DestroyImmediate(flatRampAuthoring.gameObject);
+				}
+				RampExtensions.CreateChild<RampFloorMeshAuthoring>(gameObject, RampMeshGenerator.Floor);
+				RampExtensions.CreateChild<RampWallMeshAuthoring>(gameObject, RampMeshGenerator.Wall);
+
+			} else {
+				var flatFloorAuthoring = GetComponentInChildren<RampFloorMeshAuthoring>();
+				if (flatFloorAuthoring != null) {
+					DestroyImmediate(flatFloorAuthoring.gameObject);
+				}
+				var flatWallAuthoring = GetComponentInChildren<RampWallMeshAuthoring>();
+				if (flatWallAuthoring != null) {
+					DestroyImmediate(flatWallAuthoring.gameObject);
+				}
+				RampExtensions.CreateChild<RampWireMeshAuthoring>(gameObject, RampMeshGenerator.Wires);
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition()
 		{
@@ -84,6 +114,7 @@ namespace VisualPinball.Unity
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
+
 		public DragPointData[] GetDragPoints() => Data.DragPoints;
 		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
 		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HeightBottom);

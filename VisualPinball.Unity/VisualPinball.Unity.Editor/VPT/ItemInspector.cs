@@ -254,7 +254,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
+		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true, Action<T, T> onChanged = null) where T : IEquatable<T>
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
@@ -271,7 +271,9 @@ namespace VisualPinball.Unity.Editor
 			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
 			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
 				FinishEdit(label, dirtyMesh);
+				var fieldBefore = field;
 				field = optionValues[selectedIndex];
+				onChanged?.Invoke(fieldBefore, field);
 			}
 		}
 

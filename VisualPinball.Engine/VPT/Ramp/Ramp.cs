@@ -28,6 +28,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public HitObject[] GetHitShapes() => _hits;
 
+		public bool IsHabitrail => Data.RampType == RampType.RampType4Wire
+		|| Data.RampType == RampType.RampType1Wire
+		|| Data.RampType == RampType.RampType2Wire
+		|| Data.RampType == RampType.RampType3WireLeft
+		|| Data.RampType == RampType.RampType3WireRight;
+
 		private readonly RampMeshGenerator _meshGenerator;
 		private readonly RampHitGenerator _hitGenerator;
 		private HitObject[] _hits;
@@ -67,7 +73,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			throw new System.NotImplementedException();
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
