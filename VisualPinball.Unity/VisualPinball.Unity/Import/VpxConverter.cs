@@ -186,7 +186,7 @@ namespace VisualPinball.Unity
 			IItemMainAuthoring mainAuthoring = null;
 			switch (item) {
 				case Bumper bumper:             mainAuthoring = bumper.SetupGameObject(obj, parentAuthoring); break;
-				case Flipper flipper:           flipper.SetupGameObject(obj); break;
+				case Flipper flipper:           mainAuthoring = flipper.SetupGameObject(obj, parentAuthoring); break;
 				case Gate gate:                 mainAuthoring = gate.SetupGameObject(obj, parentAuthoring); break;
 				case HitTarget hitTarget:       hitTarget.SetupGameObject(obj); break;
 				case Kicker kicker:             kicker.SetupGameObject(obj); break;
