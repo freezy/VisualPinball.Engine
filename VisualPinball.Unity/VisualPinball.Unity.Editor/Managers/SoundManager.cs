@@ -21,12 +21,16 @@ using UnityEditor;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Editor.Utils;
+using System;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 namespace VisualPinball.Unity.Editor
 {
 	class SoundManager : ManagerWindow<SoundListData>
 	{
 		protected override string DataTypeName => "Sound";
+		protected override float DetailsMaxWidth => 500.0f;
 
 		private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -54,6 +58,10 @@ namespace VisualPinball.Unity.Editor
 		private readonly Color _unselectedColor = new Color(0.25f, 0.25f, 0.25f, 0.75f);
 		private GUIContent _iconContent;
 		private GUIStyle _iconStyle;
+
+		//Audio Data
+		private float[] _audioSamples;
+		private AudioClip _audioCLip;
 
 		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
 		public static void ShowWindow()
@@ -95,6 +103,21 @@ namespace VisualPinball.Unity.Editor
 			SliderField("Volume", ref _selectedItem.SoundData.Volume, -100, 100);
 			SliderField("Balance", ref _selectedItem.SoundData.Balance, -100, 100);
 			SliderField("Fade (Rear->Front)", ref _selectedItem.SoundData.Fade, -100, 100);
+			
+			EditorGUILayout.Space();
+			var wfx = _selectedItem.SoundData.Wfx;
+			GUILayout.Label($"Length : {_audioCLip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
+			if (GUILayout.Button(new GUIContent() { image = EditorGUIUtility.IconContent("PlayButton").image })) {
+				AudioSource.PlayClipAtPoint(_audioCLip, _selectedSoundPos, (_selectedItem.SoundData.Volume + 100) / 200.0f);
+			}
+			Rect curveRect = GUILayoutUtility.GetLastRect();
+			curveRect.x += 10.0f;
+			curveRect.y += curveRect.height;
+			curveRect.width -= 20.0f;
+			curveRect.height = 100.0f;
+			Rect r = AudioCurveRendering.BeginCurveFrame(curveRect);
+			AudioCurveRendering.DrawCurve(r, x => _audioSamples[(int)(((_audioSamples.Length - 1) * x) + 0.5f)], Color.green);
+			AudioCurveRendering.EndCurveFrame();
 		}
 
 		protected override void OnEnable()
@@ -143,6 +166,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnDataSelected();
 			SceneView.RepaintAll();
+
+			if (_selectedItem != null) {
+				_audioCLip = AudioClip.Create(_selectedItem.Name, _selectedItem.SoundData.Data.Length * 8 / _selectedItem.SoundData.Wfx.BitsPerSample, _selectedItem.SoundData.Wfx.Channels, (int)_selectedItem.SoundData.Wfx.SamplesPerSec, false);
+				_audioSamples = _selectedItem.SoundData.ToFloats();
+				_audioCLip.SetData(_audioSamples, 0);
+			}
 		}
 
 
