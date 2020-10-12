@@ -14,35 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	internal static class PlungerExtensions
+	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
+	public class PlungerColliderAuthoring : ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>
 	{
-		public static PlungerAuthoring SetupGameObject(this Plunger plunger, GameObject obj)
-		{
-			var ic = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
-
-			var rod = obj.transform.Find(PlungerMeshGenerator.Rod);
-			if (rod != null) {
-				rod.gameObject.AddComponent<PlungerRodAuthoring>();
-			}
-
-			var spring = obj.transform.Find(PlungerMeshGenerator.Spring);
-			if (spring != null) {
-				spring.gameObject.AddComponent<PlungerSpringAuthoring>();
-			}
-
-			var flat = obj.transform.Find(PlungerMeshGenerator.Flat);
-			if (flat != null) {
-				flat.gameObject.AddComponent<PlungerFlatAuthoring>();
-			}
-
-			obj.AddComponent<ConvertToEntity>();
-			return ic as PlungerAuthoring;
-		}
 	}
 }

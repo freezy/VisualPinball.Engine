@@ -16,7 +16,6 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
