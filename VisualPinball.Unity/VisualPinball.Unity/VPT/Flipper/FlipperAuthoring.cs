@@ -65,6 +65,24 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
 		}
 
+		public void OnRubberWidthUpdated(float before, float after)
+		{
+			if (before != 0 && after != 0f) {
+				return;
+			}
+
+			if (before == 0) {
+				FlipperExtensions.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
+			}
+
+			if (after == 0) {
+				var rubberAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+				if (rubberAuthoring != null) {
+					DestroyImmediate(rubberAuthoring.gameObject);
+				}
+			}
+		}
+
 		public void RemoveHittableComponent()
 		{
 		}
@@ -78,6 +96,7 @@ namespace VisualPinball.Unity
 		public override void SetEditorRotation(Vector3 rot) => Data.StartAngle = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+
 		public override Vector3 GetEditorScale() => new Vector3(Data.BaseRadius, Data.FlipperRadius, Data.Height);
 		public override void SetEditorScale(Vector3 scale)
 		{

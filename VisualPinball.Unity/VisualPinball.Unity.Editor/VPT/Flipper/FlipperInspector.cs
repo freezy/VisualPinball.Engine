@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 				TextureField("Image", ref _flipper.Data.Image);
 				MaterialField("Material", ref _flipper.Data.Material);
 				MaterialField("Rubber Material", ref _flipper.Data.RubberMaterial);
-				ItemDataField("Rubber Thickness", ref _flipper.Data.RubberThickness);
+				ItemDataField("Rubber Thickness", ref _flipper.Data.RubberThickness, onChanged: _flipper.OnRubberWidthUpdated);
 				ItemDataField("Rubber Offset Height", ref _flipper.Data.RubberHeight);
 				ItemDataField("Rubber Width", ref _flipper.Data.RubberWidth);
 				ItemDataField("Visible", ref _flipper.Data.IsVisible);

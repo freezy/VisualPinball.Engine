@@ -142,13 +142,15 @@ namespace VisualPinball.Unity.Editor
 
 		#region Data Fields
 
-		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true)
+		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true, Action<float, float> onChanged = null)
 		{
 			EditorGUI.BeginChangeCheck();
 			var val = EditorGUILayout.FloatField(label, field);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
+				var fieldBefore = field;
 				field = val;
+				onChanged?.Invoke(fieldBefore, field);
 			}
 		}
 
