@@ -34,6 +34,17 @@ namespace VisualPinball.Engine.VPT.Trigger
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		{
+			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			return new RenderObject(
+				_data.Name,
+				GetMesh().Transform(preMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material)),
+				_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
+			);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);

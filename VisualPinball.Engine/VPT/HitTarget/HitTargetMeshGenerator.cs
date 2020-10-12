@@ -34,6 +34,18 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		{
+			var mesh = GetBaseMesh();
+			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			return new RenderObject(
+				_data.Name,
+				mesh.Transform(preMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				_data.IsVisible
+			);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var mesh = GetBaseMesh();

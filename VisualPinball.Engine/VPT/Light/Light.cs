@@ -60,11 +60,11 @@ namespace VisualPinball.Engine.VPT.Light
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			throw new System.NotImplementedException();
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)

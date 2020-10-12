@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	public abstract class ItemMeshAuthoring<TItem, TData, TAuthoring> : ItemSubAuthoring<TItem, TData, TAuthoring>, IItemMeshAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>, IHittable, IRenderable
+		where TItem : Item<TData>, IRenderable
 		where TAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		protected virtual string MeshId => null;

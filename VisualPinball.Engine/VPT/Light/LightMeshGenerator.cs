@@ -22,10 +22,13 @@ using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Light
 {
-	internal class LightMeshGenerator
+	public class LightMeshGenerator
 	{
-		private static readonly Mesh Bulb = new Mesh("Bulb", BulbMesh.Vertices, BulbMesh.Indices);
-		private static readonly Mesh Socket = new Mesh("Socket", BulbSocket.Vertices, BulbSocket.Indices);
+		public const string Bulb = "Bulb";
+		public const string Socket = "Socket";
+
+		private static readonly Mesh BulbMesh = new Mesh("Bulb", Resources.Meshes.BulbMesh.Vertices, Resources.Meshes.BulbMesh.Indices);
+		private static readonly Mesh SocketMesh = new Mesh("Socket", BulbSocket.Vertices, BulbSocket.Indices);
 
 		private readonly LightData _data;
 
@@ -34,30 +37,57 @@ namespace VisualPinball.Engine.VPT.Light
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			switch (id)
+			{
+				case Bulb:
+					var bulbMesh = GetBulbMesh(table, origin);
+					return new RenderObject(
+						id,
+						asRightHanded ? bulbMesh.Transform(Matrix3D.RightHanded) : bulbMesh,
+						new PbrMaterial(GetBulbMaterial()),
+						true
+					);
+				case Socket:
+					var socketMesh = GetSocketMesh(table, origin);
+					return new RenderObject(
+						id,
+						asRightHanded ? socketMesh.Transform(Matrix3D.RightHanded) : socketMesh,
+						new PbrMaterial(GetSocketMaterial()),
+						true
+					);
+				default:
+					throw new ArgumentException("Unknown light mesh \"" + id + "\".");
+			}
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var translationMatrix = GetPostMatrix(table, origin);
 			if (!RenderBulb()) {
 				return new RenderObjectGroup(_data.Name, "Lights", translationMatrix);
 			}
-			var meshes = GetMeshes(table, origin);
+
+			var bulbMesh = GetBulbMesh(table, origin);
+			var socketMesh = GetSocketMesh(table, origin);
 			return new RenderObjectGroup(_data.Name, "Lights", translationMatrix,
 				new RenderObject(
-					"Bulb",
-					asRightHanded ? meshes["Bulb"].Transform(Matrix3D.RightHanded) : meshes["Bulb"],
+					Bulb,
+					asRightHanded ? bulbMesh.Transform(Matrix3D.RightHanded) : bulbMesh,
 					new PbrMaterial(GetBulbMaterial()),
 					true
 				),
 				new RenderObject(
-					"Socket",
-					asRightHanded ? meshes["Socket"].Transform(Matrix3D.RightHanded) : meshes["Socket"],
+					Socket,
+					asRightHanded ? socketMesh.Transform(Matrix3D.RightHanded) : socketMesh,
 					new PbrMaterial(GetSocketMaterial()),
 					true
 				)
 			);
 		}
 
-		private Matrix3D GetPostMatrix(Table.Table table, Origin origin)
+		public Matrix3D GetPostMatrix(Table.Table table, Origin origin)
 		{
 			switch (origin) {
 				case Origin.Original:
@@ -111,30 +141,36 @@ namespace VisualPinball.Engine.VPT.Light
 			};
 		}
 
-		private Dictionary<string, Mesh> GetMeshes(Table.Table table, Origin origin)
+		private Mesh GetBulbMesh(Table.Table table, Origin origin)
 		{
-			var lightMesh = Bulb.Clone();
+			var bulbMesh = BulbMesh.Clone();
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
 			var transX = origin == Origin.Global ? _data.Center.X : 0f;
 			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
 			var transZ = origin == Origin.Global ? height : 0f;
-			foreach (var vertex in lightMesh.Vertices) {
+			foreach (var vertex in bulbMesh.Vertices) {
 				vertex.X = vertex.X * _data.MeshRadius + transX;
 				vertex.Y = vertex.Y * _data.MeshRadius + transY;
 				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
 
-			var socketMesh = Socket.Clone();
+			return bulbMesh;
+		}
+
+		private Mesh GetSocketMesh(Table.Table table, Origin origin)
+		{
+			var socketMesh = SocketMesh.Clone();
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+			var transX = origin == Origin.Global ? _data.Center.X : 0f;
+			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
+			var transZ = origin == Origin.Global ? height : 0f;
+
 			foreach (var vertex in socketMesh.Vertices) {
 				vertex.X = vertex.X * _data.MeshRadius + transX;
 				vertex.Y = vertex.Y * _data.MeshRadius + transY;
 				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
-
-			return new Dictionary<string, Mesh> {
-				{ "Bulb", lightMesh },
-				{ "Socket", socketMesh },
-			};
+			return socketMesh;
 		}
 
 		private bool RenderBulb()
