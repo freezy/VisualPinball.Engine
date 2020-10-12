@@ -20,7 +20,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
