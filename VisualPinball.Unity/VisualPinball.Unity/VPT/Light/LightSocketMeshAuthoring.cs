@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using Unity.Entities;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Plunger;
+using UnityEngine;
+using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerSpringAuthoring : PlungerChildAuthoring
+	[ExecuteInEditMode]
+	[AddComponentMenu("Visual Pinball/Mesh/Light Socket Mesh")]
+	public class LightSocketMeshAuthoring : ItemMeshAuthoring<Light, LightData, LightAuthoring>
 	{
-		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
-		{
-			staticData.SpringEntity = entity;
-		}
-
-		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
-		{
-			return meshGenerator.BuildSpringVertices(frame);
-		}
+		protected override string MeshId => LightMeshGenerator.Socket;
 	}
 }

@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using Unity.Entities;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Plunger;
+using UnityEngine;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerRodAuthoring : PlungerChildAuthoring
+	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
+	public class HitTargetColliderAuthoring : ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
-		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
-		{
-			staticData.RodEntity = entity;
-		}
-
-		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
-		{
-			return meshGenerator.BuildRodVertices(frame);
-		}
 	}
 }

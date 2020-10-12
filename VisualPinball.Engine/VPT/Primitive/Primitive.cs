@@ -61,14 +61,14 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			throw new System.NotImplementedException();
+			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>

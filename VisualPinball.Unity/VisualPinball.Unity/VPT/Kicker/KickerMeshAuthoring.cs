@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
+	[AddComponentMenu("Visual Pinball/Mesh/Kicker Bracket Mesh")]
+	public class KickerMeshAuthoring : ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>
 	{
 	}
 }

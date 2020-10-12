@@ -28,17 +28,17 @@ namespace VisualPinball.Unity
 
 			var rod = obj.transform.Find(PlungerMeshGenerator.Rod);
 			if (rod != null) {
-				rod.gameObject.AddComponent<PlungerRodAuthoring>();
+				rod.gameObject.AddComponent<PlungerRodMeshAuthoring>();
 			}
 
 			var spring = obj.transform.Find(PlungerMeshGenerator.Spring);
 			if (spring != null) {
-				spring.gameObject.AddComponent<PlungerSpringAuthoring>();
+				spring.gameObject.AddComponent<PlungerSpringMeshAuthoring>();
 			}
 
 			var flat = obj.transform.Find(PlungerMeshGenerator.Flat);
 			if (flat != null) {
-				flat.gameObject.AddComponent<PlungerFlatAuthoring>();
+				flat.gameObject.AddComponent<PlungerFlatMeshAuthoring>();
 			}
 
 			obj.AddComponent<ConvertToEntity>();

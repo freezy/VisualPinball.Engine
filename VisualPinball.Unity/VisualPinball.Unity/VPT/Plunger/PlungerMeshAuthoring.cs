@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class PlungerChildAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>, IConvertGameObjectToEntity
 	{
 		internal abstract void SetChildEntity(ref PlungerStaticData staticData, Entity entity);
 

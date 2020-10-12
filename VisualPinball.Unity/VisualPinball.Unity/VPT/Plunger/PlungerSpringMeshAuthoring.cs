@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,14 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
+	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
+	public class PlungerSpringMeshAuthoring : PlungerMeshAuthoring
 	{
+		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
+		{
+			staticData.SpringEntity = entity;
+		}
+
+		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
+		{
+			return meshGenerator.BuildSpringVertices(frame);
+		}
 	}
 }

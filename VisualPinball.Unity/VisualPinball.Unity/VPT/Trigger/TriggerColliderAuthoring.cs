@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
+	[AddComponentMenu("Visual Pinball/Collision/Trigger Collider")]
+	public class TriggerColliderAuthoring : ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>
 	{
 	}
 }

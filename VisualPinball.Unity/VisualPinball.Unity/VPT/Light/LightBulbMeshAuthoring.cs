@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
+	[AddComponentMenu("Visual Pinball/Mesh/Light Bulb Mesh")]
+	public class LightBulbMeshAuthoring : ItemMeshAuthoring<Light, LightData, LightAuthoring>
 	{
+		protected override string MeshId => LightMeshGenerator.Bulb;
 	}
 }
