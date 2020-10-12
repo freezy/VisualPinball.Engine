@@ -69,6 +69,9 @@ namespace VisualPinball.Unity
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
 			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
+			if (ro?.Mesh == null) {
+				return;
+			}
 			var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
 
 			// apply mesh to game object
@@ -92,6 +95,12 @@ namespace VisualPinball.Unity
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
 			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
+
+			// mesh generator can return null - but in this case the main component
+			// will take care of removing the mesh component.
+			if (ro == null) {
+				return;
+			}
 			var mr = GetComponent<MeshRenderer>();
 			var mf = GetComponent<MeshFilter>();
 

@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 			return mainAuthoring;
 		}
 
-		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
