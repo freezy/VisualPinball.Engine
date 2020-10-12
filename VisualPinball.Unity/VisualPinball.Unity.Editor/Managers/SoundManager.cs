@@ -59,9 +59,11 @@ namespace VisualPinball.Unity.Editor
 		private GUIContent _iconContent;
 		private GUIStyle _iconStyle;
 
-		//Audio Data
+		//Audio Data Playback & Visualization
 		private float[] _audioSamples;
 		private AudioClip _audioCLip;
+		private GameObject _audioSource;
+		private AudioSource _audioSourceComp;
 
 		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
 		public static void ShowWindow()
@@ -88,36 +90,13 @@ namespace VisualPinball.Unity.Editor
 
 		}
 
-		public static string[] _soundOutTypeStrings = {
-			"Table",
-			"Backglass",
-		};
-		private static byte[] _soundOutTypeValues = {
-			SoundOutTypes.Table,
-			SoundOutTypes.Backglass,
-		};
-
-		protected override void OnDataDetailGUI()
+		private void InitAudioSource()
 		{
-			DropDownField("Output Target", ref _selectedItem.SoundData.OutputTarget, _soundOutTypeStrings, _soundOutTypeValues);
-			SliderField("Volume", ref _selectedItem.SoundData.Volume, -100, 100);
-			SliderField("Balance", ref _selectedItem.SoundData.Balance, -100, 100);
-			SliderField("Fade (Rear->Front)", ref _selectedItem.SoundData.Fade, -100, 100);
-			
-			EditorGUILayout.Space();
-			var wfx = _selectedItem.SoundData.Wfx;
-			GUILayout.Label($"Length : {_audioCLip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
-			if (GUILayout.Button(new GUIContent() { image = EditorGUIUtility.IconContent("PlayButton").image })) {
-				AudioSource.PlayClipAtPoint(_audioCLip, _selectedSoundPos, (_selectedItem.SoundData.Volume + 100) / 200.0f);
+			if (_audioSource == null) {
+				_audioSource = new GameObject("SoundManager AudioSource");
+				_audioSource.AddComponent<AudioSource>();
+				_audioSourceComp = _audioSource.GetComponent<AudioSource>();
 			}
-			Rect curveRect = GUILayoutUtility.GetLastRect();
-			curveRect.x += 10.0f;
-			curveRect.y += curveRect.height;
-			curveRect.width -= 20.0f;
-			curveRect.height = 100.0f;
-			Rect r = AudioCurveRendering.BeginCurveFrame(curveRect);
-			AudioCurveRendering.DrawCurve(r, x => _audioSamples[(int)(((_audioSamples.Length - 1) * x) + 0.5f)], Color.green);
-			AudioCurveRendering.EndCurveFrame();
 		}
 
 		protected override void OnEnable()
@@ -132,14 +111,58 @@ namespace VisualPinball.Unity.Editor
 				fixedHeight = 25.0f,
 				fixedWidth = 25.0f
 			};
+
 			base.OnEnable();
 			SceneView.duringSceneGui += OnSceneGUI;
 		}
 
 		protected void OnDisable()
 		{
+			GameObject.DestroyImmediate(_audioSource);
+			_audioSource = null;
+			_audioSourceComp = null;
 			SceneView.duringSceneGui -= OnSceneGUI;
 		}
+
+		public static string[] _soundOutTypeStrings = {
+			"Table",
+			"Backglass",
+		};
+		private static byte[] _soundOutTypeValues = {
+			SoundOutTypes.Table,
+			SoundOutTypes.Backglass,
+		};
+
+		protected override void OnDataDetailGUI()
+		{
+			InitAudioSource();
+
+			DropDownField("Output Target", ref _selectedItem.SoundData.OutputTarget, _soundOutTypeStrings, _soundOutTypeValues);
+			SliderField("Volume", ref _selectedItem.SoundData.Volume, -100, 100);
+			SliderField("Balance", ref _selectedItem.SoundData.Balance, -100, 100);
+			SliderField("Fade (Rear->Front)", ref _selectedItem.SoundData.Fade, -100, 100);
+			
+			EditorGUILayout.Space();
+			var wfx = _selectedItem.SoundData.Wfx;
+			GUILayout.Label($"Length : {_audioCLip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
+
+			if (GUILayout.Button(new GUIContent() { image = EditorGUIUtility.IconContent("PlayButton").image })) {
+				_audioSource.transform.position = _selectedSoundPos;
+				_audioSourceComp.volume = (_selectedItem.SoundData.Volume + 100) / 200.0f;
+				_audioSourceComp.panStereo = _selectedItem.SoundData.Balance / 100.0f;
+				_audioSourceComp.clip = _audioCLip;
+				_audioSourceComp.Play();
+			}
+			Rect curveRect = GUILayoutUtility.GetLastRect();
+			curveRect.x += 10.0f;
+			curveRect.y += curveRect.height;
+			curveRect.width -= 20.0f;
+			curveRect.height = 100.0f;
+			Rect r = AudioCurveRendering.BeginCurveFrame(curveRect);
+			AudioCurveRendering.DrawCurve(r, x => _audioSamples[(int)(((_audioSamples.Length - 1) * x) + 0.5f)], Color.green);
+			AudioCurveRendering.EndCurveFrame();
+		}
+
 
 		protected override void OnFocus()
 		{
@@ -168,9 +191,14 @@ namespace VisualPinball.Unity.Editor
 			SceneView.RepaintAll();
 
 			if (_selectedItem != null) {
+				if (_audioSource != null && _audioSourceComp.isPlaying) {
+					_audioSourceComp.Stop();
+				}
 				_audioCLip = AudioClip.Create(_selectedItem.Name, _selectedItem.SoundData.Data.Length * 8 / _selectedItem.SoundData.Wfx.BitsPerSample, _selectedItem.SoundData.Wfx.Channels, (int)_selectedItem.SoundData.Wfx.SamplesPerSec, false);
 				_audioSamples = _selectedItem.SoundData.ToFloats();
-				_audioCLip.SetData(_audioSamples, 0);
+				if (_audioSamples != null && _audioSamples.Length > 0) {
+					_audioCLip.SetData(_audioSamples, 0);
+				}
 			}
 		}
 

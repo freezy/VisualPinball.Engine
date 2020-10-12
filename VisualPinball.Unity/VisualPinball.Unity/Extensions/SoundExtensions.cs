@@ -49,6 +49,15 @@ namespace VisualPinball.Unity
 					break;
 				}
 
+				case 24: {
+					for (var i = 0; i < sndData.Data.Length; i += 3) {
+						var data3 = sndData.Data[i + 2];
+						var sndVal = sndData.Data[i] | (sndData.Data[i + 1] << 8) | (data3 < 128 ? (data3 << 16) : ((data3 - 256) << 16));
+						samples.Add(sndVal / 8388608.0f);
+					}
+					break;
+				}
+
 				default:
 					break;
 			}
