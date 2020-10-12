@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Flipper Base Mesh")]
+	[AddComponentMenu("Visual Pinball/Mesh/Flipper Rubber Mesh")]
 	public class FlipperRubberMeshAuthoring : ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>
 	{
 		protected override string MeshId => FlipperMeshGenerator.Rubber;
