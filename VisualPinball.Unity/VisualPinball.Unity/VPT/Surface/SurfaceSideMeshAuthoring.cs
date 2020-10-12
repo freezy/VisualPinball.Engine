@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity

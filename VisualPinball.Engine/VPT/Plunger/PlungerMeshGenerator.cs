@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -22,9 +23,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
-		public const string FlatName = "Flat";
-		public const string RodName = "Rod";
-		public const string SpringName = "Spring";
+		public const string Flat = "Flat";
+		public const string Rod = "Rod";
+		public const string Spring = "Spring";
 
 		public int NumFrames { get; set; }
 
@@ -93,6 +94,41 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_desc = GetPlungerDesc();
 		}
 
+		public RenderObject GetRenderObject(int frame, Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+			switch (id) {
+				case Flat:
+					var flatMesh = BuildFlatMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
+						material,
+						true
+					);
+				case Rod:
+					CalculateArraySizes();
+					var rodMesh = BuildRodMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+						material,
+						true
+					);
+				case Spring:
+					CalculateArraySizes();
+					var springMesh = BuildSpringMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
+						material,
+						true
+					);
+				default:
+					throw new ArgumentException("Unknown plunger mesh \"" + id + "\".");
+			}
+		}
+
 		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			Init(table);
@@ -106,7 +142,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 				var flatMesh = BuildFlatMesh(frame);
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 					new RenderObject(
-						FlatName,
+						Flat,
 						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
 						material,
 						true
@@ -123,13 +159,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 					new RenderObject(
-						RodName,
+						Rod,
 						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
 						material,
 						true
 					),
 					new RenderObject(
-						SpringName,
+						Spring,
 						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
 						material,
 						true
@@ -140,7 +176,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// modern plunger
 			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 				new RenderObject(
-					RodName,
+					Rod,
 					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
 					material,
 					true

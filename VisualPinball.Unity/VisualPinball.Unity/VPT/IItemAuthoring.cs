@@ -1,4 +1,3 @@
-using UnityEngine;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity

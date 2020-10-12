@@ -17,16 +17,8 @@
 using System;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Spinner;
-using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
