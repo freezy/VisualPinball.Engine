@@ -14,35 +14,76 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
 	internal static class PlungerExtensions
 	{
-		public static PlungerAuthoring SetupGameObject(this Plunger plunger, GameObject obj)
+
+		public static IItemMainAuthoring SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
+			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
 
-			var rod = obj.transform.Find(PlungerMeshGenerator.Rod);
-			if (rod != null) {
-				rod.gameObject.AddComponent<PlungerRodMeshAuthoring>();
+			switch (plunger.SubComponent) {
+				case ItemSubComponent.None:
+					CreateMeshComponents(plunger, obj);
+					obj.AddComponent<PlungerColliderAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<PlungerColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					CreateMeshComponents(plunger, obj);
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
-
-			var spring = obj.transform.Find(PlungerMeshGenerator.Spring);
-			if (spring != null) {
-				spring.gameObject.AddComponent<PlungerSpringMeshAuthoring>();
-			}
-
-			var flat = obj.transform.Find(PlungerMeshGenerator.Flat);
-			if (flat != null) {
-				flat.gameObject.AddComponent<PlungerFlatMeshAuthoring>();
-			}
-
 			obj.AddComponent<ConvertToEntity>();
-			return ic as PlungerAuthoring;
+			return mainAuthoring;
+		}
+
+		private static void CreateMeshComponents(Plunger plunger, GameObject obj)
+		{
+			switch (plunger.Data.Type) {
+				case PlungerType.PlungerTypeFlat:
+					CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat);
+					break;
+
+				case PlungerType.PlungerTypeCustom:
+					CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring);
+					CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod);
+					break;
+
+				case PlungerType.PlungerTypeModern:
+					CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod);
+					break;
+
+			}
+		}
+
+		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

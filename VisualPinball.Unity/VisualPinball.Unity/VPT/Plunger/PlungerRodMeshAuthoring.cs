@@ -23,9 +23,11 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
+	[AddComponentMenu("Visual Pinball/Mesh/Plunger Rod Mesh")]
 	public class PlungerRodMeshAuthoring : PlungerMeshAuthoring
 	{
+		protected override string MeshId => PlungerMeshGenerator.Rod;
+
 		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
 		{
 			staticData.RodEntity = entity;
