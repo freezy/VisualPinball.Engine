@@ -14,18 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
 {
 	internal static class KickerExtensions
 	{
-		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Kicker kicker, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
+			var mainAuthoring = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
+
+			switch (kicker.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<KickerColliderAuthoring>();
+					obj.AddComponent<KickerMeshAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<KickerColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					obj.AddComponent<KickerMeshAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as KickerAuthoring;
+			return mainAuthoring;
 		}
 	}
 }
