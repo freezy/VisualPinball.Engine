@@ -18,6 +18,7 @@ using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
@@ -96,6 +97,69 @@ namespace VisualPinball.Unity
 				RetractWaitLoop = 0,
 				MechStrength = Data.MechStrength
 			});
+		}
+
+		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)
+		{
+			if (plungerTypeBefore == plungerTypeAfter) {
+				return;
+			}
+
+			switch (plungerTypeBefore) {
+				case PlungerType.PlungerTypeFlat:
+					// remove flat
+					var flatPlungerAuthoring = GetComponentInChildren<PlungerFlatMeshAuthoring>();
+					if (flatPlungerAuthoring != null) {
+						DestroyImmediate(flatPlungerAuthoring.gameObject);
+					}
+
+					// create rod
+					PlungerExtensions.CreateChild<PlungerRodMeshAuthoring>(gameObject, PlungerMeshGenerator.Rod);
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
+						// create spring
+						PlungerExtensions.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+					}
+					break;
+
+				case PlungerType.PlungerTypeModern:
+					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
+						// create spring
+						PlungerExtensions.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+					}
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
+						// remove rod
+						var rodPlungerAuthoring = GetComponentInChildren<PlungerRodMeshAuthoring>();
+						if (rodPlungerAuthoring != null) {
+							DestroyImmediate(rodPlungerAuthoring.gameObject);
+						}
+						// create flat
+						PlungerExtensions.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+					}
+					break;
+
+				case PlungerType.PlungerTypeCustom:
+					// remove spring
+					var springPlungerAuthoring = GetComponentInChildren<PlungerSpringMeshAuthoring>();
+					if (springPlungerAuthoring != null) {
+						DestroyImmediate(springPlungerAuthoring.gameObject);
+					}
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
+						// remove rod
+						var rodPlungerAuthoring = GetComponentInChildren<PlungerRodMeshAuthoring>();
+						if (rodPlungerAuthoring != null) {
+							DestroyImmediate(rodPlungerAuthoring.gameObject);
+						}
+
+						// create flat
+						PlungerExtensions.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+					}
+
+					break;
+
+			}
 		}
 
 		public void RemoveHittableComponent()
