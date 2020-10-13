@@ -30,12 +30,7 @@ namespace VisualPinball.Unity
 
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					if (ramp.IsHabitrail) {
-						CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires);
-					} else {
-						CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor);
-						CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall);
-					}
+					CreateMeshComponents(ramp, obj);
 					obj.AddComponent<RampColliderAuthoring>();
 					break;
 
@@ -49,6 +44,7 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Mesh: {
 					// todo
+					CreateMeshComponents(ramp, obj);
 					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
 						meshAuthoring.RemoveMeshComponent();
 					}
@@ -60,6 +56,16 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void CreateMeshComponents(Ramp ramp, GameObject obj)
+		{
+			if (ramp.IsHabitrail) {
+				CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires);
+			} else {
+				CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor);
+				CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall);
+			}
 		}
 
 		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

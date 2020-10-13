@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
 	public class PlungerSpringMeshAuthoring : PlungerMeshAuthoring
 	{
+		protected override string MeshId => PlungerMeshGenerator.Spring;
+
 		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
 		{
 			staticData.SpringEntity = entity;
