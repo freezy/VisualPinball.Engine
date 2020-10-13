@@ -198,7 +198,7 @@ namespace VisualPinball.Unity
 				case Spinner spinner:           mainAuthoring = spinner.SetupGameObject(obj, parentAuthoring); break;
 				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;
 				case Table table:               table.SetupGameObject(obj, parentAuthoring); break;
-				case Trigger trigger:           trigger.SetupGameObject(obj); break;
+				case Trigger trigger:           mainAuthoring = trigger.SetupGameObject(obj, parentAuthoring); break;
 			}
 
 			return mainAuthoring;
