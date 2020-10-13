@@ -14,18 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
 	internal static class HitTargetExtensions
 	{
-		public static HitTargetAuthoring SetupGameObject(this Engine.VPT.HitTarget.HitTarget hitTarget, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this HitTarget hitTarget, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
+			var mainAuthoring = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
+
+			switch (hitTarget.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<HitTargetColliderAuthoring>();
+					obj.AddComponent<HitTargetMeshAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<HitTargetColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					obj.AddComponent<HitTargetMeshAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as HitTargetAuthoring;
+			return mainAuthoring;
 		}
 	}
 }
