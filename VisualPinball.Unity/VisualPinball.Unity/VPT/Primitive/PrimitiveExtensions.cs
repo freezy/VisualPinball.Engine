@@ -14,20 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
 	internal static class PrimitiveExtensions
 	{
-		public static PrimitiveAuthoring SetupGameObject(this Primitive primitive, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Primitive primitive, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
+			var mainAuthoring = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
 
+			switch (primitive.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<PrimitiveColliderAuthoring>();
+					obj.AddComponent<PrimitiveMeshAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<PrimitiveColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					obj.AddComponent<PrimitiveMeshAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as PrimitiveAuthoring;
+			return mainAuthoring;
 		}
 	}
 }
