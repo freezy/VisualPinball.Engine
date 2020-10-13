@@ -149,13 +149,25 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<GateWireAnimationAuthoring>();
 			DisableGizmo<GateWireMeshAuthoring>();
 			DisableGizmo<HitTargetAuthoring>();
+			DisableGizmo<HitTargetColliderAuthoring>();
+			DisableGizmo<HitTargetMeshAuthoring>();
 			DisableGizmo<KickerAuthoring>();
+			DisableGizmo<KickerColliderAuthoring>();
+			DisableGizmo<KickerMeshAuthoring>();
 			DisableGizmo<LightAuthoring>();
+			DisableGizmo<LightBulbMeshAuthoring>();
+			DisableGizmo<LightSocketMeshAuthoring>();
 			DisableGizmo<PlayfieldAuthoring>();
 			DisableGizmo<PlayfieldColliderAuthoring>();
 			DisableGizmo<PlayfieldMeshAuthoring>();
 			DisableGizmo<PlungerAuthoring>();
+			DisableGizmo<PlungerColliderAuthoring>();
+			DisableGizmo<PlungerFlatMeshAuthoring>();
+			DisableGizmo<PlungerRodMeshAuthoring>();
+			DisableGizmo<PlungerSpringMeshAuthoring>();
 			DisableGizmo<PrimitiveAuthoring>();
+			DisableGizmo<PrimitiveColliderAuthoring>();
+			DisableGizmo<PrimitiveMeshAuthoring>();
 			DisableGizmo<RampAuthoring>();
 			DisableGizmo<RampColliderAuthoring>();
 			DisableGizmo<RampFloorMeshAuthoring>();
@@ -175,6 +187,8 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<SurfaceTopMeshAuthoring>();
 			DisableGizmo<TableAuthoring>();
 			DisableGizmo<TriggerAuthoring>();
+			DisableGizmo<TriggerColliderAuthoring>();
+			DisableGizmo<TriggerMeshAuthoring>();
 		}
 
 		public static void ApplyToComponent<T>(Object target, Texture2D tex) where T : MonoBehaviour
