@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 				case Bumper bumper:             mainAuthoring = bumper.SetupGameObject(obj, parentAuthoring); break;
 				case Flipper flipper:           mainAuthoring = flipper.SetupGameObject(obj, parentAuthoring); break;
 				case Gate gate:                 mainAuthoring = gate.SetupGameObject(obj, parentAuthoring); break;
-				case HitTarget hitTarget:       hitTarget.SetupGameObject(obj); break;
+				case HitTarget hitTarget:       mainAuthoring = hitTarget.SetupGameObject(obj, parentAuthoring); break;
 				case Kicker kicker:             mainAuthoring = kicker.SetupGameObject(obj, parentAuthoring); break;
 				case Engine.VPT.Light.Light lt: lt.SetupGameObject(obj); break;
 				case Plunger plunger:           plunger.SetupGameObject(obj); break;
