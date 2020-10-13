@@ -14,18 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
 	internal static class TriggerExtensions
 	{
-		public static TriggerAuthoring SetupGameObject(this Engine.VPT.Trigger.Trigger trigger, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Trigger trigger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
+			var mainAuthoring = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
+
+			switch (trigger.SubComponent) {
+				case ItemSubComponent.None:
+					obj.AddComponent<TriggerColliderAuthoring>();
+					obj.AddComponent<TriggerMeshAuthoring>();
+					break;
+
+				case ItemSubComponent.Collider: {
+					obj.AddComponent<TriggerColliderAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
+						hittableAuthoring.RemoveHittableComponent();
+					}
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					obj.AddComponent<TriggerMeshAuthoring>();
+					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+						meshAuthoring.RemoveMeshComponent();
+					}
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as TriggerAuthoring;
+			return mainAuthoring;
 		}
 	}
 }
