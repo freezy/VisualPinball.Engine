@@ -62,5 +62,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 		}
 
 		public HitObject[] GetHitShapes() => _hitObjects;
+		public bool IsCollidable => true;
 	}
 }

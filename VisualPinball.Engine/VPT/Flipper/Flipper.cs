@@ -53,5 +53,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 		}
 
 		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
+		public bool IsCollidable => true;
 	}
 }

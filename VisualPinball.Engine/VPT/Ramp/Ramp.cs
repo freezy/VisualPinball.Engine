@@ -65,6 +65,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 
+		public bool IsCollidable => Data.IsCollidable;
+
 		public float GetSurfaceHeight(float x, float y, Table.Table table)
 		{
 			var vVertex = _meshGenerator.GetCentralCurve(table);

@@ -71,5 +71,6 @@ namespace VisualPinball.Engine.VPT.Gate
 				.Concat(_hitCircles ?? new HitObject[0])
 				.ToArray();
 		}
+		public bool IsCollidable => Data.IsCollidable;
 	}
 }

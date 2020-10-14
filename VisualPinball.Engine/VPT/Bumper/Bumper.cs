@@ -55,5 +55,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		public HitObject[] GetHitShapes() => _hits;
+		public bool IsCollidable => Data.IsCollidable;
 	}
 }
