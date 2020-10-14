@@ -59,11 +59,27 @@ namespace VisualPinball.Unity.Editor
 		private GUIContent _iconContent;
 		private GUIStyle _iconStyle;
 
-		//Audio Data Playback & Visualization
+		/// <summary>
+		/// Audio Data Playback & Visualization
+		/// </summary>
 		private float[] _audioSamples;
 		private AudioClip _audioCLip;
 		private GameObject _audioSource;
 		private AudioSource _audioSourceComp;
+
+		/// <summary>
+		/// DetailGui
+		/// </summary>
+		private static string[] _soundOutTypeStrings = {
+			"Table",
+			"Backglass",
+		};
+		private static byte[] _soundOutTypeValues = {
+			SoundOutTypes.Table,
+			SoundOutTypes.Backglass,
+		};
+
+
 
 		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
 		public static void ShowWindow()
@@ -94,6 +110,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_audioSource == null) {
 				_audioSource = new GameObject("SoundManager AudioSource");
+				_audioSource.hideFlags = HideFlags.HideAndDontSave;
 				_audioSource.AddComponent<AudioSource>();
 				_audioSourceComp = _audioSource.GetComponent<AudioSource>();
 			}
@@ -123,15 +140,6 @@ namespace VisualPinball.Unity.Editor
 			_audioSourceComp = null;
 			SceneView.duringSceneGui -= OnSceneGUI;
 		}
-
-		public static string[] _soundOutTypeStrings = {
-			"Table",
-			"Backglass",
-		};
-		private static byte[] _soundOutTypeValues = {
-			SoundOutTypes.Table,
-			SoundOutTypes.Backglass,
-		};
 
 		protected override void OnDataDetailGUI()
 		{

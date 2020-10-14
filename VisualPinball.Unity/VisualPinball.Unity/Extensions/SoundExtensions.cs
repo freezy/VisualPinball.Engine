@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
-using UnityEngine;
+using VisualPinball.Engine.VPT.Sound;
 
 namespace VisualPinball.Unity
 {
@@ -27,7 +26,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="sndData"></param>
 		/// <returns></returns>
-		public static float[] ToFloats(this Engine.VPT.Sound.SoundData sndData)
+		public static float[] ToFloats(this SoundData sndData)
 		{
 			var wfx = sndData.Wfx;
 			var samples = new List<float>();
