@@ -62,40 +62,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Init(null);
 		}
 
-		public void Init(Table.Table table)
-		{
-			var stroke = _data.Stroke;
-			_beginY = _data.Center.Y;
-			_endY = _data.Center.Y - stroke;
-			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
-			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
-			_dyPerFrame = (_endY - _beginY) * _invScale;
-			_circlePoints = _data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
-			_springLoops = 0.0f;
-			_springEndLoops = 0.0f;
-			_springGauge = 0.0f;
-			_springRadius = 0.0f;
-			_springMinSpacing = 2.2f;
-			_rodY = _beginY + _data.Height;
-
-			// note the number of cells in the source image
-			_srcCells = _data.AnimFrames;
-			if (_srcCells < 1) {
-				_srcCells = 1;
-			}
-
-			// figure the width in relative units (0..1) of each cell
-			_cellWid = 1.0f / _srcCells;
-
-			if (table != null) {
-				_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
-				_zScale = table.GetScaleZ();
-			}
-			_desc = GetPlungerDesc();
-		}
-
 		public RenderObject GetRenderObject(int frame, Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
+			Init(table);
 			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
 			switch (id) {
 				case Flat:
@@ -182,6 +151,38 @@ namespace VisualPinball.Engine.VPT.Plunger
 					true
 				)
 			) { ForceChild = true };
+		}
+
+		private void Init(Table.Table table)
+		{
+			var stroke = _data.Stroke;
+			_beginY = _data.Center.Y;
+			_endY = _data.Center.Y - stroke;
+			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
+			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
+			_dyPerFrame = (_endY - _beginY) * _invScale;
+			_circlePoints = _data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
+			_springLoops = 0.0f;
+			_springEndLoops = 0.0f;
+			_springGauge = 0.0f;
+			_springRadius = 0.0f;
+			_springMinSpacing = 2.2f;
+			_rodY = _beginY + _data.Height;
+
+			// note the number of cells in the source image
+			_srcCells = _data.AnimFrames;
+			if (_srcCells < 1) {
+				_srcCells = 1;
+			}
+
+			// figure the width in relative units (0..1) of each cell
+			_cellWid = 1.0f / _srcCells;
+
+			if (table != null) {
+				_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
+				_zScale = table.GetScaleZ();
+			}
+			_desc = GetPlungerDesc();
 		}
 
 		private PlungerDesc GetPlungerDesc()

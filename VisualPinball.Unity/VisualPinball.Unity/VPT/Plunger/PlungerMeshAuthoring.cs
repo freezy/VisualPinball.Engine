@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -31,10 +30,8 @@ namespace VisualPinball.Unity
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 			var plunger = transform.parent.gameObject.GetComponent<PlungerAuthoring>().Item;
 			var plungerEntity = new Entity {Index = plunger.Index, Version = plunger.Version};
-			plunger.MeshGenerator.Init(table);
 
 			// update parent
 			var plungerStaticData = dstManager.GetComponentData<PlungerStaticData>(plungerEntity);
