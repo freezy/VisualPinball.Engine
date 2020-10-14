@@ -48,10 +48,16 @@ namespace VisualPinball.Unity
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
+		[NonSerialized]
 		public DefaultGamelogicEngine GameEngine;
 
+		[NonSerialized]
+		public BallManager BallManager;
+
+		[HideInInspector] [SerializeField] public string debugUiId;
+		[HideInInspector] [SerializeField] public string physicsEngineId;
+
 		// table related
-		private BallManager _ballManager;
 		private readonly TableApi _tableApi = new TableApi();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
@@ -79,11 +85,17 @@ namespace VisualPinball.Unity
 			var engineComponent = GetComponent<DefaultGameEngineAuthoring>();
 
 			Table = tableComponent.CreateTable();
-			_ballManager = new BallManager(Table, TableToWorld);
+			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 
 			if (engineComponent != null) {
 				GameEngine = engineComponent.GameEngine;
+			}
+
+			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
+			EngineProvider<IPhysicsEngine>.Get().Init(tableComponent, BallManager);
+			if (!string.IsNullOrEmpty(debugUiId)) {
+				EngineProvider<IDebugUI>.Set(debugUiId);
 			}
 		}
 
@@ -148,17 +160,17 @@ namespace VisualPinball.Unity
 					});
 				}
 			}
-			GameEngine.OnInit(_tableApi, _ballManager);
+			GameEngine.OnInit(_tableApi, BallManager);
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
 			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi, _ballManager);
+				tableScript.OnAwake(_tableApi, BallManager);
 			}
 
 			// trigger init events now
 			foreach (var i in _initializables) {
-				i.OnInit();
+				i.OnInit(BallManager);
 			}
 
 			// _inputManager.Enable((obj, change) => {

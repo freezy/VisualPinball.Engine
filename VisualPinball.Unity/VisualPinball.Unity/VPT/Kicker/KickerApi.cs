@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
 			var ballEntity = kickerCollisionData.BallEntity;
 			if (ballEntity != Entity.Null) {
-				BallManager.DestroyEntity(ballEntity);
+				_ballManager.DestroyEntity(ballEntity);
 				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
 			}
 		}
@@ -162,9 +162,9 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit()
+		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			_ballManager = BallManager.Instance(Player.Table, Player.TableToWorld);
+			_ballManager = ballManager;
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 

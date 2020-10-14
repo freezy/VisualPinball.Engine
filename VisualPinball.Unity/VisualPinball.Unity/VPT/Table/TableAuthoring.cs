@@ -64,8 +64,6 @@ namespace VisualPinball.Unity
 
 		protected override string[] Children => null;
 
-		[HideInInspector] [SerializeField] public string physicsEngineId;
-		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
@@ -78,15 +76,6 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		protected void Awake()
-		{
-			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
-			EngineProvider<IPhysicsEngine>.Get().Init(this);
-			if (!string.IsNullOrEmpty(debugUiId)) {
-				EngineProvider<IDebugUI>.Set(debugUiId);
-			}
-		}
 
 		protected virtual void Start()
 		{
