@@ -58,6 +58,22 @@ namespace VisualPinball.Unity.Patcher
 			PatcherUtil.SetOpaque(gameObject);
 		}
 
+		[NameMatch("leftrail")]
+		[NameMatch("rightrail")]
+		[NameMatch("TrexMain")]
+		[NameMatch("sidewalls")]
+		public void SetDoubleSided(GameObject gameObject)
+		{
+			PatcherUtil.SetDoubleSided(gameObject);
+		}
+
+		[NameMatch("Primitive_SideWallReflect")]
+		[NameMatch("Primitive_SideWallReflect1")]
+		public void Hide(GameObject gameObject)
+		{
+			PatcherUtil.Hide(gameObject);
+		}
+
 		/// <summary>
 		/// Custom properties for the ramp:
 		/// * change opaque to transparent
