@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -43,7 +42,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 		public NativeList<ContactBufferElement> Contacts;
-		public JobHandle ContactsDependencies;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 
@@ -61,7 +59,7 @@ namespace VisualPinball.Unity
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _collisionEventDataQuery;
 
-		private Stopwatch _simulationTime = new Stopwatch();
+		private readonly Stopwatch _simulationTime = new Stopwatch();
 
 		protected override void OnCreate()
 		{
@@ -148,11 +146,7 @@ namespace VisualPinball.Unity
 
 		private void ClearContacts()
 		{
-			// if (contacts.Length > 0) {
-			// 	Debug.Break();
-			// }
-
-			Contacts.Clear();;
+			Contacts.Clear();
 		}
 
 		private void ApplyFlipperTime()

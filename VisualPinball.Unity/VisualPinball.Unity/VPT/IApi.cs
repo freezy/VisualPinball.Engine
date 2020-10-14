@@ -18,7 +18,7 @@ namespace VisualPinball.Unity
 {
 	internal interface IApiInitializable
 	{
-		void OnInit();
+		void OnInit(BallManager ballManager);
 	}
 
 	internal interface IApiHittable

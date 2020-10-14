@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -23,37 +24,30 @@ using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// A singleton class that handles ball creation and destruction.
 	/// </summary>
+	[Serializable]
 	public class BallManager
 	{
-		public static int NumBallsCreated { get; private set; }
-		public static int NumBalls { get; private set; }
+		public int NumBallsCreated { get; private set; }
+		public int NumBalls { get; private set; }
 
 		private readonly Table _table;
 		private readonly Matrix4x4 _ltw;
 
 		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
 
-		private static BallManager _instance;
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
-
-		public static BallManager Instance(Table table, Matrix4x4 ltw) => _instance ?? (_instance = new BallManager(table, ltw));
 
 		public BallManager(Table table, Matrix4x4 ltw)
 		{
 			_table = table;
 			_ltw = ltw;
-		}
-
-		public static void Init()
-		{
-			NumBallsCreated = 0;
-			NumBalls = 0;
 		}
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
@@ -83,7 +77,7 @@ namespace VisualPinball.Unity
 				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public static void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
+		public void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
 		{
 			var world = World.DefaultGameObjectInjectionWorld;
@@ -166,7 +160,7 @@ namespace VisualPinball.Unity
 			NumBalls++;
 		}
 
-		public static void DestroyEntity(Entity ballEntity)
+		public void DestroyEntity(Entity ballEntity)
 		{
 			World.DefaultGameObjectInjectionWorld
 				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()

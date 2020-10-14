@@ -28,7 +28,8 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default VPX";
 
-		private BallManager _ballManager;
+		public BallManager _ballManager;
+
 		private EntityManager _entityManager;
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _ballDataQuery;
@@ -38,8 +39,9 @@ namespace VisualPinball.Unity
 		private readonly DebugFlipperSlider[] _flipperSliders = new DebugFlipperSlider[0];
 		private int _nextBallIdToNotifyDebugUI;
 
-		public void Init(TableAuthoring tableAuthoring)
+		public void Init(TableAuthoring tableAuthoring, BallManager ballManager)
 		{
+			_ballManager = ballManager;
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			_flipperDataQuery = _entityManager.CreateEntityQuery(
 				ComponentType.ReadOnly<FlipperMovementData>(),
@@ -47,7 +49,6 @@ namespace VisualPinball.Unity
 				ComponentType.ReadOnly<SolenoidStateData>()
 			);
 
-			_ballManager = BallManager.Instance(tableAuthoring.Table, tableAuthoring.gameObject.transform.localToWorldMatrix);
 			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
 
 			var visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
@@ -56,13 +57,14 @@ namespace VisualPinball.Unity
 			visualPinballSimulationSystemGroup.Enabled = true;
 			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
 
-			_worldToLocal = tableAuthoring.gameObject.transform.worldToLocalMatrix;
+			var transform = tableAuthoring.gameObject.transform;
+			_worldToLocal = transform.worldToLocalMatrix;
 		}
 
 		public void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
 		{
-			BallManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
+			_ballManager.CreateEntity(mesh, material, in worldPos, in localPos, in localVel,
 				scale * radius * 2, in mass, in radius, in kickerRef);
 		}
 
@@ -151,11 +153,11 @@ namespace VisualPinball.Unity
 
 		public void PushPendingCreateBallNotifications()
 		{
-			if (_nextBallIdToNotifyDebugUI == BallManager.NumBallsCreated)
+			if (_nextBallIdToNotifyDebugUI == _ballManager.NumBallsCreated)
 				return; // nothing to report
 
 			var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
-			int numBallsToReport = BallManager.NumBallsCreated - _nextBallIdToNotifyDebugUI;
+			int numBallsToReport = _ballManager.NumBallsCreated - _nextBallIdToNotifyDebugUI;
 			foreach (var entity in entities)
 			{
 				var ballData = _entityManager.GetComponentData<BallData>(entity);
@@ -168,7 +170,7 @@ namespace VisualPinball.Unity
 
 			// error checking
 			Assert.AreEqual(0, numBallsToReport);
-			_nextBallIdToNotifyDebugUI = BallManager.NumBallsCreated;
+			_nextBallIdToNotifyDebugUI = _ballManager.NumBallsCreated;
 		}
 	}
 }

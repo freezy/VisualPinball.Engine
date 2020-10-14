@@ -118,7 +118,7 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit()
+		void IApiInitializable.OnInit(BallManager ballManager)
 		{
 			Init?.Invoke(this, EventArgs.Empty);
 		}
