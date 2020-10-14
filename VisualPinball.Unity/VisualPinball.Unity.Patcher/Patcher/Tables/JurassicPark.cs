@@ -69,6 +69,7 @@ namespace VisualPinball.Unity.Patcher
 
 		[NameMatch("Primitive_SideWallReflect")]
 		[NameMatch("Primitive_SideWallReflect1")]
+		[NameMatch("Primitive_PlasticWhitePart")] // bug in the table, sticks out from the ramp; doesn't contribute anyway to the table
 		public void Hide(GameObject gameObject)
 		{
 			PatcherUtil.Hide(gameObject);
