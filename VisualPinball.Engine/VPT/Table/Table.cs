@@ -456,6 +456,7 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
+		public bool IsCollidable => true;
 
 		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
 		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);

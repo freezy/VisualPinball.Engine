@@ -64,6 +64,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 
 		public HitObject[] GetHitShapes() => _hits;
+		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;
 
 		public Mesh GetMesh() => _meshGenerator.GetMesh();
 

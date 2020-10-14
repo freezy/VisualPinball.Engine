@@ -68,5 +68,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 				.Concat(_hitCircles)
 				.ToArray();
 		}
+		public bool IsCollidable => true;
 	}
 }

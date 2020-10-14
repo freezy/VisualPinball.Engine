@@ -23,5 +23,6 @@ namespace VisualPinball.Engine.Game
 		int Index { get; }
 		int Version { get; }
 		HitObject[] GetHitShapes();
+		bool IsCollidable { get; }
 	}
 }

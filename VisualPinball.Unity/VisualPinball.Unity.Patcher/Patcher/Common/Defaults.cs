@@ -41,5 +41,13 @@ namespace VisualPinball.Unity.Patcher
 		{
 			gameObject.GetComponent<MeshRenderer>().enabled = false;
 		}
+
+		[NameMatch("Ruler_mm")]
+		[NameMatch("Ruler_inches")]
+		[NameMatch("Ruler_inches_and_mm")]
+		public void RemoveColliders(GameObject gameObject)
+		{
+			gameObject.SetActive(false);
+		}
 	}
 }

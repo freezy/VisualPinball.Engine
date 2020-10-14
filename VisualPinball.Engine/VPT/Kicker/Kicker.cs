@@ -61,10 +61,9 @@ namespace VisualPinball.Engine.VPT.Kicker
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
-		public HitObject[] GetHitShapes()
-		{
-			return new HitObject[] {_hit};
-		}
+		public HitObject[] GetHitShapes() => new HitObject[] {_hit};
+
+		public bool IsCollidable => Data.IsEnabled;
 
 		public Vertex3D GetBallCreationPosition(Table.Table table)
 		{

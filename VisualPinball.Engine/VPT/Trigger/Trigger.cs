@@ -26,6 +26,7 @@ namespace VisualPinball.Engine.VPT.Trigger
 		public override string ItemType => "Trigger";
 
 		public HitObject[] GetHitShapes() => _hits;
+		public bool IsCollidable => Data.IsEnabled;
 
 		private readonly TriggerMeshGenerator _meshGenerator;
 		private readonly TriggerHitGenerator _hitGenerator;

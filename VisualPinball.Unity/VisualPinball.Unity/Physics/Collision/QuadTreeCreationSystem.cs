@@ -36,9 +36,10 @@ namespace VisualPinball.Unity
 			}
 
 			// index hittables
+			var hittables = table.Hittables.Where(hittable => hittable.IsCollidable).ToArray();
 			var hitObjects = new List<HitObject>();
 			var id = 0;
-			foreach (var item in table.Hittables) {
+			foreach (var item in hittables) {
 				foreach (var hitObject in item.GetHitShapes()) {
 					hitObject.SetIndex(item.Index, item.Version);
 					hitObject.Id = id++;
