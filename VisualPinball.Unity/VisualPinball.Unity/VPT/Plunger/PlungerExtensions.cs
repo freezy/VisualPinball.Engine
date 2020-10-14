@@ -24,7 +24,6 @@ namespace VisualPinball.Unity
 {
 	internal static class PlungerExtensions
 	{
-
 		public static IItemMainAuthoring SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
