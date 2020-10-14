@@ -104,6 +104,34 @@ namespace VisualPinball.Unity.Patcher
 			}
 		}
 
+		public static void SetTransparentDepthPrepassEnabled(GameObject gameObject)
+		{
+			var material = gameObject.GetComponent<Renderer>().sharedMaterial;
+
+			switch (RenderPipeline.Current)
+			{
+				case RenderPipelineType.BuiltIn:
+				case RenderPipelineType.Urp:
+					Logger.Info("Not implemented for {0}: {1} for {2}", gameObject.name, "SetTransparentDepthPrepassEnabled", RenderPipeline.Current);
+					break;
+
+				case RenderPipelineType.Hdrp:
+					material.EnableKeyword("_DISABLE_SSR_TRANSPARENT");
+
+					material.SetInt("_TransparentDepthPrepassEnable", 1);
+					material.SetInt("_AlphaDstBlend", 10);
+					material.SetInt("_ZTestModeDistortion", 4);
+
+					material.SetShaderPassEnabled("TransparentDepthPrepass", true);
+					material.SetShaderPassEnabled("RayTracingPrepass", true);
+
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
+
 		/// <summary>
 		/// Set the AlphaCutOff value for the material of the gameobject.
 		/// </summary>
