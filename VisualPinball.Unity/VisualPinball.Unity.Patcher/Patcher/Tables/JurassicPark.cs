@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Patcher
 			material.SetShaderPassEnabled("TransparentDepthPrepass", true);
 			material.SetShaderPassEnabled("RayTracingPrepass", false);
 
-			material.renderQueue = 3000;
+			material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
 
 		}
 	}
