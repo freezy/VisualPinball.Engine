@@ -15,15 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
 	internal static class LightExtensions
 	{
-		public static LightAuthoring SetupGameObject(this Engine.VPT.Light.Light light, GameObject obj)
+		public static IItemMainAuthoring SetupGameObject(this Light light, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var ic = obj.AddComponent<LightAuthoring>().SetItem(light);
-			return ic as LightAuthoring;
+			var mainAuthoring = obj.AddComponent<LightAuthoring>().SetItem(light);
+			if (!light.Data.ShowBulbMesh) {
+				return mainAuthoring;
+			}
+
+			CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb);
+			CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket);
+
+			if (light.SubComponent == ItemSubComponent.Mesh) {
+				if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
+					meshAuthoring.RemoveMeshComponent();
+				}
+			}
+
+			//obj.AddComponent<ConvertToEntity>();
+			return mainAuthoring;
+		}
+
+		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			subObj.AddComponent<T>();
+			//subObj.layer = ChildObjectsLayer;
+			return subObj;
 		}
 	}
 }

@@ -36,6 +36,28 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = null;
 
+
+		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)
+		{
+			if (bulbEnabledBefore == bulbEnabledAfter) {
+				return;
+			}
+
+			if (bulbEnabledAfter) {
+				LightExtensions.CreateChild<LightBulbMeshAuthoring>(gameObject, LightMeshGenerator.Bulb);
+				LightExtensions.CreateChild<LightSocketMeshAuthoring>(gameObject, LightMeshGenerator.Socket);
+			} else {
+				var bulbMeshAuthoring = GetComponentInChildren<LightBulbMeshAuthoring>();
+				if (bulbMeshAuthoring != null) {
+					DestroyImmediate(bulbMeshAuthoring.gameObject);
+				}
+				var socketMeshAuthoring = GetComponentInChildren<LightSocketMeshAuthoring>();
+				if (socketMeshAuthoring != null) {
+					DestroyImmediate(socketMeshAuthoring.gameObject);
+				}
+			}
+		}
+
 		protected override void ItemDataChanged()
 		{
 			base.ItemDataChanged();

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
 using VisualPinball.Engine.VPT;
 
@@ -53,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.LabelField("Bulb");
 				EditorGUI.indentLevel++;
-				ItemDataField("Enable", ref _light.Data.IsBulbLight, dirtyMesh: false);
+				ItemDataField("Enable", ref _light.Data.ShowBulbMesh, false, onChanged: _light.OnBulbEnabled);
 				ItemDataField("Scale Mesh", ref _light.Data.MeshRadius, dirtyMesh: false);
 				EditorGUI.indentLevel--;
 			}
