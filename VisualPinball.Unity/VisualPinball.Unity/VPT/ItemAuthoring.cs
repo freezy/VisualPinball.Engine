@@ -21,6 +21,7 @@ using System.Reflection;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
@@ -110,7 +111,7 @@ namespace VisualPinball.Unity
 							if (ro != null) {
 								var subObj = new GameObject(ro.Name);
 								subObj.transform.SetParent(transform, false);
-								subObj.layer = VpxConverter.ChildObjectsLayer;
+								subObj.layer = Layer.ChildObjects;
 							}
 						}
 					}

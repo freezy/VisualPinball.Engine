@@ -28,6 +28,17 @@ namespace VisualPinball.Engine.Common
 		public const float Gravity = 1.81751f;
 	}
 
+	/// <summary>
+	/// Layer of the table items.
+	/// Currently only one layer, but might be more in the future.
+	/// </summary>
+	public static class Layer
+	{
+		public const int ChildObjects = 15;
+	}
+	
+
+
 	public static class PhysicsConstants
 	{
 		public const float HitShapeDetailLevel = 7.0f;

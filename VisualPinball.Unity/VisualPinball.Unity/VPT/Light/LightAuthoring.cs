@@ -21,6 +21,7 @@
 #endregion
 
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity
@@ -45,7 +46,7 @@ namespace VisualPinball.Unity
 				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
 				if (_unityLight == null) {
 					var lightObj = new GameObject("Light (Unity)");
-					lightObj.layer = VpxConverter.ChildObjectsLayer;
+					lightObj.layer = Layer.ChildObjects;
 					lightObj.transform.parent = transform;
 					lightObj.transform.localPosition = Vector3.zero;
 					_unityLight = lightObj.AddComponent<UnityEngine.Light>();

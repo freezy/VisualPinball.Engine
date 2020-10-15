@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -52,7 +53,6 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
-		public const int ChildObjectsLayer = 8;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 				foreach (var ro in rog.RenderObjects) {
 					var subObj = new GameObject(ro.Name);
 					subObj.transform.SetParent(obj.transform, false);
-					subObj.layer = ChildObjectsLayer;
+					subObj.layer = Layer.ChildObjects;
 					ConvertRenderObject(ro, subObj, tb);
 					createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
 				}
