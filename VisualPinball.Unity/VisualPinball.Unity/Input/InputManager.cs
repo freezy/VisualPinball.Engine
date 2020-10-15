@@ -109,8 +109,13 @@ namespace VisualPinball.Unity
 		public void Enable(Action<object, InputActionChange> action)
 		{
 			_asset.Enable();
-
 			InputSystem.onActionChange += action;
+		}
+
+		public void Disable(Action<object, InputActionChange> action)
+		{
+			InputSystem.onActionChange -= action;
+			_asset.Disable();
 		}
 
 		public List<string> GetActionMapNames()
