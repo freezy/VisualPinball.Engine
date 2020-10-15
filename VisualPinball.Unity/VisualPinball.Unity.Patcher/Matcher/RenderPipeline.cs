@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Unity.Patcher.RenderPipelinePatcher;
+
 namespace VisualPinball.Unity.Patcher.Matcher
 {
 	public enum RenderPipelineType
@@ -37,7 +39,28 @@ namespace VisualPinball.Unity.Patcher.Matcher
 						return RenderPipelineType.Hdrp;
 					}
 				}
-				return RenderPipelineType.BuiltIn; }
+				return RenderPipelineType.BuiltIn; 
+			}
+		}
+
+		public static IRenderPipelinePatcher Patcher // TODO: singleton
+		{
+			get
+			{
+				switch( RenderPipeline.Current)
+				{
+					case RenderPipelineType.BuiltIn:
+						return new BuiltInPatcher();
+
+					case RenderPipelineType.Urp:
+						return new UrpPatcher();
+
+					case RenderPipelineType.Hdrp:
+						return new HdrpPatcher();
+				}
+
+				throw new System.Exception("Unsupported pipeline: " + RenderPipeline.Current);
+			}
 		}
 	}
 }

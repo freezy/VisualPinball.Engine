@@ -17,7 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using VisualPinball.Unity.Patcher.Matcher.Table;
+using VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Patcher
 		public void SetDoubleSided(GameObject gameObject, ref GameObject child)
 		{
 			if (gameObject == child)
-				PatcherUtil.SetDoubleSided(gameObject);
+				RenderPipeline.Patcher.SetDoubleSided(gameObject);
 		}
 
 		/// <summary>
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			if (gameObject == child)
 			{
-				PatcherUtil.SetTransparentDepthPrepassEnabled(gameObject);
+				RenderPipeline.Patcher.SetTransparentDepthPrepassEnabled(gameObject);
 			}
 		}
 	}
