@@ -17,6 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
+using VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -32,7 +33,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("TrexMain")]
 		public void FixBrokenNormalMap(GameObject gameObject)
 		{
-			PatcherUtil.SetNormalMapDisabled(gameObject);
+			RenderPipeline.Patcher.SetNormalMapDisabled(gameObject);
 		}
 
 
@@ -49,13 +50,13 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
-			PatcherUtil.SetAlphaCutOffEnabled(gameObject);
+			RenderPipeline.Patcher.SetAlphaCutOffEnabled(gameObject);
 		}
 
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			PatcherUtil.SetOpaque(gameObject);
+			RenderPipeline.Patcher.SetOpaque(gameObject);
 		}
 
 		[NameMatch("leftrail")]
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sidewalls")]
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			PatcherUtil.SetDoubleSided(gameObject);
+			RenderPipeline.Patcher.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Primitive_SideWallReflect")]
