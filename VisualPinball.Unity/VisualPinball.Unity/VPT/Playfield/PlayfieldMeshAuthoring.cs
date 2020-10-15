@@ -7,5 +7,9 @@ namespace VisualPinball.Unity.Playfield
 	[AddComponentMenu("Visual Pinball/Mesh/Playfield Mesh")]
 	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<Table, TableData, TableAuthoring>
 	{
+		protected override bool IsVisible {
+			get => true;
+			set { }
+		}
 	}
 }

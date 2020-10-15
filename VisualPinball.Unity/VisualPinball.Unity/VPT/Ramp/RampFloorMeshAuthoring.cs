@@ -24,5 +24,10 @@ namespace VisualPinball.Unity
 	public class RampFloorMeshAuthoring : ItemMeshAuthoring<Ramp, RampData, RampAuthoring>
 	{
 		protected override string MeshId => RampMeshGenerator.Floor;
+
+		protected override bool IsVisible {
+			get => true;
+			set { }
+		}
 	}
 }

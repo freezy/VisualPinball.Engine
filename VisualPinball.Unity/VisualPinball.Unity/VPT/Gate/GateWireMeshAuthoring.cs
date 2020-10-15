@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class GateWireMeshAuthoring : ItemMeshAuthoring<Gate, GateData, GateAuthoring>
 	{
 		protected override string MeshId => GateMeshGenerator.Wire;
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

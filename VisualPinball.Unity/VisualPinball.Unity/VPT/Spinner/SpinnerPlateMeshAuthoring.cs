@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class SpinnerPlateMeshAuthoring : ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
 	{
 		protected override string MeshId => SpinnerMeshGenerator.Plate;
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

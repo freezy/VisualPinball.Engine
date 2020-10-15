@@ -23,5 +23,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Kicker Bracket Mesh")]
 	public class KickerMeshAuthoring : ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>
 	{
+		protected override bool IsVisible {
+			get => true;
+			set { }
+		}
 	}
 }

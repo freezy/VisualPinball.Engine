@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class BumperCapMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		protected override string MeshId => BumperMeshGenerator.Cap;
+		protected override bool IsVisible {
+			get => Data.IsCapVisible;
+			set => Data.IsCollidable = value;
+		}
 	}
 }

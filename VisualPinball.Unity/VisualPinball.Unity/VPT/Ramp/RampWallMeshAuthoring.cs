@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class RampWallMeshAuthoring : ItemMeshAuthoring<Ramp, RampData, RampAuthoring>
 	{
 		protected override string MeshId => RampMeshGenerator.Wall;
+		protected override bool IsVisible {
+			get => true;
+			set { }
+		}
 	}
 }

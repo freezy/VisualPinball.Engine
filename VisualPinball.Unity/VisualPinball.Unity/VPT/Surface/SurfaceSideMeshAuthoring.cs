@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class SurfaceSideMeshAuthoring : ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
 		protected override string MeshId => SurfaceMeshGenerator.Side;
+		protected override bool IsVisible {
+			get => Data.IsSideVisible;
+			set => Data.IsSideVisible = value;
+		}
 	}
 }

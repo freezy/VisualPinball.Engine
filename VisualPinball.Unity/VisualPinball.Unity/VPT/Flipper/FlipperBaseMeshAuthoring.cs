@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class FlipperBaseMeshAuthoring : ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>
 	{
 		protected override string MeshId => FlipperMeshGenerator.Base;
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

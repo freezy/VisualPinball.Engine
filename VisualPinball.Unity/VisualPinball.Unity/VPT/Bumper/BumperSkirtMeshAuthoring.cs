@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class BumperSkirtMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		protected override string MeshId => BumperMeshGenerator.Skirt;
+		protected override bool IsVisible {
+			get => Data.IsSocketVisible;
+			set => Data.IsSocketVisible = value;
+		}
 	}
 }
