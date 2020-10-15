@@ -24,21 +24,22 @@ namespace VisualPinball.Unity
 	public abstract class ItemApi<T, TData> where T : Item<TData> where TData : ItemData
 	{
 		protected readonly T Item;
-		protected readonly Player Player;
 		internal readonly Entity Entity;
 
 		protected TData Data => Item.Data;
-		protected Table Table => Player.Table;
+		protected Table Table => _player.Table;
 
 		protected readonly EntityManager EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
+		private readonly Player _player;
+
 		protected ItemApi(T item, Entity entity, Player player)
 		{
 			Item = item;
 			Entity = entity;
-			Player = player;
+			_player = player;
 			_gamelogicEngineWithSwitches = player.GameEngine;
 		}
 

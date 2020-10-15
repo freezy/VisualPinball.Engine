@@ -72,6 +72,9 @@ namespace VisualPinball.Unity
 		// input related
 		private InputManager _inputManager;
 
+		[NonSerialized]
+		private readonly Dictionary<string, List<string>> _keyBindings = new Dictionary<string, List<string>>();
+
 		public Player()
 		{
 			_initializables.Add(_tableApi);
@@ -101,66 +104,17 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
+			if (_keyBindings.Count > 0) {
+				_inputManager.Disable(HandleKeyInput);
+			}
 			GameEngine?.OnDestroy();
 		}
 
 		private void Start()
 		{
-			// hook-up game switches
-			if (GameEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
-				var config = Table.MappingConfigs["Switch"];
-				var keyBindings = new Dictionary<string, List<string>>();
-				foreach (var mappingEntry in config.Data.MappingEntries) {
-					switch (mappingEntry.Source) {
 
-						case SwitchSource.Playfield
-							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
-							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
-						{
-							var element = _switchables[mappingEntry.PlayfieldItem];
-							element.AddSwitchId(mappingEntry.Id);
-							break;
-						}
-
-						case SwitchSource.InputSystem:
-							if (!keyBindings.ContainsKey(mappingEntry.InputAction)) {
-								keyBindings[mappingEntry.InputAction] = new List<string>();
-							}
-							keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
-							break;
-
-						case SwitchSource.Playfield:
-							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
-							break;
-
-						case SwitchSource.Constant:
-							break;
-
-						default:
-							Logger.Warn($"Unknown switch source \"{mappingEntry.Source}\".");
-							break;
-					}
-				}
-
-				if (keyBindings.Count > 0) {
-					_inputManager.Enable((obj, change) => {
-						switch (change) {
-							case InputActionChange.ActionStarted:
-							case InputActionChange.ActionCanceled:
-								var action = (InputAction) obj;
-								if (keyBindings.ContainsKey(action.name)) {
-									foreach (var switchId in keyBindings[action.name]) {
-										engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
-									}
-								} else {
-									Logger.Info($"Unmapped input command \"{action.name}\".");
-								}
-								break;
-						}
-					});
-				}
-			}
-			GameEngine.OnInit(_tableApi, BallManager);
+			// hook up mapping configuration
+			SetupSwitchMapping();
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
@@ -341,6 +295,74 @@ namespace VisualPinball.Unity
 			_tableApi.Primitives[primitive.Name] = primitiveApi;
 			_initializables.Add(primitiveApi);
 			_hittables[entity] = primitiveApi;
+		}
+
+		#endregion
+
+		#region Mapping
+
+		private void SetupSwitchMapping()
+		{
+			// hook-up game switches
+			if (GameEngine is IGamelogicEngineWithSwitches) {
+
+				var config = Table.MappingConfigs["Switch"];
+				_keyBindings.Clear();
+				foreach (var mappingEntry in config.Data.MappingEntries) {
+					switch (mappingEntry.Source) {
+
+						case SwitchSource.Playfield
+							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
+							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
+						{
+							var element = _switchables[mappingEntry.PlayfieldItem];
+							element.AddSwitchId(mappingEntry.Id);
+							break;
+						}
+
+						case SwitchSource.InputSystem:
+							if (!_keyBindings.ContainsKey(mappingEntry.InputAction)) {
+								_keyBindings[mappingEntry.InputAction] = new List<string>();
+							}
+							_keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
+							break;
+
+						case SwitchSource.Playfield:
+							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
+							break;
+
+						case SwitchSource.Constant:
+							break;
+
+						default:
+							Logger.Warn($"Unknown switch source \"{mappingEntry.Source}\".");
+							break;
+					}
+				}
+
+				if (_keyBindings.Count > 0) {
+					_inputManager.Enable(HandleKeyInput);
+				}
+			}
+			GameEngine.OnInit(_tableApi, BallManager);
+		}
+
+		private void HandleKeyInput(object obj, InputActionChange change)
+		{
+			var engineWithSwitches = GameEngine as IGamelogicEngineWithSwitches;
+			switch (change) {
+				case InputActionChange.ActionStarted:
+				case InputActionChange.ActionCanceled:
+					var action = (InputAction) obj;
+					if (_keyBindings.ContainsKey(action.name)) {
+						foreach (var switchId in _keyBindings[action.name]) {
+							engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
+						}
+					} else {
+						Logger.Info($"Unmapped input command \"{action.name}\".");
+					}
+					break;
+			}
 		}
 
 		#endregion
