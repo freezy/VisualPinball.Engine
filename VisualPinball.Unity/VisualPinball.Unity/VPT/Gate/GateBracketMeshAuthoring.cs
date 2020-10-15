@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class GateBracketMeshAuthoring : ItemMeshAuthoring<Gate, GateData, GateAuthoring>
 	{
 		protected override string MeshId => GateMeshGenerator.Bracket;
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

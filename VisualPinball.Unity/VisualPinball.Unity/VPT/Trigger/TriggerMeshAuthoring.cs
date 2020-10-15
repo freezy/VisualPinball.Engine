@@ -23,5 +23,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
 	public class TriggerMeshAuthoring : ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>
 	{
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

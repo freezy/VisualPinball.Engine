@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -24,5 +25,9 @@ namespace VisualPinball.Unity
 	public class BumperBaseMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		protected override string MeshId => BumperMeshGenerator.Base;
+		protected override bool IsVisible {
+			get => Data.IsBaseVisible;
+			set => Data.IsBaseVisible = value;
+		}
 	}
 }

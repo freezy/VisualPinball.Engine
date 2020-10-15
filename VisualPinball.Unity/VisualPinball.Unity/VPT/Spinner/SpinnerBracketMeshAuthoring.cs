@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class SpinnerBracketMeshAuthoring : ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
 	{
 		protected override string MeshId => SpinnerMeshGenerator.Bracket;
+		protected override bool IsVisible {
+			get => Data.ShowBracket;
+			set => Data.ShowBracket = value;
+		}
 	}
 }

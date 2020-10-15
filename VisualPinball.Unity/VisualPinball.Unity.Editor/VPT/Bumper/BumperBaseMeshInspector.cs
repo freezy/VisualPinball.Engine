@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Is Visible", ref _data.IsBaseVisible);
+			ItemDataField("Is Visible", ref _data.IsBaseVisible, onChanged: MeshAuthoring.OnVisibilityChanged);
 			MaterialField("Base Material", ref _data.BaseMaterial);
 
 			base.OnInspectorGUI();

@@ -23,5 +23,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
 	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

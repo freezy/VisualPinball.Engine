@@ -28,6 +28,11 @@ namespace VisualPinball.Unity
 
 		protected abstract IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame);
 
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var plunger = transform.parent.gameObject.GetComponent<PlungerAuthoring>().Item;

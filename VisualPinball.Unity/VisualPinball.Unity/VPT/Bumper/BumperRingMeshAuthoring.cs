@@ -23,6 +23,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Bumper Ring Mesh")]
 	public class BumperRingMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
-		protected override string MeshId => BumperMeshGenerator.Ring;
+		protected override string MeshId => BumperMeshGenerator.Ring;protected override bool IsVisible {
+			get => Data.IsRingVisible;
+			set => Data.IsRingVisible = value;
+		}
 	}
 }

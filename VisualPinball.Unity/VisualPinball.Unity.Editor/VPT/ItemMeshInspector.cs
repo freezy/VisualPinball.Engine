@@ -31,24 +31,24 @@ namespace VisualPinball.Unity.Editor
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-		private TMeshAuthoring _meshAuthoring;
+		protected TMeshAuthoring MeshAuthoring;
 
-		protected TData Data => _meshAuthoring == null ? null : _meshAuthoring.Data;
+		protected TData Data => MeshAuthoring == null ? null : MeshAuthoring.Data;
 
 		protected override void OnEnable()
 		{
-			_meshAuthoring = target as TMeshAuthoring;
+			MeshAuthoring = target as TMeshAuthoring;
 			base.OnEnable();
 		}
 
 		public override void OnInspectorGUI()
 		{
-			if (_meshAuthoring == null) {
+			if (MeshAuthoring == null) {
 				return;
 			}
 
 			if (GUILayout.Button("Force Update Mesh")) {
-				_meshAuthoring.RebuildMeshes();
+				MeshAuthoring.RebuildMeshes();
 			}
 		}
 

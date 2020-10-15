@@ -25,5 +25,9 @@ namespace VisualPinball.Unity
 	public class LightSocketMeshAuthoring : ItemMeshAuthoring<Light, LightData, LightAuthoring>
 	{
 		protected override string MeshId => LightMeshGenerator.Socket;
+		protected override bool IsVisible {
+			get => Data.ShowBulbMesh;
+			set => Data.ShowBulbMesh = value;
+		}
 	}
 }

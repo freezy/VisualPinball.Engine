@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Hit Target Mesh")]
 	public class HitTargetMeshAuthoring : ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
+		protected override bool IsVisible {
+			get => Data.IsVisible;
+			set => Data.IsVisible = value;
+		}
 	}
 }

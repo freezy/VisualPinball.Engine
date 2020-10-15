@@ -18,12 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -32,7 +29,20 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IRenderable
 		where TAuthoring : ItemMainAuthoring<TItem, TData>
 	{
+		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
+		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
+		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
+
 		protected virtual string MeshId => null;
+		protected abstract bool IsVisible { get; set; }
+
+		private List<MemberInfo> _materialRefs;
+		private List<MemberInfo> _textureRefs;
+
+		// for tracking if we need to rebuild the meshes (handled by the editor scripts) during undo/redo flows
+		[HideInInspector]
+		[SerializeField]
+		private bool _meshDirty;
 
 		#region Creation and destruction
 
@@ -65,6 +75,21 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public void OnVisibilityChanged(bool before, bool after)
+		{
+			if (before == after) {
+				return;
+			}
+			enabled = after;
+		}
+
+		public void RebuildMeshes()
+		{
+			UpdateMesh();
+			ItemDataChanged();
+			_meshDirty = false;
+		}
 
 		private void CreateMesh()
 		{
@@ -136,39 +161,6 @@ namespace VisualPinball.Unity
 				Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 			}
 		}
-
-
-
-
-
-
-
-
-		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
-		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
-
-		private List<MemberInfo> _materialRefs;
-		private List<MemberInfo> _textureRefs;
-
-		private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
-		// for tracking if we need to rebuild the meshes (handled by the editor scripts) during undo/redo flows
-		[HideInInspector]
-		[SerializeField]
-		private bool _meshDirty;
-		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
-
-		public void RebuildMeshes()
-		{
-			UpdateMesh();
-
-			ItemDataChanged();
-			_meshDirty = false;
-		}
-
-
-
-
 
 		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
 		{

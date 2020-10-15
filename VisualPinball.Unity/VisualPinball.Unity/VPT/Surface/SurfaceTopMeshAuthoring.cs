@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 	public class SurfaceTopMeshAuthoring : ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
 		protected override string MeshId => SurfaceMeshGenerator.Top;
+		protected override bool IsVisible {
+			get => Data.IsTopBottomVisible;
+			set => Data.IsTopBottomVisible = value;
+		}
 	}
 }
