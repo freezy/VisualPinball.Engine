@@ -165,6 +165,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		#region Search
+		protected override bool ValidateSearch(string search, LayerTreeElement element) => element.Type == LayerTreeViewElementType.Item && base.ValidateSearch(search, element);
+
+		#endregion
+
 		#region Rename
 
 		/// <summary>

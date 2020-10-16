@@ -53,10 +53,10 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<CollectionManager>();
 		}
 
-		protected override void OnEnable()
+		public override void OnEnable()
 		{
-			titleContent = new GUIContent("Collection Manager", EditorGUIUtility.IconContent("FolderOpened Icon").image);
 			base.OnEnable();
+			titleContent = new GUIContent("Collection Manager", EditorGUIUtility.IconContent("FolderOpened Icon").image);
 			InitGUI();
 			_availableItems.Reload();
 			_collectionItems.Reload();
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			ItemInspector.ItemRenamed += OnItemRenamed;
 		}
 
-		protected virtual void OnDisable()
+		public override void OnDisable()
 		{
 			ItemInspector.ItemRenamed -= OnItemRenamed;
 			if (_availableItems != null) {
@@ -73,6 +73,7 @@ namespace VisualPinball.Unity.Editor
 			if (_collectionItems != null) {
 				_collectionItems.ItemDoubleClicked -= OnCollectionDoubleClick;
 			}
+			base.OnDisable();
 		}
 
 		#region Events
