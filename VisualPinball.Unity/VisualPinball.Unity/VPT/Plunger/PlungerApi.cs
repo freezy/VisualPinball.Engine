@@ -94,6 +94,8 @@ namespace VisualPinball.Unity
 		void IApiCoil.OnCoil(bool enabled)
 		{
 			if (enabled) {
+				PullBack();
+			} else {
 				Fire();
 			}
 		}

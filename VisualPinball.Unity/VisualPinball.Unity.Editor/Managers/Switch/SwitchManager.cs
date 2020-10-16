@@ -109,7 +109,7 @@ namespace VisualPinball.Unity.Editor
 
 					foreach (var id in _ids)
 					{
-						var switchMapping =		
+						var switchMapping =
 							_table.Mappings.Switches
 							.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
 
@@ -164,6 +164,9 @@ namespace VisualPinball.Unity.Editor
 			if (switchId.Contains("create_ball")) {
 				return SwitchSource.InputSystem;
 			}
+			if (switchId.Contains("plunger")) {
+				return SwitchSource.InputSystem;
+			}
 
 			return SwitchSource.Playfield;
 		}
@@ -186,6 +189,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (switchId.Contains("create_ball")) {
 				return InputManager.ActionCreateBall;
+			}
+			if (switchId.Contains("plunger")) {
+				return InputManager.ActionPlunger;
 			}
 
 			return string.Empty;
@@ -313,7 +319,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_recordMappings.Table = _table;
 			_recordMappings.Mappings = _table.Mappings;
-			
+
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion
