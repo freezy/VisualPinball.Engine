@@ -46,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
+		private bool _needsAssetRefresh;
 
 		private class SerializedMappings : ScriptableObject
 		{
@@ -67,36 +68,41 @@ namespace VisualPinball.Unity.Editor
 
 			RowHeight = 22;
 
-			_inputManager = new InputManager(RESOURCE_PATH);
-			AssetDatabase.Refresh();
-
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switches, _inputManager);
-
 			base.OnEnable();
+		}
+
+		protected override void OnFocus()
+		{
+			_inputManager = new InputManager(RESOURCE_PATH);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switches, _inputManager);
+			_needsAssetRefresh = true;
+
+			base.OnFocus();
 		}
 
 		protected override bool SetupCompleted()
 		{
-			if (_table == null) {
-				return true;
+			if (_table == null)
+			{
+				DisplayMessage("No table set.");
+				return false;
 			}
 
-			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
-			if (gle != null) {
-				return true;
+			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
+
+			if (gle == null)
+			{
+				DisplayMessage("No gamelogic engine set.");
+				return false;
 			}
 
-			// show error centered
-			GUILayout.BeginHorizontal();
-			GUILayout.BeginVertical();
-			GUILayout.FlexibleSpace();
-			var style = new GUIStyle(GUI.skin.label) {alignment = TextAnchor.MiddleCenter};
-			EditorGUILayout.LabelField("No gamelogic engine set.", style, GUILayout.ExpandWidth(true));
-			GUILayout.FlexibleSpace();
-			GUILayout.EndVertical();
-			GUILayout.EndHorizontal();
+			if (_needsAssetRefresh)
+			{
+				AssetDatabase.Refresh();
+				_needsAssetRefresh = false;
+			}
 
-			return false;
+			return true;
 		}
 
 		protected override void OnButtonBarGUI()
@@ -256,6 +262,18 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Helper methods
+		private void DisplayMessage(string message)
+		{
+			GUILayout.BeginHorizontal();
+			GUILayout.BeginVertical();
+			GUILayout.FlexibleSpace();
+			var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
+			EditorGUILayout.LabelField(message, style, GUILayout.ExpandWidth(true));
+			GUILayout.FlexibleSpace();
+			GUILayout.EndVertical();
+			GUILayout.EndHorizontal();
+		}
+
 		private void RefreshSwitches()
 		{
 			_switches.Clear();
