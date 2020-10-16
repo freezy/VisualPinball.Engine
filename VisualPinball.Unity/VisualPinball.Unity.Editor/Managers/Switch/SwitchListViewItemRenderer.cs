@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 
 		private enum SwitchListColumn
 		{
-			ID = 0,
+			Id = 0,
 			Description = 1,
 			Source = 2,
 			Element = 3,
@@ -46,15 +46,15 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private readonly List<string> _ids;
-		private readonly Dictionary<string, ISwitchableAuthoring> _switchables;
+		private readonly Dictionary<string, ISwitchAuthoring> _switches;
 		private readonly InputManager _inputManager;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(List<string> ids, Dictionary<string, ISwitchableAuthoring> switchables, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<string> ids, Dictionary<string, ISwitchAuthoring> switches, InputManager inputManager)
 		{
 			_ids = ids;
-			_switchables = switchables;
+			_switches = switches;
 			_inputManager = inputManager;
 		}
 
@@ -62,8 +62,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch ((SwitchListColumn)column)
 			{
-				case SwitchListColumn.ID:
-					RenderID(data, cellRect, updateAction);
+				case SwitchListColumn.Id:
+					RenderId(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderID(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderId(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			// add some padding
 			cellRect.x += 2;
@@ -238,10 +238,10 @@ namespace VisualPinball.Unity.Editor
 					_itemPickDropdownState = new AdvancedDropdownState();
 				}
 
-				var dropdown = new ItemSearchableDropdown<ISwitchableAuthoring>(
+				var dropdown = new ItemSearchableDropdown<ISwitchAuthoring>(
 					_itemPickDropdownState,
 					tableAuthoring,
-					"Switchable Items",
+					"Switch Items",
 					item => {
 						switchListData.PlayfieldItem = item.Name;
 						updateAction(switchListData);
@@ -308,8 +308,8 @@ namespace VisualPinball.Unity.Editor
 
 			switch (switchListData.Source) {
 				case SwitchSource.Playfield: {
-					if (_switchables.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_switchables[switchListData.PlayfieldItem.ToLower()], size: IconSize.Small);
+					if (_switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
+						icon = Icons.ByComponent(_switches[switchListData.PlayfieldItem.ToLower()], size: IconSize.Small);
 					}
 					break;
 				}

@@ -23,7 +23,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitchable
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch
 	{
 		private BallManager _ballManager;
 
@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
 		#region Events
 

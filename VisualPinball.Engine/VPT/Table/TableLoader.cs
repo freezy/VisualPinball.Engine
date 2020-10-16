@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadTextures(table, gameStorage);
 					LoadSounds(table, gameStorage, fileVersion);
 					LoadCollections(table, gameStorage);
-					LoadMappingConfigs(table, gameStorage);
+					LoadMappings(table, gameStorage);
 					LoadTableMeta(table, gameStorage);
 
 					table.SetupPlayfieldMesh();
@@ -282,22 +282,16 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadMappingConfigs(Table table, CFStorage storage)
+		private static void LoadMappings(Table table, CFStorage gameStorage)
 		{
-			for (var i = 0; i < table.Data.NumMappingConfigs; i++)
+			var name = "Mappings0";
+			gameStorage.TryGetStream(name, out var citStream);
+			if (citStream != null)
 			{
-				var mappingConfigName = $"MappingConfig{i}";
-				storage.TryGetStream(mappingConfigName, out var mappingConfigStream);
-				if (mappingConfigStream == null)
-				{
-					Logger.Warn("Could not find stream {0}, skipping.", mappingConfigName);
-					continue;
-				}
-				using (var stream = new MemoryStream(mappingConfigStream.GetData()))
+				using (var stream = new MemoryStream(citStream.GetData()))
 				using (var reader = new BinaryReader(stream))
 				{
-					var mappingConfig = new MappingConfig.MappingConfig(reader, mappingConfigName);
-					table.MappingConfigs[mappingConfig.Name.ToLower()] = mappingConfig;
+					table.Mappings = new Mappings.Mappings(reader, name);
 				}
 			}
 		}

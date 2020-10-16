@@ -20,7 +20,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.MappingConfig;
+using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
@@ -42,17 +42,17 @@ namespace VisualPinball.Unity.Editor
 		protected override bool ListViewItemRendererEnabled => true;
 
 		private readonly List<string> _ids = new List<string>();
-		private readonly Dictionary<string, ISwitchableAuthoring> _switchables = new Dictionary<string, ISwitchableAuthoring>();
+		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
 
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 
-		private class SerializedMappingConfigs : ScriptableObject
+		private class SerializedMappings : ScriptableObject
 		{
 			public TableAuthoring Table;
-			public List<MappingConfigData> MappingConfigs = new List<MappingConfigData>();
+			public MappingsData Mappings;
 		}
-		private SerializedMappingConfigs _recordMappingConfigs;
+		private SerializedMappings _recordMappings;
 
 		[MenuItem("Visual Pinball/Switch Manager", false, 106)]
 		public static void ShowWindow()
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 			_inputManager = new InputManager(RESOURCE_PATH);
 			AssetDatabase.Refresh();
 
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switchables, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switches, _inputManager);
 
 			base.OnEnable();
 		}
@@ -80,6 +80,7 @@ namespace VisualPinball.Unity.Editor
 			if (_table == null) {
 				return true;
 			}
+
 			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
 			if (gle != null) {
 				return true;
@@ -106,33 +107,33 @@ namespace VisualPinball.Unity.Editor
 				{
 					RecordUndo("Populate all switch mappings");
 
-					var mappingConfigData = GetSwitchMappingConfig();
+					foreach (var id in _ids)
+					{
+						var switchMapping =		
+							_table.Mappings.Switches
+							.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
 
-					foreach (var switchId in _ids) {
-
-						if (GetSwitchMappingEntryByID(switchId) == null) {
-
-							var matchKey = int.TryParse(switchId, out var numericSwitchId)
+						if (switchMapping == null) {
+							var matchKey = int.TryParse(id, out var numericSwitchId)
 								? $"sw{numericSwitchId}"
-								: switchId;
+								: id;
 
-							var matchedItem = _switchables.ContainsKey(matchKey)
-								? _switchables[matchKey]
+							var matchedItem = _switches.ContainsKey(matchKey)
+								? _switches[matchKey]
 								: null;
 
-							var source = GuessSource(switchId);
-							var entry = new MappingEntryData {
-								Id = switchId,
+							var source = GuessSource(id);
+
+							_table.Mappings.AddSwitch(new MappingsSwitchData {
+								Id = id,
 								Source = source,
 								PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
 								Type = matchedItem is KickerAuthoring || matchedItem is TriggerAuthoring || source == SwitchSource.InputSystem
 									? SwitchType.OnOff
 									: SwitchType.Pulse,
-								InputActionMap = GuessInputMap(switchId),
-								InputAction = source == SwitchSource.InputSystem ? GuessInputAction(switchId) : null,
-							};
-
-							mappingConfigData.MappingEntries = mappingConfigData.MappingEntries.Append(entry).ToArray();
+								InputActionMap = GuessInputMap(id),
+								InputAction = source == SwitchSource.InputSystem ? GuessInputAction(id) : null,
+							});
 						}
 					}
 					Reload();
@@ -145,8 +146,7 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
 						RecordUndo("Remove all switch mappings");
-						var mappingConfigData = GetSwitchMappingConfig();
-						mappingConfigData.MappingEntries = new MappingEntryData[0];
+						_table.Mappings.RemoveAllSwitches();
 					}
 					Reload();
 				}
@@ -205,15 +205,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<SwitchListData> data = new List<SwitchListData>();
 
-			var mappingConfigData = GetSwitchMappingConfig();
-
-			foreach (var mappingEntryData in mappingConfigData.MappingEntries)
+			foreach (var mappingsSwitchData in _table.Mappings.Switches)
 			{
-				data.Add(new SwitchListData(mappingEntryData));
+				data.Add(new SwitchListData(mappingsSwitchData));
 			}
 
-			RefreshSwitchables();
-			RefreshIDs();
+			RefreshSwitches();
+			RefreshSwitchIds();
 
 			return data;
 		}
@@ -222,137 +220,101 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			var mappingConfigData = GetSwitchMappingConfig();
-
-			mappingConfigData.MappingEntries =
-				mappingConfigData.MappingEntries.Append(new MappingEntryData { Id = "" }).ToArray();
+			_table.Mappings.AddSwitch(new MappingsSwitchData());
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			var mappingConfigData = GetSwitchMappingConfig();
-
-			mappingConfigData.MappingEntries =
-				mappingConfigData.MappingEntries.Except(new[] { data.MappingEntryData }).ToArray();
+			_table.Mappings.RemoveSwitch(data.MappingsSwitchData);
 		}
 
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			var mappingConfigData = GetSwitchMappingConfig();
-
-			mappingConfigData.MappingEntries =
-				mappingConfigData.MappingEntries.Append(new MappingEntryData
-				{
-					Id = data.Id,
-					Description = data.Description,
-					Source = data.Source,
-					InputActionMap = data.InputActionMap,
-					InputAction = data.InputAction,
-					PlayfieldItem = data.PlayfieldItem,
-					Constant = data.Constant,
-					Type = data.Type,
-					Pulse = data.Pulse
-				}).ToArray();
+			_table.Mappings.AddSwitch(new MappingsSwitchData
+			{
+				Id = data.Id,
+				Description = data.Description,
+				Source = data.Source,
+				InputActionMap = data.InputActionMap,
+				InputAction = data.InputAction,
+				PlayfieldItem = data.PlayfieldItem,
+				Constant = data.Constant,
+				Type = data.Type,
+				Pulse = data.Pulse
+			});
 		}
 		#endregion
 
 		#region Helper methods
-		private void RefreshSwitchables()
+		private void RefreshSwitches()
 		{
-			_switchables.Clear();
+			_switches.Clear();
 
 			if (_table != null)
 			{
-				foreach (var item in _table.GetComponentsInChildren<ISwitchableAuthoring>())
+				foreach (var item in _table.GetComponentsInChildren<ISwitchAuthoring>())
 				{
-					_switchables.Add(item.Name.ToLower(), item);
+					_switches.Add(item.Name.ToLower(), item);
 				}
 			}
 		}
 
-		private void RefreshIDs()
+		private void RefreshSwitchIds()
 		{
 			_ids.Clear();
-			var gle = _table.gameObject.GetComponent<DefaultGameEngineAuthoring>();
+			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
 			if (gle != null) {
-				_ids.AddRange(gle.GameEngine.AvailableSwitches);
+				_ids.AddRange(((IGamelogicEngineWithSwitches)gle.GameEngine).AvailableSwitches);
 
 			} else {
 				// todo show this in the editor window along with instructions.
 				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support switches.");
 			}
 
-			var mappingConfigData = GetSwitchMappingConfig();
-
-			foreach (var mappingEntryData in mappingConfigData.MappingEntries)
+			foreach (var mappingsSwitchData in _table.Mappings.Switches)
 			{
-				if (_ids.IndexOf(mappingEntryData.Id) == -1)
+				if (_ids.IndexOf(mappingsSwitchData.Id) == -1)
 				{
-					_ids.Add(mappingEntryData.Id);
+					_ids.Add(mappingsSwitchData.Id);
 				}
 			}
 
 			_ids.Sort();
 		}
-
-		private MappingConfigData GetSwitchMappingConfig()
-		{
-			if (_table != null)
-			{
-				if (_table.MappingConfigs.Count == 0)
-				{
-					_table.MappingConfigs.Add(new MappingConfigData("Switch", new MappingEntryData[0]));
-					_table.Item.Data.NumMappingConfigs = 1;
-				}
-
-				return _table.MappingConfigs[0];
-			}
-
-			return null;
-		}
-
-		private MappingEntryData GetSwitchMappingEntryByID(string id)
-		{
-			var mappingConfigData = GetSwitchMappingConfig();
-			return mappingConfigData?
-				.MappingEntries
-				.FirstOrDefault(mappingEntryData => mappingEntryData.Id == id);
-		}
 		#endregion
 
 		#region Undo Redo
-		private void RestoreTableMappingConfigs()
+		private void RestoreMappings()
 		{
-			if (_recordMappingConfigs == null) { return; }
+			if (_recordMappings == null) { return; }
 			if (_table == null) { return; }
-			if (_recordMappingConfigs.Table == _table)
+			if (_recordMappings.Table == _table)
 			{
-				_table.RestoreMappingConfigs(_recordMappingConfigs.MappingConfigs);
+				_table.RestoreMappings(_recordMappings.Mappings);
 			}
 		}
 
 		protected override void UndoPerformed()
 		{
-			RestoreTableMappingConfigs();
+			RestoreMappings();
 			base.UndoPerformed();
 		}
 
 		private void RecordUndo(string undoName)
 		{
 			if (_table == null) { return; }
-			if (_recordMappingConfigs == null)
+			if (_recordMappings == null)
 			{
-				_recordMappingConfigs = CreateInstance<SerializedMappingConfigs>();
+				_recordMappings = CreateInstance<SerializedMappings>();
 			}
-			_recordMappingConfigs.Table = _table;
-			_recordMappingConfigs.MappingConfigs.Clear();
-			_recordMappingConfigs.MappingConfigs.AddRange(_table?.MappingConfigs);
-
-			Undo.RecordObjects(new Object[] { this, _recordMappingConfigs }, undoName);
+			_recordMappings.Table = _table;
+			_recordMappings.Mappings = _table.Mappings;
+			
+			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion
 	}

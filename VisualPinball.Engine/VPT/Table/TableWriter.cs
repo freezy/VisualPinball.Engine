@@ -113,12 +113,8 @@ namespace VisualPinball.Engine.VPT.Table
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 
-			// 4. Mapping Configs
-			var mappingConfigs = _table.MappingConfigs.Values;
-			foreach (var mappingConfig in mappingConfigs.Select(mc => mc.Data).OrderBy(mc => mc.StorageIndex))
-			{
-				mappingConfig.WriteData(_gameStorage, hashWriter);
-			}
+			// 5. Mappings
+			_table.Mappings.Data.WriteData(_gameStorage, hashWriter);
 		}
 
 		private void WriteImages()

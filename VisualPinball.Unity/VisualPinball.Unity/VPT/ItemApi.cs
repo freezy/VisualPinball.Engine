@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			_player = player;
-			_gamelogicEngineWithSwitches = player.GameEngine;
+			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
 		#region IApiSwitchable

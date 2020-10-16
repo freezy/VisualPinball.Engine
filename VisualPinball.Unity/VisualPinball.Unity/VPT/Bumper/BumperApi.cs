@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitchable
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch
 	{
 
 		/// <summary>
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
 		#region Events
 

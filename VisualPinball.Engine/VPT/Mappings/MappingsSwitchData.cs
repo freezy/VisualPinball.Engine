@@ -19,6 +19,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable CompareOfFloatsByEqualityOperator
 #endregion
 
 using System;
@@ -27,39 +28,56 @@ using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Engine.VPT.MappingConfig
+namespace VisualPinball.Engine.VPT.Mappings
 {
 	[Serializable]
-	public class MappingConfigData : ItemData
+	public class MappingsSwitchData : BiffData
 	{
-		public override string GetName() => Name;
-		public override void SetName(string name) { Name = name; }
+		[BiffString("MSID", IsWideString = true, Pos = 1)]
+		public string Id = string.Empty;
 
-		[BiffString("NAME", IsWideString = true, Pos = 1)]
-		public string Name;
+		[BiffString("DESC", IsWideString = true, Pos = 2)]
+		public string Description = string.Empty;
 
-		[BiffMappingEntryAttribute("MENT", TagAll = true, Pos = 1000)]
-		public MappingEntryData[] MappingEntries;
+		[BiffInt("SRCE", Pos = 3)]
+		public int Source = SwitchSource.Playfield;
 
-		public MappingConfigData(string name, MappingEntryData[] mappingEntries) : base(StoragePrefix.MappingConfig)
-		{
-			Name = name;
-			MappingEntries = mappingEntries;
-		}
+		[BiffString("INPM", IsWideString = true, Pos = 4)]
+		public string InputActionMap = string.Empty;
+
+		[BiffString("INPA", IsWideString = true, Pos = 5)]
+		public string InputAction = string.Empty;
+
+		[BiffString("PITM", IsWideString = true, Pos = 6)]
+		public string PlayfieldItem = string.Empty;
+
+		[BiffInt("CNST", Pos = 7)]
+		public int Constant;
+
+		[BiffString("DEVC", IsWideString = true, Pos = 8)]
+		public string Device = string.Empty;
+
+		[BiffString("DITM", IsWideString = true, Pos = 9)]
+		public string DeviceItem = string.Empty;
+
+		[BiffInt("STYP", Pos = 10)]
+		public int Type = SwitchType.OnOff;
+
+		[BiffInt("PLSE", Pos = 11)]
+		public int Pulse = 10;
 
 		#region BIFF
 
-		static MappingConfigData()
+		static MappingsSwitchData()
 		{
-			Init(typeof(MappingConfigData), Attributes);
+			Init(typeof(MappingsSwitchData), Attributes);
 		}
 
-		public MappingConfigData(string name) : base(StoragePrefix.MappingConfig)
+		public MappingsSwitchData() : base(null)
 		{
-			Name = name;
 		}
 
-		public MappingConfigData(BinaryReader reader, string storageName) : base(storageName)
+		public MappingsSwitchData(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
 		}

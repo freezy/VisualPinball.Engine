@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		[NonSerialized]
-		public DefaultGamelogicEngine GameEngine;
+		public IGamelogicEngine GameEngine;
 
 		[NonSerialized]
 		public BallManager BallManager;
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
-		private readonly Dictionary<string, IApiSwitchable> _switchables = new Dictionary<string, IApiSwitchable>();
+		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			var engineComponent = GetComponent<DefaultGameEngineAuthoring>();
+			var engineComponent = GetComponent<IGameEngineAuthoring>();
 
 			Table = tableComponent.CreateTable();
 			BallManager = new BallManager(Table, TableToWorld);
@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 			_tableApi.Bumpers[bumper.Name] = bumperApi;
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
-			_switchables[bumper.Name] = bumperApi;
+			_switches[bumper.Name] = bumperApi;
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -217,7 +217,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
-			_switchables[gate.Name] = gateApi;
+			_switches[gate.Name] = gateApi;
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 			_tableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
-			_switchables[hitTarget.Name] = hitTargetApi;
+			_switches[hitTarget.Name] = hitTargetApi;
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -235,7 +235,7 @@ namespace VisualPinball.Unity
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
-			_switchables[kicker.Name] = kickerApi;
+			_switches[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -277,7 +277,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
-			_switchables[spinner.Name] = spinnerApi;
+			_switches[spinner.Name] = spinnerApi;
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 			_tableApi.Triggers[trigger.Name] = triggerApi;
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
-			_switchables[trigger.Name] = triggerApi;
+			_switches[trigger.Name] = triggerApi;
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
@@ -306,36 +306,36 @@ namespace VisualPinball.Unity
 			// hook-up game switches
 			if (GameEngine is IGamelogicEngineWithSwitches) {
 
-				var config = Table.MappingConfigs["Switch"];
+				var config = Table.Mappings;
 				_keyBindings.Clear();
-				foreach (var mappingEntry in config.Data.MappingEntries) {
-					switch (mappingEntry.Source) {
+				foreach (var switchData in config.Data.Switches) {
+					switch (switchData.Source) {
 
 						case SwitchSource.Playfield
-							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
-							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
+							when !string.IsNullOrEmpty(switchData.PlayfieldItem)
+							     && _switches.ContainsKey(switchData.PlayfieldItem):
 						{
-							var element = _switchables[mappingEntry.PlayfieldItem];
-							element.AddSwitchId(mappingEntry.Id);
+							var element = _switches[switchData.PlayfieldItem];
+							element.AddSwitchId(switchData.Id);
 							break;
 						}
 
 						case SwitchSource.InputSystem:
-							if (!_keyBindings.ContainsKey(mappingEntry.InputAction)) {
-								_keyBindings[mappingEntry.InputAction] = new List<string>();
+							if (!_keyBindings.ContainsKey(switchData.InputAction)) {
+								_keyBindings[switchData.InputAction] = new List<string>();
 							}
-							_keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
+							_keyBindings[switchData.InputAction].Add(switchData.Id);
 							break;
 
 						case SwitchSource.Playfield:
-							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
+							Logger.Warn($"Cannot find switch \"{switchData.PlayfieldItem}\" on playfield!");
 							break;
 
 						case SwitchSource.Constant:
 							break;
 
 						default:
-							Logger.Warn($"Unknown switch source \"{mappingEntry.Source}\".");
+							Logger.Warn($"Unknown switch source \"{switchData.Source}\".");
 							break;
 					}
 				}
