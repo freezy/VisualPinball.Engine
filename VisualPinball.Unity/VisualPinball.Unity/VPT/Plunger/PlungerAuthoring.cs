@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Plunger")]
-	public class PlungerAuthoring : ItemAuthoring<Plunger, PlungerData>, IConvertGameObjectToEntity, IHittableAuthoring
+	public class PlungerAuthoring : ItemAuthoring<Plunger, PlungerData>, IConvertGameObjectToEntity, IHittableAuthoring, ICoilAuthoring
 	{
 		protected override string[] Children => new [] {
 			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName

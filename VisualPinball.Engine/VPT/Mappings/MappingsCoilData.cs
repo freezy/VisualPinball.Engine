@@ -28,50 +28,47 @@ using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Engine.VPT.MappingConfig
+namespace VisualPinball.Engine.VPT.Mappings
 {
 	[Serializable]
-	public class MappingEntryData : BiffData
+	public class MappingsCoilData : BiffData
 	{
-		[BiffString("MPID", IsWideString = true, Pos = 1)]
+		[BiffString("MCID", IsWideString = true, Pos = 1)]
 		public string Id = string.Empty;
 
 		[BiffString("DESC", IsWideString = true, Pos = 2)]
 		public string Description = string.Empty;
 
-		[BiffInt("SSRC", Pos = 3)]
-		public int Source = SwitchSource.Playfield;
+		[BiffInt("DEST", Pos = 3)]
+		public int Destination = CoilDestination.Playfield;
 
-		[BiffString("INPM", IsWideString = true, Pos = 4)]
-		public string InputActionMap = string.Empty;
-
-		[BiffString("INPA", IsWideString = true, Pos = 5)]
-		public string InputAction = string.Empty;
-
-		[BiffString("PITM", IsWideString = true, Pos = 6)]
+		[BiffString("PITM", IsWideString = true, Pos = 4)]
 		public string PlayfieldItem = string.Empty;
 
-		[BiffInt("CNST", Pos = 7)]
-		public int Constant;
+		[BiffString("DEVC", IsWideString = true, Pos = 5)]
+		public string Device = string.Empty;
 
-		[BiffInt("STYP", Pos = 8)]
-		public int Type = SwitchType.OnOff;
+		[BiffString("DITM", IsWideString = true, Pos = 6)]
+		public string DeviceItem = string.Empty;
 
-		[BiffInt("PLSE", Pos = 9)]
+		[BiffInt("CTYP", Pos = 7)]
+		public int Type = CoilType.OnOff;
+
+		[BiffInt("PLSE", Pos = 8)]
 		public int Pulse = 10;
 
 		#region BIFF
 
-		static MappingEntryData()
+		static MappingsCoilData()
 		{
-			Init(typeof(MappingEntryData), Attributes);
+			Init(typeof(MappingsCoilData), Attributes);
 		}
 
-		public MappingEntryData() : base(null)
+		public MappingsCoilData() : base(null)
 		{
 		}
 
-		public MappingEntryData(BinaryReader reader) : base(null)
+		public MappingsCoilData(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
 		}

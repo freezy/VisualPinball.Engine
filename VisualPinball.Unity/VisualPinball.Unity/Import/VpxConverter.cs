@@ -239,7 +239,7 @@ namespace VisualPinball.Unity
 
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappingConfigs = table.MappingConfigs.Values.Select(c => c.Data).ToList();
+			sidecar.mappings = table.Mappings.Data;
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();

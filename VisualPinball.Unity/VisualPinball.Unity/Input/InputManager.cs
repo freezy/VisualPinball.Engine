@@ -21,7 +21,6 @@ using UnityEngine.InputSystem;
 using System.IO;
 using System;
 using System.Collections.Generic;
-using Unity.Entities.UniversalDelegates;
 
 namespace VisualPinball.Unity
 {
@@ -52,6 +51,7 @@ namespace VisualPinball.Unity
 		public const string ActionCoinDoorCancel = "Coin Door Cancel (WPC)";
 		public const string ActionCoinDoorDown = "Coin Door Down (WPC)";
 		public const string ActionCoinDoorUp = "Coin Door Up (WPC)";
+		public const string ActionCoinDoorEnter = "Coin Door Enter (WPC)";
 		public const string ActionCoinDoorAdvance = "Coin Door Advance";
 		public const string ActionCoinDoorUpDown = "Coin Door Up/Down";
 		public const string ActionSlamTilt = "Slam Tilt";
@@ -171,6 +171,7 @@ namespace VisualPinball.Unity
 			map.AddAction(ActionCoinDoorCancel, InputActionType.Button, "<Keyboard>/7");
 			map.AddAction(ActionCoinDoorDown, InputActionType.Button, "<Keyboard>/8");
 			map.AddAction(ActionCoinDoorUp, InputActionType.Button, "<Keyboard>/9");
+			map.AddAction(ActionCoinDoorEnter, InputActionType.Button, "<Keyboard>/0");
 			map.AddAction(ActionCoinDoorAdvance, InputActionType.Button, "<Keyboard>/8");
 			map.AddAction(ActionCoinDoorUpDown, InputActionType.Button, "<Keyboard>/7");
 			map.AddAction(ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");

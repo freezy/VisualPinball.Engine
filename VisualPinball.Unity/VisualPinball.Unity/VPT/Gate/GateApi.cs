@@ -20,7 +20,7 @@ using Unity.Entities;
 namespace VisualPinball.Unity
 {
 	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable,
-		IApiHittable, IApiRotatable, IApiSwitchable
+		IApiHittable, IApiRotatable, IApiSwitch
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
 		#region Events
 

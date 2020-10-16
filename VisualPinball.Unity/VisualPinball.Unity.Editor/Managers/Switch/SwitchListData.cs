@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT.MappingConfig;
+using VisualPinball.Engine.VPT.Mappings;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -43,35 +43,41 @@ namespace VisualPinball.Unity.Editor
 		public string InputAction;
 		public string PlayfieldItem;
 		public int Constant;
+		public string Device;
+		public string DeviceItem;
 		public int Pulse;
 
-		public MappingEntryData MappingEntryData;
+		public MappingsSwitchData MappingsSwitchData;
 
-		public SwitchListData(MappingEntryData mappingEntryData) {
-			Id = mappingEntryData.Id;
-			Description = mappingEntryData.Description;
-			Source = mappingEntryData.Source;
-			InputActionMap = mappingEntryData.InputActionMap;
-			InputAction = mappingEntryData.InputAction;
-			PlayfieldItem = mappingEntryData.PlayfieldItem;
-			Constant = mappingEntryData.Constant;
-			Type = mappingEntryData.Type;
-			Pulse = mappingEntryData.Pulse;
+		public SwitchListData(MappingsSwitchData mappingsSwitchData) {
+			Id = mappingsSwitchData.Id;
+			Description = mappingsSwitchData.Description;
+			Source = mappingsSwitchData.Source;
+			InputActionMap = mappingsSwitchData.InputActionMap;
+			InputAction = mappingsSwitchData.InputAction;
+			PlayfieldItem = mappingsSwitchData.PlayfieldItem;
+			Constant = mappingsSwitchData.Constant;
+			Device = mappingsSwitchData.Device;
+			DeviceItem = mappingsSwitchData.DeviceItem;
+			Type = mappingsSwitchData.Type;
+			Pulse = mappingsSwitchData.Pulse;
 
-			MappingEntryData = mappingEntryData;
+			MappingsSwitchData = mappingsSwitchData;
 		}
 
 		public void Update()
 		{
-			MappingEntryData.Id = Id;
-			MappingEntryData.Description = Description;
-			MappingEntryData.Source = Source;
-			MappingEntryData.InputActionMap = InputActionMap;
-			MappingEntryData.InputAction = InputAction;
-			MappingEntryData.PlayfieldItem = PlayfieldItem;
-			MappingEntryData.Constant = Constant;
-			MappingEntryData.Type = Type;
-			MappingEntryData.Pulse = Pulse;
+			MappingsSwitchData.Id = Id;
+			MappingsSwitchData.Description = Description;
+			MappingsSwitchData.Source = Source;
+			MappingsSwitchData.InputActionMap = InputActionMap;
+			MappingsSwitchData.InputAction = InputAction;
+			MappingsSwitchData.PlayfieldItem = PlayfieldItem;
+			MappingsSwitchData.Constant = Constant;
+			MappingsSwitchData.Device = Device;
+			MappingsSwitchData.DeviceItem = DeviceItem;
+			MappingsSwitchData.Type = Type;
+			MappingsSwitchData.Pulse = Pulse;
 		}
 	}
 }

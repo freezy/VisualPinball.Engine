@@ -20,7 +20,7 @@ using Unity.Entities;
 namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemApi<Engine.VPT.Trigger.Trigger, Engine.VPT.Trigger.TriggerData>,
-		IApiInitializable, IApiHittable, IApiSwitchable
+		IApiInitializable, IApiHittable, IApiSwitch
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
 		#region Events
 

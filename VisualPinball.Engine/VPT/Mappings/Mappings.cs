@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,45 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity
+using System.IO;
+
+namespace VisualPinball.Engine.VPT.Mappings
 {
-	internal interface IApiInitializable
+	public class Mappings : Item<MappingsData>
 	{
-		void OnInit(BallManager ballManager);
-	}
+		public override string ItemType => "Mappings";
 
-	internal interface IApiHittable
-	{
-		void OnHit(bool isUnHit = false);
-	}
+		public Mappings() : this(new MappingsData("Mappings"))
+		{
+		}
 
-	internal interface IApiRotatable
-	{
-		void OnRotate(float speed, bool direction);
-	}
+		public Mappings(MappingsData data) : base(data)
+		{
+		}
 
-	internal interface IApiCollidable
-	{
-		void OnCollide(float hit);
-	}
-
-	internal interface IApiSpinnable
-	{
-		void OnSpin();
-	}
-
-	internal interface IApiSlingshot
-	{
-		void OnSlingshot();
-	}
-
-	internal interface IApiSwitch
-	{
-		void AddSwitchId(string mappingEntryId);
-	}
-
-	internal interface IApiCoil
-	{
-		void AddCoilId(string mappingEntryId);
+		public Mappings(BinaryReader reader, string itemName) : this(new MappingsData(reader, itemName))
+		{
+		}
 	}
 }

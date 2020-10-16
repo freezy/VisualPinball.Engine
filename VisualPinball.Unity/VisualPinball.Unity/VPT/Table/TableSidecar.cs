@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.MappingConfig;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] public TableSerializedTextureContainer textures = new TableSerializedTextureContainer();
 		[HideInInspector] public CustomInfoTags customInfoTags;
 		[HideInInspector] public List<CollectionData> collections;
-		[HideInInspector] public List<MappingConfigData> mappingConfigs;
+		[HideInInspector] public MappingsData mappings;
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
 		[HideInInspector] public FlasherData[] flashers;

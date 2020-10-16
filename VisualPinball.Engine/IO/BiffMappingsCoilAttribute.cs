@@ -15,33 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using VisualPinball.Engine.VPT.MappingConfig;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.IO
 {
-	public class BiffMappingEntryAttribute : BiffAttribute
+	public class BiffMappingsCoilAttribute : BiffAttribute
 	{
-		public BiffMappingEntryAttribute(string name) : base(name) { }
+		public BiffMappingsCoilAttribute(string name) : base(name) { }
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			ParseValue(obj, reader, len, ReadMappingEntry);
+			ParseValue(obj, reader, len, ReadMappingsCoil);
 		}
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			WriteValue<TItem, MappingEntryData>(obj, writer, (w, v) => WriteMappingEntry(w, v, hashWriter), hashWriter, x => 0);
+			WriteValue<TItem, MappingsCoilData>(obj, writer, (w, v) => WriteMappingsCoil(w, v, hashWriter), hashWriter, x => 0);
 		}
 
-		private static void WriteMappingEntry(BinaryWriter writer, BiffData value, HashWriter hashWriter)
+		private static void WriteMappingsCoil(BinaryWriter writer, BiffData value, HashWriter hashWriter)
 		{
 			value.Write(writer, hashWriter);
 		}
 
-		private static MappingEntryData ReadMappingEntry(BinaryReader reader, int len)
+		private static MappingsCoilData ReadMappingsCoil(BinaryReader reader, int len)
 		{
-			return new MappingEntryData(reader);
+			return new MappingsCoilData(reader);
 		}
 	}
 }
