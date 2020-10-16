@@ -45,25 +45,12 @@ namespace VisualPinball.Unity
 		private TableApi _tableApi;
 		private BallManager _ballManager;
 
-		private FlipperApi _leftFlipper;
-		private FlipperApi _rightFlipper;
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
 			_tableApi = tableApi;
 			_ballManager = ballManager;
-
-			// flippers
-			_leftFlipper = _tableApi.Flipper("LeftFlipper")
-			             ?? _tableApi.Flipper("FlipperLeft")
-			             ?? _tableApi.Flipper("FlipperL")
-			             ?? _tableApi.Flipper("LFlipper");
-			_rightFlipper = _tableApi.Flipper("RightFlipper")
-			             ?? _tableApi.Flipper("FlipperRight")
-			             ?? _tableApi.Flipper("FlipperR")
-			             ?? _tableApi.Flipper("RFlipper");
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -81,25 +68,10 @@ namespace VisualPinball.Unity
 			switch (id) {
 
 				case SwLeftFlipper:
-
-					// todo remove when solenoids are done
-					if (normallyClosed) {
-						_leftFlipper?.RotateToEnd();
-					} else {
-						_leftFlipper?.RotateToStart();
-					}
 					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipper, normallyClosed));
 					break;
 
 				case SwRightFlipper:
-
-					// todo remove when solenoids are done
-					if (normallyClosed) {
-						_rightFlipper?.RotateToEnd();
-					} else {
-						_rightFlipper?.RotateToStart();
-					}
-
 					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipper, normallyClosed));
 					break;
 

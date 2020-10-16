@@ -23,7 +23,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		private BallManager _ballManager;
 
@@ -81,6 +81,14 @@ namespace VisualPinball.Unity
 			if (ballEntity != Entity.Null) {
 				_ballManager.DestroyEntity(ballEntity);
 				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
+			}
+		}
+
+		void IApiCoil.OnCoil(bool enabled)
+		{
+			if (enabled) {
+				// todo configure this somewhere!
+				Kick(0, 10);
 			}
 		}
 

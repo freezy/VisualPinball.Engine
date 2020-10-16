@@ -53,6 +53,6 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCoil
 	{
-		void AddCoilId(string mappingEntryId);
+		void OnCoil(bool enabled);
 	}
 }
