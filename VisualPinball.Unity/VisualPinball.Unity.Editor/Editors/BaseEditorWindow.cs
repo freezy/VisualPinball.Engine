@@ -37,6 +37,9 @@ namespace VisualPinball.Unity.Editor
 		private FieldInfo _searchFilterInfo;
 		private MethodInfo _searchFieldGUIInfo;
 
+		/// <summary>
+		/// This delegate will be called when the synchronized search filter is focused and Up or Down arrow is pressed
+		/// </summary>
 		public Action SyncSearchFieldDownOrUpArrowPressed;
 
 		/// <summary>
