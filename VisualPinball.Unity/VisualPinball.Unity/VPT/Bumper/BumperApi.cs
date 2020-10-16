@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 
 		/// <summary>
@@ -39,6 +39,11 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
+		void IApiCoil.OnCoil(bool enabled)
+		{
+			// bumper coils are currently triggered automatically on hit
+		}
+
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
@@ -53,6 +58,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
 	}
 }

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable
+		IApiRotatable, IApiCollidable, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -81,6 +81,15 @@ namespace VisualPinball.Unity
 		public void RotateToStart()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
+		}
+
+		void IApiCoil.OnCoil(bool enabled)
+		{
+			if (enabled) {
+				RotateToEnd();
+			} else {
+				RotateToStart();
+			}
 		}
 
 		#region Events
