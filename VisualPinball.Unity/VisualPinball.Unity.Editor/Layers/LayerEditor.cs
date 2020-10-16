@@ -22,6 +22,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.Dialogs;
+using VisualPinball.Unity.Editor.Utils;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -34,11 +35,10 @@ namespace VisualPinball.Unity.Editor
 	public class LayerEditor : LockingTableEditorWindow
 	{
 		/// <summary>
-		/// The search box control. <p/>
-		///
-		/// Forwards entered text to the tree view, which does its magic automatically and filters.
+		/// BaseEditorWindow overrides
 		/// </summary>
-		private SearchField _searchField;
+		protected override int SearchGroup => 0;
+		protected override HierarchyType HierarchyType => HierarchyType.GameObjects;
 
 		/// <summary>
 		/// Our extended TreeView control
@@ -61,16 +61,14 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<LayerEditor>();
 		}
 
-		private void OnEnable()
+		public override void OnEnable()
 		{
+			base.OnEnable();
+
 			titleContent = new GUIContent("Layer Manager", EditorGUIUtility.IconContent("ToggleUVOverlay").image);
 
 			if (_layerHandler == null) {
 				_layerHandler = new LayerHandler();
-			}
-
-			if (_searchField == null) {
-				_searchField = new SearchField();
 			}
 
 			_treeView = new LayerTreeView(_layerHandler.TreeRoot);
@@ -99,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 			// show context menu
 			_treeView.ItemContextClicked += OnContextClicked;
 
-			_searchField.downOrUpArrowKeyPressed += _treeView.SetFocusAndEnsureSelectedItem;
+			SyncSearchFieldDownOrUpArrowPressed += _treeView.SetFocusAndEnsureSelectedItem;
 
 			ItemInspector.ItemRenamed += _treeView.OnItemRenamed;
 
@@ -129,13 +127,14 @@ namespace VisualPinball.Unity.Editor
 			_layerHandler.AssignToLayer(obj, layerName);
 		}
 
-		private void OnDisable()
+		public override void OnDisable()
 		{
 			ItemInspector.ItemRenamed -= _treeView.OnItemRenamed;
 			SceneVisibilityManager.visibilityChanged -= OnVisibilityChanged;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 			ToolboxEditor.ItemCreated -= ToolBoxItemCreated;
 			Selection.selectionChanged -= SelectionChanged;
+			base.OnDisable();
 		}
 
 		private void OnGUI()
@@ -146,7 +145,8 @@ namespace VisualPinball.Unity.Editor
 				CreateNewLayerWithValidation(Event.current.mousePosition);
 				GUIUtility.ExitGUI();
 			}
-			_treeView.searchString = _searchField.OnGUI(_treeView.searchString);
+
+			_treeView.searchString = SyncSearchFieldGUI(position.width);
 			GUILayout.EndHorizontal();
 
 			EditorGUI.BeginChangeCheck();
