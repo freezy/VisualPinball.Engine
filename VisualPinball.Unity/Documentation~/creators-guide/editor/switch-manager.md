@@ -21,7 +21,7 @@ The first column **ID** shows the switch names that the gamelogic engine expects
 
 ### Description
 
-The **Description** column is an optional free text field. If you're setting up a re-creation, that's where you typically put what's in the game manual. It's purely for your own benefit  and you can keep this empty if you want.
+The **Description** column is an optional free text field. If you're setting up a re-creation, that's where you typically put what's in the game manual. It's purely for your own benefit and you can keep this empty if you want.
 
 ### Source
 
