@@ -2,7 +2,7 @@
 
 On a real pinball table, most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor) (also called [solenoids](https://en.wikipedia.org/wiki/Solenoid)). It's the job of the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) to trigger them when needed.
 
-On a typical table there are usually a dozen or so coils that need to be wired up to the controller board. In VPE, you can do that with the coil manager under *Visual Pinball -> Coil Manager*.
+On a typical table there are usually several coils that need to be wired up to the controller board. In VPE, you can do that with the coil manager under *Visual Pinball -> Coil Manager*.
 
 ![Coil Manager](coil-manager.png)
 
@@ -19,11 +19,11 @@ The first column **ID** shows the coil names that the gamelogic engine expects t
 
 ### Description
 
-The **Description** column is an optional free text field. If you're setting up a re-creation, that's where you typically put what's in the game manual. It's purely for your own benefit and you can keep this empty if you want.
+The **Description** column is an optional free text field. If you're setting up a re-creation, that's where you typically put what is in the game manual. It's purely for your own benefit, and you can keep this empty if you want.
 
 ### Destination
 
-The **Destination** column defines where the element in the next column is located. Currently, VPE only supports playfield items with one coil, but will in the future support devices with multiple coils, in which case those devices will also be listed here.
+The **Destination** column defines where the element in the next column is located. Currently, VPE only supports playfield items with one coil. In the future, VPE will support devices with multiple coils, which will also be listed here.
 
 ### Element
 
@@ -44,4 +44,4 @@ There are two modes in which a coil can be triggered:
 This column only applies to pulse coils, and defines the period of time the coil will stay under current. After that period expires, the coil will turn off.
 
 > [!note]
-> In most cases, the *Off* delay is not important. It means only the enable event is going to be used. But since VPE's coils all have a state, you can define how long it lasts here.
+> In most cases, the *Off* delay is not important. It means only the enable event is going to be used. However, since VPE's coils all have a state, you can define how long it lasts.
