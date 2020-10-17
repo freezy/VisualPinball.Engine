@@ -1,14 +1,14 @@
 # Coil Manager
 
-On a real pinball table, most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor), also called [solenoids](https://en.wikipedia.org/wiki/Solenoid). It's the job of the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) to trigger them when needed.
+On a real pinball table, most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor) (also called [solenoids](https://en.wikipedia.org/wiki/Solenoid)). It's the job of the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) to trigger them when needed.
 
-On a typical table there are usually a dozen or so coils that need to be wired up to the controller board. In VPE, you can do that with the coil manager under *Visual Pinball -> Coild Manager*.
+On a typical table there are usually a dozen or so coils that need to be wired up to the controller board. In VPE, you can do that with the coil manager under *Visual Pinball -> Coil Manager*.
 
-<image/>
+![Coil Manager](coil-manager.png)
 
 ## Setup
 
-Every row in the coil manager corresponds to a wire going from the gamelogic engine output to the coil. As with switches, a coil can be linked to multiple outputs, and an output can be linked to multiple coils.
+Every row in the coil manager corresponds to a wire going from the gamelogic engine output to the coil. Similar to switches, a coil can be linked to multiple outputs, and an output can be linked to multiple coils.
 
 ### IDs
 
