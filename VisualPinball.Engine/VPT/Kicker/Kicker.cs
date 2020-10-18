@@ -21,7 +21,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
-	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable, ISwitchable
+	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable, ISwitchable, ICoilable
 	{
 		public override string ItemType => "Kicker";
 

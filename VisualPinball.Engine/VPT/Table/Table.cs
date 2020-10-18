@@ -191,6 +191,12 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_spinners.Values)
 			.Concat(_triggers.Values);
 
+		public IEnumerable<ICoilable> Coilables => new ICoilable[0]
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_kickers.Values)
+			.Concat(_plungers.Values);
+
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {

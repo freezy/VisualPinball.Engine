@@ -16,7 +16,7 @@
 
 namespace VisualPinball.Engine.Game
 {
-	public interface ISwitchable
+	public interface ICoilable
 	{
 		string Name { get; }
 	}

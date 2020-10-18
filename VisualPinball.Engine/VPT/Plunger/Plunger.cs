@@ -20,7 +20,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
-	public class Plunger : Item<PlungerData>, IRenderable, IHittable
+	public class Plunger : Item<PlungerData>, IRenderable, IHittable, ICoilable
 	{
 		public override string ItemType => "Plunger";
 
