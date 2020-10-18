@@ -82,13 +82,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected override bool SetupCompleted()
 		{
-			if (_table == null)
+			if (_tableAuthoring == null)
 			{
 				DisplayMessage("No table set.");
 				return false;
 			}
 
-			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
 
 			if (gle == null)
 			{
@@ -109,14 +109,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
-				if (_table != null)
+				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all switch mappings");
 
 					foreach (var id in _ids)
 					{
 						var switchMapping =
-							_table.Mappings.Switches
+							_tableAuthoring.Mappings.Switches
 							.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
 
 						if (switchMapping == null) {
@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Editor
 
 							var source = GuessSource(id);
 
-							_table.Mappings.AddSwitch(new MappingsSwitchData {
+							_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData {
 								Id = id,
 								Source = source,
 								PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
@@ -148,11 +148,11 @@ namespace VisualPinball.Unity.Editor
 
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
-				if (_table != null)
+				if (_tableAuthoring != null)
 				{
 					if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
 						RecordUndo("Remove all switch mappings");
-						_table.Mappings.RemoveAllSwitches();
+						_tableAuthoring.Mappings.RemoveAllSwitches();
 					}
 					Reload();
 				}
@@ -205,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_table, data, cellRect, column, switchListData => {
+			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, switchListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
@@ -217,7 +217,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<SwitchListData> data = new List<SwitchListData>();
 
-			foreach (var mappingsSwitchData in _table.Mappings.Switches)
+			foreach (var mappingsSwitchData in _tableAuthoring.Mappings.Switches)
 			{
 				data.Add(new SwitchListData(mappingsSwitchData));
 			}
@@ -232,21 +232,21 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.AddSwitch(new MappingsSwitchData());
+			_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData());
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.RemoveSwitch(data.MappingsSwitchData);
+			_tableAuthoring.Mappings.RemoveSwitch(data.MappingsSwitchData);
 		}
 
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.AddSwitch(new MappingsSwitchData
+			_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData
 			{
 				Id = data.Id,
 				Description = data.Description,
@@ -278,9 +278,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			_switches.Clear();
 
-			if (_table != null)
+			if (_tableAuthoring != null)
 			{
-				foreach (var item in _table.GetComponentsInChildren<ISwitchAuthoring>())
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>())
 				{
 					_switches.Add(item.Name.ToLower(), item);
 				}
@@ -290,7 +290,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitchIds()
 		{
 			_ids.Clear();
-			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
 			if (gle != null) {
 				_ids.AddRange(((IGamelogicEngineWithSwitches)gle.GameEngine).AvailableSwitches);
 
@@ -299,7 +299,7 @@ namespace VisualPinball.Unity.Editor
 				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support switches.");
 			}
 
-			foreach (var mappingsSwitchData in _table.Mappings.Switches)
+			foreach (var mappingsSwitchData in _tableAuthoring.Mappings.Switches)
 			{
 				if (_ids.IndexOf(mappingsSwitchData.Id) == -1)
 				{
@@ -315,10 +315,10 @@ namespace VisualPinball.Unity.Editor
 		private void RestoreMappings()
 		{
 			if (_recordMappings == null) { return; }
-			if (_table == null) { return; }
-			if (_recordMappings.Table == _table)
+			if (_tableAuthoring == null) { return; }
+			if (_recordMappings.Table == _tableAuthoring)
 			{
-				_table.RestoreMappings(_recordMappings.Mappings);
+				_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
 			}
 		}
 
@@ -330,13 +330,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			if (_table == null) { return; }
+			if (_tableAuthoring == null) { return; }
 			if (_recordMappings == null)
 			{
 				_recordMappings = CreateInstance<SerializedMappings>();
 			}
-			_recordMappings.Table = _table;
-			_recordMappings.Mappings = _table.Mappings;
+			_recordMappings.Table = _tableAuthoring;
+			_recordMappings.Mappings = _tableAuthoring.Mappings;
 
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}

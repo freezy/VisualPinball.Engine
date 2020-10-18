@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 				ExportImageAsPng();
 			}
 
-			var unityTex = _table.GetTexture(_selectedItem.Name);
+			var unityTex = _tableAuthoring.GetTexture(_selectedItem.Name);
 			if (unityTex != null) {
 				var rect = GUILayoutUtility.GetRect(new GUIContent(""), GUIStyle.none);
 				float aspect = (float)unityTex.height / unityTex.width;
@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 
 			// give each editable item a chance to update its fields
 			string undoName = "Rename Image";
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				RenameReflectedFields(undoName, item, item.TextureRefs, oldName, newName);
 			}
 			RecordUndo(undoName, data.TextureData);
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 
 			// collect list of in use textures
 			List<string> inUseTextures = new List<string>();
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				var texRefs = item.TextureRefs;
 				if (texRefs == null) { continue; }
 				foreach (var texRef in texRefs) {
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			foreach (var t in _table.Textures) {
+			foreach (var t in _tableAuthoring.Textures) {
 				var texData = t.Data;
 				data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
 			}
@@ -120,19 +120,19 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected override void AddNewData(string undoName, string newName) {
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 
 			var newTex = new Engine.VPT.Texture(newName);
-			_table.Textures.Add(newTex);
-			_table.Item.Data.NumTextures = _table.Textures.Count;
+			_tableAuthoring.Textures.Add(newTex);
+			_tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
 		}
 
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 
-			_table.Textures.Remove(data.Name);
-			_table.Item.Data.NumTextures = _table.Textures.Count;
+			_tableAuthoring.Textures.Remove(data.Name);
+			_tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
 		}
 
 		private void OnDataChanged(string undoName, TextureData textureData)
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Editor
 			RecordUndo(undoName, textureData);
 
 			// update any items using this tex
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				if (IsReferenced(item.TextureRefs, item.ItemData, textureData.Name)) {
 					item.MeshDirty = true;
 					Undo.RecordObject(item as UnityEngine.Object, undoName);
@@ -150,10 +150,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName, TextureData textureData)
 		{
-			if (_table == null) { return; }
+			if (_tableAuthoring == null) { return; }
 
 			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _table.Textures.SerializedObjects) {
+			foreach (var tableTex in _tableAuthoring.Textures.SerializedObjects) {
 				if (tableTex.Data == textureData) {
 					Undo.RecordObject(tableTex, undoName);
 					break;
@@ -164,17 +164,17 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateAllImages()
 		{
 			int countFound = 0;
-			foreach (var t in _table.Textures) {
+			foreach (var t in _tableAuthoring.Textures) {
 				if (File.Exists(t.Data.Path)) {
 					countFound++;
 					ReplaceImageFromPath(t.Data, t.Data.Path);
 				}
 			}
-			Logger.Info($"Update all images complete. Found files for {countFound} / {_table.Textures.Count}");
+			Logger.Info($"Update all images complete. Found files for {countFound} / {_tableAuthoring.Textures.Count}");
 		}
 
 		private void ReplaceImageFromPath(TextureData textureData, string path) {
-			if (_table == null || textureData == null || string.IsNullOrEmpty(path)) { return; }
+			if (_tableAuthoring == null || textureData == null || string.IsNullOrEmpty(path)) { return; }
 
 			byte[] newBytes = null;
 			try {
@@ -186,8 +186,8 @@ namespace VisualPinball.Unity.Editor
 
 			string undoName = "Replace Image";
 
-			_table.MarkDirty<Engine.VPT.Texture>(textureData.Name);
-			Undo.RecordObject(_table, undoName);
+			_tableAuthoring.MarkDirty<Engine.VPT.Texture>(textureData.Name);
+			Undo.RecordObject(_tableAuthoring, undoName);
 			OnDataChanged(undoName, textureData);
 
 			textureData.Binary.Data = newBytes;
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity.Editor
 			textureData.Path = path;
 
 			// update size values assuming we loaded alright
-			var unityTex = _table.GetTexture(textureData.Name);
+			var unityTex = _tableAuthoring.GetTexture(textureData.Name);
 			if (unityTex != null) {
 				textureData.Width = unityTex.width;
 				textureData.Height = unityTex.height;
@@ -212,9 +212,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExportImage()
 		{
-			if (_table == null || _selectedItem == null) { return; }
+			if (_tableAuthoring == null || _selectedItem == null) { return; }
 
-			var unityTex = _table.GetTexture(_selectedItem.TextureData.Name);
+			var unityTex = _tableAuthoring.GetTexture(_selectedItem.TextureData.Name);
 			if (unityTex != null) {
 				string fileExt = Path.GetExtension(_selectedItem.TextureData.Path).TrimStart('.');
 				if (string.IsNullOrEmpty(fileExt)) {
@@ -230,9 +230,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExportImageAsPng()
 		{
-			if (_table == null || _selectedItem == null) { return; }
+			if (_tableAuthoring == null || _selectedItem == null) { return; }
 
-			var unityTex = _table.GetTexture(_selectedItem.TextureData.Name);
+			var unityTex = _tableAuthoring.GetTexture(_selectedItem.TextureData.Name);
 			if (unityTex != null) {
 				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, "png", "Export Image");
 				if (!string.IsNullOrEmpty(savePath)) {

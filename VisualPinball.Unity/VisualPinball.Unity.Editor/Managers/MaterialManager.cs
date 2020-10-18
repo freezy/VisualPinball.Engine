@@ -60,10 +60,10 @@ namespace VisualPinball.Unity.Editor
 
 			// give each editable item a chance to update its fields
 			string undoName = "Rename Material";
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				RenameReflectedFields(undoName, item, item.MaterialRefs, oldName, newName);
 			}
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 
 			data.Material.Name = newName;
 		}
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 			// collect list of in use materials
 			List<string> inUseMaterials = new List<string>();
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				var matRefs = item.MaterialRefs;
 				if (matRefs == null) { continue; }
 				foreach (var matRef in matRefs) {
@@ -86,8 +86,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// get row data for each material
-			for (int i = 0; i < _table.Item.Data.Materials.Length; i++) {
-				var mat = _table.Item.Data.Materials[i];
+			for (int i = 0; i < _tableAuthoring.Item.Data.Materials.Length; i++) {
+				var mat = _tableAuthoring.Item.Data.Materials[i];
 				data.Add(new MaterialListData { Material = mat, InUse = inUseMaterials.Contains(mat.Name) });
 			}
 
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnDataChanged(string undoName, MaterialListData data)
 		{
-			foreach (var item in _table.GetComponentsInChildren<IEditableItemAuthoring>()) {
+			foreach (var item in _tableAuthoring.GetComponentsInChildren<IEditableItemAuthoring>()) {
 				if (IsReferenced(item.MaterialRefs, item.ItemData, data.Material.Name)) {
 					item.MeshDirty = true;
 					Undo.RecordObject(item as Object, undoName);
@@ -152,20 +152,20 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			var newMat = new Engine.VPT.Material(newName);
-			_table.data.Materials = _table.data.Materials.Append(newMat).ToArray();
-			_table.data.NumMaterials = _table.data.Materials.Length;
+			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Append(newMat).ToArray();
+			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
 		}
 
 		protected override void RemoveData(string undoName, MaterialListData data) {
-			_table.data.Materials = _table.data.Materials.Where(m => m != data.Material).ToArray();
-			_table.data.NumMaterials = _table.data.Materials.Length;
+			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Where(m => m != data.Material).ToArray();
+			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
 		}
 
 		protected override void CloneData(string undoName, string newName, MaterialListData data)
 		{
 			var newMat = data.Material.Clone(newName);
-			_table.data.Materials = _table.data.Materials.Append(newMat).ToArray();
-			_table.data.NumMaterials = _table.data.Materials.Length;
+			_tableAuthoring.data.Materials = _tableAuthoring.data.Materials.Append(newMat).ToArray();
+			_tableAuthoring.data.NumMaterials = _tableAuthoring.data.Materials.Length;
 		}
 	}
 }
