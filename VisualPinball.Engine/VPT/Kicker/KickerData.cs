@@ -83,6 +83,16 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
+		// -----------------
+		// new fields by VPE
+		// -----------------
+
+		[BiffFloat("ANGL", Pos = 16)]
+		public float Angle = 90f;
+
+		[BiffFloat("SPED", Pos = 17)]
+		public float Speed = 3f;
+
 		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

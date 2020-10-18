@@ -78,6 +78,8 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Scatter Angle", ref _kicker.data.Scatter, dirtyMesh: false);
 				ItemDataField("Hit Accuracy", ref _kicker.data.HitAccuracy, dirtyMesh: false);
 				ItemDataField("Hit Height", ref _kicker.data.HitHeight, dirtyMesh: false);
+				ItemDataField("Default Angle", ref _kicker.data.Angle, dirtyMesh: false);
+				ItemDataField("Default Speed", ref _kicker.data.Speed, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
