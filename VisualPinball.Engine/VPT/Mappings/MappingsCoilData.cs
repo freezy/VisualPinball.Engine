@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public string DeviceItem = string.Empty;
 
 		[BiffInt("CTYP", Pos = 7)]
-		public int Type = CoilType.OnOff;
+		public int Type = CoilType.SingleWound;
 
 		[BiffString("HCID", IsWideString = true, Pos = 8)]
 		public string HoldCoilId = string.Empty;
