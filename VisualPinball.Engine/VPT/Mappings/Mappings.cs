@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -59,17 +60,17 @@ namespace VisualPinball.Engine.VPT.Mappings
 						? switches[matchKey]
 						: null;
 
-					var source = GuessSource(id);
-
+					var description = GuessDescription(id);
 					Data.AddSwitch(new MappingsSwitchData {
 						Id = id,
-						Source = source,
+						Description = description,
+						Source = description == string.Empty ? SwitchSource.Playfield : SwitchSource.InputSystem,
 						PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
-						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || source == SwitchSource.InputSystem
+						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || description == string.Empty
 							? SwitchType.OnOff
 							: SwitchType.Pulse,
 						InputActionMap = GuessInputMap(id),
-						InputAction = source == SwitchSource.InputSystem ? GuessInputAction(id) : null,
+						InputAction = description != string.Empty ? GuessInputAction(id) : null,
 					});
 				}
 			}
@@ -100,22 +101,22 @@ namespace VisualPinball.Engine.VPT.Mappings
 			return ids;
 		}
 
-		private int GuessSource(string switchId)
+		private string GuessDescription(string switchId)
 		{
 			if (switchId.Contains("left_flipper")) {
-				return SwitchSource.InputSystem;
+				return "Left Flipper";
 			}
 			if (switchId.Contains("right_flipper")) {
-				return SwitchSource.InputSystem;
+				return "Right Flipper";
 			}
 			if (switchId.Contains("create_ball")) {
-				return SwitchSource.InputSystem;
+				return "Create Ball";
 			}
 			if (switchId.Contains("plunger")) {
-				return SwitchSource.InputSystem;
+				return "Plunger";
 			}
 
-			return SwitchSource.Playfield;
+			return string.Empty;
 		}
 
 		private string GuessInputMap(string switchId)
