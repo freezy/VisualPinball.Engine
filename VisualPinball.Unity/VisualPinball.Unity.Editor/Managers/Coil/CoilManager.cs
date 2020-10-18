@@ -187,7 +187,8 @@ namespace VisualPinball.Unity.Editor
 				PlayfieldItem = data.PlayfieldItem,
 				Device = data.Device,
 				DeviceItem = data.DeviceItem,
-				Type = data.Type
+				Type = data.Type,
+				HoldCoilId = data.HoldCoilId
 			});
 		}
 		#endregion
@@ -236,6 +237,10 @@ namespace VisualPinball.Unity.Editor
 				{
 					_ids.Add(mappingsCoilData.Id);
 				}
+				if (_ids.IndexOf(mappingsCoilData.HoldCoilId) == -1)
+				{
+					_ids.Add(mappingsCoilData.HoldCoilId);
+				}
 			}
 
 			_ids.Sort();
@@ -268,7 +273,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_recordMappings.Table = _table;
 			_recordMappings.Mappings = _table.Mappings;
-			
+
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion

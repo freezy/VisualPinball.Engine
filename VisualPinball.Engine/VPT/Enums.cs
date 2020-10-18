@@ -167,5 +167,6 @@ namespace VisualPinball.Engine.VPT
 	public static class CoilType
 	{
 		public const int OnOff = 0;
+		public const int DualWound = 1;
 	}
 }

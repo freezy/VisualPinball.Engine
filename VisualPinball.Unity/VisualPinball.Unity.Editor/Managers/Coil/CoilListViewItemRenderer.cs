@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	public class CoilListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield" };
-		private readonly string[] OPTIONS_COIL_TYPE = { "On \u2215 Off" };
+		private readonly string[] OPTIONS_COIL_TYPE = { "On \u2215 Off", "Dual-Wound" };
 
 		private enum CoilListColumn
 		{
@@ -34,7 +34,8 @@ namespace VisualPinball.Unity.Editor
 			Description = 1,
 			Destination = 2,
 			Element = 3,
-			Type = 4
+			Type = 4,
+			HoldCoilId = 5,
 		}
 
 		private readonly List<string> _ids;
@@ -53,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 			switch ((CoilListColumn)column)
 			{
 				case CoilListColumn.Id:
-					RenderId(data, cellRect, updateAction);
+					RenderId(ref data.Id, id => data.Id = id, data, cellRect, updateAction);
 					break;
 				case CoilListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -67,10 +68,15 @@ namespace VisualPinball.Unity.Editor
 				case CoilListColumn.Type:
 					RenderType(data, cellRect, updateAction);
 					break;
+				case CoilListColumn.HoldCoilId:
+					if (data.Type == CoilType.DualWound) {
+						RenderId(ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
+					}
+					break;
 			}
 		}
 
-		private void RenderId(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		private void RenderId(ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			// add some padding
 			cellRect.x += 2;
@@ -78,35 +84,27 @@ namespace VisualPinball.Unity.Editor
 
 			var options = new List<string>(_ids);
 
-			if (options.Count > 0)
-			{
+			if (options.Count > 0) {
 				options.Add("");
 			}
 
 			options.Add("Add...");
 
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(coilListData.Id), options.ToArray());
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (index == options.Count - 1)
-				{
-					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", (newId) =>
-					{
-						if (_ids.IndexOf(newId) == -1)
-						{
+			var index = EditorGUI.Popup(cellRect, options.IndexOf(id), options.ToArray());
+			if (EditorGUI.EndChangeCheck()) {
+				if (index == options.Count - 1) {
+					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
+						if (_ids.IndexOf(newId) == -1) {
 							_ids.Add(newId);
 						}
 
-						coilListData.Id = newId;
-
+						setId(newId);
 						updateAction(coilListData);
 					}));
-				}
-				else
-				{
-					coilListData.Id = _ids[index];
 
+				} else {
+					setId(_ids[index]);
 					updateAction(coilListData);
 				}
 			}
