@@ -17,6 +17,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Mappings
 {
@@ -36,9 +38,126 @@ namespace VisualPinball.Engine.VPT.Mappings
 		{
 		}
 
+		#region Switch Population
+
+		public void PopulateSwitches(string[] engineSwitches, IEnumerable<ISwitchable> tableSwitches)
+		{
+			var switches = tableSwitches
+				.GroupBy(x => x.Name.ToLower())
+				.ToDictionary(x => x.Key, x => x.First());
+
+			foreach (var id in GetSwitchIds(engineSwitches))
+			{
+				var switchMapping = Data.Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
+
+				if (switchMapping == null) {
+					var matchKey = int.TryParse(id, out var numericSwitchId)
+						? $"sw{numericSwitchId}"
+						: id;
+
+					var matchedItem = switches.ContainsKey(matchKey)
+						? switches[matchKey]
+						: null;
+
+					var source = GuessSource(id);
+
+					Data.AddSwitch(new MappingsSwitchData {
+						Id = id,
+						Source = source,
+						PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
+						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || source == SwitchSource.InputSystem
+							? SwitchType.OnOff
+							: SwitchType.Pulse,
+						InputActionMap = GuessInputMap(id),
+						InputAction = source == SwitchSource.InputSystem ? GuessInputAction(id) : null,
+					});
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// Returns a sorted list of switch names from the gamelogic engine,
+		/// appended with the additional names in the switch mapping. In short,
+		/// the list of switch names to choose from.
+		/// </summary>
+		/// <param name="engineSwitches">Switch names provided by the gamelogic engine</param>
+		/// <returns>All switch names</returns>
+		public IEnumerable<string> GetSwitchIds(string[] engineSwitches)
+		{
+			var ids = new List<string>();
+			if (engineSwitches != null) {
+				ids.AddRange(engineSwitches);
+			}
+
+			foreach (var mappingsSwitchData in Data.Switches) {
+				if (ids.IndexOf(mappingsSwitchData.Id) == -1) {
+					ids.Add(mappingsSwitchData.Id);
+				}
+			}
+			ids.Sort();
+
+			return ids;
+		}
+
+		private int GuessSource(string switchId)
+		{
+			if (switchId.Contains("left_flipper")) {
+				return SwitchSource.InputSystem;
+			}
+			if (switchId.Contains("right_flipper")) {
+				return SwitchSource.InputSystem;
+			}
+			if (switchId.Contains("create_ball")) {
+				return SwitchSource.InputSystem;
+			}
+			if (switchId.Contains("plunger")) {
+				return SwitchSource.InputSystem;
+			}
+
+			return SwitchSource.Playfield;
+		}
+
+		private string GuessInputMap(string switchId)
+		{
+			if (switchId.Contains("create_ball")) {
+				return InputConstants.MapDebug;
+			}
+			return InputConstants.MapCabinetSwitches;
+		}
+
+		private string GuessInputAction(string switchId)
+		{
+			if (switchId.Contains("left_flipper")) {
+				return InputConstants.ActionLeftFlipper;
+			}
+			if (switchId.Contains("right_flipper")) {
+				return InputConstants.ActionRightFlipper;
+			}
+			if (switchId.Contains("create_ball")) {
+				return InputConstants.ActionCreateBall;
+			}
+			if (switchId.Contains("plunger")) {
+				return InputConstants.ActionPlunger;
+			}
+
+			return string.Empty;
+		}
+
+
+		#endregion
+
+		#region Coil Population
+
+		/// <summary>
+		/// Auto-matches the coils provided by the gamelogic engine with the
+		/// coils on the playfield.
+		/// </summary>
+		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
+		/// <param name="tableCoils">List of coils on the playfield</param>
 		public void PopulateCoils(string[] engineCoils, ICollection<string> tableCoils)
 		{
-			foreach (var id in GetIds(engineCoils)) {
+			foreach (var id in GetCoilIds(engineCoils)) {
 
 				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == id);
 				if (coilMapping == null) {
@@ -72,21 +191,18 @@ namespace VisualPinball.Engine.VPT.Mappings
 			}
 		}
 
-		private static string FindCoil(ICollection<string> coils, params string[] names)
-		{
-			foreach (var itemName in names) {
-				if (coils.Contains(itemName.ToLower())) {
-					return itemName;
-				}
-			}
-			return string.Empty;
-		}
-
-		public IEnumerable<string> GetIds(string[] availableCoils)
+		/// <summary>
+		/// Returns a sorted list of coil names from the gamelogic engine,
+		/// appended with the additional names in the coil mapping. In short,
+		/// the list of coil names to choose from.
+		/// </summary>
+		/// <param name="engineCoils">Coil names provided by the gamelogic engine</param>
+		/// <returns>All coil names</returns>
+		public IEnumerable<string> GetCoilIds(string[] engineCoils)
 		{
 			var ids = new List<string>();
-			if (availableCoils != null) {
-				ids.AddRange(availableCoils);
+			if (engineCoils != null) {
+				ids.AddRange(engineCoils);
 			}
 
 			foreach (var mappingsCoilData in Data.Coils) {
@@ -101,5 +217,17 @@ namespace VisualPinball.Engine.VPT.Mappings
 			ids.Sort();
 			return ids;
 		}
+
+		private static string FindCoil(ICollection<string> coils, params string[] names)
+		{
+			foreach (var itemName in names) {
+				if (coils.Contains(itemName.ToLower())) {
+					return itemName;
+				}
+			}
+			return string.Empty;
+		}
+
+		#endregion
 	}
 }

@@ -22,7 +22,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Gate
 {
-	public class Gate : Item<GateData>, IRenderable, IHittable
+	public class Gate : Item<GateData>, IRenderable, IHittable, ISwitchable
 	{
 		public override string ItemType => "Gate";
 

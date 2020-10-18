@@ -20,7 +20,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
-	public class Bumper : Item<BumperData>, IRenderable, IHittable
+	public class Bumper : Item<BumperData>, IRenderable, IHittable, ISwitchable
 	{
 		public override string ItemType => "Bumper";
 

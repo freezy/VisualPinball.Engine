@@ -21,7 +21,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Trigger
 {
-	public class Trigger : Item<TriggerData>, IRenderable, IHittable
+	public class Trigger : Item<TriggerData>, IRenderable, IHittable, ISwitchable
 	{
 		public override string ItemType => "Trigger";
 
