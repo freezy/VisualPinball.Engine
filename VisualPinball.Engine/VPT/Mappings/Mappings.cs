@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace VisualPinball.Engine.VPT.Mappings
 {
@@ -32,6 +34,72 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		public Mappings(BinaryReader reader, string itemName) : this(new MappingsData(reader, itemName))
 		{
+		}
+
+		public void PopulateCoils(string[] engineCoils, ICollection<string> tableCoils)
+		{
+			foreach (var id in GetIds(engineCoils)) {
+
+				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == id);
+				if (coilMapping == null) {
+					var itemName = string.Empty;
+					var description = string.Empty;
+					switch (id) {
+						case "c_left_flipper":
+							itemName = FindCoil(tableCoils, "LeftFlipper", "FlipperLeft", "FlipperL", "LFlipper");
+							description = "Left Flipper";
+							break;
+
+						case "c_right_flipper":
+							itemName = FindCoil(tableCoils, "RightFlipper", "FlipperRight", "FlipperR", "RFlipper");
+							description = "Right Flipper";
+							break;
+
+						case "c_auto_plunger":
+							itemName = FindCoil(tableCoils, "Plunger");
+							description = "Plunger";
+							break;
+					}
+
+					Data.AddCoil(new MappingsCoilData {
+						Id = id,
+						Description = description,
+						Destination = CoilDestination.Playfield,
+						PlayfieldItem = itemName,
+						Type = CoilType.SingleWound
+					});
+				}
+			}
+		}
+
+		private static string FindCoil(ICollection<string> coils, params string[] names)
+		{
+			foreach (var itemName in names) {
+				if (coils.Contains(itemName.ToLower())) {
+					return itemName;
+				}
+			}
+			return string.Empty;
+		}
+
+		public IEnumerable<string> GetIds(string[] availableCoils)
+		{
+			var ids = new List<string>();
+			if (availableCoils != null) {
+				ids.AddRange(availableCoils);
+			}
+
+			foreach (var mappingsCoilData in Data.Coils) {
+				if (ids.IndexOf(mappingsCoilData.Id) == -1) {
+					ids.Add(mappingsCoilData.Id);
+				}
+				if (ids.IndexOf(mappingsCoilData.HoldCoilId) == -1) {
+					ids.Add(mappingsCoilData.HoldCoilId);
+				}
+			}
+
+			ids.Sort();
+			return ids;
 		}
 	}
 }

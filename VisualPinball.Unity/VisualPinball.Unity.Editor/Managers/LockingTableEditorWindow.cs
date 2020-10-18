@@ -5,7 +5,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public abstract class LockingTableEditorWindow : EditorWindow
 	{
-		protected TableAuthoring _table;
+		protected TableAuthoring _tableAuthoring;
 		private GUIStyle _lockButtonStyle;
 		private bool _windowLocked = false;
 
@@ -14,7 +14,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnHierarchyChange()
 		{
 			// if we don't have a table, look for one when stuff in the scene changes
-			if (_table == null) {
+			if (_tableAuthoring == null) {
 				FindTable();
 			}
 		}
@@ -58,10 +58,10 @@ namespace VisualPinball.Unity.Editor
 		protected void FindTable()
 		{
 			SetTableFromSelection();
-			if (_table == null) {
+			if (_tableAuthoring == null) {
 				// nothing was selected, just use the first found table
-				_table = FindObjectOfType<TableAuthoring>();
-				SetTable(_table);
+				_tableAuthoring = FindObjectOfType<TableAuthoring>();
+				SetTable(_tableAuthoring);
 			}
 		}
 
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 			// check to see if the selection's table is different from the current one being used by this manager
 			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
 			if (selectedTable != null) {
-				_table = selectedTable;
+				_tableAuthoring = selectedTable;
 				SetTable(selectedTable);
 			}
 		}

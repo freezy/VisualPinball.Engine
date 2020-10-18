@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ToolBoxItemCreated(GameObject obj)
 		{
-			if (obj.GetComponentInParent<TableAuthoring>() != _table) {
+			if (obj.GetComponentInParent<TableAuthoring>() != _tableAuthoring) {
 				// don't assign to a layer that's not part if this table
 				return;
 			}

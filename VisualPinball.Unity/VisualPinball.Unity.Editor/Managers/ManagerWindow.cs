@@ -79,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void Reload()
 		{
-			if (_table != null) {
+			if (_tableAuthoring != null) {
 				_data = CollectData();
 				_listView.SetData(_data);
 			}
@@ -107,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnGUI()
 		{
 			// if the table went away, clear the selected material and list data
-			if (_table == null) {
+			if (_tableAuthoring == null) {
 				_selectedItem = null;
 				_listView?.SetData(null);
 			}
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				if (moveIncrement != 0) {
 					string undoName = "Move " + DataTypeName;
-					Undo.RecordObjects(new Object[] { this, _table }, undoName);
+					Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 					int newIdx = MoveData(undoName, _selectedItem, moveIncrement);
 					SetSelection(newIdx);
 					Reload();
@@ -247,7 +247,7 @@ namespace VisualPinball.Unity.Editor
 			string newDataName = GetUniqueName("New " + DataTypeName);
 			string undoName = "Add " + DataTypeName;
 			_forceSelectItemWithName = newDataName;
-			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 			AddNewData(undoName, newDataName);
 			Reload();
 			SetSelection(_data.Count - 1);
@@ -258,7 +258,7 @@ namespace VisualPinball.Unity.Editor
 			string newDataName = GetUniqueName(_selectedItem.Name);
 			string undoName = "Clone " + DataTypeName + ": " + _selectedItem.Name;
 			_forceSelectItemWithName = newDataName;
-			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 			CloneData(undoName, newDataName, _selectedItem);
 			Reload();
 			SetSelection(_data.Count - 1);
@@ -267,7 +267,7 @@ namespace VisualPinball.Unity.Editor
 		private void Delete(List<T> selectedData)
 		{
 			string undoName = "Remove " + DataTypeName;
-			Undo.RecordObjects(new Object[] { this, _table }, undoName);
+			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 
 			foreach( T data in selectedData)
 			{
@@ -351,7 +351,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			string undoName = "Edit " + DataTypeName + ": " + label;
 			OnDataChanged(undoName, _selectedItem);
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 			field = val;
 			SceneView.RepaintAll();
 		}
@@ -410,7 +410,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void SetTable(TableAuthoring table)
 		{
 			_data.Clear();
-			if (_table != null) {
+			if (_tableAuthoring != null) {
 				_data = CollectData();
 			}
 

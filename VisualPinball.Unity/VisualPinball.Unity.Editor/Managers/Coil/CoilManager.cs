@@ -75,13 +75,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected override bool SetupCompleted()
 		{
-			if (_table == null)
+			if (_tableAuthoring == null)
 			{
 				DisplayMessage("No table set.");
 				return false;
 			}
 
-			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
 
 			if (gle == null)
 			{
@@ -92,70 +92,25 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		private string FindCoil(params string[] names)
-		{
-			foreach (var itemName in names) {
-				if (_coils.ContainsKey(itemName.ToLower())) {
-					return itemName;
-				}
-			}
-			return string.Empty;
-		}
-
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
-				if (_table != null)
+				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all coil mappings");
-
-					foreach (var id in _ids) {
-
-						var coilMapping =
-							_table.Mappings.Coils
-							.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == id);
-
-						if (coilMapping == null) {
-							var itemName = string.Empty;
-							var description = string.Empty;
-							switch (id) {
-								case "c_left_flipper":
-									itemName = FindCoil("LeftFlipper", "FlipperLeft", "FlipperL", "LFlipper");
-									description = "Left Flipper";
-									break;
-
-								case "c_right_flipper":
-									itemName = FindCoil("RightFlipper", "FlipperRight", "FlipperR", "RFlipper");
-									description = "Right Flipper";
-									break;
-
-								case "c_auto_plunger":
-									itemName = FindCoil("Plunger");
-									description = "Plunger";
-									break;
-							}
-
-							_table.Mappings.AddCoil(new MappingsCoilData {
-								Id = id,
-								Description = description,
-								Destination = CoilDestination.Playfield,
-								PlayfieldItem = itemName,
-								Type = CoilType.SingleWound
-							});
-						}
-					}
+					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _coils.Keys);
 					Reload();
 				}
 			}
 
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
-				if (_table != null)
+				if (_tableAuthoring != null)
 				{
 					if (EditorUtility.DisplayDialog("Coil Manager", "Are you sure want to remove all coil mappings?", "Yes", "Cancel")) {
 						RecordUndo("Remove all coil mappings");
-						_table.Mappings.RemoveAllCoils();
+						_tableAuthoring.Mappings.RemoveAllCoils();
 					}
 					Reload();
 				}
@@ -164,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(CoilListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_table, data, cellRect, column, coilListData => {
+			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, coilListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				coilListData.Update();
@@ -176,7 +131,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<CoilListData> data = new List<CoilListData>();
 
-			foreach (var mappingsCoilData in _table.Mappings.Coils)
+			foreach (var mappingsCoilData in _tableAuthoring.Mappings.Coils)
 			{
 				data.Add(new CoilListData(mappingsCoilData));
 			}
@@ -191,21 +146,21 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.AddCoil(new MappingsCoilData());
+			_tableAuthoring.Mappings.AddCoil(new MappingsCoilData());
 		}
 
 		protected override void RemoveData(string undoName, CoilListData data)
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.RemoveCoil(data.MappingsCoilData);
+			_tableAuthoring.Mappings.RemoveCoil(data.MappingsCoilData);
 		}
 
 		protected override void CloneData(string undoName, string newName, CoilListData data)
 		{
 			RecordUndo(undoName);
 
-			_table.Mappings.AddCoil(new MappingsCoilData
+			_tableAuthoring.Mappings.AddCoil(new MappingsCoilData
 			{
 				Id = data.Id,
 				Description = data.Description,
@@ -236,9 +191,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			_coils.Clear();
 
-			if (_table != null)
+			if (_tableAuthoring != null)
 			{
-				foreach (var item in _table.GetComponentsInChildren<ICoilAuthoring>())
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>())
 				{
 					_coils.Add(item.Name.ToLower(), item);
 				}
@@ -248,28 +203,13 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_ids.Clear();
-			var gle = _table.gameObject.GetComponent<IGameEngineAuthoring>();
-			if (gle != null) {
-				_ids.AddRange(((IGamelogicEngineWithCoils)gle.GameEngine).AvailableCoils);
+			_ids.AddRange(_tableAuthoring.Table.Mappings.GetIds(GetAvailableEngineCoils()));
+		}
 
-			} else {
-				// todo show this in the editor window along with instructions.
-				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support coils.");
-			}
-
-			foreach (var mappingsCoilData in _table.Mappings.Coils)
-			{
-				if (_ids.IndexOf(mappingsCoilData.Id) == -1)
-				{
-					_ids.Add(mappingsCoilData.Id);
-				}
-				if (_ids.IndexOf(mappingsCoilData.HoldCoilId) == -1)
-				{
-					_ids.Add(mappingsCoilData.HoldCoilId);
-				}
-			}
-
-			_ids.Sort();
+		private string[] GetAvailableEngineCoils()
+		{
+			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
+			return gle == null ? new string[0] : ((IGamelogicEngineWithCoils) gle.GameEngine).AvailableCoils;
 		}
 		#endregion
 
@@ -277,10 +217,10 @@ namespace VisualPinball.Unity.Editor
 		private void RestoreMappings()
 		{
 			if (_recordMappings == null) { return; }
-			if (_table == null) { return; }
-			if (_recordMappings.Table == _table)
+			if (_tableAuthoring == null) { return; }
+			if (_recordMappings.Table == _tableAuthoring)
 			{
-				_table.RestoreMappings(_recordMappings.Mappings);
+				_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
 			}
 		}
 
@@ -292,13 +232,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			if (_table == null) { return; }
+			if (_tableAuthoring == null) { return; }
 			if (_recordMappings == null)
 			{
 				_recordMappings = CreateInstance<SerializedMappings>();
 			}
-			_recordMappings.Table = _table;
-			_recordMappings.Mappings = _table.Mappings;
+			_recordMappings.Table = _tableAuthoring;
+			_recordMappings.Mappings = _tableAuthoring.Mappings;
 
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}

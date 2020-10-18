@@ -75,11 +75,11 @@ namespace VisualPinball.Unity.Editor
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
 
-			if (_table == null) {
+			if (_tableAuthoring == null) {
 				return;
 			}
 
-			GUILayout.Label(_table.name);
+			GUILayout.Label(_tableAuthoring.name);
 
 			var iconSize = position.width / 2f - 4.5f;
 			var buttonStyle = new GUIStyle(GUI.skin.button) {
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var table = _table.Table;
+			var table = _tableAuthoring.Table;
 			var item = create(table);
 			table.Add(item, true);
 			Selection.activeGameObject = CreateRenderable(item as IRenderable);
@@ -184,8 +184,8 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			var rog = renderable.GetRenderObjects(_table.Table, Origin.Original, false);
-			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(_table, rog), _table, out var obj);
+			var rog = renderable.GetRenderObjects(_tableAuthoring.Table, Origin.Original, false);
+			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(_tableAuthoring, rog), _tableAuthoring, out var obj);
 			return obj;
 		}
 
