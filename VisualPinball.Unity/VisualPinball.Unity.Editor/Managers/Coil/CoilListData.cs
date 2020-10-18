@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class CoilListData : IManagerListData
 	{
-		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 120)]
+		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 135)]
 		public string Name => Id;
 
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
@@ -32,8 +32,11 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
 		public string Element;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
+		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
 		public int Type;
+
+		[ManagerListColumn(Order = 6, HeaderName = "Hold Coil", Width = 135)]
+		public string HoldCoilId;
 
 		public string Id;
 		public string PlayfieldItem;
@@ -50,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 			Device = mappingsCoilData.Device;
 			DeviceItem = mappingsCoilData.DeviceItem;
 			Type = mappingsCoilData.Type;
+			HoldCoilId = mappingsCoilData.HoldCoilId;
 
 			MappingsCoilData = mappingsCoilData;
 		}
@@ -63,6 +67,7 @@ namespace VisualPinball.Unity.Editor
 			MappingsCoilData.Device = Device;
 			MappingsCoilData.DeviceItem = DeviceItem;
 			MappingsCoilData.Type = Type;
+			MappingsCoilData.HoldCoilId = HoldCoilId;
 		}
 	}
 }
