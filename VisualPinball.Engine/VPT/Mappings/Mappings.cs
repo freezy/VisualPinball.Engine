@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,6 +36,13 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		public Mappings(BinaryReader reader, string itemName) : this(new MappingsData(reader, itemName))
 		{
+		}
+
+
+		public bool IsEmpty()
+		{
+			return (Data.Coils == null || Data.Coils.Length == 0)
+				&& (Data.Switches == null || Data.Switches.Length == 0);
 		}
 
 		#region Switch Population

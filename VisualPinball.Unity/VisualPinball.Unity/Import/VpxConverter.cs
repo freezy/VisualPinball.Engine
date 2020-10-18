@@ -114,8 +114,10 @@ namespace VisualPinball.Unity
 			var dga = go.AddComponent<DefaultGameEngineAuthoring>();
 
 			// populate mappings
-			_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
-			_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables.Select(c => c.Name.ToLower()).ToList());
+			if (_table.Mappings.IsEmpty()) {
+				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
+				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables.Select(c => c.Name.ToLower()).ToList());
+			}
 		}
 
 		public static GameObject ConvertRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
