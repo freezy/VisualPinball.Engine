@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	public class CoilListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield" };
-		private readonly string[] OPTIONS_COIL_TYPE = { "On \u2215 Off", "Pulse" };
+		private readonly string[] OPTIONS_COIL_TYPE = { "On \u2215 Off" };
 
 		private enum CoilListColumn
 		{
@@ -34,8 +34,7 @@ namespace VisualPinball.Unity.Editor
 			Description = 1,
 			Destination = 2,
 			Element = 3,
-			Type = 4,
-			Off = 5
+			Type = 4
 		}
 
 		private readonly List<string> _ids;
@@ -67,9 +66,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case CoilListColumn.Type:
 					RenderType(data, cellRect, updateAction);
-					break;
-				case CoilListColumn.Off:
-					RenderOff(data, cellRect, updateAction);
 					break;
 			}
 		}
@@ -198,32 +194,6 @@ namespace VisualPinball.Unity.Editor
 				{
 					coilListData.Type = index;
 					updateAction(coilListData);
-				}
-			}
-		}
-
-		private void RenderOff(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			if ( coilListData.Destination == CoilDestination.Playfield)
-			{
-				if (coilListData.Type == CoilType.Pulse)
-				{
-					var labelRect = cellRect;
-					labelRect.x += labelRect.width - 20;
-					labelRect.width = 20;
-
-					var intFieldRect = cellRect;
-					intFieldRect.width -= 25;
-
-					EditorGUI.BeginChangeCheck();
-					var pulse = EditorGUI.IntField(intFieldRect, coilListData.Pulse);
-					if (EditorGUI.EndChangeCheck())
-					{
-						coilListData.Pulse = pulse;
-						updateAction(coilListData);
-					}
-
-					EditorGUI.LabelField(labelRect, "ms");
 				}
 			}
 		}

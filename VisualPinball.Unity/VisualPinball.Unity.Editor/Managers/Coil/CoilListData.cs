@@ -35,14 +35,10 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
 		public int Type;
 
-		[ManagerListColumn(Order = 5, HeaderName = "Off", Width = 100)]
-		public string Off;
-
 		public string Id;
 		public string PlayfieldItem;
 		public string Device;
 		public string DeviceItem;
-		public int Pulse;
 
 		public MappingsCoilData MappingsCoilData;
 
@@ -54,7 +50,6 @@ namespace VisualPinball.Unity.Editor
 			Device = mappingsCoilData.Device;
 			DeviceItem = mappingsCoilData.DeviceItem;
 			Type = mappingsCoilData.Type;
-			Pulse = mappingsCoilData.Pulse;
 
 			MappingsCoilData = mappingsCoilData;
 		}
@@ -68,7 +63,6 @@ namespace VisualPinball.Unity.Editor
 			MappingsCoilData.Device = Device;
 			MappingsCoilData.DeviceItem = DeviceItem;
 			MappingsCoilData.Type = Type;
-			MappingsCoilData.Pulse = Pulse;
 		}
 	}
 }

@@ -54,9 +54,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffInt("CTYP", Pos = 7)]
 		public int Type = CoilType.OnOff;
 
-		[BiffInt("PLSE", Pos = 8)]
-		public int Pulse = 10;
-
 		#region BIFF
 
 		static MappingsCoilData()
