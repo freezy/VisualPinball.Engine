@@ -48,7 +48,7 @@ If the coil type is set to *Dual-Wound*, this column defines the hold coil event
 These coils are pretty common. For example, *Medieval Madness* has the following dual-wound coils:
 
 ![Medieval Madness dual-wound coils](dual-wound-coils.png)
-*From the Medieval Madness manual*
+<small>*From the Medieval Madness manual*</small>
 
 In VPE, this would map to the following configuration:
 

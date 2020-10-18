@@ -11,16 +11,14 @@ This section documents what's already working. If it's not, then that's a bug, a
 We convert Visual Pinball's materials to materials compatible with the active render pipeline. That means  materials look similar to Visual Pinball by default, while there's still a lot of potential left to tweak materials using the full material configuration of Unity.
 
 ![Material Comparison](comparison-vpx-vpe.jpg)
-
-*Bord's Viking rendered in VPX (left) and imported as-is in VPE's built-in renderer (right).*
+<small>*Bord's "Viking" rendered in VPX (left) and imported as-is in VPE's built-in renderer (right).*</small>
 
 ## Meshes
 
 Visual Pinball dynamically generates meshes for most of the game items. VPE has ported that code and does the same when loading a table.
 
 ![Material Comparison](mesh-example.jpg)
-
-*A rubber mesh generated in the editor*
+<small>*A rubber mesh generated in the editor*</small>
 
 ## Physics
 
