@@ -84,7 +84,8 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Coils[1].Description.Should().Be("Left Flipper");
 			data.Coils[1].Destination.Should().Be(CoilDestination.Playfield);
 			data.Coils[1].PlayfieldItem.Should().Be("Flipper1");
-			data.Coils[1].Type.Should().Be(CoilType.OnOff);
+			data.Coils[1].Type.Should().Be(CoilType.DualWound);
+			data.Coils[1].HoldCoilId.Should().Be("c_left_flipper_hold");
 		}
 	}
 }
