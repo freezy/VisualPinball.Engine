@@ -34,6 +34,22 @@ The **Element** column is where you choose the playfield element with the coil. 
 
 ### Type
 
-There is currently one mode in which a coil can be triggered:
+In the **Type** column you can define whether the coil is single-wound or dual-wound. There's an excellent page about the differences in [MPF's documentation](https://docs.missionpinball.org/en/latest/mechs/coils/dual_vs_single_wound.html). In short, dual-wound coils have two circuits, one for powering the coil, and one for holding it, while single-wound coils only have one.
 
-- **On/Off** has two distinct events, one for enabling, and one for disabling the coil. For example, a flipper coil gets enabled when the player presses the flipper button, and disabled when the button is released.
+This changes in how the coils power off:
+
+- For **single-wound** coils, VPE uses the same coil event for powering on and off.
+- For **dual-wound** coils, it uses the *on* event from the main coil and the *off* event from the hold coil.
+
+### Hold Coil
+
+If the coil type is set to *Dual-Wound*, this column defines the hold coil event, i.e. on which event the coil powers off.
+
+These coils are pretty common. For example, *Medieval Madness* has the following dual-wound coils:
+
+![Medieval Madness dual-wound coils](dual-wound-coils.png)
+*From the Medieval Madness manual*
+
+In VPE, this would map to the following configuration:
+
+![Dual-wound example configuration](switch-manager-dual-wound.png)
