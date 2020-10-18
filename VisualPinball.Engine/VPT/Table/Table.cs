@@ -183,6 +183,14 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
+		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]
+			.Concat(_bumpers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_triggers.Values);
+
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {
@@ -413,7 +421,6 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
 		}
-
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;

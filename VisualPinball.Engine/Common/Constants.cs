@@ -116,4 +116,37 @@ namespace VisualPinball.Engine.Common
 		/// </summary>
 		public const int Internations = 20;                                    // C_INTERATIONS
 	}
+
+	public static class InputConstants
+	{
+		public const string MapCabinetSwitches = "Cabinet Switches";
+		public const string MapDebug = "Visual Pinball Engine";
+
+		public const string ActionCreateBall = "Create Ball";
+		public const string ActionKicker = "Kicker";
+
+		public const string ActionUpperLeftFlipper = "Upper Left Flipper";
+		public const string ActionUpperRightFlipper = "Upper Right Flipper";
+		public const string ActionLeftFlipper = "Left Flipper";
+		public const string ActionRightFlipper = "Right Flipper";
+		public const string ActionRightMagnasave = "Right Magnasave";
+		public const string ActionLeftMagnasave = "Left Magnasave";
+		public const string ActionFire1 = "Fire 1";
+		public const string ActionFire2 = "Fire 2";
+		public const string ActionFrontBuyIn = "Front (buy-in)";
+		public const string ActionStartGame = "Start Game";
+		public const string ActionPlunger = "Plunger";
+		public const string ActionInsertCoin1 = "Insert Coin Slot 1";
+		public const string ActionInsertCoin2 = "Insert Coin Slot 2";
+		public const string ActionInsertCoin3 = "Insert Coin Slot 3";
+		public const string ActionInsertCoin4 = "Insert Coin Slot 4";
+		public const string ActionCoinDoorOpenClose = "Coin Door Open/Close";
+		public const string ActionCoinDoorCancel = "Coin Door Cancel (WPC)";
+		public const string ActionCoinDoorDown = "Coin Door Down (WPC)";
+		public const string ActionCoinDoorUp = "Coin Door Up (WPC)";
+		public const string ActionCoinDoorEnter = "Coin Door Enter (WPC)";
+		public const string ActionCoinDoorAdvance = "Coin Door Advance";
+		public const string ActionCoinDoorUpDown = "Coin Door Up/Down";
+		public const string ActionSlamTilt = "Slam Tilt";
+	}
 }

@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 
@@ -112,36 +110,7 @@ namespace VisualPinball.Unity.Editor
 				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all switch mappings");
-
-					foreach (var id in _ids)
-					{
-						var switchMapping =
-							_tableAuthoring.Mappings.Switches
-							.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
-
-						if (switchMapping == null) {
-							var matchKey = int.TryParse(id, out var numericSwitchId)
-								? $"sw{numericSwitchId}"
-								: id;
-
-							var matchedItem = _switches.ContainsKey(matchKey)
-								? _switches[matchKey]
-								: null;
-
-							var source = GuessSource(id);
-
-							_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData {
-								Id = id,
-								Source = source,
-								PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
-								Type = matchedItem is KickerAuthoring || matchedItem is TriggerAuthoring || source == SwitchSource.InputSystem
-									? SwitchType.OnOff
-									: SwitchType.Pulse,
-								InputActionMap = GuessInputMap(id),
-								InputAction = source == SwitchSource.InputSystem ? GuessInputAction(id) : null,
-							});
-						}
-					}
+					_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables);
 					Reload();
 				}
 			}
@@ -157,50 +126,6 @@ namespace VisualPinball.Unity.Editor
 					Reload();
 				}
 			}
-		}
-
-		private int GuessSource(string switchId)
-		{
-			if (switchId.Contains("left_flipper")) {
-				return SwitchSource.InputSystem;
-			}
-			if (switchId.Contains("right_flipper")) {
-				return SwitchSource.InputSystem;
-			}
-			if (switchId.Contains("create_ball")) {
-				return SwitchSource.InputSystem;
-			}
-			if (switchId.Contains("plunger")) {
-				return SwitchSource.InputSystem;
-			}
-
-			return SwitchSource.Playfield;
-		}
-
-		private string GuessInputMap(string switchId)
-		{
-			if (switchId.Contains("create_ball")) {
-				return InputManager.MapDebug;
-			}
-			return InputManager.MapCabinetSwitches;
-		}
-
-		private string GuessInputAction(string switchId)
-		{
-			if (switchId.Contains("left_flipper")) {
-				return InputManager.ActionLeftFlipper;
-			}
-			if (switchId.Contains("right_flipper")) {
-				return InputManager.ActionRightFlipper;
-			}
-			if (switchId.Contains("create_ball")) {
-				return InputManager.ActionCreateBall;
-			}
-			if (switchId.Contains("plunger")) {
-				return InputManager.ActionPlunger;
-			}
-
-			return string.Empty;
 		}
 
 		protected override void OnListViewItemRenderer(SwitchListData data, Rect cellRect, int column)
@@ -290,25 +215,15 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitchIds()
 		{
 			_ids.Clear();
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			if (gle != null) {
-				_ids.AddRange(((IGamelogicEngineWithSwitches)gle.GameEngine).AvailableSwitches);
-
-			} else {
-				// todo show this in the editor window along with instructions.
-				Logger.Warn("Either there is not game logic engine component on the table, or it doesn't support switches.");
-			}
-
-			foreach (var mappingsSwitchData in _tableAuthoring.Mappings.Switches)
-			{
-				if (_ids.IndexOf(mappingsSwitchData.Id) == -1)
-				{
-					_ids.Add(mappingsSwitchData.Id);
-				}
-			}
-
-			_ids.Sort();
+			_ids.AddRange(_tableAuthoring.Table.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
 		}
+
+		private string[] GetAvailableEngineSwitches()
+		{
+			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
+			return gle == null ? new string[0] : ((IGamelogicEngineWithSwitches) gle.GameEngine).AvailableSwitches;
+		}
+
 		#endregion
 
 		#region Undo Redo

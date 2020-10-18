@@ -21,7 +21,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Spinner
 {
-	public class Spinner : Item<SpinnerData>, IRenderable, IHittable
+	public class Spinner : Item<SpinnerData>, IRenderable, IHittable, ISwitchable
 	{
 		public override string ItemType => "Spinner";
 

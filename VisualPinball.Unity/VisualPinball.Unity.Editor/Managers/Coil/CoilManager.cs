@@ -203,7 +203,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_ids.Clear();
-			_ids.AddRange(_tableAuthoring.Table.Mappings.GetIds(GetAvailableEngineCoils()));
+			_ids.AddRange(_tableAuthoring.Table.Mappings.GetCoilIds(GetAvailableEngineCoils()));
 		}
 
 		private string[] GetAvailableEngineCoils()
@@ -211,6 +211,7 @@ namespace VisualPinball.Unity.Editor
 			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
 			return gle == null ? new string[0] : ((IGamelogicEngineWithCoils) gle.GameEngine).AvailableCoils;
 		}
+
 		#endregion
 
 		#region Undo Redo

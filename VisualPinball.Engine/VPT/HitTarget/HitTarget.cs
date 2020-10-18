@@ -20,7 +20,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable
+	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable, ISwitchable
 	{
 		public override string ItemType => "Target";
 
