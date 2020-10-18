@@ -16,6 +16,7 @@
 
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher
@@ -45,9 +46,10 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ruler_mm")]
 		[NameMatch("Ruler_inches")]
 		[NameMatch("Ruler_inches_and_mm")]
-		public void RemoveColliders(GameObject gameObject)
+		public void RemoveColliders(GameObject gameObject, Primitive item)
 		{
-			gameObject.SetActive(false);
+			item.Data.IsCollidable = false;
+			item.Data.IsToy = true;
 		}
 	}
 }
