@@ -332,6 +332,9 @@ namespace VisualPinball.Unity
 								_coilOnAssignments[coilData.HoldCoilId].Add(coilData.PlayfieldItem);
 
 							} else {
+								if (!_coilOffAssignments.ContainsKey(coilData.Id)) {
+									_coilOffAssignments[coilData.Id] = new List<string>();
+								}
 								_coilOffAssignments[coilData.Id].Add(coilData.PlayfieldItem);
 							}
 							break;
