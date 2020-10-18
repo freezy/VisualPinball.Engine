@@ -19,6 +19,7 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 
@@ -91,6 +92,16 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		private string FindCoil(params string[] names)
+		{
+			foreach (var itemName in names) {
+				if (_coils.ContainsKey(itemName.ToLower())) {
+					return itemName;
+				}
+			}
+			return string.Empty;
+		}
+
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
@@ -106,16 +117,31 @@ namespace VisualPinball.Unity.Editor
 							.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == id);
 
 						if (coilMapping == null) {
-							var matchKey = int.TryParse(id, out var numericCoilId)
-								? $"sw{numericCoilId}"
-								: id;
+							var itemName = string.Empty;
+							var description = string.Empty;
+							switch (id) {
+								case "c_left_flipper":
+									itemName = FindCoil("LeftFlipper", "FlipperLeft", "FlipperL", "LFlipper");
+									description = "Left Flipper";
+									break;
 
-							var matchedItem = _coils.ContainsKey(matchKey)
-								? _coils[matchKey]
-								: null;
+								case "c_right_flipper":
+									itemName = FindCoil("RightFlipper", "FlipperRight", "FlipperR", "RFlipper");
+									description = "Right Flipper";
+									break;
+
+								case "c_auto_plunger":
+									itemName = FindCoil("Plunger");
+									description = "Plunger";
+									break;
+							}
 
 							_table.Mappings.AddCoil(new MappingsCoilData {
-								Id = id
+								Id = id,
+								Description = description,
+								Destination = CoilDestination.Playfield,
+								PlayfieldItem = itemName,
+								Type = CoilType.SingleWound
 							});
 						}
 					}
