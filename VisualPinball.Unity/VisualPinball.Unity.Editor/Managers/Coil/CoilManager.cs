@@ -187,8 +187,7 @@ namespace VisualPinball.Unity.Editor
 				PlayfieldItem = data.PlayfieldItem,
 				Device = data.Device,
 				DeviceItem = data.DeviceItem,
-				Type = data.Type,
-				Pulse = data.Pulse
+				Type = data.Type
 			});
 		}
 		#endregion

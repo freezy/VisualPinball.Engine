@@ -34,14 +34,6 @@ The **Element** column is where you choose the playfield element with the coil. 
 
 ### Type
 
-There are two modes in which a coil can be triggered:
+There is currently one mode in which a coil can be triggered:
 
 - **On/Off** has two distinct events, one for enabling, and one for disabling the coil. For example, a flipper coil gets enabled when the player presses the flipper button, and disabled when the button is released.
-- **Pulse** only receives one trigger event which makes the coil enable and disable automatically after a given delay.
-
-### Off
-
-This column only applies to pulse coils, and defines the period of time the coil will stay under current. After that period expires, the coil will turn off.
-
-> [!note]
-> In most cases, the *Off* delay is not important. It means only the enable event is going to be used. However, since VPE's coils all have a state, you can define how long it lasts.

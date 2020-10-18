@@ -74,18 +74,17 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 
 			data.Coils.Length.Should().Be(2);
 
-			data.Coils[1].Id.Should().Be("c_auto_plunger");
-			data.Coils[1].Description.Should().Be("Auto Plunger");
-			data.Coils[1].Destination.Should().Be(CoilDestination.Playfield);
-			data.Coils[1].PlayfieldItem.Should().Be("Plunger1");
-			data.Coils[1].Type.Should().Be(CoilType.OnOff);
-
-			data.Coils[0].Id.Should().Be("c_left_flipper");
-			data.Coils[0].Description.Should().Be("Left Flipper");
+			data.Coils[0].Id.Should().Be("c_auto_plunger");
+			data.Coils[0].Description.Should().Be("Auto Plunger");
 			data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
-			data.Coils[0].PlayfieldItem.Should().Be("Flipper1");
-			data.Coils[0].Type.Should().Be(CoilType.Pulse);
-			data.Coils[0].Pulse.Should().Be(20);
+			data.Coils[0].PlayfieldItem.Should().Be("Plunger1");
+			data.Coils[0].Type.Should().Be(CoilType.OnOff);
+
+			data.Coils[1].Id.Should().Be("c_left_flipper");
+			data.Coils[1].Description.Should().Be("Left Flipper");
+			data.Coils[1].Destination.Should().Be(CoilDestination.Playfield);
+			data.Coils[1].PlayfieldItem.Should().Be("Flipper1");
+			data.Coils[1].Type.Should().Be(CoilType.OnOff);
 		}
 	}
 }
