@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 						Description = description,
 						Source = description == string.Empty ? SwitchSource.Playfield : SwitchSource.InputSystem,
 						PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
-						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || description == string.Empty
+						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || description != string.Empty
 							? SwitchType.OnOff
 							: SwitchType.Pulse,
 						InputActionMap = GuessInputMap(id),
