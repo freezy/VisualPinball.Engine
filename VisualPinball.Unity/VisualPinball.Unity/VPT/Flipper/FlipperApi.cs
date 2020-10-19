@@ -73,11 +73,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToEnd()
 		{
-			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
 			if (_eosClosed) {
 				OnSwitch(false);
 				_eosClosed = false;
 			}
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
 		}
 
 		/// <summary>
