@@ -327,10 +327,10 @@ namespace VisualPinball.Unity
 							}
 							_coilOnAssignments[coilData.Id].Add(coilData.PlayfieldItem);
 							if (coilData.Type == CoilType.DualWound) {
-								if (!_coilOnAssignments.ContainsKey(coilData.HoldCoilId)) {
-									_coilOnAssignments[coilData.HoldCoilId] = new List<string>();
+								if (!_coilOffAssignments.ContainsKey(coilData.HoldCoilId)) {
+									_coilOffAssignments[coilData.HoldCoilId] = new List<string>();
 								}
-								_coilOnAssignments[coilData.HoldCoilId].Add(coilData.PlayfieldItem);
+								_coilOffAssignments[coilData.HoldCoilId].Add(coilData.PlayfieldItem);
 
 							} else {
 								if (!_coilOffAssignments.ContainsKey(coilData.Id)) {
