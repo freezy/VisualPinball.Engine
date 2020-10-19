@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable, IApiCoil
+		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -61,6 +61,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
+		private bool _eosClosed;
+
 		internal FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
 		}
@@ -72,6 +74,10 @@ namespace VisualPinball.Unity
 		public void RotateToEnd()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
+			if (_eosClosed) {
+				OnSwitch(false);
+				_eosClosed = false;
+			}
 		}
 
 		/// <summary>
@@ -82,6 +88,8 @@ namespace VisualPinball.Unity
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
+
+		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
 		void IApiCoil.OnCoil(bool enabled)
 		{
@@ -107,7 +115,10 @@ namespace VisualPinball.Unity
 		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
 			if (direction) {
+				OnSwitch(true);
+				_eosClosed = true;
 				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
+
 			} else {
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}

@@ -185,6 +185,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]
 			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
 			.Concat(_hitTargets.Values)
 			.Concat(_kickers.Values)
