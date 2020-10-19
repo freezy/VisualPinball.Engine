@@ -212,6 +212,7 @@ namespace VisualPinball.Unity
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;
+			_switches[flipper.Name] = flipperApi;
 			_coils[flipper.Name] = flipperApi;
 
 			if (EngineProvider<IDebugUI>.Exists) {

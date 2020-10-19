@@ -20,7 +20,7 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
-	public class Flipper : Item<FlipperData>, IRenderable, IHittable, ICoilable
+	public class Flipper : Item<FlipperData>, IRenderable, IHittable, ISwitchable, ICoilable
 	{
 		public override string ItemType => "Flasher";
 
