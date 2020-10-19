@@ -55,5 +55,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		public bool IsCollidable => Data.IsCollidable;
 	}
 }

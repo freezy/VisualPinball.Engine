@@ -29,22 +29,11 @@ namespace VisualPinball.Unity.Editor
 	[CanEditMultipleObjects]
 	public class TableInspector : ItemInspector
 	{
-		private IPhysicsEngine[] _physicsEngines;
-		private string[] _physicsEngineNames;
-		private int _physicsEngineIndex;
-
-		private IDebugUI[] _debugUIs;
-		private string[] _debugUINames;
-		private int _debugUIIndex;
-
 		public override void OnInspectorGUI()
 		{
 			OnPreInspectorGUI();
 
 			var tableComponent = (TableAuthoring) target;
-			DrawEngineSelector("Physics Engine", ref tableComponent.physicsEngineId, ref _physicsEngines, ref _physicsEngineNames, ref _physicsEngineIndex);
-			DrawEngineSelector("Debug UI", ref tableComponent.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
-
 			if (!EditorApplication.isPlaying) {
 				DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {
@@ -62,36 +51,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			base.OnInspectorGUI();
-		}
-
-		private void DrawEngineSelector<T>(string engineName, ref string engineId, ref T[] instances, ref string[] names, ref int index) where T : IEngine
-		{
-			if (instances == null) {
-				// get all instances
-				instances = EngineProvider<T>.GetAll().ToArray();
-				names = instances.Select(x => x.Name).ToArray();
-
-				// set the current index based on the table's ID
-				index = -1;
-				for (var i = 0; i < instances.Length; i++) {
-					if (EngineProvider<T>.GetId(instances[i]) == engineId) {
-						index = i;
-						break;
-					}
-				}
-				if (instances.Length > 0 && index < 0) {
-					index = 0;
-					engineId = EngineProvider<T>.GetId(instances[index]);
-				}
-			}
-			if (names.Length == 0) {
-				return;
-			}
-			var newIndex = EditorGUILayout.Popup(engineName, index, names);
-			if (index != newIndex) {
-				index = newIndex;
-				engineId = EngineProvider<T>.GetId(instances[newIndex]);
-			}
 		}
 	}
 }

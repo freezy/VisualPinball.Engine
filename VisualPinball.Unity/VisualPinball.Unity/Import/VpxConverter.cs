@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
-		public const int ChildObjectsLayer = 8;
+		public const int ChildObjectsLayer = 16;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

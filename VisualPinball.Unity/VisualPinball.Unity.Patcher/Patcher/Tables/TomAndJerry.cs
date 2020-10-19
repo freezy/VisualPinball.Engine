@@ -17,6 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
+using VisualPinball.Unity.Patcher.Matcher;
 using VisualPinball.Unity.Patcher.Matcher.Table;
 
 namespace VisualPinball.Unity.Patcher
@@ -50,7 +51,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("BumperCap3")] // Tom Bumper
 		public void SetOpaque(GameObject gameObject)
 		{
-			PatcherUtil.SetOpaque(gameObject);
+			RenderPipeline.Patcher.SetOpaque(gameObject);
 		}
 
 		/// <summary>
@@ -62,7 +63,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MusclesKnife")]
 		public void SetAlphaClip(GameObject gameObject)
 		{
-			PatcherUtil.SetAlphaCutOff(gameObject, 0.05f);
+			RenderPipeline.Patcher.SetAlphaCutOff(gameObject, 0.05f);
 		}
 
 		/// <summary>
@@ -79,7 +80,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			PatcherUtil.SetDoubleSided(gameObject);
+			RenderPipeline.Patcher.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Ramp5")]
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ramp20")]
 		public void SetMetallic(GameObject gameObject)
 		{
-			PatcherUtil.SetMetallic(gameObject, 1.0f);
+			RenderPipeline.Patcher.SetMetallic(gameObject, 1.0f);
 		}
 
 		[NameMatch("Lflip", Ref = "Flippers/LeftFlipper")]

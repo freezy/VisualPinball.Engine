@@ -26,6 +26,10 @@ namespace VisualPinball.Unity.Editor.Utils
 	{
 		public static void FrameObjects(Object[] objects, bool includeChildren = true, bool instant = false)
 		{
+			if (SceneView.lastActiveSceneView == null) {
+				return;
+			}
+
 			Bounds bounds = new Bounds();
 			foreach (var obj in objects) {
 				if (obj is UnityEngine.GameObject gameObj) {

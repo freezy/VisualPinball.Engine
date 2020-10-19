@@ -17,6 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
+using VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -32,7 +33,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("TrexMain")]
 		public void FixBrokenNormalMap(GameObject gameObject)
 		{
-			PatcherUtil.SetNormalMapDisabled(gameObject);
+			RenderPipeline.Patcher.SetNormalMapDisabled(gameObject);
 		}
 
 
@@ -49,13 +50,74 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
-			PatcherUtil.SetAlphaCutOffEnabled(gameObject);
+			RenderPipeline.Patcher.SetAlphaCutOffEnabled(gameObject);
 		}
 
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			PatcherUtil.SetOpaque(gameObject);
+			RenderPipeline.Patcher.SetOpaque(gameObject);
+		}
+
+		[NameMatch("leftrail")]
+		[NameMatch("rightrail")]
+		[NameMatch("TrexMain")]
+		[NameMatch("sidewalls")]
+		public void SetDoubleSided(GameObject gameObject)
+		{
+			RenderPipeline.Patcher.SetDoubleSided(gameObject);
+		}
+
+		[NameMatch("Primitive_SideWallReflect")]
+		[NameMatch("Primitive_SideWallReflect1")]
+		[NameMatch("Primitive_PlasticWhitePart")] // bug in the table, sticks out from the ramp; doesn't contribute anyway to the table
+		public void Hide(GameObject gameObject)
+		{
+			PatcherUtil.Hide(gameObject);
+		}
+
+		/// <summary>
+		/// Custom properties for the ramp:
+		/// * change opaque to transparent
+		/// * disable alpha clipping
+		/// * enable depth prepass
+		/// </summary>
+		/// <param name="gameObject"></param>
+		[NameMatch("Primitive_PlasticsRamp")]
+		public void ApplyRampSettings(GameObject gameObject)
+		{
+			var material = gameObject.GetComponent<Renderer>().sharedMaterial;
+
+			material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+			material.EnableKeyword("_BLENDMODE_PRE_MULTIPLY");
+			material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+			material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+			material.EnableKeyword("_DISABLE_SSR_TRANSPARENT");
+			material.DisableKeyword("_ALPHATEST_ON");
+
+			material.SetInt("_DistortionSrcBlend", 1);
+			material.SetInt("_DistortionDstBlend", 1);
+			material.SetInt("_DistortionBlurSrcBlend", 1);
+			material.SetInt("_DistortionBlurDstBlend", 1);
+			material.SetInt("_StencilWriteMask", 6);
+			material.SetInt("_StencilWriteMaskGBuffer", 14);
+			material.SetInt("_StencilWriteMaskMV", 40);
+
+			material.SetInt("_AlphaCutoffEnable", 0);
+			material.SetInt("_TransparentDepthPrepassEnable", 1);
+			material.SetInt("_SurfaceType", 1);
+			material.SetInt("_BlendMode", 4);
+			material.SetInt("_DstBlend", 10);
+			material.SetInt("_AlphaDstBlend", 10);
+			material.SetInt("_ZWrite", 0);
+			material.SetInt("_ZTestDepthEqualForOpaque", 4);
+			material.SetInt("_ZTestGBuffer", 4);
+
+			material.SetShaderPassEnabled("TransparentDepthPrepass", true);
+			material.SetShaderPassEnabled("RayTracingPrepass", false);
+
+			material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
+
 		}
 	}
 }

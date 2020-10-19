@@ -26,6 +26,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public override string ItemType => "Wall";
 
 		public HitObject[] GetHitShapes() => _hits;
+		public bool IsCollidable => Data.IsCollidable;
 
 		private readonly SurfaceMeshGenerator _meshGenerator;
 		private readonly SurfaceHitGenerator _hitGenerator;

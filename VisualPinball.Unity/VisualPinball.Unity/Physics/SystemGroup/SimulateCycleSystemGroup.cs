@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -43,7 +42,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
 		public NativeList<ContactBufferElement> Contacts;
-		public JobHandle ContactsDependencies;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 
@@ -61,13 +59,15 @@ namespace VisualPinball.Unity
 		private EntityQuery _flipperDataQuery;
 		private EntityQuery _collisionEventDataQuery;
 
-		private Stopwatch _simulationTime = new Stopwatch();
+		private readonly Stopwatch _simulationTime = new Stopwatch();
+		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 
 		protected override void OnCreate()
 		{
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			_collisionEventDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
 
+			_simulationSystemGroup = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
 			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
 			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
 			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
@@ -104,10 +104,8 @@ namespace VisualPinball.Unity
 		{
 			_simulationTime.Restart();
 
-			var sim = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
-
 			_staticCounts = PhysicsConstants.StaticCnts;
-			var dTime = sim.PhysicsDiffTime;
+			var dTime = _simulationSystemGroup.PhysicsDiffTime;
 			var numSteps = 0;
 			while (dTime > 0) {
 
@@ -142,17 +140,13 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				PhysicsEngine.UpdateDebugFlipperStates();
 				PhysicsEngine.PushPendingCreateBallNotifications();
-				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(sim.CurrentPhysicsTime, numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
+				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(_simulationSystemGroup.CurrentPhysicsTime, numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
 			}
 		}
 
 		private void ClearContacts()
 		{
-			// if (contacts.Length > 0) {
-			// 	Debug.Break();
-			// }
-
-			Contacts.Clear();;
+			Contacts.Clear();
 		}
 
 		private void ApplyFlipperTime()

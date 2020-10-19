@@ -65,6 +65,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
+		public bool IsCollidable => Data.IsCollidable;
+
 		public void Init(Table.Table table)
 		{
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
