@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 			// populate mappings
 			if (_table.Mappings.IsEmpty()) {
 				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
-				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables.Select(c => c.Name.ToLower()).ToList());
+				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables);
 			}
 		}
 

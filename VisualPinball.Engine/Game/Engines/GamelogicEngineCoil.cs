@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine
-{ 
+namespace VisualPinball.Engine.Game.Engines
+{
 	public struct GamelogicEngineCoil
 	{
 		public string Id;
 		public string Description;
 		public string PlayfieldItemHint;
+		public string MainCoilIdOfHoldCoil;
 	}
 }

@@ -20,6 +20,7 @@ using System.Diagnostics;
 using NLog;
 using VisualPinball.Engine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
@@ -58,11 +59,11 @@ namespace VisualPinball.Unity
 
 		public GamelogicEngineCoil[] AvailableCoils { get; } =
 		{
-			new GamelogicEngineCoil { Id = CoilLeftFlipperMain },
-			new GamelogicEngineCoil { Id = CoilLeftFlipperHold },
-			new GamelogicEngineCoil { Id = CoilRightFlipperMain },
-			new GamelogicEngineCoil { Id = CoilRightFlipperHold },
-			new GamelogicEngineCoil { Id = CoilAutoPlunger }
+			new GamelogicEngineCoil { Id = CoilLeftFlipperMain, Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
+			new GamelogicEngineCoil { Id = CoilLeftFlipperHold, MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
+			new GamelogicEngineCoil { Id = CoilRightFlipperMain, Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
+			new GamelogicEngineCoil { Id = CoilRightFlipperHold, MainCoilIdOfHoldCoil = CoilRightFlipperMain },
+			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" }
 		};
 
 		private TableApi _tableApi;

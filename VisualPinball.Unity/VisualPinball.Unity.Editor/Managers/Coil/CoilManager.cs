@@ -20,6 +20,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
@@ -100,7 +101,7 @@ namespace VisualPinball.Unity.Editor
 				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all coil mappings");
-					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _coils.Keys);
+					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.Table.Coilables);
 					Reload();
 				}
 			}
@@ -207,7 +208,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_gleCoils.Clear();
-			_gleCoils.AddRange(_tableAuthoring.Table.Mappings.GetCoilIds(GetAvailableEngineCoils()));
+			_gleCoils.AddRange(_tableAuthoring.Table.Mappings.GetCoils(GetAvailableEngineCoils()));
 		}
 
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()
