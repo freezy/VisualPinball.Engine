@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
-		private readonly string[] OPTIONS_SWITCH_TYPE = { "On \u2215 Off", "Pulse" };
 
 		private struct InputSystemEntry
 		{
@@ -43,8 +42,7 @@ namespace VisualPinball.Unity.Editor
 			Description = 1,
 			Source = 2,
 			Element = 3,
-			Type = 4,
-			Off = 5
+			PulseDelay = 4,
 		}
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches;
@@ -76,11 +74,8 @@ namespace VisualPinball.Unity.Editor
 				case SwitchListColumn.Element:
 					RenderElement(tableAuthoring, data, cellRect, updateAction);
 					break;
-				case SwitchListColumn.Type:
-					RenderType(data, cellRect, updateAction);
-					break;
-				case SwitchListColumn.Off:
-					RenderOff(data, cellRect, updateAction);
+				case SwitchListColumn.PulseDelay:
+					RenderPulseDelay(data, cellRect, updateAction);
 					break;
 			}
 		}
@@ -267,26 +262,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderType(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
-			{
-				EditorGUI.BeginChangeCheck();
-				var index = EditorGUI.Popup(cellRect, (int)switchListData.Type, OPTIONS_SWITCH_TYPE);
-				if (EditorGUI.EndChangeCheck())
-				{
-					switchListData.Type = index;
-					updateAction(switchListData);
-				}
-			}
-		}
-
-		private void RenderOff(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			if (switchListData.Source == SwitchSource.InputSystem || switchListData.Source == SwitchSource.Playfield)
-			{
-				if (switchListData.Type == SwitchType.Pulse)
-				{
+			if (switchListData.Source == SwitchSource.Playfield) {
+				var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
+				if (switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
 					labelRect.width = 20;

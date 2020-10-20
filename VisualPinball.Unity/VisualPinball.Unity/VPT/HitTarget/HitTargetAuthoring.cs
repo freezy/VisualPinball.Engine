@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 
 		public IHittable Hittable => Item;
 
+		public bool IsPulseSwitch => true;
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
