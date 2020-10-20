@@ -16,6 +16,7 @@
 
 using System;
 using VisualPinball.Engine;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Engine.VPT.Mappings
 {
@@ -146,36 +146,50 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
 		/// <param name="tableCoils">List of coils on the playfield</param>
-		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, ICollection<string> tableCoils)
+		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, IEnumerable<ICoilable> tableCoils)
 		{
-			foreach (var engineCoil in GetCoilIds(engineCoils)) {
+			var coils = tableCoils
+				.GroupBy(x => x.Name.ToLower())
+				.ToDictionary(x => x.Key, x => x.First());
+
+			var holdCoils = new List<GamelogicEngineCoil>();
+			foreach (var engineCoil in GetCoils(engineCoils)) {
 
 				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
 				if (coilMapping == null) {
-					var itemName = string.Empty;
-					var description = string.Empty;
-					switch (engineCoil.Id) {
-						case "c_left_flipper":
-							itemName = FindCoil(tableCoils, "LeftFlipper", "FlipperLeft", "FlipperL", "LFlipper");
-							description = "Left Flipper";
-							break;
 
-						case "c_right_flipper":
-							itemName = FindCoil(tableCoils, "RightFlipper", "FlipperRight", "FlipperR", "RFlipper");
-							description = "Right Flipper";
-							break;
-
-						case "c_auto_plunger":
-							itemName = FindCoil(tableCoils, "Plunger");
-							description = "Plunger";
-							break;
+					// we'll handle those in a second loop when all the main coils are added
+					if (!string.IsNullOrEmpty(engineCoil.MainCoilIdOfHoldCoil)) {
+						holdCoils.Add(engineCoil);
+						continue;
 					}
+
+					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
+					var playfieldItem = GuessPlayfieldCoil(coils, engineCoil);
 
 					Data.AddCoil(new MappingsCoilData {
 						Id = engineCoil.Id,
 						Description = description,
 						Destination = CoilDestination.Playfield,
-						PlayfieldItem = itemName,
+						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+						Type = CoilType.SingleWound
+					});
+				}
+			}
+
+			foreach (var holdCoil in holdCoils) {
+				var mainCoil = Data.Coils.FirstOrDefault(c => c.Id == holdCoil.MainCoilIdOfHoldCoil);
+				if (mainCoil != null) {
+					mainCoil.Type = CoilType.DualWound;
+					mainCoil.HoldCoilId = holdCoil.Id;
+
+				} else {
+					var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
+					Data.AddCoil(new MappingsCoilData {
+						Id = holdCoil.Id,
+						Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
+						Destination = CoilDestination.Playfield,
+						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 						Type = CoilType.SingleWound
 					});
 				}
@@ -189,43 +203,52 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">Coil names provided by the gamelogic engine</param>
 		/// <returns>All coil names</returns>
-		public IEnumerable<GamelogicEngineCoil> GetCoilIds(GamelogicEngineCoil[] engineCoils)
+		public IEnumerable<GamelogicEngineCoil> GetCoils(GamelogicEngineCoil[] engineCoils)
 		{
-			var ids = new List<GamelogicEngineCoil>();
+			var coils = new List<GamelogicEngineCoil>();
+
+			// first, add coils from the gamelogic engine
 			if (engineCoils != null) {
-				ids.AddRange(engineCoils);
+				coils.AddRange(engineCoils);
 			}
 
+			// then add coil ids that were added manually
 			foreach (var mappingsCoilData in Data.Coils) {
-				if (!ids.Exists(entry => entry.Id == mappingsCoilData.Id))
+				if (!coils.Exists(entry => entry.Id == mappingsCoilData.Id))
 				{
-					ids.Add(new GamelogicEngineCoil
+					coils.Add(new GamelogicEngineCoil
 					{
 						Id = mappingsCoilData.Id
 					});
 
 				}
-				if (!ids.Exists(entry => entry.Id == mappingsCoilData.HoldCoilId))
+				if (!coils.Exists(entry => entry.Id == mappingsCoilData.HoldCoilId))
 				{
-					ids.Add(new GamelogicEngineCoil
+					coils.Add(new GamelogicEngineCoil
 					{
 						Id = mappingsCoilData.HoldCoilId
 					});
 				}
 			}
 
-			ids.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
-			return ids;
+			coils.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
+			return coils;
 		}
 
-		private static string FindCoil(ICollection<string> coils, params string[] names)
+		private static ICoilable GuessPlayfieldCoil(Dictionary<string, ICoilable> coils, GamelogicEngineCoil coil)
 		{
-			foreach (var itemName in names) {
-				if (coils.Contains(itemName.ToLower())) {
-					return itemName;
+			// first, match by regex if hint provided
+			if (!string.IsNullOrEmpty(coil.PlayfieldItemHint)) {
+				foreach (var coilName in coils.Keys) {
+					var regex = new Regex(coil.PlayfieldItemHint.ToLower());
+					if (regex.Match(coilName).Success) {
+						return coils[coilName];
+					}
 				}
 			}
-			return string.Empty;
+
+			// second, match by id
+			return coils.ContainsKey(coil.Id) ? coils[coil.Id] : null;
 		}
 
 		#endregion

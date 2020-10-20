@@ -19,6 +19,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
