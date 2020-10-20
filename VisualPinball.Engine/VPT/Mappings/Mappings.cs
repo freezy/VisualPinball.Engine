@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 
@@ -57,25 +59,24 @@ namespace VisualPinball.Engine.VPT.Mappings
 				var switchMapping = Data.Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == engineSwitch.Id);
 
 				if (switchMapping == null) {
-					var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
-						? $"sw{numericSwitchId}"
-						: engineSwitch.Id;
 
-					var matchedItem = switches.ContainsKey(matchKey)
-						? switches[matchKey]
-						: null;
+					var description = engineSwitch.Description ?? string.Empty;
+					var source = GuessSwitchSource(engineSwitch);
+					var playfieldItem = source == SwitchSource.Playfield ? GuessPlayfieldSwitch(switches, engineSwitch) : null;
+					var inputActionMap = source == SwitchSource.InputSystem
+						? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
+						: string.Empty;
+					var inputAction = source == SwitchSource.InputSystem
+						? string.IsNullOrEmpty(engineSwitch.InputActionHint) ? string.Empty : engineSwitch.InputActionHint
+						: string.Empty;
 
-					var description = GuessDescription(engineSwitch);
 					Data.AddSwitch(new MappingsSwitchData {
 						Id = engineSwitch.Id,
 						Description = description,
-						Source = description == string.Empty ? SwitchSource.Playfield : SwitchSource.InputSystem,
-						PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
-						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || description != string.Empty
-							? SwitchType.OnOff
-							: SwitchType.Pulse,
-						InputActionMap = GuessInputMap(engineSwitch),
-						InputAction = description != string.Empty ? GuessInputAction(engineSwitch) : null,
+						Source = source,
+						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+						InputActionMap = inputActionMap,
+						InputAction = inputAction
 					});
 				}
 			}
@@ -110,72 +111,30 @@ namespace VisualPinball.Engine.VPT.Mappings
 			return ids;
 		}
 
-		private string GuessDescription(GamelogicEngineSwitch engineSwitch)
+		private static int GuessSwitchSource(GamelogicEngineSwitch engineSwitch)
 		{
-			if (engineSwitch.Description != null)
-			{
-				return engineSwitch.Description;
-			}
-			else
-			{
-				if (engineSwitch.Id.Contains("left_flipper"))
-				{
-					return "Left Flipper";
-				}
-				if (engineSwitch.Id.Contains("right_flipper"))
-				{
-					return "Right Flipper";
-				}
-				if (engineSwitch.Id.Contains("create_ball"))
-				{
-					return "Create Ball";
-				}
-				if (engineSwitch.Id.Contains("plunger"))
-				{
-					return "Plunger";
-				}
-			}
-
-			return string.Empty;
+			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
-		private string GuessInputMap(GamelogicEngineSwitch engineSwitch)
+		private static ISwitchable GuessPlayfieldSwitch(Dictionary<string, ISwitchable> switches, GamelogicEngineSwitch engineSwitch)
 		{
-			if (engineSwitch.Id.Contains("create_ball")) {
-				return InputConstants.MapDebug;
+			// first, match by regex if hint provided
+			if (!string.IsNullOrEmpty(engineSwitch.PlayfieldItemHint)) {
+				foreach (var switchName in switches.Keys) {
+					var regex = new Regex(engineSwitch.PlayfieldItemHint.ToLower());
+					if (regex.Match(switchName).Success) {
+						return switches[switchName];
+					}
+				}
 			}
-			return InputConstants.MapCabinetSwitches;
+
+			// second, match by "swXX" or name
+			var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
+				? $"sw{numericSwitchId}"
+				: engineSwitch.Id;
+
+			return switches.ContainsKey(matchKey) ? switches[matchKey] : null;
 		}
-
-		private string GuessInputAction(GamelogicEngineSwitch engineSwitch)
-		{
-			if (engineSwitch.InputActionHint != null)
-			{
-				return engineSwitch.InputActionHint;
-			}
-			else
-			{
-				if (engineSwitch.Id.Contains("left_flipper"))
-				{
-					return InputConstants.ActionLeftFlipper;
-				}
-				if (engineSwitch.Id.Contains("right_flipper"))
-				{
-					return InputConstants.ActionRightFlipper;
-				}
-				if (engineSwitch.Id.Contains("create_ball"))
-				{
-					return InputConstants.ActionCreateBall;
-				}
-				if (engineSwitch.Id.Contains("plunger"))
-				{
-					return InputConstants.ActionPlunger;
-				}
-			}
-
-			return string.Empty;
-		}
-
 
 		#endregion
 

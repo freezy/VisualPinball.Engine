@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using VisualPinball.Engine;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
@@ -41,12 +42,12 @@ namespace VisualPinball.Unity
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } =
 		{
-			new GamelogicEngineSwitch { Id = SwLeftFlipper },
-			new GamelogicEngineSwitch { Id = SwRightFlipper },
-			new GamelogicEngineSwitch { Id = SwLeftFlipperEos },
-			new GamelogicEngineSwitch { Id = SwRightFlipperEos },
-			new GamelogicEngineSwitch { Id = SwPlunger },
-			new GamelogicEngineSwitch { Id = SwCreateBall }
+			new GamelogicEngineSwitch { Id = SwLeftFlipper, Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
+			new GamelogicEngineSwitch { Id = SwRightFlipper, Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
+			new GamelogicEngineSwitch { Id = SwLeftFlipperEos, Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
+			new GamelogicEngineSwitch { Id = SwRightFlipperEos, Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+			new GamelogicEngineSwitch { Id = SwPlunger, Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
+			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug }
 		};
 
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";
