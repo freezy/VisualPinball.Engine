@@ -52,8 +52,8 @@ namespace VisualPinball.Unity
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
 			if (_x < 0 || _y < 0) {
-				_x = Random.Range(table.Width / 6f, table.Width / 6f * 5f);
-				_y = Random.Range(table.Height / 8f, table.Height / 2f);
+				_x = table.Width / 2f;
+				_y = table.Height / 3f;
 			}
 			return new Vertex3D(_x, _y, 0);
 		}

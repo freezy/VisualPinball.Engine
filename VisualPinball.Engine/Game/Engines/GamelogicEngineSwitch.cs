@@ -21,6 +21,7 @@ namespace VisualPinball.Engine
 		public string Id;
 		public string Description;
 		public string InputActionHint;
+		public string InputMapHint;
 		public string PlayfieldItemHint;
 	}
 }
