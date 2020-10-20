@@ -264,7 +264,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			if (switchListData.Source == SwitchSource.Playfield) {
+			if (switchListData.Source == SwitchSource.Playfield && _switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
 				var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
 				if (switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
@@ -275,10 +275,10 @@ namespace VisualPinball.Unity.Editor
 					intFieldRect.width -= 25;
 
 					EditorGUI.BeginChangeCheck();
-					var pulse = EditorGUI.IntField(intFieldRect, switchListData.Pulse);
+					var pulse = EditorGUI.IntField(intFieldRect, switchListData.PulseDelay);
 					if (EditorGUI.EndChangeCheck())
 					{
-						switchListData.Pulse = pulse;
+						switchListData.PulseDelay = pulse;
 						updateAction(switchListData);
 					}
 

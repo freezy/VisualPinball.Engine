@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NLog;
 using VisualPinball.Engine;
 
@@ -67,6 +68,7 @@ namespace VisualPinball.Unity
 		private BallManager _ballManager;
 
 		private Dictionary<string, bool> _switchStatus = new Dictionary<string, bool>();
+		private Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -100,7 +102,16 @@ namespace VisualPinball.Unity
 		public void Switch(string id, bool normallyClosed)
 		{
 			_switchStatus[id] = normallyClosed;
-			Logger.Info("Switch {0} is {1}.", id, normallyClosed ? "closed" : "open");
+			if (!_switchTime.ContainsKey(id)) {
+				_switchTime[id] = new Stopwatch();
+			}
+
+			if (normallyClosed) {
+				_switchTime[id].Restart();
+			} else {
+				_switchTime[id].Stop();
+			}
+			Logger.Info("Switch {0} is {1}.", id, normallyClosed ? "closed" : "open after " + _switchTime[id].ElapsedMilliseconds + "ms");
 
 			switch (id) {
 
