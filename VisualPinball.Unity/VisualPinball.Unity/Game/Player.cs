@@ -104,6 +104,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private void Update()
+		{
+			GameEngine?.OnUpdate();
+		}
+
 		private void OnDestroy()
 		{
 			if (_keyAssignments.Count > 0) {

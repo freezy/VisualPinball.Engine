@@ -19,6 +19,7 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
@@ -39,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		protected override bool DetailsEnabled => false;
 		protected override bool ListViewItemRendererEnabled => true;
 
-		private readonly List<string> _ids = new List<string>();
+		private readonly List<GamelogicEngineCoil> _gleCoils = new List<GamelogicEngineCoil>();
 		private readonly Dictionary<string, ICoilAuthoring> _coils = new Dictionary<string, ICoilAuthoring>();
 
 		private CoilListViewItemRenderer _listViewItemRenderer;
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnFocus()
 		{
-			_listViewItemRenderer = new CoilListViewItemRenderer(_ids, _coils);
+			_listViewItemRenderer = new CoilListViewItemRenderer(_gleCoils, _coils);
 
 			base.OnFocus();
 		}
@@ -123,6 +124,9 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				coilListData.Update();
+
+				var coil = _tableAuthoring.Table.Coilables.FirstOrDefault(c => c.Name == coilListData.PlayfieldItem);
+				coil.IsDualWound = coilListData.Type == CoilType.DualWound;
 			});
 		}
 
@@ -133,7 +137,7 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var mappingsCoilData in _tableAuthoring.Mappings.Coils)
 			{
-				data.Add(new CoilListData(mappingsCoilData, _tableAuthoring));
+				data.Add(new CoilListData(mappingsCoilData));
 			}
 
 			RefreshCoils();
@@ -202,14 +206,14 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshCoilIds()
 		{
-			_ids.Clear();
-			_ids.AddRange(_tableAuthoring.Table.Mappings.GetCoilIds(GetAvailableEngineCoils()));
+			_gleCoils.Clear();
+			_gleCoils.AddRange(_tableAuthoring.Table.Mappings.GetCoilIds(GetAvailableEngineCoils()));
 		}
 
-		private string[] GetAvailableEngineCoils()
+		private GamelogicEngineCoil[] GetAvailableEngineCoils()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			return gle == null ? new string[0] : ((IGamelogicEngineWithCoils) gle.GameEngine).AvailableCoils;
+			return gle == null ? new GamelogicEngineCoil[0] : ((IGamelogicEngineWithCoils) gle.GameEngine).AvailableCoils;
 		}
 
 		#endregion

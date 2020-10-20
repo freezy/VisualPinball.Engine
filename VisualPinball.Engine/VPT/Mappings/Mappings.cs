@@ -38,7 +38,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 		{
 		}
 
-
 		public bool IsEmpty()
 		{
 			return (Data.Coils == null || Data.Coils.Length == 0)
@@ -47,41 +46,40 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		#region Switch Population
 
-		public void PopulateSwitches(string[] engineSwitches, IEnumerable<ISwitchable> tableSwitches)
+		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, IEnumerable<ISwitchable> tableSwitches)
 		{
 			var switches = tableSwitches
 				.GroupBy(x => x.Name.ToLower())
 				.ToDictionary(x => x.Key, x => x.First());
 
-			foreach (var id in GetSwitchIds(engineSwitches))
+			foreach (var engineSwitch in GetSwitchIds(engineSwitches))
 			{
-				var switchMapping = Data.Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == id);
+				var switchMapping = Data.Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == engineSwitch.Id);
 
 				if (switchMapping == null) {
-					var matchKey = int.TryParse(id, out var numericSwitchId)
+					var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
 						? $"sw{numericSwitchId}"
-						: id;
+						: engineSwitch.Id;
 
 					var matchedItem = switches.ContainsKey(matchKey)
 						? switches[matchKey]
 						: null;
 
-					var description = GuessDescription(id);
+					var description = GuessDescription(engineSwitch);
 					Data.AddSwitch(new MappingsSwitchData {
-						Id = id,
+						Id = engineSwitch.Id,
 						Description = description,
 						Source = description == string.Empty ? SwitchSource.Playfield : SwitchSource.InputSystem,
 						PlayfieldItem = matchedItem == null ? string.Empty : matchedItem.Name,
 						Type = matchedItem is Kicker.Kicker || matchedItem is Trigger.Trigger || description != string.Empty
 							? SwitchType.OnOff
 							: SwitchType.Pulse,
-						InputActionMap = GuessInputMap(id),
-						InputAction = description != string.Empty ? GuessInputAction(id) : null,
+						InputActionMap = GuessInputMap(engineSwitch),
+						InputAction = description != string.Empty ? GuessInputAction(engineSwitch) : null,
 					});
 				}
 			}
 		}
-
 
 		/// <summary>
 		/// Returns a sorted list of switch names from the gamelogic engine,
@@ -90,62 +88,89 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineSwitches">Switch names provided by the gamelogic engine</param>
 		/// <returns>All switch names</returns>
-		public IEnumerable<string> GetSwitchIds(string[] engineSwitches)
+		public IEnumerable<GamelogicEngineSwitch> GetSwitchIds(GamelogicEngineSwitch[] engineSwitches)
 		{
-			var ids = new List<string>();
+			var ids = new List<GamelogicEngineSwitch>();
 			if (engineSwitches != null) {
 				ids.AddRange(engineSwitches);
 			}
 
 			foreach (var mappingsSwitchData in Data.Switches) {
-				if (ids.IndexOf(mappingsSwitchData.Id) == -1) {
-					ids.Add(mappingsSwitchData.Id);
+				if (!ids.Exists(entry => entry.Id == mappingsSwitchData.Id))
+				{
+					ids.Add(new GamelogicEngineSwitch
+					{
+						Id = mappingsSwitchData.Id
+					});
 				}
-			}
-			ids.Sort();
 
+			}
+
+			ids.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
 			return ids;
 		}
 
-		private string GuessDescription(string switchId)
+		private string GuessDescription(GamelogicEngineSwitch engineSwitch)
 		{
-			if (switchId.Contains("left_flipper")) {
-				return "Left Flipper";
+			if (engineSwitch.Description != null)
+			{
+				return engineSwitch.Description;
 			}
-			if (switchId.Contains("right_flipper")) {
-				return "Right Flipper";
-			}
-			if (switchId.Contains("create_ball")) {
-				return "Create Ball";
-			}
-			if (switchId.Contains("plunger")) {
-				return "Plunger";
+			else
+			{
+				if (engineSwitch.Id.Contains("left_flipper"))
+				{
+					return "Left Flipper";
+				}
+				if (engineSwitch.Id.Contains("right_flipper"))
+				{
+					return "Right Flipper";
+				}
+				if (engineSwitch.Id.Contains("create_ball"))
+				{
+					return "Create Ball";
+				}
+				if (engineSwitch.Id.Contains("plunger"))
+				{
+					return "Plunger";
+				}
 			}
 
 			return string.Empty;
 		}
 
-		private string GuessInputMap(string switchId)
+		private string GuessInputMap(GamelogicEngineSwitch engineSwitch)
 		{
-			if (switchId.Contains("create_ball")) {
+			if (engineSwitch.Id.Contains("create_ball")) {
 				return InputConstants.MapDebug;
 			}
 			return InputConstants.MapCabinetSwitches;
 		}
 
-		private string GuessInputAction(string switchId)
+		private string GuessInputAction(GamelogicEngineSwitch engineSwitch)
 		{
-			if (switchId.Contains("left_flipper")) {
-				return InputConstants.ActionLeftFlipper;
+			if (engineSwitch.InputActionHint != null)
+			{
+				return engineSwitch.InputActionHint;
 			}
-			if (switchId.Contains("right_flipper")) {
-				return InputConstants.ActionRightFlipper;
-			}
-			if (switchId.Contains("create_ball")) {
-				return InputConstants.ActionCreateBall;
-			}
-			if (switchId.Contains("plunger")) {
-				return InputConstants.ActionPlunger;
+			else
+			{
+				if (engineSwitch.Id.Contains("left_flipper"))
+				{
+					return InputConstants.ActionLeftFlipper;
+				}
+				if (engineSwitch.Id.Contains("right_flipper"))
+				{
+					return InputConstants.ActionRightFlipper;
+				}
+				if (engineSwitch.Id.Contains("create_ball"))
+				{
+					return InputConstants.ActionCreateBall;
+				}
+				if (engineSwitch.Id.Contains("plunger"))
+				{
+					return InputConstants.ActionPlunger;
+				}
 			}
 
 			return string.Empty;
@@ -162,15 +187,15 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
 		/// <param name="tableCoils">List of coils on the playfield</param>
-		public void PopulateCoils(string[] engineCoils, ICollection<string> tableCoils)
+		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, ICollection<string> tableCoils)
 		{
-			foreach (var id in GetCoilIds(engineCoils)) {
+			foreach (var engineCoil in GetCoilIds(engineCoils)) {
 
-				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == id);
+				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
 				if (coilMapping == null) {
 					var itemName = string.Empty;
 					var description = string.Empty;
-					switch (id) {
+					switch (engineCoil.Id) {
 						case "c_left_flipper":
 							itemName = FindCoil(tableCoils, "LeftFlipper", "FlipperLeft", "FlipperL", "LFlipper");
 							description = "Left Flipper";
@@ -188,7 +213,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					}
 
 					Data.AddCoil(new MappingsCoilData {
-						Id = id,
+						Id = engineCoil.Id,
 						Description = description,
 						Destination = CoilDestination.Playfield,
 						PlayfieldItem = itemName,
@@ -205,23 +230,32 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">Coil names provided by the gamelogic engine</param>
 		/// <returns>All coil names</returns>
-		public IEnumerable<string> GetCoilIds(string[] engineCoils)
+		public IEnumerable<GamelogicEngineCoil> GetCoilIds(GamelogicEngineCoil[] engineCoils)
 		{
-			var ids = new List<string>();
+			var ids = new List<GamelogicEngineCoil>();
 			if (engineCoils != null) {
 				ids.AddRange(engineCoils);
 			}
 
 			foreach (var mappingsCoilData in Data.Coils) {
-				if (ids.IndexOf(mappingsCoilData.Id) == -1) {
-					ids.Add(mappingsCoilData.Id);
+				if (!ids.Exists(entry => entry.Id == mappingsCoilData.Id))
+				{
+					ids.Add(new GamelogicEngineCoil
+					{
+						Id = mappingsCoilData.Id
+					});
+
 				}
-				if (ids.IndexOf(mappingsCoilData.HoldCoilId) == -1) {
-					ids.Add(mappingsCoilData.HoldCoilId);
+				if (!ids.Exists(entry => entry.Id == mappingsCoilData.HoldCoilId))
+				{
+					ids.Add(new GamelogicEngineCoil
+					{
+						Id = mappingsCoilData.HoldCoilId
+					});
 				}
 			}
 
-			ids.Sort();
+			ids.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
 			return ids;
 		}
 

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using NLog;
+using VisualPinball.Engine;
 
 namespace VisualPinball.Unity
 {
@@ -30,10 +31,6 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default Game Engine";
 
-		public string[] AvailableSwitches { get; } = {SwLeftFlipper, SwRightFlipper, SwLeftFlipperEos, SwRightFlipperEos, SwPlunger, SwCreateBall};
-
-		public string[] AvailableCoils { get; } = {CoilLeftFlipperMain, CoilLeftFlipperHold, CoilRightFlipperMain, CoilRightFlipperHold, CoilAutoPlunger};
-
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
@@ -41,11 +38,30 @@ namespace VisualPinball.Unity
 		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
 
+		public GamelogicEngineSwitch[] AvailableSwitches { get; } =
+		{
+			new GamelogicEngineSwitch { Id = SwLeftFlipper },
+			new GamelogicEngineSwitch { Id = SwRightFlipper },
+			new GamelogicEngineSwitch { Id = SwLeftFlipperEos },
+			new GamelogicEngineSwitch { Id = SwRightFlipperEos },
+			new GamelogicEngineSwitch { Id = SwPlunger },
+			new GamelogicEngineSwitch { Id = SwCreateBall }
+		};
+
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";
 		private const string CoilLeftFlipperHold = "c_flipper_left_hold";
 		private const string CoilRightFlipperMain = "c_flipper_right_main";
 		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilAutoPlunger = "c_auto_plunger";
+
+		public GamelogicEngineCoil[] AvailableCoils { get; } =
+		{
+			new GamelogicEngineCoil { Id = CoilLeftFlipperMain },
+			new GamelogicEngineCoil { Id = CoilLeftFlipperHold },
+			new GamelogicEngineCoil { Id = CoilRightFlipperMain },
+			new GamelogicEngineCoil { Id = CoilRightFlipperHold },
+			new GamelogicEngineCoil { Id = CoilAutoPlunger }
+		};
 
 		private TableApi _tableApi;
 		private BallManager _ballManager;
@@ -68,6 +84,10 @@ namespace VisualPinball.Unity
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
+		}
+
+		public void OnUpdate()
+		{
 		}
 
 		public void OnDestroy()

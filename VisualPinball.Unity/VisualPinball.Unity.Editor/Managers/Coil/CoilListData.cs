@@ -47,12 +47,7 @@ namespace VisualPinball.Unity.Editor
 
 		public MappingsCoilData MappingsCoilData;
 
-		private TableAuthoring _tableAuthoring;
-
-		public CoilListData(MappingsCoilData mappingsCoilData, TableAuthoring ta)
-		{
-			_tableAuthoring = ta;
-
+		public CoilListData(MappingsCoilData mappingsCoilData) {
 			Id = mappingsCoilData.Id;
 			Description = mappingsCoilData.Description;
 			Destination = mappingsCoilData.Destination;
@@ -75,9 +70,6 @@ namespace VisualPinball.Unity.Editor
 			MappingsCoilData.DeviceItem = DeviceItem;
 			MappingsCoilData.Type = Type;
 			MappingsCoilData.HoldCoilId = HoldCoilId;
-
-			var coil = _tableAuthoring.Table.Coilables.FirstOrDefault(c => c.Name == PlayfieldItem);
-			coil.IsDualWound = Type == CoilType.DualWound;
 		}
 	}
 }

@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
+using System.Linq;
+using VisualPinball.Engine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -45,15 +47,15 @@ namespace VisualPinball.Unity.Editor
 			Off = 5
 		}
 
-		private readonly List<string> _ids;
+		private readonly List<GamelogicEngineSwitch> _gleSwitches;
 		private readonly Dictionary<string, ISwitchAuthoring> _switches;
 		private readonly InputManager _inputManager;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(List<string> ids, Dictionary<string, ISwitchAuthoring> switches, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, Dictionary<string, ISwitchAuthoring> switches, InputManager inputManager)
 		{
-			_ids = ids;
+			_gleSwitches = gleSwitches;
 			_switches = switches;
 			_inputManager = inputManager;
 		}
@@ -89,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 2;
 			cellRect.width -= 4;
 
-			var options = new List<string>(_ids);
+			var options = new List<string>(_gleSwitches.Select(entry => entry.Id).ToArray());
 
 			if (options.Count > 0)
 			{
@@ -106,9 +108,12 @@ namespace VisualPinball.Unity.Editor
 				{
 					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", (newId) =>
 					{
-						if (_ids.IndexOf(newId) == -1)
+						if (_gleSwitches.Exists(entry => entry.Id == newId))
 						{
-							_ids.Add(newId);
+							_gleSwitches.Add(new GamelogicEngineSwitch
+							{
+								Id = newId
+							});
 						}
 
 						switchListData.Id = newId;
@@ -118,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				else
 				{
-					switchListData.Id = _ids[index];
+					switchListData.Id = _gleSwitches[index].Id;
 
 					updateAction(switchListData);
 				}

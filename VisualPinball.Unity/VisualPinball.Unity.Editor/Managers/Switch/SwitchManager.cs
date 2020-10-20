@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 
@@ -39,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		protected override bool DetailsEnabled => false;
 		protected override bool ListViewItemRendererEnabled => true;
 
-		private readonly List<string> _ids = new List<string>();
+		private readonly List<GamelogicEngineSwitch> _gleSwitches = new List<GamelogicEngineSwitch>();
 		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
 
 		private InputManager _inputManager;
@@ -72,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_ids, _switches, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _switches, _inputManager);
 			_needsAssetRefresh = true;
 
 			base.OnFocus();
@@ -214,14 +215,15 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshSwitchIds()
 		{
-			_ids.Clear();
-			_ids.AddRange(_tableAuthoring.Table.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
+			_gleSwitches.Clear();
+
+			_gleSwitches.AddRange(_tableAuthoring.Table.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
 		}
 
-		private string[] GetAvailableEngineSwitches()
+		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			return gle == null ? new string[0] : ((IGamelogicEngineWithSwitches) gle.GameEngine).AvailableSwitches;
+			return gle == null ? new GamelogicEngineSwitch[0] : ((IGamelogicEngineWithSwitches) gle.GameEngine).AvailableSwitches;
 		}
 
 		#endregion
