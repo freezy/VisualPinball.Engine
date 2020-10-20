@@ -20,16 +20,27 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Mechanisms/Trough")]
-	public class TroughAuthoring : MonoBehaviour, ISwitchDeviceAuthoring
+	[AddComponentMenu("Visual Pinball/Trough")]
+	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring
 	{
-		public string Name { get; set; } = "TestTrough";
+		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
+		protected override Type MeshAuthoringType { get; } = null;
+		protected override Type ColliderAuthoringType { get; } = null;
+
+		public override void Restore()
+		{
+			Item.Name = name;
+		}
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch {Description = "Switch 1", Id = "1"},
@@ -37,5 +48,12 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch {Description = "Switch 3", Id = "3"},
 			new GamelogicEngineSwitch {Description = "Switch 4", Id = "4"},
 		};
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				Table?.Remove<Trough>(Name);
+			}
+		}
 	}
 }
