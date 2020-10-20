@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 		public string Element;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
-		public int Pulse;
+		public int PulseDelay;
 
 		public string Id;
 		public string InputActionMap;
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			Constant = mappingsSwitchData.Constant;
 			Device = mappingsSwitchData.Device;
 			DeviceItem = mappingsSwitchData.DeviceItem;
-			Pulse = mappingsSwitchData.PulseDelay;
+			PulseDelay = mappingsSwitchData.PulseDelay;
 
 			MappingsSwitchData = mappingsSwitchData;
 		}
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 			MappingsSwitchData.Constant = Constant;
 			MappingsSwitchData.Device = Device;
 			MappingsSwitchData.DeviceItem = DeviceItem;
-			MappingsSwitchData.PulseDelay = Pulse;
+			MappingsSwitchData.PulseDelay = PulseDelay;
 		}
 	}
 }

@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
 		private readonly List<Action> _afterBallQueues = new List<Action>();
+		private readonly List<SwitchAction> _switchQueues = new List<SwitchAction>();
 
 		private const TimingMode Timing = TimingMode.UnityTime;
 
@@ -111,6 +112,14 @@ namespace VisualPinball.Unity
 
 				// advance physics position
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+
+				// close switches
+				for (var i = _switchQueues.Count - 1; i >= 0; i--) {
+					if (_currentPhysicsFrameTime > _switchQueues[i].SwitchAt) {
+						_switchQueues[i].Close();
+						_switchQueues.RemoveAt(i);
+					}
+				}
 			}
 
 			_ballRingCounterSystem.Update();
@@ -150,17 +159,35 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void QueueAfterBallCreation(Action action)
+		{
+			_afterBallQueues.Add(action);
+		}
+
+		public void ScheduleSwitch(int timeoutMs, Action action)
+		{
+			_switchQueues.Add(new SwitchAction(_currentPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+		}
+
+
 		private enum TimingMode
 		{
 			UnityTime,
 			SystemTime,
 			Atleast60,
 			Locked60
-		};
+		}
 
-		public void QueueAfterBallCreation(Action action)
+		private class SwitchAction
 		{
-			_afterBallQueues.Add(action);
+			public readonly ulong SwitchAt;
+			public readonly Action Close;
+
+			public SwitchAction(ulong switchAt, Action close)
+			{
+				SwitchAt = switchAt;
+				Close = close;
+			}
 		}
 	}
 

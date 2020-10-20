@@ -63,8 +63,10 @@ namespace VisualPinball.Unity
 				foreach (var switchConfig in _switchIds) {
 					_gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, normallyClosed);
 
-					if (switchConfig.PulseDelay > 0) {
-						// todo set timeout
+					// time switch opening if closed and pulse
+					if (normallyClosed && switchConfig.PulseDelay > 0) {
+						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
+							() => _gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, false));
 					}
 				}
 			}
