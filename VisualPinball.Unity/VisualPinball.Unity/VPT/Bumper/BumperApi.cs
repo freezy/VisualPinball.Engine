@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
 
-		void IApiCoil.OnCoil(bool enabled)
+		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			// bumper coils are currently triggered automatically on hit
 		}

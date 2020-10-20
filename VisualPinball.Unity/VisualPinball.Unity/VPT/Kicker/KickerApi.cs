@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiCoil.OnCoil(bool enabled)
+		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			if (enabled) {
 				Kick(Data.Angle, Data.Speed);

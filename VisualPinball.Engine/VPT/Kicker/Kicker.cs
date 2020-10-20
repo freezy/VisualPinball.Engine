@@ -65,6 +65,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		public bool IsCollidable => Data.IsEnabled;
 
+		public bool IsDualWound { get; set; }
+
 		public Vertex3D GetBallCreationPosition(Table.Table table)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);

@@ -54,5 +54,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
 		public bool IsCollidable => true;
+		public bool IsDualWound { get => Data.IsDualWound; set => Data.IsDualWound = value; }
 	}
 }

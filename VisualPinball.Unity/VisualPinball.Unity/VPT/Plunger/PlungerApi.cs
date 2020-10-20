@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
 
-		void IApiCoil.OnCoil(bool enabled)
+		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			if (enabled) {
 				PullBack();

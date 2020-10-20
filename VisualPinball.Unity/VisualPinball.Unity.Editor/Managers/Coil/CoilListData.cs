@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 
 namespace VisualPinball.Unity.Editor
@@ -45,7 +47,12 @@ namespace VisualPinball.Unity.Editor
 
 		public MappingsCoilData MappingsCoilData;
 
-		public CoilListData(MappingsCoilData mappingsCoilData) {
+		private TableAuthoring _tableAuthoring;
+
+		public CoilListData(MappingsCoilData mappingsCoilData, TableAuthoring ta)
+		{
+			_tableAuthoring = ta;
+
 			Id = mappingsCoilData.Id;
 			Description = mappingsCoilData.Description;
 			Destination = mappingsCoilData.Destination;
@@ -68,6 +75,9 @@ namespace VisualPinball.Unity.Editor
 			MappingsCoilData.DeviceItem = DeviceItem;
 			MappingsCoilData.Type = Type;
 			MappingsCoilData.HoldCoilId = HoldCoilId;
+
+			var coil = _tableAuthoring.Table.Coilables.FirstOrDefault(c => c.Name == PlayfieldItem);
+			coil.IsDualWound = Type == CoilType.DualWound;
 		}
 	}
 }
