@@ -49,7 +49,8 @@ namespace VisualPinball.Engine.VPT
 		Flasher = 20,
 		Rubber = 21,
 		HitTarget = 22,
-		Count = 23,
+		Trough = 23,
+		Count = 24,
 		Invalid = -1,
 
 		// VPE internal
