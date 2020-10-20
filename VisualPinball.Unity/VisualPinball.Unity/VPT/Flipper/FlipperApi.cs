@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, pulseDelay);
 
 		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
 		{

@@ -65,7 +65,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Switches[2].Source.Should().Be(SwitchSource.Playfield);
 			data.Switches[2].PlayfieldItem.Should().Be("Bumper1");
 			data.Switches[2].Type.Should().Be(SwitchType.Pulse);
-			data.Switches[2].Pulse.Should().Be(20);
+			data.Switches[2].PulseDelay.Should().Be(20);
 
 			data.Switches[3].Id.Should().Be("s_right_flipper");
 			data.Switches[3].Description.Should().Be("Right Flipper");

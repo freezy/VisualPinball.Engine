@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, data);
 		}
 
-		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, pulseDelay);
 
 		#region Events
 

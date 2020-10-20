@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			Constant = mappingsSwitchData.Constant;
 			Device = mappingsSwitchData.Device;
 			DeviceItem = mappingsSwitchData.DeviceItem;
-			Pulse = mappingsSwitchData.Pulse;
+			Pulse = mappingsSwitchData.PulseDelay;
 
 			MappingsSwitchData = mappingsSwitchData;
 		}
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 			MappingsSwitchData.Constant = Constant;
 			MappingsSwitchData.Device = Device;
 			MappingsSwitchData.DeviceItem = DeviceItem;
-			MappingsSwitchData.Pulse = Pulse;
+			MappingsSwitchData.PulseDelay = Pulse;
 		}
 	}
 }
