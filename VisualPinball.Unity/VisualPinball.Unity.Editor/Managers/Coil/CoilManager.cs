@@ -133,7 +133,7 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var mappingsCoilData in _tableAuthoring.Mappings.Coils)
 			{
-				data.Add(new CoilListData(mappingsCoilData));
+				data.Add(new CoilListData(mappingsCoilData, _tableAuthoring));
 			}
 
 			RefreshCoils();

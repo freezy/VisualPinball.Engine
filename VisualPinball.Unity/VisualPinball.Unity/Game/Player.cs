@@ -75,8 +75,7 @@ namespace VisualPinball.Unity
 
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _keyAssignments = new Dictionary<string, List<string>>();
-		private readonly Dictionary<string, List<string>> _coilOnAssignments = new Dictionary<string, List<string>>();
-		private readonly Dictionary<string, List<string>> _coilOffAssignments = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, List<Tuple<string, bool>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool>>>();
 
 		public Player()
 		{
@@ -110,7 +109,7 @@ namespace VisualPinball.Unity
 			if (_keyAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
 			}
-			if (_coilOnAssignments.Count > 0) {
+			if (_coilAssignments.Count > 0) {
 				(GameEngine as IGamelogicEngineWithCoils).OnCoilChanged -= HandleCoilEvent;
 			}
 			GameEngine?.OnDestroy();
@@ -262,26 +261,20 @@ namespace VisualPinball.Unity
 		{
 			if (GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
 				var config = Table.Mappings;
-				_coilOnAssignments.Clear();
-				_coilOffAssignments.Clear();
+				_coilAssignments.Clear();
 				foreach (var coilData in config.Data.Coils) {
 					switch (coilData.Destination) {
 						case CoilDestination.Playfield:
-							if (!_coilOnAssignments.ContainsKey(coilData.Id)) {
-								_coilOnAssignments[coilData.Id] = new List<string>();
+							if (!_coilAssignments.ContainsKey(coilData.Id)) {
+								_coilAssignments[coilData.Id] = new List<Tuple<string, bool>>();
 							}
-							_coilOnAssignments[coilData.Id].Add(coilData.PlayfieldItem);
+							_coilAssignments[coilData.Id].Add(new Tuple<string, bool>(coilData.PlayfieldItem, false));
 							if (coilData.Type == CoilType.DualWound) {
-								if (!_coilOffAssignments.ContainsKey(coilData.HoldCoilId)) {
-									_coilOffAssignments[coilData.HoldCoilId] = new List<string>();
+								if (!_coilAssignments.ContainsKey(coilData.HoldCoilId)) {
+									_coilAssignments[coilData.HoldCoilId] = new List<Tuple<string, bool>>();
 								}
-								_coilOffAssignments[coilData.HoldCoilId].Add(coilData.PlayfieldItem);
+								_coilAssignments[coilData.HoldCoilId].Add(new Tuple<string, bool>(coilData.PlayfieldItem, true));
 
-							} else {
-								if (!_coilOffAssignments.ContainsKey(coilData.Id)) {
-									_coilOffAssignments[coilData.Id] = new List<string>();
-								}
-								_coilOffAssignments[coilData.Id].Add(coilData.PlayfieldItem);
 							}
 							break;
 
@@ -291,7 +284,7 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				if (_coilOnAssignments.Count > 0) {
+				if (_coilAssignments.Count > 0) {
 					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
 				}
 			}
@@ -363,15 +356,10 @@ namespace VisualPinball.Unity
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
 		{
-			HandleCoilEvent(coilEvent.IsEnabled ? _coilOnAssignments : _coilOffAssignments, coilEvent);
-		}
-
-		private void HandleCoilEvent(Dictionary<string, List<string>> assignments, CoilEventArgs coilEvent)
-		{
-			if (assignments.ContainsKey(coilEvent.Id)) {
-				foreach (var itemName in assignments[coilEvent.Id]) {
+			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
+				foreach (var (itemName, isHoldCoil) in _coilAssignments[coilEvent.Id]) {
 					if (_coils.ContainsKey(itemName)) {
-						_coils[itemName].OnCoil(coilEvent.IsEnabled);
+						_coils[itemName].OnCoil(coilEvent.IsEnabled, isHoldCoil);
 					} else {
 						Logger.Warn($"Should trigger unknown coil item {itemName}.");
 					}
@@ -382,6 +370,7 @@ namespace VisualPinball.Unity
 				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
 			}
 		}
+
 
 		#endregion
 
