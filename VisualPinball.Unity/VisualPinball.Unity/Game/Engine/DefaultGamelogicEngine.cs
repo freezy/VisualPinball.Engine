@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using NLog;
 
 namespace VisualPinball.Unity
@@ -29,21 +30,27 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default Game Engine";
 
-		public string[] AvailableSwitches { get; } = {SwLeftFlipper, SwRightFlipper, SwPlunger, SwCreateBall};
+		public string[] AvailableSwitches { get; } = {SwLeftFlipper, SwRightFlipper, SwLeftFlipperEos, SwRightFlipperEos, SwPlunger, SwCreateBall};
 
-		public string[] AvailableCoils { get; } = {CoilLeftFlipper, CoilRightFlipper, CoilAutoPlunger};
+		public string[] AvailableCoils { get; } = {CoilLeftFlipperMain, CoilLeftFlipperHold, CoilRightFlipperMain, CoilRightFlipperHold, CoilAutoPlunger};
 
 		private const string SwLeftFlipper = "s_left_flipper";
+		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
+		private const string SwRightFlipperEos = "s_right_flipper_eos";
 		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
 
-		private const string CoilLeftFlipper = "c_left_flipper";
-		private const string CoilRightFlipper = "c_right_flipper";
+		private const string CoilLeftFlipperMain = "c_flipper_left_main";
+		private const string CoilLeftFlipperHold = "c_flipper_left_hold";
+		private const string CoilRightFlipperMain = "c_flipper_right_main";
+		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilAutoPlunger = "c_auto_plunger";
 
 		private TableApi _tableApi;
 		private BallManager _ballManager;
+
+		private Dictionary<string, bool> _switchStatus = new Dictionary<string, bool>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -51,6 +58,13 @@ namespace VisualPinball.Unity
 		{
 			_tableApi = tableApi;
 			_ballManager = ballManager;
+
+			_switchStatus[SwLeftFlipper] = false;
+			_switchStatus[SwLeftFlipperEos] = false;
+			_switchStatus[SwRightFlipper] = false;
+			_switchStatus[SwRightFlipperEos] = false;
+			_switchStatus[SwPlunger] = false;
+			_switchStatus[SwCreateBall] = false;
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -65,14 +79,44 @@ namespace VisualPinball.Unity
 
 		public void Switch(string id, bool normallyClosed)
 		{
+			_switchStatus[id] = normallyClosed;
+			Logger.Info("Switch {0} is {1}.", id, normallyClosed ? "closed" : "open");
+
 			switch (id) {
 
 				case SwLeftFlipper:
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipper, normallyClosed));
+					if (normallyClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, true));
+
+					} else {
+						OnCoilChanged?.Invoke(this,
+							_switchStatus[SwLeftFlipperEos]
+								? new CoilEventArgs(CoilLeftFlipperHold, false)
+								: new CoilEventArgs(CoilLeftFlipperMain, false)
+						);
+					}
+					break;
+
+				case SwLeftFlipperEos:
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
 					break;
 
 				case SwRightFlipper:
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipper, normallyClosed));
+					if (normallyClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
+					} else {
+						OnCoilChanged?.Invoke(this,
+							_switchStatus[SwRightFlipperEos]
+								? new CoilEventArgs(CoilRightFlipperHold, false)
+								: new CoilEventArgs(CoilRightFlipperMain, false)
+						);
+					}
+					break;
+
+				case SwRightFlipperEos:
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
 					break;
 
 				case SwPlunger:
@@ -90,7 +134,7 @@ namespace VisualPinball.Unity
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
-			//Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
+			Logger.Info("Coil {0} set to {1}.", e.Id, e.IsEnabled);
 		}
 	}
 }
