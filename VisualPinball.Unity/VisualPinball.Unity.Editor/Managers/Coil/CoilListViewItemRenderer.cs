@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
+using System.Linq;
+using VisualPinball.Engine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -38,14 +40,14 @@ namespace VisualPinball.Unity.Editor
 			HoldCoilId = 5,
 		}
 
-		private readonly List<string> _ids;
+		private readonly List<GamelogicEngineCoil> _gleCoils;
 		private readonly Dictionary<string, ICoilAuthoring> _coils;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public CoilListViewItemRenderer(List<string> ids, Dictionary<string, ICoilAuthoring> coils)
+		public CoilListViewItemRenderer(List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils)
 		{
-			_ids = ids;
+			_gleCoils = gleCoils;
 			_coils = coils;
 		}
 
@@ -82,7 +84,7 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 2;
 			cellRect.width -= 4;
 
-			var options = new List<string>(_ids);
+			var options = new List<string>(_gleCoils.Select(entry => entry.Id).ToArray());
 
 			if (options.Count > 0) {
 				options.Add("");
@@ -95,8 +97,12 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
 					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (_ids.IndexOf(newId) == -1) {
-							_ids.Add(newId);
+						if (_gleCoils.Exists(entry => entry.Id == newId))
+						{
+							_gleCoils.Add(new GamelogicEngineCoil
+							{
+								Id = newId
+							});
 						}
 
 						setId(newId);
@@ -104,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 					}));
 
 				} else {
-					setId(_ids[index]);
+					setId(_gleCoils[index].Id);
 					updateAction(coilListData);
 				}
 			}

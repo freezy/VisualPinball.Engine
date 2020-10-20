@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using VisualPinball.Engine;
 
 namespace VisualPinball.Unity
 {
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available coils.
 		/// </summary>
-		string[] AvailableCoils { get; }
+		GamelogicEngineCoil[] AvailableCoils { get; }
 
 		/// <summary>
 		/// Triggered when a coil is enabled or disabled.

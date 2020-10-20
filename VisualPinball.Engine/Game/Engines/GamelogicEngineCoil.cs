@@ -14,21 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity
-{
-	/// <summary>
-	/// A game logic engine is the part that handles the game. <p/>
-	///
-	/// There will typically be implementations for PinMAME and MPF.
-	/// </summary>
-	public interface IGamelogicEngine
+namespace VisualPinball.Engine
+{ 
+	public struct GamelogicEngineCoil
 	{
-		string Name { get; }
-
-		void OnInit(TableApi tableApi, BallManager ballManager);
-
-		void OnUpdate();
-
-		void OnDestroy();
+		public string Id;
+		public string Description;
+		public string PlayfieldItemHint;
 	}
 }
