@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, pulseDelay);
 
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{

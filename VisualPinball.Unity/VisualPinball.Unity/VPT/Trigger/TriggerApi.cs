@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitch.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, pulseDelay);
 
 		#region Events
 

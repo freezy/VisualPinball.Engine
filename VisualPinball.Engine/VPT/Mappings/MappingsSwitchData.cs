@@ -64,7 +64,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public int Type = SwitchType.OnOff;
 
 		[BiffInt("PLSE", Pos = 11)]
-		public int Pulse = 250;
+		public int PulseDelay = 250;
 
 		#region BIFF
 

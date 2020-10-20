@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitch
 	{
-		void AddSwitchId(string mappingEntryId);
+		void AddSwitchId(string switchId, int pulseDelay);
 	}
 
 	internal interface IApiCoil

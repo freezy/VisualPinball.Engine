@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using VisualPinball.Engine.VPT;
@@ -45,26 +46,42 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private List<string> _switchIds;
+		private List<SwitchConfig> _switchIds;
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected void AddSwitchId(string switchId)
+		protected void AddSwitchId(string switchId, int pulseDelay)
 		{
 			if (_switchIds == null) {
-				_switchIds = new List<string>();
+				_switchIds = new List<SwitchConfig>();
 			}
-			_switchIds.Add(switchId);
+			_switchIds.Add(new SwitchConfig(switchId, pulseDelay));
 		}
 
 		protected void OnSwitch(bool normallyClosed)
 		{
 			if (_gamelogicEngineWithSwitches != null && _switchIds != null) {
-				foreach (var switchId in _switchIds) {
-					_gamelogicEngineWithSwitches.Switch(switchId, normallyClosed);
+				foreach (var switchConfig in _switchIds) {
+					_gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, normallyClosed);
+
+					if (switchConfig.PulseDelay > 0) {
+						// todo set timeout
+					}
 				}
 			}
 		}
 
 		#endregion
+
+		private struct SwitchConfig
+		{
+			public readonly string SwitchId;
+			public readonly int PulseDelay;
+
+			public SwitchConfig(string switchId, int pulseDelay)
+			{
+				SwitchId = switchId;
+				PulseDelay = pulseDelay;
+			}
+		}
 	}
 }

@@ -310,7 +310,7 @@ namespace VisualPinball.Unity
 							     && _switches.ContainsKey(switchData.PlayfieldItem):
 						{
 							var element = _switches[switchData.PlayfieldItem];
-							element.AddSwitchId(switchData.Id);
+							element.AddSwitchId(switchData.Id, switchData.PulseDelay);
 							break;
 						}
 
