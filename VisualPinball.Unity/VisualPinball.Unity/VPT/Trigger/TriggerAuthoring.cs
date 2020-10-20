@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 		protected override Trigger GetItem() => new Trigger(data);
 
 		public IHittable Hittable => Item;
+		public bool IsPulseSwitch => false;
 
 		private void OnDestroy()
 		{

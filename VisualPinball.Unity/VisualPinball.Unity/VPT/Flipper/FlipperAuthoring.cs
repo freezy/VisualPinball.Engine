@@ -40,6 +40,8 @@ namespace VisualPinball.Unity
 
 		public IHittable Hittable => Item;
 
+		public bool IsPulseSwitch => false;
+
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 
 		private void OnDestroy()

@@ -181,7 +181,6 @@ namespace VisualPinball.Unity.Editor
 				InputAction = data.InputAction,
 				PlayfieldItem = data.PlayfieldItem,
 				Constant = data.Constant,
-				Type = data.Type,
 				Pulse = data.Pulse
 			});
 		}

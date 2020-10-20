@@ -32,11 +32,8 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
 		public string Element;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 100)]
-		public int Type;
-
-		[ManagerListColumn(Order = 5, HeaderName = "Off", Width = 100)]
-		public string Off;
+		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
+		public int Pulse;
 
 		public string Id;
 		public string InputActionMap;
@@ -45,7 +42,6 @@ namespace VisualPinball.Unity.Editor
 		public int Constant;
 		public string Device;
 		public string DeviceItem;
-		public int Pulse;
 
 		public MappingsSwitchData MappingsSwitchData;
 
@@ -59,7 +55,6 @@ namespace VisualPinball.Unity.Editor
 			Constant = mappingsSwitchData.Constant;
 			Device = mappingsSwitchData.Device;
 			DeviceItem = mappingsSwitchData.DeviceItem;
-			Type = mappingsSwitchData.Type;
 			Pulse = mappingsSwitchData.Pulse;
 
 			MappingsSwitchData = mappingsSwitchData;
@@ -76,7 +71,6 @@ namespace VisualPinball.Unity.Editor
 			MappingsSwitchData.Constant = Constant;
 			MappingsSwitchData.Device = Device;
 			MappingsSwitchData.DeviceItem = DeviceItem;
-			MappingsSwitchData.Type = Type;
 			MappingsSwitchData.Pulse = Pulse;
 		}
 	}

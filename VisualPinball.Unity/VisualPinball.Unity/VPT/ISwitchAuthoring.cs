@@ -19,5 +19,6 @@ namespace VisualPinball.Unity
 {
 	public interface ISwitchAuthoring : IIdentifiableItemAuthoring
 	{
+		bool IsPulseSwitch { get; }
 	}
 }
