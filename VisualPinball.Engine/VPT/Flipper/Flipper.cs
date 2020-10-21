@@ -24,6 +24,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 	{
 		public override string ItemType => "Flasher";
 
+		public bool IsPulseSwitch => false;
+
 		private readonly FlipperMeshGenerator _meshGenerator;
 		private FlipperHit _hit;
 

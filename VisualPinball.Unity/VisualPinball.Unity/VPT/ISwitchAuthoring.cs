@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+using VisualPinball.Engine.Game;
+
 namespace VisualPinball.Unity
 {
 	public interface ISwitchAuthoring : IIdentifiableItemAuthoring
 	{
-		bool IsPulseSwitch { get; }
+		ISwitchable Switchable { get; }
 	}
 }

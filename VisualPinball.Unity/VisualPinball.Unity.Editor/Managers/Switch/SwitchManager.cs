@@ -137,14 +137,6 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
-
-				// set pulse delay to 0 for non-pulse switches because the engine will trigger them based on that.
-				if (switchListData.Source == SwitchSource.Playfield && _switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
-					var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
-					if (switchable != null && !switchable.IsPulseSwitch) {
-						switchListData.PulseDelay = 0;
-					}
-				}
 			});
 		}
 

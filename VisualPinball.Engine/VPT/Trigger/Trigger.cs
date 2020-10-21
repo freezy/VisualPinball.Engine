@@ -25,6 +25,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 	{
 		public override string ItemType => "Trigger";
 
+		public bool IsPulseSwitch => false;
+
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsEnabled;
 

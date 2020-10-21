@@ -25,6 +25,8 @@ namespace VisualPinball.Engine.VPT.Spinner
 	{
 		public override string ItemType => "Spinner";
 
+		public bool IsPulseSwitch => true;
+
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
 		private readonly SpinnerMeshGenerator _meshGenerator;

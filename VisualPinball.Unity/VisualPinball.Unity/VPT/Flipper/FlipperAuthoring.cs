@@ -39,8 +39,7 @@ namespace VisualPinball.Unity
 		protected override Flipper GetItem() => new Flipper(data);
 
 		public IHittable Hittable => Item;
-
-		public bool IsPulseSwitch => false;
+		public ISwitchable Switchable => Item;
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 

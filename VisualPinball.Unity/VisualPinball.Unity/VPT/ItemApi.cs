@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -49,12 +50,12 @@ namespace VisualPinball.Unity
 		private List<SwitchConfig> _switchIds;
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected void AddSwitchId(string switchId, int pulseDelay)
+		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay)
 		{
 			if (_switchIds == null) {
 				_switchIds = new List<SwitchConfig>();
 			}
-			_switchIds.Add(new SwitchConfig(switchId, pulseDelay));
+			_switchIds.Add(new SwitchConfig(switchId, isPulseSwitch, pulseDelay));
 		}
 
 		protected void OnSwitch(bool normallyClosed)
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity
 					_gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, normallyClosed);
 
 					// time switch opening if closed and pulse
-					if (normallyClosed && switchConfig.PulseDelay > 0) {
+					if (normallyClosed && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
 							() => _gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, false));
 					}
@@ -74,15 +75,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		private struct SwitchConfig
+		private readonly struct SwitchConfig
 		{
 			public readonly string SwitchId;
 			public readonly int PulseDelay;
+			public readonly bool IsPulseSwitch;
 
-			public SwitchConfig(string switchId, int pulseDelay)
+			public SwitchConfig(string switchId, bool isPulseSwitch, int pulseDelay)
 			{
 				SwitchId = switchId;
 				PulseDelay = pulseDelay;
+				IsPulseSwitch = isPulseSwitch;
 			}
 		}
 	}

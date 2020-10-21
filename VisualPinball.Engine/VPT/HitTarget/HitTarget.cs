@@ -24,6 +24,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	{
 		public override string ItemType => "Target";
 
+		public bool IsPulseSwitch => true;
+
 		public HitObject[] GetHitShapes() => _hits;
 
 		private readonly HitTargetMeshGenerator _meshGenerator;

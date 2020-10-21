@@ -26,6 +26,8 @@ namespace VisualPinball.Engine.VPT.Gate
 	{
 		public override string ItemType => "Gate";
 
+		public bool IsPulseSwitch => true;
+
 		private readonly GateMeshGenerator _meshGenerator;
 		private readonly GateHitGenerator _hitGenerator;
 		private GateHit _hitGate;
