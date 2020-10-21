@@ -33,11 +33,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerAuthoring : ItemMainAuthoring<Spinner, SpinnerData>,
-		IHittableAuthoring, ISwitchAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

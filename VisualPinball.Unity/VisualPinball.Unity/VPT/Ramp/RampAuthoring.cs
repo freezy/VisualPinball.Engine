@@ -33,13 +33,12 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
+	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);
-
-		public IHittable Hittable => Item;
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Ramp, RampData, RampAuthoring>);
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

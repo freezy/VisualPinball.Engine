@@ -31,10 +31,12 @@ namespace VisualPinball.Unity
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddComponent<BumperColliderAuthoring>();
-					CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base);
-					CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
-					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
-					var skirt = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
+
+					CreateBaseMeshComponent(bumper, obj);
+					CreateCapMeshComponent(bumper, obj);
+
+					var ring = CreateRingMeshComponent(bumper, obj);
+					var skirt = CreateSkirtMeshComponent(bumper, obj);
 					ring.AddComponent<BumperRingAnimationAuthoring>();
 					skirt.AddComponent<BumperSkirtAnimationAuthoring>();
 
@@ -42,16 +44,19 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					obj.AddComponent<BumperColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyColliderComponent();
 					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					// todo
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+					CreateBaseMeshComponent(bumper, obj);
+					CreateCapMeshComponent(bumper, obj);
+					CreateRingMeshComponent(bumper, obj);
+					CreateSkirtMeshComponent(bumper, obj);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}
@@ -63,13 +68,39 @@ namespace VisualPinball.Unity
 			return mainAuthoring;
 		}
 
-		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		private static void CreateBaseMeshComponent(Bumper rubber, GameObject obj)
+		{
+			var meshComp = CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base);
+			meshComp.enabled = rubber.Data.IsBaseVisible;
+		}
+
+		private static void CreateCapMeshComponent(Bumper rubber, GameObject obj)
+		{
+			var meshComp = CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
+			meshComp.enabled = rubber.Data.IsBaseVisible;
+		}
+
+		private static GameObject CreateRingMeshComponent(Bumper rubber, GameObject obj)
+		{
+			var meshComp = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
+			meshComp.enabled = rubber.Data.IsRingVisible;
+			return meshComp.gameObject;
+		}
+
+		private static GameObject CreateSkirtMeshComponent(Bumper rubber, GameObject obj)
+		{
+			var meshComp = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
+			meshComp.enabled = rubber.Data.IsSocketVisible;
+			return meshComp.gameObject;
+		}
+
+		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

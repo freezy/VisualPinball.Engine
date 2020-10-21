@@ -17,7 +17,6 @@
 using System;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -26,13 +25,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerAuthoring : ItemMainAuthoring<Plunger, PlungerData>,
-		IHittableAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
-
-		public IHittable Hittable => Item;
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
 		private void OnDestroy()
 		{

@@ -36,16 +36,16 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					obj.AddComponent<PlungerColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyColliderComponent();
 					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
 					CreateMeshComponents(plunger, obj);
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}

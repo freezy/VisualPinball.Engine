@@ -33,13 +33,13 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainAuthoring<Trigger, TriggerData>,
-		IHittableAuthoring, ISwitchAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
+		ISwitchAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 
-		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()

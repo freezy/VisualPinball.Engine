@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		void SetMeshDirty();
 		void RebuildMeshIfDirty();
+		void DestroyMeshComponent();
+		void DestroyColliderComponent();
 
 		// the following interfaces allow each item behavior to define which axes should
 		// be shown on the scene view gizmo, the gizmo itself will use the associated

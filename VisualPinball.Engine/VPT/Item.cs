@@ -55,6 +55,7 @@ namespace VisualPinball.Engine.VPT
 		protected Item(TData data)
 		{
 			Data = data;
+			(ComponentName, SubComponent, SubName) = SplitName();
 		}
 
 		private (string, ItemSubComponent, string) SplitName()

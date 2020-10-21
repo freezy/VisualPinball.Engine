@@ -30,24 +30,22 @@ namespace VisualPinball.Unity
 
 			switch (primitive.SubComponent) {
 				case ItemSubComponent.None:
-					if (!primitive.Data.IsToy) {
-						obj.AddComponent<PrimitiveColliderAuthoring>();
-					}
-					obj.AddComponent<PrimitiveMeshAuthoring>();
+					obj.AddMeshComponent(primitive);
+					obj.AddColliderComponent(primitive);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<PrimitiveColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
+					obj.AddColliderComponent(primitive);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyColliderComponent();
 					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					obj.AddComponent<PrimitiveMeshAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+					obj.AddMeshComponent(primitive);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}
@@ -57,6 +55,20 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddMeshComponent(this GameObject obj, Primitive primitive)
+		{
+			var comp = obj.AddComponent<PrimitiveMeshAuthoring>();
+			comp.enabled = primitive.Data.IsVisible;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, Primitive primitive)
+		{
+			if (!primitive.Data.IsToy) {
+				var comp = obj.AddComponent<PrimitiveColliderAuthoring>();
+				comp.enabled = primitive.IsCollidable;
+			}
 		}
 	}
 }

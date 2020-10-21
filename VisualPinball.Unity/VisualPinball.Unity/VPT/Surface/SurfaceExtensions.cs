@@ -37,8 +37,8 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					obj.AddComponent<SurfaceColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyColliderComponent();
 					}
 					break;
 				}
@@ -46,8 +46,8 @@ namespace VisualPinball.Unity
 				case ItemSubComponent.Mesh: {
 					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
 					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}

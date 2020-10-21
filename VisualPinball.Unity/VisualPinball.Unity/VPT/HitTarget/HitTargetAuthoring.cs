@@ -31,11 +31,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
 	public class HitTargetAuthoring : ItemMainAuthoring<HitTarget, HitTargetData>,
-		IHittableAuthoring, ISwitchAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 			CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket);
 
 			if (light.SubComponent == ItemSubComponent.Mesh) {
-				if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-					meshAuthoring.RemoveMeshComponent();
+				if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+					parentMainAuthoring.DestroyMeshComponent();
 				}
 			}
 

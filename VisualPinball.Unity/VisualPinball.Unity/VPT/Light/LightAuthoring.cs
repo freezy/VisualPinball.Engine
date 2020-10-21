@@ -34,7 +34,8 @@ namespace VisualPinball.Unity
 
 		protected override Light InstantiateItem(LightData data) => new Light(data);
 
-		protected override Type MeshAuthoringType { get; } = null;
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Light, LightData, LightAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = null;
 
 
 		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)
