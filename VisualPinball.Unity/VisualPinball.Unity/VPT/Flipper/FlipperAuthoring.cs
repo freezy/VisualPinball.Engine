@@ -33,11 +33,12 @@ namespace VisualPinball.Unity
 	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	public class FlipperAuthoring : ItemMainAuthoring<Flipper, FlipperData>,
-		IHittableAuthoring, ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

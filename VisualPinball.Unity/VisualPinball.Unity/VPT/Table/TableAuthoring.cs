@@ -58,6 +58,7 @@ namespace VisualPinball.Unity
 		protected override Table InstantiateItem(TableData data) => RecreateTable(data);
 
 		protected override Type MeshAuthoringType { get; } = null;
+		protected override Type ColliderAuthoringType { get; } = null;
 
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;

@@ -53,6 +53,11 @@ namespace VisualPinball.Unity
 				.Select(c => (IItemMeshAuthoring) c)
 				.Where(ma => ma.ItemData == _data) : new IItemMeshAuthoring[0];
 
+		private IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
+			GetComponentsInChildren(ColliderAuthoringType, true)
+				.Select(c => (IItemColliderAuthoring) c)
+				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];
+
 		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{
 			_item = item;
@@ -84,10 +89,44 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void DestroyMeshComponent()
+		{
+			foreach (var component in MeshComponents) {
+				var mb = component as MonoBehaviour;
+
+				// if game object is the same, remove component
+				if (mb.gameObject == gameObject) {
+					DestroyImmediate(mb);
+
+				} else {
+					// otherwise, destroy entire game object
+					DestroyImmediate(mb.gameObject);
+				}
+			}
+		}
+
+		public void DestroyColliderComponent()
+		{
+			foreach (var component in ColliderComponents) {
+				var mb = component as MonoBehaviour;
+
+				// if game object is the same, remove component
+				if (mb.gameObject == gameObject) {
+					DestroyImmediate(mb);
+
+				} else {
+					// otherwise, destroy entire game object
+					DestroyImmediate(mb.gameObject);
+				}
+			}
+		}
+
 		/// <summary>
 		/// Authoring type of the child class.
 		/// </summary>
 		protected abstract Type MeshAuthoringType { get; }
+
+		protected abstract Type ColliderAuthoringType { get; }
 
 		/// <summary>
 		/// Instantiates a new item based on the item data.

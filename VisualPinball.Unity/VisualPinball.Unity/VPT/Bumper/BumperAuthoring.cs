@@ -31,11 +31,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainAuthoring<Bumper, BumperData>,
-		IHittableAuthoring, ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

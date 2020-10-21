@@ -23,7 +23,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity
 {
 	public class PlayfieldAuthoring : ItemMainAuthoring<Table, TableData>,
-		IHittableAuthoring, IMeshAuthoring, IConvertGameObjectToEntity
+		IConvertGameObjectToEntity
 	{
 		public IRenderable Renderable => Table;
 
@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		protected override Table InstantiateItem(TableData data) => throw new InvalidOperationException("Table is not instantiated via authoring component.");
 
 		protected override Type MeshAuthoringType { get; } = null;
+		protected override Type ColliderAuthoringType { get; } = null;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

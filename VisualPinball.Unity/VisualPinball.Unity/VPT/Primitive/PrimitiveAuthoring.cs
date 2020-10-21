@@ -29,12 +29,13 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
+	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
 
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

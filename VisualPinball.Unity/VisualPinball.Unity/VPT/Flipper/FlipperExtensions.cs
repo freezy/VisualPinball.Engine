@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class FlipperExtensions
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public static IItemMainAuthoring SetupGameObject(this Flipper flipper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
@@ -31,22 +35,30 @@ namespace VisualPinball.Unity
 			switch (flipper.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddComponent<FlipperColliderAuthoring>();
-					CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
-					CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+
+					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
+					if (flipper.Data.IsVisible) {
+						CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
+						CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+					}
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<FlipperColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
-					}
+					Logger.Error("Cannot parent a flipper collider to a different object than a flipper!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					// todo
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+
+					// if invisible in sub component, the mesh is explicitly created, so just disable it if invisible.
+					var baseComp = CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
+					var rubberComp = CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+					baseComp.enabled = flipper.Data.IsVisible;
+					rubberComp.enabled = flipper.Data.IsVisible;
+
+					CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}
@@ -58,13 +70,13 @@ namespace VisualPinball.Unity
 			return mainAuthoring;
 		}
 
-		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

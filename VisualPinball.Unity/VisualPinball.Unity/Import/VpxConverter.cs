@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 						var mainObj = createdMainObjs[parentName];
 						var mainMb = createdMainMbs[parentName];
 						var (rootObj, _) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
-						rootObj.transform.SetParent(mainObj.transform, false);
+						rootObj.transform.SetParent(mainObj.transform, true);
 
 					} else {
 						throw new InvalidOperationException($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
@@ -196,54 +196,6 @@ namespace VisualPinball.Unity
 
 			return mainAuthoring;
 		}
-
-		// private static IEnumerable<Tuple<GameObject, RenderObject>> SetupRenderObject(GameObject obj, RenderObjectGroup rog, TableAuthoring tb)
-		// {
-		// 	var createdObjs = new Tuple<GameObject, RenderObject>[0];
-		// 	if (rog.HasOnlyChild && !rog.ForceChild) {
-		// 		SetupMesh(obj, rog.RenderObjects[0], tb);
-		// 		createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
-		//
-		// 	} else if (rog.HasChildren) {
-		// 		createdObjs = new Tuple<GameObject, RenderObject>[rog.RenderObjects.Length];
-		// 		var i = 0;
-		// 		foreach (var ro in rog.RenderObjects) {
-		// 			var subObj = new GameObject(ro.Name);
-		// 			subObj.transform.SetParent(obj.transform, false);
-		// 			subObj.layer = ChildObjectsLayer;
-		// 			SetupMesh(subObj, ro, tb);
-		// 			createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
-		// 		}
-		// 	}
-		//
-		// 	return createdObjs;
-		// }
-
-		// private static void SetupMesh(GameObject obj, RenderObject ro, TableAuthoring ta)
-		// {
-		// 	if (ro.Mesh == null) {
-		// 		Logger.Warn($"No mesh for object {obj.name}, skipping.");
-		// 		return;
-		// 	}
-		//
-		// 	var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-		//
-		// 	// apply mesh to game object
-		// 	var mf = obj.AddComponent<MeshFilter>();
-		// 	mf.sharedMesh = mesh;
-		//
-		// 	// apply material
-		// 	if (ro.Mesh.AnimationFrames.Count > 0) {
-		// 		var smr = obj.AddComponent<SkinnedMeshRenderer>();
-		// 		smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-		// 		smr.sharedMesh = mesh;
-		// 		smr.enabled = ro.IsVisible;
-		// 	} else {
-		// 		var mr = obj.AddComponent<MeshRenderer>();
-		// 		mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-		// 		mr.enabled = ro.IsVisible;
-		// 	}
-		// }
 
 		private void MakeSerializable(GameObject go, Table table)
 		{

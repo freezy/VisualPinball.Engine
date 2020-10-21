@@ -33,13 +33,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
 	public class SurfaceAuthoring : ItemMainAuthoring<Surface, SurfaceData>,
-		IHittableAuthoring, IConvertGameObjectToEntity, IDragPointsEditable
+		IConvertGameObjectToEntity, IDragPointsEditable
 	{
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
-
-		public IHittable Hittable => Item;
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
 
 		private void OnDestroy()
 		{

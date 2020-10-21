@@ -33,11 +33,12 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainAuthoring<Kicker, KickerData>,
-		IHittableAuthoring, ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Kicker, KickerData, KickerAuthoring>);
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

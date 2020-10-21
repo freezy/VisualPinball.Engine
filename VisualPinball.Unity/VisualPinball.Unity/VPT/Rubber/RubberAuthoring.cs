@@ -33,14 +33,14 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
 	public class RubberAuthoring : ItemMainAuthoring<Rubber, RubberData>,
-		IDragPointsEditable, IHittableAuthoring, IMeshAuthoring, IConvertGameObjectToEntity
+		IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);
 
 		public IHittable Hittable => Item;
-		public IRenderable Renderable => Item;
 
 		private void OnDestroy()
 		{

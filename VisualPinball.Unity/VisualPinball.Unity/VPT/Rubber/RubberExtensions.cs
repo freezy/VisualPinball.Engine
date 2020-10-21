@@ -29,23 +29,24 @@ namespace VisualPinball.Unity
 			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 
 			switch (rubber.SubComponent) {
-				case ItemSubComponent.None:
-					obj.AddComponent<RubberColliderAuthoring>();
-					obj.AddComponent<RubberMeshAuthoring>();
+				case ItemSubComponent.None: {
+					AddColliderComponent(rubber, obj);
+					AddMeshComponent(rubber, obj);
 					break;
+				}
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<RubberColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IHittableAuthoring hittableAuthoring) {
-						hittableAuthoring.RemoveHittableComponent();
+					AddColliderComponent(rubber, obj);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyColliderComponent();
 					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					obj.AddComponent<RubberMeshAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IMeshAuthoring meshAuthoring) {
-						meshAuthoring.RemoveMeshComponent();
+					AddMeshComponent(rubber, obj);
+					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
+						parentMainAuthoring.DestroyMeshComponent();
 					}
 					break;
 				}
@@ -53,8 +54,20 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddMeshComponent(Rubber rubber, GameObject obj)
+		{
+			var meshComponent = obj.AddComponent<RubberMeshAuthoring>();
+			meshComponent.enabled = rubber.Data.IsVisible;
+		}
+
+		private static void AddColliderComponent(Rubber rubber, GameObject obj)
+		{
+			obj.AddComponent<RubberColliderAuthoring>();
 		}
 	}
 }
