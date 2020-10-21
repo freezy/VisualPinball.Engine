@@ -30,7 +30,9 @@ namespace VisualPinball.Unity
 
 			switch (primitive.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<PrimitiveColliderAuthoring>();
+					if (!primitive.Data.IsToy) {
+						obj.AddComponent<PrimitiveColliderAuthoring>();
+					}
 					obj.AddComponent<PrimitiveMeshAuthoring>();
 					break;
 
