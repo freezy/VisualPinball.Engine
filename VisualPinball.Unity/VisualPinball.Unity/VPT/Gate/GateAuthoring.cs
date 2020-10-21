@@ -35,8 +35,7 @@ namespace VisualPinball.Unity
 		protected override Gate GetItem() => new Gate(data);
 
 		public IHittable Hittable => Item;
-
-		public bool IsPulseSwitch => true;
+		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()
 		{

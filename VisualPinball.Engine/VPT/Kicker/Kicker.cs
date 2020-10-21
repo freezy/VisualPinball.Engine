@@ -25,6 +25,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 	{
 		public override string ItemType => "Kicker";
 
+		public bool IsPulseSwitch => false;
+
 		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 

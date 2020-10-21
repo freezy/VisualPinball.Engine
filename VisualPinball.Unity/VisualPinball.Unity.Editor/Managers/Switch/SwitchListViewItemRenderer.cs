@@ -267,7 +267,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (switchListData.Source == SwitchSource.Playfield && _switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
 				var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
-				if (switchable.IsPulseSwitch) {
+				if (switchable.Switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
 					labelRect.width = 20;

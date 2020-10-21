@@ -23,6 +23,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 	public class Bumper : Item<BumperData>, IRenderable, IHittable, ISwitchable, ICoilable
 	{
 		public override string ItemType => "Bumper";
+		public bool IsPulseSwitch => true;
 
 		private readonly BumperMeshGenerator _meshGenerator;
 
