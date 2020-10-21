@@ -21,9 +21,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {

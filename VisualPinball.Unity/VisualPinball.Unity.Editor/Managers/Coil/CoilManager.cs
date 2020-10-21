@@ -19,7 +19,6 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
@@ -61,8 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnEnable()
 		{
-			titleContent = new GUIContent("Coil Manager");
-
+			titleContent = new GUIContent("Coil Manager", Icons.Coil(IconSize.Small));
 			RowHeight = 22;
 
 			base.OnEnable();

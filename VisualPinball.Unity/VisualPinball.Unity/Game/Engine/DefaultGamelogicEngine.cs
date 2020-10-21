@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
-using VisualPinball.Engine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 

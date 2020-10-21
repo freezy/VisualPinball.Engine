@@ -1,6 +1,5 @@
 ﻿using NLog;
 using UnityEngine;
-using RenderPipeline = VisualPinball.Unity.Patcher.Matcher.RenderPipeline;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Patcher

@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
 using System.Linq;
-using VisualPinball.Engine;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
