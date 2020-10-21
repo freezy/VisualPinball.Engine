@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Patcher
 			Logger.Info("Table will be patched using the following patchers: [ {0} ]", string.Join(", ", _patchers.Select(o => o.GetType().Name)));
 		}
 
-		public void ApplyPatches(IRenderable item, RenderObject renderObject, GameObject gameObject, GameObject tableGameObject)
+		public void ApplyPatches(IRenderable item, GameObject gameObject, GameObject tableGameObject)
 		{
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Patcher
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
 							var validArgs = true;
-							if (methodMatcher.Matches(_table, item, renderObject, gameObject)) {
+							if (methodMatcher.Matches(_table, item, gameObject)) {
 								var patcherParamInfos = methodInfo.GetParameters();
 								var patcherParams = new object[patcherParamInfos.Length];
 

@@ -125,11 +125,15 @@ namespace VisualPinball.Unity
 		{
 			var createdMainObjs = new Dictionary<string, GameObject>();
 			var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
+			var renderableLookup = new Dictionary<string, IRenderable>();
 			var renderables = from renderable in _table.Renderables
 				orderby renderable.SubComponent
 				select renderable;
 
 			foreach (var renderable in renderables) {
+
+				var lookupName = renderable.Name.ToLower();
+				renderableLookup[lookupName] = renderable;
 
 				// create group parent if not created
 				if (!_parents.ContainsKey(renderable.ItemGroupName)) {
@@ -142,8 +146,8 @@ namespace VisualPinball.Unity
 					// create object(s)
 					var (rootObj, rootMb) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
-					createdMainObjs[renderable.Name.ToLower()] = rootObj;
-					createdMainMbs[renderable.Name.ToLower()] = rootMb;
+					createdMainObjs[lookupName] = rootObj;
+					createdMainMbs[lookupName] = rootMb;
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
@@ -161,11 +165,9 @@ namespace VisualPinball.Unity
 			}
 
 			// now we have all renderables imported, patch them.
-			// foreach (var renderable in createdObjs.Keys) {
-			// 	foreach (var (obj, ro) in createdObjs[renderable]) {
-			// 		_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj, tableGameObject);
-			// 	}
-			// }
+			foreach (var lookupName in createdMainObjs.Keys) {
+				_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], createdMainObjs[lookupName], tableGameObject);
+			}
 		}
 
 		public static (GameObject, IItemMainAuthoring) CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
