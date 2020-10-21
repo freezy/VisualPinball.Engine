@@ -87,17 +87,6 @@ namespace VisualPinball.Unity
 
 			_tableAuthoring.Patcher = new Patcher.Patcher(_table, fileName);
 
-			// generate meshes and save (pbr) materials
-			// var materials = new Dictionary<string, PbrMaterial>();
-			// foreach (var r in _table.Renderables) {
-			// 	_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
-			// 	foreach (var ro in _renderObjects[r].RenderObjects) {
-			// 		if (!materials.ContainsKey(ro.Material.Id)) {
-			// 			materials[ro.Material.Id] = ro.Material;
-			// 		}
-			// 	}
-			// }
-
 			// import
 			ConvertGameItems(go);
 
@@ -131,6 +120,8 @@ namespace VisualPinball.Unity
 				select renderable;
 
 			foreach (var renderable in renderables) {
+
+				_tableAuthoring.Patcher.ApplyPrePatches(renderable);
 
 				var lookupName = renderable.Name.ToLower();
 				renderableLookup[lookupName] = renderable;
