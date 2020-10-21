@@ -18,10 +18,8 @@
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedType.Global
 
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
 {

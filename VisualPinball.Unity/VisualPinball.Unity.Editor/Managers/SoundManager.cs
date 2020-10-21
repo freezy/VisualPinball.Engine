@@ -21,9 +21,6 @@ using UnityEditor;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Editor.Utils;
-using System;
-using UnityEngine.SceneManagement;
-using System.Linq;
 
 namespace VisualPinball.Unity.Editor
 {

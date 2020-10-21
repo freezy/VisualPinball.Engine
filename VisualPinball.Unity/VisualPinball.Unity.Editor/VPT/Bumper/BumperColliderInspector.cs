@@ -18,7 +18,6 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {

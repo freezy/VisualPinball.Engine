@@ -38,8 +38,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private const string BumperName = "bumper";
+		private const string CoilName = "coil";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
+		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
 		private const string LightName = "light";
 		private const string PlungerName = "plunger";
@@ -53,11 +55,11 @@ namespace VisualPinball.Unity.Editor
 		private const string TriggerName = "trigger";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
-		private const string KeyName = "keyboard";
 
 		private static readonly string[] Names = {
-			BumperName, FlipperName, GateName, KickerName, LightName, PlungerName, PrimitiveName, RampName, RubberName,
-			SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName, SwitchNcName, SwitchNoName, KeyName
+			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlungerName, PrimitiveName,
+			RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName, SwitchNcName,
+			SwitchNoName,
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -104,6 +106,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
+		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
