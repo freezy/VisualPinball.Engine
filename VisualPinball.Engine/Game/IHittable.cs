@@ -19,7 +19,7 @@ using VisualPinball.Engine.Physics;
 namespace VisualPinball.Engine.Game
 {
 	public interface IHittable : IPlayable {
-
+		string Name { get; }
 		int Index { get; }
 		int Version { get; }
 		HitObject[] GetHitShapes();
