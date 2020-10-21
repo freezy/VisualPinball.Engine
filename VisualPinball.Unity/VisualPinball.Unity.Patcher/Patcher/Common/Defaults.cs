@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ruler_mm")]
 		[NameMatch("Ruler_inches")]
 		[NameMatch("Ruler_inches_and_mm")]
-		public void RemoveColliders(GameObject gameObject, Primitive item)
+		public void RemoveColliders(Primitive item)
 		{
 			item.Data.IsCollidable = false;
 			item.Data.IsToy = true;
