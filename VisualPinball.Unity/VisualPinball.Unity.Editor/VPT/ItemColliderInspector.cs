@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected TData Data => _colliderAuthoring == null ? null : _colliderAuthoring.Data;
 
-		private bool _foldoutSceneView = true;
+		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
 		private Vector2 _scrollPos;
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			var refresh = false;
 
 			// scene view toggles
-			if (_foldoutSceneView = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutSceneView, "Scene View")) {
+			if (_foldoutDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDebug, "Debug")) {
 
 				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", _colliderAuthoring.ShowAabbs);
 				refresh = showAabbs == _colliderAuthoring.ShowAabbs;
