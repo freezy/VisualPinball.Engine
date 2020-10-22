@@ -25,6 +25,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Spinner;
 using Color = UnityEngine.Color;
+using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -182,15 +183,26 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case FlipperHit flipperHit: {
-					var mfs = GetComponentsInChildren<MeshFilter>();
-					foreach (var mf in mfs) {
-						if (mf.name == "Rubber") {
-							var t = mf.transform;
-							Gizmos.DrawWireMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
-							break;
+				case FlipperHit _: {
+
+					Mesh mesh = null;
+
+					// first see if we already have a mesh
+					var meshAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+					if (meshAuthoring != null) {
+						var meshComponent = meshAuthoring.gameObject.GetComponent<MeshFilter>();
+						if (meshComponent != null) {
+							mesh = meshComponent.sharedMesh;
 						}
 					}
+
+					if (mesh == null) {
+						var ro = Item.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
+						mesh = ro.Mesh.ToUnityMesh();
+					}
+
+					var t = gameObject.transform;
+					Gizmos.DrawWireMesh(mesh, t.position, t.rotation, t.lossyScale);
 					break;
 				}
 

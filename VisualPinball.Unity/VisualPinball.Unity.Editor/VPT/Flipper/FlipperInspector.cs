@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("", ref _flipper.Data.Center);
 				ItemDataField("Base Radius", ref _flipper.Data.BaseRadius);
 				ItemDataField("End Radius", ref _flipper.Data.EndRadius);
-				ItemDataField("Length", ref _flipper.Data.FlipperRadius);
+				//ItemDataField("Length", ref _flipper.Data.FlipperRadius);
 				ItemDataField("Start Angle", ref _flipper.Data.StartAngle);
 				ItemDataField("End Angle", ref _flipper.Data.EndAngle);
 				ItemDataField("Height", ref _flipper.Data.Height);
