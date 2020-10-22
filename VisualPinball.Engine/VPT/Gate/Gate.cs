@@ -27,6 +27,9 @@ namespace VisualPinball.Engine.VPT.Gate
 		public override string ItemName { get; } = "Gate";
 		public override string ItemGroupName { get; } = "Gates";
 
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+
 		public bool IsPulseSwitch => true;
 
 		private readonly GateMeshGenerator _meshGenerator;

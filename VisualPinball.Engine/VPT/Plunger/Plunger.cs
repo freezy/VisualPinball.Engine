@@ -26,6 +26,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public override string ItemName { get; } = "Plunger";
 		public override string ItemGroupName { get; } = "Plungers";
 
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => 0; set { } }
+
 		public PlungerHit PlungerHit { get; private set; }
 
 		public const float PlungerHeight = 50.0f;

@@ -26,6 +26,9 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public override string ItemName { get; } = "Kicker";
 		public override string ItemGroupName { get; } = "Kickers";
 
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Angle; set => Data.Angle = value; }
+
 		public bool IsPulseSwitch => false;
 
 		public KickerHit KickerHit => _hit;
