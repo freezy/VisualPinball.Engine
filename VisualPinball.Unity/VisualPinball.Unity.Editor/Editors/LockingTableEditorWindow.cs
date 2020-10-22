@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class LockingTableEditorWindow : EditorWindow
+	public abstract class LockingTableEditorWindow : BaseEditorWindow
 	{
 		protected TableAuthoring _tableAuthoring;
 		private GUIStyle _lockButtonStyle;
