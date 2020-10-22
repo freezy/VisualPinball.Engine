@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {

@@ -324,12 +324,16 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void FinishEdit(string label, bool dirtyMesh = true)
 		{
-			var undoLabel = $"[{target?.name}] Edit {label}";
+			var undoLabel = $"Edit {label} of {target?.name}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
 				if (target is IItemMeshAuthoring meshItem) {
 					meshItem.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);
+				}
+				if (target is IItemColliderAuthoring) {
+					Undo.RecordObject(target, undoLabel);
+					EditorUtility.SetDirty(target);
 				}
 				if (target is IItemMainAuthoring mainItem) {
 					mainItem.SetMeshDirty();
