@@ -37,6 +37,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 		private readonly PrimitiveHitGenerator _hitGenerator;
 		private HitObject[] _hits;
+		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
+		public float RotationY { get => Data.RotAndTra[1]; set => Data.RotAndTra[1] = value; }
 
 		public Primitive(PrimitiveData data) : base(data)
 		{

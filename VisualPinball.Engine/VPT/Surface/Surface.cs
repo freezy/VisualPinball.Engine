@@ -26,6 +26,9 @@ namespace VisualPinball.Engine.VPT.Surface
 		public override string ItemName { get; } = "Wall";
 		public override string ItemGroupName { get; } = "Walls";
 
+		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
+		public float RotationY { get => 0; set { } }
+
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsCollidable;
 

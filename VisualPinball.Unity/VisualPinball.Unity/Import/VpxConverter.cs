@@ -146,8 +146,15 @@ namespace VisualPinball.Unity
 					if (createdMainObjs.ContainsKey(parentName)) {
 						var mainObj = createdMainObjs[parentName];
 						var mainMb = createdMainMbs[parentName];
+
+						// move and rotate into parent
+						if (mainMb.IItem is IRenderable parentRenderable) {
+							renderable.Position.Sub(parentRenderable.Position);
+							renderable.RotationY -= parentRenderable.RotationY;
+						}
+
 						var (rootObj, _) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
-						rootObj.transform.SetParent(mainObj.transform, true);
+						rootObj.transform.SetParent(mainObj.transform, false);
 
 					} else {
 						throw new InvalidOperationException($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");

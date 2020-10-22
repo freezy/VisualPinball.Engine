@@ -27,5 +27,9 @@ namespace VisualPinball.Engine.Game
 		RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true);
 
 		RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
+
+		Vertex3D Position { get; set; }
+
+		float RotationY { get; set; }
 	}
 }

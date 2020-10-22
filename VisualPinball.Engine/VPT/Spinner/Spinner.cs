@@ -29,6 +29,9 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public Matrix3D TransformationMatrix { get; } = Matrix3D.Identity;
 
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+
 		public bool IsPulseSwitch => true;
 
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
