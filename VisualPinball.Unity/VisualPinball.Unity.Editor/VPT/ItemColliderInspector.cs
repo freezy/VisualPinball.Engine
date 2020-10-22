@@ -68,11 +68,11 @@ namespace VisualPinball.Unity.Editor
 			if (_foldoutDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDebug, "Debug")) {
 
 				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", _colliderAuthoring.ShowAabbs);
-				refresh = showAabbs == _colliderAuthoring.ShowAabbs;
+				refresh = showAabbs != _colliderAuthoring.ShowAabbs;
 				_colliderAuthoring.ShowAabbs = showAabbs;
 
 				var showColliders = EditorGUILayout.Toggle("Show Colliders", _colliderAuthoring.ShowColliderMesh);
-				refresh = refresh || showColliders == _colliderAuthoring.ShowColliderMesh;
+				refresh = refresh || showColliders != _colliderAuthoring.ShowColliderMesh;
 				_colliderAuthoring.ShowColliderMesh = showColliders;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

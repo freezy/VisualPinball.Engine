@@ -56,13 +56,14 @@ namespace VisualPinball.Engine.VPT.Flipper
 		{
 			var tableData = table.Data;
 
-			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
-				data.FlipperRadius = data.FlipperRadiusMax - (data.FlipperRadiusMax - data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
-				data.FlipperRadius = MathF.Max(data.FlipperRadius, data.BaseRadius - data.EndRadius + 0.05f);
-
-			} else {
-				data.FlipperRadius = data.FlipperRadiusMax;
-			}
+			// todo enable this at runtime (or not)
+			// if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
+			// 	data.FlipperRadius = data.FlipperRadiusMax - (data.FlipperRadiusMax - data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
+			// 	data.FlipperRadius = MathF.Max(data.FlipperRadius, data.BaseRadius - data.EndRadius + 0.05f);
+			//
+			// } else {
+			// 	data.FlipperRadius = data.FlipperRadiusMax;
+			// }
 
 			EndRadius = MathF.Max(data.EndRadius, 0.01f); // radius of flipper end
 			FlipperRadius = MathF.Max(data.FlipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
