@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<SwitchManager>();
 		}
 
-		protected override void OnEnable()
+		public override void OnEnable()
 		{
 			titleContent = new GUIContent("Switch Manager",
 				Icons.Switch(false, size: IconSize.Small));

@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<CoilManager>();
 		}
 
-		protected override void OnEnable()
+		public override void OnEnable()
 		{
 			titleContent = new GUIContent("Coil Manager", Icons.Coil(IconSize.Small));
 			RowHeight = 22;

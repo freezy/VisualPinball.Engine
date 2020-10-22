@@ -115,7 +115,6 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnEnable()
 		{
-			base.OnEnable();
 			titleContent = new GUIContent("Sound Manager", EditorGUIUtility.IconContent("SceneViewAudio").image);
 			_iconContent = new GUIContent() {
 				image = EditorGUIUtility.IconContent("AudioSource Gizmo").image
