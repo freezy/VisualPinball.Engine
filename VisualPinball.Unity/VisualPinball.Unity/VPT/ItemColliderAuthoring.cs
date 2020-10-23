@@ -49,6 +49,8 @@ namespace VisualPinball.Unity
 
 		public HitObject[] HitObjects { get; private set; }
 
+		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
+
 		private void OnDrawGizmosSelected()
 		{
 			if (!ShowGizmos || !ShowAabbs && !ShowColliderMesh) {
