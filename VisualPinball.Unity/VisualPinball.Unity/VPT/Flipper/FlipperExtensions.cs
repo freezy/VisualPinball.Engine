@@ -49,10 +49,10 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-
-					// if invisible in sub component, the mesh is explicitly created, so just disable it if invisible.
 					var baseComp = CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
 					var rubberComp = CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+
+					// if invisible in sub component, the mesh is explicitly created, so just disable it if invisible.
 					baseComp.enabled = flipper.Data.IsVisible;
 					rubberComp.enabled = flipper.Data.IsVisible;
 
