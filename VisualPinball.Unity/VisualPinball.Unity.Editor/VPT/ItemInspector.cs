@@ -331,7 +331,8 @@ namespace VisualPinball.Unity.Editor
 					meshItem.MeshDirty = true;
 					Undo.RecordObject(this, undoLabel);
 				}
-				if (target is IItemColliderAuthoring) {
+				if (target is IItemColliderAuthoring colliderItem) {
+					colliderItem.MainAuthoring.SetMeshDirty();
 					Undo.RecordObject(target, undoLabel);
 					EditorUtility.SetDirty(target);
 				}

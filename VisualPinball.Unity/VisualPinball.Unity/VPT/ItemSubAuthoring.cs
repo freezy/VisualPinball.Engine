@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Finds the main authoring component in the parent.
 		/// </summary>
-		protected TMainAuthoring MainAuthoring => FindMainAuthoring();
+		public TMainAuthoring MainAuthoring => FindMainAuthoring();
 
 		private TData FindData()
 		{
