@@ -18,12 +18,11 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(FlipperBaseMeshAuthoring))]
-	public class FlipperBaseMeshIInspector : ItemMeshInspector<Flipper, FlipperData, FlipperAuthoring, FlipperBaseMeshAuthoring>
+	public class FlipperBaseMeshInspector : ItemMeshInspector<Flipper, FlipperData, FlipperAuthoring, FlipperBaseMeshAuthoring>
 	{
 		private FlipperData _flipperData;
 
@@ -43,9 +42,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Base Radius", ref _flipperData.BaseRadius);
-			ItemDataField("End Radius", ref _flipperData.EndRadius);
-			ItemDataField("Length", ref _flipperData.FlipperRadius);
+			TextureField("Image", ref _flipperData.Image);
+			MaterialField("Material", ref _flipperData.Material);
 
 			base.OnInspectorGUI();
 		}
