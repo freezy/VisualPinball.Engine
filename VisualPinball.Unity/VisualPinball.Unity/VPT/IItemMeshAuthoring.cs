@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 		List<MemberInfo> MaterialRefs { get; }
 		List<MemberInfo> TextureRefs { get; }
 
+		IItemMainAuthoring MainAuthoring { get; }
+
 		void RebuildMeshes();
 	}
 }

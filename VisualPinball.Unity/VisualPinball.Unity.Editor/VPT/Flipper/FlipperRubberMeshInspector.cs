@@ -18,14 +18,16 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(FlipperColliderAuthoring))]
-	public class FlipperColliderInspector : ItemColliderInspector<Flipper, FlipperData, FlipperAuthoring, FlipperColliderAuthoring>
+	[CustomEditor(typeof(FlipperRubberMeshAuthoring))]
+	public class FlipperRubberMeshInspector : ItemMeshInspector<Flipper, FlipperData, FlipperAuthoring, FlipperRubberMeshAuthoring>
 	{
 		private FlipperData _flipperData;
+
+		private bool _foldoutMaterial = true;
+		private bool _foldoutSlingshot = true;
 
 		protected override void OnEnable()
 		{
@@ -40,16 +42,10 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Mass", ref _flipperData.Mass, false);
-			ItemDataField("Strength", ref _flipperData.Strength, false);
-			ItemDataField("Elasticity", ref _flipperData.Elasticity, false);
-			ItemDataField("Elasticity Falloff", ref _flipperData.ElasticityFalloff, false);
-			ItemDataField("Friction", ref _flipperData.Friction, false);
-			ItemDataField("Return Strength", ref _flipperData.Return, false);
-			ItemDataField("Coil Ramp Up", ref _flipperData.RampUp, false);
-			ItemDataField("Scatter Angle", ref _flipperData.Scatter, false);
-			ItemDataField("EOS Torque", ref _flipperData.TorqueDamping, false);
-			ItemDataField("EOS Torque Angle", ref _flipperData.TorqueDampingAngle, false);
+			MaterialField("Rubber Material", ref _flipperData.RubberMaterial);
+			ItemDataField("Rubber Thickness", ref _flipperData.RubberThickness);
+			ItemDataField("Rubber Offset Height", ref _flipperData.RubberHeight);
+			ItemDataField("Rubber Width", ref _flipperData.RubberWidth);
 
 			base.OnInspectorGUI();
 		}

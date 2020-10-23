@@ -23,10 +23,11 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(FlipperAuthoring))]
 	public class FlipperInspector : ItemInspector
 	{
-		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutBaseMesh;
+		private bool _foldoutRubberMesh;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		private FlipperAuthoring _flipper;
 
@@ -38,30 +39,36 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			ItemDataField("Position", ref _flipper.Data.Center);
+			SurfaceField("Surface", ref _flipper.Data.Surface);
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				TextureField("Image", ref _flipper.Data.Image);
-				MaterialField("Material", ref _flipper.Data.Material);
-				MaterialField("Rubber Material", ref _flipper.Data.RubberMaterial);
-				ItemDataField("Rubber Thickness", ref _flipper.Data.RubberThickness, onChanged: _flipper.OnRubberWidthUpdated);
-				ItemDataField("Rubber Offset Height", ref _flipper.Data.RubberHeight);
-				ItemDataField("Rubber Width", ref _flipper.Data.RubberWidth);
-				ItemDataField("Visible", ref _flipper.Data.IsVisible);
-				ItemDataField("Enabled", ref _flipper.Data.IsEnabled);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			ItemDataField("Enabled", ref _flipper.Data.IsEnabled);
+			ItemDataField("Visible", ref _flipper.Data.IsVisible);
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _flipper.Data.Center);
+			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
 				ItemDataField("Base Radius", ref _flipper.Data.BaseRadius);
 				ItemDataField("End Radius", ref _flipper.Data.EndRadius);
-				//ItemDataField("Length", ref _flipper.Data.FlipperRadius);
+				ItemDataField("Length", ref _flipper.Data.FlipperRadius);
 				ItemDataField("Start Angle", ref _flipper.Data.StartAngle);
 				ItemDataField("End Angle", ref _flipper.Data.EndAngle);
 				ItemDataField("Height", ref _flipper.Data.Height);
 				ItemDataField("Max. Difficulty Length", ref _flipper.Data.FlipperRadiusMax);
-				SurfaceField("Surface", ref _flipper.Data.Surface);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutBaseMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutBaseMesh, "Base Mesh")) {
+				TextureField("Image", ref _flipper.Data.Image);
+				MaterialField("Material", ref _flipper.Data.Material);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutRubberMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberMesh, "Rubber Mesh")) {
+				MaterialField("Rubber Material", ref _flipper.Data.RubberMaterial);
+				ItemDataField("Rubber Thickness", ref _flipper.Data.RubberThickness, onChanged: _flipper.OnRubberWidthUpdated);
+				ItemDataField("Rubber Offset Height", ref _flipper.Data.RubberHeight);
+				ItemDataField("Rubber Width", ref _flipper.Data.RubberWidth);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

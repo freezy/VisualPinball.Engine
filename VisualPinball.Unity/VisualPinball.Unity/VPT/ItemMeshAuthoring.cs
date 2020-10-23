@@ -33,6 +33,8 @@ namespace VisualPinball.Unity
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
+		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
+
 		protected virtual string MeshId => null;
 		protected abstract bool IsVisible { get; set; }
 

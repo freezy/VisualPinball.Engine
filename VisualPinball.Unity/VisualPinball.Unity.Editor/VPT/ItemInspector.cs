@@ -115,12 +115,12 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit("Name", false);
-				item.ItemData.SetName(val);
-			}
+			// EditorGUI.BeginChangeCheck();
+			// var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
+			// if (EditorGUI.EndChangeCheck()) {
+			// 	FinishEdit("Name", false);
+			// 	item.ItemData.SetName(val);
+			// }
 
 			EditorGUI.BeginChangeCheck();
 			var newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
@@ -327,19 +327,24 @@ namespace VisualPinball.Unity.Editor
 			var undoLabel = $"Edit {label} of {target?.name}";
 			if (dirtyMesh) {
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
-				if (target is IItemMeshAuthoring meshItem) {
-					meshItem.MeshDirty = true;
-					Undo.RecordObject(this, undoLabel);
+				switch (target) {
+
+					case IItemMeshAuthoring meshItem:
+						meshItem.MainAuthoring.SetMeshDirty();
+						Undo.RecordObject(this, undoLabel);
+						break;
+
+					case IItemColliderAuthoring colliderItem:
+						colliderItem.MainAuthoring.SetMeshDirty();
+						Undo.RecordObject(target, undoLabel);
+						break;
+
+					case IItemMainAuthoring mainItem:
+						mainItem.SetMeshDirty();
+						Undo.RecordObject(this, undoLabel);
+						break;
 				}
-				if (target is IItemColliderAuthoring colliderItem) {
-					colliderItem.MainAuthoring.SetMeshDirty();
-					Undo.RecordObject(target, undoLabel);
-					EditorUtility.SetDirty(target);
-				}
-				if (target is IItemMainAuthoring mainItem) {
-					mainItem.SetMeshDirty();
-					Undo.RecordObject(this, undoLabel);
-				}
+				EditorUtility.SetDirty(target);
 			}
 			Undo.RecordObject(target, undoLabel);
 		}
