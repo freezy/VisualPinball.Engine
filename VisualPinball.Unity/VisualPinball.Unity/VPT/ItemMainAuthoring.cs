@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 
 		public virtual bool CanBeTransformed => true;
 
+		public virtual IEnumerable<Type> ValidParents { get; } = new Type[0];
+
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
 		/// </summary>
@@ -45,9 +47,6 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private TItem _item;
 
-		[NonSerialized]
-		private List<Tuple<int, int>> _children = new List<Tuple<int, int>>();
-
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
@@ -61,7 +60,14 @@ namespace VisualPinball.Unity
 				.Select(c => (IItemColliderAuthoring) c)
 				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];
 
-		private IItemMainAuthoring ParentAuthoring => transform.parent.GetComponent<IItemMainAuthoring>();
+		public IItemMainAuthoring ParentAuthoring => transform.parent.GetComponent<IItemMainAuthoring>();
+
+		public bool IsCorrectlyParented {
+			get {
+				var parentAuthoring = ParentAuthoring;
+				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
+			}
+		}
 
 		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{

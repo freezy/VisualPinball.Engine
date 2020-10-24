@@ -17,11 +17,12 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(FlipperAuthoring))]
-	public class FlipperInspector : ItemInspector
+	public class FlipperInspector : ItemMainInspector<Flipper, FlipperData, FlipperAuthoring>
 	{
 		private bool _foldoutPosition = true;
 		private bool _foldoutBaseMesh;
@@ -29,66 +30,63 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutPhysics;
 		private bool _foldoutMisc;
 
-		private FlipperAuthoring _flipper;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_flipper = (FlipperAuthoring)target;
-		}
-
 		public override void OnInspectorGUI()
 		{
-			ItemDataField("Position", ref _flipper.Data.Center);
-			SurfaceField("Surface", ref _flipper.Data.Surface);
+			if (!ItemAuthoring.IsCorrectlyParented) {
+				InvalidParentError();
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
 
 			OnPreInspectorGUI();
 
-			ItemDataField("Enabled", ref _flipper.Data.IsEnabled);
-			ItemDataField("Visible", ref _flipper.Data.IsVisible);
+			ItemDataField("Enabled", ref Data.IsEnabled);
+			ItemDataField("Visible", ref Data.IsVisible);
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
-				ItemDataField("Base Radius", ref _flipper.Data.BaseRadius);
-				ItemDataField("End Radius", ref _flipper.Data.EndRadius);
-				ItemDataField("Length", ref _flipper.Data.FlipperRadius);
-				ItemDataField("Start Angle", ref _flipper.Data.StartAngle);
-				ItemDataField("End Angle", ref _flipper.Data.EndAngle);
-				ItemDataField("Height", ref _flipper.Data.Height);
-				ItemDataField("Max. Difficulty Length", ref _flipper.Data.FlipperRadiusMax);
+				ItemDataField("Base Radius", ref Data.BaseRadius);
+				ItemDataField("End Radius", ref Data.EndRadius);
+				ItemDataField("Length", ref Data.FlipperRadius);
+				ItemDataField("Start Angle", ref Data.StartAngle);
+				ItemDataField("End Angle", ref Data.EndAngle);
+				ItemDataField("Height", ref Data.Height);
+				ItemDataField("Max. Difficulty Length", ref Data.FlipperRadiusMax);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutBaseMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutBaseMesh, "Base Mesh")) {
-				TextureField("Image", ref _flipper.Data.Image);
-				MaterialField("Material", ref _flipper.Data.Material);
+				TextureField("Image", ref Data.Image);
+				MaterialField("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutRubberMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberMesh, "Rubber Mesh")) {
-				MaterialField("Rubber Material", ref _flipper.Data.RubberMaterial);
-				ItemDataField("Rubber Thickness", ref _flipper.Data.RubberThickness, onChanged: _flipper.OnRubberWidthUpdated);
-				ItemDataField("Rubber Offset Height", ref _flipper.Data.RubberHeight);
-				ItemDataField("Rubber Width", ref _flipper.Data.RubberWidth);
+				MaterialField("Rubber Material", ref Data.RubberMaterial);
+				ItemDataField("Rubber Thickness", ref Data.RubberThickness, onChanged: ItemAuthoring.OnRubberWidthUpdated);
+				ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
+				ItemDataField("Rubber Width", ref Data.RubberWidth);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Mass", ref _flipper.Data.Mass, dirtyMesh: false);
-				ItemDataField("Strength", ref _flipper.Data.Strength, dirtyMesh: false);
-				ItemDataField("Elasticity", ref _flipper.Data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref _flipper.Data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref _flipper.Data.Friction, dirtyMesh: false);
-				ItemDataField("Return Strength", ref _flipper.Data.Return, dirtyMesh: false);
-				ItemDataField("Coil Ramp Up", ref _flipper.Data.RampUp, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _flipper.Data.Scatter, dirtyMesh: false);
-				ItemDataField("EOS Torque", ref _flipper.Data.TorqueDamping, dirtyMesh: false);
-				ItemDataField("EOS Torque Angle", ref _flipper.Data.TorqueDampingAngle, dirtyMesh: false);
+				ItemDataField("Mass", ref Data.Mass, false);
+				ItemDataField("Strength", ref Data.Strength, false);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Return Strength", ref Data.Return, false);
+				ItemDataField("Coil Ramp Up", ref Data.RampUp, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
+				ItemDataField("EOS Torque", ref Data.TorqueDamping, false);
+				ItemDataField("EOS Torque Angle", ref Data.TorqueDampingAngle, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _flipper.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _flipper.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

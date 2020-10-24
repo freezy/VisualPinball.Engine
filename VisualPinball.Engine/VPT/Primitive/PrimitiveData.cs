@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
 		public Vertex3D Position;

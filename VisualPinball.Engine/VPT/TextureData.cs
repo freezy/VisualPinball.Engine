@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffString("INME", Pos = 2)]
 		public string InternalName;

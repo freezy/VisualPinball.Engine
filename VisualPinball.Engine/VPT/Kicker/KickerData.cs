@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffInt("TYPE", Pos = 9)]
 		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;

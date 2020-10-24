@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 17)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
