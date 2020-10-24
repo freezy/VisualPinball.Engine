@@ -25,31 +25,28 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(FlipperColliderAuthoring))]
 	public class FlipperColliderInspector : ItemColliderInspector<Flipper, FlipperData, FlipperAuthoring, FlipperColliderAuthoring>
 	{
-		private FlipperData _flipperData;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_flipperData = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
-			if (_flipperData == null) {
-				NoDataPanel();
+			if (Data == null) {
+				NoDataError();
 				return;
 			}
 
-			ItemDataField("Mass", ref _flipperData.Mass, false);
-			ItemDataField("Strength", ref _flipperData.Strength, false);
-			ItemDataField("Elasticity", ref _flipperData.Elasticity, false);
-			ItemDataField("Elasticity Falloff", ref _flipperData.ElasticityFalloff, false);
-			ItemDataField("Friction", ref _flipperData.Friction, false);
-			ItemDataField("Return Strength", ref _flipperData.Return, false);
-			ItemDataField("Coil Ramp Up", ref _flipperData.RampUp, false);
-			ItemDataField("Scatter Angle", ref _flipperData.Scatter, false);
-			ItemDataField("EOS Torque", ref _flipperData.TorqueDamping, false);
-			ItemDataField("EOS Torque Angle", ref _flipperData.TorqueDampingAngle, false);
+			if (!ColliderAuthoring.IsCorrectlyParented) {
+				InvalidParentError();
+				return;
+			}
+
+			ItemDataField("Mass", ref Data.Mass, false);
+			ItemDataField("Strength", ref Data.Strength, false);
+			ItemDataField("Elasticity", ref Data.Elasticity, false);
+			ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
+			ItemDataField("Friction", ref Data.Friction, false);
+			ItemDataField("Return Strength", ref Data.Return, false);
+			ItemDataField("Coil Ramp Up", ref Data.RampUp, false);
+			ItemDataField("Scatter Angle", ref Data.Scatter, false);
+			ItemDataField("EOS Torque", ref Data.TorqueDamping, false);
+			ItemDataField("EOS Torque Angle", ref Data.TorqueDampingAngle, false);
 
 			base.OnInspectorGUI();
 		}

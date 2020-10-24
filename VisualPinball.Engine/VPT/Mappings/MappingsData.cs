@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 1)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffMappingsSwitchAttribute("MSWT", TagAll = true, Pos = 1000)]
 		public MappingsSwitchData[] Switches = Array.Empty<MappingsSwitchData>();

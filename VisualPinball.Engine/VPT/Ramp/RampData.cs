@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffFloat("RADB", Pos = 24)]
 		public float DepthBias = 0f;

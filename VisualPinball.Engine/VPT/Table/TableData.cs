@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffFloat("LEFT", Pos = 1)]
 		public float Left;

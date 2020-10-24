@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -22,5 +24,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
 	public class BumperColliderAuthoring : ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
+		public override IEnumerable<Type> ValidParents => new[]{typeof(BumperAuthoring)};
 	}
 }

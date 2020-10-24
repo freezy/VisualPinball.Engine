@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
 
@@ -23,10 +25,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Flipper Base Mesh")]
 	public class FlipperBaseMeshAuthoring : ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>
 	{
+		public static readonly Type[] ValidParentTypes = new Type[0];
+
 		protected override string MeshId => FlipperMeshGenerator.Base;
 		protected override bool IsVisible {
 			get => Data.IsVisible;
 			set => Data.IsVisible = value;
 		}
+
+		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}
 }

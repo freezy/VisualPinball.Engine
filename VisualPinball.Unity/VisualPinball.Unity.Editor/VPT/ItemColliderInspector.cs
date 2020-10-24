@@ -31,9 +31,9 @@ namespace VisualPinball.Unity.Editor
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-		private TColliderAuthoring _colliderAuthoring;
+		protected TColliderAuthoring ColliderAuthoring;
 
-		protected TData Data => _colliderAuthoring == null ? null : _colliderAuthoring.Data;
+		protected TData Data => ColliderAuthoring == null ? null : ColliderAuthoring.Data;
 
 		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
@@ -42,23 +42,23 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnEnable()
 		{
-			_colliderAuthoring = target as TColliderAuthoring;
-			if (_colliderAuthoring != null) {
-				_colliderAuthoring.ShowGizmos = true;
+			ColliderAuthoring = target as TColliderAuthoring;
+			if (ColliderAuthoring != null) {
+				ColliderAuthoring.ShowGizmos = true;
 			}
 			base.OnEnable();
 		}
 
 		private void OnDestroy()
 		{
-			if (_colliderAuthoring != null) {
-				_colliderAuthoring.ShowGizmos = false;
+			if (ColliderAuthoring != null) {
+				ColliderAuthoring.ShowGizmos = false;
 			}
 		}
 
 		public override void OnInspectorGUI()
 		{
-			if (_colliderAuthoring == null) {
+			if (ColliderAuthoring == null) {
 				return;
 			}
 
@@ -67,20 +67,20 @@ namespace VisualPinball.Unity.Editor
 			// scene view toggles
 			if (_foldoutDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDebug, "Debug")) {
 
-				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", _colliderAuthoring.ShowAabbs);
-				refresh = showAabbs != _colliderAuthoring.ShowAabbs;
-				_colliderAuthoring.ShowAabbs = showAabbs;
+				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", ColliderAuthoring.ShowAabbs);
+				refresh = showAabbs != ColliderAuthoring.ShowAabbs;
+				ColliderAuthoring.ShowAabbs = showAabbs;
 
-				var showColliders = EditorGUILayout.Toggle("Show Colliders", _colliderAuthoring.ShowColliderMesh);
-				refresh = refresh || showColliders != _colliderAuthoring.ShowColliderMesh;
-				_colliderAuthoring.ShowColliderMesh = showColliders;
+				var showColliders = EditorGUILayout.Toggle("Show Colliders", ColliderAuthoring.ShowColliderMesh);
+				refresh = refresh || showColliders != ColliderAuthoring.ShowColliderMesh;
+				ColliderAuthoring.ShowColliderMesh = showColliders;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			// individual collider list
 			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
 
-				var hitObjects = _colliderAuthoring.HitObjects ?? new HitObject[0];
+				var hitObjects = ColliderAuthoring.HitObjects ?? new HitObject[0];
 				_currentColliders = hitObjects
 					.Where(h => h != null)
 					.Select((h, i) => $"[{i}] {h.GetType().Name} ({h.ObjType})")
@@ -92,9 +92,9 @@ namespace VisualPinball.Unity.Editor
 
 				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true),
 					GUILayout.ExpandHeight(true));
-				var selectedCollider = GUILayout.SelectionGrid(_colliderAuthoring.SelectedCollider, _currentColliders, 1);
-				refresh = refresh || selectedCollider == _colliderAuthoring.SelectedCollider;
-				_colliderAuthoring.SelectedCollider = selectedCollider;
+				var selectedCollider = GUILayout.SelectionGrid(ColliderAuthoring.SelectedCollider, _currentColliders, 1);
+				refresh = refresh || selectedCollider == ColliderAuthoring.SelectedCollider;
+				ColliderAuthoring.SelectedCollider = selectedCollider;
 				EditorGUILayout.EndScrollView();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -105,10 +105,21 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void NoDataPanel()
+		protected void NoDataError()
 		{
-			// todo add more details
-			GUILayout.Label("No data! Parent missing?");
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
+		}
+
+		protected void InvalidParentError()
+		{
+			var validParentTypes = ColliderAuthoring.ValidParents.ToArray();
+			var typeMessage = validParentTypes.Length > 0
+				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
+				: $"In this case, colliders for {ColliderAuthoring.Item.ItemName} don't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {ColliderAuthoring.Item.ItemName} is parented to a {ColliderAuthoring.ParentAuthoring.IItem.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
+				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
+			}
 		}
 	}
 }

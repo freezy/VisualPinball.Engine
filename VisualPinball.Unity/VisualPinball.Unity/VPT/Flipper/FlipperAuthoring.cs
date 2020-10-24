@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -39,8 +41,10 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
+		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
+			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
-		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);

@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 6)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffFloat("PIDB", Pos = 20)]
 		public float DepthBias;

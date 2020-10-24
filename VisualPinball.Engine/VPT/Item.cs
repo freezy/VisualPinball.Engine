@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT
 
 		public string Name
 		{
-			get => Data.GetName();
+			get => Data.GetName() ?? string.Empty;
 			set
 			{
 				Data.SetName(value);

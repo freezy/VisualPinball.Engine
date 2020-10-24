@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 16)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffBool("HTEV", Pos = 1)]
 		public bool HitEvent = false;
