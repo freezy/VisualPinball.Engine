@@ -46,25 +46,25 @@ namespace VisualPinball.Unity
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			//Convert(entity, dstManager);
-			//dstManager.AddComponentData(entity, new LineSlingshotData
-			//{
-			//	IsDisabled = false,
-			//	Threshold = data.SlingshotThreshold,
-			//});
-			//transform.GetComponentInParent<Player>().RegisterTrough(Item, entity, gameObject);
+			Convert(entity, dstManager);
+			dstManager.AddComponentData(entity, new TroughStaticData
+			{
+				BallCount = data.BallCount,
+				SwitchCount = data.SwitchCount,
+				SettleTime = data.SettleTime
+			});
 		}
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Entrance.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Entrance = pos.ToVertex2Dxy();
+		//public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		//public override Vector3 GetEditorPosition() => data.Entrance.ToUnityVector3(0f);
+		//public override void SetEditorPosition(Vector3 pos) => data.Entrance = pos.ToVertex2Dxy();
 
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+		//public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		//public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0, 0);
+		//public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
 
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.ExitOffset, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => data.ExitOffset = scale.x;
+		//public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
+		//public override Vector3 GetEditorScale() => new Vector3(data.ExitOffset, 0f, 0f);
+		//public override void SetEditorScale(Vector3 scale) => data.ExitOffset = scale.x;
 	}
 }

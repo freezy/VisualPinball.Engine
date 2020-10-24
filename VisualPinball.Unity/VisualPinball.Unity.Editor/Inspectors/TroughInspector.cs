@@ -36,10 +36,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _trough.data.Entrance);
-				ItemDataField("Rotation", ref _trough.data.Orientation);
-				ItemDataField("Exit Offset", ref _trough.data.ExitOffset);
-				SurfaceField("Surface", ref _trough.data.Surface);
+				//ItemDataField("", ref _trough.data.Entrance);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
