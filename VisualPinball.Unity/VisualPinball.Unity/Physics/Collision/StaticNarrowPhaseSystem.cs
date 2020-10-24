@@ -16,7 +16,6 @@
 
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -24,8 +23,6 @@ namespace VisualPinball.Unity
 	[DisableAutoCreation]
 	internal class StaticNarrowPhaseSystem : SystemBase
 	{
-		public JobHandle Deps { get; private set; }
-
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticNarrowPhaseSystem");

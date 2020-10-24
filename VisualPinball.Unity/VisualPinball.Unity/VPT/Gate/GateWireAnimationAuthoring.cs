@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var gateEntity = Entity;
+			var gateEntity = MainEntity;
 
 			// update parent
 			var gateStaticData = dstManager.GetComponentData<GateStaticData>(gateEntity);

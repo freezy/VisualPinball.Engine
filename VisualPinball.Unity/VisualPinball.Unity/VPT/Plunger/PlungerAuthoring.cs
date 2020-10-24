@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 			Item.Init(table);
 			var hit = Item.PlungerHit;
-			hit.SetIndex(entity.Index, entity.Version);
+			hit.SetIndex(entity.Index, entity.Version, 0, 0);
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
 				MomentumXfer = Data.MomentumXfer,

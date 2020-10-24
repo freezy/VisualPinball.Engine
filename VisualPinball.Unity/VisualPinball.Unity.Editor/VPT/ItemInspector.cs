@@ -115,12 +115,12 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			// EditorGUI.BeginChangeCheck();
-			// var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
-			// if (EditorGUI.EndChangeCheck()) {
-			// 	FinishEdit("Name", false);
-			// 	item.ItemData.SetName(val);
-			// }
+			EditorGUI.BeginChangeCheck();
+			var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit("Name", false);
+				item.ItemData.SetName(val);
+			}
 
 			EditorGUI.BeginChangeCheck();
 			var newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);

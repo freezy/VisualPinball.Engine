@@ -45,6 +45,9 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private TItem _item;
 
+		[NonSerialized]
+		private List<Tuple<int, int>> _children = new List<Tuple<int, int>>();
+
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
@@ -57,6 +60,8 @@ namespace VisualPinball.Unity
 			GetComponentsInChildren(ColliderAuthoringType, true)
 				.Select(c => (IItemColliderAuthoring) c)
 				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];
+
+		private IItemMainAuthoring ParentAuthoring => transform.parent.GetComponent<IItemMainAuthoring>();
 
 		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{
@@ -139,6 +144,12 @@ namespace VisualPinball.Unity
 		{
 			Item.Index = entity.Index;
 			Item.Version = entity.Version;
+
+			var parentAuthoring = ParentAuthoring;
+			if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
+				Item.ParentIndex = parentAuthoring.IItem.Index;
+				Item.ParentVersion = parentAuthoring.IItem.Version;
+			}
 		}
 
 		protected virtual void OnDrawGizmos()
