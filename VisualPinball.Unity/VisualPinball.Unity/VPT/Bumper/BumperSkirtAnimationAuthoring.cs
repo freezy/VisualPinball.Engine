@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var bumper = Item;
-			var bumperEntity = Entity;
+			var bumperEntity = MainEntity;
 
 			// update parent
 			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);

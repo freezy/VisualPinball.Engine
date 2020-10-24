@@ -41,10 +41,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 			UpdatePhysicsFromFlipper();
 		}
 
-		public override void SetIndex(int index, int version)
+		public override void SetIndex(int index, int version, int parentIndex, int parentVersion)
 		{
-			base.SetIndex(index, version);
-			HitCircleBase.SetIndex(index, version);
+			base.SetIndex(index, version, parentIndex, parentVersion);
+			HitCircleBase.SetIndex(index, version, parentIndex, parentVersion);
 		}
 
 		public override void CalcHitBBox()

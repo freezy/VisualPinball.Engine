@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IHittable, IRenderable
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
-		protected Entity Entity {
+		protected Entity MainEntity {
 			get {
 				var ma = MainAuthoring;
 				if (ma == null) {
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		protected void LinkToParentEntity(Entity entity, EntityManager dstManager)
 		{
-			dstManager.AddComponentData(entity, new Parent {Value = Entity});
+			dstManager.AddComponentData(entity, new Parent {Value = MainEntity});
 			dstManager.AddComponentData(entity, new LocalToParent());
 		}
 	}

@@ -21,8 +21,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemApi<T, TData> where T : Item<TData> where TData : ItemData
+	public abstract class ItemApi<T, TData> : IApi where T : Item<TData> where TData : ItemData
 	{
+		public string Name => Item.Name;
+
 		protected readonly T Item;
 		internal readonly Entity Entity;
 

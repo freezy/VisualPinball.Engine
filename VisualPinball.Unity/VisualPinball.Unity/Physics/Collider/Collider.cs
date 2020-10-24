@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 
 		public int Id => Header.Id;
 		public Entity Entity => Header.Entity;
+		public Entity ParentEntity => Header.ParentEntity;
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
 		public float Threshold => Header.Threshold;
@@ -217,7 +218,7 @@ namespace VisualPinball.Unity
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.Entity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ParentEntity, true));
 				}
 			}
 		}

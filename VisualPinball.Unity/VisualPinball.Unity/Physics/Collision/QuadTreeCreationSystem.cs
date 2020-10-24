@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 				var hitShapes = item.GetHitShapes();
 				log += item.Name + ": " + hitShapes.Length + "\n";
 				foreach (var hitObject in hitShapes) {
-					hitObject.SetIndex(item.Index, item.Version);
+					hitObject.SetIndex(item.Index, item.Version, item.ParentIndex, item.ParentVersion);
 					hitObject.Id = id++;
 					hitObject.CalcHitBBox();
 					hitObjects.Add(hitObject);

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		{
 			var table = Table;
 			var bumper = Item;
-			var bumperEntity = Entity;
+			var bumperEntity = MainEntity;
 
 			// update parent
 			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);

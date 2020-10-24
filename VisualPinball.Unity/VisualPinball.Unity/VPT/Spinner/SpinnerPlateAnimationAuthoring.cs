@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	{
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var spinnerEntity = Entity;
+			var spinnerEntity = MainEntity;
 
 			// update parent
 			var spinnerStaticData = dstManager.GetComponentData<SpinnerStaticData>(spinnerEntity);
