@@ -39,14 +39,14 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffString("NAME", IsWideString = true, Pos = 9)]
 		public string Name;
 
-		[BiffVertex("ENTR", Pos = 1)]
-		public Vertex2D Entrance;
+		[BiffString("ENTK", Pos = 1)]
+		public string EntryKicker = string.Empty;
 
-		[BiffFloat("EXIT", Pos = 10)]
-		public float ExitOffset = 200.0f;
+		[BiffString("ENTS", Pos = 2)]
+		public string EntrySwitch = string.Empty;
 
-		[BiffFloat("ORIN", Pos = 10)]
-		public float Orientation = 0.0f;
+		[BiffString("EXIT", Pos = 10)]
+		public string ExitKicker = string.Empty;
 
 		[BiffInt("BCNT", Pos = 3)]
 		public int BallCount = 3;
@@ -56,15 +56,6 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		[BiffFloat("TIME", Pos = 5)]
 		public float SettleTime = 0.1f;
-
-		[BiffFloat("FORC", Pos = 6)]
-		public float Force = 15f;
-
-		[BiffFloat("BSCT", Pos = 7)]
-		public float Scatter = 0f;
-
-		[BiffString("SURF", Pos = 16)]
-		public string Surface = string.Empty;
 
 		#region BIFF
 
