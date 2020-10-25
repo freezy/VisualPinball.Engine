@@ -41,6 +41,16 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
+		protected bool HasErrors()
+		{
+			if (!ItemAuthoring.IsCorrectlyParented) {
+				InvalidParentError();
+				return true;
+			}
+
+			return false;
+		}
+
 		protected void InvalidParentError()
 		{
 			var validParentTypes = ItemAuthoring.ValidParents.ToArray();

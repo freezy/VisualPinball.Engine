@@ -25,7 +25,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
 	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = {
+			typeof(BumperAuthoring),
+		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 

@@ -23,20 +23,17 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveAuthoring))]
-	public class PrimitiveInspector : ItemMainInspector<Primitive, PrimitiveData, PrimitiveAuthoring>
+	[CustomEditor(typeof(PrimitiveMeshAuthoring))]
+	public class PrimitiveMeshInspector : ItemMeshInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting;
-		private bool _foldoutPosition;
-		private bool _foldoutPhysics;
+		private bool _foldoutColorsAndFormatting = true;
+		private bool _foldoutPosition = true;
 
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
-
-			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				GUILayout.BeginHorizontal();
@@ -50,8 +47,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Object Space", ref Data.ObjectSpaceNormalMap);
 				EditorGUI.indentLevel--;
 				MaterialField("Material", ref Data.Material);
-
-				ItemDataField("Visible", ref Data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -81,39 +76,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				EditorGUI.BeginDisabledGroup(Data.IsToy || !Data.IsCollidable);
-
-				ItemDataField("Has Hit Event", ref Data.HitEvent, dirtyMesh: false);
-				EditorGUI.BeginDisabledGroup(!Data.HitEvent);
-				ItemDataField("Has Hit Event", ref Data.Threshold, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				MaterialField("Physics Material", ref Data.PhysicsMaterial, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, dirtyMesh: false);
-				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref Data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				EditorGUI.EndDisabledGroup();
-
-				EditorGUI.BeginDisabledGroup(Data.IsToy);
-				ItemDataField("Collidable", ref Data.IsCollidable, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Toy", ref Data.IsToy, dirtyMesh: false);
-
-				EditorGUI.BeginDisabledGroup(Data.IsToy);
-				ItemDataSlider("Reduce Polygons By", ref Data.CollisionReductionFactor, 0f, 1f, dirtyMesh: false);
-				EditorGUI.EndDisabledGroup();
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
 			base.OnInspectorGUI();
 		}
 
@@ -136,14 +98,16 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void ExportMesh()
 		{
-			var table = ItemAuthoring.GetComponentInParent<TableAuthoring>();
+			var table = MeshAuthoring.GetComponentInParent<TableAuthoring>();
 			if (table != null) {
-				var rog = Item.GetRenderObjects(table.Table, Origin.Original, false);
+				var rog = MeshAuthoring.MainAuthoring.Item.GetRenderObjects(table.Table, Origin.Original, false);
 				if (rog != null && rog.RenderObjects.Length > 0) {
-					var unityMesh = rog.RenderObjects[0].Mesh?.ToUnityMesh(Item.Name);
+					var unityMesh = rog.RenderObjects[0].Mesh?.ToUnityMesh(MeshAuthoring.IMainAuthoring.Name);
 					if (unityMesh != null) {
-						string savePath = EditorUtility.SaveFilePanelInProject("Export Mesh", Item.Name, "asset", "Export Mesh");
-						AssetDatabase.CreateAsset(unityMesh, savePath);
+						var savePath = EditorUtility.SaveFilePanelInProject("Export Mesh", MeshAuthoring.IMainAuthoring.Name, "asset", "Export Mesh");
+						if (!string.IsNullOrEmpty(savePath)) {
+							AssetDatabase.CreateAsset(unityMesh, savePath);
+						}
 					}
 				}
 			}

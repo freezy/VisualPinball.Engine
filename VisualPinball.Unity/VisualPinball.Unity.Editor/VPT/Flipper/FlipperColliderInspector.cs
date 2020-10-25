@@ -18,7 +18,6 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -27,13 +26,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public override void OnInspectorGUI()
 		{
-			if (Data == null) {
-				NoDataError();
-				return;
-			}
-
-			if (!ColliderAuthoring.IsCorrectlyParented) {
-				InvalidParentError();
+			if (HasErrors()) {
 				return;
 			}
 

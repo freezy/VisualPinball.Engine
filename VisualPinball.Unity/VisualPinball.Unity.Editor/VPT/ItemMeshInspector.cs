@@ -16,6 +16,8 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -49,10 +51,36 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void NoDataPanel()
+		protected bool HasErrors()
 		{
-			// todo add more details
-			GUILayout.Label("No data! Parent missing?");
+			if (Data == null) {
+				NoDataError();
+				return true;
+			}
+
+			if (!MeshAuthoring.IsCorrectlyParented) {
+				InvalidParentError();
+				return true;
+			}
+
+			return false;
+		}
+
+		private static void NoDataError()
+		{
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
+		}
+
+		private void InvalidParentError()
+		{
+			var validParentTypes = MeshAuthoring.ValidParents.ToArray();
+			var typeMessage = validParentTypes.Length > 0
+				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
+				: $"In this case, meshes for {MeshAuthoring.Item.ItemName} don't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.Item.ItemName} is parented to a {MeshAuthoring.ParentAuthoring.IItem.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
+				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
+			}
 		}
 	}
 }

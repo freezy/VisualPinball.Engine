@@ -18,9 +18,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
@@ -332,7 +330,7 @@ namespace VisualPinball.Unity.Editor
 				switch (target) {
 
 					case IItemMeshAuthoring meshItem:
-						meshItem.MainAuthoring.SetMeshDirty();
+						meshItem.IMainAuthoring.SetMeshDirty();
 						Undo.RecordObject(this, undoLabel);
 						break;
 

@@ -16,7 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using UnityEngine;
+using UnityEditor;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -38,10 +38,19 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
-		protected void NoDataPanel()
+		protected bool HasErrors()
 		{
-			// todo add more details
-			GUILayout.Label("No data! Parent missing?");
+			if (Data == null) {
+				NoDataError();
+				return true;
+			}
+
+			return false;
+		}
+
+		private static void NoDataError()
+		{
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
 		}
 	}
 }

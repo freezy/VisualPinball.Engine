@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 				.Select(c => (IItemColliderAuthoring) c)
 				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];
 
-		public IItemMainAuthoring ParentAuthoring => transform.parent.GetComponent<IItemMainAuthoring>();
+		public IItemMainAuthoring ParentAuthoring => FindParentAuthoring();
 
 		public bool IsCorrectlyParented {
 			get {
@@ -173,6 +173,35 @@ namespace VisualPinball.Unity
 				var t = mf.transform;
 				Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 			}
+		}
+
+		private IItemMainAuthoring FindParentAuthoring()
+		{
+			IItemMainAuthoring ma = null;
+			var go = gameObject;
+
+			// search on parent
+			if (go.transform.parent != null) {
+				ma = go.transform.parent.GetComponent<IItemMainAuthoring>();
+			}
+
+			if (ma is MonoBehaviour mb && mb.GetComponent<TableAuthoring>() != null) {
+				return null;
+			}
+			if (ma != null) {
+				return ma;
+			}
+
+			// search on grand parent
+			if (go.transform.parent.transform.parent != null) {
+				ma = go.transform.parent.transform.parent.GetComponent<IItemMainAuthoring>();
+			}
+
+			if (ma is MonoBehaviour mb2 && mb2.GetComponent<TableAuthoring>() != null) {
+				return null;
+			}
+
+			return ma;
 		}
 
 		#region Tools

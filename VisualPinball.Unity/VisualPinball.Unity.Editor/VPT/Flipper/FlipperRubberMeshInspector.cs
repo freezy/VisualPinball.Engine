@@ -24,28 +24,16 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(FlipperRubberMeshAuthoring))]
 	public class FlipperRubberMeshInspector : ItemMeshInspector<Flipper, FlipperData, FlipperAuthoring, FlipperRubberMeshAuthoring>
 	{
-		private FlipperData _flipperData;
-
-		private bool _foldoutMaterial = true;
-		private bool _foldoutSlingshot = true;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_flipperData = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
-			if (_flipperData == null) {
-				NoDataPanel();
+			if (HasErrors()) {
 				return;
 			}
 
-			MaterialField("Rubber Material", ref _flipperData.RubberMaterial);
-			ItemDataField("Rubber Thickness", ref _flipperData.RubberThickness);
-			ItemDataField("Rubber Offset Height", ref _flipperData.RubberHeight);
-			ItemDataField("Rubber Width", ref _flipperData.RubberWidth);
+			MaterialField("Rubber Material", ref Data.RubberMaterial);
+			ItemDataField("Rubber Thickness", ref Data.RubberThickness);
+			ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
+			ItemDataField("Rubber Width", ref Data.RubberWidth);
 
 			base.OnInspectorGUI();
 		}

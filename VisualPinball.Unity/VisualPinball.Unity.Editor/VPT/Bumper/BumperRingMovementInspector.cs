@@ -34,8 +34,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (Data == null) {
-				NoDataPanel();
+			if (HasErrors()) {
 				return;
 			}
 
