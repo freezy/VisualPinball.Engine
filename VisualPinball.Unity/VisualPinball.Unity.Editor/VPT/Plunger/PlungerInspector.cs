@@ -18,76 +18,70 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlungerAuthoring))]
-	public class PlungerInspector : ItemInspector
+	public class PlungerInspector : ItemMainInspector<Plunger, PlungerData, PlungerAuthoring>
 	{
-		private PlungerAuthoring _plunger;
 		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutStateAndPhysics = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutStateAndPhysics;
+		private bool _foldoutMisc;
 
-		private static readonly string[] PlungerTypeStrings = { "Modern", "Flat", "Custom" };
+		private static readonly string[] PlungerTypeLabels = { "Modern", "Flat", "Custom" };
 		private static readonly int[] PlungerTypeValues = { PlungerType.PlungerTypeModern, PlungerType.PlungerTypeFlat, PlungerType.PlungerTypeCustom };
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_plunger = target as PlungerAuthoring;
-		}
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref _plunger.Data.Type, PlungerTypeStrings, PlungerTypeValues, onChanged: _plunger.OnTypeChanged);
-				MaterialField("Material", ref _plunger.Data.Material);
-				TextureField("Image", ref _plunger.Data.Image);
-				ItemDataField("Flat Frames", ref _plunger.Data.AnimFrames);
-				ItemDataField("Width", ref _plunger.Data.Width);
-				ItemDataField("Z Adjustment", ref _plunger.Data.ZAdjust);
+				DropDownField("Type", ref Data.Type, PlungerTypeLabels, PlungerTypeValues, onChanged: ItemAuthoring.OnTypeChanged);
+				MaterialField("Material", ref Data.Material);
+				TextureField("Image", ref Data.Image);
+				ItemDataField("Flat Frames", ref Data.AnimFrames);
+				ItemDataField("Width", ref Data.Width);
+				ItemDataField("Z Adjustment", ref Data.ZAdjust);
 				EditorGUILayout.LabelField("Custom Settings");
 				EditorGUI.indentLevel++;
-				ItemDataField("Rod Diameter", ref _plunger.Data.RodDiam);
-				ItemDataField("Tip Shape", ref _plunger.Data.TipShape); // TODO: break this down and provide individual fields
-				ItemDataField("Ring Gap", ref _plunger.Data.RingGap);
-				ItemDataField("Ring Diam", ref _plunger.Data.RingDiam);
-				ItemDataField("Ring Width", ref _plunger.Data.RingWidth);
-				ItemDataField("Spring Diam", ref _plunger.Data.SpringDiam);
-				ItemDataField("Spring Gauge", ref _plunger.Data.SpringGauge);
-				ItemDataField("Spring Loops", ref _plunger.Data.SpringLoops);
-				ItemDataField("End Loops", ref _plunger.Data.SpringEndLoops);
+				ItemDataField("Rod Diameter", ref Data.RodDiam);
+				ItemDataField("Tip Shape", ref Data.TipShape); // TODO: break this down and provide individual fields
+				ItemDataField("Ring Gap", ref Data.RingGap);
+				ItemDataField("Ring Diam", ref Data.RingDiam);
+				ItemDataField("Ring Width", ref Data.RingWidth);
+				ItemDataField("Spring Diam", ref Data.SpringDiam);
+				ItemDataField("Spring Gauge", ref Data.SpringGauge);
+				ItemDataField("Spring Loops", ref Data.SpringLoops);
+				ItemDataField("End Loops", ref Data.SpringEndLoops);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _plunger.Data.Center);
-				SurfaceField("Surface", ref _plunger.Data.Surface);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
 			if (_foldoutStateAndPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutStateAndPhysics, "State & Physics")) {
-				ItemDataField("Pull Speed", ref _plunger.Data.SpeedPull, dirtyMesh: false);
-				ItemDataField("Release Speed", ref _plunger.Data.SpeedFire, dirtyMesh: false);
-				ItemDataField("Stroke Length", ref _plunger.Data.Stroke, dirtyMesh: false);
-				ItemDataField("Scatter Velocity", ref _plunger.Data.ScatterVelocity, dirtyMesh: false);
-				ItemDataField("Enable Mechanical Plunger", ref _plunger.Data.IsMechPlunger, dirtyMesh: false);
-				ItemDataField("Auto Plunger", ref _plunger.Data.AutoPlunger, dirtyMesh: false);
-				ItemDataField("Visible", ref _plunger.Data.IsVisible);
-				ItemDataField("Mech Strength", ref _plunger.Data.MechStrength, dirtyMesh: false);
-				ItemDataField("Momentum Xfer", ref _plunger.Data.MomentumXfer, dirtyMesh: false);
-				ItemDataField("Park Position (0..1)", ref _plunger.Data.ParkPosition, dirtyMesh: false);
+				ItemDataField("Pull Speed", ref Data.SpeedPull, false);
+				ItemDataField("Release Speed", ref Data.SpeedFire, false);
+				ItemDataField("Stroke Length", ref Data.Stroke, false);
+				ItemDataField("Scatter Velocity", ref Data.ScatterVelocity, false);
+				ItemDataField("Enable Mechanical Plunger", ref Data.IsMechPlunger, false);
+				ItemDataField("Auto Plunger", ref Data.AutoPlunger, false);
+				ItemDataField("Visible", ref Data.IsVisible);
+				ItemDataField("Mech Strength", ref Data.MechStrength, false);
+				ItemDataField("Momentum Xfer", ref Data.MomentumXfer, false);
+				ItemDataField("Park Position (0..1)", ref Data.ParkPosition, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _plunger.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _plunger.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

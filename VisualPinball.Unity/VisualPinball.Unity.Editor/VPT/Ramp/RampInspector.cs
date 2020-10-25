@@ -26,9 +26,9 @@ namespace VisualPinball.Unity.Editor
 	public class RampInspector : DragPointsItemInspector<Ramp, RampData, RampAuthoring>
 	{
 		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutGeometry = true;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		private static readonly string[] RampTypeLabels = {
 			"Flat",
@@ -57,6 +57,10 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
@@ -70,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
+			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
 				ItemDataField("Top Height", ref Data.HeightTop);
 				ItemDataField("Bottom Height", ref Data.HeightBottom);
 

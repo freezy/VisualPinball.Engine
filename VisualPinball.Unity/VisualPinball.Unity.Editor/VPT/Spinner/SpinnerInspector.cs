@@ -14,57 +14,59 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
+using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerAuthoring))]
-	public class SpinnerInspector : ItemInspector
+	public class SpinnerInspector : ItemMainInspector<Spinner, SpinnerData, SpinnerAuthoring>
 	{
-		private SpinnerAuthoring _spinner;
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_spinner = target as SpinnerAuthoring;
-		}
+		private bool _foldoutGeometry = true;
+		private bool _foldoutMesh;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Visible", ref _spinner.Data.IsVisible);
-				TextureField("Image", ref _spinner.Data.Image);
-				MaterialField("Material", ref _spinner.Data.Material);
-				ItemDataField("Show Bracket", ref _spinner.Data.ShowBracket);
+			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
+
+				ItemDataField("Length", ref Data.Length);
+				ItemDataField("Height", ref Data.Height);
+				ItemDataField("Rotation", ref Data.Rotation);
+				ItemDataField("Angle Max", ref Data.AngleMax, false);
+				ItemDataField("Angle Min", ref Data.AngleMin, false);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _spinner.Data.Center);
-				ItemDataField("Length", ref _spinner.Data.Length);
-				ItemDataField("Height", ref _spinner.Data.Height);
-				ItemDataField("Rotation", ref _spinner.Data.Rotation);
-				ItemDataField("Angle Max", ref _spinner.Data.AngleMax, dirtyMesh: false);
-				ItemDataField("Angle Min", ref _spinner.Data.AngleMin, dirtyMesh: false);
-				ItemDataField("Elasticity", ref _spinner.Data.Elasticity, dirtyMesh: false);
-				SurfaceField("Surface", ref _spinner.Data.Surface);
+			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
+				ItemDataField("Visible", ref Data.IsVisible);
+				TextureField("Image", ref Data.Image);
+				MaterialField("Material", ref Data.Material);
+				ItemDataField("Show Bracket", ref Data.ShowBracket);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Damping", ref _spinner.Data.Damping, dirtyMesh: false);
+				ItemDataField("Damping", ref Data.Damping, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _spinner.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _spinner.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

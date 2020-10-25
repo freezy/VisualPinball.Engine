@@ -17,12 +17,13 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateColliderAuthoring))]
-	public class GateColliderInspector : ItemColliderInspector<Gate, GateData, GateAuthoring, GateColliderAuthoring>
+	[CustomEditor(typeof(RampColliderAuthoring))]
+	public class RampColliderInspector : ItemColliderInspector<Ramp, RampData, RampAuthoring, RampColliderAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{
@@ -30,12 +31,28 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
+			ItemDataField("Hit Threshold", ref Data.Threshold, false);
+
+			EditorGUILayout.LabelField("Physical Wall");
+			EditorGUI.indentLevel++;
+			ItemDataField("Left Wall", ref Data.LeftWallHeight);
+			ItemDataField("Right Wall", ref Data.RightWallHeight);
+			EditorGUI.indentLevel--;
+
+			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
+			MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
+			EditorGUI.EndDisabledGroup();
+
+			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
+
+			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
 			ItemDataField("Elasticity", ref Data.Elasticity, false);
 			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Damping", ref Data.Damping, false);
-			ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
+			ItemDataField("Scatter Angle", ref Data.Scatter, false);
+			EditorGUI.EndDisabledGroup();
+
 			ItemDataField("Collidable", ref Data.IsCollidable, false);
-			ItemDataField(GateInspector.TwoWayLabel, ref Data.TwoWay, false);
 
 			base.OnInspectorGUI();
 		}

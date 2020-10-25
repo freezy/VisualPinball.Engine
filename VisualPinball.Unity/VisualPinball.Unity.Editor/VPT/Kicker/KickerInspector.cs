@@ -14,79 +14,55 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
-using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(KickerAuthoring))]
-	public class KickerInspector : ItemInspector
+	public class KickerInspector : ItemMainInspector<Kicker, KickerData, KickerAuthoring>
 	{
-		private KickerAuthoring _kicker;
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
-
-		private static string[] _kickerTypeStrings = {
-			"Invisible",
-			"Cup",
-			"Cup 2",
-			"Hole",
-			"Hole Simple",
-			"Gottlieb",
-			"Williams",
-		};
-		private static int[] _kickerTypeValues = {
-			KickerType.KickerInvisible,
-			KickerType.KickerCup,
-			KickerType.KickerCup2,
-			KickerType.KickerHole,
-			KickerType.KickerHoleSimple,
-			KickerType.KickerGottlieb,
-			KickerType.KickerWilliams,
-		};
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_kicker = target as KickerAuthoring;
-		}
+		private bool _foldoutMesh;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialField("Material", ref _kicker.Data.Material);
-				DropDownField("Display", ref _kicker.Data.KickerType, _kickerTypeStrings, _kickerTypeValues);
-				ItemDataField("Radius", ref _kicker.Data.Radius);
-				ItemDataField("Orientation", ref _kicker.Data.Orientation);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _kicker.Data.Center);
-				SurfaceField("Surface", ref _kicker.Data.Surface);
+			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
+				MaterialField("Material", ref Data.Material);
+				DropDownField("Display", ref Data.KickerType, KickerMeshInspector.KickerTypeLabels, KickerMeshInspector.KickerTypeValues);
+				ItemDataField("Radius", ref Data.Radius);
+				ItemDataField("Orientation", ref Data.Orientation);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				ItemDataField("Enabled", ref _kicker.Data.IsEnabled, dirtyMesh: false);
-				ItemDataField("Fall Through", ref _kicker.Data.FallThrough, dirtyMesh: false);
-				ItemDataField("Legacy", ref _kicker.Data.LegacyMode, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _kicker.Data.Scatter, dirtyMesh: false);
-				ItemDataField("Hit Accuracy", ref _kicker.Data.HitAccuracy, dirtyMesh: false);
-				ItemDataField("Hit Height", ref _kicker.Data.HitHeight, dirtyMesh: false);
+				ItemDataField("Enabled", ref Data.IsEnabled, false);
+				ItemDataField("Fall Through", ref Data.FallThrough, false);
+				ItemDataField("Legacy", ref Data.LegacyMode, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
+				ItemDataField("Hit Accuracy", ref Data.HitAccuracy, false);
+				ItemDataField("Hit Height", ref Data.HitHeight, false);
 
-				ItemDataField("Default Angle", ref _kicker.Data.Angle, dirtyMesh: false);
-				ItemDataField("Default Speed", ref _kicker.Data.Speed, dirtyMesh: false);
+				ItemDataField("Default Angle", ref Data.Angle, false);
+				ItemDataField("Default Speed", ref Data.Speed, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _kicker.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _kicker.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

@@ -18,65 +18,60 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(LightAuthoring))]
-	public class LightInspector : ItemInspector
+	public class LightInspector : ItemMainInspector<Light, LightData, LightAuthoring>
 	{
-		private LightAuthoring _light;
 		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutStateAndPhysics = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutState = true;
+		private bool _foldoutMisc;
 
-		private static string[] _lightStateStrings = { "Off", "On", "Blinking" };
-		private static int[] _lightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_light = target as LightAuthoring;
-		}
+		private static readonly string[] LightStateLabels = { "Off", "On", "Blinking" };
+		private static readonly int[] LightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Falloff", ref _light.Data.Falloff, dirtyMesh: false);
-				ItemDataField("Intensity", ref _light.Data.Intensity, dirtyMesh: false);
+				ItemDataField("Falloff", ref Data.Falloff, false);
+				ItemDataField("Intensity", ref Data.Intensity, false);
 
 				EditorGUILayout.LabelField("Fade Speed");
 				EditorGUI.indentLevel++;
-				ItemDataField("Up", ref _light.Data.FadeSpeedUp, dirtyMesh: false);
-				ItemDataField("Down", ref _light.Data.FadeSpeedDown, dirtyMesh: false);
+				ItemDataField("Up", ref Data.FadeSpeedUp, false);
+				ItemDataField("Down", ref Data.FadeSpeedDown, false);
 				EditorGUI.indentLevel--;
 
-				ItemDataField("Color", ref _light.Data.Color2, dirtyMesh: false); // Note: using color2 since that's the hot/center color in vpx
+				ItemDataField("Color", ref Data.Color2, false); // Note: using color2 since that's the hot/center color in vpx
 
 				EditorGUILayout.LabelField("Bulb");
 				EditorGUI.indentLevel++;
-				ItemDataField("Enable", ref _light.Data.ShowBulbMesh, false, onChanged: _light.OnBulbEnabled);
-				ItemDataField("Scale Mesh", ref _light.Data.MeshRadius, dirtyMesh: false);
+				ItemDataField("Enable", ref Data.ShowBulbMesh, false, onChanged: ItemAuthoring.OnBulbEnabled);
+				ItemDataField("Scale Mesh", ref Data.MeshRadius, false);
 				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _light.Data.Center);
-				SurfaceField("Surface", ref _light.Data.Surface);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutStateAndPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutStateAndPhysics, "State & Physics")) {
-				DropDownField("State", ref _light.Data.State, _lightStateStrings, _lightStateValues);
-				ItemDataField("Blink Pattern", ref _light.Data.BlinkPattern, dirtyMesh: false);
-				ItemDataField("Blink Interval", ref _light.Data.BlinkInterval, dirtyMesh: false);
+			if (_foldoutState = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutState, "State")) {
+				DropDownField("State", ref Data.State, LightStateLabels, LightStateValues);
+				ItemDataField("Blink Pattern", ref Data.BlinkPattern, false);
+				ItemDataField("Blink Interval", ref Data.BlinkInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _light.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _light.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

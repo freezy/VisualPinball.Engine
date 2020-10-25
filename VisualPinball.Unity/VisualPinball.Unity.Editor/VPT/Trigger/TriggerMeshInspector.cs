@@ -17,27 +17,44 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperColliderAuthoring))]
-	public class BumperColliderInspector : ItemColliderInspector<Bumper, BumperData, BumperAuthoring, BumperColliderAuthoring>
+	[CustomEditor(typeof(TriggerMeshAuthoring))]
+	public class TriggerMeshInspector : ItemMeshInspector<Trigger, TriggerData, TriggerAuthoring, TriggerMeshAuthoring>
 	{
+		public static readonly string[] TriggerShapeLabels = {
+			"None",
+			"Button",
+			"Star",
+			"Wire A",
+			"Wire B",
+			"Wire C",
+			"Wire D",
+		};
+		public static readonly int[] TriggerShapeValues = {
+			TriggerShape.TriggerNone,
+			TriggerShape.TriggerButton,
+			TriggerShape.TriggerStar,
+			TriggerShape.TriggerWireA,
+			TriggerShape.TriggerWireB,
+			TriggerShape.TriggerWireC,
+			TriggerShape.TriggerWireD,
+		};
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Collidable", ref Data.IsCollidable, dirtyMesh: false);
-
-			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
-			ItemDataField("Has Hit Event", ref Data.HitEvent, dirtyMesh: false);
-			ItemDataField("Force", ref Data.Force, dirtyMesh: false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, dirtyMesh: false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, dirtyMesh: false);
-			EditorGUI.EndDisabledGroup();
+			ItemDataField("Visible", ref Data.IsVisible);
+			DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
+			ItemDataField("Wire Thickness", ref Data.WireThickness);
+			ItemDataField("Star Radius", ref Data.Radius);
+			MaterialField("Material", ref Data.Material);
 
 			base.OnInspectorGUI();
 		}

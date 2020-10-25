@@ -18,7 +18,6 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {

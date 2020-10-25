@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Kicker Bracket Mesh")]
+	[AddComponentMenu("Visual Pinball/Mesh/Kicker Mesh")]
 	public class KickerMeshAuthoring : ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>
 	{
 		public static readonly Type[] ValidParentTypes = new Type[0];
