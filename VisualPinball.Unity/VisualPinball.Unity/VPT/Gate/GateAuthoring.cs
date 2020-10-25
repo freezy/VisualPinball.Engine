@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -39,6 +41,11 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Gate, GateData, GateAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Gate, GateData, GateAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => GateColliderAuthoring.ValidParentTypes
+			.Concat(GateBracketMeshAuthoring.ValidParentTypes)
+			.Concat(GateWireMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;

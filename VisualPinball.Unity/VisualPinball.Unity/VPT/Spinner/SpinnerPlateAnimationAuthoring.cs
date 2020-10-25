@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Spinner;
@@ -22,6 +24,8 @@ namespace VisualPinball.Unity
 {
 	public class SpinnerPlateAnimationAuthoring : ItemMovementAuthoring<Spinner, SpinnerData, SpinnerAuthoring>, IConvertGameObjectToEntity
 	{
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var spinnerEntity = MainEntity;

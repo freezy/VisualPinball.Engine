@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -36,6 +38,10 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
+			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

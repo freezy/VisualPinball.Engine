@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
@@ -22,5 +24,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
 	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, TableAuthoring>
 	{
+		public static readonly Type[] ValidParentTypes = new Type[0];
+
+		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}
 }

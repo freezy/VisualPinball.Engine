@@ -60,6 +60,7 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
 
+		public override IEnumerable<Type> ValidParents => new Type[0];
 		public Table Table => Item;
 		public TableSerializedTextureContainer Textures => _sidecar?.textures;
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;

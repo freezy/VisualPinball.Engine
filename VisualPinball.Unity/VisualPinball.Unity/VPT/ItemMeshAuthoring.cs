@@ -35,8 +35,6 @@ namespace VisualPinball.Unity
 
 		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
 
-		public virtual IEnumerable<Type> ValidParents { get; } = new Type[0];
-
 		protected virtual string MeshId => null;
 		protected abstract bool IsVisible { get; set; }
 

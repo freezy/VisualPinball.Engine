@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -55,6 +58,17 @@ namespace VisualPinball.Unity
 		/// Finds the main authoring component in the parent.
 		/// </summary>
 		public TMainAuthoring MainAuthoring => FindMainAuthoring();
+
+		public IItemMainAuthoring ParentAuthoring => MainAuthoring.ParentAuthoring;
+
+		public abstract IEnumerable<Type> ValidParents { get; }
+
+		public bool IsCorrectlyParented {
+			get {
+				var parentAuthoring = ParentAuthoring;
+				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
+			}
+		}
 
 		private TData FindData()
 		{

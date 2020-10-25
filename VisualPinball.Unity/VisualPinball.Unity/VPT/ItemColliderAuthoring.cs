@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -52,16 +50,6 @@ namespace VisualPinball.Unity
 		public HitObject[] HitObjects { get; private set; }
 
 		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
-		public IItemMainAuthoring ParentAuthoring => base.MainAuthoring.ParentAuthoring;
-
-		public virtual IEnumerable<Type> ValidParents { get; } = new Type[0];
-
-		public bool IsCorrectlyParented {
-			get {
-				var parentAuthoring = ParentAuthoring;
-				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
-			}
-		}
 
 		private void OnDrawGizmosSelected()
 		{

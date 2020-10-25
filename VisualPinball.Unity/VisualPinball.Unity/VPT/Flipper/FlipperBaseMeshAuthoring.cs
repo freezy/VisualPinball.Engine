@@ -27,12 +27,12 @@ namespace VisualPinball.Unity
 	{
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
+		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+
 		protected override string MeshId => FlipperMeshGenerator.Base;
 		protected override bool IsVisible {
 			get => Data.IsVisible;
 			set => Data.IsVisible = value;
 		}
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}
 }

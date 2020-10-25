@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 
 		public virtual bool CanBeTransformed => true;
 
-		public virtual IEnumerable<Type> ValidParents { get; } = new Type[0];
+		public abstract IEnumerable<Type> ValidParents { get; }
 
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
@@ -35,6 +37,10 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
+
+		public override IEnumerable<Type> ValidParents => PlayfieldColliderAuthoring.ValidParentTypes
+			.Concat(PlayfieldMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

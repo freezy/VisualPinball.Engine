@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
@@ -23,6 +25,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
 	public class BumperRingAnimationAuthoring : ItemMovementAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
 	{
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var table = Table;
