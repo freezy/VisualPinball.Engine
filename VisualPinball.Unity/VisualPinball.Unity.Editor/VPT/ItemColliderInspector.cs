@@ -105,12 +105,27 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected bool HasErrors()
+		{
+			if (Data == null) {
+				NoDataError();
+				return true;
+			}
+
+			if (!ColliderAuthoring.IsCorrectlyParented) {
+				InvalidParentError();
+				return true;
+			}
+
+			return false;
+		}
+
 		protected void NoDataError()
 		{
 			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
 		}
 
-		protected void InvalidParentError()
+		private void InvalidParentError()
 		{
 			var validParentTypes = ColliderAuthoring.ValidParents.ToArray();
 			var typeMessage = validParentTypes.Length > 0

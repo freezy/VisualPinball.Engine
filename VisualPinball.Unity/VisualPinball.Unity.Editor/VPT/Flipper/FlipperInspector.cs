@@ -32,8 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!ItemAuthoring.IsCorrectlyParented) {
-				InvalidParentError();
+			if (HasErrors()) {
 				return;
 			}
 

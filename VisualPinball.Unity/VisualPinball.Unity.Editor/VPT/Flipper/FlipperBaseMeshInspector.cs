@@ -24,26 +24,14 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(FlipperBaseMeshAuthoring))]
 	public class FlipperBaseMeshInspector : ItemMeshInspector<Flipper, FlipperData, FlipperAuthoring, FlipperBaseMeshAuthoring>
 	{
-		private FlipperData _flipperData;
-
-		private bool _foldoutMaterial = true;
-		private bool _foldoutSlingshot = true;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_flipperData = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
-			if (_flipperData == null) {
-				NoDataPanel();
+			if (HasErrors()) {
 				return;
 			}
 
-			TextureField("Image", ref _flipperData.Image);
-			MaterialField("Material", ref _flipperData.Material);
+			TextureField("Image", ref Data.Image);
+			MaterialField("Material", ref Data.Material);
 
 			base.OnInspectorGUI();
 		}
