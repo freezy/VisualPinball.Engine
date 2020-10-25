@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
@@ -37,6 +39,9 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Light, LightData, LightAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = null;
 
+		public override IEnumerable<Type> ValidParents => LightBulbMeshAuthoring.ValidParentTypes
+			.Concat(LightSocketMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)
 		{

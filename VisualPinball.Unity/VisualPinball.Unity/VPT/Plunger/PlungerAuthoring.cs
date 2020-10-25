@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -31,6 +33,12 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
+			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
+			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
+			.Concat(PlungerSpringMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		private void OnDestroy()
 		{

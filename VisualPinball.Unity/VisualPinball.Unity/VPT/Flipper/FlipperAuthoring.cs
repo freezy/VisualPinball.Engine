@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
 		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
 			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
+			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
 		public ISwitchable Switchable => Item;

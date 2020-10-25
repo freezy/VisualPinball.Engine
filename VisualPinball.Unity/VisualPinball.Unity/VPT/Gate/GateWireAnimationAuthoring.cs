@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Gate;
 
@@ -21,6 +23,8 @@ namespace VisualPinball.Unity
 {
 	public class GateWireAnimationAuthoring : ItemMovementAuthoring<Gate, GateData, GateAuthoring>, IConvertGameObjectToEntity
 	{
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			var gateEntity = MainEntity;

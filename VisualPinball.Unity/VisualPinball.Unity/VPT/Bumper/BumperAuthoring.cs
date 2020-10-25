@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -38,7 +40,13 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => BumperBaseMeshAuthoring.ValidParentTypes
+			.Concat(BumperCapMeshAuthoring.ValidParentTypes)
+			.Concat(BumperRingMeshAuthoring.ValidParentTypes)
+			.Concat(BumperSkirtMeshAuthoring.ValidParentTypes)
+			.Concat(BumperColliderAuthoring.ValidParentTypes)
+			.Distinct();
+
 		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()

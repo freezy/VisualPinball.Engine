@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -27,6 +28,10 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
 	public class PlungerFlatMeshAuthoring : PlungerMeshAuthoring
 	{
+		public static readonly Type[] ValidParentTypes = new Type[0];
+
+		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+
 		protected override string MeshId => PlungerMeshGenerator.Flat;
 
 		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)

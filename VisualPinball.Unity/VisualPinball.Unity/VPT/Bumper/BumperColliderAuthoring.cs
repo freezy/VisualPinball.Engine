@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
 	public class BumperColliderAuthoring : ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
-		public override IEnumerable<Type> ValidParents => new[]{typeof(BumperAuthoring)};
+		public static readonly Type[] ValidParentTypes = new Type[0];
+
+		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}
 }

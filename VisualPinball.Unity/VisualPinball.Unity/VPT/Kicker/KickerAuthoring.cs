@@ -21,6 +21,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -40,7 +42,10 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Kicker, KickerData, KickerAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => KickerColliderAuthoring.ValidParentTypes
+			.Concat(KickerMeshAuthoring.ValidParentTypes)
+			.Distinct();
+
 		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()

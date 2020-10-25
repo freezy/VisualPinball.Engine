@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -39,6 +40,10 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
+			.Concat(TriggerMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public ISwitchable Switchable => Item;
 
