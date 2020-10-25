@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 
 			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
 			EditorGUI.BeginDisabledGroup(!Data.HitEvent);
-			ItemDataField("Has Hit Event", ref Data.Threshold, false);
+			ItemDataField("Hit Threshold", ref Data.Threshold, false);
 			EditorGUI.EndDisabledGroup();
 
 			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);

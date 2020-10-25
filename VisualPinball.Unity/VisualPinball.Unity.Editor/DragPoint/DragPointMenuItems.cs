@@ -24,17 +24,16 @@ namespace VisualPinball.Unity.Editor
 		public const string ControlPointsMenuPath = "CONTEXT/DragPointsItemInspector/ControlPoint";
 		public const string CurveTravellerMenuPath = "CONTEXT/DragPointsItemInspector/CurveTraveller";
 
-		private static DragPointData RetrieveDragPoint(DragPointsItemInspector inspector, int controlId)
+		private static DragPointData RetrieveDragPoint(IDragPointsItemInspector inspector, int controlId)
 		{
-			return inspector == null ? null : inspector.GetDragPoint(controlId);
+			return inspector?.GetDragPoint(controlId);
 		}
 
 		// Drag Points
 		[MenuItem(ControlPointsMenuPath + "/IsSlingshot", false, 1)]
 		private static void SlingShot(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -48,8 +47,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/IsSlingshot", true)]
 		private static bool SlingshotValidate(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null || inspector.IsItemLocked()) {
+			if (!(command.context is IDragPointsItemInspector inspector) || inspector.IsItemLocked()) {
 				return false;
 			}
 
@@ -69,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/IsSmooth", false, 1)]
 		private static void Smooth(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
+			var inspector = command.context as IDragPointsItemInspector;
 			if (inspector == null) {
 				return;
 			}
@@ -84,8 +82,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/IsSmooth", true)]
 		private static bool SmoothValidate(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null || inspector.IsItemLocked()) {
+			if (!(command.context is IDragPointsItemInspector inspector) || inspector.IsItemLocked()) {
 				return false;
 			}
 
@@ -105,8 +102,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Remove Point", false, 101)]
 		private static void Remove(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -118,8 +114,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Remove Point", true)]
 		private static bool RemoveValidate(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null || inspector.IsItemLocked()) {
+			if (!(command.context is IDragPointsItemInspector inspector) || inspector.IsItemLocked()) {
 				return false;
 			}
 
@@ -134,8 +129,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Copy Point", false, 301)]
 		private static void Copy(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -145,8 +139,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Paste Point", false, 302)]
 		private static void Paste(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -156,20 +149,14 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Paste Point", true)]
 		private static bool PasteValidate(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null || inspector.IsItemLocked()) {
-				return false;
-			}
-
-			return true;
+			return command.context is IDragPointsItemInspector inspector && !inspector.IsItemLocked();
 		}
 
 		//Curve Traveller
 		[MenuItem(CurveTravellerMenuPath + "/Add Point", false, 1)]
 		private static void Add(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -180,8 +167,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Flip Drag Points/X", false, 201)]
 		private static void FlipX(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -192,8 +178,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Flip Drag Points/Y", false, 202)]
 		private static void FlipY(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
@@ -204,8 +189,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem(ControlPointsMenuPath + "/Flip Drag Points/Z", false, 203)]
 		private static void FlipZ(MenuCommand command)
 		{
-			var inspector = command.context as DragPointsItemInspector;
-			if (inspector == null) {
+			if (!(command.context is IDragPointsItemInspector inspector)) {
 				return;
 			}
 
