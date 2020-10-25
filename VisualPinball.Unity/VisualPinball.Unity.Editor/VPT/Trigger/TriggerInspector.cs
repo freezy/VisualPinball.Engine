@@ -26,36 +26,23 @@ namespace VisualPinball.Unity.Editor
 	public class TriggerInspector : DragPointsItemInspector<Trigger, TriggerData, TriggerAuthoring>
 	{
 		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
-
-		private static readonly string[] TriggerShapeLabels = {
-			"None",
-			"Button",
-			"Star",
-			"Wire A",
-			"Wire B",
-			"Wire C",
-			"Wire D",
-		};
-		private static readonly int[] TriggerShapeValues = {
-			TriggerShape.TriggerNone,
-			TriggerShape.TriggerButton,
-			TriggerShape.TriggerStar,
-			TriggerShape.TriggerWireA,
-			TriggerShape.TriggerWireB,
-			TriggerShape.TriggerWireC,
-			TriggerShape.TriggerWireD,
-		};
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				ItemDataField("Visible", ref Data.IsVisible);
-				DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
+				DropDownField("Shape", ref Data.Shape, TriggerMeshInspector.TriggerShapeLabels, TriggerMeshInspector.TriggerShapeValues);
 				ItemDataField("Wire Thickness", ref Data.WireThickness);
 				ItemDataField("Star Radius", ref Data.Radius);
 				ItemDataField("Rotation", ref Data.Rotation);
@@ -64,13 +51,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref Data.Center);
-				SurfaceField("Surface", ref Data.Surface);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
+			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				ItemDataField("Enabled", ref Data.IsEnabled, false);
 				ItemDataField("Hit Height", ref Data.HitHeight, false);
 			}

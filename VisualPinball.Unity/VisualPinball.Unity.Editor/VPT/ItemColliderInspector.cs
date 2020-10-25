@@ -120,7 +120,7 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		protected void NoDataError()
+		private void NoDataError()
 		{
 			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
 		}

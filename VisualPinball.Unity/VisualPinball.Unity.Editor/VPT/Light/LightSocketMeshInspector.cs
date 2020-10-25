@@ -17,27 +17,18 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperColliderAuthoring))]
-	public class BumperColliderInspector : ItemColliderInspector<Bumper, BumperData, BumperAuthoring, BumperColliderAuthoring>
+	[CustomEditor(typeof(LightSocketMeshAuthoring))]
+	public class LightSocketMeshInspector : ItemMeshInspector<Light, LightData, LightAuthoring, LightSocketMeshAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
-
-			ItemDataField("Collidable", ref Data.IsCollidable, dirtyMesh: false);
-
-			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
-			ItemDataField("Has Hit Event", ref Data.HitEvent, dirtyMesh: false);
-			ItemDataField("Force", ref Data.Force, dirtyMesh: false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, dirtyMesh: false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, dirtyMesh: false);
-			EditorGUI.EndDisabledGroup();
 
 			base.OnInspectorGUI();
 		}

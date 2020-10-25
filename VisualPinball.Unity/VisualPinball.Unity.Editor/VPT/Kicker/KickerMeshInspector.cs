@@ -17,27 +17,43 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperColliderAuthoring))]
-	public class BumperColliderInspector : ItemColliderInspector<Bumper, BumperData, BumperAuthoring, BumperColliderAuthoring>
+	[CustomEditor(typeof(KickerMeshAuthoring))]
+	public class KickerMeshInspector : ItemMeshInspector<Kicker, KickerData, KickerAuthoring, KickerMeshAuthoring>
 	{
+		public static readonly string[] KickerTypeLabels = {
+			"Invisible",
+			"Cup",
+			"Cup 2",
+			"Hole",
+			"Hole Simple",
+			"Gottlieb",
+			"Williams",
+		};
+		public static readonly int[] KickerTypeValues = {
+			KickerType.KickerInvisible,
+			KickerType.KickerCup,
+			KickerType.KickerCup2,
+			KickerType.KickerHole,
+			KickerType.KickerHoleSimple,
+			KickerType.KickerGottlieb,
+			KickerType.KickerWilliams,
+		};
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Collidable", ref Data.IsCollidable, dirtyMesh: false);
-
-			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
-			ItemDataField("Has Hit Event", ref Data.HitEvent, dirtyMesh: false);
-			ItemDataField("Force", ref Data.Force, dirtyMesh: false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, dirtyMesh: false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, dirtyMesh: false);
-			EditorGUI.EndDisabledGroup();
+			MaterialField("Material", ref Data.Material);
+			DropDownField("Display", ref Data.KickerType, KickerTypeLabels, KickerTypeValues);
+			ItemDataField("Radius", ref Data.Radius);
+			ItemDataField("Orientation", ref Data.Orientation);
 
 			base.OnInspectorGUI();
 		}

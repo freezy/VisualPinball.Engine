@@ -24,41 +24,32 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberColliderAuthoring))]
 	public class RubberColliderInspector : ItemColliderInspector<Rubber, RubberData, RubberAuthoring, RubberColliderAuthoring>
 	{
-		private RubberData _rubberData;
-
 		private bool _foldoutMaterial = true;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_rubberData = Data;
-		}
 
 		public override void OnInspectorGUI()
 		{
-			if (_rubberData == null) {
-				NoDataError();
+			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Collidable", ref _rubberData.IsCollidable, false);
+			ItemDataField("Collidable", ref Data.IsCollidable, false);
 
-			EditorGUI.BeginDisabledGroup(!_rubberData.IsCollidable);
-			ItemDataField("Has Hit Event", ref _rubberData.HitEvent, false);
-			ItemDataField("Hit Height", ref _rubberData.HitHeight, false);
+			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
+			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
+			ItemDataField("Hit Height", ref Data.HitHeight, false);
 
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-				EditorGUI.BeginDisabledGroup(_rubberData.OverwritePhysics);
-				MaterialField("Preset", ref _rubberData.PhysicsMaterial, false);
+				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
+				MaterialField("Preset", ref Data.PhysicsMaterial, false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Overwrite Preset", ref _rubberData.OverwritePhysics, false);
+				ItemDataField("Overwrite Preset", ref Data.OverwritePhysics, false);
 
-				EditorGUI.BeginDisabledGroup(!_rubberData.OverwritePhysics);
-				ItemDataField("Elasticity", ref _rubberData.Elasticity, false);
-				ItemDataField("Elasticity Falloff", ref _rubberData.ElasticityFalloff, false);
-				ItemDataField("Friction", ref _rubberData.Friction, false);
-				ItemDataField("Scatter Angle", ref _rubberData.Scatter, false);
+				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

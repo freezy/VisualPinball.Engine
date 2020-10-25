@@ -14,106 +14,78 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
-using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(HitTargetAuthoring))]
-	public class HitTargetInspector : ItemInspector
+	public class HitTargetInspector : ItemMainInspector<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
-		private HitTargetAuthoring _target;
 		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
-
-		private static string[] _targetTypeStrings = {
-			"Drop Target: Beveled",
-			"Drop Target: Simple",
-			"Drop Target: Flat Simple",
-			"Hit Target: Rectangle",
-			"Hit Target: Fat Rectangle",
-			"Hit Target: Round",
-			"Hit Target: Slim",
-			"Hit Target: Fat Slim",
-			"Hit Target: Fat Square",
-		};
-		private static int[] _targetTypeValues = {
-			TargetType.DropTargetBeveled,
-			TargetType.DropTargetSimple,
-			TargetType.DropTargetFlatSimple,
-			TargetType.HitTargetRectangle,
-			TargetType.HitFatTargetRectangle,
-			TargetType.HitTargetRound,
-			TargetType.HitTargetSlim,
-			TargetType.HitFatTargetSlim,
-			TargetType.HitFatTargetSquare,
-		};
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_target = target as HitTargetAuthoring;
-		}
+		private bool _foldoutMesh;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Position);
+			ItemDataField("Scale", ref Data.Size);
+			ItemDataField("Orientation", ref Data.RotZ);
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref _target.Data.TargetType, _targetTypeStrings, _targetTypeValues);
-				TextureField("Image", ref _target.Data.Image);
-				MaterialField("Material", ref _target.Data.Material);
-				ItemDataField("Drop Speed", ref _target.Data.DropSpeed, dirtyMesh: false);
-				ItemDataField("Raise Delay", ref _target.Data.RaiseDelay, dirtyMesh: false);
-				ItemDataField("Depth Bias", ref _target.Data.DepthBias, dirtyMesh: false);
-				ItemDataField("Visible", ref _target.Data.IsVisible);
+			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Behavior")) {
+
+				ItemDataField("Drop Speed", ref Data.DropSpeed, false);
+				ItemDataField("Raise Delay", ref Data.RaiseDelay, false);
+				ItemDataField("Depth Bias", ref Data.DepthBias, false);
+				ItemDataField("Visible", ref Data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position & Translation")) {
-				EditorGUILayout.LabelField("Position");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref _target.Data.Position);
-				EditorGUI.indentLevel--;
-
-				EditorGUILayout.LabelField("Scale");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref _target.Data.Size);
-				EditorGUI.indentLevel--;
-
-				ItemDataField("Orientation", ref _target.Data.RotZ);
-
+			// mesh
+			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
+				DropDownField("Type", ref Data.TargetType, HitTargetMeshInspector.TargetTypeLabels, HitTargetMeshInspector.TargetTypeValues);
+				TextureField("Image", ref Data.Image);
+				MaterialField("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
+			// physics
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref _target.Data.UseHitEvent, dirtyMesh: false);
-				ItemDataField("Hit Threshold", ref _target.Data.Threshold, dirtyMesh: false);
+				ItemDataField("Has Hit Event", ref Data.UseHitEvent, false);
+				ItemDataField("Hit Threshold", ref Data.Threshold, false);
 
-				EditorGUI.BeginDisabledGroup(_target.Data.OverwritePhysics);
-				MaterialField("Physics Material", ref _target.Data.PhysicsMaterial, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
+				MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Overwrite Material Settings", ref _target.Data.OverwritePhysics, dirtyMesh: false);
+				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
 
-				EditorGUI.BeginDisabledGroup(!_target.Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref _target.Data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref _target.Data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref _target.Data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref _target.Data.Scatter, dirtyMesh: false);
+				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Legacy Mode", ref _target.Data.IsLegacy, dirtyMesh: false);
-				ItemDataField("Collidable", ref _target.Data.IsCollidable, dirtyMesh: false);
-				ItemDataField("Is Dropped", ref _target.Data.IsDropped, dirtyMesh: false);
+				ItemDataField("Legacy Mode", ref Data.IsLegacy, false);
+				ItemDataField("Collidable", ref Data.IsCollidable, false);
+				ItemDataField("Is Dropped", ref Data.IsDropped, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
+			// misc
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _target.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _target.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

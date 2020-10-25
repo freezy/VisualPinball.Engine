@@ -17,12 +17,12 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateColliderAuthoring))]
-	public class GateColliderInspector : ItemColliderInspector<Gate, GateData, GateAuthoring, GateColliderAuthoring>
+	[CustomEditor(typeof(HitTargetColliderAuthoring))]
+	public class HitTargetColliderInspector : ItemColliderInspector<HitTarget, HitTargetData, HitTargetAuthoring, HitTargetColliderAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{
@@ -30,12 +30,25 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			ItemDataField("Has Hit Event", ref Data.UseHitEvent, false);
+			ItemDataField("Hit Threshold", ref Data.Threshold, false);
+
+			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
+			MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
+			EditorGUI.EndDisabledGroup();
+
+			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
+
+			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
 			ItemDataField("Elasticity", ref Data.Elasticity, false);
+			ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
 			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Damping", ref Data.Damping, false);
-			ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
+			ItemDataField("Scatter Angle", ref Data.Scatter, false);
+			EditorGUI.EndDisabledGroup();
+
+			ItemDataField("Legacy Mode", ref Data.IsLegacy, false);
 			ItemDataField("Collidable", ref Data.IsCollidable, false);
-			ItemDataField(GateInspector.TwoWayLabel, ref Data.TwoWay, false);
+			ItemDataField("Is Dropped", ref Data.IsDropped, false);
 
 			base.OnInspectorGUI();
 		}

@@ -24,53 +24,44 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SurfaceColliderAuthoring))]
 	public class SurfaceColliderInspector : ItemColliderInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceColliderAuthoring>
 	{
-		private SurfaceData _surfaceData;
-
 		private bool _foldoutMaterial = true;
 		private bool _foldoutSlingshot = true;
 
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_surfaceData = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
-			if (_surfaceData == null) {
-				NoDataError();
+			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Collidable", ref _surfaceData.IsCollidable, false);
+			ItemDataField("Collidable", ref Data.IsCollidable, false);
 
-			EditorGUI.BeginDisabledGroup(!_surfaceData.IsCollidable);
+			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
 
-			ItemDataField("Has Hit Event", ref _surfaceData.HitEvent, false);
-			EditorGUI.BeginDisabledGroup(!_surfaceData.HitEvent);
-			ItemDataField("Hit Threshold", ref _surfaceData.Threshold, false);
+			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
+			EditorGUI.BeginDisabledGroup(!Data.HitEvent);
+			ItemDataField("Hit Threshold", ref Data.Threshold, false);
 			EditorGUI.EndDisabledGroup();
 
-			ItemDataField("Can Drop", ref _surfaceData.IsDroppable, false);
-			ItemDataField("Is Bottom Collidable", ref _surfaceData.IsBottomSolid, false);
+			ItemDataField("Can Drop", ref Data.IsDroppable, false);
+			ItemDataField("Is Bottom Collidable", ref Data.IsBottomSolid, false);
 
 			if (_foldoutSlingshot = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutSlingshot, "Slingshot")) {
-				ItemDataField("Slingshot Force", ref _surfaceData.SlingshotForce, false);
-				ItemDataField("Slingshot Threshold", ref _surfaceData.SlingshotThreshold, false);
+				ItemDataField("Slingshot Force", ref Data.SlingshotForce, false);
+				ItemDataField("Slingshot Threshold", ref Data.SlingshotThreshold, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-				EditorGUI.BeginDisabledGroup(_surfaceData.OverwritePhysics);
-				MaterialField("Preset", ref _surfaceData.PhysicsMaterial, false);
+				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
+				MaterialField("Preset", ref Data.PhysicsMaterial, false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Overwrite Preset", ref _surfaceData.OverwritePhysics, false);
+				ItemDataField("Overwrite Preset", ref Data.OverwritePhysics, false);
 
-				EditorGUI.BeginDisabledGroup(!_surfaceData.OverwritePhysics);
-				ItemDataField("Elasticity", ref _surfaceData.Elasticity, false);
-				ItemDataField("Friction", ref _surfaceData.Friction, false);
-				ItemDataField("Scatter Angle", ref _surfaceData.Scatter, false);
+				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

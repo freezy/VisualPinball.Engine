@@ -24,23 +24,19 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberAuthoring))]
 	public class RubberInspector : DragPointsItemInspector<Rubber, RubberData, RubberAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutGeometry = true;
+		private bool _foldoutMesh;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
-				ItemDataField("Visible", ref Data.IsVisible);
-				ItemDataField("Static", ref Data.StaticRendering);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
+			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
 				ItemDataField("Height", ref Data.Height);
 				ItemDataField("Thickness", ref Data.Thickness);
 				EditorGUILayout.LabelField("Orientation");
@@ -49,6 +45,14 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("RotY", ref Data.RotY);
 				ItemDataField("RotZ", ref Data.RotZ);
 				EditorGUI.indentLevel--;
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
+				TextureField("Image", ref Data.Image);
+				MaterialField("Material", ref Data.Material);
+				ItemDataField("Visible", ref Data.IsVisible);
+				ItemDataField("Static", ref Data.StaticRendering);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
