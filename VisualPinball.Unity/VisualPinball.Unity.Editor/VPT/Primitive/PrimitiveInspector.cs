@@ -36,6 +36,16 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			EditorGUILayout.LabelField("Base Position");
+			EditorGUI.indentLevel++;
+			ItemDataField("", ref Data.Position);
+			EditorGUI.indentLevel--;
+
+			EditorGUILayout.LabelField("Base Size");
+			EditorGUI.indentLevel++;
+			ItemDataField("", ref Data.Size);
+			EditorGUI.indentLevel--;
+
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
@@ -56,18 +66,6 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position & Translation")) {
-				EditorGUILayout.LabelField("Base Position");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref Data.Position);
-				EditorGUI.indentLevel--;
-
-				EditorGUILayout.LabelField("Base Size");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref Data.Size);
-				EditorGUI.indentLevel--;
-
-				EditorGUILayout.LabelField("Rotation and Transposition");
-				EditorGUI.indentLevel++;
 				ItemDataField("0: RotX", ref Data.RotAndTra[0]);
 				ItemDataField("1: RotY", ref Data.RotAndTra[1]);
 				ItemDataField("2: RotZ", ref Data.RotAndTra[2]);
@@ -77,39 +75,38 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("6: ObjRotX", ref Data.RotAndTra[6]);
 				ItemDataField("7: ObjRotY", ref Data.RotAndTra[7]);
 				ItemDataField("8: ObjRotZ", ref Data.RotAndTra[8]);
-				EditorGUI.indentLevel--;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				EditorGUI.BeginDisabledGroup(Data.IsToy || !Data.IsCollidable);
 
-				ItemDataField("Has Hit Event", ref Data.HitEvent, dirtyMesh: false);
+				ItemDataField("Has Hit Event", ref Data.HitEvent, false);
 				EditorGUI.BeginDisabledGroup(!Data.HitEvent);
-				ItemDataField("Has Hit Event", ref Data.Threshold, dirtyMesh: false);
+				ItemDataField("Hit Threshold", ref Data.Threshold, false);
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				MaterialField("Physics Material", ref Data.PhysicsMaterial, dirtyMesh: false);
+				MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
 				EditorGUI.EndDisabledGroup();
-				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, dirtyMesh: false);
+				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
 				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, dirtyMesh: false);
-				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, dirtyMesh: false);
-				ItemDataField("Friction", ref Data.Friction, dirtyMesh: false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, dirtyMesh: false);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Scatter Angle", ref Data.Scatter, false);
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(Data.IsToy);
-				ItemDataField("Collidable", ref Data.IsCollidable, dirtyMesh: false);
+				ItemDataField("Collidable", ref Data.IsCollidable, false);
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Toy", ref Data.IsToy, dirtyMesh: false);
+				ItemDataField("Toy", ref Data.IsToy, false);
 
 				EditorGUI.BeginDisabledGroup(Data.IsToy);
-				ItemDataSlider("Reduce Polygons By", ref Data.CollisionReductionFactor, 0f, 1f, dirtyMesh: false);
+				ItemDataSlider("Reduce Polygons By", ref Data.CollisionReductionFactor, 0f, 1f, false);
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

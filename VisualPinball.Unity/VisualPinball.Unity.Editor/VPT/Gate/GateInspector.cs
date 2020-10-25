@@ -14,33 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEngine;
 using UnityEditor;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(GateAuthoring))]
-	public class GateInspector : ItemInspector
+	public class GateInspector : ItemMainInspector<Gate, GateData, GateAuthoring>
 	{
-		private GateAuthoring _gate;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
+		private bool _foldoutPhysics;
+		private bool _foldoutMisc;
 
-		private static string[] _gateTypeStrings = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
-		private static int[] _gateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
+		private static readonly string[] GateTypeLabels = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
+		private static readonly int[] GateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
 
-		private static readonly string TwoWayLabel = "Two Way";
+		public const string TwoWayLabel = "Two Way";
 
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_gate = target as GateAuthoring;
-		}
-
-		protected virtual void OnSceneGUI()
+		protected void OnSceneGUI()
 		{
 			if (target is IItemMainAuthoring editable) {
 				var position = editable.GetEditorPosition();
@@ -49,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 					position = transform.parent.TransformPoint(position);
 					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
 					var worldScale = 0.5f * VpxConverter.GlobalScale;
-					var scale = _gate.Item.Data.Length * worldScale;
+					var scale = Data.Length * worldScale;
 					Handles.color = Color.white;
 					Handles.DrawWireDisc(position, axis, scale);
 					Color col = Color.grey;
@@ -57,51 +53,60 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = col;
 					Handles.DrawSolidDisc(position, axis, scale);
 
-					var arrowscale = worldScale * 100.0f;
+					var arrowScale = worldScale * 100.0f;
 					Handles.color = Color.white;
-					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowscale, EventType.Repaint);
-					if (_gate.Item.Data.TwoWay) {
-						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowscale, EventType.Repaint);
+					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
+					if (Data.TwoWay) {
+						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
 					}
 				}
 			}
 		}
+
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
+			ItemDataField("Visible", ref Data.IsVisible);
+
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref _gate.Data.GateType, _gateTypeStrings, _gateTypeValues);
-				ItemDataField("Visible", ref _gate.Data.IsVisible);
-				ItemDataField("Show Bracket", ref _gate.Data.ShowBracket);
-				MaterialField("Material", ref _gate.Data.Material);
+				DropDownField("Type", ref Data.GateType, GateTypeLabels, GateTypeValues);
+				ItemDataField("Show Bracket", ref Data.ShowBracket);
+				MaterialField("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _gate.Data.Center);
-				ItemDataField("Length", ref _gate.Data.Length);
-				ItemDataField("Height", ref _gate.Data.Height);
-				ItemDataField("Rotation", ref _gate.Data.Rotation);
-				ItemDataField("Open Angle", ref _gate.Data.AngleMax, dirtyMesh: false);
-				ItemDataField("Close Angle", ref _gate.Data.AngleMin, dirtyMesh: false);
-				SurfaceField("Surface", ref _gate.Data.Surface);
+			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
+
+				ItemDataField("Length", ref Data.Length);
+				ItemDataField("Height", ref Data.Height);
+				ItemDataField("Rotation", ref Data.Rotation);
+				ItemDataField("Open Angle", ref Data.AngleMax, false);
+				ItemDataField("Close Angle", ref Data.AngleMin, false);
+
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Elasticity", ref _gate.Data.Elasticity, dirtyMesh: false);
-				ItemDataField("Friction", ref _gate.Data.Friction, dirtyMesh: false);
-				ItemDataField("Damping", ref _gate.Data.Damping, dirtyMesh: false);
-				ItemDataField("Gravity Factor", ref _gate.Data.GravityFactor, dirtyMesh: false);
-				ItemDataField("Collidable", ref _gate.Data.IsCollidable, dirtyMesh: false);
-				ItemDataField(TwoWayLabel, ref _gate.Data.TwoWay, dirtyMesh: false);
+				ItemDataField("Elasticity", ref Data.Elasticity, false);
+				ItemDataField("Friction", ref Data.Friction, false);
+				ItemDataField("Damping", ref Data.Damping, false);
+				ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
+				ItemDataField("Collidable", ref Data.IsCollidable, false);
+				ItemDataField(TwoWayLabel, ref Data.TwoWay, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _gate.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _gate.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -115,6 +120,5 @@ namespace VisualPinball.Unity.Editor
 			}
 			base.FinishEdit(label, dirtyMesh);
 		}
-
 	}
 }

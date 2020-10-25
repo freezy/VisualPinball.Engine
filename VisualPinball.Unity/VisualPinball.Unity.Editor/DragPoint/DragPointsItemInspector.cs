@@ -18,11 +18,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsItemInspector : ItemInspector
+	public abstract class DragPointsItemInspector<TItem, TData, TMainAuthoring> : ItemMainInspector<TItem, TData, TMainAuthoring>, IDragPointsItemInspector
+		where TData : ItemData
+		where TItem : Item<TData>, IHittable, IRenderable
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		/// <summary>
 		/// Catmull Curve Handler
@@ -192,8 +197,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var enabledString = dragPointEditable.DragPointEditEnabled ? $"(ON), Stored Coordinates {_storedControlPoint}" : "(OFF)";
-			if (GUILayout.Button($"Edit Drag Points {enabledString}")) {
+			var editButtonText = dragPointEditable.DragPointEditEnabled ? "Stop Editing Drag Points" : "Edit Drag Points";
+			if (GUILayout.Button(editButtonText)) {
 				dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
 				SceneView.RepaintAll();
 			}

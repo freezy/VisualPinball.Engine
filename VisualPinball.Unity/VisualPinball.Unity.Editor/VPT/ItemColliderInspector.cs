@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected TData Data => ColliderAuthoring == null ? null : ColliderAuthoring.Data;
 
-		private bool _foldoutDebug = true;
+		private bool _foldoutDebug;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
 		private Vector2 _scrollPos;

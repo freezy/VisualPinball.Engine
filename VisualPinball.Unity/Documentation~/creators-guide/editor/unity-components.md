@@ -36,13 +36,15 @@ This separation of logic comes with a few advantages. First, it's more obvious h
 
 ## Combining Components
 
-VPE allows to mix and match components of different game items. For example, for a given game item, you can assign a collider or mesh from another type. The most common use case is replacing built-in meshes with primitives. For this, you would remove the original mesh component and replace it with a primitive mesh component. But there are other usages, like using a primitive collider on a rubber. You can also have multiple children with colliders (or meshes) for a game item. 
+VPE allows to mix and match components of different game items. For example, for a given game item, you can assign a collider or mesh from another type. The most common use case is replacing built-in meshes with primitives. For this, you would remove the original mesh component and replace it with a primitive mesh component. But there are other usages, like using a primitive collider on a rubber. You can also have *multiple* children with colliders (or meshes) for a game item. 
 
-The advantage compared to Visual Pinball where you would create multiple game items is that VPE treats them as one single logical entity. For example, VPE will automatically rotate a primitive flipper item when it's parented under a flipper. Or events from multiple colliders will be emitted on the same parent object.
+We call this **parenting**. The game item that overrides a given behavior is still created, but *parented* to another game item.
+
+The advantage compared to Visual Pinball where you would create individual game items is that VPE treats them as one single logical entity. For example, VPE will automatically rotate a primitive flipper item when it's parented under a flipper. Or events from multiple colliders will be emitted on the same parent object.
 
 ### Supported Combinations
 
-Not every game item's components can be re-used in other game items. For example it doesn't make much sense to use a flipper collider for a bumper. In fact, most of the combinations are unsupported. Here's what VPE does support so far:
+Not every game item can be parented any other game items. For example it doesn't make much sense to use a flipper collider for a bumper. In fact, most of the combinations are unsupported. Here's what VPE does support so far:
 
 |                  | Supported Meshes                                              | Supported Colliders        | Supported Animators       |
 |------------------|---------------------------------------------------------------|----------------------------|---------------------------|
@@ -62,3 +64,17 @@ Not every game item's components can be re-used in other game items. For example
 
 
 ## Naming Conventions
+
+In order to keep backward compatibility with Visual Pinball, VPE relies on naming conventions to parent a game item to another.
+
+There are two suffixes (text you add *after* the game item's name) that have special meaning in VPE:
+
+- `_Mesh` applies the game item's mesh to its parent
+- `_Collider` applies the game item's collider to its parent
+
+For example, if in Visual Pinball, you name a primitive `LeftFlipper_Mesh`, VPE will look for a `LeftFlipper` game item and replace its mesh with the mesh of `LeftFlipper_Mesh`. In other words, it will *parent* `LeftFlipper_Mesh` to `LeftFlipper` and disable `LeftFlipper`'s mesh.
+
+Another example: If in Visual Pinball, you name a rubber `LeftSlingshot` and two primitives `LeftSlingshot_Collider_Soft` and  `LeftSlingshot_Collider_Hard`, VPE will disable the collider of `LeftSlingshot` and use the colliders of both primitives. During gameplay when the ball hits either `LeftSlingshot_Collider_Soft` or `LeftSlingshot_Collider_Hard`, the `Hit` event will be emitted on `LeftSlingshot`.
+
+> [!warning]
+> When you *export* to `.vpx` and you have parented items but didn't follow the naming convention, the parenting will get lost when re-importing the table into VPE. In the future, VPE might propose to rename the parented children or just do it on export, but that's still on our TODO list.

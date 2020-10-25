@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerAuthoring))]
-	public class TriggerInspector : DragPointsItemInspector
+	public class TriggerInspector : DragPointsItemInspector<Trigger, TriggerData, TriggerAuthoring>
 	{
-		private TriggerAuthoring _trigger;
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutPosition = true;
 		private bool _foldoutPhysics = true;
 		private bool _foldoutMisc = true;
 
-		private static string[] _triggerShapeStrings = {
+		private static readonly string[] TriggerShapeLabels = {
 			"None",
 			"Button",
 			"Star",
@@ -37,7 +39,7 @@ namespace VisualPinball.Unity.Editor
 			"Wire C",
 			"Wire D",
 		};
-		private static int[] _triggerShapeValues = {
+		private static readonly int[] TriggerShapeValues = {
 			TriggerShape.TriggerNone,
 			TriggerShape.TriggerButton,
 			TriggerShape.TriggerStar,
@@ -47,42 +49,36 @@ namespace VisualPinball.Unity.Editor
 			TriggerShape.TriggerWireD,
 		};
 
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_trigger = target as TriggerAuthoring;
-		}
-
 		public override void OnInspectorGUI()
 		{
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Visible", ref _trigger.Data.IsVisible);
-				DropDownField("Shape", ref _trigger.Data.Shape, _triggerShapeStrings, _triggerShapeValues);
-				ItemDataField("Wire Thickness", ref _trigger.Data.WireThickness);
-				ItemDataField("Star Radius", ref _trigger.Data.Radius);
-				ItemDataField("Rotation", ref _trigger.Data.Rotation);
-				ItemDataField("Animation Speed", ref _trigger.Data.AnimSpeed, dirtyMesh: false);
-				MaterialField("Material", ref _trigger.Data.Material);
+				ItemDataField("Visible", ref Data.IsVisible);
+				DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
+				ItemDataField("Wire Thickness", ref Data.WireThickness);
+				ItemDataField("Star Radius", ref Data.Radius);
+				ItemDataField("Rotation", ref Data.Rotation);
+				ItemDataField("Animation Speed", ref Data.AnimSpeed, false);
+				MaterialField("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _trigger.Data.Center);
-				SurfaceField("Surface", ref _trigger.Data.Surface);
+				ItemDataField("", ref Data.Center);
+				SurfaceField("Surface", ref Data.Surface);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				ItemDataField("Enabled", ref _trigger.Data.IsEnabled, dirtyMesh: false);
-				ItemDataField("Hit Height", ref _trigger.Data.HitHeight, dirtyMesh: false);
+				ItemDataField("Enabled", ref Data.IsEnabled, false);
+				ItemDataField("Hit Height", ref Data.HitHeight, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _trigger.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _trigger.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
