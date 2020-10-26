@@ -101,6 +101,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
+			enabled = ro.IsVisible;
 
 			// apply mesh to game object
 			var mf = gameObject.AddComponent<MeshFilter>();
