@@ -47,7 +47,6 @@ namespace VisualPinball.Unity
 			.Concat(GateWireMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -67,15 +66,42 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			Data.ShowBracket = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case GateBracketMeshAuthoring bracketMeshAuthoring:
+						var bracketMeshAuthoringEnabled = bracketMeshAuthoring.gameObject.activeInHierarchy;
+						Data.IsVisible = Data.IsVisible || bracketMeshAuthoringEnabled;
+						Data.ShowBracket = bracketMeshAuthoringEnabled;
+						break;
+
+					case GateWireMeshAuthoring wireMeshAuthoring:
+						Data.IsVisible = wireMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is GateColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
+		}
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
 				Table?.Remove<Gate>(Name);
 			}
-		}
-
-		public void RemoveHittableComponent()
-		{
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

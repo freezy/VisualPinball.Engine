@@ -148,6 +148,12 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+		}
+
 		public Texture2D GetTexture(string name)
 		{
 			var lowerName = name.ToLower();
@@ -250,9 +256,13 @@ namespace VisualPinball.Unity
 			return table;
 		}
 
-		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData where TItem : Item<TData>, IRenderable where TComp : ItemAuthoring<TItem, TData>
+		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
+			where TItem : Item<TData>, IRenderable
+			where TComp : ItemMainAuthoring<TItem, TData>
 		{
-			foreach (var component in GetComponentsInChildren<TComp>(true)) {
+			foreach (var component in GetComponentsInChildren<TComp>(true))
+			{
+				component.Restore();
 				table.Add(component.Item);
 			}
 		}

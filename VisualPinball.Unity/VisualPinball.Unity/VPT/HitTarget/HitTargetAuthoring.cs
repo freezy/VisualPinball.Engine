@@ -76,8 +76,28 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case HitTargetMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is HitTargetColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

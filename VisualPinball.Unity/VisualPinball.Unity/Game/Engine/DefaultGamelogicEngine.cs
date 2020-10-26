@@ -88,15 +88,6 @@ namespace VisualPinball.Unity
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
-
-			_tableApi.Rubber("Rubber1").Hit += LogHit;
-			_tableApi.Surface("Collider").Hit += LogHit;
-		}
-
-		private void LogHit(object sender, EventArgs e)
-		{
-			var api = sender as IApi;
-			Debug.Log("Hit by " + api?.Name + "!");
 		}
 
 		public void OnUpdate()
@@ -106,8 +97,6 @@ namespace VisualPinball.Unity
 		public void OnDestroy()
 		{
 			OnCoilChanged -= DebugPrintCoil;
-			_tableApi.Rubber("Rubber1").Hit -= LogHit;
-			_tableApi.Surface("Collider").Hit -= LogHit;
 		}
 
 		public event EventHandler<CoilEventArgs> OnCoilChanged;

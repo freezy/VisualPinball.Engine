@@ -47,7 +47,6 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 
 			ItemDataField("Legacy Mode", ref Data.IsLegacy, false);
-			ItemDataField("Collidable", ref Data.IsCollidable, false);
 			ItemDataField("Is Dropped", ref Data.IsDropped, false);
 
 			base.OnInspectorGUI();

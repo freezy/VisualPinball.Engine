@@ -68,8 +68,40 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsBaseVisible = false;
+			Data.IsCapVisible = false;
+			Data.IsRingVisible = false;
+			Data.IsSocketVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case BumperBaseMeshAuthoring baseMeshAuthoring:
+						Data.IsCapVisible = baseMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperCapMeshAuthoring capMeshAuthoring:
+						Data.IsCapVisible = capMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperRingMeshAuthoring ringMeshAuthoring:
+						Data.IsRingVisible = ringMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperSkirtMeshAuthoring skirtMeshAuthoring:
+						Data.IsSocketVisible = skirtMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is BumperColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

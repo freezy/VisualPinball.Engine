@@ -42,7 +42,6 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			ItemDataField("Enabled", ref Data.IsEnabled);
-			ItemDataField("Visible", ref Data.IsVisible);
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
 				ItemDataField("Base Radius", ref Data.BaseRadius);

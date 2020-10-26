@@ -72,7 +72,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Scatter Velocity", ref Data.ScatterVelocity, false);
 				ItemDataField("Enable Mechanical Plunger", ref Data.IsMechPlunger, false);
 				ItemDataField("Auto Plunger", ref Data.AutoPlunger, false);
-				ItemDataField("Visible", ref Data.IsVisible);
 				ItemDataField("Mech Strength", ref Data.MechStrength, false);
 				ItemDataField("Momentum Xfer", ref Data.MomentumXfer, false);
 				ItemDataField("Park Position (0..1)", ref Data.ParkPosition, false);

@@ -24,22 +24,13 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperBaseMeshAuthoring))]
 	public class BumperBaseMeshInspector : ItemMeshInspector<Bumper, BumperData, BumperAuthoring, BumperBaseMeshAuthoring>
 	{
-		private BumperData _data;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_data = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Is Visible", ref _data.IsBaseVisible, onChanged: MeshAuthoring.OnVisibilityChanged);
-			MaterialField("Base Material", ref _data.BaseMaterial);
+			MaterialField("Base Material", ref Data.BaseMaterial);
 
 			base.OnInspectorGUI();
 		}

@@ -69,7 +69,6 @@ namespace VisualPinball.Unity.Editor
 				MaterialField("Material", ref Data.Material);
 				DropDownField("Image Mode", ref Data.ImageAlignment, RampImageAlignmentLabels, RampImageAlignmentValues);
 				ItemDataField("Apply Image To Wall", ref Data.ImageWalls);
-				ItemDataField("Visible", ref Data.IsVisible);
 				ItemDataField("Depth Bias", ref Data.DepthBias);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -118,8 +117,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Friction", ref Data.Friction, false);
 				ItemDataField("Scatter Angle", ref Data.Scatter, false);
 				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Collidable", ref Data.IsCollidable, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

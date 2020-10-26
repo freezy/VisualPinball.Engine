@@ -28,6 +28,11 @@ namespace VisualPinball.Unity
 
 		public abstract IEnumerable<Type> ValidParents { get; }
 
+		public virtual void Restore()
+		{
+			// todo make abstract
+		}
+
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
 		/// </summary>
@@ -50,12 +55,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
-		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
+		protected IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
 			GetComponentsInChildren(MeshAuthoringType, true)
 				.Select(c => (IItemMeshAuthoring) c)
 				.Where(ma => ma.ItemData == _data) : new IItemMeshAuthoring[0];
 
-		private IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
+		protected IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
 			GetComponentsInChildren(ColliderAuthoringType, true)
 				.Select(c => (IItemColliderAuthoring) c)
 				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];

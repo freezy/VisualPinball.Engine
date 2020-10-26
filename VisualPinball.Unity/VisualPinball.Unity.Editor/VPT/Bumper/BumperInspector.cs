@@ -17,44 +17,37 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperAuthoring))]
-	public class BumperInspector : ItemInspector
+	public class BumperInspector : ItemMainInspector<Bumper, BumperData, BumperAuthoring>
 	{
-		private BumperAuthoring _bumper;
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics = true;
-		private bool _foldoutMisc = true;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_bumper = target as BumperAuthoring;
-		}
+		private bool _foldoutGeometry = true;
+		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
 		{
+			if (HasErrors()) {
+				return;
+			}
+
+			ItemDataField("Position", ref Data.Center);
+			SurfaceField("Surface", ref Data.Surface);
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Radius", ref _bumper.Data.Radius);
-				ItemDataField("Height Scale", ref _bumper.Data.HeightScale);
-				ItemDataField("Orientation", ref _bumper.Data.Orientation);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("", ref _bumper.Data.Center);
-				SurfaceField("Surface", ref _bumper.Data.Surface);
+			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
+				ItemDataField("Radius", ref Data.Radius);
+				ItemDataField("Height Scale", ref Data.HeightScale);
+				ItemDataField("Orientation", ref Data.Orientation);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref _bumper.Data.IsTimerEnabled, dirtyMesh: false);
-				ItemDataField("Timer Interval", ref _bumper.Data.TimerInterval, dirtyMesh: false);
+				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
+				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

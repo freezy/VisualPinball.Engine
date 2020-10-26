@@ -50,7 +50,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Visible", ref Data.IsVisible);
 			DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
 			ItemDataField("Wire Thickness", ref Data.WireThickness);
 			ItemDataField("Star Radius", ref Data.Radius);

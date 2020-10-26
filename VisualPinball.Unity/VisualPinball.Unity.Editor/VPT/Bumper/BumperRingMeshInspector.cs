@@ -24,22 +24,13 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperRingMeshAuthoring))]
 	public class BumperRingMeshInspector : ItemMeshInspector<Bumper, BumperData, BumperAuthoring, BumperRingMeshAuthoring>
 	{
-		private BumperData _data;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_data = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Is Visible", ref _data.IsRingVisible);
-			MaterialField("Ring Material", ref _data.RingMaterial);
+			MaterialField("Ring Material", ref Data.RingMaterial);
 
 			base.OnInspectorGUI();
 		}

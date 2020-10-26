@@ -38,7 +38,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Side Visible", ref _data.IsSideVisible);
 			TextureField("Side Image", ref _data.SideImage);
 			MaterialField("Side Material", ref _data.SideMaterial);
 
