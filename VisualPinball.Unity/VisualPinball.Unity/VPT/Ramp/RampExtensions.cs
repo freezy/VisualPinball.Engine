@@ -31,11 +31,11 @@ namespace VisualPinball.Unity
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
 					CreateMeshComponents(ramp, obj);
-					obj.AddComponent<RampColliderAuthoring>();
+					obj.AddColliderComponent(ramp);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<RampColliderAuthoring>();
+					obj.AddColliderComponent(ramp);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -56,6 +56,13 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, Ramp ramp)
+		{
+			if (ramp.Data.IsCollidable) {
+				obj.AddComponent<RampColliderAuthoring>();
+			}
 		}
 
 		private static void CreateMeshComponents(Ramp ramp, GameObject obj)

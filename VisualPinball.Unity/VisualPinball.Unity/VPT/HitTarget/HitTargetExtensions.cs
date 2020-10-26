@@ -30,12 +30,12 @@ namespace VisualPinball.Unity
 
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<HitTargetColliderAuthoring>();
+					obj.AddColliderComponent(hitTarget);
 					obj.AddComponent<HitTargetMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<HitTargetColliderAuthoring>();
+					obj.AddColliderComponent(hitTarget);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -55,6 +55,13 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, HitTarget hitTarget)
+		{
+			if (hitTarget.Data.IsCollidable) {
+				obj.AddComponent<GateColliderAuthoring>();
+			}
 		}
 	}
 }

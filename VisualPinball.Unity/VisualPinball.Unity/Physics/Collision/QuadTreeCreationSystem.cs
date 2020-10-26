@@ -41,9 +41,11 @@ namespace VisualPinball.Unity
 			var hitObjects = new List<HitObject>();
 			var id = 0;
 			var log = "";
+			var c = 0;
 			foreach (var item in hittables) {
 				var hitShapes = item.GetHitShapes();
 				log += item.Name + ": " + hitShapes.Length + "\n";
+				c += hitShapes.Length;
 				foreach (var hitObject in hitShapes) {
 					hitObject.SetIndex(item.Index, item.Version, item.ParentIndex, item.ParentVersion);
 					hitObject.Id = id++;
@@ -51,7 +53,7 @@ namespace VisualPinball.Unity
 					hitObjects.Add(hitObject);
 				}
 			}
-			Logger.Info("Collider Count:\n" + log);
+			Logger.Info("Collider Count:\n" + log + "\nTotal: " + c);
 
 			// construct quad tree
 			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);

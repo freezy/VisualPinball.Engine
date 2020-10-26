@@ -17,6 +17,7 @@
 using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Resources.Meshes;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 
@@ -30,14 +31,14 @@ namespace VisualPinball.Unity
 
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<GateColliderAuthoring>();
+					obj.AddColliderComponent(gate);
 					CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket);
 					var wire = CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
 					wire.AddComponent<GateWireAnimationAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<GateColliderAuthoring>();
+					obj.AddColliderComponent(gate);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -57,6 +58,13 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, Gate gate)
+		{
+			if (gate.Data.IsCollidable) {
+				obj.AddComponent<GateColliderAuthoring>();
+			}
 		}
 
 		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

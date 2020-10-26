@@ -30,13 +30,13 @@ namespace VisualPinball.Unity
 
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None: {
-					AddColliderComponent(rubber, obj);
+					obj.AddColliderComponent(rubber);
 					AddMeshComponent(rubber, obj);
 					break;
 				}
 
 				case ItemSubComponent.Collider: {
-					AddColliderComponent(rubber, obj);
+					obj.AddColliderComponent(rubber);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -65,9 +65,11 @@ namespace VisualPinball.Unity
 			meshComponent.enabled = rubber.Data.IsVisible;
 		}
 
-		private static void AddColliderComponent(Rubber rubber, GameObject obj)
+		private static void AddColliderComponent(this GameObject obj, Rubber rubber)
 		{
-			obj.AddComponent<RubberColliderAuthoring>();
+			if (rubber.Data.IsCollidable) {
+				obj.AddComponent<RubberColliderAuthoring>();
+			}
 		}
 	}
 }

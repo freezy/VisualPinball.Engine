@@ -65,9 +65,8 @@ namespace VisualPinball.Unity
 
 		private static void AddColliderComponent(this GameObject obj, Primitive primitive)
 		{
-			if (!primitive.Data.IsToy) {
-				var comp = obj.AddComponent<PrimitiveColliderAuthoring>();
-				comp.enabled = primitive.IsCollidable;
+			if (!primitive.Data.IsToy && primitive.IsCollidable) { // todo handle dynamic collision
+				obj.AddComponent<PrimitiveColliderAuthoring>();
 			}
 		}
 	}

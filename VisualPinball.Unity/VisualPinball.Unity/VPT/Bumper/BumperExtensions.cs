@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<BumperColliderAuthoring>();
+					obj.AddColliderComponent(bumper);
 
 					CreateBaseMeshComponent(bumper, obj);
 					CreateCapMeshComponent(bumper, obj);
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<BumperColliderAuthoring>();
+					obj.AddColliderComponent(bumper);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -66,6 +66,13 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, Bumper bumper)
+		{
+			if (bumper.Data.IsCollidable) {
+				obj.AddComponent<BumperColliderAuthoring>();
+			}
 		}
 
 		private static void CreateBaseMeshComponent(Bumper rubber, GameObject obj)
