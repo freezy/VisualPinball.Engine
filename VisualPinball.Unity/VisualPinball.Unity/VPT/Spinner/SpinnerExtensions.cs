@@ -15,40 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class SpinnerExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Spinner spinner, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Spinner spinner, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
 
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddComponent<SpinnerColliderAuthoring>();
-					CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket);
-					var wire = CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
-					wire.AddComponent<SpinnerPlateAnimationAuthoring>();
+					meshAuthoring.Add(CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
+
+					var wireMeshAuth = CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
+					wireMeshAuth.gameObject.AddComponent<SpinnerPlateAnimationAuthoring>();
+					meshAuthoring.Add(wireMeshAuth);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<SpinnerColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Cannot parent a spinner collider to a different object than a spinner!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					// todo
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a spinner mesh to a different object than a spinner!");
 					break;
 				}
 
@@ -56,16 +58,16 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
-		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

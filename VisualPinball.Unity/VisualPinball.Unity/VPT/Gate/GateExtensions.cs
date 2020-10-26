@@ -15,41 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Resources.Meshes;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class GateExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Gate gate, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Gate gate, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<GateAuthoring>().SetItem(gate);
 
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
+					// collider
 					obj.AddColliderComponent(gate);
-					CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket);
-					var wire = CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
-					wire.AddComponent<GateWireAnimationAuthoring>();
+
+					// bracket mesh
+					meshAuthoring.Add(CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
+
+					// wire mesh
+					var wireMeshAuth = CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
+					wireMeshAuth.gameObject.AddComponent<GateWireAnimationAuthoring>();
+					meshAuthoring.Add(wireMeshAuth);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(gate);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Cannot parent a gate collider to a different object than a gate!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					// todo
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a gate mesh to a different object than a gate!");
 					break;
 				}
 
@@ -57,7 +62,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Gate gate)
@@ -67,13 +72,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

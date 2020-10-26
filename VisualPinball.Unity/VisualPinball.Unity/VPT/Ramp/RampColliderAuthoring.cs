@@ -24,7 +24,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
 	public class RampColliderAuthoring : ItemColliderAuthoring<Ramp, RampData, RampAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = {
+			typeof(PrimitiveAuthoring)
+		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}

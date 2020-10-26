@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
@@ -23,15 +24,18 @@ namespace VisualPinball.Unity
 {
 	internal static class LightExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Light light, GameObject obj, IItemMainAuthoring parentAuthoring)
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Light light, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<LightAuthoring>().SetItem(light);
+
 			if (!light.Data.ShowBulbMesh) {
-				return mainAuthoring;
+				return (mainAuthoring, meshAuthoring);
 			}
 
-			CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb);
-			CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket);
+			meshAuthoring.Add(CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb));
+			meshAuthoring.Add(CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket));
 
 			if (light.SubComponent == ItemSubComponent.Mesh) {
 				if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
@@ -39,17 +43,16 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			//obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
-		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

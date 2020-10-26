@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -23,13 +24,15 @@ namespace VisualPinball.Unity
 {
 	internal static class PlayfieldExtensions
 	{
-		public static void SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
 			obj.AddComponent<PlayfieldColliderAuthoring>();
 			obj.AddComponent<PlayfieldMeshAuthoring>();
 			obj.AddComponent<ConvertToEntity>();
 			obj.name = "Default Playfield";
+
+			return (null, new IItemMeshAuthoring[0]);
 		}
 	}
 }

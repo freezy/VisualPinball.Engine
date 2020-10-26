@@ -15,24 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class PrimitiveExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Primitive primitive, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Primitive primitive, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
 
 			switch (primitive.SubComponent) {
-				case ItemSubComponent.None:
-					obj.AddMeshComponent(primitive);
+				case ItemSubComponent.None: {
+					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
 					obj.AddColliderComponent(primitive);
 					break;
+				}
 
 				case ItemSubComponent.Collider: {
 					obj.AddColliderComponent(primitive);
@@ -43,7 +47,7 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					obj.AddMeshComponent(primitive);
+					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyMeshComponent();
 					}
@@ -54,13 +58,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
-		}
-
-		private static void AddMeshComponent(this GameObject obj, Primitive primitive)
-		{
-			var comp = obj.AddComponent<PrimitiveMeshAuthoring>();
-			comp.enabled = primitive.Data.IsVisible;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Primitive primitive)

@@ -15,38 +15,38 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class HitTargetExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this HitTarget hitTarget, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this HitTarget hitTarget, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
 
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddColliderComponent(hitTarget);
-					obj.AddComponent<HitTargetMeshAuthoring>();
+					meshAuthoring.Add(obj.AddComponent<HitTargetMeshAuthoring>());
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(hitTarget);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Cannot parent a target collider to a different object than a target!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					obj.AddComponent<HitTargetMeshAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a target mesh to a different object than a target!");
 					break;
 				}
 
@@ -54,7 +54,8 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, HitTarget hitTarget)

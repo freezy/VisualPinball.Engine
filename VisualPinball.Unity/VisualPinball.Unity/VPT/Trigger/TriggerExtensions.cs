@@ -15,38 +15,38 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class TriggerExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Trigger trigger, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Trigger trigger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
 
 			switch (trigger.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddComponent<TriggerColliderAuthoring>();
-					obj.AddComponent<TriggerMeshAuthoring>();
+					meshAuthoring.Add(obj.AddComponent<TriggerMeshAuthoring>());
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<TriggerColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Cannot parent a trigger collider to a different object than a trigger!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					obj.AddComponent<TriggerMeshAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a trigger mesh to a different object than a trigger!");
 					break;
 				}
 
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 	}
 }
