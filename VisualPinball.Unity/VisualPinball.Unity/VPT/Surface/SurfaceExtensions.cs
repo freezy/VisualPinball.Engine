@@ -30,13 +30,13 @@ namespace VisualPinball.Unity
 
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<SurfaceColliderAuthoring>();
+					obj.AddColliderComponent(surface);
 					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
 					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<SurfaceColliderAuthoring>();
+					obj.AddColliderComponent(surface);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -57,6 +57,13 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return mainAuthoring;
+		}
+
+		private static void AddColliderComponent(this GameObject obj, Surface surface)
+		{
+			if (surface.Data.IsCollidable) {
+				obj.AddComponent<SurfaceColliderAuthoring>();
+			}
 		}
 
 		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
