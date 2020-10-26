@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using NLog.Targets.Wrappers;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -112,9 +113,10 @@ namespace VisualPinball.Unity
 
 		private void ConvertGameItems(GameObject tableGameObject)
 		{
-			var createdMainObjs = new Dictionary<string, GameObject>();
-			var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
-			var createdMeshMbs = new Dictionary<string, IEnumerable<IItemMeshAuthoring>>();
+			var convertedItems = new Dictionary<string, ConvertedItem>();
+			// var createdMainObjs = new Dictionary<string, GameObject>();
+			// var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
+			// var createdMeshMbs = new Dictionary<string, IEnumerable<IItemMeshAuthoring>>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
 			var renderables = from renderable in _table.Renderables
 				orderby renderable.SubComponent
@@ -136,59 +138,52 @@ namespace VisualPinball.Unity
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					var (rootObj, rootMb, meshMbs) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
-
-					createdMainObjs[lookupName] = rootObj;
-					createdMainMbs[lookupName] = rootMb;
-					createdMeshMbs[lookupName] = meshMbs;
+					convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
 					var parentName = renderable.ComponentName.ToLower();
-					if (createdMainObjs.ContainsKey(parentName)) {
-						var mainObj = createdMainObjs[parentName];
-						var mainMb = createdMainMbs[parentName];
+					if (convertedItems.ContainsKey(parentName)) {
+						var parentMb = convertedItems[parentName].MainAuthoring;
+						var parentObj = parentMb.gameObject;
 
 						// move and rotate into parent
-						if (mainMb.IItem is IRenderable parentRenderable) {
+						if (parentMb.IItem is IRenderable parentRenderable) {
 							renderable.Position.Sub(parentRenderable.Position);
 							renderable.RotationY -= parentRenderable.RotationY;
 						}
 
-						var (rootObj, rootMb, meshMbs) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
-
-						createdMeshMbs[lookupName] = meshMbs;
-
-						rootObj.transform.SetParent(mainObj.transform, false);
+						convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], parentMb);
+						convertedItems[lookupName].MainAuthoring.gameObject.transform.SetParent(parentObj.transform, false);
 
 					} else {
-						throw new InvalidOperationException($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
+						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
 					}
 				}
 			}
 
 			// now we have all renderables imported, patch them.
-			foreach (var lookupName in createdMeshMbs.Keys) {
-				foreach (var meshMb in createdMeshMbs[lookupName]) {
+			foreach (var lookupName in convertedItems.Keys) {
+				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
 					_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
 				}
 			}
 		}
 
-		public static (GameObject, IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
+		public static ConvertedItem CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
 		{
 			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			var (mainAuthoring, meshAuthoring) = SetupGameObjects(renderable, obj, parentAuthoring);
+			var importedObject = SetupGameObjects(renderable, obj, parentAuthoring);
 
 			// apply transformation
 			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
 
-			return (obj, mainAuthoring, meshAuthoring);
+			return importedObject;
 		}
 
-		private static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
+		private static ConvertedItem SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
 		{
 			switch (item) {
 				case Bumper bumper:             return bumper.SetupGameObject(obj, parentAuthoring);
@@ -245,6 +240,41 @@ namespace VisualPinball.Unity
 				string.Join(", ", table.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
+		}
+	}
+
+	public class ConvertedItem
+	{
+		public readonly IItemMainAuthoring MainAuthoring;
+		public readonly IEnumerable<IItemMeshAuthoring> MeshAuthoring;
+		public readonly IItemColliderAuthoring ColliderAuthoring;
+
+		public ConvertedItem()
+		{
+			MainAuthoring = null;
+			MeshAuthoring = new IItemMeshAuthoring[0];
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = new IItemMeshAuthoring[0];
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = meshAuthoring;
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring, IItemColliderAuthoring colliderAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = meshAuthoring;
+			ColliderAuthoring = colliderAuthoring;
 		}
 	}
 }

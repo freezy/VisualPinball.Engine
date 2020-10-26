@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Ramp ramp, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<RampAuthoring>().SetItem(ramp);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			RampColliderAuthoring colliderAuthoring = null;
 
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddColliderComponent(ramp);
+					colliderAuthoring = obj.AddColliderComponent(ramp);
 					if (ramp.IsHabitrail) {
 						meshAuthoring.Add(CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
 					} else {
@@ -46,7 +47,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(ramp);
+					colliderAuthoring = obj.AddColliderComponent(ramp);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -62,14 +63,12 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Ramp ramp)
+		private static RampColliderAuthoring AddColliderComponent(this GameObject obj, Ramp ramp)
 		{
-			if (ramp.Data.IsCollidable) {
-				obj.AddComponent<RampColliderAuthoring>();
-			}
+			return ramp.Data.IsCollidable ? obj.AddComponent<RampColliderAuthoring>() : null;
 		}
 
 		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

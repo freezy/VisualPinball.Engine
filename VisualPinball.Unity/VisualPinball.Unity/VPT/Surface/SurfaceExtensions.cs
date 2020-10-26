@@ -25,20 +25,21 @@ namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			SurfaceColliderAuthoring colliderAuthoring = null;
 
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddColliderComponent(surface);
+					colliderAuthoring = obj.AddColliderComponent(surface);
 					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
 					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(surface);
+					colliderAuthoring = obj.AddColliderComponent(surface);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -58,14 +59,12 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Surface surface)
+		private static SurfaceColliderAuthoring AddColliderComponent(this GameObject obj, Surface surface)
 		{
-			if (surface.Data.IsCollidable) {
-				obj.AddComponent<SurfaceColliderAuthoring>();
-			}
+			return surface.Data.IsCollidable ? obj.AddComponent<SurfaceColliderAuthoring>() : null;
 		}
 
 		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

@@ -25,7 +25,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
@@ -33,7 +32,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
-
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);

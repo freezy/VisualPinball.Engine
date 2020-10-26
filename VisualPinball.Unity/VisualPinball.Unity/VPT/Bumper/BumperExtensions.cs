@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			BumperColliderAuthoring colliderAuthoring = null;
 
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddColliderComponent(bumper);
+					colliderAuthoring = obj.AddColliderComponent(bumper);
 					meshAuthoring.Add(CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base));
 					meshAuthoring.Add(CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap));
 
@@ -65,14 +66,12 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Bumper bumper)
+		private static BumperColliderAuthoring AddColliderComponent(this GameObject obj, Bumper bumper)
 		{
-			if (bumper.Data.IsCollidable) {
-				obj.AddComponent<BumperColliderAuthoring>();
-			}
+			return bumper.Data.IsCollidable ? obj.AddComponent<BumperColliderAuthoring>() : null;
 		}
 
 		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

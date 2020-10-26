@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Flipper flipper, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Flipper flipper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			FlipperColliderAuthoring colliderAuthoring = null;
 
 			switch (flipper.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<FlipperColliderAuthoring>();
+					colliderAuthoring = obj.AddComponent<FlipperColliderAuthoring>();
 
 					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
 					if (flipper.Data.IsVisible) {
@@ -59,7 +60,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
 		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

@@ -29,13 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			PlungerColliderAuthoring colliderAuthoring = null;
 
 			switch (plunger.SubComponent) {
 				case ItemSubComponent.None: {
+					colliderAuthoring = obj.AddComponent<PlungerColliderAuthoring>();
 					switch (plunger.Data.Type) {
 						case PlungerType.PlungerTypeFlat:
 							meshAuthoring.Add(CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
@@ -51,7 +53,6 @@ namespace VisualPinball.Unity
 							break;
 
 					}
-					obj.AddComponent<PlungerColliderAuthoring>();
 					break;
 				}
 
@@ -69,7 +70,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
 		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
