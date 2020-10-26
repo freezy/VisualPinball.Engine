@@ -24,7 +24,10 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
 	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = {
+			typeof(RubberAuthoring),
+			typeof(PrimitiveAuthoring)
+		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 	}

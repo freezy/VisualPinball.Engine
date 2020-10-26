@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
@@ -28,8 +29,9 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IItemMainAuthoring SetupGameObject(this Flipper flipper, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Flipper flipper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
 
 			switch (flipper.SubComponent) {
@@ -38,8 +40,8 @@ namespace VisualPinball.Unity
 
 					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
 					if (flipper.Data.IsVisible) {
-						CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
-						CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
+						meshAuthoring.Add(CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base));
+						meshAuthoring.Add(CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber));
 					}
 					break;
 
@@ -49,17 +51,7 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					var baseComp = CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base);
-					var rubberComp = CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
-
-					// if invisible in sub component, the mesh is explicitly created, so just disable it if invisible.
-					baseComp.enabled = flipper.Data.IsVisible;
-					rubberComp.enabled = flipper.Data.IsVisible;
-
-					CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a flipper mesh to a different object than a flipper!");
 					break;
 				}
 
@@ -67,7 +59,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

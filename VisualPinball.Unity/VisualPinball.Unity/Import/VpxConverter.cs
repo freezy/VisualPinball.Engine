@@ -114,6 +114,7 @@ namespace VisualPinball.Unity
 		{
 			var createdMainObjs = new Dictionary<string, GameObject>();
 			var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
+			var createdMeshMbs = new Dictionary<string, IEnumerable<IItemMeshAuthoring>>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
 			var renderables = from renderable in _table.Renderables
 				orderby renderable.SubComponent
@@ -135,10 +136,11 @@ namespace VisualPinball.Unity
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					var (rootObj, rootMb) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+					var (rootObj, rootMb, meshMbs) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
 					createdMainObjs[lookupName] = rootObj;
 					createdMainMbs[lookupName] = rootMb;
+					createdMeshMbs[lookupName] = meshMbs;
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
@@ -153,7 +155,10 @@ namespace VisualPinball.Unity
 							renderable.RotationY -= parentRenderable.RotationY;
 						}
 
-						var (rootObj, _) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
+						var (rootObj, rootMb, meshMbs) = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], mainMb);
+
+						createdMeshMbs[lookupName] = meshMbs;
+
 						rootObj.transform.SetParent(mainObj.transform, false);
 
 					} else {
@@ -163,45 +168,46 @@ namespace VisualPinball.Unity
 			}
 
 			// now we have all renderables imported, patch them.
-			foreach (var lookupName in createdMainObjs.Keys) {
-				_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], createdMainObjs[lookupName], tableGameObject);
+			foreach (var lookupName in createdMeshMbs.Keys) {
+				foreach (var meshMb in createdMeshMbs[lookupName]) {
+					_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
+				}
 			}
 		}
 
-		public static (GameObject, IItemMainAuthoring) CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
+		public static (GameObject, IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
 		{
 			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			var mb = SetupGameObjects(renderable, obj, parentAuthoring);
+			var (mainAuthoring, meshAuthoring) = SetupGameObjects(renderable, obj, parentAuthoring);
 
 			// apply transformation
 			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
 
-			return (obj, mb);
+			return (obj, mainAuthoring, meshAuthoring);
 		}
 
-		private static IItemMainAuthoring SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
+		private static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
 		{
-			IItemMainAuthoring mainAuthoring = null;
 			switch (item) {
-				case Bumper bumper:             mainAuthoring = bumper.SetupGameObject(obj, parentAuthoring); break;
-				case Flipper flipper:           mainAuthoring = flipper.SetupGameObject(obj, parentAuthoring); break;
-				case Gate gate:                 mainAuthoring = gate.SetupGameObject(obj, parentAuthoring); break;
-				case HitTarget hitTarget:       mainAuthoring = hitTarget.SetupGameObject(obj, parentAuthoring); break;
-				case Kicker kicker:             mainAuthoring = kicker.SetupGameObject(obj, parentAuthoring); break;
-				case Engine.VPT.Light.Light lt: mainAuthoring = lt.SetupGameObject(obj, parentAuthoring); break;
-				case Plunger plunger:           mainAuthoring = plunger.SetupGameObject(obj, parentAuthoring); break;
-				case Primitive primitive:       mainAuthoring = primitive.SetupGameObject(obj, parentAuthoring); break;
-				case Ramp ramp:                 mainAuthoring = ramp.SetupGameObject(obj, parentAuthoring); break;
-				case Rubber rubber:             mainAuthoring = rubber.SetupGameObject(obj, parentAuthoring); break;
-				case Spinner spinner:           mainAuthoring = spinner.SetupGameObject(obj, parentAuthoring); break;
-				case Surface surface:           mainAuthoring = surface.SetupGameObject(obj, parentAuthoring); break;
-				case Table table:               table.SetupGameObject(obj, parentAuthoring); break;
-				case Trigger trigger:           mainAuthoring = trigger.SetupGameObject(obj, parentAuthoring); break;
+				case Bumper bumper:             return bumper.SetupGameObject(obj, parentAuthoring);
+				case Flipper flipper:           return flipper.SetupGameObject(obj, parentAuthoring);
+				case Gate gate:                 return gate.SetupGameObject(obj, parentAuthoring);
+				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj, parentAuthoring);
+				case Kicker kicker:             return kicker.SetupGameObject(obj, parentAuthoring);
+				case Engine.VPT.Light.Light lt: return lt.SetupGameObject(obj, parentAuthoring);
+				case Plunger plunger:           return plunger.SetupGameObject(obj, parentAuthoring);
+				case Primitive primitive:       return primitive.SetupGameObject(obj, parentAuthoring);
+				case Ramp ramp:                 return ramp.SetupGameObject(obj, parentAuthoring);
+				case Rubber rubber:             return rubber.SetupGameObject(obj, parentAuthoring);
+				case Spinner spinner:           return spinner.SetupGameObject(obj, parentAuthoring);
+				case Surface surface:           return surface.SetupGameObject(obj, parentAuthoring);
+				case Table table:               return table.SetupGameObject(obj, parentAuthoring);
+				case Trigger trigger:           return trigger.SetupGameObject(obj, parentAuthoring);
 			}
 
-			return mainAuthoring;
+			throw new InvalidOperationException("Unknown item " + item + " to setup!");
 		}
 
 		private void MakeSerializable(GameObject go, Table table)

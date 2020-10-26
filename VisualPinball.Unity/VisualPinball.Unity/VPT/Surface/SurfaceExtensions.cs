@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -24,15 +25,16 @@ namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
 
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddColliderComponent(surface);
-					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
-					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
+					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
+					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -44,8 +46,8 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side);
-					CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top);
+					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
+					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyMeshComponent();
 					}
@@ -56,7 +58,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Surface surface)
@@ -66,13 +68,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

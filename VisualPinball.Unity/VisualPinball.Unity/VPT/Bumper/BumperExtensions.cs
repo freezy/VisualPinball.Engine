@@ -15,49 +15,48 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class BumperExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Bumper bumper, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
 
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
 					obj.AddColliderComponent(bumper);
+					meshAuthoring.Add(CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base));
+					meshAuthoring.Add(CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap));
 
-					CreateBaseMeshComponent(bumper, obj);
-					CreateCapMeshComponent(bumper, obj);
+					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
+					var skirt = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
 
-					var ring = CreateRingMeshComponent(bumper, obj);
-					var skirt = CreateSkirtMeshComponent(bumper, obj);
-					ring.AddComponent<BumperRingAnimationAuthoring>();
-					skirt.AddComponent<BumperSkirtAnimationAuthoring>();
+					ring.gameObject.AddComponent<BumperRingAnimationAuthoring>();
+					skirt.gameObject.AddComponent<BumperSkirtAnimationAuthoring>();
 
+					meshAuthoring.Add(ring);
+					meshAuthoring.Add(skirt);
 					break;
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(bumper);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Bumper collider cannot be parented to anything else than bumpers.");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					CreateBaseMeshComponent(bumper, obj);
-					CreateCapMeshComponent(bumper, obj);
-					CreateRingMeshComponent(bumper, obj);
-					CreateSkirtMeshComponent(bumper, obj);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Bumper mesh cannot be parented to anything else than bumpers.");
 					break;
 				}
 
@@ -65,7 +64,8 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Bumper bumper)
@@ -73,32 +73,6 @@ namespace VisualPinball.Unity
 			if (bumper.Data.IsCollidable) {
 				obj.AddComponent<BumperColliderAuthoring>();
 			}
-		}
-
-		private static void CreateBaseMeshComponent(Bumper rubber, GameObject obj)
-		{
-			var meshComp = CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base);
-			meshComp.enabled = rubber.Data.IsBaseVisible;
-		}
-
-		private static void CreateCapMeshComponent(Bumper rubber, GameObject obj)
-		{
-			var meshComp = CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap);
-			meshComp.enabled = rubber.Data.IsBaseVisible;
-		}
-
-		private static GameObject CreateRingMeshComponent(Bumper rubber, GameObject obj)
-		{
-			var meshComp = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
-			meshComp.enabled = rubber.Data.IsRingVisible;
-			return meshComp.gameObject;
-		}
-
-		private static GameObject CreateSkirtMeshComponent(Bumper rubber, GameObject obj)
-		{
-			var meshComp = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
-			meshComp.enabled = rubber.Data.IsSocketVisible;
-			return meshComp.gameObject;
 		}
 
 		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

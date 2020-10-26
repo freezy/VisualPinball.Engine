@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -27,6 +28,8 @@ namespace VisualPinball.Unity
 		List<MemberInfo> TextureRefs { get; }
 
 		IItemMainAuthoring IMainAuthoring { get; }
+
+		GameObject gameObject { get; }
 
 		void RebuildMeshes();
 	}

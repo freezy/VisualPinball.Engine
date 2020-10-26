@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -24,14 +25,15 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None: {
 					obj.AddColliderComponent(rubber);
-					AddMeshComponent(rubber, obj);
+					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
 					break;
 				}
 
@@ -44,7 +46,7 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					AddMeshComponent(rubber, obj);
+					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyMeshComponent();
 					}
@@ -56,13 +58,7 @@ namespace VisualPinball.Unity
 			}
 
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
-		}
-
-		private static void AddMeshComponent(Rubber rubber, GameObject obj)
-		{
-			var meshComponent = obj.AddComponent<RubberMeshAuthoring>();
-			meshComponent.enabled = rubber.Data.IsVisible;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Rubber rubber)

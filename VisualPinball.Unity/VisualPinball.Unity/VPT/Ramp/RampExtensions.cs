@@ -15,23 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class RampExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Ramp ramp, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Ramp ramp, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<RampAuthoring>().SetItem(ramp);
 
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					CreateMeshComponents(ramp, obj);
 					obj.AddColliderComponent(ramp);
+					if (ramp.IsHabitrail) {
+						meshAuthoring.Add(CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
+					} else {
+						meshAuthoring.Add(CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor));
+						meshAuthoring.Add(CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall));
+					}
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -43,11 +54,7 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					// todo
-					CreateMeshComponents(ramp, obj);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a ramp mesh to a different object than a ramp!");
 					break;
 				}
 
@@ -55,7 +62,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
 		private static void AddColliderComponent(this GameObject obj, Ramp ramp)
@@ -65,23 +72,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void CreateMeshComponents(Ramp ramp, GameObject obj)
-		{
-			if (ramp.IsHabitrail) {
-				CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires);
-			} else {
-				CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor);
-				CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall);
-			}
-		}
-
-		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

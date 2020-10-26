@@ -15,38 +15,53 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class PlungerExtensions
 	{
-		public static IItemMainAuthoring SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
 
 			switch (plunger.SubComponent) {
-				case ItemSubComponent.None:
-					CreateMeshComponents(plunger, obj);
+				case ItemSubComponent.None: {
+					switch (plunger.Data.Type) {
+						case PlungerType.PlungerTypeFlat:
+							meshAuthoring.Add(CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
+							break;
+
+						case PlungerType.PlungerTypeCustom:
+							meshAuthoring.Add(CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring));
+							meshAuthoring.Add(CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							break;
+
+						case PlungerType.PlungerTypeModern:
+							meshAuthoring.Add(CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							break;
+
+					}
 					obj.AddComponent<PlungerColliderAuthoring>();
 					break;
+				}
 
 				case ItemSubComponent.Collider: {
-					obj.AddComponent<PlungerColliderAuthoring>();
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
+					Logger.Error("Cannot parent a plunger collider to a different object than a plunger!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					CreateMeshComponents(plunger, obj);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
+					Logger.Error("Cannot parent a plunger mesh to a different object than a plunger!");
 					break;
 				}
 
@@ -54,35 +69,16 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return mainAuthoring;
+			return (mainAuthoring, meshAuthoring);
 		}
 
-		private static void CreateMeshComponents(Plunger plunger, GameObject obj)
-		{
-			switch (plunger.Data.Type) {
-				case PlungerType.PlungerTypeFlat:
-					CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat);
-					break;
-
-				case PlungerType.PlungerTypeCustom:
-					CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring);
-					CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod);
-					break;
-
-				case PlungerType.PlungerTypeModern:
-					CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod);
-					break;
-
-			}
-		}
-
-		public static GameObject CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
 		{
 			var subObj = new GameObject(name);
 			subObj.transform.SetParent(obj.transform, false);
-			subObj.AddComponent<T>();
+			var comp = subObj.AddComponent<T>();
 			//subObj.layer = ChildObjectsLayer;
-			return subObj;
+			return comp;
 		}
 	}
 }

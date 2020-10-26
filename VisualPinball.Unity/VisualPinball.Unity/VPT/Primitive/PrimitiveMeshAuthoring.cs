@@ -27,6 +27,16 @@ namespace VisualPinball.Unity
 	{
 		public static readonly Type[] ValidParentTypes = {
 			typeof(BumperAuthoring),
+			typeof(FlipperAuthoring),
+			typeof(GateAuthoring),
+			typeof(HitTargetAuthoring),
+			typeof(KickerAuthoring),
+			typeof(LightAuthoring),
+			typeof(RampAuthoring),
+			typeof(RubberAuthoring),
+			typeof(SpinnerAuthoring),
+			typeof(SurfaceAuthoring),
+			typeof(TriggerAuthoring),
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

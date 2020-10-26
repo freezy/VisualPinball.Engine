@@ -14,21 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
+// ReSharper disable StringLiteralTypo
+
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Patcher
 {
-	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
+	[MetaMatch(TableName = "Wipe Out Premier 1993", AuthorName = "Edizzle & Kiwi")]
+	public class WipeOut
 	{
-		public static readonly Type[] ValidParentTypes = {
-			typeof(RubberAuthoring),
-			typeof(SurfaceAuthoring)
-		};
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		[NameMatch("Prim_RightFlipper", Ref="Flippers/RightFlipper")]
+		[NameMatch("Prim_LeftFlipper", Ref="Flippers/LeftFlipper")]
+		public void ReparentFlippers(Primitive flipper, GameObject gameObject, ref GameObject parent)
+		{
+			PatcherUtil.Reparent(gameObject, parent);
+			gameObject.transform.localPosition = new Vector3(0, 0, 0);
+			gameObject.transform.localRotation = Quaternion.identity;
+			flipper.Data.Position.X = 0;
+			flipper.Data.Position.Y = 0;
+		}
 	}
 }
