@@ -78,3 +78,7 @@ Another example: If in Visual Pinball, you name a rubber `LeftSlingshot` and two
 
 > [!warning]
 > When you *export* to `.vpx` and you have parented items but didn't follow the naming convention, the parenting will get lost when re-importing the table into VPE. In the future, VPE might propose to rename the parented children or just do it on export, but that's still on our TODO list.
+
+## Visibility
+
+In order to determine whether a game item is visible, VPE looks at the hierarchy and the mesh components of its game object. If a game item has no mesh component, its visibility is automatically set to *invisible*. It's also invisible if the game object is set to inactive (the top left checkbox in the inspector).
