@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	internal static class PlayfieldExtensions
 	{
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
 			obj.AddComponent<PlayfieldColliderAuthoring>();
@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 			obj.AddComponent<ConvertToEntity>();
 			obj.name = "Default Playfield";
 
-			return (null, new IItemMeshAuthoring[0]);
+			return new ConvertedItem();
 		}
 	}
 }

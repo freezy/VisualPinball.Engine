@@ -24,14 +24,13 @@ namespace VisualPinball.Unity
 {
 	internal static class LightExtensions
 	{
-
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Light light, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Light light, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<LightAuthoring>().SetItem(light);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
 
 			if (!light.Data.ShowBulbMesh) {
-				return (mainAuthoring, meshAuthoring);
+				return new ConvertedItem(mainAuthoring);
 			}
 
 			meshAuthoring.Add(CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb));
@@ -43,7 +42,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring);
 		}
 
 		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

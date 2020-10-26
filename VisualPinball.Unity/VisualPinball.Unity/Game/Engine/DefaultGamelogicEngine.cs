@@ -20,7 +20,6 @@ using System.Diagnostics;
 using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
-using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
 {

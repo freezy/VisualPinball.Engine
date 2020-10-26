@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Trigger trigger, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Trigger trigger, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			TriggerColliderAuthoring colliderAuthoring = null;
 
 			switch (trigger.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<TriggerColliderAuthoring>();
+					colliderAuthoring = obj.AddComponent<TriggerColliderAuthoring>();
 					meshAuthoring.Add(obj.AddComponent<TriggerMeshAuthoring>());
 					break;
 
@@ -54,7 +55,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 	}
 }

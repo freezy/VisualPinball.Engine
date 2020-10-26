@@ -53,6 +53,10 @@ namespace VisualPinball.Unity.Patcher
 			Logger.Info("Table will be patched using the following patchers: [ {0} ]", string.Join(", ", _patchers.Select(o => o.GetType().Name)));
 		}
 
+		/// <summary>
+		/// Pre-patches are match methods that purely contain the item as parameter
+		/// </summary>
+		/// <param name="item"></param>
 		public void ApplyPrePatches(IRenderable item)
 		{
 			foreach (var patcher in _patchers) {

@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Spinner spinner, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
 			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
+			SpinnerColliderAuthoring colliderAuthoring = null;
 
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddComponent<SpinnerColliderAuthoring>();
+					colliderAuthoring = obj.AddComponent<SpinnerColliderAuthoring>();
 					meshAuthoring.Add(CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
 
 					var wireMeshAuth = CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
@@ -58,7 +59,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
 		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

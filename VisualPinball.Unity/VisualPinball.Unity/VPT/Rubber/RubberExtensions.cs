@@ -25,20 +25,21 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			RubberColliderAuthoring colliderAuthoring = null;
 
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None: {
-					obj.AddColliderComponent(rubber);
+					colliderAuthoring = obj.AddColliderComponent(rubber);
 					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
 					break;
 				}
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(rubber);
+					colliderAuthoring = obj.AddColliderComponent(rubber);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -58,14 +59,12 @@ namespace VisualPinball.Unity
 			}
 
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Rubber rubber)
+		private static RubberColliderAuthoring AddColliderComponent(this GameObject obj, Rubber rubber)
 		{
-			if (rubber.Data.IsCollidable) {
-				obj.AddComponent<RubberColliderAuthoring>();
-			}
+			return rubber.Data.IsCollidable ? obj.AddComponent<RubberColliderAuthoring>() : null;
 		}
 	}
 }

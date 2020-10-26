@@ -29,15 +29,16 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Gate gate, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Gate gate, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<GateAuthoring>().SetItem(gate);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			GateColliderAuthoring colliderAuthoring = null;
 
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
 					// collider
-					obj.AddColliderComponent(gate);
+					colliderAuthoring = obj.AddColliderComponent(gate);
 
 					// bracket mesh
 					meshAuthoring.Add(CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
@@ -62,14 +63,12 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Gate gate)
+		private static GateColliderAuthoring AddColliderComponent(this GameObject obj, Gate gate)
 		{
-			if (gate.Data.IsCollidable) {
-				obj.AddComponent<GateColliderAuthoring>();
-			}
+			return gate.Data.IsCollidable ? obj.AddComponent<GateColliderAuthoring>() : null;
 		}
 
 		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring

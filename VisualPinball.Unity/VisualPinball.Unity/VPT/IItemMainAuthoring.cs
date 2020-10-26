@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 
 		bool CanBeTransformed { get; }
 
+		GameObject gameObject { get; }
+
 		/// <summary>
 		/// Sets the mesh of all mesh sub components to dirty.
 		/// </summary>

@@ -29,14 +29,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this HitTarget hitTarget, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			HitTargetColliderAuthoring colliderAuthoring = null;
 
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
-					obj.AddColliderComponent(hitTarget);
+					colliderAuthoring = obj.AddColliderComponent(hitTarget);
 					meshAuthoring.Add(obj.AddComponent<HitTargetMeshAuthoring>());
 					break;
 
@@ -55,14 +56,12 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 
-			return (mainAuthoring, meshAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, HitTarget hitTarget)
+		private static HitTargetColliderAuthoring AddColliderComponent(this GameObject obj, HitTarget hitTarget)
 		{
-			if (hitTarget.Data.IsCollidable) {
-				obj.AddComponent<GateColliderAuthoring>();
-			}
+			return hitTarget.Data.IsCollidable ? obj.AddComponent<HitTargetColliderAuthoring>() : null;
 		}
 	}
 }

@@ -20,26 +20,26 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class PrimitiveExtensions
 	{
-		public static (IItemMainAuthoring, IEnumerable<IItemMeshAuthoring>) SetupGameObject(this Primitive primitive, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IItemMainAuthoring parentAuthoring)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
 			var mainAuthoring = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			PrimitiveColliderAuthoring colliderAuthoring = null;
 
 			switch (primitive.SubComponent) {
 				case ItemSubComponent.None: {
+					colliderAuthoring = obj.AddColliderComponent(primitive);
 					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
-					obj.AddColliderComponent(primitive);
 					break;
 				}
 
 				case ItemSubComponent.Collider: {
-					obj.AddColliderComponent(primitive);
+					colliderAuthoring = obj.AddColliderComponent(primitive);
 					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
 						parentMainAuthoring.DestroyColliderComponent();
 					}
@@ -58,14 +58,17 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			obj.AddComponent<ConvertToEntity>();
-			return (mainAuthoring, meshAuthoring);
+
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 
-		private static void AddColliderComponent(this GameObject obj, Primitive primitive)
+		private static PrimitiveColliderAuthoring AddColliderComponent(this GameObject obj, Primitive primitive)
 		{
-			if (!primitive.Data.IsToy && primitive.IsCollidable) { // todo handle dynamic collision
-				obj.AddComponent<PrimitiveColliderAuthoring>();
+			// todo handle dynamic collision
+			if (!primitive.Data.IsToy && primitive.IsCollidable) {
+				return obj.AddComponent<PrimitiveColliderAuthoring>();
 			}
+			return null;
 		}
 	}
 }

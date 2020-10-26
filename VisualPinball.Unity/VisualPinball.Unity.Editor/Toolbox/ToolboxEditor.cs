@@ -184,9 +184,8 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			//var rog = renderable.GetRenderObjects(_table.Table, Origin.Original, false);
-			var (obj, _, _) = VpxConverter.CreateGameObjects(_tableAuthoring.Table, renderable, GetOrCreateParent(_tableAuthoring, renderable));
-			return obj;
+			var convertedItem = VpxConverter.CreateGameObjects(_tableAuthoring.Table, renderable, GetOrCreateParent(_tableAuthoring, renderable));
+			return convertedItem.MainAuthoring.gameObject;
 		}
 
 		private static GameObject GetOrCreateParent(Component tb, IItem renderable)
