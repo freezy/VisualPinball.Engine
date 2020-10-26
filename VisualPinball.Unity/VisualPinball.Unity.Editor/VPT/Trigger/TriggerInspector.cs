@@ -35,13 +35,12 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("", ref Data.Center);
+			ItemDataField("Position", ref Data.Center);
 			SurfaceField("Surface", ref Data.Surface);
 
 			OnPreInspectorGUI();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Visible", ref Data.IsVisible);
 				DropDownField("Shape", ref Data.Shape, TriggerMeshInspector.TriggerShapeLabels, TriggerMeshInspector.TriggerShapeValues);
 				ItemDataField("Wire Thickness", ref Data.WireThickness);
 				ItemDataField("Star Radius", ref Data.Radius);

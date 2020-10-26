@@ -24,13 +24,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperCapMeshAuthoring))]
 	public class BumperCapMeshInspector : ItemMeshInspector<Bumper, BumperData, BumperAuthoring, BumperCapMeshAuthoring>
 	{
-		private BumperData _data;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_data = Data;
-		}
 
 		public override void OnInspectorGUI()
 		{
@@ -38,8 +31,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Is Visible", ref _data.IsCapVisible, onChanged: MeshAuthoring.OnVisibilityChanged);
-			MaterialField("Cap Material", ref _data.CapMaterial);
+			MaterialField("Cap Material", ref Data.CapMaterial);
 
 			base.OnInspectorGUI();
 		}

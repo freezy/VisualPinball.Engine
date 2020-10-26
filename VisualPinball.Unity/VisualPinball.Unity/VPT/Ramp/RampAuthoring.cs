@@ -55,8 +55,34 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case RampFloorMeshAuthoring meshAuthoring:
+						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case RampWallMeshAuthoring meshAuthoring:
+						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case RampWireMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is RampColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
 		}
 
 		private void OnDestroy()

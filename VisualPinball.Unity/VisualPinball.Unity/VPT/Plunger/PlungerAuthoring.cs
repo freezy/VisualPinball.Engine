@@ -40,13 +40,6 @@ namespace VisualPinball.Unity
 			.Concat(PlungerSpringMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Plunger>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -99,6 +92,28 @@ namespace VisualPinball.Unity
 				RetractWaitLoop = 0,
 				MechStrength = Data.MechStrength
 			});
+		}
+
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case PlungerFlatMeshAuthoring flatMeshAuthoring:
+						Data.IsVisible = flatMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case PlungerRodMeshAuthoring rodMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || rodMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case PlungerSpringMeshAuthoring springMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || springMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
 		}
 
 		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)
@@ -158,14 +173,16 @@ namespace VisualPinball.Unity
 						// create flat
 						PlungerExtensions.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
 					}
-
 					break;
-
 			}
 		}
 
-		public void RemoveHittableComponent()
+
+		private void OnDestroy()
 		{
+			if (!Application.isPlaying) {
+				Table?.Remove<Plunger>(Name);
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

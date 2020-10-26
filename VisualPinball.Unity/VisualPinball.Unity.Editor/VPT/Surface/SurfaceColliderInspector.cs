@@ -33,10 +33,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Collidable", ref Data.IsCollidable, false);
-
-			EditorGUI.BeginDisabledGroup(!Data.IsCollidable);
-
 			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
 			EditorGUI.BeginDisabledGroup(!Data.HitEvent);
 			ItemDataField("Hit Threshold", ref Data.Threshold, false);
@@ -65,8 +61,6 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			EditorGUI.EndDisabledGroup();
 
 			base.OnInspectorGUI();
 		}

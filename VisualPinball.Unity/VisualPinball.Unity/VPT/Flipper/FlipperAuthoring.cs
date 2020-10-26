@@ -71,6 +71,27 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case FlipperBaseMeshAuthoring baseMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || baseMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case FlipperRubberMeshAuthoring rubberMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || rubberMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// collision: flipper is always collidable
+		}
+
 		public void OnRubberWidthUpdated(float before, float after)
 		{
 			if (before != 0 && after != 0f) {
@@ -87,10 +108,6 @@ namespace VisualPinball.Unity
 					DestroyImmediate(rubberAuthoring.gameObject);
 				}
 			}
-		}
-
-		public void RemoveHittableComponent()
-		{
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

@@ -47,13 +47,6 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Trigger>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -73,8 +66,30 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case TriggerMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// triggers are always collidable
+			// todo handle IsEnabled
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				Table?.Remove<Trigger>(Name);
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

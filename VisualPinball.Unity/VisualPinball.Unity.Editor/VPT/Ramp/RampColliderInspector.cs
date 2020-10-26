@@ -52,8 +52,6 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Scatter Angle", ref Data.Scatter, false);
 			EditorGUI.EndDisabledGroup();
 
-			ItemDataField("Collidable", ref Data.IsCollidable, false);
-
 			base.OnInspectorGUI();
 		}
 	}

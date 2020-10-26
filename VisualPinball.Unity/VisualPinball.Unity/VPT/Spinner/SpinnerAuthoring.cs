@@ -47,7 +47,6 @@ namespace VisualPinball.Unity
 			.Concat(SpinnerPlateMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public IHittable Hittable => Item;
 		public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -66,15 +65,36 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			Data.ShowBracket = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case SpinnerBracketMeshAuthoring bracketMeshAuthoring:
+						var bracketMeshAuthoringEnabled = bracketMeshAuthoring.gameObject.activeInHierarchy;
+						Data.IsVisible = Data.IsVisible || bracketMeshAuthoringEnabled;
+						Data.ShowBracket = bracketMeshAuthoringEnabled;
+						break;
+
+					case SpinnerPlateMeshAuthoring plateMeshAuthoring:
+						Data.IsVisible = plateMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// collision: spinners are always collidable
+		}
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
 				Table?.Remove<Spinner>(Name);
 			}
-		}
-
-		public void RemoveHittableComponent()
-		{
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

@@ -62,19 +62,27 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, gameObject);
 		}
 
-		public void RemoveMeshComponent()
+		public override void Restore()
 		{
-			var rc = gameObject.GetComponent<RubberMeshAuthoring>();
-			if (rc != null) {
-				DestroyImmediate(rc);
-			}
-		}
+			// update the name
+			Item.Name = name;
 
-		public void RemoveHittableComponent()
-		{
-			var hc = gameObject.GetComponent<RubberColliderAuthoring>();
-			if (hc != null) {
-				DestroyImmediate(hc);
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case RubberMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is RubberColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
 			}
 		}
 

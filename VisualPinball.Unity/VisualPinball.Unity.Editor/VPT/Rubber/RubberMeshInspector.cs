@@ -33,7 +33,6 @@ namespace VisualPinball.Unity.Editor
 
 			TextureField("Image", ref Data.Image);
 			MaterialField("Material", ref Data.Material);
-			ItemDataField("Visible", ref Data.IsVisible);
 			ItemDataField("Static", ref Data.StaticRendering);
 
 			base.OnInspectorGUI();

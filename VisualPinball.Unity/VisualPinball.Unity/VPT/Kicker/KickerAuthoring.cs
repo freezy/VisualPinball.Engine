@@ -95,8 +95,13 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
+			// update the name
+			Item.Name = name;
+
+			// visibility is set by the type
+			// and it's always collidable
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

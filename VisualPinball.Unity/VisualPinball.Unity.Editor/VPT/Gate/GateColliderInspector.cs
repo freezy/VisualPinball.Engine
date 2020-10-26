@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Friction", ref Data.Friction, false);
 			ItemDataField("Damping", ref Data.Damping, false);
 			ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
-			ItemDataField("Collidable", ref Data.IsCollidable, false);
 			ItemDataField(GateInspector.TwoWayLabel, ref Data.TwoWay, false);
 
 			base.OnInspectorGUI();

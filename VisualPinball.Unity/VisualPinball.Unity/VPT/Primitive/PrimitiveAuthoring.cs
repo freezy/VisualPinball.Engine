@@ -52,11 +52,34 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
-		}
+			// update the name
+			Item.Name = name;
 
-		public IHittable Hittable => Item;
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case PrimitiveMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			// todo at some point we need to be able to toggle collidable during gameplay,
+			// todo but for now let's keep things static.
+			Data.IsToy = true;
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is PrimitiveColliderAuthoring colliderAuthoring) {
+					var active = colliderAuthoring.gameObject.activeInHierarchy;
+					Data.IsCollidable = active;
+					Data.IsToy = !active;
+				}
+			}
+		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();

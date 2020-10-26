@@ -43,6 +43,25 @@ namespace VisualPinball.Unity
 			.Concat(LightSocketMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.ShowBulbMesh = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case LightBulbMeshAuthoring bulbMeshAuthoring:
+						Data.ShowBulbMesh = Data.ShowBulbMesh || bulbMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case LightSocketMeshAuthoring socketMeshAuthoring:
+						Data.ShowBulbMesh = Data.ShowBulbMesh || socketMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+		}
+
 		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)
 		{
 			if (bulbEnabledBefore == bulbEnabledAfter) {

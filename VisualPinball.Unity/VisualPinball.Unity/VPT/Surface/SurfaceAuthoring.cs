@@ -46,13 +46,6 @@ namespace VisualPinball.Unity
 			.Concat(SurfaceTopMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Surface>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -63,11 +56,38 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
-			var hc = gameObject.GetComponent<SurfaceColliderAuthoring>();
-			if (hc != null) {
-				DestroyImmediate(hc);
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsSideVisible = false;
+			Data.IsTopBottomVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case SurfaceSideMeshAuthoring meshAuthoring:
+						Data.IsSideVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case SurfaceTopMeshAuthoring meshAuthoring:
+						Data.IsTopBottomVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is SurfaceColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
+		}
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				Table?.Remove<Surface>(Name);
 			}
 		}
 

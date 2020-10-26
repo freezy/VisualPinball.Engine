@@ -38,7 +38,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Top Visible", ref _data.IsTopBottomVisible);
 			TextureField("Top Image", ref _data.Image);
 			MaterialField("Top Material", ref _data.TopMaterial);
 

@@ -46,7 +46,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Drop Speed", ref Data.DropSpeed, false);
 				ItemDataField("Raise Delay", ref Data.RaiseDelay, false);
 				ItemDataField("Depth Bias", ref Data.DepthBias, false);
-				ItemDataField("Visible", ref Data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

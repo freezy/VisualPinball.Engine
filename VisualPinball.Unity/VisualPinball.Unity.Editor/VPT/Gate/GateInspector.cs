@@ -74,8 +74,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			ItemDataField("Visible", ref Data.IsVisible);
-
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.GateType, GateTypeLabels, GateTypeValues);
 				ItemDataField("Show Bracket", ref Data.ShowBracket);

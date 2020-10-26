@@ -36,15 +36,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			EditorGUILayout.LabelField("Base Position");
-			EditorGUI.indentLevel++;
-			ItemDataField("", ref Data.Position);
-			EditorGUI.indentLevel--;
-
-			EditorGUILayout.LabelField("Base Size");
-			EditorGUI.indentLevel++;
-			ItemDataField("", ref Data.Size);
-			EditorGUI.indentLevel--;
+			ItemDataField("Position", ref Data.Position);
+			ItemDataField("Size", ref Data.Size);
 
 			OnPreInspectorGUI();
 
@@ -60,8 +53,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Object Space", ref Data.ObjectSpaceNormalMap);
 				EditorGUI.indentLevel--;
 				MaterialField("Material", ref Data.Material);
-
-				ItemDataField("Visible", ref Data.IsVisible);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -100,7 +91,6 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.EndDisabledGroup();
 
 				EditorGUI.BeginDisabledGroup(Data.IsToy);
-				ItemDataField("Collidable", ref Data.IsCollidable, false);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Toy", ref Data.IsToy, false);

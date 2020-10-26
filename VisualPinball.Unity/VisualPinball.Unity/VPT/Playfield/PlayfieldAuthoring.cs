@@ -49,20 +49,9 @@ namespace VisualPinball.Unity
 			table.Version = entity.Version;
 		}
 
-		public void RemoveHittableComponent()
+		public override void Restore()
 		{
-			var rc = gameObject.GetComponent<PlayfieldColliderAuthoring>();
-			if (rc != null) {
-				DestroyImmediate(rc);
-			}
-		}
-
-		public void RemoveMeshComponent()
-		{
-			var rc = gameObject.GetComponent<PlayfieldMeshAuthoring>();
-			if (rc != null) {
-				DestroyImmediate(rc);
-			}
+			// todo
 		}
 	}
 }
