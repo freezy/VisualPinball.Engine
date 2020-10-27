@@ -62,6 +62,13 @@ namespace VisualPinball.Engine.VPT
 			(ComponentName, SubComponent, SubName) = SplitName();
 		}
 
+		public void DisableSubComponent()
+		{
+			ComponentName = Name;
+			SubComponent = ItemSubComponent.None;
+			SubName = null;
+		}
+
 		private (string, ItemSubComponent, string) SplitName()
 		{
 			var names = Name.Split(new[] {'_'}, 3, StringSplitOptions.None);

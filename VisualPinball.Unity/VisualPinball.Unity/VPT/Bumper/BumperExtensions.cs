@@ -52,12 +52,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Bumper collider cannot be parented to anything else than bumpers.");
+					Logger.Warn("Bumper collider cannot be parented to anything else than bumpers.");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Bumper mesh cannot be parented to anything else than bumpers.");
+					Logger.Warn("Bumper mesh cannot be parented to anything else than bumpers.");
 					break;
 				}
 

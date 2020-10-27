@@ -42,12 +42,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a kicker collider to a different object than a kicker!");
+					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a kicker collider to a different object than a kicker!");
+					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
 					break;
 				}
 

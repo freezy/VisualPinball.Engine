@@ -31,5 +31,7 @@ namespace VisualPinball.Engine.Game
 		Vertex3D Position { get; set; }
 
 		float RotationY { get; set; }
+
+		void DisableSubComponent();
 	}
 }

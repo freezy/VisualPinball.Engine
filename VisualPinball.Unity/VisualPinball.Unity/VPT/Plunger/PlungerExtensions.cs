@@ -57,12 +57,12 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a plunger collider to a different object than a plunger!");
+					Logger.Warn("Cannot parent a plunger collider to a different object than a plunger!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a plunger mesh to a different object than a plunger!");
+					Logger.Warn("Cannot parent a plunger mesh to a different object than a plunger!");
 					break;
 				}
 

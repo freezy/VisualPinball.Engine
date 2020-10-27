@@ -150,7 +150,6 @@ namespace VisualPinball.Unity
 						}
 
 						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
-
 						if (convertedItem.IsValidChild(parent)) {
 
 							if (convertedItem.MeshAuthoring.Any()) {
@@ -164,11 +163,13 @@ namespace VisualPinball.Unity
 
 						} else {
 
+							renderable.DisableSubComponent();
+
 							// invalid parenting, re-convert the item, because it returned only the sub component.
 							convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
 							// ..and destroy the other one
-							convertedItem.MainAuthoring.Destroy();
+							convertedItem.Destroy();
 						}
 
 					} else {
@@ -290,6 +291,11 @@ namespace VisualPinball.Unity
 			MainAuthoring = mainAuthoring;
 			MeshAuthoring = meshAuthoring;
 			ColliderAuthoring = colliderAuthoring;
+		}
+
+		public void Destroy()
+		{
+			MainAuthoring.Destroy();
 		}
 
 		public void DestroyMeshComponent()
