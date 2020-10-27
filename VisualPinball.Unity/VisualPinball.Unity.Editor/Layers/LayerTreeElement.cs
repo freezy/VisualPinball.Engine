@@ -63,9 +63,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
-					if (Item != null && Item is MonoBehaviour behaviour) {
-						var obj = behaviour.gameObject;
-						_isVisible = obj != null && !SceneVisibilityManager.instance.IsHidden(obj);
+					if (Item is MonoBehaviour behaviour) {
+						if (behaviour != null && behaviour.gameObject != null) {
+							var obj = behaviour.gameObject;
+							_isVisible = obj != null && !SceneVisibilityManager.instance.IsHidden(obj);
+						}
 
 					} else {
 						_isVisible = false;
