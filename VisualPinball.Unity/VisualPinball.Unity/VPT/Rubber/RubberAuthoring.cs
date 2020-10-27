@@ -45,8 +45,6 @@ namespace VisualPinball.Unity
 			.Concat(RubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public IHittable Hittable => Item;
-
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {

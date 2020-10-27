@@ -66,8 +66,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public ItemData ItemData => Data;
 
-		public string ItemType => Item.ItemName;
-
 		public bool IsLocked { get => Data.IsLocked; set => Data.IsLocked = value; }
 
 		private Table _table;

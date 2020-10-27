@@ -26,12 +26,29 @@ namespace VisualPinball.Unity
 
 		public virtual bool CanBeTransformed => true;
 
+		/// <summary>
+		/// List of types for parenting. Empty list if only to own parent.
+		/// </summary>
 		public abstract IEnumerable<Type> ValidParents { get; }
 
-		public virtual void Restore()
-		{
-			// todo make abstract
-		}
+		/// <summary>
+		/// Authoring type of the child class.
+		/// </summary>
+		protected abstract Type MeshAuthoringType { get; }
+
+		protected abstract Type ColliderAuthoringType { get; }
+
+		/// <summary>
+		/// Instantiates a new item based on the item data.
+		/// </summary>
+		/// <param name="data">Item data</param>
+		/// <returns>New item instance</returns>
+		protected abstract TItem InstantiateItem(TData data);
+
+		/// <summary>
+		/// Applies the GameObject data to the item data. typically name and visibility.
+		/// </summary>
+		public abstract void Restore();
 
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
@@ -136,20 +153,6 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
-
-		/// <summary>
-		/// Authoring type of the child class.
-		/// </summary>
-		protected abstract Type MeshAuthoringType { get; }
-
-		protected abstract Type ColliderAuthoringType { get; }
-
-		/// <summary>
-		/// Instantiates a new item based on the item data.
-		/// </summary>
-		/// <param name="data">Item data</param>
-		/// <returns>New item instance</returns>
-		protected abstract TItem InstantiateItem(TData data);
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
