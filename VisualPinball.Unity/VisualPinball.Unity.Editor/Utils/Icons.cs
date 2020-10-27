@@ -229,7 +229,7 @@ namespace VisualPinball.Unity.Editor
 		private static void DisableGizmo<T>() where T : MonoBehaviour
 		{
 			var className = typeof(T).Name;
-			SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
+			//SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
 			SetIconEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0 });
 		}
 	}
