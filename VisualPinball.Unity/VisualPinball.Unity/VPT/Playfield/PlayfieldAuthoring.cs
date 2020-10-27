@@ -27,13 +27,9 @@ namespace VisualPinball.Unity
 	public class PlayfieldAuthoring : ItemMainAuthoring<Table, TableData>,
 		IConvertGameObjectToEntity
 	{
-		public IRenderable Renderable => Table;
-
-		public IHittable Hittable => Table;
-
 		public override bool CanBeTransformed => false;
 
-		protected override Table InstantiateItem(TableData data) => throw new InvalidOperationException("Table is not instantiated via authoring component.");
+		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>().Table;
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
