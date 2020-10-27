@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
 		public static readonly Type[] ValidParentTypes = {
+			typeof(PrimitiveAuthoring),
 			typeof(RubberAuthoring),
 			typeof(SurfaceAuthoring)
 		};
