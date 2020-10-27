@@ -143,16 +143,17 @@ namespace VisualPinball.Unity
 					if (convertedItems.ContainsKey(parentName)) {
 						var parent = convertedItems[parentName];
 
+						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+						if (convertedItem.IsValidChild(parent)) {
+
+							if (convertedItem.MeshAuthoring.Any()) {
+
 						// move and rotate into parent
 						if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
 							renderable.Position.Sub(parentRenderable.Position);
 							renderable.RotationY -= parentRenderable.RotationY;
 						}
 
-						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
-						if (convertedItem.IsValidChild(parent)) {
-
-							if (convertedItem.MeshAuthoring.Any()) {
 								parent.DestroyMeshComponent();
 							}
 							if (convertedItem.ColliderAuthoring != null) {
