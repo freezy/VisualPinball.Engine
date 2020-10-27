@@ -42,12 +42,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a trigger collider to a different object than a trigger!");
+					Logger.Warn("Cannot parent a trigger collider to a different object than a trigger!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a trigger mesh to a different object than a trigger!");
+					Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
 					break;
 				}
 

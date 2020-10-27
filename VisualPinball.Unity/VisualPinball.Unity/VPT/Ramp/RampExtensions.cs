@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a ramp mesh to a different object than a ramp!");
+					Logger.Warn("Cannot parent a ramp mesh to a different object than a ramp!");
 					break;
 				}
 

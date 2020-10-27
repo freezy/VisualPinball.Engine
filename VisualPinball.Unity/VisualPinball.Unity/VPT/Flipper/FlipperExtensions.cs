@@ -47,12 +47,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a flipper collider to a different object than a flipper!");
+					Logger.Warn("Cannot parent a flipper collider to a different object than a flipper!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a flipper mesh to a different object than a flipper!");
+					Logger.Warn("Cannot parent a flipper mesh to a different object than a flipper!");
 					break;
 				}
 

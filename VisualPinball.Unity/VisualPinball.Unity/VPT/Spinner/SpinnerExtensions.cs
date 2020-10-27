@@ -46,12 +46,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a spinner collider to a different object than a spinner!");
+					Logger.Warn("Cannot parent a spinner collider to a different object than a spinner!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a spinner mesh to a different object than a spinner!");
+					Logger.Warn("Cannot parent a spinner mesh to a different object than a spinner!");
 					break;
 				}
 

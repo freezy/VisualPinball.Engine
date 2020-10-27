@@ -50,12 +50,12 @@ namespace VisualPinball.Unity
 					break;
 
 				case ItemSubComponent.Collider: {
-					Logger.Error("Cannot parent a gate collider to a different object than a gate!");
+					Logger.Warn("Cannot parent a gate collider to a different object than a gate!");
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					Logger.Error("Cannot parent a gate mesh to a different object than a gate!");
+					Logger.Warn("Cannot parent a gate mesh to a different object than a gate!");
 					break;
 				}
 
