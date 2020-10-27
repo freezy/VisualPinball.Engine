@@ -25,6 +25,8 @@ namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
 	{
+		public abstract MonoBehaviour UndoTarget { get; }
+
 		private TableAuthoring _table;
 		private SurfaceAuthoring _surface;
 
@@ -331,22 +333,22 @@ namespace VisualPinball.Unity.Editor
 
 					case IItemMeshAuthoring meshItem:
 						meshItem.IMainAuthoring.SetMeshDirty();
-						Undo.RecordObject(this, undoLabel);
+						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
 					case IItemColliderAuthoring colliderItem:
 						colliderItem.MainAuthoring.SetMeshDirty();
-						Undo.RecordObject(target, undoLabel);
+						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
 					case IItemMainAuthoring mainItem:
 						mainItem.SetMeshDirty();
-						Undo.RecordObject(this, undoLabel);
+						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 				}
 				EditorUtility.SetDirty(target);
 			}
-			Undo.RecordObject(target, undoLabel);
+			Undo.RecordObject(UndoTarget, undoLabel);
 		}
 	}
 }

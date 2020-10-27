@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -31,6 +32,8 @@ namespace VisualPinball.Unity.Editor
 		private TMovementAuthoring _movementAuthoring;
 
 		protected TData Data => _movementAuthoring == null ? null : _movementAuthoring.Data;
+
+		public override MonoBehaviour UndoTarget => _movementAuthoring.MainAuthoring;
 
 		protected override void OnEnable()
 		{
