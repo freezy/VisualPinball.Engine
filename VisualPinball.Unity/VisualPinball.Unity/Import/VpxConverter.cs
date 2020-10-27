@@ -148,11 +148,11 @@ namespace VisualPinball.Unity
 
 							if (convertedItem.MeshAuthoring.Any()) {
 
-						// move and rotate into parent
-						if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
-							renderable.Position.Sub(parentRenderable.Position);
-							renderable.RotationY -= parentRenderable.RotationY;
-						}
+								// move and rotate into parent
+								if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
+									renderable.Position.Sub(parentRenderable.Position);
+									renderable.RotationY -= parentRenderable.RotationY;
+								}
 
 								parent.DestroyMeshComponent();
 							}
@@ -313,6 +313,14 @@ namespace VisualPinball.Unity
 
 		public bool IsValidChild(ConvertedItem parent)
 		{
+			if (MeshAuthoring.Any()) {
+				return MeshAuthoring.First().ValidParents.Contains(parent.MainAuthoring.GetType());
+			}
+
+			if (ColliderAuthoring != null) {
+				return ColliderAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
+			}
+
 			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
 		}
 	}

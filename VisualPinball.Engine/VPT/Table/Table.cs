@@ -440,6 +440,9 @@ namespace VisualPinball.Engine.VPT.Table
 		public void Remove<T>(string name) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
+			if (!dict.ContainsKey(name)) {
+				return;
+			}
 			var removedStorageIndex = dict[name].StorageIndex;
 			var gameItems = ItemDatas;
 			foreach (var gameItem in gameItems) {
