@@ -114,9 +114,6 @@ namespace VisualPinball.Unity
 		private void ConvertGameItems(GameObject tableGameObject)
 		{
 			var convertedItems = new Dictionary<string, ConvertedItem>();
-			// var createdMainObjs = new Dictionary<string, GameObject>();
-			// var createdMainMbs = new Dictionary<string, IItemMainAuthoring>();
-			// var createdMeshMbs = new Dictionary<string, IEnumerable<IItemMeshAuthoring>>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
 			var renderables = from renderable in _table.Renderables
 				orderby renderable.SubComponent
@@ -144,17 +141,26 @@ namespace VisualPinball.Unity
 					// if the object's names was parsed to be part of another object, re-link to other object.
 					var parentName = renderable.ComponentName.ToLower();
 					if (convertedItems.ContainsKey(parentName)) {
-						var parentMb = convertedItems[parentName].MainAuthoring;
-						var parentObj = parentMb.gameObject;
+						var parent = convertedItems[parentName];
 
 						// move and rotate into parent
-						if (parentMb.IItem is IRenderable parentRenderable) {
+						if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
 							renderable.Position.Sub(parentRenderable.Position);
 							renderable.RotationY -= parentRenderable.RotationY;
 						}
 
-						convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName], parentMb);
-						convertedItems[lookupName].MainAuthoring.gameObject.transform.SetParent(parentObj.transform, false);
+						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+
+						if (convertedItem.MeshAuthoring.Any()) {
+							parent.DestroyMeshComponent();
+						}
+						if (convertedItem.ColliderAuthoring != null) {
+							parent.DestroyColliderComponent();
+						}
+
+						convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
+
+						convertedItems[lookupName] = convertedItem;
 
 					} else {
 						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
@@ -170,12 +176,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static ConvertedItem CreateGameObjects(Table table, IRenderable renderable, GameObject parent, IItemMainAuthoring parentAuthoring = null)
+		public static ConvertedItem CreateGameObjects(Table table, IRenderable renderable, GameObject parent)
 		{
 			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			var importedObject = SetupGameObjects(renderable, obj, parentAuthoring);
+			var importedObject = SetupGameObjects(renderable, obj);
 
 			// apply transformation
 			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
@@ -183,23 +189,23 @@ namespace VisualPinball.Unity
 			return importedObject;
 		}
 
-		private static ConvertedItem SetupGameObjects(IRenderable item, GameObject obj, IItemMainAuthoring parentAuthoring = null)
+		private static ConvertedItem SetupGameObjects(IRenderable item, GameObject obj)
 		{
 			switch (item) {
-				case Bumper bumper:             return bumper.SetupGameObject(obj, parentAuthoring);
-				case Flipper flipper:           return flipper.SetupGameObject(obj, parentAuthoring);
-				case Gate gate:                 return gate.SetupGameObject(obj, parentAuthoring);
-				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj, parentAuthoring);
-				case Kicker kicker:             return kicker.SetupGameObject(obj, parentAuthoring);
-				case Engine.VPT.Light.Light lt: return lt.SetupGameObject(obj, parentAuthoring);
-				case Plunger plunger:           return plunger.SetupGameObject(obj, parentAuthoring);
-				case Primitive primitive:       return primitive.SetupGameObject(obj, parentAuthoring);
-				case Ramp ramp:                 return ramp.SetupGameObject(obj, parentAuthoring);
-				case Rubber rubber:             return rubber.SetupGameObject(obj, parentAuthoring);
-				case Spinner spinner:           return spinner.SetupGameObject(obj, parentAuthoring);
-				case Surface surface:           return surface.SetupGameObject(obj, parentAuthoring);
-				case Table table:               return table.SetupGameObject(obj, parentAuthoring);
-				case Trigger trigger:           return trigger.SetupGameObject(obj, parentAuthoring);
+				case Bumper bumper:             return bumper.SetupGameObject(obj);
+				case Flipper flipper:           return flipper.SetupGameObject(obj);
+				case Gate gate:                 return gate.SetupGameObject(obj);
+				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
+				case Kicker kicker:             return kicker.SetupGameObject(obj);
+				case Engine.VPT.Light.Light lt: return lt.SetupGameObject(obj);
+				case Plunger plunger:           return plunger.SetupGameObject(obj);
+				case Primitive primitive:       return primitive.SetupGameObject(obj);
+				case Ramp ramp:                 return ramp.SetupGameObject(obj);
+				case Rubber rubber:             return rubber.SetupGameObject(obj);
+				case Spinner spinner:           return spinner.SetupGameObject(obj);
+				case Surface surface:           return surface.SetupGameObject(obj);
+				case Table table:               return table.SetupGameObject(obj);
+				case Trigger trigger:           return trigger.SetupGameObject(obj);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -246,8 +252,8 @@ namespace VisualPinball.Unity
 	public class ConvertedItem
 	{
 		public readonly IItemMainAuthoring MainAuthoring;
-		public readonly IEnumerable<IItemMeshAuthoring> MeshAuthoring;
-		public readonly IItemColliderAuthoring ColliderAuthoring;
+		public IEnumerable<IItemMeshAuthoring> MeshAuthoring;
+		public IItemColliderAuthoring ColliderAuthoring;
 
 		public ConvertedItem()
 		{
@@ -275,6 +281,18 @@ namespace VisualPinball.Unity
 			MainAuthoring = mainAuthoring;
 			MeshAuthoring = meshAuthoring;
 			ColliderAuthoring = colliderAuthoring;
+		}
+
+		public void DestroyMeshComponent()
+		{
+			MainAuthoring.DestroyMeshComponent();
+			MeshAuthoring = new IItemMeshAuthoring[0];
+		}
+
+		public void DestroyColliderComponent()
+		{
+			MainAuthoring.DestroyColliderComponent();
+			ColliderAuthoring = null;
 		}
 	}
 }
