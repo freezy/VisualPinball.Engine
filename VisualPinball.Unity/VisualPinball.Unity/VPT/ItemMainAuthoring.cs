@@ -122,6 +122,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void Destroy()
+		{
+			DestroyImmediate(gameObject);
+		}
+
 		public void DestroyMeshComponent()
 		{
 			foreach (var component in MeshComponents) {
