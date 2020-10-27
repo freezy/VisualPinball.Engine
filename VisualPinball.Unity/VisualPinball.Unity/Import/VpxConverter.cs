@@ -322,5 +322,14 @@ namespace VisualPinball.Unity
 
 			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
 		}
+
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			var comp = subObj.AddComponent<T>();
+			subObj.layer = VpxConverter.ChildObjectsLayer;
+			return comp;
+		}
 	}
 }

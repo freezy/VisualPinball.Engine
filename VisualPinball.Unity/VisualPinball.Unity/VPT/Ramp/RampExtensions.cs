@@ -39,10 +39,10 @@ namespace VisualPinball.Unity
 				case ItemSubComponent.None:
 					colliderAuthoring = obj.AddColliderComponent(ramp);
 					if (ramp.IsHabitrail) {
-						meshAuthoring.Add(CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
 					} else {
-						meshAuthoring.Add(CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor));
-						meshAuthoring.Add(CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall));
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor));
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall));
 					}
 					break;
 
@@ -66,15 +66,6 @@ namespace VisualPinball.Unity
 		private static RampColliderAuthoring AddColliderComponent(this GameObject obj, Ramp ramp)
 		{
 			return ramp.Data.IsCollidable ? obj.AddComponent<RampColliderAuthoring>() : null;
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

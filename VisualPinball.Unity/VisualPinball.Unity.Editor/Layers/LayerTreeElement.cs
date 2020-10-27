@@ -40,9 +40,6 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	internal class LayerTreeElement : TreeElement
 	{
-		/// <summary>
-		/// Name of the layer
-		/// </summary>
 		public string LayerName;
 		public ILayerableItemAuthoring Item { get; }
 
@@ -66,10 +63,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			get {
 				if (Type == LayerTreeViewElementType.Item) {
-					if (Item is MonoBehaviour behaviour) {
-						_isVisible = behaviour.gameObject != null ? !SceneVisibilityManager.instance.IsHidden(behaviour.gameObject) : false;
-					}
-					else {
+					if (Item != null && Item is MonoBehaviour behaviour) {
+						var obj = behaviour.gameObject;
+						_isVisible = obj != null && !SceneVisibilityManager.instance.IsHidden(obj);
+
+					} else {
 						_isVisible = false;
 					}
 				}
@@ -107,8 +105,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// The name of the game item if it's a game item.
 		/// </summary>
-		public override string Name
-		{
+		public override string Name {
 			get {
 				switch (Type) {
 					case LayerTreeViewElementType.Table: {
@@ -157,11 +154,14 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Dictionary<LayerTreeViewElementType, Texture> TypeToIcon = new Dictionary<LayerTreeViewElementType, Texture> {
 			{ LayerTreeViewElementType.Root, null},
-			{ LayerTreeViewElementType.Table, EditorGUIUtility.IconContent("d_winbtn_graph").image},
+			{ LayerTreeViewElementType.Table, Icons.Table(IconSize.Small)},
 			{ LayerTreeViewElementType.Layer, EditorGUIUtility.IconContent("ToggleUVOverlay").image},
 			{ LayerTreeViewElementType.Item, EditorGUIUtility.IconContent("GameObject Icon").image},
 		};
-		public override Texture2D Icon => TypeToIcon[Type] as Texture2D;
+
+		public override Texture2D Icon => Type == LayerTreeViewElementType.Item
+			? Icons.ByComponent(Item, IconSize.Small)
+			: TypeToIcon[Type] as Texture2D;
 
 		/// <summary>
 		/// Expose the Visibility of a LayerTreeElement, telling if all its children have the same visibility status than its own.

@@ -28,8 +28,7 @@ namespace VisualPinball.Unity.Editor
 	/// Editor UI for VPE switches
 	/// </summary>
 	///
-
-	class SwitchManager : ManagerWindow<SwitchListData>
+	internal class SwitchManager : ManagerWindow<SwitchListData>
 	{
 		private readonly string RESOURCE_PATH = "Assets/Resources";
 

@@ -104,8 +104,8 @@ namespace VisualPinball.Unity
 				if (flatRampAuthoring != null) {
 					DestroyImmediate(flatRampAuthoring.gameObject);
 				}
-				RampExtensions.CreateChild<RampFloorMeshAuthoring>(gameObject, RampMeshGenerator.Floor);
-				RampExtensions.CreateChild<RampWallMeshAuthoring>(gameObject, RampMeshGenerator.Wall);
+				ConvertedItem.CreateChild<RampFloorMeshAuthoring>(gameObject, RampMeshGenerator.Floor);
+				ConvertedItem.CreateChild<RampWallMeshAuthoring>(gameObject, RampMeshGenerator.Wall);
 
 			} else {
 				var flatFloorAuthoring = GetComponentInChildren<RampFloorMeshAuthoring>();
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 				if (flatWallAuthoring != null) {
 					DestroyImmediate(flatWallAuthoring.gameObject);
 				}
-				RampExtensions.CreateChild<RampWireMeshAuthoring>(gameObject, RampMeshGenerator.Wires);
+				ConvertedItem.CreateChild<RampWireMeshAuthoring>(gameObject, RampMeshGenerator.Wires);
 			}
 		}
 

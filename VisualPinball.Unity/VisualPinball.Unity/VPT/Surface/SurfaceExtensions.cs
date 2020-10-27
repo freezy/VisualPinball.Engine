@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
 					colliderAuthoring = obj.AddColliderComponent(surface);
-					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
-					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
+					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
+					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -44,8 +44,8 @@ namespace VisualPinball.Unity
 				}
 
 				case ItemSubComponent.Mesh: {
-					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
-					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
+					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
+					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
 					break;
 				}
 
@@ -59,15 +59,6 @@ namespace VisualPinball.Unity
 		private static SurfaceColliderAuthoring AddColliderComponent(this GameObject obj, Surface surface)
 		{
 			return surface.Data.IsCollidable ? obj.AddComponent<SurfaceColliderAuthoring>() : null;
-		}
-
-		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

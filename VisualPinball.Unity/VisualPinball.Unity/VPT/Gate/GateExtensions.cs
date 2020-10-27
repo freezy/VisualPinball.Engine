@@ -41,10 +41,10 @@ namespace VisualPinball.Unity
 					colliderAuthoring = obj.AddColliderComponent(gate);
 
 					// bracket mesh
-					meshAuthoring.Add(CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
+					meshAuthoring.Add(ConvertedItem.CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
 
 					// wire mesh
-					var wireMeshAuth = CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
+					var wireMeshAuth = ConvertedItem.CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
 					wireMeshAuth.gameObject.AddComponent<GateWireAnimationAuthoring>();
 					meshAuthoring.Add(wireMeshAuth);
 					break;
@@ -69,15 +69,6 @@ namespace VisualPinball.Unity
 		private static GateColliderAuthoring AddColliderComponent(this GameObject obj, Gate gate)
 		{
 			return gate.Data.IsCollidable ? obj.AddComponent<GateColliderAuthoring>() : null;
-		}
-
-		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

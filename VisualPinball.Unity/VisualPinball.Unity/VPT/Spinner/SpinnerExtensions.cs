@@ -38,9 +38,9 @@ namespace VisualPinball.Unity
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
 					colliderAuthoring = obj.AddComponent<SpinnerColliderAuthoring>();
-					meshAuthoring.Add(CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
+					meshAuthoring.Add(ConvertedItem.CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
 
-					var wireMeshAuth = CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
+					var wireMeshAuth = ConvertedItem.CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
 					wireMeshAuth.gameObject.AddComponent<SpinnerPlateAnimationAuthoring>();
 					meshAuthoring.Add(wireMeshAuth);
 					break;
@@ -60,15 +60,6 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }
