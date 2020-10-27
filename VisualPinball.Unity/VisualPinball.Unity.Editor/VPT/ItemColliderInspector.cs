@@ -40,6 +40,8 @@ namespace VisualPinball.Unity.Editor
 		private string[] _currentColliders;
 		private Vector2 _scrollPos;
 
+		public override MonoBehaviour UndoTarget => ColliderAuthoring.MainAuthoring as MonoBehaviour;
+
 		protected override void OnEnable()
 		{
 			ColliderAuthoring = target as TColliderAuthoring;
