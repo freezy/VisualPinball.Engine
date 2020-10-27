@@ -131,18 +131,18 @@ namespace VisualPinball.Unity
 					}
 
 					// create rod
-					PlungerExtensions.CreateChild<PlungerRodMeshAuthoring>(gameObject, PlungerMeshGenerator.Rod);
+					ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(gameObject, PlungerMeshGenerator.Rod);
 
 					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
 						// create spring
-						PlungerExtensions.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+						ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
 					}
 					break;
 
 				case PlungerType.PlungerTypeModern:
 					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
 						// create spring
-						PlungerExtensions.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+						ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
 					}
 
 					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 							DestroyImmediate(rodPlungerAuthoring.gameObject);
 						}
 						// create flat
-						PlungerExtensions.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+						ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
 					}
 					break;
 
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 						}
 
 						// create flat
-						PlungerExtensions.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+						ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
 					}
 					break;
 			}

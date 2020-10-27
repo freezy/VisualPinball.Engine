@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (before == 0) {
-				FlipperExtensions.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
+				ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
 			}
 
 			if (after == 0) {

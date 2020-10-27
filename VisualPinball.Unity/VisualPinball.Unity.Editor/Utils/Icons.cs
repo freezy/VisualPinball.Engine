@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Playfield;
 using Object = UnityEngine.Object;
 
@@ -44,22 +45,23 @@ namespace VisualPinball.Unity.Editor
 		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
 		private const string LightName = "light";
+		private const string PlayfieldName = "playfield";
 		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
 		private const string RampName = "ramp";
 		private const string RubberName = "rubber";
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
-		private const string HitTargetName = "target";
 		private const string TableName = "table";
+		private const string HitTargetName = "target";
 		private const string TriggerName = "trigger";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlungerName, PrimitiveName,
-			RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName, SwitchNcName,
-			SwitchNoName,
+			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName, PlungerName,
+			PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName,
+			SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -96,6 +98,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
+		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
@@ -119,6 +122,7 @@ namespace VisualPinball.Unity.Editor
 				case KickerAuthoring _: return Kicker(size, color);
 				case LightAuthoring _: return Light(size, color);
 				case PlungerAuthoring _: return Plunger(size, color);
+				case PlayfieldAuthoring _: return Playfield(size, color);
 				case PrimitiveAuthoring _: return Primitive(size, color);
 				case RampAuthoring _: return Ramp(size, color);
 				case RubberAuthoring _: return Rubber(size, color);

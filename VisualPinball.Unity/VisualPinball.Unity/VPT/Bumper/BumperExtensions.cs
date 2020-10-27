@@ -38,11 +38,11 @@ namespace VisualPinball.Unity
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
 					colliderAuthoring = obj.AddColliderComponent(bumper);
-					meshAuthoring.Add(CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base));
-					meshAuthoring.Add(CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap));
+					meshAuthoring.Add(ConvertedItem.CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base));
+					meshAuthoring.Add(ConvertedItem.CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap));
 
-					var ring = CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
-					var skirt = CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
+					var ring = ConvertedItem.CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
+					var skirt = ConvertedItem.CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
 
 					ring.gameObject.AddComponent<BumperRingAnimationAuthoring>();
 					skirt.gameObject.AddComponent<BumperSkirtAnimationAuthoring>();
@@ -72,15 +72,6 @@ namespace VisualPinball.Unity
 		private static BumperColliderAuthoring AddColliderComponent(this GameObject obj, Bumper bumper)
 		{
 			return bumper.Data.IsCollidable ? obj.AddComponent<BumperColliderAuthoring>() : null;
-		}
-
-		private static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

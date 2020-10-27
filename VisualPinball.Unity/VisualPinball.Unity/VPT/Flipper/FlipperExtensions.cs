@@ -41,8 +41,8 @@ namespace VisualPinball.Unity
 
 					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
 					if (flipper.Data.IsVisible) {
-						meshAuthoring.Add(CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base));
-						meshAuthoring.Add(CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber));
+						meshAuthoring.Add(ConvertedItem.CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base));
+						meshAuthoring.Add(ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber));
 					}
 					break;
 
@@ -61,15 +61,6 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

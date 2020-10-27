@@ -32,19 +32,10 @@ namespace VisualPinball.Unity
 				return new ConvertedItem(mainAuthoring);
 			}
 
-			meshAuthoring.Add(CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb));
-			meshAuthoring.Add(CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket));
+			meshAuthoring.Add(ConvertedItem.CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb));
+			meshAuthoring.Add(ConvertedItem.CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket));
 
 			return new ConvertedItem(mainAuthoring, meshAuthoring);
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }

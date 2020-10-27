@@ -69,8 +69,8 @@ namespace VisualPinball.Unity
 			}
 
 			if (bulbEnabledAfter) {
-				LightExtensions.CreateChild<LightBulbMeshAuthoring>(gameObject, LightMeshGenerator.Bulb);
-				LightExtensions.CreateChild<LightSocketMeshAuthoring>(gameObject, LightMeshGenerator.Socket);
+				ConvertedItem.CreateChild<LightBulbMeshAuthoring>(gameObject, LightMeshGenerator.Bulb);
+				ConvertedItem.CreateChild<LightSocketMeshAuthoring>(gameObject, LightMeshGenerator.Socket);
 			} else {
 				var bulbMeshAuthoring = GetComponentInChildren<LightBulbMeshAuthoring>();
 				if (bulbMeshAuthoring != null) {

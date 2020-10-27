@@ -40,16 +40,16 @@ namespace VisualPinball.Unity
 					colliderAuthoring = obj.AddComponent<PlungerColliderAuthoring>();
 					switch (plunger.Data.Type) {
 						case PlungerType.PlungerTypeFlat:
-							meshAuthoring.Add(CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
 							break;
 
 						case PlungerType.PlungerTypeCustom:
-							meshAuthoring.Add(CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring));
-							meshAuthoring.Add(CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring));
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
 							break;
 
 						case PlungerType.PlungerTypeModern:
-							meshAuthoring.Add(CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
 							break;
 
 					}
@@ -71,15 +71,6 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			//subObj.layer = ChildObjectsLayer;
-			return comp;
 		}
 	}
 }
