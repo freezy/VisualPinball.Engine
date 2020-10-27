@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -24,6 +26,8 @@ namespace VisualPinball.Unity
 
 		bool CanBeTransformed { get; }
 
+		IEnumerable<Type> ValidParents { get; }
+
 		GameObject gameObject { get; }
 
 		/// <summary>
@@ -31,6 +35,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		void SetMeshDirty();
 		void RebuildMeshIfDirty();
+
+		void Destroy();
 		void DestroyMeshComponent();
 		void DestroyColliderComponent();
 

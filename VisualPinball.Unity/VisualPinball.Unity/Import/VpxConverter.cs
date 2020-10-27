@@ -151,16 +151,25 @@ namespace VisualPinball.Unity
 
 						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
 
-						if (convertedItem.MeshAuthoring.Any()) {
-							parent.DestroyMeshComponent();
-						}
-						if (convertedItem.ColliderAuthoring != null) {
-							parent.DestroyColliderComponent();
-						}
+						if (convertedItem.IsValidChild(parent)) {
 
-						convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
+							if (convertedItem.MeshAuthoring.Any()) {
+								parent.DestroyMeshComponent();
+							}
+							if (convertedItem.ColliderAuthoring != null) {
+								parent.DestroyColliderComponent();
+							}
+							convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
+							convertedItems[lookupName] = convertedItem;
 
-						convertedItems[lookupName] = convertedItem;
+						} else {
+
+							// invalid parenting, re-convert the item, because it returned only the sub component.
+							convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+
+							// ..and destroy the other one
+							convertedItem.MainAuthoring.Destroy();
+						}
 
 					} else {
 						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
@@ -293,6 +302,11 @@ namespace VisualPinball.Unity
 		{
 			MainAuthoring.DestroyColliderComponent();
 			ColliderAuthoring = null;
+		}
+
+		public bool IsValidChild(ConvertedItem parent)
+		{
+			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
 		}
 	}
 }
