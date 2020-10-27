@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Rubber rubber, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
 			var meshAuthoring = new List<IItemMeshAuthoring>();
@@ -40,17 +40,11 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					colliderAuthoring = obj.AddColliderComponent(rubber);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
 					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
 					break;
 				}
 

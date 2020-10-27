@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
 			var meshAuthoring = new List<IItemMeshAuthoring>();

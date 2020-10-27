@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	internal static class PlayfieldExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Table table, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Table table, GameObject obj)
 		{
 			obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
 			obj.AddComponent<PlayfieldColliderAuthoring>();

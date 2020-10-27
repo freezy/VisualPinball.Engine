@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Ramp ramp, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<RampAuthoring>().SetItem(ramp);
 			var meshAuthoring = new List<IItemMeshAuthoring>();
@@ -48,9 +48,6 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					colliderAuthoring = obj.AddColliderComponent(ramp);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
 					break;
 				}
 

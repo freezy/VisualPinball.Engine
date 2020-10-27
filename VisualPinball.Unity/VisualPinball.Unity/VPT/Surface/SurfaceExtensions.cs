@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	internal static class SurfaceExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Surface surface, GameObject obj, IItemMainAuthoring parentAuthoring)
+		public static ConvertedItem SetupGameObject(this Surface surface, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
 			var meshAuthoring = new List<IItemMeshAuthoring>();
@@ -40,18 +40,12 @@ namespace VisualPinball.Unity
 
 				case ItemSubComponent.Collider: {
 					colliderAuthoring = obj.AddColliderComponent(surface);
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyColliderComponent();
-					}
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
 					meshAuthoring.Add(CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
 					meshAuthoring.Add(CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
-					if (parentAuthoring != null && parentAuthoring is IItemMainAuthoring parentMainAuthoring) {
-						parentMainAuthoring.DestroyMeshComponent();
-					}
 					break;
 				}
 
