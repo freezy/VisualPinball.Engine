@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return null;
+			return new RenderObjectGroup(Data.Name, "trough", Math.Matrix3D.Identity, new RenderObject[0]);
 		}
 	}
 }
