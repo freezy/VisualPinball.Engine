@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("GateMovementJob").ForEach((ref Rotation rot, in GateStaticData data, in GateMovementData movementData) => {
+			Entities.WithName("GateMovementJob").ForEach((ref Rotation rot, in GateMovementData movementData) => {
 
 				marker.Begin();
 

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -22,9 +23,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
-		public const string FlatName = "Flat";
-		public const string RodName = "Rod";
-		public const string SpringName = "Spring";
+		public const string Flat = "Flat";
+		public const string Rod = "Rod";
+		public const string Spring = "Spring";
 
 		public int NumFrames { get; set; }
 
@@ -61,7 +62,98 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Init(null);
 		}
 
-		public void Init(Table.Table table)
+		public RenderObject GetRenderObject(int frame, Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			Init(table);
+			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+			switch (id) {
+				case Flat:
+					var flatMesh = BuildFlatMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
+						material,
+						true
+					);
+				case Rod:
+					CalculateArraySizes();
+					var rodMesh = BuildRodMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+						material,
+						true
+					);
+				case Spring:
+					CalculateArraySizes();
+					var springMesh = BuildSpringMesh(frame);
+					return new RenderObject(
+						id,
+						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
+						material,
+						true
+					);
+				default:
+					throw new ArgumentException("Unknown plunger mesh \"" + id + "\".");
+			}
+		}
+
+		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
+		{
+			Init(table);
+
+			// todo
+			var translationMatrix = Matrix3D.Identity;
+			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+
+			// flat plunger
+			if (_data.Type == PlungerType.PlungerTypeFlat) {
+				var flatMesh = BuildFlatMesh(frame);
+				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+					new RenderObject(
+						Flat,
+						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
+						material,
+						true
+					)
+				) { ForceChild = true };
+			}
+
+			CalculateArraySizes();
+			var rodMesh = BuildRodMesh(frame);
+
+			// custom plunger
+			if (_data.Type == PlungerType.PlungerTypeCustom) {
+				var springMesh = BuildSpringMesh(frame);
+
+				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+					new RenderObject(
+						Rod,
+						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+						material,
+						true
+					),
+					new RenderObject(
+						Spring,
+						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
+						material,
+						true
+					)
+				);
+			}
+
+			// modern plunger
+			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
+				new RenderObject(
+					Rod,
+					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
+					material,
+					true
+				)
+			) { ForceChild = true };
+		}
+
+		private void Init(Table.Table table)
 		{
 			var stroke = _data.Stroke;
 			_beginY = _data.Center.Y;
@@ -91,61 +183,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 				_zScale = table.GetScaleZ();
 			}
 			_desc = GetPlungerDesc();
-		}
-
-		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
-		{
-			Init(table);
-
-			// todo
-			var translationMatrix = Matrix3D.Identity;
-			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
-
-			// flat plunger
-			if (_data.Type == PlungerType.PlungerTypeFlat) {
-				var flatMesh = BuildFlatMesh(frame);
-				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-					new RenderObject(
-						FlatName,
-						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
-						material,
-						true
-					)
-				) { ForceChild = true };
-			}
-
-			CalculateArraySizes();
-			var rodMesh = BuildRodMesh(frame);
-
-			// custom plunger
-			if (_data.Type == PlungerType.PlungerTypeCustom) {
-				var springMesh = BuildSpringMesh(frame);
-
-				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-					new RenderObject(
-						RodName,
-						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-						material,
-						true
-					),
-					new RenderObject(
-						SpringName,
-						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
-						material,
-						true
-					)
-				);
-			}
-
-			// modern plunger
-			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-				new RenderObject(
-					RodName,
-					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-					material,
-					true
-				)
-			) { ForceChild = true };
 		}
 
 		private PlungerDesc GetPlungerDesc()

@@ -23,9 +23,19 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class Ramp : Item<RampData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Ramp";
+		public override string ItemName { get; } = "Ramp";
+		public override string ItemGroupName { get; } = "Ramps";
+
+		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
+		public float RotationY { get => 0; set { } }
 
 		public HitObject[] GetHitShapes() => _hits;
+
+		public bool IsHabitrail => Data.RampType == RampType.RampType4Wire
+		|| Data.RampType == RampType.RampType1Wire
+		|| Data.RampType == RampType.RampType2Wire
+		|| Data.RampType == RampType.RampType3WireLeft
+		|| Data.RampType == RampType.RampType3WireRight;
 
 		private readonly RampMeshGenerator _meshGenerator;
 		private readonly RampHitGenerator _hitGenerator;
@@ -60,10 +70,21 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
+
+		#endregion
 
 		public bool IsCollidable => Data.IsCollidable;
 

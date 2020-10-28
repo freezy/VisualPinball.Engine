@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.Game.Engines;
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
@@ -27,7 +29,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available switches supported by the game logic engine.
 		/// </summary>
-		string[] AvailableSwitches { get; }
+		GamelogicEngineSwitch[] AvailableSwitches { get; }
 
 		/// <summary>
 		/// Enables or disables a switch.

@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffInt("TYPE", Pos = 9)]
 		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;
@@ -82,6 +82,16 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
+
+		// -----------------
+		// new fields by VPE
+		// -----------------
+
+		[BiffFloat("ANGL", Pos = 16)]
+		public float Angle = 90f;
+
+		[BiffFloat("SPED", Pos = 17)]
+		public float Speed = 3f;
 
 		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{

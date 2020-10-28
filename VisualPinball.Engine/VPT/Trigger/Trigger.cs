@@ -21,9 +21,15 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Trigger
 {
-	public class Trigger : Item<TriggerData>, IRenderable, IHittable
+	public class Trigger : Item<TriggerData>, IRenderable, IHittable, ISwitchable
 	{
-		public override string ItemType => "Trigger";
+		public override string ItemName { get; } = "Trigger";
+		public override string ItemGroupName { get; } = "Triggers";
+
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+
+		public bool IsPulseSwitch => false;
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsEnabled;
@@ -61,9 +67,20 @@ namespace VisualPinball.Engine.VPT.Trigger
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 	}
 }

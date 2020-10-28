@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available coils.
 		/// </summary>
-		string[] AvailableCoils { get; }
+		GamelogicEngineCoil[] AvailableCoils { get; }
 
 		/// <summary>
 		/// Triggered when a coil is enabled or disabled.
@@ -40,18 +41,18 @@ namespace VisualPinball.Unity
 	public readonly struct CoilEventArgs
 	{
 		/// <summary>
-		/// Name of the coil, as defined by <see cref="IGamelogicEngineWithCoils.AvailableCoils"/>.
+		/// Id of the coil, as defined by <see cref="IGamelogicEngineWithCoils.AvailableCoils"/>.
 		/// </summary>
-		public readonly string Name;
+		public readonly string Id;
 
 		/// <summary>
 		/// State of the coil, true if the coil is under voltage, false if not.
 		/// </summary>
 		public readonly bool IsEnabled;
 
-		public CoilEventArgs(string name, bool isEnabled)
+		public CoilEventArgs(string id, bool isEnabled)
 		{
-			Name = name;
+			Id = id;
 			IsEnabled = isEnabled;
 		}
 	}

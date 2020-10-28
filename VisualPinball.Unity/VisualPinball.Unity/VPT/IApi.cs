@@ -16,6 +16,11 @@
 
 namespace VisualPinball.Unity
 {
+	public interface IApi
+	{
+		string Name { get; }
+	}
+
 	internal interface IApiInitializable
 	{
 		void OnInit(BallManager ballManager);
@@ -46,8 +51,13 @@ namespace VisualPinball.Unity
 		void OnSlingshot();
 	}
 
-	internal interface IApiSwitchable
+	internal interface IApiSwitch
 	{
-		void AddSwitchId(string mappingEntryId);
+		void AddSwitchId(string switchId, int pulseDelay);
+	}
+
+	internal interface IApiCoil
+	{
+		void OnCoil(bool enabled, bool isHoldCoil);
 	}
 }

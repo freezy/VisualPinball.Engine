@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 
 		void OnInit(TableApi tableApi, BallManager ballManager);
 
+		void OnUpdate();
+
 		void OnDestroy();
 	}
 }

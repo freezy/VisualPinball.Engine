@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -30,24 +28,25 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("BallShadow5")]
 		[NameMatch("BallShadow6")]
 		[NameMatch("BallShadow7")]
-		public void RemoveBallShadow(GameObject gameObject)
+		public void RemoveBallShadow(Primitive primitive)
 		{
-			gameObject.GetComponent<MeshRenderer>().enabled = false;
+			primitive.Data.IsVisible = false;
 		}
 
 		[NameMatch("FlipperLSh")]
 		[NameMatch("FlipperRSh")]
-		public void RemoveFlipperShadow(GameObject gameObject)
+		public void RemoveFlipperShadow(Primitive primitive)
 		{
-			gameObject.GetComponent<MeshRenderer>().enabled = false;
+			primitive.Data.IsVisible = false;
 		}
 
 		[NameMatch("Ruler_mm")]
 		[NameMatch("Ruler_inches")]
 		[NameMatch("Ruler_inches_and_mm")]
-		public void RemoveColliders(GameObject gameObject)
+		public void RemoveColliders(Primitive item)
 		{
-			gameObject.SetActive(false);
+			item.Data.IsCollidable = false;
+			item.Data.IsToy = true;
 		}
 	}
 }

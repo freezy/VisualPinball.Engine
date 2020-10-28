@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 				skirtData.HitEvent = true;
 				skirtData.BallPosition = ball.Position;
 
-				events.Enqueue(new EventData(EventId.HitEventsHit, collider.Entity, true));
+				events.Enqueue(new EventData(EventId.HitEventsHit, collider.ParentEntity, true));
 			}
 		}
 	}

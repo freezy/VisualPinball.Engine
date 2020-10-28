@@ -20,17 +20,26 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Primitive")]
-	public class PrimitiveAuthoring : ItemAuthoring<Primitive, PrimitiveData>, IHittableAuthoring, IConvertGameObjectToEntity
+	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
+	public class PrimitiveAuthoring : ItemMainAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => null;
+		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
+			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -41,25 +50,50 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, gameObject);
 		}
 
-		protected override Primitive GetItem() => new Primitive(data);
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
 
-		public IHittable Hittable => Item;
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case PrimitiveMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			// todo at some point we need to be able to toggle collidable during gameplay,
+			// todo but for now let's keep things static.
+			Data.IsToy = true;
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is PrimitiveColliderAuthoring colliderAuthoring) {
+					var active = colliderAuthoring.gameObject.activeInHierarchy;
+					Data.IsCollidable = active;
+					Data.IsToy = !active;
+				}
+			}
+		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
-		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();
+		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();
+		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
+		public override Vector3 GetEditorRotation() => new Vector3(Data.RotAndTra[0], Data.RotAndTra[1], Data.RotAndTra[2]);
 		public override void SetEditorRotation(Vector3 rot)
 		{
-			data.RotAndTra[0] = rot.x;
-			data.RotAndTra[1] = rot.y;
-			data.RotAndTra[2] = rot.z;
+			Data.RotAndTra[0] = rot.x;
+			Data.RotAndTra[1] = rot.y;
+			Data.RotAndTra[2] = rot.z;
 		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
-		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
+		public override Vector3 GetEditorScale() => Data.Size.ToUnityVector3();
+		public override void SetEditorScale(Vector3 scale) => Data.Size = scale.ToVertex3D();
 	}
 }

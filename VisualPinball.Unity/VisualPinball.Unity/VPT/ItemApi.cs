@@ -21,8 +21,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemApi<T, TData> where T : Item<TData> where TData : ItemData
+	public abstract class ItemApi<T, TData> : IApi where T : Item<TData> where TData : ItemData
 	{
+		public string Name => Item.Name;
+
 		protected readonly T Item;
 		internal readonly Entity Entity;
 
@@ -40,31 +42,51 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			_player = player;
-			_gamelogicEngineWithSwitches = player.GameEngine;
+			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
 		#region IApiSwitchable
 
-		private List<string> _switchIds;
+		private List<SwitchConfig> _switchIds;
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected void AddSwitchId(string switchId)
+		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay)
 		{
 			if (_switchIds == null) {
-				_switchIds = new List<string>();
+				_switchIds = new List<SwitchConfig>();
 			}
-			_switchIds.Add(switchId);
+			_switchIds.Add(new SwitchConfig(switchId, isPulseSwitch, pulseDelay));
 		}
 
 		protected void OnSwitch(bool normallyClosed)
 		{
 			if (_gamelogicEngineWithSwitches != null && _switchIds != null) {
-				foreach (var switchId in _switchIds) {
-					_gamelogicEngineWithSwitches.Switch(switchId, normallyClosed);
+				foreach (var switchConfig in _switchIds) {
+					_gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, normallyClosed);
+
+					// time switch opening if closed and pulse
+					if (normallyClosed && switchConfig.IsPulseSwitch) {
+						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
+							() => _gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, false));
+					}
 				}
 			}
 		}
 
 		#endregion
+
+		private readonly struct SwitchConfig
+		{
+			public readonly string SwitchId;
+			public readonly int PulseDelay;
+			public readonly bool IsPulseSwitch;
+
+			public SwitchConfig(string switchId, bool isPulseSwitch, int pulseDelay)
+			{
+				SwitchId = switchId;
+				PulseDelay = pulseDelay;
+				IsPulseSwitch = isPulseSwitch;
+			}
+		}
 	}
 }

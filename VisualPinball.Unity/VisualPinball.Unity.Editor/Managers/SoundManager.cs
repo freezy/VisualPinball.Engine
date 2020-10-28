@@ -21,9 +21,6 @@ using UnityEditor;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Editor.Utils;
-using System;
-using UnityEngine.SceneManagement;
-using System.Linq;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -176,9 +173,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnFocus();
 
-			if (_table == null || _table.gameObject == null) return;
+			if (_tableAuthoring == null || _tableAuthoring.gameObject == null) return;
 
-			Selection.activeObject = _table.gameObject;
+			Selection.activeObject = _tableAuthoring.gameObject;
 
 			if (_autoFrame) {
 				_needFraming = true;
@@ -211,9 +208,9 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private bool _shouldDisplaySoundPosition => (	_table != null && 
+		private bool _shouldDisplaySoundPosition => (	_tableAuthoring != null && 
 														Event.current.type == EventType.Repaint &&
-														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _table.gameObject)) && 
+														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)) && 
 														_displaySoundPosition && 
 														_selectedItem != null && 
 														_selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
@@ -252,18 +249,18 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI(SceneView sceneView)
 		{
-			if (_table == null) return;
+			if (_tableAuthoring == null) return;
 
-			var bb = _table.Item.BoundingBox;
+			var bb = _tableAuthoring.Item.BoundingBox;
 			var sndData = _selectedItem.SoundData;
 			_tableCenter = new Vector3((bb.Right - bb.Left) * 0.5f, (bb.Bottom - bb.Top) * 0.5f, (bb.ZHigh - bb.ZLow) * 0.5f);
-			_tableCenter = _table.gameObject.transform.TransformPoint(_tableCenter);
+			_tableCenter = _tableAuthoring.gameObject.transform.TransformPoint(_tableCenter);
 			_tableSize = new Vector3(bb.Width, bb.Height, bb.Depth);
-			_tableSize = _table.gameObject.transform.TransformVector(_tableSize);
+			_tableSize = _tableAuthoring.gameObject.transform.TransformVector(_tableSize);
 
 			if (_shouldDisplaySoundPosition) {
 				if (_displayAllSounds) {
-					foreach (var snd in _table.Sounds) {
+					foreach (var snd in _tableAuthoring.Sounds) {
 						if (snd.Data != sndData) {
 							RenderSound(snd.Data, false);
 						}
@@ -298,10 +295,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName, SoundData data)
 		{
-			if (_table == null) { return; }
+			if (_tableAuthoring == null) { return; }
 
 			// Run over table's sound scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _table.Sounds.SerializedObjects) {
+			foreach (var tableTex in _tableAuthoring.Sounds.SerializedObjects) {
 				if (tableTex.Data == data) {
 					Undo.RecordObject(tableTex, undoName);
 					break;
@@ -311,19 +308,19 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 
 			var newSnd = new Sound(newName);
-			_table.Sounds.Add(newSnd);
-			_table.Item.Data.NumSounds = _table.Sounds.Count;
+			_tableAuthoring.Sounds.Add(newSnd);
+			_tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
 		}
 
 		protected override void RemoveData(string undoName, SoundListData data)
 		{
-			Undo.RecordObject(_table, undoName);
+			Undo.RecordObject(_tableAuthoring, undoName);
 
-			_table.Sounds.Remove(data.Name);
-			_table.Item.Data.NumSounds = _table.Sounds.Count;
+			_tableAuthoring.Sounds.Remove(data.Name);
+			_tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
 		}
 
 		protected override void RenameExistingItem(SoundListData data, string newName)
@@ -341,7 +338,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<SoundListData> data = new List<SoundListData>();
 
-			foreach (var snd in _table.Sounds) {
+			foreach (var snd in _tableAuthoring.Sounds) {
 				var sndData = snd.Data;
 				data.Add(new SoundListData { SoundData = sndData });
 			}

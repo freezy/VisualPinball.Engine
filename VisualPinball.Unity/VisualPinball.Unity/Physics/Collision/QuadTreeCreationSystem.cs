@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NLog;
 using Unity.Entities;
@@ -31,7 +32,9 @@ namespace VisualPinball.Unity
 		public static void Create(EntityManager entityManager)
 		{
 			var table = Object.FindObjectOfType<TableAuthoring>().Table;
+			var stopWatch = new Stopwatch();
 
+			stopWatch.Start();
 			foreach (var playable in table.Playables) {
 				playable.Init(table);
 			}
@@ -40,14 +43,22 @@ namespace VisualPinball.Unity
 			var hittables = table.Hittables.Where(hittable => hittable.IsCollidable).ToArray();
 			var hitObjects = new List<HitObject>();
 			var id = 0;
+			var log = "";
+			var c = 0;
+
 			foreach (var item in hittables) {
-				foreach (var hitObject in item.GetHitShapes()) {
-					hitObject.SetIndex(item.Index, item.Version);
+				var hitShapes = item.GetHitShapes();
+				log += item.Name + ": " + hitShapes.Length + "\n";
+				c += hitShapes.Length;
+				foreach (var hitObject in hitShapes) {
+					hitObject.SetIndex(item.Index, item.Version, item.ParentIndex, item.ParentVersion);
 					hitObject.Id = id++;
 					hitObject.CalcHitBBox();
 					hitObjects.Add(hitObject);
 				}
 			}
+			stopWatch.Stop();
+			Logger.Info("Collider Count:\n" + log + "\nTotal: " + c + " colliders in " + stopWatch.ElapsedMilliseconds + "ms");
 
 			// construct quad tree
 			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);

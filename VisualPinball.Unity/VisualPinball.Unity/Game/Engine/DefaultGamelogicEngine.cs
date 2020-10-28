@@ -15,7 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using NLog;
+using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
@@ -29,24 +33,43 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default Game Engine";
 
-		public string[] AvailableSwitches { get; } = {SwLeftFlipper, SwRightFlipper, SwPlunger, SwCreateBall};
-
-		public string[] AvailableCoils { get; } = {CoilLeftFlipper, CoilRightFlipper, CoilAutoPlunger};
-
 		private const string SwLeftFlipper = "s_left_flipper";
+		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
+		private const string SwRightFlipperEos = "s_right_flipper_eos";
 		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
 
-		private const string CoilLeftFlipper = "c_left_flipper";
-		private const string CoilRightFlipper = "c_right_flipper";
+		public GamelogicEngineSwitch[] AvailableSwitches { get; } =
+		{
+			new GamelogicEngineSwitch { Id = SwLeftFlipper, Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
+			new GamelogicEngineSwitch { Id = SwRightFlipper, Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
+			new GamelogicEngineSwitch { Id = SwLeftFlipperEos, Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
+			new GamelogicEngineSwitch { Id = SwRightFlipperEos, Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+			new GamelogicEngineSwitch { Id = SwPlunger, Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
+			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug }
+		};
+
+		private const string CoilLeftFlipperMain = "c_flipper_left_main";
+		private const string CoilLeftFlipperHold = "c_flipper_left_hold";
+		private const string CoilRightFlipperMain = "c_flipper_right_main";
+		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilAutoPlunger = "c_auto_plunger";
+
+		public GamelogicEngineCoil[] AvailableCoils { get; } =
+		{
+			new GamelogicEngineCoil { Id = CoilLeftFlipperMain, Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
+			new GamelogicEngineCoil { Id = CoilLeftFlipperHold, MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
+			new GamelogicEngineCoil { Id = CoilRightFlipperMain, Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
+			new GamelogicEngineCoil { Id = CoilRightFlipperHold, MainCoilIdOfHoldCoil = CoilRightFlipperMain },
+			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" }
+		};
 
 		private TableApi _tableApi;
 		private BallManager _ballManager;
 
-		private FlipperApi _leftFlipper;
-		private FlipperApi _rightFlipper;
+		private Dictionary<string, bool> _switchStatus = new Dictionary<string, bool>();
+		private Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -55,18 +78,19 @@ namespace VisualPinball.Unity
 			_tableApi = tableApi;
 			_ballManager = ballManager;
 
-			// flippers
-			_leftFlipper = _tableApi.Flipper("LeftFlipper")
-			             ?? _tableApi.Flipper("FlipperLeft")
-			             ?? _tableApi.Flipper("FlipperL")
-			             ?? _tableApi.Flipper("LFlipper");
-			_rightFlipper = _tableApi.Flipper("RightFlipper")
-			             ?? _tableApi.Flipper("FlipperRight")
-			             ?? _tableApi.Flipper("FlipperR")
-			             ?? _tableApi.Flipper("RFlipper");
+			_switchStatus[SwLeftFlipper] = false;
+			_switchStatus[SwLeftFlipperEos] = false;
+			_switchStatus[SwRightFlipper] = false;
+			_switchStatus[SwRightFlipperEos] = false;
+			_switchStatus[SwPlunger] = false;
+			_switchStatus[SwCreateBall] = false;
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
+		}
+
+		public void OnUpdate()
+		{
 		}
 
 		public void OnDestroy()
@@ -78,29 +102,53 @@ namespace VisualPinball.Unity
 
 		public void Switch(string id, bool normallyClosed)
 		{
+			_switchStatus[id] = normallyClosed;
+			if (!_switchTime.ContainsKey(id)) {
+				_switchTime[id] = new Stopwatch();
+			}
+
+			if (normallyClosed) {
+				_switchTime[id].Restart();
+			} else {
+				_switchTime[id].Stop();
+			}
+			Logger.Info("Switch {0} is {1}.", id, normallyClosed ? "closed" : "open after " + _switchTime[id].ElapsedMilliseconds + "ms");
+
 			switch (id) {
 
 				case SwLeftFlipper:
-
-					// todo remove when solenoids are done
 					if (normallyClosed) {
-						_leftFlipper?.RotateToEnd();
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, true));
+
 					} else {
-						_leftFlipper?.RotateToStart();
+						OnCoilChanged?.Invoke(this,
+							_switchStatus[SwLeftFlipperEos]
+								? new CoilEventArgs(CoilLeftFlipperHold, false)
+								: new CoilEventArgs(CoilLeftFlipperMain, false)
+						);
 					}
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipper, normallyClosed));
+					break;
+
+				case SwLeftFlipperEos:
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
 					break;
 
 				case SwRightFlipper:
-
-					// todo remove when solenoids are done
 					if (normallyClosed) {
-						_rightFlipper?.RotateToEnd();
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
 					} else {
-						_rightFlipper?.RotateToStart();
+						OnCoilChanged?.Invoke(this,
+							_switchStatus[SwRightFlipperEos]
+								? new CoilEventArgs(CoilRightFlipperHold, false)
+								: new CoilEventArgs(CoilRightFlipperMain, false)
+						);
 					}
+					break;
 
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipper, normallyClosed));
+				case SwRightFlipperEos:
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
+					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
 					break;
 
 				case SwPlunger:
@@ -118,7 +166,7 @@ namespace VisualPinball.Unity
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
-			//Logger.Info("Coil {0} set to {1}.", e.Name, e.IsEnabled);
+			Logger.Info("Coil {0} set to {1}.", e.Id, e.IsEnabled);
 		}
 	}
 }

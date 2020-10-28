@@ -19,9 +19,11 @@ using VisualPinball.Engine.Physics;
 namespace VisualPinball.Engine.Game
 {
 	public interface IHittable : IPlayable {
-
+		string Name { get; }
 		int Index { get; }
 		int Version { get; }
+		int ParentIndex { get; }
+		int ParentVersion { get; }
 		HitObject[] GetHitShapes();
 		bool IsCollidable { get; }
 	}

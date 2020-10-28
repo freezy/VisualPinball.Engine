@@ -14,23 +14,52 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Spinner;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class SpinnerExtensions
 	{
-		public static SpinnerAuthoring SetupGameObject(this Engine.VPT.Spinner.Spinner spinner, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this Spinner spinner, GameObject obj)
 		{
-			var ic = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			var mainAuthoring = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
+			SpinnerColliderAuthoring colliderAuthoring = null;
+
+			switch (spinner.SubComponent) {
+				case ItemSubComponent.None:
+					colliderAuthoring = obj.AddComponent<SpinnerColliderAuthoring>();
+					meshAuthoring.Add(ConvertedItem.CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
+
+					var wireMeshAuth = ConvertedItem.CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
+					wireMeshAuth.gameObject.AddComponent<SpinnerPlateAnimationAuthoring>();
+					meshAuthoring.Add(wireMeshAuth);
+					break;
+
+				case ItemSubComponent.Collider: {
+					Logger.Warn("Cannot parent a spinner collider to a different object than a spinner!");
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a spinner mesh to a different object than a spinner!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-
-			var wire = obj.transform.Find("Plate").gameObject;
-			wire.AddComponent<SpinnerPlateAuthoring>().SetItem(spinner, "Plate");
-
-			return ic as SpinnerAuthoring;
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 	}
 }

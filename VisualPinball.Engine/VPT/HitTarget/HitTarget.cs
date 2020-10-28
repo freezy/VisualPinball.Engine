@@ -16,13 +16,20 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable
+	public class HitTarget : Item<HitTargetData>, IRenderable, IHittable, ISwitchable
 	{
-		public override string ItemType => "Target";
+		public override string ItemName { get; } = "Target";
+		public override string ItemGroupName { get; } = "Targets";
+
+		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
+		public float RotationY { get => Data.RotZ; set => Data.RotZ = value; }
+
+		public bool IsPulseSwitch => true;
 
 		public HitObject[] GetHitShapes() => _hits;
 
@@ -51,10 +58,21 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public bool IsCollidable => Data.IsCollidable;
 	}

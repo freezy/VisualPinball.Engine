@@ -14,21 +14,55 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
 	internal static class PrimitiveExtensions
 	{
-		public static PrimitiveAuthoring SetupGameObject(this Primitive primitive, GameObject obj, RenderObjectGroup rog)
+		public static ConvertedItem SetupGameObject(this Primitive primitive, GameObject obj)
 		{
-			var ic = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
+			var mainAuthoring = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			PrimitiveColliderAuthoring colliderAuthoring = null;
 
+			switch (primitive.SubComponent) {
+				case ItemSubComponent.None: {
+					colliderAuthoring = obj.AddColliderComponent(primitive);
+					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
+					break;
+				}
+
+				case ItemSubComponent.Collider: {
+					colliderAuthoring = obj.AddColliderComponent(primitive);
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as PrimitiveAuthoring;
+
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+		}
+
+		private static PrimitiveColliderAuthoring AddColliderComponent(this GameObject obj, Primitive primitive)
+		{
+			// todo handle dynamic collision
+			if (!primitive.Data.IsToy && primitive.IsCollidable) {
+				return obj.AddComponent<PrimitiveColliderAuthoring>();
+			}
+			return null;
 		}
 	}
 }

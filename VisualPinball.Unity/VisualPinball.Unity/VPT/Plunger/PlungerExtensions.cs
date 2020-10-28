@@ -14,36 +14,63 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class PlungerExtensions
 	{
-		public static PlungerAuthoring SetupGameObject(this Plunger plunger, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj)
 		{
-			var ic = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
+			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			PlungerColliderAuthoring colliderAuthoring = null;
 
-			var rod = obj.transform.Find(PlungerMeshGenerator.RodName);
-			if (rod != null) {
-				rod.gameObject.AddComponent<PlungerRodAuthoring>();
+			switch (plunger.SubComponent) {
+				case ItemSubComponent.None: {
+					colliderAuthoring = obj.AddComponent<PlungerColliderAuthoring>();
+					switch (plunger.Data.Type) {
+						case PlungerType.PlungerTypeFlat:
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
+							break;
+
+						case PlungerType.PlungerTypeCustom:
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring));
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							break;
+
+						case PlungerType.PlungerTypeModern:
+							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							break;
+
+					}
+					break;
+				}
+
+				case ItemSubComponent.Collider: {
+					Logger.Warn("Cannot parent a plunger collider to a different object than a plunger!");
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a plunger mesh to a different object than a plunger!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
-
-			var spring = obj.transform.Find(PlungerMeshGenerator.SpringName);
-			if (spring != null) {
-				spring.gameObject.AddComponent<PlungerSpringAuthoring>();
-			}
-
-			var flat = obj.transform.Find(PlungerMeshGenerator.FlatName);
-			if (flat != null) {
-				flat.gameObject.AddComponent<PlungerFlatAuthoring>();
-			}
-
 			obj.AddComponent<ConvertToEntity>();
-			return ic as PlungerAuthoring;
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 	}
 }

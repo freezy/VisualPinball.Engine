@@ -14,19 +14,58 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Ramp;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class RampExtensions
 	{
-		public static RampAuthoring SetupGameObject(this Engine.VPT.Ramp.Ramp ramp, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this Ramp ramp, GameObject obj)
 		{
-			var ic = obj.AddComponent<RampAuthoring>().SetItem(ramp);
+			var mainAuthoring = obj.AddComponent<RampAuthoring>().SetItem(ramp);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			RampColliderAuthoring colliderAuthoring = null;
+
+			switch (ramp.SubComponent) {
+				case ItemSubComponent.None:
+					colliderAuthoring = obj.AddColliderComponent(ramp);
+					if (ramp.IsHabitrail) {
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
+					} else {
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor));
+						meshAuthoring.Add(ConvertedItem.CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall));
+					}
+					break;
+
+				case ItemSubComponent.Collider: {
+					colliderAuthoring = obj.AddColliderComponent(ramp);
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a ramp mesh to a different object than a ramp!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as RampAuthoring;
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+		}
+
+		private static RampColliderAuthoring AddColliderComponent(this GameObject obj, Ramp ramp)
+		{
+			return ramp.Data.IsCollidable ? obj.AddComponent<RampColliderAuthoring>() : null;
 		}
 	}
 }

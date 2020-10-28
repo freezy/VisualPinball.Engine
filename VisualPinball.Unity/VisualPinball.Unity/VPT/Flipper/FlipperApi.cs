@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable
+		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -61,6 +61,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
+		private bool _isEos;
+
 		internal FlipperApi(Flipper flipper, Entity entity, Player player) : base(flipper, entity, player)
 		{
 		}
@@ -83,6 +85,29 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
+
+		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
+		{
+			if (enabled) {
+
+				if (!isHoldCoil) {
+					RotateToEnd();
+				}
+
+			} else {
+				if (_isEos && isHoldCoil) {
+					_isEos = false;
+					OnSwitch(false);
+					RotateToStart();
+				}
+
+				if (!_isEos && !isHoldCoil) {
+					RotateToStart();
+				}
+			}
+		}
+
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
@@ -98,7 +123,10 @@ namespace VisualPinball.Unity
 		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
 			if (direction) {
+				_isEos = true;
+				OnSwitch(true);
 				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
+
 			} else {
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}

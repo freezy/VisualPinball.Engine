@@ -63,6 +63,11 @@ namespace VisualPinball.Unity.Editor
 		private void OnGUI()
 		{
 			const IconColor iconColor = IconColor.Gray;
+			var iconSize = position.width / 2f - 4.5f;
+			var buttonStyle = new GUIStyle(GUI.skin.button) {
+				alignment = TextAnchor.MiddleCenter,
+				imagePosition = ImagePosition.ImageAbove
+			};
 
 			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
@@ -75,17 +80,12 @@ namespace VisualPinball.Unity.Editor
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
 
-			if (_table == null) {
+			if (_tableAuthoring == null) {
 				return;
 			}
 
-			GUILayout.Label(_table.name);
-
-			var iconSize = position.width / 2f - 4.5f;
-			var buttonStyle = new GUIStyle(GUI.skin.button) {
-				alignment = TextAnchor.MiddleCenter,
-				imagePosition = ImagePosition.ImageAbove
-			};
+			EditorGUILayout.Space();
+			GUILayout.Label(_tableAuthoring.name, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
 			GUILayout.BeginHorizontal();
 
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var table = _table.Table;
+			var table = _tableAuthoring.Table;
 			var item = create(table);
 			table.Add(item, true);
 			Selection.activeGameObject = CreateRenderable(item as IRenderable);
@@ -184,16 +184,15 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			var rog = renderable.GetRenderObjects(_table.Table, Origin.Original, false);
-			VpxConverter.ConvertRenderObjects(renderable, rog, GetOrCreateParent(_table, rog), _table, out var obj);
-			return obj;
+			var convertedItem = VpxConverter.CreateGameObjects(_tableAuthoring.Table, renderable, GetOrCreateParent(_tableAuthoring, renderable));
+			return convertedItem.MainAuthoring.gameObject;
 		}
 
-		private static GameObject GetOrCreateParent(Component tb, RenderObjectGroup rog)
+		private static GameObject GetOrCreateParent(Component tb, IItem renderable)
 		{
-			var parent = tb.gameObject.transform.Find(rog.Parent)?.gameObject;
+			var parent = tb.gameObject.transform.Find(renderable.ItemGroupName)?.gameObject;
 			if (parent == null) {
-				parent = new GameObject(rog.Parent);
+				parent = new GameObject(renderable.ItemGroupName);
 				parent.transform.parent = tb.gameObject.transform;
 				parent.transform.localPosition = Vector3.zero;
 				parent.transform.localRotation = Quaternion.identity;

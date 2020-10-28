@@ -25,5 +25,6 @@ namespace VisualPinball.Unity
 		public float Height;
 		public float Damping;
 		public float Elasticity;
+		public Entity PlateEntity;
 	}
 }

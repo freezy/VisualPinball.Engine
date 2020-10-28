@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Playfield;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -24,38 +26,42 @@ namespace VisualPinball.Unity.Editor
 	{
 		private readonly struct IconVariant
 		{
-			private readonly string _name;
-			private readonly IconSize _size;
-			private readonly IconColor _color;
+			public readonly string Name;
+			public readonly IconSize Size;
+			public readonly IconColor Color;
 
 			public IconVariant(string name, IconSize size, IconColor color)
 			{
-				_name = name;
-				_size = size;
-				_color = color;
+				Name = name;
+				Size = size;
+				Color = color;
 			}
 		}
 
 		private const string BumperName = "bumper";
+		private const string CoilName = "coil";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
+		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
 		private const string LightName = "light";
+		private const string PlayfieldName = "playfield";
 		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
 		private const string RampName = "ramp";
 		private const string RubberName = "rubber";
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
+		private const string TableName = "table";
 		private const string HitTargetName = "target";
 		private const string TriggerName = "trigger";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
-		private const string KeyName = "keyboard";
 
 		private static readonly string[] Names = {
-			BumperName, FlipperName, GateName, KickerName, LightName, PlungerName, PrimitiveName, RampName, RubberName,
-			SpinnerName, SurfaceName, HitTargetName, TriggerName, SwitchNcName, SwitchNoName, KeyName
+			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName, PlungerName,
+			PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName,
+			SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -92,15 +98,18 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
+		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
+		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
+		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
@@ -113,6 +122,7 @@ namespace VisualPinball.Unity.Editor
 				case KickerAuthoring _: return Kicker(size, color);
 				case LightAuthoring _: return Light(size, color);
 				case PlungerAuthoring _: return Plunger(size, color);
+				case PlayfieldAuthoring _: return Playfield(size, color);
 				case PrimitiveAuthoring _: return Primitive(size, color);
 				case RampAuthoring _: return Ramp(size, color);
 				case RubberAuthoring _: return Rubber(size, color);
@@ -124,22 +134,68 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[UnityEditor.Callbacks.DidReloadScripts]
+		[DidReloadScripts]
 		public static void OnScriptsReloaded()
 		{
 			DisableGizmo<BumperAuthoring>();
+			DisableGizmo<BumperBaseMeshAuthoring>();
+			DisableGizmo<BumperCapMeshAuthoring>();
+			DisableGizmo<BumperColliderAuthoring>();
+			DisableGizmo<BumperRingMeshAuthoring>();
+			DisableGizmo<BumperRingAnimationAuthoring>();
+			DisableGizmo<BumperSkirtMeshAuthoring>();
+			DisableGizmo<BumperSkirtAnimationAuthoring>();
+			DisableGizmo<DefaultGameEngineAuthoring>();
 			DisableGizmo<FlipperAuthoring>();
+			DisableGizmo<FlipperColliderAuthoring>();
+			DisableGizmo<FlipperBaseMeshAuthoring>();
+			DisableGizmo<FlipperRubberMeshAuthoring>();
 			DisableGizmo<GateAuthoring>();
+			DisableGizmo<GateColliderAuthoring>();
+			DisableGizmo<GateBracketMeshAuthoring>();
+			DisableGizmo<GateWireAnimationAuthoring>();
+			DisableGizmo<GateWireMeshAuthoring>();
 			DisableGizmo<HitTargetAuthoring>();
+			DisableGizmo<HitTargetColliderAuthoring>();
+			DisableGizmo<HitTargetMeshAuthoring>();
 			DisableGizmo<KickerAuthoring>();
+			DisableGizmo<KickerColliderAuthoring>();
+			DisableGizmo<KickerMeshAuthoring>();
 			DisableGizmo<LightAuthoring>();
+			DisableGizmo<LightBulbMeshAuthoring>();
+			DisableGizmo<LightSocketMeshAuthoring>();
+			DisableGizmo<PlayfieldAuthoring>();
+			DisableGizmo<PlayfieldColliderAuthoring>();
+			DisableGizmo<PlayfieldMeshAuthoring>();
 			DisableGizmo<PlungerAuthoring>();
+			DisableGizmo<PlungerColliderAuthoring>();
+			DisableGizmo<PlungerFlatMeshAuthoring>();
+			DisableGizmo<PlungerRodMeshAuthoring>();
+			DisableGizmo<PlungerSpringMeshAuthoring>();
 			DisableGizmo<PrimitiveAuthoring>();
+			DisableGizmo<PrimitiveColliderAuthoring>();
+			DisableGizmo<PrimitiveMeshAuthoring>();
 			DisableGizmo<RampAuthoring>();
+			DisableGizmo<RampColliderAuthoring>();
+			DisableGizmo<RampFloorMeshAuthoring>();
+			DisableGizmo<RampWallMeshAuthoring>();
+			DisableGizmo<RampWireMeshAuthoring>();
 			DisableGizmo<RubberAuthoring>();
+			DisableGizmo<RubberMeshAuthoring>();
+			DisableGizmo<RubberColliderAuthoring>();
 			DisableGizmo<SpinnerAuthoring>();
+			DisableGizmo<SpinnerBracketMeshAuthoring>();
+			DisableGizmo<SpinnerColliderAuthoring>();
+			DisableGizmo<SpinnerPlateMeshAuthoring>();
+			DisableGizmo<SpinnerPlateAnimationAuthoring>();
 			DisableGizmo<SurfaceAuthoring>();
+			DisableGizmo<SurfaceColliderAuthoring>();
+			DisableGizmo<SurfaceSideMeshAuthoring>();
+			DisableGizmo<SurfaceTopMeshAuthoring>();
+			DisableGizmo<TableAuthoring>();
 			DisableGizmo<TriggerAuthoring>();
+			DisableGizmo<TriggerColliderAuthoring>();
+			DisableGizmo<TriggerMeshAuthoring>();
 		}
 
 		public static void ApplyToComponent<T>(Object target, Texture2D tex) where T : MonoBehaviour
@@ -167,13 +223,17 @@ namespace VisualPinball.Unity.Editor
 				variant = new IconVariant(name, IconSize.Large, IconColor.Gray);
 			}
 
+			if (!_icons.ContainsKey(variant)) {
+				throw new InvalidOperationException($"Cannot find {variant.Size} {variant.Name} icon of color {variant.Color}.");
+			}
+
 			return _icons[variant];
 		}
 
 		private static void DisableGizmo<T>() where T : MonoBehaviour
 		{
 			var className = typeof(T).Name;
-			SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
+			//SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
 			SetIconEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0 });
 		}
 	}

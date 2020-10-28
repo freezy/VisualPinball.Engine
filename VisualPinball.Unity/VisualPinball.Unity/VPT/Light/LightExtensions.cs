@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
 	internal static class LightExtensions
 	{
-		public static LightAuthoring SetupGameObject(this Engine.VPT.Light.Light light, GameObject obj, RenderObjectGroup rog)
+		public static ConvertedItem SetupGameObject(this Light light, GameObject obj)
 		{
-			var ic = obj.AddComponent<LightAuthoring>().SetItem(light);
-			return ic as LightAuthoring;
+			var mainAuthoring = obj.AddComponent<LightAuthoring>().SetItem(light);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+
+			if (!light.Data.ShowBulbMesh) {
+				return new ConvertedItem(mainAuthoring);
+			}
+
+			meshAuthoring.Add(ConvertedItem.CreateChild<LightBulbMeshAuthoring>(obj, LightMeshGenerator.Bulb));
+			meshAuthoring.Add(ConvertedItem.CreateChild<LightSocketMeshAuthoring>(obj, LightMeshGenerator.Socket));
+
+			return new ConvertedItem(mainAuthoring, meshAuthoring);
 		}
 	}
 }

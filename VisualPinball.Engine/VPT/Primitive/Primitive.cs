@@ -16,6 +16,7 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Primitive
@@ -28,13 +29,16 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Primitive";
+		public override string ItemName { get; } = "Primitive";
+		public override string ItemGroupName { get; } = "Primitives";
 
 		public bool UseAsPlayfield;
 
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 		private readonly PrimitiveHitGenerator _hitGenerator;
 		private HitObject[] _hits;
+		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
+		public float RotationY { get => Data.RotAndTra[1]; set => Data.RotAndTra[1] = value; }
 
 		public Primitive(PrimitiveData data) : base(data)
 		{
@@ -57,11 +61,22 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return new Primitive(primitiveData);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
 
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>
 			_meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;

@@ -21,9 +21,15 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
-	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable
+	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable, ISwitchable, ICoilable
 	{
-		public override string ItemType => "Kicker";
+		public override string ItemName { get; } = "Kicker";
+		public override string ItemGroupName { get; } = "Kickers";
+
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Angle; set => Data.Angle = value; }
+
+		public bool IsPulseSwitch => false;
 
 		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
@@ -56,14 +62,27 @@ namespace VisualPinball.Engine.VPT.Kicker
 			_hit = new KickerHit(Data, radius, height, table, this); // height of kicker hit cylinder
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
+		#endregion
+
 		public HitObject[] GetHitShapes() => new HitObject[] {_hit};
 
 		public bool IsCollidable => Data.IsEnabled;
+
+		public bool IsDualWound { get; set; }
 
 		public Vertex3D GetBallCreationPosition(Table.Table table)
 		{

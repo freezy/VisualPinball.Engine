@@ -14,23 +14,61 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Gate;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class GateExtensions
 	{
-		public static GateAuthoring SetupGameObject(this Engine.VPT.Gate.Gate gate, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this Gate gate, GameObject obj)
 		{
-			var ic = obj.AddComponent<GateAuthoring>().SetItem(gate);
+			var mainAuthoring = obj.AddComponent<GateAuthoring>().SetItem(gate);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			GateColliderAuthoring colliderAuthoring = null;
+
+			switch (gate.SubComponent) {
+				case ItemSubComponent.None:
+					// collider
+					colliderAuthoring = obj.AddColliderComponent(gate);
+
+					// bracket mesh
+					meshAuthoring.Add(ConvertedItem.CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
+
+					// wire mesh
+					var wireMeshAuth = ConvertedItem.CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
+					wireMeshAuth.gameObject.AddComponent<GateWireAnimationAuthoring>();
+					meshAuthoring.Add(wireMeshAuth);
+					break;
+
+				case ItemSubComponent.Collider: {
+					Logger.Warn("Cannot parent a gate collider to a different object than a gate!");
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a gate mesh to a different object than a gate!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+		}
 
-			var wire = obj.transform.Find("Wire").gameObject;
-			wire.AddComponent<GateWireAuthoring>().SetItem(gate, "Wire");
-
-			return ic as GateAuthoring;
+		private static GateColliderAuthoring AddColliderComponent(this GameObject obj, Gate gate)
+		{
+			return gate.Data.IsCollidable ? obj.AddComponent<GateColliderAuthoring>() : null;
 		}
 	}
 }

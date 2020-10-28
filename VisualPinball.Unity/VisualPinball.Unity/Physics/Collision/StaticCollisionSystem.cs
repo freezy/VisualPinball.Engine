@@ -116,13 +116,13 @@ namespace VisualPinball.Unity
 								break;
 
 							case ColliderType.Gate:
-								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
+								var gateMovementData = GetComponent<GateMovementData>(gateStaticData.WireEntity);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
 									in coll, in gateStaticData
 								);
-								SetComponent(coll.Entity, gateMovementData);
+								SetComponent(gateStaticData.WireEntity, gateMovementData);
 								break;
 
 							case ColliderType.LineSlingShot:
@@ -142,13 +142,13 @@ namespace VisualPinball.Unity
 								break;
 
 							case ColliderType.Spinner:
-								var spinnerMovementData = GetComponent<SpinnerMovementData>(coll.Entity);
 								var spinnerStaticData = GetComponent<SpinnerStaticData>(coll.Entity);
+								var spinnerMovementData = GetComponent<SpinnerMovementData>(spinnerStaticData.PlateEntity);
 								SpinnerCollider.Collide(
 									in ballData, ref collEvent, ref spinnerMovementData,
 									in spinnerStaticData
 								);
-								SetComponent(coll.Entity, spinnerMovementData);
+								SetComponent(spinnerStaticData.PlateEntity, spinnerMovementData);
 								break;
 
 							case ColliderType.TriggerCircle:

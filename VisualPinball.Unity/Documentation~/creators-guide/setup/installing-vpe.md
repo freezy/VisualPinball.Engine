@@ -44,13 +44,13 @@ If you create an HDRP project, Unity provides you with a sample scene:
 
 It's best to start by removing the unneeded objects. In the hierarchy, select:
 
-![Sky and Fog Volume, Light Probe Group, Example Assets](unity-hdrp-to-delete.png)
+<img alt="Sky and Fog Volume, Light Probe Group, Example Assets" width="290" src="unity-hdrp-to-delete.png" />
 
 and press `delete`.
 
 Similarly, to clean up the project, get rid of the extra assets in the project view:
 
-![ExampleAssets, TutorialInfo](unity-hdrp-to-delete-assets.png)
+<img alt="ExampleAssets, TutorialInfo" width="291" src="unity-hdrp-to-delete-assets.png" />
 
 ## VPE Source Code
 
@@ -62,7 +62,7 @@ As mentioned above, we recommend extracting this into the `%userprofile%\VPE\Vis
 
 In Unity, go to *Window -> Package Manager*. Click on the "plus" icon on the top left corner of the window, and choose *Add package from disk*. Choose `package.json` in the root folder of the extracted VPE source code.
 
-![New Unity Project](unity-package-manager.png)
+<img alt="Package Manager" width="294" src="unity-package-manager.png" />
 
 This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
 

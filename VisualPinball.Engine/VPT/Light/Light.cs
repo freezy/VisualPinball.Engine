@@ -22,7 +22,11 @@ namespace VisualPinball.Engine.VPT.Light
 {
 	public class Light : Item<LightData>, IRenderable
 	{
-		public override string ItemType => "Light";
+		public override string ItemName { get; } = "Light";
+		public override string ItemGroupName { get; } = "Lights";
+
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => 0; set { } }
 
 		public const string BulbMaterialName = "__bulbMaterial";
 		public const string SocketMaterialName = "__bulbSocketMaterial";
@@ -57,9 +61,20 @@ namespace VisualPinball.Engine.VPT.Light
 			return new Light(lightData);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 	}
 }

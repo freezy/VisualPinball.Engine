@@ -20,6 +20,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -28,14 +31,20 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Hit Target")]
-	public class HitTargetAuthoring : ItemAuthoring<HitTarget, HitTargetData>, IConvertGameObjectToEntity, IHittableAuthoring, ISwitchableAuthoring
+	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
+	public class HitTargetAuthoring : ItemMainAuthoring<HitTarget, HitTargetData>,
+		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => null;
+		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 
-		protected override HitTarget GetItem() => new HitTarget(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => HitTargetColliderAuthoring.ValidParentTypes
+			.Concat(HitTargetMeshAuthoring.ValidParentTypes)
+			.Distinct();
+
+		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()
 		{
@@ -50,15 +59,15 @@ namespace VisualPinball.Unity
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 
 			dstManager.AddComponentData(entity, new HitTargetStaticData {
-				TargetType = data.TargetType,
-				DropSpeed = data.DropSpeed,
-				RaiseDelay = data.RaiseDelay,
-				UseHitEvent = data.UseHitEvent,
-				RotZ = data.RotZ,
+				TargetType = Data.TargetType,
+				DropSpeed = Data.DropSpeed,
+				RaiseDelay = Data.RaiseDelay,
+				UseHitEvent = Data.UseHitEvent,
+				RotZ = Data.RotZ,
 				TableScaleZ = table.GetScaleZ()
 			});
 			dstManager.AddComponentData(entity, new HitTargetAnimationData {
-				IsDropped = data.IsDropped
+				IsDropped = Data.IsDropped
 			});
 			dstManager.AddComponentData(entity, new HitTargetMovementData());
 
@@ -67,16 +76,40 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case HitTargetMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is HitTargetColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => data.Position.ToUnityVector3();
-		public override void SetEditorPosition(Vector3 pos) => data.Position = pos.ToVertex3D();
+		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();
+		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.RotZ, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.RotZ = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.RotZ, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.RotZ = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => data.Size.ToUnityVector3();
-		public override void SetEditorScale(Vector3 scale) => data.Size = scale.ToVertex3D();
+		public override Vector3 GetEditorScale() => Data.Size.ToUnityVector3();
+		public override void SetEditorScale(Vector3 scale) => Data.Size = scale.ToVertex3D();
 	}
 }

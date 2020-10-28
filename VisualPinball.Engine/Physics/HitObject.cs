@@ -66,6 +66,9 @@ namespace VisualPinball.Engine.Physics
 		public int ItemIndex;
 		public int ItemVersion;
 
+		public int ParentItemIndex;
+		public int ParentItemVersion;
+
 		protected HitObject(ItemType objType, IItem item)
 		{
 			ObjType = objType;
@@ -130,10 +133,12 @@ namespace VisualPinball.Engine.Physics
 			SetEnabled(data.GetIsCollidable());
 		}
 
-		public virtual void SetIndex(int index, int version)
+		public virtual void SetIndex(int index, int version, int parentIndex, int parentVersion)
 		{
 			ItemIndex = index;
 			ItemVersion = version;
+			ParentItemIndex = parentIndex;
+			ParentItemVersion = parentVersion;
 		}
 	}
 }

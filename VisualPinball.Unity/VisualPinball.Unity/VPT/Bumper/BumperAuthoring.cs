@@ -20,6 +20,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -28,14 +31,23 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Bumper")]
-	public class BumperAuthoring : ItemAuthoring<Bumper, BumperData>, IHittableAuthoring, ISwitchableAuthoring, IConvertGameObjectToEntity
+	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
+	public class BumperAuthoring : ItemMainAuthoring<Bumper, BumperData>,
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new []{"Base", "Cap", "Ring", "Skirt"};
+		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
-		protected override Bumper GetItem() => new Bumper(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => BumperBaseMeshAuthoring.ValidParentTypes
+			.Concat(BumperCapMeshAuthoring.ValidParentTypes)
+			.Concat(BumperRingMeshAuthoring.ValidParentTypes)
+			.Concat(BumperSkirtMeshAuthoring.ValidParentTypes)
+			.Concat(BumperColliderAuthoring.ValidParentTypes)
+			.Distinct();
+
+		public ISwitchable Switchable => Item;
 
 		private void OnDestroy()
 		{
@@ -48,24 +60,60 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 			dstManager.AddComponentData(entity, new BumperStaticData {
-				Force = data.Force,
-				HitEvent = data.HitEvent,
-				Threshold = data.Threshold
+				Force = Data.Force,
+				HitEvent = Data.HitEvent,
+				Threshold = Data.Threshold
 			});
 
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsBaseVisible = false;
+			Data.IsCapVisible = false;
+			Data.IsRingVisible = false;
+			Data.IsSocketVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case BumperBaseMeshAuthoring baseMeshAuthoring:
+						Data.IsCapVisible = baseMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperCapMeshAuthoring capMeshAuthoring:
+						Data.IsCapVisible = capMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperRingMeshAuthoring ringMeshAuthoring:
+						Data.IsRingVisible = ringMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case BumperSkirtMeshAuthoring skirtMeshAuthoring:
+						Data.IsSocketVisible = skirtMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is BumperColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => data.Orientation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.Orientation, 0, 0);
+		public override void SetEditorRotation(Vector3 rot) => Data.Orientation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.Radius, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => data.Radius = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Data.Radius, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Data.Radius = scale.x;
 	}
 }

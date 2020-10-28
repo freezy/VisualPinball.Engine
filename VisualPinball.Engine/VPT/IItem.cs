@@ -24,5 +24,15 @@ namespace VisualPinball.Engine.VPT
 		string Name { get; }
 
 		int StorageIndex { get; set; }
+
+		int Index { get; }
+		int Version { get; }
+
+		string ItemName { get; }
+		string ItemGroupName { get; }
+
+		string ComponentName { get; }
+		ItemSubComponent SubComponent { get; }
+		string SubName { get; }
 	}
 }

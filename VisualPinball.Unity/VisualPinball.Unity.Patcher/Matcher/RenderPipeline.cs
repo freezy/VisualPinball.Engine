@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Patcher.Matcher
 						return RenderPipelineType.Hdrp;
 					}
 				}
-				return RenderPipelineType.BuiltIn; 
+				return RenderPipelineType.BuiltIn;
 			}
 		}
 

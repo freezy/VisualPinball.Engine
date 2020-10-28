@@ -27,10 +27,6 @@ This camera can be moved [using Unity's gizmos](https://docs.unity3d.com/Manual/
 > [!TIP]
 > A quick way to fix the game camera is to align it with the scene view camera. To do that, select the camera in the hierarchy, then click on the *GameObject* menu and select *Align with view*.
 
-The last thing we need to do before playing is to wire up the flipper buttons to the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md). Open the [switch manager](~/creators-guide/editor/switch-manager.md) under *Visual Pinball -> Switch Manager* and hit *Populate All*. This should result in the following:
-
-![Switch Manager](switch-manager.png)
-
 Now, click on the play button. This will run your scene. Test that the shift keys move the flippers. Press `B` to add a new ball. If it's not already choppy, it will get after a dozen or so balls, because VPE currently doesn't destroy them.
 
 The choppiness is also due to running the game inside the editor, fetching data during gameplay, and the code not being optimized.

@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffFloat("HTTP", Pos = 1)]
 		public float Height = 25f;

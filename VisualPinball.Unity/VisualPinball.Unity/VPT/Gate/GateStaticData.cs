@@ -26,5 +26,6 @@ namespace VisualPinball.Unity
 		public float GravityFactor;
 		public float Damping;
 		public bool TwoWay;
+		public Entity WireEntity;
 	}
 }

@@ -23,6 +23,9 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class SpinnerMeshGenerator : MeshGenerator
 	{
+		public const string Plate = "Plate";
+		public const string Bracket = "Bracket";
+
 		private readonly SpinnerData _data;
 
 		protected override Vertex3D Position => new Vertex3D(_data.Center.X, _data.Center.Y, _data.Height);
@@ -32,6 +35,29 @@ namespace VisualPinball.Engine.VPT.Spinner
 		public SpinnerMeshGenerator(SpinnerData data)
 		{
 			_data = data;
+		}
+
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			switch (id) {
+				case Plate:
+					return new RenderObject(
+						id,
+						SpinnerPlateMesh.Clone().Transform(preMatrix),
+						new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+						_data.IsVisible
+					);
+				case Bracket:
+					return new RenderObject(
+						id,
+						SpinnerBracketMesh.Clone().Transform(preMatrix),
+						new PbrMaterial(GetBracketMaterial(), table.GetTexture(_data.Image)),
+						_data.IsVisible && _data.ShowBracket
+					);
+				default:
+					throw new ArgumentException("Unknown spinner mesh \"" + id + "\".");
+			}
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)

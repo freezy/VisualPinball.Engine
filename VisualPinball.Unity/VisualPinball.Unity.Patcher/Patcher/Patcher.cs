@@ -53,7 +53,11 @@ namespace VisualPinball.Unity.Patcher
 			Logger.Info("Table will be patched using the following patchers: [ {0} ]", string.Join(", ", _patchers.Select(o => o.GetType().Name)));
 		}
 
-		public void ApplyPatches(IRenderable item, RenderObject renderObject, GameObject gameObject, GameObject tableGameObject)
+		/// <summary>
+		/// Pre-patches are match methods that purely contain the item as parameter
+		/// </summary>
+		/// <param name="item"></param>
+		public void ApplyPrePatches(IRenderable item)
 		{
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
@@ -67,7 +71,48 @@ namespace VisualPinball.Unity.Patcher
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
 							var validArgs = true;
-							if (methodMatcher.Matches(_table, item, renderObject, gameObject)) {
+							if (methodMatcher.Matches(_table, item, null)) {
+								var patcherParamInfos = methodInfo.GetParameters();
+								var patcherParams = new object[patcherParamInfos.Length];
+
+								foreach (var pi in patcherParamInfos) {
+									if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {
+										patcherParams[pi.Position] = item;
+
+									} else if (pi.ParameterType == typeof(IRenderable) && item.GetType().GetInterfaces().Contains(typeof(IRenderable))) {
+										patcherParams[pi.Position] = item;
+
+									} else {
+										validArgs = false;
+									}
+								}
+
+								if (validArgs) {
+									Logger.Info($"Patching element {item.Name} based on match by {patcher.GetType().Name}.{method.Name}");
+									methodInfo.Invoke(patcher, patcherParams);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		public void ApplyPatches(IRenderable item, GameObject gameObject, GameObject tableGameObject)
+		{
+			foreach (var patcher in _patchers) {
+				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
+				foreach (var method in methods) {
+					var methodMatchers = Attribute
+						.GetCustomAttributes(method, typeof(ItemMatchAttribute))
+						.Select(a => a as ItemMatchAttribute)
+						.Where(a => a != null);
+
+					var methodInfo = method as MethodInfo;
+					if (methodInfo != null) {
+						foreach (var methodMatcher in methodMatchers) {
+							var validArgs = true;
+							if (methodMatcher.Matches(_table, item, gameObject)) {
 								var patcherParamInfos = methodInfo.GetParameters();
 								var patcherParams = new object[patcherParamInfos.Length];
 

@@ -70,7 +70,8 @@
     "fileMetadataFiles": [],
     "template": [
       "default",
-      "template/vpe"
+      "template/vpe",
+      "template/lightbox-featherlight"
     ],
     "postProcessors": [ "ExtractSearchIndex" ],
     "globalMetadata": {

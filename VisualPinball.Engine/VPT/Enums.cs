@@ -143,6 +143,7 @@ namespace VisualPinball.Engine.VPT
 		public const int InputSystem = 0;
 		public const int Playfield = 1;
 		public const int Constant = 2;
+		public const int Device = 3;
 	}
 
 	public static class SwitchConstant
@@ -155,5 +156,17 @@ namespace VisualPinball.Engine.VPT
 	{
 		public const int OnOff = 0;
 		public const int Pulse = 1;
+	}
+
+	public static class CoilDestination
+	{
+		public const int Playfield = 0;
+		public const int Device = 1;
+	}
+
+	public static class CoilType
+	{
+		public const int SingleWound = 0;
+		public const int DualWound = 1;
 	}
 }

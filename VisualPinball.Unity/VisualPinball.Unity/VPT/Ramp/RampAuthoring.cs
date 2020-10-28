@@ -20,24 +20,31 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Ramp")]
-	public class RampAuthoring : ItemAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity, IHittableAuthoring
+	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
+	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new[] { "Floor", "RightWall", "LeftWall", "Wire1", "Wire2", "Wire3", "Wire4" };
+		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 
-		protected override Ramp GetItem() => new Ramp(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Ramp, RampData, RampAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => RampColliderAuthoring.ValidParentTypes
+			.Concat(RampFloorMeshAuthoring.ValidParentTypes)
+			.Concat(RampWallMeshAuthoring.ValidParentTypes)
+			.Concat(RampWireMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -47,6 +54,36 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case RampFloorMeshAuthoring meshAuthoring:
+						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case RampWallMeshAuthoring meshAuthoring:
+						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case RampWireMeshAuthoring meshAuthoring:
+						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// update collision
+			Data.IsCollidable = false;
+			foreach (var colliderComponent in ColliderComponents) {
+				if (colliderComponent is RampColliderAuthoring colliderAuthoring) {
+					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+				}
+			}
+		}
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
@@ -54,35 +91,65 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
+		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)
 		{
-			if (data == null || data.DragPoints.Length == 0) {
-				return Vector3.zero;
-			}
-			return data.DragPoints[0].Center.ToUnityVector3();
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			if (data == null || data.DragPoints.Length == 0) {
+			var rampFlatBefore = rampTypeBefore == RampType.RampTypeFlat;
+			var rampFlatAfter = rampTypeAfter == RampType.RampTypeFlat;
+			if (rampFlatBefore == rampFlatAfter) {
 				return;
 			}
 
-			var diff = pos.ToVertex3D().Sub(data.DragPoints[0].Center);
+			if (rampFlatAfter) {
+				var flatRampAuthoring = GetComponentInChildren<RampWireMeshAuthoring>();
+				if (flatRampAuthoring != null) {
+					DestroyImmediate(flatRampAuthoring.gameObject);
+				}
+				ConvertedItem.CreateChild<RampFloorMeshAuthoring>(gameObject, RampMeshGenerator.Floor);
+				ConvertedItem.CreateChild<RampWallMeshAuthoring>(gameObject, RampMeshGenerator.Wall);
+
+			} else {
+				var flatFloorAuthoring = GetComponentInChildren<RampFloorMeshAuthoring>();
+				if (flatFloorAuthoring != null) {
+					DestroyImmediate(flatFloorAuthoring.gameObject);
+				}
+				var flatWallAuthoring = GetComponentInChildren<RampWallMeshAuthoring>();
+				if (flatWallAuthoring != null) {
+					DestroyImmediate(flatWallAuthoring.gameObject);
+				}
+				ConvertedItem.CreateChild<RampWireMeshAuthoring>(gameObject, RampMeshGenerator.Wires);
+			}
+		}
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition()
+		{
+			if (Data == null || Data.DragPoints.Length == 0) {
+				return Vector3.zero;
+			}
+			return Data.DragPoints[0].Center.ToUnityVector3();
+		}
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			if (Data == null || Data.DragPoints.Length == 0) {
+				return;
+			}
+
+			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
 			diff.Z = 0f;
-			data.DragPoints[0].Center = pos.ToVertex3D();
-			for (int i = 1; i < data.DragPoints.Length; i++) {
-				var pt = data.DragPoints[i];
+			Data.DragPoints[0].Center = pos.ToVertex3D();
+			for (int i = 1; i < Data.DragPoints.Length; i++) {
+				var pt = Data.DragPoints[i];
 				pt.Center = pt.Center.Add(diff);
 			}
 		}
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, data.HeightBottom);
-		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (data.HeightTop - data.HeightBottom) * ratio);
+
+		public DragPointData[] GetDragPoints() => Data.DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HeightBottom);
+		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (Data.HeightTop - Data.HeightBottom) * ratio);
 		public bool PointsAreLooping() => false;
 		public IEnumerable<DragPointExposure> GetDragPointExposition() => new DragPointExposure[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public ItemDataTransformType GetHandleType() => ItemDataTransformType.ThreeD;

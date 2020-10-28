@@ -23,7 +23,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitchable
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		private BallManager _ballManager;
 
@@ -81,6 +81,13 @@ namespace VisualPinball.Unity
 			if (ballEntity != Entity.Null) {
 				_ballManager.DestroyEntity(ballEntity);
 				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
+			}
+		}
+
+		void IApiCoil.OnCoil(bool enabled, bool _)
+		{
+			if (enabled) {
+				Kick(Data.Angle, Data.Speed);
 			}
 		}
 
@@ -158,7 +165,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
 
 		#region Events
 

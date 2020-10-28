@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
+		//private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
 
 		private Table _table;
@@ -75,30 +75,17 @@ namespace VisualPinball.Unity
 
 			MakeSerializable(go, table);
 
-			// set the gameobject name; this needs to happen after MakeSerializable because the name is set there as well
-			if( string.IsNullOrEmpty( tableName))
-			{
+			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
+			if (string.IsNullOrEmpty(tableName)) {
 				go.name = _table.Name;
-			}
-			else
-			{
+
+			} else {
 				go.name = tableName
 					.Replace("%TABLENAME%", _table.Name)
 					.Replace("%INFONAME%", _table.InfoName);
 			}
 
 			_tableAuthoring.Patcher = new Patcher.Patcher(_table, fileName);
-
-			// generate meshes and save (pbr) materials
-			var materials = new Dictionary<string, PbrMaterial>();
-			foreach (var r in _table.Renderables) {
-				_renderObjects[r] = r.GetRenderObjects(_table, Origin.Original, false);
-				foreach (var ro in _renderObjects[r].RenderObjects) {
-					if (!materials.ContainsKey(ro.Material.Id)) {
-						materials[ro.Material.Id] = ro.Material;
-					}
-				}
-			}
 
 			// import
 			ConvertGameItems(go);
@@ -109,112 +96,129 @@ namespace VisualPinball.Unity
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
-			// finally, add the player script and default game engine
+			// add the player script and default game engine
 			go.AddComponent<Player>();
-			go.AddComponent<DefaultGameEngineAuthoring>();
-		}
+			var dga = go.AddComponent<DefaultGameEngineAuthoring>();
 
-		public static GameObject ConvertRenderObject(RenderObject ro, GameObject obj, TableAuthoring ta)
-		{
-			if (ro.Mesh == null) {
-				Logger.Warn($"No mesh for object {obj.name}, skipping.");
-				return null;
+			// populate mappings
+			if (_table.Mappings.IsEmpty()) {
+				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
+				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables);
 			}
 
-			var mesh = ro.Mesh.ToUnityMesh($"{obj.name}_mesh");
-
-			// apply mesh to game object
-			var mf = obj.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
-
-			// apply material
-			if (ro.Mesh.AnimationFrames.Count > 0) {
-				var smr = obj.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				smr.sharedMesh = mesh;
-				smr.enabled = ro.IsVisible;
-			}
-			else {
-				var mr = obj.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				mr.enabled = ro.IsVisible;
-			}
-
-			return obj;
+			// don't need that anymore.
+			DestroyImmediate(this);
 		}
 
 		private void ConvertGameItems(GameObject tableGameObject)
 		{
-			// convert game objects
-			ConvertRenderables(tableGameObject);
-		}
+			var convertedItems = new Dictionary<string, ConvertedItem>();
+			var renderableLookup = new Dictionary<string, IRenderable>();
+			var renderables = from renderable in _table.Renderables
+				orderby renderable.SubComponent
+				select renderable;
 
-		private void ConvertRenderables(GameObject tableGameObject)
-		{
-			var createdObjs = new Dictionary<IRenderable, IEnumerable<Tuple<GameObject, RenderObject>>>();
-			foreach (var renderable in _renderObjects.Keys) {
-				var ro = _renderObjects[renderable];
-				if (!_parents.ContainsKey(ro.Parent)) {
-					var parent = new GameObject(ro.Parent);
+			foreach (var renderable in renderables) {
+
+				_tableAuthoring.Patcher.ApplyPrePatches(renderable);
+
+				var lookupName = renderable.Name.ToLower();
+				renderableLookup[lookupName] = renderable;
+
+				// create group parent if not created
+				if (!_parents.ContainsKey(renderable.ItemGroupName)) {
+					var parent = new GameObject(renderable.ItemGroupName);
 					parent.transform.parent = gameObject.transform;
-					_parents[ro.Parent] = parent;
+					_parents[renderable.ItemGroupName] = parent;
 				}
-				createdObjs[renderable] = ConvertRenderObjects(renderable, ro, _parents[ro.Parent], _tableAuthoring, out _);
+
+				if (renderable.SubComponent == ItemSubComponent.None) {
+					// create object(s)
+					convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+
+				} else {
+					// if the object's names was parsed to be part of another object, re-link to other object.
+					var parentName = renderable.ComponentName.ToLower();
+					if (convertedItems.ContainsKey(parentName)) {
+						var parent = convertedItems[parentName];
+
+						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+						if (convertedItem.IsValidChild(parent)) {
+
+							if (convertedItem.MeshAuthoring.Any()) {
+
+								// move and rotate into parent
+								if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
+									renderable.Position.Sub(parentRenderable.Position);
+									renderable.RotationY -= parentRenderable.RotationY;
+								}
+
+								parent.DestroyMeshComponent();
+							}
+							if (convertedItem.ColliderAuthoring != null) {
+								parent.DestroyColliderComponent();
+							}
+							convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
+							convertedItems[lookupName] = convertedItem;
+
+						} else {
+
+							renderable.DisableSubComponent();
+
+							// invalid parenting, re-convert the item, because it returned only the sub component.
+							convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+
+							// ..and destroy the other one
+							convertedItem.Destroy();
+						}
+
+					} else {
+						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
+					}
+				}
 			}
 
 			// now we have all renderables imported, patch them.
-			foreach (var renderable in createdObjs.Keys) {
-				foreach (var (obj, ro) in createdObjs[renderable]) {
-					_tableAuthoring.Patcher.ApplyPatches(renderable, ro, obj, tableGameObject);
+			foreach (var lookupName in convertedItems.Keys) {
+				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
+					_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
 				}
 			}
 		}
 
-		public static IEnumerable<Tuple<GameObject, RenderObject>> ConvertRenderObjects(IRenderable item, RenderObjectGroup rog, GameObject parent, TableAuthoring tb, out GameObject obj)
+		public static ConvertedItem CreateGameObjects(Table table, IRenderable renderable, GameObject parent)
 		{
-			obj = new GameObject(rog.Name);
+			var obj = new GameObject(renderable.Name);
 			obj.transform.parent = parent.transform;
 
-			var createdObjs = new Tuple<GameObject, RenderObject>[0];
-
-			if (rog.HasOnlyChild && !rog.ForceChild) {
-				ConvertRenderObject(rog.RenderObjects[0], obj, tb);
-				createdObjs = new[] { new Tuple<GameObject, RenderObject>(obj, rog.RenderObjects[0]) };
-
-			} else if (rog.HasChildren) {
-				createdObjs = new Tuple<GameObject, RenderObject>[rog.RenderObjects.Length];
-				var i = 0;
-				foreach (var ro in rog.RenderObjects) {
-					var subObj = new GameObject(ro.Name);
-					subObj.transform.SetParent(obj.transform, false);
-					subObj.layer = ChildObjectsLayer;
-					ConvertRenderObject(ro, subObj, tb);
-					createdObjs[i++] = new Tuple<GameObject, RenderObject>(subObj, ro);
-				}
-			}
+			var importedObject = SetupGameObjects(renderable, obj);
 
 			// apply transformation
-			obj.transform.SetFromMatrix(rog.TransformationMatrix.ToUnityMatrix());
+			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
 
-			// add unity component
-			MonoBehaviour ic = null;
+			return importedObject;
+		}
+
+		private static ConvertedItem SetupGameObjects(IRenderable item, GameObject obj)
+		{
 			switch (item) {
-				case Bumper bumper:					ic = bumper.SetupGameObject(obj, rog); break;
-				case Flipper flipper:				ic = flipper.SetupGameObject(obj, rog); break;
-				case Gate gate:						ic = gate.SetupGameObject(obj, rog); break;
-				case HitTarget hitTarget:			ic = hitTarget.SetupGameObject(obj, rog); break;
-				case Kicker kicker:					ic = kicker.SetupGameObject(obj, rog); break;
-				case Engine.VPT.Light.Light lt:		ic = lt.SetupGameObject(obj, rog); break;
-				case Plunger plunger:				ic = plunger.SetupGameObject(obj, rog); break;
-				case Primitive primitive:			ic = primitive.SetupGameObject(obj, rog); break;
-				case Ramp ramp:						ic = ramp.SetupGameObject(obj, rog); break;
-				case Rubber rubber:					ic = rubber.SetupGameObject(obj, rog); break;
-				case Spinner spinner:				ic = spinner.SetupGameObject(obj, rog); break;
-				case Surface surface:				ic = surface.SetupGameObject(obj, rog); break;
-				case Table table:					ic = table.SetupGameObject(obj, rog); break;
-				case Trigger trigger:				ic = trigger.SetupGameObject(obj, rog); break;
+				case Bumper bumper:             return bumper.SetupGameObject(obj);
+				case Flipper flipper:           return flipper.SetupGameObject(obj);
+				case Gate gate:                 return gate.SetupGameObject(obj);
+				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
+				case Kicker kicker:             return kicker.SetupGameObject(obj);
+				case Engine.VPT.Light.Light lt: return lt.SetupGameObject(obj);
+				case Plunger plunger:           return plunger.SetupGameObject(obj);
+				case Primitive primitive:       return primitive.SetupGameObject(obj);
+				case Ramp ramp:                 return ramp.SetupGameObject(obj);
+				case Rubber rubber:             return rubber.SetupGameObject(obj);
+				case Spinner spinner:           return spinner.SetupGameObject(obj);
+				case Surface surface:           return surface.SetupGameObject(obj);
+				case Table table:               return table.SetupGameObject(obj);
+				case Trigger trigger:           return trigger.SetupGameObject(obj);
 			}
-			return createdObjs;
+
+			throw new InvalidOperationException("Unknown item " + item + " to setup!");
 		}
 
 		private void MakeSerializable(GameObject go, Table table)
@@ -239,7 +243,7 @@ namespace VisualPinball.Unity
 
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappingConfigs = table.MappingConfigs.Values.Select(c => c.Data).ToList();
+			sidecar.mappings = table.Mappings.Data;
 			sidecar.decals = table.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
@@ -252,6 +256,80 @@ namespace VisualPinball.Unity
 				string.Join(", ", table.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
+		}
+	}
+
+	public class ConvertedItem
+	{
+		public readonly IItemMainAuthoring MainAuthoring;
+		public IEnumerable<IItemMeshAuthoring> MeshAuthoring;
+		public IItemColliderAuthoring ColliderAuthoring;
+
+		public ConvertedItem()
+		{
+			MainAuthoring = null;
+			MeshAuthoring = new IItemMeshAuthoring[0];
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = new IItemMeshAuthoring[0];
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = meshAuthoring;
+			ColliderAuthoring = null;
+		}
+
+		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring, IItemColliderAuthoring colliderAuthoring)
+		{
+			MainAuthoring = mainAuthoring;
+			MeshAuthoring = meshAuthoring;
+			ColliderAuthoring = colliderAuthoring;
+		}
+
+		public void Destroy()
+		{
+			MainAuthoring.Destroy();
+		}
+
+		public void DestroyMeshComponent()
+		{
+			MainAuthoring.DestroyMeshComponent();
+			MeshAuthoring = new IItemMeshAuthoring[0];
+		}
+
+		public void DestroyColliderComponent()
+		{
+			MainAuthoring.DestroyColliderComponent();
+			ColliderAuthoring = null;
+		}
+
+		public bool IsValidChild(ConvertedItem parent)
+		{
+			if (MeshAuthoring.Any()) {
+				return MeshAuthoring.First().ValidParents.Contains(parent.MainAuthoring.GetType());
+			}
+
+			if (ColliderAuthoring != null) {
+				return ColliderAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
+			}
+
+			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
+		}
+
+		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
+		{
+			var subObj = new GameObject(name);
+			subObj.transform.SetParent(obj.transform, false);
+			var comp = subObj.AddComponent<T>();
+			subObj.layer = VpxConverter.ChildObjectsLayer;
+			return comp;
 		}
 	}
 }

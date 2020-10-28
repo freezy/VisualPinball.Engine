@@ -16,8 +16,12 @@
 
 - name: Editor
   items:
+    - name: Unity Components
+      href: editor/unity-components.md
     - name: Switch Manager
       href: editor/switch-manager.md
+    - name: Coil Manager
+      href: editor/coil-manager.md
     - name: Multiple Tables
       href: editor/multiple-tables.md
 

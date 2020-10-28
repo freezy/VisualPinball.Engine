@@ -20,6 +20,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -30,14 +33,20 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[RequiresEntityConversion]
-	[AddComponentMenu("Visual Pinball/Flipper")]
-	public class FlipperAuthoring : ItemAuthoring<Flipper, FlipperData>, IHittableAuthoring, IConvertGameObjectToEntity
+	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
+	public class FlipperAuthoring : ItemMainAuthoring<Flipper, FlipperData>,
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new []{ FlipperMeshGenerator.BaseName, FlipperMeshGenerator.RubberName };
+		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
 
-		protected override Flipper GetItem() => new Flipper(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
+		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
+			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
+			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
-		public IHittable Hittable => Item;
+		public ISwitchable Switchable => Item;
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 
@@ -62,36 +71,76 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
 		}
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex2Dxy();
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.StartAngle = rot.x;
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => new Vector3(data.BaseRadius, data.FlipperRadius, data.Height);
-		public override void SetEditorScale(Vector3 scale)
+		public override void Restore()
 		{
-			if (data.BaseRadius > 0) {
-				float endRadiusRatio = data.EndRadius / data.BaseRadius;
-				data.EndRadius = scale.x * endRadiusRatio;
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case FlipperBaseMeshAuthoring baseMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || baseMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case FlipperRubberMeshAuthoring rubberMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || rubberMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
 			}
-			data.BaseRadius = scale.x;
-			data.FlipperRadius = scale.y;
-			if (data.Height > 0) {
-				float rubberHeightRatio = data.RubberHeight / data.Height;
-				data.RubberHeight = scale.z * rubberHeightRatio;
-				float rubberWidthRatio = data.RubberWidth / data.Height;
-				data.RubberWidth = scale.z * rubberWidthRatio;
-			}
-			data.Height = scale.z;
+
+			// collision: flipper is always collidable
 		}
 
-		protected override void OnDrawGizmosSelected()
+		public void OnRubberWidthUpdated(float before, float after)
 		{
-			base.OnDrawGizmosSelected();
+			if (before != 0 && after != 0f) {
+				return;
+			}
+
+			if (before == 0) {
+				ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
+			}
+
+			if (after == 0) {
+				var rubberAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+				if (rubberAuthoring != null) {
+					DestroyImmediate(rubberAuthoring.gameObject);
+				}
+			}
+		}
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.StartAngle = rot.x;
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+
+		public override Vector3 GetEditorScale() => new Vector3(Data.BaseRadius, Data.FlipperRadius, Data.Height);
+		public override void SetEditorScale(Vector3 scale)
+		{
+			if (Data.BaseRadius > 0) {
+				float endRadiusRatio = Data.EndRadius / Data.BaseRadius;
+				Data.EndRadius = scale.x * endRadiusRatio;
+			}
+			Data.BaseRadius = scale.x;
+			Data.FlipperRadius = scale.y;
+			if (Data.Height > 0) {
+				float rubberHeightRatio = Data.RubberHeight / Data.Height;
+				Data.RubberHeight = scale.z * rubberHeightRatio;
+				float rubberWidthRatio = Data.RubberWidth / Data.Height;
+				Data.RubberWidth = scale.z * rubberWidthRatio;
+			}
+			Data.Height = scale.z;
+		}
+
+		protected void OnDrawGizmosSelected()
+		{
+			//base.OnDrawGizmosSelected();
 
 			// draw end position mesh
 			var mfs = GetComponentsInChildren<MeshFilter>();
@@ -99,11 +148,11 @@ namespace VisualPinball.Unity
 			Gizmos.matrix = Matrix4x4.identity;
 			var baseRotation = math.normalize(math.mul(
 				math.normalize(transform.rotation),
-				quaternion.EulerXYZ(0, 0, -math.radians(data.StartAngle))
+				quaternion.EulerXYZ(0, 0, -math.radians(Data.StartAngle))
 			));
 			foreach (var mf in mfs) {
 				var t = mf.transform;
-				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, math.radians(data.EndAngle)));
+				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, math.radians(Data.EndAngle)));
 				Gizmos.DrawWireMesh(mf.sharedMesh, t.position, r, t.lossyScale);
 			}
 		}
@@ -111,18 +160,18 @@ namespace VisualPinball.Unity
 		private FlipperStaticData GetMaterialData()
 		{
 			float flipperRadius;
-			if (data.FlipperRadiusMin > 0 && data.FlipperRadiusMax > data.FlipperRadiusMin) {
-				flipperRadius = data.FlipperRadiusMax - (data.FlipperRadiusMax - data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
-				flipperRadius = math.max(flipperRadius, data.BaseRadius - data.EndRadius + 0.05f);
+			if (Data.FlipperRadiusMin > 0 && Data.FlipperRadiusMax > Data.FlipperRadiusMin) {
+				flipperRadius = Data.FlipperRadiusMax - (Data.FlipperRadiusMax - Data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
+				flipperRadius = math.max(flipperRadius, Data.BaseRadius - Data.EndRadius + 0.05f);
 
 			} else {
-				flipperRadius = data.FlipperRadiusMax;
+				flipperRadius = Data.FlipperRadiusMax;
 			}
 
-			var endRadius = math.max(data.EndRadius, 0.01f); // radius of flipper end
+			var endRadius = math.max(Data.EndRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
-			var angleStart = math.radians(data.StartAngle);
-			var angleEnd = math.radians(data.EndAngle);
+			var angleStart = math.radians(Data.StartAngle);
+			var angleEnd = math.radians(Data.EndAngle);
 
 			if (angleEnd == angleStart) {
 				// otherwise hangs forever in collisions/updates
@@ -132,18 +181,18 @@ namespace VisualPinball.Unity
 			var tableData = Table.Data;
 
 			// model inertia of flipper as that of rod of length flipper around its end
-			var mass = data.GetFlipperMass(tableData);
+			var mass = Data.GetFlipperMass(tableData);
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
 			return new FlipperStaticData {
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = data.GetStrength(tableData),
-				ReturnRatio = data.GetReturnRatio(tableData),
-				TorqueDamping = data.GetTorqueDamping(tableData),
-				TorqueDampingAngle = data.GetTorqueDampingAngle(tableData),
-				RampUpSpeed = data.GetRampUpSpeed(tableData),
+				Strength = Data.GetStrength(tableData),
+				ReturnRatio = Data.GetReturnRatio(tableData),
+				TorqueDamping = Data.GetTorqueDamping(tableData),
+				TorqueDampingAngle = Data.GetTorqueDampingAngle(tableData),
+				RampUpSpeed = Data.GetRampUpSpeed(tableData),
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius
@@ -179,7 +228,7 @@ namespace VisualPinball.Unity
 
 		private FlipperHitData GetHitData()
 		{
-			var ratio = (math.max(data.BaseRadius, 0.01f) - math.max(data.EndRadius, 0.01f)) / math.max(data.FlipperRadius, 0.01f);
+			var ratio = (math.max(Data.BaseRadius, 0.01f) - math.max(Data.EndRadius, 0.01f)) / math.max(Data.FlipperRadius, 0.01f);
 			var zeroAngNorm = new float2(
 				math.sqrt(1.0f - ratio * ratio), // F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
 				-ratio                              // F1 norm, change sign of x component, i.e -zeroAngNorm.x // = -cosf(faceNormOffset)

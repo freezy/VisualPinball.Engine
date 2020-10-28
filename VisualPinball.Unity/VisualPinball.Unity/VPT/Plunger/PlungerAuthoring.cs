@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Plunger")]
-	public class PlungerAuthoring : ItemAuthoring<Plunger, PlungerData>, IConvertGameObjectToEntity, IHittableAuthoring
+	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
+	public class PlungerAuthoring : ItemMainAuthoring<Plunger, PlungerData>,
+		ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new [] {
-			PlungerMeshGenerator.FlatName, PlungerMeshGenerator.RodName, PlungerMeshGenerator.SpringName
-		};
+		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 
-		protected override Plunger GetItem() => new Plunger(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
-		public IHittable Hittable => Item;
-
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Plunger>(Name);
-			}
-		}
+		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
+			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
+			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
+			.Concat(PlungerSpringMeshAuthoring.ValidParentTypes)
+			.Distinct();
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -48,17 +48,17 @@ namespace VisualPinball.Unity
 
 			Item.Init(table);
 			var hit = Item.PlungerHit;
-			hit.SetIndex(entity.Index, entity.Version);
+			hit.SetIndex(entity.Index, entity.Version, 0, 0);
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
-				MomentumXfer = data.MomentumXfer,
-				ScatterVelocity = data.ScatterVelocity,
+				MomentumXfer = Data.MomentumXfer,
+				ScatterVelocity = Data.ScatterVelocity,
 				FrameStart = hit.FrameBottom,
 				FrameEnd = hit.FrameTop,
 				FrameLen = hit.FrameLen,
 				RestPosition = hit.RestPos,
-				IsAutoPlunger = data.AutoPlunger,
-				SpeedFire = data.SpeedFire,
+				IsAutoPlunger = Data.AutoPlunger,
+				SpeedFire = Data.SpeedFire,
 				NumFrames = Item.MeshGenerator.NumFrames
 			});
 
@@ -90,12 +90,103 @@ namespace VisualPinball.Unity
 				AutoFireTimer = 0,
 				AddRetractMotion = false,
 				RetractWaitLoop = 0,
-				MechStrength = data.MechStrength
+				MechStrength = Data.MechStrength
 			});
 		}
 
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case PlungerFlatMeshAuthoring flatMeshAuthoring:
+						Data.IsVisible = flatMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case PlungerRodMeshAuthoring rodMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || rodMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+					case PlungerSpringMeshAuthoring springMeshAuthoring:
+						Data.IsVisible = Data.IsVisible || springMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+		}
+
+		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)
+		{
+			if (plungerTypeBefore == plungerTypeAfter) {
+				return;
+			}
+
+			switch (plungerTypeBefore) {
+				case PlungerType.PlungerTypeFlat:
+					// remove flat
+					var flatPlungerAuthoring = GetComponentInChildren<PlungerFlatMeshAuthoring>();
+					if (flatPlungerAuthoring != null) {
+						DestroyImmediate(flatPlungerAuthoring.gameObject);
+					}
+
+					// create rod
+					ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(gameObject, PlungerMeshGenerator.Rod);
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
+						// create spring
+						ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+					}
+					break;
+
+				case PlungerType.PlungerTypeModern:
+					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
+						// create spring
+						ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(gameObject, PlungerMeshGenerator.Spring);
+					}
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
+						// remove rod
+						var rodPlungerAuthoring = GetComponentInChildren<PlungerRodMeshAuthoring>();
+						if (rodPlungerAuthoring != null) {
+							DestroyImmediate(rodPlungerAuthoring.gameObject);
+						}
+						// create flat
+						ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+					}
+					break;
+
+				case PlungerType.PlungerTypeCustom:
+					// remove spring
+					var springPlungerAuthoring = GetComponentInChildren<PlungerSpringMeshAuthoring>();
+					if (springPlungerAuthoring != null) {
+						DestroyImmediate(springPlungerAuthoring.gameObject);
+					}
+
+					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
+						// remove rod
+						var rodPlungerAuthoring = GetComponentInChildren<PlungerRodMeshAuthoring>();
+						if (rodPlungerAuthoring != null) {
+							DestroyImmediate(rodPlungerAuthoring.gameObject);
+						}
+
+						// create flat
+						ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(gameObject, PlungerMeshGenerator.Flat);
+					}
+					break;
+			}
+		}
+
+
+		private void OnDestroy()
+		{
+			if (!Application.isPlaying) {
+				Table?.Remove<Plunger>(Name);
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(0f);
-		public override void SetEditorPosition(Vector3 pos) => data.Center = pos.ToVertex3D();
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
+		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex3D();
 	}
 }

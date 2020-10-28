@@ -34,7 +34,11 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable, IHittable
 	{
-		public override string ItemType => "Table";
+		public override string ItemName { get; } = "Table";
+		public override string ItemGroupName { get; } = "Playfield";
+
+		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
+		public float RotationY { get => 0; set { } }
 
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -54,7 +58,37 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
-		public readonly Dictionary<string, MappingConfig.MappingConfig> MappingConfigs = new Dictionary<string, MappingConfig.MappingConfig>();
+		public Mappings.Mappings Mappings = new Mappings.Mappings();
+
+		#region Overrides
+
+		private readonly Dictionary<IItem, List<IHittable>> _colliderOverrides = new Dictionary<IItem, List<IHittable>>();
+
+		public void AddColliderOverride(IItem item, IHittable childItem)
+		{
+			if (!_colliderOverrides.ContainsKey(item)) {
+				_colliderOverrides.Add(item, new List<IHittable>());
+			}
+			_colliderOverrides[item].Add(childItem);
+		}
+
+		private IEnumerable<IHittable> ApplyColliderOverrides(IHittable hittable)
+		{
+			if (hittable == null) {
+				throw new ArgumentNullException();
+			}
+
+			if (!(hittable is IItem item)) {
+				return new []{hittable};
+			}
+
+			if (_colliderOverrides.ContainsKey(item)) {
+				return _colliderOverrides[item];
+			}
+			return new []{hittable};
+		}
+
+		#endregion
 
 		#region GameItems
 
@@ -155,7 +189,7 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public IEnumerable<IHittable> Hittables => new IHittable[] { this }
+		public IEnumerable<IHittable> Hittables => new IHittable[] {this}
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
@@ -167,7 +201,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
 			.Concat(_surfaces.Values)
-			.Concat(_triggers.Values);
+			.Concat(_triggers.Values)
+			.SelectMany(ApplyColliderOverrides);
+
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(_bumpers.Values)
@@ -182,6 +218,21 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_spinners.Values)
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
+
+		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_gates.Values)
+			.Concat(_hitTargets.Values)
+			.Concat(_kickers.Values)
+			.Concat(_spinners.Values)
+			.Concat(_triggers.Values);
+
+		public IEnumerable<ICoilable> Coilables => new ICoilable[0]
+			.Concat(_bumpers.Values)
+			.Concat(_flippers.Values)
+			.Concat(_kickers.Values)
+			.Concat(_plungers.Values);
 
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
@@ -389,6 +440,9 @@ namespace VisualPinball.Engine.VPT.Table
 		public void Remove<T>(string name) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
+			if (!dict.ContainsKey(name)) {
+				return;
+			}
 			var removedStorageIndex = dict[name].StorageIndex;
 			var gameItems = ItemDatas;
 			foreach (var gameItem in gameItems) {
@@ -413,7 +467,6 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
 		}
-
 
 		#region Table Info
 		public string InfoAuthorEmail => TableInfo.ContainsKey("AuthorEmail") ? TableInfo["AuthorEmail"] : null;
@@ -450,10 +503,21 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table table, Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
 		public bool IsCollidable => true;

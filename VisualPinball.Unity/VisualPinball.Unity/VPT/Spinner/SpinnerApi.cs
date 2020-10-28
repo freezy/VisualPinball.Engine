@@ -20,7 +20,7 @@ using Unity.Entities;
 namespace VisualPinball.Unity
 {
 	public class SpinnerApi : ItemApi<Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
-		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitchable
+		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitchable.AddSwitchId(string switchId) => AddSwitchId(switchId);
+		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
 
 		#region Events
 

@@ -16,13 +16,18 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
-	public class Plunger : Item<PlungerData>, IRenderable, IHittable
+	public class Plunger : Item<PlungerData>, IRenderable, IHittable, ICoilable
 	{
-		public override string ItemType => "Plunger";
+		public override string ItemName { get; } = "Plunger";
+		public override string ItemGroupName { get; } = "Plungers";
+
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => 0; set { } }
 
 		public PlungerHit PlungerHit { get; private set; }
 
@@ -56,12 +61,25 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_hitObjects = new HitObject[] { PlungerHit };
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return MeshGenerator.GetRenderObject(20, table, id, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return MeshGenerator.GetRenderObjects(20, table, origin, asRightHanded);
 		}
 
+		#endregion
+
 		public HitObject[] GetHitShapes() => _hitObjects;
 		public bool IsCollidable => true;
+
+		public bool IsDualWound { get; set; }
 	}
 }

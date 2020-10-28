@@ -20,21 +20,75 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[AddComponentMenu("Visual Pinball/Spinner")]
-	public class SpinnerAuthoring : ItemAuthoring<Spinner, SpinnerData>, IHittableAuthoring, ISwitchableAuthoring
+	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
+	public class SpinnerAuthoring : ItemMainAuthoring<Spinner, SpinnerData>,
+		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new [] { "Plate", "Bracket" };
+		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 
-		protected override Spinner GetItem() => new Spinner(data);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
 
-		public IHittable Hittable => Item;
+		public override IEnumerable<Type> ValidParents => SpinnerColliderAuthoring.ValidParentTypes
+			.Concat(SpinnerBracketMeshAuthoring.ValidParentTypes)
+			.Concat(SpinnerPlateMeshAuthoring.ValidParentTypes)
+			.Distinct();
+
+		public ISwitchable Switchable => Item;
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			dstManager.AddComponentData(entity, new SpinnerStaticData {
+				AngleMax = math.radians(Data.AngleMax),
+				AngleMin = math.radians(Data.AngleMin),
+				Damping = math.pow(Data.Damping, (float)PhysicsConstants.PhysFactor),
+				Elasticity = Data.Elasticity,
+				Height = Data.Height
+			});
+
+			// register
+			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, gameObject);
+		}
+
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
+
+			// update visibility
+			Data.IsVisible = false;
+			Data.ShowBracket = false;
+			foreach (var meshComponent in MeshComponents) {
+				switch (meshComponent) {
+					case SpinnerBracketMeshAuthoring bracketMeshAuthoring:
+						var bracketMeshAuthoringEnabled = bracketMeshAuthoring.gameObject.activeInHierarchy;
+						Data.IsVisible = Data.IsVisible || bracketMeshAuthoringEnabled;
+						Data.ShowBracket = bracketMeshAuthoringEnabled;
+						break;
+
+					case SpinnerPlateMeshAuthoring plateMeshAuthoring:
+						Data.IsVisible = plateMeshAuthoring.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+
+			// collision: spinners are always collidable
+		}
 
 		private void OnDestroy()
 		{
@@ -44,19 +98,19 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => data.Center.ToUnityVector3(data.Height);
+		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(Data.Height);
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			data.Center = pos.ToVertex2Dxy();
-			data.Height = pos.z;
+			Data.Center = pos.ToVertex2Dxy();
+			Data.Height = pos.z;
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(data.Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => data.Rotation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Data.Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Data.Rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(data.Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => data.Length = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Data.Length, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Data.Length = scale.x;
 	}
 }

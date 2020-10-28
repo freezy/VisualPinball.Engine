@@ -18,6 +18,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -26,9 +27,9 @@ namespace VisualPinball.Unity.Patcher
 	{
 		[NameMatch("LeftFlipperSh", IgnoreCase = false)]
 		[NameMatch("RightFlipperSh")]
-		public void RemoveFlipperShadow(GameObject gameObject)
+		public void RemoveFlipperShadow(Primitive primitive)
 		{
-			gameObject.GetComponent<MeshRenderer>().enabled = false;
+			primitive.Data.IsVisible = false;
 		}
 
 		[NameMatch("Primitive21")]

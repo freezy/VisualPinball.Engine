@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable DelegateSubtraction
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -51,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Will synchronize the selection with changes from global Selection
 		/// </summary>
-		private bool _synchronizeSelection = false;
+		private bool _synchronizeSelection;
 
 		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
 		public static void ShowWindow()
@@ -63,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			titleContent = new GUIContent("Layer Manager", EditorGUIUtility.IconContent("ToggleUVOverlay").image);
 
-			if (_layerHandler== null) {
+			if (_layerHandler == null) {
 				_layerHandler = new LayerHandler();
 			}
 
@@ -119,7 +121,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ToolBoxItemCreated(GameObject obj)
 		{
-			if (obj.GetComponentInParent<TableAuthoring>() != _table) {
+			if (obj.GetComponentInParent<TableAuthoring>() != _tableAuthoring) {
 				// don't assign to a layer that's not part if this table
 				return;
 			}
@@ -139,7 +141,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnGUI()
 		{
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
-			if (GUILayout.Button(	new GUIContent(EditorGUIUtility.IconContent("CreateAddNew").image, "Create new layer"), 
+			if (GUILayout.Button(	new GUIContent(EditorGUIUtility.IconContent("CreateAddNew").image, "Create new layer"),
 									new GUIStyle(GUI.skin.FindStyle("RL FooterButton")) { fixedWidth = EditorStyles.toolbar.fixedHeight, fixedHeight = EditorStyles.toolbar.fixedHeight })) {
 				CreateNewLayerWithValidation(Event.current.mousePosition);
 				GUIUtility.ExitGUI();
@@ -153,19 +155,28 @@ namespace VisualPinball.Unity.Editor
 				SelectionChanged();
 			}
 
-			_treeView.OnGUI(new Rect(GUI.skin.window.margin.left, 
-									 EditorStyles.toolbar.fixedHeight * 2f, 
-									 position.width - GUI.skin.window.margin.horizontal, 
+			_treeView.OnGUI(new Rect(GUI.skin.window.margin.left,
+									 EditorStyles.toolbar.fixedHeight * 2f,
+									 position.width - GUI.skin.window.margin.horizontal,
 									 position.height - EditorStyles.toolbar.fixedHeight * 2f - GUI.skin.window.margin.vertical));
 		}
 
 		private void SelectionChanged()
 		{
 			if (_synchronizeSelection) {
-				List<GameObject> gObjs = new List<GameObject>();
-				gObjs.Add(Selection.activeGameObject);
-				gObjs.AddRange(Selection.objects.Where(o => o is GameObject).Select(o => o as GameObject).ToList());
-				_treeView.SynchronizeSelection(gObjs.Select(o => o.GetInstanceID()).Distinct().ToList());
+				var objs = new List<GameObject> {
+					Selection.activeGameObject
+				};
+				objs.AddRange(Selection.objects.OfType<GameObject>());
+				var objIds = objs
+					.Where(o => o != null)
+					.Select(o => o.GetInstanceID())
+					.Distinct()
+					.ToList();
+
+				if (objIds.Any()) {
+					_treeView.SynchronizeSelection(objIds);
+				}
 			}
 		}
 
@@ -176,7 +187,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnContextClicked(LayerTreeElement[] elements)
 		{
 			if (elements.Length > 0) {
-				GenericMenu menu = new GenericMenu();
+				var menu = new GenericMenu();
 
 				if (elements.Length == 1) {
 					switch (elements[0].Type) {
@@ -189,14 +200,10 @@ namespace VisualPinball.Unity.Editor
 							menu.AddItem(new GUIContent($"Delete Layer : {elements[0].Name}"), false, DeleteLayer, new LayerMenuContext { Elements = elements } );
 							break;
 						}
-
-						default: {
-							break;
-						}
 					}
 				}
 
-				bool onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
+				var onlyItems = elements.Count(e => e.Type != LayerTreeViewElementType.Item) == 0;
 				if (onlyItems) {
 					menu.AddItem(new GUIContent($"Assign {elements.Length} item(s) to/<New Layer>"), false, AssignToLayer, new LayerMenuContext { MousePosition = Event.current.mousePosition, Elements = elements });
 
@@ -275,6 +282,10 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void SetTable(TableAuthoring table)
 		{
+			if (_layerHandler == null) {
+				_layerHandler = new LayerHandler();
+			}
+
 			_layerHandler.SetTable(table);
 		}
 

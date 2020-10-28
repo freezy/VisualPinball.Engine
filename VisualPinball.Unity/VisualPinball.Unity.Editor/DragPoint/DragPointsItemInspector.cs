@@ -18,11 +18,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsItemInspector : ItemInspector
+	public abstract class DragPointsItemInspector<TItem, TData, TMainAuthoring> : ItemMainInspector<TItem, TData, TMainAuthoring>, IDragPointsItemInspector
+		where TData : ItemData
+		where TItem : Item<TData>, IHittable, IRenderable
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		/// <summary>
 		/// Catmull Curve Handler
@@ -98,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IEditableItemAuthoring editable) || editable.IsLocked;
+			return !(target is IItemMainAuthoring editable) || editable.IsLocked;
 		}
 
 		/// <summary>
@@ -138,8 +143,8 @@ namespace VisualPinball.Unity.Editor
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IEditableItemAuthoring editable) {
-				editable.MeshDirty = true;
+			if (rebuilt && target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 			}
 		}
 
@@ -174,8 +179,8 @@ namespace VisualPinball.Unity.Editor
 
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
-			if (target is IEditableItemAuthoring editable) {
-				editable.MeshDirty = true;
+			if (target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 				recordObjs.Add(this);
 			}
 			recordObjs.Add(target);
@@ -186,14 +191,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnInspectorGUI();
 
-			var editable = target as IEditableItemAuthoring;
+			var editable = target as IItemMainAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			if (editable == null || dragPointEditable == null) {
 				return;
 			}
 
-			var enabledString = dragPointEditable.DragPointEditEnabled ? $"(ON), Stored Coordinates {_storedControlPoint}" : "(OFF)";
-			if (GUILayout.Button($"Edit Drag Points {enabledString}")) {
+			var editButtonText = dragPointEditable.DragPointEditEnabled ? "Stop Editing Drag Points" : "Edit Drag Points";
+			if (GUILayout.Button(editButtonText)) {
 				dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
 				SceneView.RepaintAll();
 			}
@@ -238,7 +243,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IEditableItemAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IItemMainAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -251,14 +256,14 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IEditableItemAuthoring item) {
-				item.MeshDirty = true;
+			if (target is IItemMainAuthoring meshAuthoring) {
+				meshAuthoring.SetMeshDirty();
 			}
 		}
 
 		protected virtual void OnSceneGUI()
 		{
-			var editable = target as IEditableItemAuthoring;
+			var editable = target as IItemMainAuthoring;
 			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 

@@ -46,11 +46,11 @@ namespace VisualPinball.Engine.VPT.Spinner
 			LineSeg1 = new LineSeg(v2.Clone(), v1.Clone(), height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Spinner, item);
 		}
 
-		public override void SetIndex(int index, int version)
+		public override void SetIndex(int index, int version, int parentIndex, int parentVersion)
 		{
-			base.SetIndex(index, version);
-			LineSeg0.SetIndex(index, version);
-			LineSeg1.SetIndex(index, version);
+			base.SetIndex(index, version, parentIndex, parentVersion);
+			LineSeg0.SetIndex(index, version, parentIndex, parentVersion);
+			LineSeg1.SetIndex(index, version, parentIndex, parentVersion);
 		}
 
 		public override void CalcHitBBox()

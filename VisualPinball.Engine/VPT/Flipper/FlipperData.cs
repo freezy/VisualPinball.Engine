@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 14)]
-		public string Name;
+		public string Name = string.Empty;
 
 		[BiffFloat("BASR", Pos = 2)]
 		public float BaseRadius = 21.5f;
@@ -141,6 +141,14 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		[BiffInt("TMIN", Pos = 11)]
 		public int TimerInterval;
+
+
+		// -----------------
+		// new fields by VPE
+		// -----------------
+
+		[BiffBool("DWND", Pos = 100)]
+		public bool IsDualWound;
 
 		public float OverrideMass;
 		public float OverrideStrength;

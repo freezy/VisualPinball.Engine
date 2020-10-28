@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		protected Matrix3D GetPostMatrix(Table.Table table, Origin origin)
+		internal Matrix3D GetPostMatrix(Table.Table table, Origin origin)
 		{
 			switch (origin) {
 				case Origin.Original: return GetTransformationMatrix(table).Item1;

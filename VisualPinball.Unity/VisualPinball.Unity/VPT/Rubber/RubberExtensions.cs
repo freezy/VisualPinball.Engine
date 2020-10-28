@@ -14,19 +14,51 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
 	internal static class RubberExtensions
 	{
-		public static RubberAuthoring SetupGameObject(this Engine.VPT.Rubber.Rubber rubber, GameObject obj, RenderObjectGroup rog)
+		public static ConvertedItem SetupGameObject(this Rubber rubber, GameObject obj)
 		{
-			var ic = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+			var mainAuthoring = obj.AddComponent<RubberAuthoring>().SetItem(rubber);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			RubberColliderAuthoring colliderAuthoring = null;
+
+			switch (rubber.SubComponent) {
+				case ItemSubComponent.None: {
+					colliderAuthoring = obj.AddColliderComponent(rubber);
+					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
+					break;
+				}
+
+				case ItemSubComponent.Collider: {
+					colliderAuthoring = obj.AddColliderComponent(rubber);
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					meshAuthoring.Add(obj.AddComponent<RubberMeshAuthoring>());
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
 			obj.AddComponent<ConvertToEntity>();
-			return ic as RubberAuthoring;
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+		}
+
+		private static RubberColliderAuthoring AddColliderComponent(this GameObject obj, Rubber rubber)
+		{
+			return rubber.Data.IsCollidable ? obj.AddComponent<RubberColliderAuthoring>() : null;
 		}
 	}
 }

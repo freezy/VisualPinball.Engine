@@ -26,10 +26,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class FlipperMeshGenerator : MeshGenerator
 	{
-		public const string BaseName = "Base";
-		public const string RubberName = "Rubber";
+		public const string Base = "Base";
+		public const string Rubber = "Rubber";
 
-		private static readonly Mesh FlipperBaseMesh = new Mesh(BaseName, FlipperBase.Vertices, FlipperBase.Indices);
+		private static readonly Mesh FlipperBaseMesh = new Mesh(Base, FlipperBase.Vertices, FlipperBase.Indices);
 
 		private readonly FlipperData _data;
 
@@ -42,6 +42,32 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		{
+			var meshes = GenerateMeshes(table);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			switch (id) {
+				case Base:
+					return new RenderObject(
+						id,
+						meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
+						new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+						_data.IsVisible
+					);
+				case Rubber:
+					if (meshes.ContainsKey(Rubber)) {
+						return new RenderObject(
+							id,
+							meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
+							new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
+							_data.IsVisible
+						);
+					}
+					break;
+			}
+			return null;
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table);
@@ -49,19 +75,19 @@ namespace VisualPinball.Engine.VPT.Flipper
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
-					BaseName,
-					meshes[BaseName].Transform(preVertexMatrix, preNormalsMatrix),
+					Base,
+					meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
 					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 					_data.IsVisible
 				)
 			};
 
-			if (meshes.ContainsKey(RubberName)) {
+			if (meshes.ContainsKey(Rubber)) {
 				renderObjects.Add(new RenderObject(
-					name: RubberName,
-					mesh: meshes[RubberName].Transform(preVertexMatrix, preNormalsMatrix),
-					material: new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
-					isVisible: _data.IsVisible
+					Rubber,
+					meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
+					new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
+					_data.IsVisible
 				));
 			}
 
@@ -119,7 +145,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			}
 
 			// base and tip
-			var baseMesh = FlipperBaseMesh.Clone(BaseName);
+			var baseMesh = FlipperBaseMesh.Clone(Base);
 			for (var t = 0; t < 13; t++)
 			{
 				foreach (var v in baseMesh.Vertices)
@@ -147,12 +173,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 			}
 
 			baseMesh.Transform(fullMatrix, null, z => z * _data.Height * table.GetScaleZ() + height);
-			meshes[BaseName] = baseMesh;
+			meshes[Base] = baseMesh;
 
 			// rubber
 			if (_data.RubberThickness > 0.0)
 			{
-				var rubberMesh = FlipperBaseMesh.Clone(RubberName);
+				var rubberMesh = FlipperBaseMesh.Clone(Rubber);
 				for (var t = 0; t < 13; t++)
 				{
 					foreach (var v in rubberMesh.Vertices)
@@ -181,7 +207,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 				rubberMesh.Transform(fullMatrix, null,
 					z => z * _data.RubberWidth * table.GetScaleZ() + (height + _data.RubberHeight));
-				meshes[RubberName] = rubberMesh;
+				meshes[Rubber] = rubberMesh;
 			}
 
 			return meshes;

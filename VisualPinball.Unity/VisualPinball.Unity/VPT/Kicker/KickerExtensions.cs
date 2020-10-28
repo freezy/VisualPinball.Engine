@@ -14,19 +14,49 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Kicker;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class KickerExtensions
 	{
-		public static KickerAuthoring SetupGameObject(this Engine.VPT.Kicker.Kicker kicker, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this Kicker kicker, GameObject obj)
 		{
-			var ic = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
+			var mainAuthoring = obj.AddComponent<KickerAuthoring>().SetItem(kicker);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			KickerColliderAuthoring colliderAuthoring = null;
+
+			switch (kicker.SubComponent) {
+				case ItemSubComponent.None:
+					colliderAuthoring = obj.AddComponent<KickerColliderAuthoring>();
+					meshAuthoring.Add(obj.AddComponent<KickerMeshAuthoring>());
+					break;
+
+				case ItemSubComponent.Collider: {
+					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as KickerAuthoring;
+
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
 		}
 	}
 }

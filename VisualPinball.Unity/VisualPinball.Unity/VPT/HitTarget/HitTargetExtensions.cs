@@ -14,19 +14,54 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.HitTarget;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	internal static class HitTargetExtensions
 	{
-		public static HitTargetAuthoring SetupGameObject(this Engine.VPT.HitTarget.HitTarget hitTarget, GameObject obj, RenderObjectGroup rog)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public static ConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj)
 		{
-			var ic = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
+			var mainAuthoring = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
+			var meshAuthoring = new List<IItemMeshAuthoring>();
+			HitTargetColliderAuthoring colliderAuthoring = null;
+
+			switch (hitTarget.SubComponent) {
+				case ItemSubComponent.None:
+					colliderAuthoring = obj.AddColliderComponent(hitTarget);
+					meshAuthoring.Add(obj.AddComponent<HitTargetMeshAuthoring>());
+					break;
+
+				case ItemSubComponent.Collider: {
+					Logger.Warn("Cannot parent a target collider to a different object than a target!");
+					break;
+				}
+
+				case ItemSubComponent.Mesh: {
+					Logger.Warn("Cannot parent a target mesh to a different object than a target!");
+					break;
+				}
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			obj.AddComponent<ConvertToEntity>();
-			return ic as HitTargetAuthoring;
+
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+		}
+
+		private static HitTargetColliderAuthoring AddColliderComponent(this GameObject obj, HitTarget hitTarget)
+		{
+			return hitTarget.Data.IsCollidable ? obj.AddComponent<HitTargetColliderAuthoring>() : null;
 		}
 	}
 }

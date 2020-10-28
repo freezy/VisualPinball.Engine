@@ -46,6 +46,17 @@ namespace VisualPinball.Engine.VPT.Kicker
 			_data = data;
 		}
 
+		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		{
+			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			return new RenderObject(
+				_data.Name,
+				GetBaseMesh().Transform(preMatrix),
+				new PbrMaterial(table.GetMaterial(_data.Material)),
+				_data.KickerType != KickerType.KickerInvisible
+			);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);

@@ -22,9 +22,15 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Gate
 {
-	public class Gate : Item<GateData>, IRenderable, IHittable
+	public class Gate : Item<GateData>, IRenderable, IHittable, ISwitchable
 	{
-		public override string ItemType => "Gate";
+		public override string ItemName { get; } = "Gate";
+		public override string ItemGroupName { get; } = "Gates";
+
+		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
+		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+
+		public bool IsPulseSwitch => true;
 
 		private readonly GateMeshGenerator _meshGenerator;
 		private readonly GateHitGenerator _hitGenerator;
@@ -59,10 +65,21 @@ namespace VisualPinball.Engine.VPT.Gate
 			_hitCircles = _hitGenerator.GenerateBracketHits(height, tangent, this);
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
+
+		#endregion
 
 		public HitObject[] GetHitShapes()
 		{

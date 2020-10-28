@@ -32,6 +32,7 @@ namespace VisualPinball.Unity
 		public ItemType ItemType;
 		public int Id;
 		public Entity Entity;
+		public Entity ParentEntity;
 		public PhysicsMaterialData Material;
 
 		public float Threshold;
@@ -56,12 +57,15 @@ namespace VisualPinball.Unity
 		public void Init(ColliderType type, HitObject src)
 		{
 			if (src.ItemIndex == 0 && src.ItemVersion == 0) {
-				throw new InvalidOperationException("Entity of " + type + " " + src.GetType().Name + " not set!");
+				throw new InvalidOperationException("Entity of " + type + " " + ItemType + " not set!");
 			}
 			Type = type;
 			ItemType = src.ObjType;
 			Id = src.Id;
 			Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
+			ParentEntity = src.ParentItemIndex > 0 || src.ParentItemVersion > 0
+				? new Entity {Index = src.ParentItemIndex, Version = src.ParentItemVersion}
+				: Entity;
 			Material = new PhysicsMaterialData {
 				Elasticity = src.Elasticity,
 				ElasticityFalloff = src.ElasticityFalloff,

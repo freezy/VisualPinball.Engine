@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		[NonSerialized]
-		public DefaultGamelogicEngine GameEngine;
+		public IGamelogicEngine GameEngine;
 
 		[NonSerialized]
 		public BallManager BallManager;
@@ -65,7 +65,8 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
-		private readonly Dictionary<string, IApiSwitchable> _switchables = new Dictionary<string, IApiSwitchable>();
+		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
+		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -73,7 +74,8 @@ namespace VisualPinball.Unity
 		private InputManager _inputManager;
 
 		[NonSerialized]
-		private readonly Dictionary<string, List<string>> _keyBindings = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, List<string>> _keyAssignments = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, List<Tuple<string, bool>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool>>>();
 
 		public Player()
 		{
@@ -85,9 +87,9 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			var engineComponent = GetComponent<DefaultGameEngineAuthoring>();
+			var engineComponent = GetComponent<IGameEngineAuthoring>();
 
-			Table = tableComponent.CreateTable();
+			Table = tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 
@@ -102,10 +104,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private void Update()
+		{
+			GameEngine?.OnUpdate();
+		}
+
 		private void OnDestroy()
 		{
-			if (_keyBindings.Count > 0) {
+			if (_keyAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
+			}
+			if (_coilAssignments.Count > 0) {
+				(GameEngine as IGamelogicEngineWithCoils).OnCoilChanged -= HandleCoilEvent;
 			}
 			GameEngine?.OnDestroy();
 		}
@@ -115,6 +125,7 @@ namespace VisualPinball.Unity
 
 			// hook up mapping configuration
 			SetupSwitchMapping();
+			SetupCoilMapping();
 
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
@@ -126,61 +137,6 @@ namespace VisualPinball.Unity
 			foreach (var i in _initializables) {
 				i.OnInit(BallManager);
 			}
-
-			// _inputManager.Enable((obj, change) => {
-			// 	switch (change)
-			// 	{
-			// 		case InputActionChange.ActionStarted:
-			// 		case InputActionChange.ActionCanceled:
-			// 			var action = (InputAction)obj;
-			//
-			// 			if (action.name == "Left Flipper")
-			// 			{
-			// 				if (change == InputActionChange.ActionStarted)
-			// 				{
-			// 					_tableApi.Flipper("LeftFlipper")?.RotateToEnd();
-			// 				}
-			// 				else if (change == InputActionChange.ActionCanceled)
-			// 				{
-			// 					_tableApi.Flipper("LeftFlipper")?.RotateToStart();
-			// 				}
-			// 			}
-			// 			else if (action.name == "Right Flipper")
-			// 			{
-			// 				if (change == InputActionChange.ActionStarted)
-			// 				{
-			// 					_tableApi.Flipper("RightFlipper")?.RotateToEnd();
-			// 				}
-			// 				else if (change == InputActionChange.ActionCanceled)
-			// 				{
-			// 					_tableApi.Flipper("RightFlipper")?.RotateToStart();
-			// 				}
-			// 			}
-			// 			else if (action.name == "Plunger")
-			// 			{
-			// 				if (change == InputActionChange.ActionStarted)
-			// 				{
-			// 					_tableApi.Plunger("Plunger")?.PullBack();
-			// 				}
-			// 				else if (change == InputActionChange.ActionCanceled)
-			// 				{
-			// 					_tableApi.Plunger("Plunger")?.Fire();
-			// 				}
-			// 			}
-			// 			else if (action.name == InputManager.VPE_ACTION_CREATE_BALL)
-			// 			{
-			// 				_ballManager.CreateBall(new DebugBallCreator());
-			// 			}
-			// 			else if (action.name == InputManager.VPE_ACTION_KICKER)
-			// 			{
-			// 				_tableApi.Kicker("Kicker1").CreateBall();
-			// 				_tableApi.Kicker("Kicker1").Kick(0, -1);
-			// 			}
-			//
-			// 			Debug.Log($"{((InputAction)obj).name} {change}");
-			// 			break;
-			// 	}
-			// });
 		}
 
 		#endregion
@@ -193,7 +149,8 @@ namespace VisualPinball.Unity
 			_tableApi.Bumpers[bumper.Name] = bumperApi;
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
-			_switchables[bumper.Name] = bumperApi;
+			_switches[bumper.Name] = bumperApi;
+			_coils[bumper.Name] = bumperApi;
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -204,6 +161,8 @@ namespace VisualPinball.Unity
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;
+			_switches[flipper.Name] = flipperApi;
+			_coils[flipper.Name] = flipperApi;
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -217,7 +176,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
-			_switchables[gate.Name] = gateApi;
+			_switches[gate.Name] = gateApi;
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
@@ -226,7 +185,7 @@ namespace VisualPinball.Unity
 			_tableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
-			_switchables[hitTarget.Name] = hitTargetApi;
+			_switches[hitTarget.Name] = hitTargetApi;
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -235,7 +194,8 @@ namespace VisualPinball.Unity
 			_tableApi.Kickers[kicker.Name] = kickerApi;
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
-			_switchables[kicker.Name] = kickerApi;
+			_switches[kicker.Name] = kickerApi;
+			_coils[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -244,6 +204,15 @@ namespace VisualPinball.Unity
 			_tableApi.Plungers[plunger.Name] = plungerApi;
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
+			_coils[plunger.Name] = plungerApi;
+		}
+
+		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
+		{
+			var primitiveApi = new PrimitiveApi(primitive, entity, this);
+			_tableApi.Primitives[primitive.Name] = primitiveApi;
+			_initializables.Add(primitiveApi);
+			_hittables[entity] = primitiveApi;
 		}
 
 		public void RegisterRamp(Ramp ramp, Entity entity, GameObject go)
@@ -277,7 +246,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
-			_switchables[spinner.Name] = spinnerApi;
+			_switches[spinner.Name] = spinnerApi;
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
@@ -286,61 +255,86 @@ namespace VisualPinball.Unity
 			_tableApi.Triggers[trigger.Name] = triggerApi;
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
-			_switchables[trigger.Name] = triggerApi;
-		}
-
-		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
-		{
-			var primitiveApi = new PrimitiveApi(primitive, entity, this);
-			_tableApi.Primitives[primitive.Name] = primitiveApi;
-			_initializables.Add(primitiveApi);
-			_hittables[entity] = primitiveApi;
+			_switches[trigger.Name] = triggerApi;
 		}
 
 		#endregion
 
 		#region Mapping
 
+		private void SetupCoilMapping()
+		{
+			if (GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+				var config = Table.Mappings;
+				_coilAssignments.Clear();
+				foreach (var coilData in config.Data.Coils) {
+					switch (coilData.Destination) {
+						case CoilDestination.Playfield:
+							if (!_coilAssignments.ContainsKey(coilData.Id)) {
+								_coilAssignments[coilData.Id] = new List<Tuple<string, bool>>();
+							}
+							_coilAssignments[coilData.Id].Add(new Tuple<string, bool>(coilData.PlayfieldItem, false));
+							if (coilData.Type == CoilType.DualWound) {
+								if (!_coilAssignments.ContainsKey(coilData.HoldCoilId)) {
+									_coilAssignments[coilData.HoldCoilId] = new List<Tuple<string, bool>>();
+								}
+								_coilAssignments[coilData.HoldCoilId].Add(new Tuple<string, bool>(coilData.PlayfieldItem, true));
+
+							}
+							break;
+
+						case CoilDestination.Device:
+							// todo
+							break;
+					}
+				}
+
+				if (_coilAssignments.Count > 0) {
+					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
+				}
+			}
+		}
+
 		private void SetupSwitchMapping()
 		{
 			// hook-up game switches
 			if (GameEngine is IGamelogicEngineWithSwitches) {
 
-				var config = Table.MappingConfigs["Switch"];
-				_keyBindings.Clear();
-				foreach (var mappingEntry in config.Data.MappingEntries) {
-					switch (mappingEntry.Source) {
+				var config = Table.Mappings;
+				_keyAssignments.Clear();
+				foreach (var switchData in config.Data.Switches) {
+					switch (switchData.Source) {
 
 						case SwitchSource.Playfield
-							when !string.IsNullOrEmpty(mappingEntry.PlayfieldItem)
-							     && _switchables.ContainsKey(mappingEntry.PlayfieldItem):
+							when !string.IsNullOrEmpty(switchData.PlayfieldItem)
+							     && _switches.ContainsKey(switchData.PlayfieldItem):
 						{
-							var element = _switchables[mappingEntry.PlayfieldItem];
-							element.AddSwitchId(mappingEntry.Id);
+							var element = _switches[switchData.PlayfieldItem];
+							element.AddSwitchId(switchData.Id, switchData.PulseDelay);
 							break;
 						}
 
 						case SwitchSource.InputSystem:
-							if (!_keyBindings.ContainsKey(mappingEntry.InputAction)) {
-								_keyBindings[mappingEntry.InputAction] = new List<string>();
+							if (!_keyAssignments.ContainsKey(switchData.InputAction)) {
+								_keyAssignments[switchData.InputAction] = new List<string>();
 							}
-							_keyBindings[mappingEntry.InputAction].Add(mappingEntry.Id);
+							_keyAssignments[switchData.InputAction].Add(switchData.Id);
 							break;
 
 						case SwitchSource.Playfield:
-							Logger.Warn($"Cannot find switch \"{mappingEntry.PlayfieldItem}\" on playfield!");
+							Logger.Warn($"Cannot find switch \"{switchData.PlayfieldItem}\" on playfield!");
 							break;
 
 						case SwitchSource.Constant:
 							break;
 
 						default:
-							Logger.Warn($"Unknown switch source \"{mappingEntry.Source}\".");
+							Logger.Warn($"Unknown switch source \"{switchData.Source}\".");
 							break;
 					}
 				}
 
-				if (_keyBindings.Count > 0) {
+				if (_keyAssignments.Count > 0) {
 					_inputManager.Enable(HandleKeyInput);
 				}
 			}
@@ -354,8 +348,8 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction) obj;
-					if (_keyBindings.ContainsKey(action.name)) {
-						foreach (var switchId in _keyBindings[action.name]) {
+					if (_keyAssignments.ContainsKey(action.name)) {
+						foreach (var switchId in _keyAssignments[action.name]) {
 							engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
 						}
 					} else {
@@ -364,6 +358,24 @@ namespace VisualPinball.Unity
 					break;
 			}
 		}
+
+		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
+		{
+			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
+				foreach (var (itemName, isHoldCoil) in _coilAssignments[coilEvent.Id]) {
+					if (_coils.ContainsKey(itemName)) {
+						_coils[itemName].OnCoil(coilEvent.IsEnabled, isHoldCoil);
+					} else {
+						Logger.Warn($"Should trigger unknown coil item {itemName}.");
+					}
+				}
+
+			} else {
+				var what = coilEvent.IsEnabled ? "turn on" : "turn off";
+				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
+			}
+		}
+
 
 		#endregion
 
