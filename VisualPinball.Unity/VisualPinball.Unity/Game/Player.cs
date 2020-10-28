@@ -37,6 +37,7 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -44,6 +45,7 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
+		public TableApi TableApi { get { return _tableApi; } }
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -258,6 +260,12 @@ namespace VisualPinball.Unity
 			_switches[trigger.Name] = triggerApi;
 		}
 
+		public void RegisterTrough(Trough trough, Entity entity, GameObject go)
+		{
+			var troughApi = new TroughApi(trough, entity, this);
+			_initializables.Add(troughApi);
+		}
+		
 		#endregion
 
 		#region Mapping

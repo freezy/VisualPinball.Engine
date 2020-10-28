@@ -16,18 +16,22 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
-	public class TroughApi : ItemApi<Engine.VPT.Trough.Trough, Engine.VPT.Trough.TroughData>,
+	public class TroughApi : ItemApi<Trough, TroughData>,
 		IApiInitializable
 	{
+		private KickerApi _entryKicker;
+		private KickerApi _exitKicker;
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
-		internal TroughApi(Engine.VPT.Trough.Trough item, Entity entity, Player player) : base(item, entity, player)
+		internal TroughApi(Trough item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
 
@@ -35,7 +39,30 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			_entryKicker = TableApi.Kicker(Data.EntryKicker);
+			_exitKicker = TableApi.Kicker(Data.ExitKicker);
+
+			if (_entryKicker != null)
+			{
+				_entryKicker.Hit += OnEntryKickerHit;
+			}
+
+			if (_exitKicker != null)
+			{
+				_exitKicker.Hit += OnExitKickerFire;
+			}
+		
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+		
+		void OnEntryKickerHit(object sender, EventArgs args)
+		{
+			(sender as KickerApi)?.DestroyBall();
+		}
+		
+		void OnExitKickerFire(object sender, EventArgs args)
+		{
+			(sender as KickerApi)?.CreateBall();
 		}
 
 		#endregion
