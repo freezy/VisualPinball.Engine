@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant" };
+		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant", "Device" };
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
 
 		private struct InputSystemEntry
@@ -47,14 +47,16 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches;
 		private readonly Dictionary<string, ISwitchAuthoring> _switches;
+		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices;
 		private readonly InputManager _inputManager;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, Dictionary<string, ISwitchAuthoring> switches, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, Dictionary<string, ISwitchAuthoring> switches, Dictionary<string, ISwitchDeviceAuthoring> switchDevices, InputManager inputManager)
 		{
 			_gleSwitches = gleSwitches;
 			_switches = switches;
+			_switchDevices = switchDevices;
 			_inputManager = inputManager;
 		}
 
@@ -180,6 +182,13 @@ namespace VisualPinball.Unity.Editor
 				case SwitchSource.Constant:
 					RenderConstantElement(switchListData, cellRect, updateAction);
 					break;
+
+				case SwitchSource.Device:
+					cellRect.width = cellRect.width / 2f - 5f;
+					RenderDeviceElement(tableAuthoring, switchListData, cellRect, updateAction);
+					cellRect.x += cellRect.width + 10f;
+					RenderDeviceItemElement(switchListData, cellRect, updateAction);
+					break;
 			}
 		}
 
@@ -262,6 +271,48 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void RenderDeviceElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			if (GUI.Button(cellRect, switchListData.Device, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
+			{
+				if (_itemPickDropdownState == null) {
+					_itemPickDropdownState = new AdvancedDropdownState();
+				}
+
+				var dropdown = new ItemSearchableDropdown<ISwitchDeviceAuthoring>(
+					_itemPickDropdownState,
+					tableAuthoring,
+					"Switch Devices",
+					item => {
+						switchListData.Device = item.Name;
+						updateAction(switchListData);
+					}
+				);
+				dropdown.Show(cellRect);
+			}
+		}
+
+		private void RenderDeviceItemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(switchListData.Device));
+			var switchLabels = new string[0];
+			ISwitchDeviceAuthoring switchDevice = null;
+			if (!string.IsNullOrEmpty(switchListData.Device)) {
+				switchDevice = _switchDevices[switchListData.Device.ToLower()];
+				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
+			}
+			EditorGUI.BeginChangeCheck();
+			var index = EditorGUI.Popup(cellRect, switchListData.DeviceItemIndex, switchLabels);
+			if (EditorGUI.EndChangeCheck() && switchDevice != null) {
+				if (switchListData.DeviceItemIndex != index) {
+					switchListData.DeviceItemIndex = index;
+					switchListData.DeviceItem = switchDevice.AvailableSwitches[index].Id;
+					updateAction(switchListData);
+				}
+			}
+			EditorGUI.EndDisabledGroup();
+		}
+
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == SwitchSource.Playfield && _switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
@@ -294,16 +345,22 @@ namespace VisualPinball.Unity.Editor
 			switch (switchListData.Source) {
 				case SwitchSource.Playfield: {
 					if (_switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_switches[switchListData.PlayfieldItem.ToLower()], size: IconSize.Small);
+						icon = Icons.ByComponent(_switches[switchListData.PlayfieldItem.ToLower()], IconSize.Small);
 					}
 					break;
 				}
 				case SwitchSource.Constant:
-					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, size: IconSize.Small);
+					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:
 					icon = Icons.Key(IconSize.Small);
+					break;
+
+				case SwitchSource.Device:
+					if (_switchDevices.ContainsKey(switchListData.Device.ToLower())) {
+						icon = Icons.ByComponent(_switchDevices[switchListData.Device.ToLower()], IconSize.Small);
+					}
 					break;
 			}
 
