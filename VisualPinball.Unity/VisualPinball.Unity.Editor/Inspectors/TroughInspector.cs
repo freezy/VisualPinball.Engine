@@ -18,6 +18,7 @@
 
 using UnityEditor;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -32,7 +33,8 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				//ItemDataField("", ref _trough.data.Entrance);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", ref Data.EntryKicker);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", ref Data.ExitKicker);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
