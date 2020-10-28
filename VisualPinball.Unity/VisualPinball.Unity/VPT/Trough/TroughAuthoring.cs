@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trough")]
 	public class TroughAuthoring : ItemAuthoring<Trough, TroughData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => new[] { "Entrance", "Exit" };
+		protected override string[] Children => null;
 
 		protected override Trough GetItem() => new Trough(data);
 
@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
+
 			dstManager.AddComponentData(entity, new TroughStaticData
 			{
 				BallCount = data.BallCount,

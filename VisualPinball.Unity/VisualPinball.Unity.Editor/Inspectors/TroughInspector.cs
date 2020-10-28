@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -36,7 +37,8 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				//ItemDataField("", ref _trough.data.Entrance);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", ref _trough.data.EntryKicker);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", ref _trough.data.ExitKicker);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

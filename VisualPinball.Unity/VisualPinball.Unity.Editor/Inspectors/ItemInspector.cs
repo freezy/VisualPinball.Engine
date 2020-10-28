@@ -18,7 +18,9 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
@@ -26,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 	public abstract class ItemInspector : UnityEditor.Editor
     {
 		protected TableAuthoring _table;
-		protected SurfaceAuthoring _surface;
+		protected MonoBehaviour _item;
 
 		protected string[] _allMaterials = new string[0];
 		protected string[] _allTextures = new string[0];
@@ -210,27 +212,34 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
+		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, ref string field, bool dirtyMesh = true)
+			where TItemAuthoring : ItemAuthoring<TItem, TData>
+			where TData : ItemData where TItem : Item<TData>, IRenderable
 		{
-			if (_surface?.name != field) {
-				_surface = null;
+			if (_item?.name != field) {
+				_item = null;
 			}
 
 			var mb = target as MonoBehaviour;
-			if (_surface == null && _table != null) {
+			if (_item == null && _table != null) {
 				string currentFieldName = field;
-				if (currentFieldName != null && _table.Table.Has<Surface>(currentFieldName)) {
-					_surface = _table.gameObject.GetComponentsInChildren<SurfaceAuthoring>(true)
+				if (currentFieldName != null && _table.Table.Has<TItem>(currentFieldName)) {
+					_item = _table.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}
 			}
 
 			EditorGUI.BeginChangeCheck();
-			_surface = (SurfaceAuthoring)EditorGUILayout.ObjectField(label, _surface, typeof(SurfaceAuthoring), true);
+			_item = (TItemAuthoring)EditorGUILayout.ObjectField(label, _item, typeof(TItemAuthoring), true);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
-				field = _surface != null ? _surface.name : "";
+				field = _item != null ? _item.name : "";
 			}
+		}
+
+		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
+		{
+			ItemReferenceField<SurfaceAuthoring, Surface, SurfaceData>(label, ref field, dirtyMesh);
 		}
 
 		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true) where T : IEquatable<T>
