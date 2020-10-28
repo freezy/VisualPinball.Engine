@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 
 		protected TData Data => Item.Data;
 		protected Table Table => _player.Table;
+		protected TableApi TableApi => _player.TableApi;
 
 		protected readonly EntityManager EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
