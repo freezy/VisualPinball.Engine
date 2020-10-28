@@ -21,13 +21,14 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
 	{
 		private TableAuthoring _table;
-		private SurfaceAuthoring _surface;
+		private MonoBehaviour _item;
 
 		private string[] _allMaterials = new string[0];
 		private string[] _allTextures = new string[0];
@@ -238,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, ref string field, bool dirtyMesh = true)
-			where TItemAuthoring : ItemAuthoring<TItem, TData>
+			where TItemAuthoring : ItemMainAuthoring<TItem, TData>
 			where TData : ItemData where TItem : Item<TData>, IRenderable
 		{
 			if (_item?.name != field) {

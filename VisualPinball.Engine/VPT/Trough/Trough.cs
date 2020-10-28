@@ -16,12 +16,17 @@
 
 using System.IO;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Trough
 {
 	public class Trough : Item<TroughData>, IRenderable
 	{
-		public override string ItemType => "Trough";
+		public override string ItemName { get; } = "Trough";
+		public override string ItemGroupName { get; } = "Troughs";
+
+		public Vertex3D Position { get => Vertex3D.Zero; set { } }
+		public float RotationY { get => 0f; set { } }
 
 		public Trough(TroughData data) : base(data)
 		{
@@ -31,9 +36,23 @@ namespace VisualPinball.Engine.VPT.Trough
 		{
 		}
 
+		#region IRenderable
+
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin)
+		{
+			return Matrix3D.Identity;
+		}
+
+		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
+		{
+			return null;
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			return new RenderObjectGroup(Data.Name, "trough", Math.Matrix3D.Identity, new RenderObject[0]);
 		}
+
+		#endregion
 	}
 }

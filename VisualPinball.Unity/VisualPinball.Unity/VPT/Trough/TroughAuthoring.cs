@@ -20,29 +20,24 @@
 // ReSharper disable MemberCanBePrivate.Global
 #endregion
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trough")]
-	public class TroughAuthoring : ItemAuthoring<Trough, TroughData>, IConvertGameObjectToEntity
+	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, IConvertGameObjectToEntity
 	{
-		protected override string[] Children => null;
+		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 
-		protected override Trough GetItem() => new Trough(data);
+		protected override Type MeshAuthoringType { get; } = null;
+		protected override Type ColliderAuthoringType { get; } = null;
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Trough>(Name);
-			}
-		}
+		public override IEnumerable<Type> ValidParents => new Type[0];
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -50,10 +45,19 @@ namespace VisualPinball.Unity
 
 			dstManager.AddComponentData(entity, new TroughStaticData
 			{
-				BallCount = data.BallCount,
-				SwitchCount = data.SwitchCount,
-				SettleTime = data.SettleTime
+				BallCount = Data.BallCount,
+				SwitchCount = Data.SwitchCount,
+				SettleTime = Data.SettleTime
 			});
+
+			// register
+			transform.GetComponentInParent<Player>().RegisterTrough(Item, entity, gameObject);
+		}
+
+		public override void Restore()
+		{
+			// update the name
+			Item.Name = name;
 		}
 
 		//public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

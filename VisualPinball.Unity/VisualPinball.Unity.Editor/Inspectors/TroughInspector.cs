@@ -37,15 +37,15 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", ref _trough.data.EntryKicker);
-				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", ref _trough.data.ExitKicker);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", ref _trough.Data.EntryKicker);
+				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", ref _trough.Data.ExitKicker);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Max Balls", ref _trough.data.BallCount, dirtyMesh: false);
-				ItemDataField("Switch Count", ref _trough.data.SwitchCount, dirtyMesh: false);
-				ItemDataField("Settle Time", ref _trough.data.SettleTime, dirtyMesh: false);
+				ItemDataField("Max Balls", ref _trough.Data.BallCount, dirtyMesh: false);
+				ItemDataField("Switch Count", ref _trough.Data.SwitchCount, dirtyMesh: false);
+				ItemDataField("Settle Time", ref _trough.Data.SettleTime, dirtyMesh: false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
