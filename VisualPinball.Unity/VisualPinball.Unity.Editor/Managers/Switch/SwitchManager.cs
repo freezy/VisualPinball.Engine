@@ -41,6 +41,7 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches = new List<GamelogicEngineSwitch>();
 		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
+		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices = new Dictionary<string, ISwitchDeviceAuthoring>();
 
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
@@ -72,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _switches, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _switches, _switchDevices, _inputManager);
 			_needsAssetRefresh = true;
 
 			base.OnFocus();
@@ -201,12 +202,14 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitches()
 		{
 			_switches.Clear();
+			_switchDevices.Clear();
 
-			if (_tableAuthoring != null)
-			{
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>())
-				{
+			if (_tableAuthoring != null) {
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>()) {
 					_switches.Add(item.Name.ToLower(), item);
+				}
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchDeviceAuthoring>()) {
+					_switchDevices.Add(item.Name.ToLower(), item);
 				}
 			}
 		}

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class CoilListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield" };
+		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield", "Device" };
 		private readonly string[] OPTIONS_COIL_TYPE = { "Single-Wound", "Dual-Wound" };
 
 		private enum CoilListColumn

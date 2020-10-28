@@ -55,13 +55,14 @@ namespace VisualPinball.Unity.Editor
 		private const string TableName = "table";
 		private const string HitTargetName = "target";
 		private const string TriggerName = "trigger";
+		private const string TroughName = "trough";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
 			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName, PlungerName,
 			PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName,
-			SwitchNcName, SwitchNoName
+			TroughName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -108,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
 		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
+		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
 		public static Texture2D Switch(bool normallyClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(normallyClosed ? SwitchNcName : SwitchNoName, size, color);
 		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
@@ -130,6 +132,7 @@ namespace VisualPinball.Unity.Editor
 				case SurfaceAuthoring _: return Surface(size, color);
 				case HitTargetAuthoring _: return Target(size, color);
 				case TriggerAuthoring _: return Trigger(size, color);
+				case TroughAuthoring _: return Trough(size, color);
 				default: return null;
 			}
 		}

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 150)]
 		public int Source;
 
-		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
+		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 250)]
 		public string Element;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		public int Constant;
 		public string Device;
 		public string DeviceItem;
+		public int DeviceItemIndex;
 
 		public MappingsSwitchData MappingsSwitchData;
 
