@@ -295,18 +295,20 @@ namespace VisualPinball.Unity.Editor
 		private void RenderDeviceItemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(switchListData.Device));
+
+			var currentIndex = 0;
 			var switchLabels = new string[0];
 			ISwitchDeviceAuthoring switchDevice = null;
 			if (!string.IsNullOrEmpty(switchListData.Device) && _switchDevices.ContainsKey(switchListData.Device.ToLower())) {
 				switchDevice = _switchDevices[switchListData.Device.ToLower()];
 				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
+				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceItem).Count();
 			}
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, switchListData.DeviceItemIndex, switchLabels);
+			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
 			if (EditorGUI.EndChangeCheck() && switchDevice != null) {
-				if (switchListData.DeviceItemIndex != index) {
-					switchListData.DeviceItemIndex = index;
-					switchListData.DeviceItem = switchDevice.AvailableSwitches[index].Id;
+				if (currentIndex != newIndex) {
+					switchListData.DeviceItem = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
 					updateAction(switchListData);
 				}
 			}

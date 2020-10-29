@@ -19,6 +19,7 @@ namespace VisualPinball.Unity
 	public interface IApi
 	{
 		string Name { get; }
+		void OnDestroy();
 	}
 
 	internal interface IApiInitializable
@@ -54,6 +55,16 @@ namespace VisualPinball.Unity
 	internal interface IApiSwitch
 	{
 		void AddSwitchId(string switchId, int pulseDelay);
+	}
+
+	internal interface IApiSwitchDevice
+	{
+		IApiSwitch Switch(string switchId);
+	}
+
+	internal interface IApiCoilDevice
+	{
+		IApiCoil Coil(string coilId);
 	}
 
 	internal interface IApiCoil

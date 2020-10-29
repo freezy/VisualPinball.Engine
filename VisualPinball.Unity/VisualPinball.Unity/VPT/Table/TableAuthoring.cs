@@ -46,9 +46,10 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-
+using VisualPinball.Engine.VPT.Trough;
 using Logger = NLog.Logger;
 using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
+using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {
@@ -157,11 +158,9 @@ namespace VisualPinball.Unity
 		public Texture2D GetTexture(string name)
 		{
 			var lowerName = name.ToLower();
-			bool forceRecreate = false;
 			// check to see if the texture we're after has been flagged as dirty and thus needs to be recreated from table data
-			if (CheckDirty<Engine.VPT.Texture>(lowerName)) {
-				forceRecreate = true;
-			}
+			var forceRecreate = CheckDirty<Texture>(lowerName);
+
 			// don't need to recreate it, and we have the texture in cache
 			if (!forceRecreate && _unityTextures.ContainsKey(lowerName)) {
 				return _unityTextures[lowerName];
@@ -244,6 +243,7 @@ namespace VisualPinball.Unity
 			Restore<SpinnerAuthoring, Spinner, SpinnerData>(table);
 			Restore<SurfaceAuthoring, Engine.VPT.Surface.Surface, SurfaceData>(table);
 			Restore<TriggerAuthoring, Trigger, TriggerData>(table);
+			Restore<TroughAuthoring, Trough, TroughData>(table);
 
 			return table;
 		}

@@ -111,6 +111,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
 		private readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
 		private readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
+		private readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
 
 		public Bumper.Bumper Bumper(string name) => _bumpers[name];
 		public Decal.Decal Decal(int i) => _decals[i];
@@ -131,6 +132,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public TextBox.TextBox TextBox(string name) => _textBoxes[name];
 		public Timer.Timer Timer(string name) => _timers[name];
 		public Trigger.Trigger Trigger(string name) => _triggers[name];
+		public Trough.Trough Trough(string name) => _troughs[name];
 
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { this }
 			.Concat(_bumpers.Values)
@@ -166,9 +168,10 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_textBoxes.Values)
 			.Concat(_timers.Values)
-			.Concat(_triggers.Values);
+			.Concat(_triggers.Values)
+			.Concat(_troughs.Values);
 
-		public IEnumerable<ItemData> ItemDatas => new ItemData[] {}
+		public IEnumerable<ItemData> ItemDatas => new ItemData[] { }
 			.Concat(_bumpers.Values.Select(i => i.Data))
 			.Concat(_decals.Select(i => i.Data))
 			.Concat(_dispReels.Values.Select(i => i.Data))
@@ -187,7 +190,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values.Select(i => i.Data))
 			.Concat(_textBoxes.Values.Select(i => i.Data))
 			.Concat(_timers.Values.Select(i => i.Data))
-			.Concat(_triggers.Values.Select(i => i.Data));
+			.Concat(_triggers.Values.Select(i => i.Data))
+			.Concat(_troughs.Values.Select(i => i.Data));
 
 		public IEnumerable<IHittable> Hittables => new IHittable[] {this}
 			.Concat(_bumpers.Values)
@@ -203,7 +207,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values)
 			.SelectMany(ApplyColliderOverrides);
-
 
 		public IEnumerable<IPlayable> Playables => new IPlayable[0]
 			.Concat(_bumpers.Values)
@@ -228,11 +231,17 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_spinners.Values)
 			.Concat(_triggers.Values);
 
+		public IEnumerable<ISwitchableDevice> SwitchableDevices => new ISwitchableDevice[0]
+			.Concat(_troughs.Values);
+
 		public IEnumerable<ICoilable> Coilables => new ICoilable[0]
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_kickers.Values)
 			.Concat(_plungers.Values);
+
+		public IEnumerable<ICoilableDevice> CoilableDevices => new ICoilableDevice[0]
+			.Concat(_troughs.Values);
 
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
@@ -322,6 +331,10 @@ namespace VisualPinball.Engine.VPT.Table
 
 			if (typeof(T) == typeof(VPT.Trigger.Trigger)) {
 				return _triggers as Dictionary<string, T>;
+			}
+
+			if (typeof(T) == typeof(VPT.Trough.Trough)) {
+				return _troughs as Dictionary<string, T>;
 			}
 
 			return null;
@@ -521,6 +534,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
 		public bool IsCollidable => true;
+		public bool HasTrough => _troughs.Count > 0;
 
 		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
 		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);

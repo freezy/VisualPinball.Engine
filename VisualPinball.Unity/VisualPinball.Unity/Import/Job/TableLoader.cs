@@ -42,6 +42,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
@@ -141,6 +142,10 @@ namespace VisualPinball.Unity
 						}
 						case ItemType.Trigger: {
 							table.Add(objHandle.Target as Trigger);
+							break;
+						}
+						case ItemType.Trough: {
+							table.Add(objHandle.Target as Trough);
 							break;
 						}
 						default:

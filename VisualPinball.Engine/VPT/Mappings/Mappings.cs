@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NetVips;
+using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -28,6 +31,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 	{
 		public override string ItemName { get; } = "Mapping";
 		public override string ItemGroupName { get; } = "Mappings";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public Mappings() : this(new MappingsData("Mappings"))
 		{
@@ -49,9 +54,13 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		#region Switch Population
 
-		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, IEnumerable<ISwitchable> tableSwitches)
+		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, IEnumerable<ISwitchable> tableSwitches, IEnumerable<ISwitchableDevice> tableSwitchDevices)
 		{
 			var switches = tableSwitches
+				.GroupBy(x => x.Name.ToLower())
+				.ToDictionary(x => x.Key, x => x.First());
+
+			var switchDevices = tableSwitchDevices
 				.GroupBy(x => x.Name.ToLower())
 				.ToDictionary(x => x.Key, x => x.First());
 
@@ -64,6 +73,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 					var description = engineSwitch.Description ?? string.Empty;
 					var source = GuessSwitchSource(engineSwitch);
 					var playfieldItem = source == SwitchSource.Playfield ? GuessPlayfieldSwitch(switches, engineSwitch) : null;
+					var device = source == SwitchSource.Device ? GuessDevice(switchDevices, engineSwitch) : null;
+					var deviceItem = source == SwitchSource.Device && device != null ? GuessDeviceSwitch(engineSwitch, device) : default;
 					var inputActionMap = source == SwitchSource.InputSystem
 						? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
 						: string.Empty;
@@ -77,7 +88,9 @@ namespace VisualPinball.Engine.VPT.Mappings
 						Source = source,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 						InputActionMap = inputActionMap,
-						InputAction = inputAction
+						InputAction = inputAction,
+						Device = device != null ? device.Name : string.Empty,
+						DeviceItem = deviceItem.Id
 					});
 				}
 			}
@@ -105,7 +118,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 						Id = mappingsSwitchData.Id
 					});
 				}
-
 			}
 
 			ids.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
@@ -114,6 +126,10 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		private static int GuessSwitchSource(GamelogicEngineSwitch engineSwitch)
 		{
+			if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				return SwitchSource.Device;
+			}
+
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
@@ -137,6 +153,33 @@ namespace VisualPinball.Engine.VPT.Mappings
 			return switches.ContainsKey(matchKey) ? switches[matchKey] : null;
 		}
 
+		private static ISwitchableDevice GuessDevice(Dictionary<string, ISwitchableDevice> switchDevices, GamelogicEngineSwitch engineSwitch)
+		{
+			// match by regex if hint provided
+			if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				foreach (var deviceName in switchDevices.Keys) {
+					var regex = new Regex(engineSwitch.DeviceHint.ToLower());
+					if (regex.Match(deviceName).Success) {
+						return switchDevices[deviceName];
+					}
+				}
+			}
+			return null;
+		}
+
+		private static GamelogicEngineSwitch GuessDeviceSwitch(GamelogicEngineSwitch engineSwitch, ISwitchableDevice device)
+		{
+			if (!string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
+				foreach (var deviceSwitch in device.AvailableSwitches) {
+					var regex = new Regex(engineSwitch.DeviceItemHint.ToLower());
+					if (regex.Match(deviceSwitch.Id).Success) {
+						return deviceSwitch;
+					}
+				}
+			}
+			return default;
+		}
+
 		#endregion
 
 		#region Coil Population
@@ -147,9 +190,13 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
 		/// <param name="tableCoils">List of coils on the playfield</param>
-		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, IEnumerable<ICoilable> tableCoils)
+		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, IEnumerable<ICoilable> tableCoils, IEnumerable<ICoilableDevice> tableCoilDevices)
 		{
 			var coils = tableCoils
+				.GroupBy(x => x.Name.ToLower())
+				.ToDictionary(x => x.Key, x => x.First());
+
+			var coilDevices = tableCoilDevices
 				.GroupBy(x => x.Name.ToLower())
 				.ToDictionary(x => x.Key, x => x.First());
 
@@ -165,14 +212,19 @@ namespace VisualPinball.Engine.VPT.Mappings
 						continue;
 					}
 
+					var destination = GuessCoilDestination(engineCoil);
 					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
-					var playfieldItem = GuessPlayfieldCoil(coils, engineCoil);
+					var playfieldItem = destination == CoilDestination.Playfield ? GuessPlayfieldCoil(coils, engineCoil) : null;
+					var device = destination == CoilDestination.Device ? GuessDevice(coilDevices, engineCoil) : null;
+					var deviceItem = destination == CoilDestination.Device && device != null ? GuessDeviceCoil(engineCoil, device) : default;
 
 					Data.AddCoil(new MappingsCoilData {
 						Id = engineCoil.Id,
 						Description = description,
-						Destination = CoilDestination.Playfield,
+						Destination = destination,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+						Device = device != null ? device.Name : string.Empty,
+						DeviceItem = deviceItem.Id,
 						Type = CoilType.SingleWound
 					});
 				}
@@ -195,6 +247,38 @@ namespace VisualPinball.Engine.VPT.Mappings
 					});
 				}
 			}
+		}
+
+		private static int GuessCoilDestination(GamelogicEngineCoil engineCoil)
+		{
+			return !string.IsNullOrEmpty(engineCoil.DeviceHint) ? CoilDestination.Device : CoilDestination.Playfield;
+		}
+
+		private static ICoilableDevice GuessDevice(Dictionary<string, ICoilableDevice> coilDevices, GamelogicEngineCoil engineCoil)
+		{
+			// match by regex if hint provided
+			if (!string.IsNullOrEmpty(engineCoil.DeviceHint)) {
+				foreach (var deviceName in coilDevices.Keys) {
+					var regex = new Regex(engineCoil.DeviceHint.ToLower());
+					if (regex.Match(deviceName).Success) {
+						return coilDevices[deviceName];
+					}
+				}
+			}
+			return null;
+		}
+
+		private static GamelogicEngineCoil GuessDeviceCoil(GamelogicEngineCoil engineCoil, ICoilableDevice device)
+		{
+			if (!string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
+				foreach (var deviceCoil in device.AvailableCoils) {
+					var regex = new Regex(engineCoil.DeviceItemHint.ToLower());
+					if (regex.Match(deviceCoil.Id).Success) {
+						return deviceCoil;
+					}
+				}
+			}
+			return default;
 		}
 
 		/// <summary>

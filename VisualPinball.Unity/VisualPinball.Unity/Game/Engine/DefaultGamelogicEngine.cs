@@ -37,16 +37,29 @@ namespace VisualPinball.Unity
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
 		private const string SwRightFlipperEos = "s_right_flipper_eos";
+		private const string SwTrough1 = "s_trough1";
+		private const string SwTrough2 = "s_trough2";
+		private const string SwTrough3 = "s_trough3";
+		private const string SwTrough4 = "s_trough4";
+		private const string SwTrough5 = "s_trough5";
+		private const string SwTrough6 = "s_trough6";
+		private const string SwTroughJam = "s_trough_jam";
 		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
 
-		public GamelogicEngineSwitch[] AvailableSwitches { get; } =
-		{
+		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch { Id = SwLeftFlipper, Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
 			new GamelogicEngineSwitch { Id = SwRightFlipper, Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
 			new GamelogicEngineSwitch { Id = SwLeftFlipperEos, Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
 			new GamelogicEngineSwitch { Id = SwRightFlipperEos, Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
 			new GamelogicEngineSwitch { Id = SwPlunger, Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
+			new GamelogicEngineSwitch { Id = SwTrough1, Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
+			new GamelogicEngineSwitch { Id = SwTrough2, Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
+			new GamelogicEngineSwitch { Id = SwTrough3, Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
+			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
+			new GamelogicEngineSwitch { Id = SwTrough5, Description = "Trough 5", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "5"},
+			new GamelogicEngineSwitch { Id = SwTrough6, Description = "Trough 6 (entry)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "6"},
+			new GamelogicEngineSwitch { Id = SwTroughJam, Description = "Trough Jam", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "jam"},
 			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug }
 		};
 
@@ -55,14 +68,15 @@ namespace VisualPinball.Unity
 		private const string CoilRightFlipperMain = "c_flipper_right_main";
 		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilAutoPlunger = "c_auto_plunger";
+		private const string CoilTroughEject = "c_trough_eject";
 
-		public GamelogicEngineCoil[] AvailableCoils { get; } =
-		{
+		public GamelogicEngineCoil[] AvailableCoils { get; } = {
 			new GamelogicEngineCoil { Id = CoilLeftFlipperMain, Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
 			new GamelogicEngineCoil { Id = CoilLeftFlipperHold, MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
 			new GamelogicEngineCoil { Id = CoilRightFlipperMain, Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
 			new GamelogicEngineCoil { Id = CoilRightFlipperHold, MainCoilIdOfHoldCoil = CoilRightFlipperMain },
-			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" }
+			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" },
+			new GamelogicEngineCoil { Id = CoilTroughEject, Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "eject"}
 		};
 
 		private TableApi _tableApi;
@@ -153,6 +167,12 @@ namespace VisualPinball.Unity
 
 				case SwPlunger:
 					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilAutoPlunger, normallyClosed));
+					break;
+
+				case SwTrough6:
+					if (normallyClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
+					}
 					break;
 
 				case SwCreateBall: {

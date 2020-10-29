@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineCoil> _gleCoils = new List<GamelogicEngineCoil>();
 		private readonly Dictionary<string, ICoilAuthoring> _coils = new Dictionary<string, ICoilAuthoring>();
+		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices = new Dictionary<string, ICoilDeviceAuthoring>();
 
 		private CoilListViewItemRenderer _listViewItemRenderer;
 
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnFocus()
 		{
-			_listViewItemRenderer = new CoilListViewItemRenderer(_gleCoils, _coils);
+			_listViewItemRenderer = new CoilListViewItemRenderer(_gleCoils, _coils, _coilDevices);
 
 			base.OnFocus();
 		}
@@ -99,7 +100,7 @@ namespace VisualPinball.Unity.Editor
 				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all coil mappings");
-					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.Table.Coilables);
+					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.Table.Coilables, _tableAuthoring.Table.CoilableDevices);
 					Reload();
 				}
 			}
@@ -123,9 +124,6 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				coilListData.Update();
-
-				var coil = _tableAuthoring.Table.Coilables.FirstOrDefault(c => c.Name == coilListData.PlayfieldItem);
-				coil.IsDualWound = coilListData.Type == CoilType.DualWound;
 			});
 		}
 
@@ -193,12 +191,16 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoils()
 		{
 			_coils.Clear();
+			_coilDevices.Clear();
 
-			if (_tableAuthoring != null)
-			{
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>())
-				{
+			if (_tableAuthoring != null) {
+
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>()) {
 					_coils.Add(item.Name.ToLower(), item);
+				}
+
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>()) {
+					_coilDevices.Add(item.Name.ToLower(), item);
 				}
 			}
 		}

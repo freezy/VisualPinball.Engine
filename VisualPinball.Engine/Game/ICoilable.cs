@@ -19,6 +19,5 @@ namespace VisualPinball.Engine.Game
 	public interface ICoilable
 	{
 		string Name { get; }
-		bool IsDualWound { get; set; }
 	}
 }

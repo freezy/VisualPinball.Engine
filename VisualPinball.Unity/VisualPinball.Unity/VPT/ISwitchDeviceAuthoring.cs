@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+using System.Collections.Generic;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
@@ -27,6 +28,6 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available switches supported by the switch device
 		/// </summary>
-		GamelogicEngineSwitch[] AvailableSwitches { get; }
+		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
 	}
 }

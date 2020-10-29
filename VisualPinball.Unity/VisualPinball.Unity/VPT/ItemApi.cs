@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Switch;
 
 namespace VisualPinball.Unity
 {
@@ -32,24 +33,39 @@ namespace VisualPinball.Unity
 		protected Table Table => _player.Table;
 		protected TableApi TableApi => _player.TableApi;
 
-		protected readonly EntityManager EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+		protected EntityManager EntityManager;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;
 
+		protected ItemApi(T item, Player player)
+		{
+			Item = item;
+			Entity = Entity.Null;
+			_player = player;
+			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
+		}
+
 		protected ItemApi(T item, Entity entity, Player player)
 		{
+			EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			Item = item;
 			Entity = entity;
 			_player = player;
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
+		void IApi.OnDestroy()
+		{
+		}
+
 		#region IApiSwitchable
 
 		private List<SwitchConfig> _switchIds;
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
+
+		protected DeviceSwitch CreateSwitch(bool isPulseSwitch) => new DeviceSwitch(isPulseSwitch, _gamelogicEngineWithSwitches);
 
 		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay)
 		{
@@ -75,19 +91,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
-		private readonly struct SwitchConfig
-		{
-			public readonly string SwitchId;
-			public readonly int PulseDelay;
-			public readonly bool IsPulseSwitch;
-
-			public SwitchConfig(string switchId, bool isPulseSwitch, int pulseDelay)
-			{
-				SwitchId = switchId;
-				PulseDelay = pulseDelay;
-				IsPulseSwitch = isPulseSwitch;
-			}
-		}
 	}
 }

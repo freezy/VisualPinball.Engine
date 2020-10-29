@@ -22,11 +22,10 @@ namespace VisualPinball.Unity
 {
 	internal static class TroughExtensions
 	{
-		public static TroughAuthoring SetupGameObject(this Engine.VPT.Trough.Trough Trough, GameObject obj, RenderObjectGroup rog)
+		public static ConvertedItem SetupGameObject(this Engine.VPT.Trough.Trough trough, GameObject obj)
 		{
-			var ic = obj.AddComponent<TroughAuthoring>().SetItem(Trough);
-			obj.AddComponent<ConvertToEntity>();
-			return ic as TroughAuthoring;
+			var mainAuthoring = obj.AddComponent<TroughAuthoring>().SetItem(trough);
+			return new ConvertedItem(mainAuthoring);
 		}
 	}
 }

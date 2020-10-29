@@ -44,6 +44,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -57,7 +58,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		//private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
-		private readonly Dictionary<string, GameObject> _parents = new Dictionary<string, GameObject>();
+		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 
 		private Table _table;
 		private TableAuthoring _tableAuthoring;
@@ -100,10 +101,15 @@ namespace VisualPinball.Unity
 			go.AddComponent<Player>();
 			var dga = go.AddComponent<DefaultGameEngineAuthoring>();
 
+			// add trough if none available
+			if (!_table.HasTrough) {
+				CreateTrough();
+			}
+
 			// populate mappings
 			if (_table.Mappings.IsEmpty()) {
-				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables);
-				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables);
+				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables, table.SwitchableDevices);
+				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables, table.CoilableDevices);
 			}
 
 			// don't need that anymore.
@@ -125,16 +131,21 @@ namespace VisualPinball.Unity
 				var lookupName = renderable.Name.ToLower();
 				renderableLookup[lookupName] = renderable;
 
-				// create group parent if not created
-				if (!_parents.ContainsKey(renderable.ItemGroupName)) {
-					var parent = new GameObject(renderable.ItemGroupName);
-					parent.transform.parent = gameObject.transform;
-					_parents[renderable.ItemGroupName] = parent;
+				// create group parent if not created (if null, attach it to the table directly).
+				if (!string.IsNullOrEmpty(renderable.ItemGroupName)) {
+					if (!_groupParents.ContainsKey(renderable.ItemGroupName)) {
+						var parent = new GameObject(renderable.ItemGroupName);
+						parent.transform.parent = gameObject.transform;
+						_groupParents[renderable.ItemGroupName] = parent;
+					}
 				}
+				var groupParent = !string.IsNullOrEmpty(renderable.ItemGroupName)
+					? _groupParents[renderable.ItemGroupName]
+					: gameObject;
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+					convertedItems[lookupName] = CreateGameObjects(_table, renderable, groupParent);
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
@@ -142,7 +153,7 @@ namespace VisualPinball.Unity
 					if (convertedItems.ContainsKey(parentName)) {
 						var parent = convertedItems[parentName];
 
-						var convertedItem = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+						var convertedItem = CreateGameObjects(_table, renderable, groupParent);
 						if (convertedItem.IsValidChild(parent)) {
 
 							if (convertedItem.MeshAuthoring.Any()) {
@@ -166,7 +177,7 @@ namespace VisualPinball.Unity
 							renderable.DisableSubComponent();
 
 							// invalid parenting, re-convert the item, because it returned only the sub component.
-							convertedItems[lookupName] = CreateGameObjects(_table, renderable, _parents[renderable.ItemGroupName]);
+							convertedItems[lookupName] = CreateGameObjects(_table, renderable, groupParent);
 
 							// ..and destroy the other one
 							convertedItem.Destroy();
@@ -216,6 +227,7 @@ namespace VisualPinball.Unity
 				case Surface surface:           return surface.SetupGameObject(obj);
 				case Table table:               return table.SetupGameObject(obj);
 				case Trigger trigger:           return trigger.SetupGameObject(obj);
+				case Trough trough:             return trough.SetupGameObject(obj);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -256,6 +268,20 @@ namespace VisualPinball.Unity
 				string.Join(", ", table.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
+		}
+
+		private void CreateTrough()
+		{
+			var troughData = new TroughData("Trough");
+			if (_table.Kicker("BallRelease") != null) {
+				troughData.ExitKicker = "BallRelease";
+			}
+			if (_table.Kicker("Drain") != null) {
+				troughData.EntryKicker = "Drain";
+			}
+			var item = new Trough(troughData);
+			_table.Add(item, true);
+			CreateGameObjects(_tableAuthoring.Table, item, _tableAuthoring.gameObject);
 		}
 	}
 

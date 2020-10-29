@@ -111,7 +111,7 @@ namespace VisualPinball.Unity.Editor
 				if (_tableAuthoring != null)
 				{
 					RecordUndo("Populate all switch mappings");
-					_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables);
+					_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables, _tableAuthoring.Table.SwitchableDevices);
 					Reload();
 				}
 			}
