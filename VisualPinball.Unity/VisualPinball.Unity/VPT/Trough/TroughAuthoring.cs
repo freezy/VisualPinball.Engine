@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trough;
@@ -42,12 +43,9 @@ namespace VisualPinball.Unity
 			Item.Name = name;
 		}
 
-		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
-			new GamelogicEngineSwitch {Description = "Switch 1", Id = "1"},
-			new GamelogicEngineSwitch {Description = "Switch 2", Id = "2"},
-			new GamelogicEngineSwitch {Description = "Switch 3", Id = "3"},
-			new GamelogicEngineSwitch {Description = "Switch 4", Id = "4"},
-		};
+		public GamelogicEngineSwitch[] AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
+			.Select((_, i) => new GamelogicEngineSwitch {Description = $"Switch {i + 1}", Id = $"{i + 1}" })
+			.ToArray();
 
 		private void OnDestroy()
 		{
