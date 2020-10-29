@@ -297,7 +297,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(switchListData.Device));
 			var switchLabels = new string[0];
 			ISwitchDeviceAuthoring switchDevice = null;
-			if (!string.IsNullOrEmpty(switchListData.Device)) {
+			if (!string.IsNullOrEmpty(switchListData.Device) && _switchDevices.ContainsKey(switchListData.Device.ToLower())) {
 				switchDevice = _switchDevices[switchListData.Device.ToLower()];
 				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
 			}
