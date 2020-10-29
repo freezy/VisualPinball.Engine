@@ -22,7 +22,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trough;
@@ -31,8 +30,10 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trough")]
-	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring
+	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring, ICoilDeviceAuthoring
 	{
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Item.AvailableSwitches;
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 		protected override Type MeshAuthoringType { get; } = null;
@@ -43,9 +44,10 @@ namespace VisualPinball.Unity
 			Item.Name = name;
 		}
 
-		public GamelogicEngineSwitch[] AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
-			.Select((_, i) => new GamelogicEngineSwitch {Description = $"Switch {i + 1}", Id = $"{i + 1}" })
-			.ToArray();
+		private void Start()
+		{
+			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
+		}
 
 		private void OnDestroy()
 		{

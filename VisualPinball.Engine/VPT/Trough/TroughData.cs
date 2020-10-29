@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Trough
@@ -42,20 +41,25 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffString("ENTK", Pos = 1)]
 		public string EntryKicker = string.Empty;
 
-		[BiffString("ENTS", Pos = 2)]
-		public string EntrySwitch = string.Empty;
-
 		[BiffString("EXIT", Pos = 10)]
 		public string ExitKicker = string.Empty;
 
+		[BiffString("JAMS", Pos = 2)]
+		public string JamSwitch = string.Empty;
+
 		[BiffInt("BCNT", Pos = 3)]
-		public int BallCount = 3;
+		public int BallCount = 6;
 
 		[BiffInt("SCNT", Pos = 4)]
-		public int SwitchCount = 3;
+		public int SwitchCount = 6;
 
-		[BiffFloat("TIME", Pos = 5)]
-		public float SettleTime = 0.1f;
+		[BiffInt("TIME", Pos = 5)]
+		public int SettleTime = 100;
+
+		public TroughData(string name) : base(StoragePrefix.GameItem)
+		{
+			Name = name;
+		}
 
 		#region BIFF
 

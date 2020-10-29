@@ -42,13 +42,15 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineCoil> _gleCoils;
 		private readonly Dictionary<string, ICoilAuthoring> _coils;
+		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public CoilListViewItemRenderer(List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils)
+		public CoilListViewItemRenderer(List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils, Dictionary<string, ICoilDeviceAuthoring> coilDevices)
 		{
 			_gleCoils = gleCoils;
 			_coils = coils;
+			_coilDevices = coilDevices;
 		}
 
 		public void Render(TableAuthoring tableAuthoring, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
@@ -163,6 +165,13 @@ namespace VisualPinball.Unity.Editor
 				case CoilDestination.Playfield:
 					RenderPlayfieldElement(tableAuthoring, coilListData, cellRect, updateAction);
 					break;
+
+				case CoilDestination.Device:
+					cellRect.width = cellRect.width / 2f - 5f;
+					RenderDeviceElement(tableAuthoring, coilListData, cellRect, updateAction);
+					cellRect.x += cellRect.width + 10f;
+					RenderDeviceItemElement(coilListData, cellRect, updateAction);
+					break;
 			}
 		}
 
@@ -188,6 +197,50 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void RenderDeviceElement(TableAuthoring tableAuthoring, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		{
+			if (GUI.Button(cellRect, coilListData.Device, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
+			{
+				if (_itemPickDropdownState == null) {
+					_itemPickDropdownState = new AdvancedDropdownState();
+				}
+
+				var dropdown = new ItemSearchableDropdown<ICoilDeviceAuthoring>(
+					_itemPickDropdownState,
+					tableAuthoring,
+					"Coil Devices",
+					item => {
+						coilListData.Device = item.Name;
+						updateAction(coilListData);
+					}
+				);
+				dropdown.Show(cellRect);
+			}
+		}
+
+		private void RenderDeviceItemElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		{
+			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(coilListData.Device));
+
+			var currentIndex = 0;
+			var coilLabels = new string[0];
+			ICoilDeviceAuthoring coilDevice = null;
+			if (!string.IsNullOrEmpty(coilListData.Device) && _coilDevices.ContainsKey(coilListData.Device.ToLower())) {
+				coilDevice = _coilDevices[coilListData.Device.ToLower()];
+				coilLabels = coilDevice.AvailableCoils.Select(s => s.Description).ToArray();
+				currentIndex = coilDevice.AvailableCoils.TakeWhile(s => s.Id != coilListData.DeviceItem).Count();
+			}
+			EditorGUI.BeginChangeCheck();
+			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
+			if (EditorGUI.EndChangeCheck() && coilDevice != null) {
+				if (currentIndex != newIndex) {
+					coilListData.DeviceItem = coilDevice.AvailableCoils.ElementAt(newIndex).Id;
+					updateAction(coilListData);
+				}
+			}
+			EditorGUI.EndDisabledGroup();
+		}
+
 		private void RenderType(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			if (coilListData.Destination == CoilDestination.Playfield)
@@ -209,13 +262,16 @@ namespace VisualPinball.Unity.Editor
 			switch (coilListData.Destination)
 			{
 				case CoilDestination.Playfield:
-					{
-						if (_coils.ContainsKey(coilListData.PlayfieldItem.ToLower()))
-						{
-							icon = Icons.ByComponent(_coils[coilListData.PlayfieldItem.ToLower()], size: IconSize.Small);
-						}
-						break;
+					if (_coils.ContainsKey(coilListData.PlayfieldItem.ToLower())) {
+						icon = Icons.ByComponent(_coils[coilListData.PlayfieldItem.ToLower()], size: IconSize.Small);
 					}
+					break;
+
+				case CoilDestination.Device:
+					if (_coilDevices.ContainsKey(coilListData.Device.ToLower())) {
+						icon = Icons.ByComponent(_coilDevices[coilListData.Device.ToLower()], IconSize.Small);
+					}
+					break;
 			}
 
 			return icon;

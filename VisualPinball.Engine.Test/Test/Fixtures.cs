@@ -51,6 +51,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string Texture = PathHelper.GetFixturePath("TextureTest.vpx");
 		public static readonly string Timer = PathHelper.GetFixturePath("TimerTest.vpx");
 		public static readonly string Trigger = PathHelper.GetFixturePath("TriggerTest.vpx");
+		public static readonly string Trough = PathHelper.GetFixturePath("TroughTest.vpx");
 	}
 
 	public static class ObjPath

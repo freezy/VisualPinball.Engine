@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public TableApi TableApi { get { return _tableApi; } }
+		public TableApi TableApi { get; } = new TableApi();
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		// table related
-		private readonly TableApi _tableApi = new TableApi();
+		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
@@ -68,7 +68,9 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
+		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
 		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
+		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -77,11 +79,11 @@ namespace VisualPinball.Unity
 
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _keyAssignments = new Dictionary<string, List<string>>();
-		private readonly Dictionary<string, List<Tuple<string, bool>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool>>>();
+		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
 
 		public Player()
 		{
-			_initializables.Add(_tableApi);
+			_initializables.Add(TableApi);
 		}
 
 		#region Lifecycle
@@ -119,26 +121,31 @@ namespace VisualPinball.Unity
 			if (_coilAssignments.Count > 0) {
 				(GameEngine as IGamelogicEngineWithCoils).OnCoilChanged -= HandleCoilEvent;
 			}
+
+			foreach (var i in _apis) {
+				i.OnDestroy();
+			}
+
 			GameEngine?.OnDestroy();
 		}
 
 		private void Start()
 		{
 
-			// hook up mapping configuration
-			SetupSwitchMapping();
-			SetupCoilMapping();
-
 			// bootstrap table script(s)
 			var tableScripts = GetComponents<VisualPinballScript>();
 			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(_tableApi, BallManager);
+				tableScript.OnAwake(TableApi, BallManager);
 			}
 
 			// trigger init events now
 			foreach (var i in _initializables) {
 				i.OnInit(BallManager);
 			}
+
+			// hook up mapping configuration
+			SetupSwitchMapping();
+			SetupCoilMapping();
 		}
 
 		#endregion
@@ -148,7 +155,8 @@ namespace VisualPinball.Unity
 		public void RegisterBumper(Bumper bumper, Entity entity, GameObject go)
 		{
 			var bumperApi = new BumperApi(bumper, entity, this);
-			_tableApi.Bumpers[bumper.Name] = bumperApi;
+			TableApi.Bumpers[bumper.Name] = bumperApi;
+			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
 			_switches[bumper.Name] = bumperApi;
@@ -158,7 +166,8 @@ namespace VisualPinball.Unity
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
 		{
 			var flipperApi = new FlipperApi(flipper, entity, this);
-			_tableApi.Flippers[flipper.Name] = flipperApi;
+			TableApi.Flippers[flipper.Name] = flipperApi;
+			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
@@ -174,7 +183,8 @@ namespace VisualPinball.Unity
 		public void RegisterGate(Gate gate, Entity entity, GameObject go)
 		{
 			var gateApi = new GateApi(gate, entity, this);
-			_tableApi.Gates[gate.Name] = gateApi;
+			TableApi.Gates[gate.Name] = gateApi;
+			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
@@ -184,7 +194,8 @@ namespace VisualPinball.Unity
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
 		{
 			var hitTargetApi = new HitTargetApi(hitTarget, entity, this);
-			_tableApi.HitTargets[hitTarget.Name] = hitTargetApi;
+			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
+			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
 			_switches[hitTarget.Name] = hitTargetApi;
@@ -193,7 +204,8 @@ namespace VisualPinball.Unity
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
 		{
 			var kickerApi = new KickerApi(kicker, entity, this);
-			_tableApi.Kickers[kicker.Name] = kickerApi;
+			TableApi.Kickers[kicker.Name] = kickerApi;
+			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
 			_switches[kicker.Name] = kickerApi;
@@ -203,7 +215,8 @@ namespace VisualPinball.Unity
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
 		{
 			var plungerApi = new PlungerApi(plunger, entity, this);
-			_tableApi.Plungers[plunger.Name] = plungerApi;
+			TableApi.Plungers[plunger.Name] = plungerApi;
+			_apis.Add(plungerApi);
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
 			_coils[plunger.Name] = plungerApi;
@@ -212,7 +225,8 @@ namespace VisualPinball.Unity
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
 		{
 			var primitiveApi = new PrimitiveApi(primitive, entity, this);
-			_tableApi.Primitives[primitive.Name] = primitiveApi;
+			TableApi.Primitives[primitive.Name] = primitiveApi;
+			_apis.Add(primitiveApi);
 			_initializables.Add(primitiveApi);
 			_hittables[entity] = primitiveApi;
 		}
@@ -220,14 +234,16 @@ namespace VisualPinball.Unity
 		public void RegisterRamp(Ramp ramp, Entity entity, GameObject go)
 		{
 			var rampApi = new RampApi(ramp, entity, this);
-			_tableApi.Ramps[ramp.Name] = rampApi;
+			TableApi.Ramps[ramp.Name] = rampApi;
+			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
 		{
 			var rubberApi = new RubberApi(rubber, entity, this);
-			_tableApi.Rubbers[rubber.Name] = rubberApi;
+			TableApi.Rubbers[rubber.Name] = rubberApi;
+			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
 			_hittables[entity] = rubberApi;
 		}
@@ -235,7 +251,8 @@ namespace VisualPinball.Unity
 		public void RegisterSurface(Surface surface, Entity entity, GameObject go)
 		{
 			var surfaceApi = new SurfaceApi(surface, entity, this);
-			_tableApi.Surfaces[surface.Name] = surfaceApi;
+			TableApi.Surfaces[surface.Name] = surfaceApi;
+			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
 			_hittables[entity] = surfaceApi;
 			_slingshots[entity] = surfaceApi;
@@ -244,7 +261,8 @@ namespace VisualPinball.Unity
 		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
 		{
 			var spinnerApi = new SpinnerApi(spinner, entity, this);
-			_tableApi.Spinners[spinner.Name] = spinnerApi;
+			TableApi.Spinners[spinner.Name] = spinnerApi;
+			_apis.Add(spinnerApi);
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
@@ -254,18 +272,22 @@ namespace VisualPinball.Unity
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
 		{
 			var triggerApi = new TriggerApi(trigger, entity, this);
-			_tableApi.Triggers[trigger.Name] = triggerApi;
+			TableApi.Triggers[trigger.Name] = triggerApi;
+			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
 			_switches[trigger.Name] = triggerApi;
 		}
 
-		public void RegisterTrough(Trough trough, Entity entity, GameObject go)
+		public void RegisterTrough(Trough trough, GameObject go)
 		{
-			var troughApi = new TroughApi(trough, entity, this);
+			var troughApi = new TroughApi(trough, this);
+			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
+			_switchDevices[trough.Name] = troughApi;
+			_coilDevices[trough.Name] = troughApi;
 		}
-		
+
 		#endregion
 
 		#region Mapping
@@ -279,20 +301,31 @@ namespace VisualPinball.Unity
 					switch (coilData.Destination) {
 						case CoilDestination.Playfield:
 							if (!_coilAssignments.ContainsKey(coilData.Id)) {
-								_coilAssignments[coilData.Id] = new List<Tuple<string, bool>>();
+								_coilAssignments[coilData.Id] = new List<Tuple<string, bool, string>>();
 							}
-							_coilAssignments[coilData.Id].Add(new Tuple<string, bool>(coilData.PlayfieldItem, false));
+							_coilAssignments[coilData.Id].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, false, null));
 							if (coilData.Type == CoilType.DualWound) {
 								if (!_coilAssignments.ContainsKey(coilData.HoldCoilId)) {
-									_coilAssignments[coilData.HoldCoilId] = new List<Tuple<string, bool>>();
+									_coilAssignments[coilData.HoldCoilId] = new List<Tuple<string, bool, string>>();
 								}
-								_coilAssignments[coilData.HoldCoilId].Add(new Tuple<string, bool>(coilData.PlayfieldItem, true));
-
+								_coilAssignments[coilData.HoldCoilId].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, true, null));
 							}
 							break;
 
 						case CoilDestination.Device:
-							// todo
+							if (_coilDevices.ContainsKey(coilData.Device)) {
+								var device = _coilDevices[coilData.Device];
+								var coil = device.Coil(coilData.DeviceItem);
+								if (coil != null) {
+									if (!_coilAssignments.ContainsKey(coilData.Id)) {
+										_coilAssignments[coilData.Id] = new List<Tuple<string, bool, string>>();
+									}
+									_coilAssignments[coilData.Id].Add(new Tuple<string, bool, string>(coilData.DeviceItem, false, coilData.Device));
+
+								} else {
+									Logger.Warn($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
+								}
+							}
 							break;
 					}
 				}
@@ -333,6 +366,20 @@ namespace VisualPinball.Unity
 							Logger.Warn($"Cannot find switch \"{switchData.PlayfieldItem}\" on playfield!");
 							break;
 
+						case SwitchSource.Device
+							when !string.IsNullOrEmpty(switchData.Device)
+							     && _switchDevices.ContainsKey(switchData.Device): {
+						}
+							var device = _switchDevices[switchData.Device];
+							var deviceSwitch = device.Switch(switchData.DeviceItem);
+							if (deviceSwitch != null) {
+								deviceSwitch.AddSwitchId(switchData.Id, 0);
+
+							} else {
+								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
+							}
+							break;
+
 						case SwitchSource.Constant:
 							break;
 
@@ -346,7 +393,7 @@ namespace VisualPinball.Unity
 					_inputManager.Enable(HandleKeyInput);
 				}
 			}
-			GameEngine.OnInit(_tableApi, BallManager);
+			GameEngine.OnInit(TableApi, BallManager);
 		}
 
 		private void HandleKeyInput(object obj, InputActionChange change)
@@ -370,11 +417,15 @@ namespace VisualPinball.Unity
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
-				foreach (var (itemName, isHoldCoil) in _coilAssignments[coilEvent.Id]) {
-					if (_coils.ContainsKey(itemName)) {
+				foreach (var (itemName, isHoldCoil, deviceName) in _coilAssignments[coilEvent.Id]) {
+					if (deviceName != null && _coilDevices.ContainsKey(deviceName)) {
+						_coilDevices[deviceName].Coil(itemName).OnCoil(coilEvent.IsEnabled, isHoldCoil);
+
+					} else if (_coils.ContainsKey(itemName)) {
 						_coils[itemName].OnCoil(coilEvent.IsEnabled, isHoldCoil);
+
 					} else {
-						Logger.Warn($"Should trigger unknown coil item {itemName}.");
+						Logger.Warn($"Cannot trigger unknown coil item {itemName}.");
 					}
 				}
 

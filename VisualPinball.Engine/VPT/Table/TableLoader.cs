@@ -112,6 +112,7 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.TextBox: item = new TextBox.TextBox(reader, itemName); break;
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
+				case ItemType.Trough: item = new Trough.Trough(reader, itemName); break;
 				default:
 					Logger.Info("Unhandled item type " + itemType);
 					itemType = ItemType.Invalid; break;
@@ -235,6 +236,11 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 					case ItemType.Trigger: {
 						var item = new Trigger.Trigger(reader, itemName);
+						table.Add(item);
+						break;
+					}
+					case ItemType.Trough: {
+						var item = new Trough.Trough(reader, itemName);
 						table.Add(item);
 						break;
 					}

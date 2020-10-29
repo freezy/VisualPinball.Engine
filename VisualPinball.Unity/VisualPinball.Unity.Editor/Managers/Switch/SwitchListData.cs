@@ -42,7 +42,6 @@ namespace VisualPinball.Unity.Editor
 		public int Constant;
 		public string Device;
 		public string DeviceItem;
-		public int DeviceItemIndex;
 
 		public MappingsSwitchData MappingsSwitchData;
 

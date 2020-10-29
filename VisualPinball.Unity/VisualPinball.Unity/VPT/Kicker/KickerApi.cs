@@ -61,6 +61,12 @@ namespace VisualPinball.Unity
 			_ballManager.CreateBall(Item, radius, 1f, Entity);
 		}
 
+		public void Kick()
+		{
+			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, Data.Angle, Data.Speed, 0, 0, 0, 0));
+		}
+
+
 		public void Kick(float angle, float speed, float inclination = 0)
 		{
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, angle, speed, inclination, 0, 0, 0));
@@ -87,7 +93,7 @@ namespace VisualPinball.Unity
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			if (enabled) {
-				Kick(Data.Angle, Data.Speed);
+				Kick();
 			}
 		}
 

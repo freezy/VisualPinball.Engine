@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -31,8 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected TableAuthoring _table;
 
-		protected MonoBehaviour _item;
-		private SurfaceAuthoring _surface;
+		private Dictionary<string, MonoBehaviour> _refItems = new Dictionary<string, MonoBehaviour>();
 
 		private string[] _allMaterials = new string[0];
 		private string[] _allTextures = new string[0];
@@ -242,34 +242,29 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, ref string field, bool dirtyMesh = true)
+		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, string cacheKey, ref string field, bool dirtyMesh = true)
 			where TItemAuthoring : ItemAuthoring<TItem, TData>
 			where TData : ItemData where TItem : Item<TData>, IRenderable
 		{
-			if (_item?.name != field) {
-				_item = null;
-			}
-
-			var mb = target as MonoBehaviour;
-			if (_item == null && _table != null) {
+			if (!_refItems.ContainsKey(cacheKey) && _table != null) {
 				var currentFieldName = field;
 				if (currentFieldName != null && _table.Table.Has<TItem>(currentFieldName)) {
-					_item = _table.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
+					_refItems[cacheKey] = _table.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}
 			}
 
 			EditorGUI.BeginChangeCheck();
-			_item = (TItemAuthoring)EditorGUILayout.ObjectField(label, _item, typeof(TItemAuthoring), true);
+			_refItems[cacheKey] = (TItemAuthoring)EditorGUILayout.ObjectField(label, _refItems.ContainsKey(cacheKey) ? _refItems[cacheKey] : null, typeof(TItemAuthoring), true);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
-				field = _item != null ? _item.name : string.Empty;
+				field = _refItems[cacheKey] != null ? _refItems[cacheKey].name : string.Empty;
 			}
 		}
 
 		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
 		{
-			ItemReferenceField<SurfaceAuthoring, Surface, SurfaceData>(label, ref field, dirtyMesh);
+			ItemReferenceField<SurfaceAuthoring, Surface, SurfaceData>(label, "surface", ref field, dirtyMesh);
 		}
 
 		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true, Action<T, T> onChanged = null) where T : IEquatable<T>

@@ -14,19 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
+using System.Linq;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Trough
 {
-	public class Trough : Item<TroughData>, IRenderable
+	public class Trough : Item<TroughData>, IRenderable, ISwitchableDevice, ICoilableDevice
 	{
 		public override string ItemName { get; } = "Trough";
-		public override string ItemGroupName { get; } = "Troughs";
+		public override string ItemGroupName { get; } = null;
 
-		public Vertex3D Position { get => Vertex3D.Zero; set { } }
-		public float RotationY { get => 0f; set { } }
+		public const string JamSwitchId = "jam";
+		public const string EjectCoilId = "eject";
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
+			.Select((_, i) => new GamelogicEngineSwitch {Description = SwitchDescription(i), Id = $"{i + 1}"})
+			.Concat( new[]{ new GamelogicEngineSwitch{Description = "Jam Switch", Id = JamSwitchId} });
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
+			new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+		};
 
 		public Trough(TroughData data) : base(data)
 		{
@@ -34,6 +46,19 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public Trough(BinaryReader reader, string itemName) : this(new TroughData(reader, itemName))
 		{
+		}
+
+		private string SwitchDescription(int i)
+		{
+			if (i == 0) {
+				return $"Ball {i + 1} (eject)";
+			}
+
+			if (i == Data.SwitchCount - 1) {
+				return  $"Ball {i + 1} (entry)";
+			}
+
+			return  $"Ball {i + 1}";
 		}
 
 		#region IRenderable
@@ -53,6 +78,16 @@ namespace VisualPinball.Engine.VPT.Trough
 			return new RenderObjectGroup(Data.Name, "trough", Math.Matrix3D.Identity, new RenderObject[0]);
 		}
 
+		// todo create a non-renderable abstraction and remove IRenderable from this
+		public Vertex3D Position { get => Vertex3D.Zero; set { } }
+		public float RotationY { get => 0f; set { } }
+
 		#endregion
+
+		public static Trough GetDefault(Table.Table table)
+		{
+			var primitiveData = new TroughData(table.GetNewName<Trough>("Trough"));
+			return new Trough(primitiveData);
+		}
 	}
 }

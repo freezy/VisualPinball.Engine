@@ -19,24 +19,20 @@
 using UnityEditor;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TroughAuthoring))]
 	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
 	{
-		private bool _foldoutPosition = true;
 		private bool _foldoutMisc = true;
 
 		public override void OnInspectorGUI()
 		{
-			OnPreInspectorGUI();
-
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", ref Data.EntryKicker);
-				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", ref Data.ExitKicker);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", "entryKicker", ref Data.EntryKicker);
+			ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", "exitKicker", ref Data.ExitKicker);
+			ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("Jam Switch", "jamSwitch", ref Data.JamSwitch);
 
 			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
 				ItemDataField("Max Balls", ref Data.BallCount, false);

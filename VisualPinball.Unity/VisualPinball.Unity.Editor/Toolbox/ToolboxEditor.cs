@@ -32,6 +32,7 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
@@ -159,6 +160,10 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
+			if (CreateButton("Trough", Icons.Trough(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(Trough.GetDefault, "New Trough");
+			}
+
 			GUILayout.EndHorizontal();
 		}
 
@@ -190,7 +195,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static GameObject GetOrCreateParent(Component tb, IItem renderable)
 		{
-			var parent = tb.gameObject.transform.Find(renderable.ItemGroupName)?.gameObject;
+			var parent = string.IsNullOrEmpty(renderable.ItemGroupName)
+				? tb.gameObject
+				: tb.gameObject.transform.Find(renderable.ItemGroupName)?.gameObject;
 			if (parent == null) {
 				parent = new GameObject(renderable.ItemGroupName);
 				parent.transform.parent = tb.gameObject.transform;
