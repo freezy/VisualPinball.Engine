@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 2, HeaderName = "Destination", Width = 150)]
 		public int Destination;
 
-		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
+		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
