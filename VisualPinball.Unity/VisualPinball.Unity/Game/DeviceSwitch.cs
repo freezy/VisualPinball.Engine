@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 
-namespace VisualPinball.Unity.Switch
+namespace VisualPinball.Unity
 {
 	public class DeviceSwitch : IApiSwitch
 	{
@@ -25,6 +26,7 @@ namespace VisualPinball.Unity.Switch
 		private List<SwitchConfig> _engineSwitchIds;
 		private readonly IGamelogicEngineWithSwitches _engine;
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public DeviceSwitch(bool isPulseSwitch, IGamelogicEngineWithSwitches engine)
 		{
@@ -53,6 +55,8 @@ namespace VisualPinball.Unity.Switch
 							() => _engine.Switch(switchConfig.SwitchId, false));
 					}
 				}
+			} else {
+				Logger.Warn("Cannot trigger device switch.");
 			}
 		}
 	}

@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Unity.Switch;
 
 namespace VisualPinball.Unity
 {
