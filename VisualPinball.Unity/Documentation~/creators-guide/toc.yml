@@ -30,7 +30,9 @@
   items:
     - name: Gamelogic Engine
       href: manual/gamelogic-engine.md
-    - name: Game Items
+    - name: Pinball Mechanisms
       items:
+      - name: Troughs / Ball Drains
+        href: manual/mechanisms/troughs.md
       - name: Flippers
-        href: manual/items/flippers.md
+        href: manual/mechanisms/flippers.md
