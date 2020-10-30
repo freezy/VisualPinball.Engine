@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using VisualPinball.Engine.Game;
@@ -31,12 +30,14 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public const string JamSwitchId = "jam";
 		public const string EjectCoilId = "eject";
+		public const string CoilId = "entry";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
 			.Select((_, i) => new GamelogicEngineSwitch {Description = SwitchDescription(i), Id = $"{i + 1}"})
 			.Concat( new[]{ new GamelogicEngineSwitch{Description = "Jam Switch", Id = JamSwitchId} });
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
+			new GamelogicEngineCoil {Description = "Entry", Id = CoilId},
 			new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
 		};
 
@@ -75,7 +76,7 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return new RenderObjectGroup(Data.Name, "trough", Math.Matrix3D.Identity, new RenderObject[0]);
+			return new RenderObjectGroup(Data.Name, "trough", Matrix3D.Identity, new RenderObject[0]);
 		}
 
 		// todo create a non-renderable abstraction and remove IRenderable from this
