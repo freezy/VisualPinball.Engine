@@ -26,22 +26,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TroughAuthoring))]
 	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
 	{
-		private bool _foldoutMisc = true;
-
 		public override void OnInspectorGUI()
 		{
 			ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Entry Kicker", "entryKicker", ref Data.EntryKicker);
 			ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", "exitKicker", ref Data.ExitKicker);
 			ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("Jam Switch", "jamSwitch", ref Data.JamSwitch);
 
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Max Balls", ref Data.BallCount, false);
-				ItemDataField("Switch Count", ref Data.SwitchCount, false);
-				ItemDataField("Settle Time", ref Data.SettleTime, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			base.OnInspectorGUI();
+			ItemDataField("Max Balls", ref Data.BallCount, false);
+			ItemDataField("Switch Count", ref Data.SwitchCount, false);
+			ItemDataField("Settle Time", ref Data.SettleTime, false);
 		}
 	}
 }
