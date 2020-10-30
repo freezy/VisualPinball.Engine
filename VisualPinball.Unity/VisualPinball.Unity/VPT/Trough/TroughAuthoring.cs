@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			Item.Name = name;
 		}
 
-		private void Start()
+		private void Awake()
 		{
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
