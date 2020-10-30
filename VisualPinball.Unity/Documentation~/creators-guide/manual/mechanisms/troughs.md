@@ -26,6 +26,6 @@ Open the [switch manager](../../editor/switch-manager.md) and add the trough swi
 
 ## Coil Setup
 
-VPE's trough currently only supports one coil, which is the eject coil that pushes a new ball into the plunger lane. Open the [coil manager](../../editor/coil-manager.md), find or add the eject coil and link it to the trough's eject like you did with the switches before:
+VPE's trough supports up to two coils, an entry coil which pushes the ball from the drain into the trough, and an eject coil which pushes a new ball into the plunger lane. Open the [coil manager](../../editor/coil-manager.md), find or add the eject coil and link it to the trough's eject like you did with the switches before:
 
 ![Coil Manager](trough-coils.png)
