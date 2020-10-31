@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.Physics
 				transAxis.Set(1, 0, 0); // choose arbitrary rotation vector
 
 			} else {
-				transAxis.DivideScalar(MathF.Sqrt(l));
+				transAxis /= MathF.Sqrt(l);
 			}
 
 			// Angle to rotate the line into the z-axis

@@ -518,9 +518,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				var u = i * invNumRings;
 				for (var j = 0; j < numSegments; j++, index++) {
 					var v = (j + u) * invNumSegments;
-					var tmp = Vertex3D
-						.GetRotatedAxis(j * (360.0f * invNumSegments), tangent, normal)
-						.MultiplyScalar(_data.WireDiameter * 0.5f);
+					var tmp = Vertex3D.GetRotatedAxis(j * (360.0f * invNumSegments), tangent, normal) * (_data.WireDiameter * 0.5f);
 
 					vertices[index] = new Vertex3DNoTex2 {
 						X = midPoints[i].X + tmp.X,
@@ -668,8 +666,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 				result.MiddlePoints[i] = new Vertex2D(middle.X, middle.Y) + normal;
-				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + normal.Clone().MultiplyScalar(currentWidth * 0.5f);
-				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - normal.Clone().MultiplyScalar(currentWidth * 0.5f);
+				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + normal * (currentWidth * 0.5f);
+				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - normal * (currentWidth * 0.5f);
 			}
 
 			return result;

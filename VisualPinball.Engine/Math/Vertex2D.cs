@@ -59,6 +59,8 @@ namespace VisualPinball.Engine.Math
 
 		public static Vertex2D operator +(Vertex2D a, Vertex2D b) => new Vertex2D(a.X + b.X, a.Y + b.Y);
 		public static Vertex2D operator -(Vertex2D a, Vertex2D b) => new Vertex2D(a.X - b.X, a.Y - b.Y);
+		public static Vertex2D operator *(Vertex2D a, float b) => new Vertex2D(a.X * b, a.Y * b);
+		public static Vertex2D operator *(float a, Vertex2D b) => new Vertex2D(b.X * a, b.Y * a);
 
 		public Vertex2D Clone()
 		{
@@ -79,23 +81,19 @@ namespace VisualPinball.Engine.Math
 		// 	return this;
 		// }
 
-		public Vertex2D Normalize()
+		public void Normalize()
 		{
-			var len = Length();
-			return DivideScalar(len == 0 ? 1 : len);
+			var oneOverLength = 1.0f / Length();
+			X *= oneOverLength;
+			Y *= oneOverLength;
 		}
 
-		public Vertex2D DivideScalar(float scalar)
-		{
-			return MultiplyScalar(1 / scalar);
-		}
-
-		public Vertex2D MultiplyScalar(float scalar)
-		{
-			X *= scalar;
-			Y *= scalar;
-			return this;
-		}
+		// public Vertex2D MultiplyScalar(float scalar)
+		// {
+		// 	X *= scalar;
+		// 	Y *= scalar;
+		// 	return this;
+		// }
 
 		public float Length()
 		{

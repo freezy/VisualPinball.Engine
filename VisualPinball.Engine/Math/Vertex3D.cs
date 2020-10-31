@@ -61,10 +61,10 @@ namespace VisualPinball.Engine.Math
 
 		public static Vertex3D operator +(Vertex3D a, Vertex3D b) => new Vertex3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 
-		public static Vertex3D operator -(Vertex3D a, Vertex3D b)
-		{
-			return new Vertex3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
-		}
+		public static Vertex3D operator -(Vertex3D a, Vertex3D b) => new Vertex3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+		public static Vertex3D operator *(Vertex3D a, float b) => new Vertex3D(a.X * b, a.Y * b, a.Z * b);
+		public static Vertex3D operator *(float a, Vertex3D b) => new Vertex3D(b.X * a, b.Y * a, b.Z * a);
+		public static Vertex3D operator /(Vertex3D a, float b) => new Vertex3D(a.X / b, a.Y / b, a.Z / b);
 
 		public static void Reset(Vertex3D v)
 		{
@@ -92,10 +92,12 @@ namespace VisualPinball.Engine.Math
 			return new Vertex3D(this);
 		}
 
-		public new Vertex3D Normalize()
+		public new void Normalize()
 		{
-			var len = Length();
-			return DivideScalar(len == 0 ? 1 : len);
+			var oneOverLength = 1.0f / Length();
+			X *= oneOverLength;
+			Y *= oneOverLength;
+			Z *= oneOverLength;
 		}
 
 		public Vertex3D NormalizeSafe()
@@ -117,18 +119,18 @@ namespace VisualPinball.Engine.Math
 			return X * X + Y * Y + Z * Z;
 		}
 
-		public new Vertex3D DivideScalar(float scalar)
-		{
-			return MultiplyScalar(1 / scalar);
-		}
+		// public new Vertex3D DivideScalar(float scalar)
+		// {
+		// 	return MultiplyScalar(1 / scalar);
+		// }
 
-		public new Vertex3D MultiplyScalar(float scalar)
-		{
-			X *= scalar;
-			Y *= scalar;
-			Z *= scalar;
-			return this;
-		}
+		// public new Vertex3D MultiplyScalar(float scalar)
+		// {
+		// 	X *= scalar;
+		// 	Y *= scalar;
+		// 	Z *= scalar;
+		// 	return this;
+		// }
 
 		public Vertex3D ApplyMatrix2D(Matrix2D matrix)
 		{
@@ -220,7 +222,8 @@ namespace VisualPinball.Engine.Math
 
 		public static Vertex3D GetRotatedAxis(float angle, Vertex3D axis, Vertex3D temp)
 		{
-			var u = axis.Clone().Normalize();
+			var u = axis.Clone();
+			u.Normalize();
 
 			var sinAngle = MathF.Sin((float)(System.Math.PI / 180.0)*angle);
 			var cosAngle = MathF.Cos((float)(System.Math.PI / 180.0)*angle);
