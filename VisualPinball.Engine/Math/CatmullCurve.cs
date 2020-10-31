@@ -126,7 +126,7 @@ namespace VisualPinball.Engine.Math
 	public class CatmullCurve2DCatmullCurveFactory : ICatmullCurveFactory<RenderVertex2D> {
 		public CatmullCurve<RenderVertex2D> Create(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3)
 		{
-			return new CatmullCurve2D(v0, v1, v2, v3);
+			return new CatmullCurve2D(new Vertex2D(v0.X, v0.Y), new Vertex2D(v1.X, v1.Y), new Vertex2D(v2.X, v2.Y), new Vertex2D(v3.X, v3.Y));
 		}
 	}
 
