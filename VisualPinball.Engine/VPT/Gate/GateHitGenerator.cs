@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.VPT.Gate
 
 			// oversize by the ball's radius to prevent the ball from clipping through
 			var rgv = new[] {
-				_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
+				_gateData.Center + tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin),
 				_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength + PhysicsConstants.PhysSkin)),
 			};
 			var lineSeg = new LineSeg(rgv[0], rgv[1], height, height + 2.0f * PhysicsConstants.PhysSkin, ItemType.Gate, item); //!! = ball diameter
@@ -70,7 +70,7 @@ namespace VisualPinball.Engine.VPT.Gate
 			var halfLength = _gateData.Length * 0.5f;
 			if (_gateData.ShowBracket) {
 				return new[] {
-					new HitCircle(_gateData.Center.Clone().Add(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
+					new HitCircle(_gateData.Center + tangent.Clone().MultiplyScalar(halfLength), 0.01f,
 						height, height + _gateData.Height, ItemType.Gate, item),
 					new HitCircle(_gateData.Center.Clone().Sub(tangent.Clone().MultiplyScalar(halfLength)), 0.01f,
 						height, height + _gateData.Height, ItemType.Gate, item)

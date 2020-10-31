@@ -57,17 +57,19 @@ namespace VisualPinball.Engine.Math
 			return Set(0, 0);
 		}
 
+		public static Vertex2D operator +(Vertex2D a, Vertex2D b) => new Vertex2D(a.X + b.X, a.Y + b.Y);
+
 		public Vertex2D Clone()
 		{
 			return new Vertex2D(X, Y);
 		}
 
-		public Vertex2D Add(Vertex2D v)
-		{
-			X += v.X;
-			Y += v.Y;
-			return this;
-		}
+		// public Vertex2D Add(Vertex2D v)
+		// {
+		// 	X += v.X;
+		// 	Y += v.Y;
+		// 	return this;
+		// }
 
 		public Vertex2D Sub(Vertex2D v)
 		{
