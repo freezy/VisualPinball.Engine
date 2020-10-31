@@ -25,9 +25,6 @@ namespace VisualPinball.Engine.Math
 		public float X;
 		public float Y;
 
-		public float GetX() => X;
-		public float GetY() => Y;
-
 		public Vertex2D() : this(0.0f, 0.0f) { }
 
 		public Vertex2D(float x, float y)

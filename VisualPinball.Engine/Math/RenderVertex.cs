@@ -16,19 +16,36 @@
 
 namespace VisualPinball.Engine.Math
 {
-	public class RenderVertex2D : Vertex2D, IRenderVertex
+	public class RenderVertex2D : IRenderVertex
 	{
-		public void Set(Vertex3D v)
-		{
-			base.Set(v.X, v.Y);
-		}
+		public float X;
+		public float Y;
+
+		public float GetX() => X;
+		public float GetY() => Y;
 
 		public bool Smooth { get; set; }
 		public bool IsSlingshot { get; set; }
 		public bool IsControlPoint { get; set; }
 
 		public RenderVertex2D() { }
-		public RenderVertex2D(float x, float y) : base(x, y) { }
+
+		public RenderVertex2D(float x, float y)
+		{
+			X = x;
+			Y = y;
+		}
+
+		public static Vertex2D operator +(RenderVertex2D a, Vertex2D b) => new Vertex2D(a.X + b.X, a.Y + b.Y);
+		public static Vertex2D operator +(Vertex2D a, RenderVertex2D b) => b + a;
+		public static implicit operator Vertex2D(RenderVertex2D v) => new Vertex2D(v.X, v.Y);
+
+
+		public void Set(Vertex3D v)
+		{
+			X = v.X;
+			Y = v.Y;
+		}
 	}
 
 	public class RenderVertex3D : Vertex3D, IRenderVertex

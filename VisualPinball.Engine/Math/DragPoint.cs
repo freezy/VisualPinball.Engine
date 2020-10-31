@@ -197,7 +197,7 @@ namespace VisualPinball.Engine.Math
 				case Vertex3D v31 when v2 is Vertex3D v32 && vMid is Vertex3D vMid3:
 					return FlatWithAccuracy3(v31, v32, vMid3, accuracy);
 
-				case Vertex2D v21 when v2 is Vertex2D v22 && vMid is Vertex2D vMid2:
+				case RenderVertex2D v21 when v2 is RenderVertex2D v22 && vMid is RenderVertex2D vMid2:
 					return FlatWithAccuracy2(v21, v22, vMid2, accuracy);
 
 				default:
@@ -205,7 +205,7 @@ namespace VisualPinball.Engine.Math
 			}
 		}
 
-		private static bool FlatWithAccuracy2(Vertex2D v1, Vertex2D v2, Vertex2D vMid, float accuracy) {
+		private static bool FlatWithAccuracy2(RenderVertex2D v1, RenderVertex2D v2, RenderVertex2D vMid, float accuracy) {
 			// compute double the signed area of the triangle (v1, vMid, v2)
 			var dblArea = (vMid.X - v1.X) * (v2.Y - v1.Y) - (v2.X - v1.X) * (vMid.Y - v1.Y);
 			return dblArea * dblArea < accuracy;
