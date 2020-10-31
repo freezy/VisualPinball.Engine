@@ -33,8 +33,8 @@ namespace VisualPinball.Engine.Physics
 			 * the vertices must be passed in counterclockwise order
 			 * (but rendering uses clockwise order!)
 			 */
-			var e0 = Rgv[2].Clone().Sub(Rgv[0]);
-			var e1 = Rgv[1].Clone().Sub(Rgv[0]);
+			var e0 = Rgv[2] - Rgv[0];
+			var e1 = Rgv[1] - Rgv[0];
 			Normal = Vertex3D.CrossProduct(e0, e1);
 			Normal.NormalizeSafe();
 

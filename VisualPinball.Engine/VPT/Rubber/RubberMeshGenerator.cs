@@ -128,8 +128,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 					biNormal = new Vertex3D(tangent.Y * normal.Z, -tangent.X * normal.Z, tangent.X * normal.Y - tangent.Y * normal.X); // = CrossProduct(tangent, normal)
 
 				} else {
-					normal = prevB.Clone().Cross(tangent);
-					biNormal = tangent.Clone().Cross(normal);
+					normal = Vertex3D.CrossProduct(prevB, tangent);
+					biNormal = Vertex3D.CrossProduct(tangent, normal);
 				}
 
 				biNormal.Normalize();

@@ -169,7 +169,7 @@ namespace VisualPinball.Unity
 
 								// move and rotate into parent
 								if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
-									renderable.Position.Sub(parentRenderable.Position);
+									renderable.Position -= parentRenderable.Position;
 									renderable.RotationY -= parentRenderable.RotationY;
 								}
 

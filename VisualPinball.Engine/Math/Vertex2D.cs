@@ -58,6 +58,7 @@ namespace VisualPinball.Engine.Math
 		}
 
 		public static Vertex2D operator +(Vertex2D a, Vertex2D b) => new Vertex2D(a.X + b.X, a.Y + b.Y);
+		public static Vertex2D operator -(Vertex2D a, Vertex2D b) => new Vertex2D(a.X - b.X, a.Y - b.Y);
 
 		public Vertex2D Clone()
 		{
@@ -71,12 +72,12 @@ namespace VisualPinball.Engine.Math
 		// 	return this;
 		// }
 
-		public Vertex2D Sub(Vertex2D v)
-		{
-			X -= v.X;
-			Y -= v.Y;
-			return this;
-		}
+		// public Vertex2D Sub(Vertex2D v)
+		// {
+		// 	X -= v.X;
+		// 	Y -= v.Y;
+		// 	return this;
+		// }
 
 		public Vertex2D Normalize()
 		{

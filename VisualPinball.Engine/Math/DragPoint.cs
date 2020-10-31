@@ -213,7 +213,7 @@ namespace VisualPinball.Engine.Math
 
 		private static bool FlatWithAccuracy3(Vertex3D v1, Vertex3D v2, Vertex3D vMid, float accuracy) {
 			// compute the square of double the signed area of the triangle (v1, vMid, v2)
-			var cross = vMid.Clone().Sub(v1).Cross(v2.Clone().Sub(v1));
+			var cross = Vertex3D.CrossProduct(vMid - v1, v2 - v1);
 			var areaSq = cross.LengthSq();
 			return areaSq < accuracy;
 		}
