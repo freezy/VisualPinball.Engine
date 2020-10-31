@@ -194,7 +194,7 @@ namespace VisualPinball.Engine.Math
 		private static bool FlatWithAccuracy(IRenderVertex v1, IRenderVertex v2, IRenderVertex vMid, float accuracy) {
 
 			switch (v1) {
-				case Vertex3D v31 when v2 is Vertex3D v32 && vMid is Vertex3D vMid3:
+				case RenderVertex3D v31 when v2 is RenderVertex3D v32 && vMid is RenderVertex3D vMid3:
 					return FlatWithAccuracy3(v31, v32, vMid3, accuracy);
 
 				case RenderVertex2D v21 when v2 is RenderVertex2D v22 && vMid is RenderVertex2D vMid2:
@@ -211,7 +211,7 @@ namespace VisualPinball.Engine.Math
 			return dblArea * dblArea < accuracy;
 		}
 
-		private static bool FlatWithAccuracy3(Vertex3D v1, Vertex3D v2, Vertex3D vMid, float accuracy) {
+		private static bool FlatWithAccuracy3(RenderVertex3D v1, RenderVertex3D v2, RenderVertex3D vMid, float accuracy) {
 			// compute the square of double the signed area of the triangle (v1, vMid, v2)
 			var cross = Vertex3D.CrossProduct(vMid - v1, v2 - v1);
 			var areaSq = cross.LengthSq();

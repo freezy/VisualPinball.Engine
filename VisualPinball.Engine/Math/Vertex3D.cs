@@ -30,9 +30,6 @@ namespace VisualPinball.Engine.Math
 		public float Y;
 		public float Z;
 
-		public float GetX() => X;
-		public float GetY() => Y;
-
 		public Vertex3D()
 		{
 			X = 0;

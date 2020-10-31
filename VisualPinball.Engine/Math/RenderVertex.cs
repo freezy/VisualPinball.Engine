@@ -48,19 +48,43 @@ namespace VisualPinball.Engine.Math
 		}
 	}
 
-	public class RenderVertex3D : Vertex3D, IRenderVertex
+	public class RenderVertex3D : IRenderVertex
 	{
-		public new void Set(Vertex3D v)
-		{
-			base.Set(v);
-		}
+		public float X;
+		public float Y;
+		public float Z;
+
+		public float GetX() => X;
+		public float GetY() => Y;
 
 		public bool Smooth { get; set; }
 		public bool IsSlingshot { get; set; }
 		public bool IsControlPoint { get; set; }
 
+		public static Vertex3D operator -(RenderVertex3D a, RenderVertex3D b) => new Vertex3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+
 		public RenderVertex3D() { }
-		public RenderVertex3D(float x, float y, float z) : base(x, y, z) { }
+
+		public RenderVertex3D(float x, float y, float z)
+		{
+			X = x;
+			Y = y;
+			Z = z;
+		}
+
+		public void Set(Vertex3D v)
+		{
+			X = v.X;
+			Y = v.Y;
+			Z = v.Z;
+		}
+
+		public void Set(float x, float y, float z)
+		{
+			X = x;
+			Y = y;
+			Z = z;
+		}
 	}
 
 	public interface IRenderVertex
