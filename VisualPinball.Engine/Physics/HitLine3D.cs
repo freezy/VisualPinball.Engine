@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.Physics
 
 		public HitLine3D(Vertex3D v1, Vertex3D v2, ItemType itemType, IItem item) : base(new Vertex2D(), itemType, item)
 		{
-			var vLine = v2.Clone().Sub(v1);
+			var vLine = v2 - v1;
 			vLine.Normalize();
 
 			// Axis of rotation to make 3D cylinder a cylinder along the z-axis

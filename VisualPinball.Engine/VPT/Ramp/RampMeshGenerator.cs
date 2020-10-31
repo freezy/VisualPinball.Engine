@@ -501,12 +501,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 						midPoints[i2].Y + midPoints[i].Y,
 						initialHeights[i2] - height
 					);
-					normal = tangent.Clone().Cross(up); //normal
-					biNormal = tangent.Clone().Cross(normal);
+					normal = Vertex3D.CrossProduct(tangent, up);     //normal
+					biNormal = Vertex3D.CrossProduct(tangent, normal);
 
 				} else {
-					normal = prev.Clone().Cross(tangent);
-					biNormal = tangent.Clone().Cross(normal);
+					normal = Vertex3D.CrossProduct(prev, tangent);
+					biNormal = Vertex3D.CrossProduct(tangent, normal);
 				}
 
 				biNormal.Normalize();
@@ -669,7 +669,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				result.MiddlePoints[i] = new Vertex2D(middle.X, middle.Y) + normal;
 				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + normal.Clone().MultiplyScalar(currentWidth * 0.5f);
-				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y).Sub(normal.Clone().MultiplyScalar(currentWidth * 0.5f));
+				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - normal.Clone().MultiplyScalar(currentWidth * 0.5f);
 			}
 
 			return result;

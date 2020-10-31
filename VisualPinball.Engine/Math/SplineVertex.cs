@@ -117,7 +117,7 @@ namespace VisualPinball.Engine.Math
 
 				// vmiddle - (widthcur*0.5f) * vnormal;
 				RgvLocal[(numVertices + 1) * 2 - i - 1] =
-					middle.Clone().Sub(normal.Clone().MultiplyScalar(widthCur * 0.5f));
+					middle - normal.Clone().MultiplyScalar(widthCur * 0.5f);
 
 				if (i == 0) {
 					RgvLocal[numVertices] = RgvLocal[0];

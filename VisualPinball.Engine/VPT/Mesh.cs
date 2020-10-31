@@ -155,7 +155,8 @@ namespace VisualPinball.Engine.VPT
 
 				var e0 = new Vertex3D(b.X - a.X, b.Y - a.Y, b.Z - a.Z);
 				var e1 = new Vertex3D(c.X - a.X, c.Y - a.Y, c.Z - a.Z);
-				var normal = e0.Clone().Cross(e1).Normalize();
+				var normal = Vertex3D.CrossProduct(e0, e1);
+				normal.NormalizeSafe();
 
 				a.Nx += normal.X; a.Ny += normal.Y; a.Nz += normal.Z;
 				b.Nx += normal.X; b.Ny += normal.Y; b.Nz += normal.Z;

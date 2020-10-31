@@ -74,9 +74,9 @@ namespace VisualPinball.Engine.Math
 		internal CatmullCurve2D(Vertex2D v0, Vertex2D v1, Vertex2D v2, Vertex2D v3)
 		{
 			var (dt0, dt1, dt2) = Clamp(
-				MathF.Sqrt(v1.Clone().Sub(v0).Length()),
-				MathF.Sqrt(v2.Clone().Sub(v1).Length()),
-				MathF.Sqrt(v3.Clone().Sub(v2).Length())
+				MathF.Sqrt((v1 - v0).Length()),
+				MathF.Sqrt((v2 - v1).Length()),
+				MathF.Sqrt((v3 - v2).Length())
 			);
 			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt0, dt1, dt2);
 			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt0, dt1, dt2);
@@ -99,9 +99,9 @@ namespace VisualPinball.Engine.Math
 
 		internal CatmullCurve3D(Vertex3D v0, Vertex3D v1, Vertex3D v2, Vertex3D v3) {
 			var (dt0, dt1, dt2) = Clamp(
-				MathF.Sqrt(v1.Clone().Sub(v0).Length()),
-				MathF.Sqrt(v2.Clone().Sub(v1).Length()),
-				MathF.Sqrt(v3.Clone().Sub(v2).Length())
+				MathF.Sqrt((v1 - v0).Length()),
+				MathF.Sqrt((v2 - v1).Length()),
+				MathF.Sqrt((v3 - v2).Length())
 			);
 			_c.X = InitNonuniformCatmullCoeffs(v0.X, v1.X, v2.X, v3.X, dt0, dt1, dt2);
 			_c.Y = InitNonuniformCatmullCoeffs(v0.Y, v1.Y, v2.Y, v3.Y, dt0, dt1, dt2);

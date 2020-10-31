@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var diff = pos.ToVertex3D().Sub(Data.DragPoints[0].Center);
+			var diff = pos.ToVertex3D() - Data.DragPoints[0].Center;
 			diff.Z = 0f;
 			Data.DragPoints[0].Center = pos.ToVertex3D();
 			for (var i = 1; i < Data.DragPoints.Length; i++) {

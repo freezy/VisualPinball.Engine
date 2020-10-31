@@ -61,6 +61,11 @@ namespace VisualPinball.Engine.Math
 
 		public static Vertex3D operator +(Vertex3D a, Vertex3D b) => new Vertex3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 
+		public static Vertex3D operator -(Vertex3D a, Vertex3D b)
+		{
+			return new Vertex3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+		}
+
 		public static void Reset(Vertex3D v)
 		{
 			v.Set(0, 0, 0);
@@ -141,13 +146,13 @@ namespace VisualPinball.Engine.Math
 			return X * v.X + Y * v.Y + Z * v.Z;
 		}
 
-		public Vertex3D Sub(Vertex3D v)
-		{
-			X -= v.X;
-			Y -= v.Y;
-			Z -= v.Z;
-			return this;
-		}
+		// public Vertex3D Sub(Vertex3D v)
+		// {
+		// 	X -= v.X;
+		// 	Y -= v.Y;
+		// 	Z -= v.Z;
+		// 	return this;
+		// }
 
 		// public Vertex3D Add(Vertex3D v)
 		// {
@@ -157,26 +162,26 @@ namespace VisualPinball.Engine.Math
 		// 	return this;
 		// }
 
-		public Vertex3D Cross(Vertex3D v)
-		{
-			return CrossVectors(this, v);
-		}
+		// public Vertex3D Cross(Vertex3D v)
+		// {
+		// 	return CrossVectors(this, v);
+		// }
 
-		public Vertex3D CrossVectors(Vertex3D a, Vertex3D b)
-		{
-			var ax = a.X;
-			var ay = a.Y;
-			var az = a.Z;
-			var bx = b.X;
-			var by = b.Y;
-			var bz = b.Z;
-
-			X = ay * bz - az * by;
-			Y = az * bx - ax * bz;
-			Z = ax * by - ay * bx;
-
-			return this;
-		}
+		// public static Vertex3D CrossVectors(Vertex3D a, Vertex3D b)
+		// {
+		// 	var ax = a.X;
+		// 	var ay = a.Y;
+		// 	var az = a.Z;
+		// 	var bx = b.X;
+		// 	var by = b.Y;
+		// 	var bz = b.Z;
+		//
+		// 	return new Vertex3D(
+		// 		ay * bz - az * by,
+		// 		az * bx - ax * bz,
+		// 		ax * by - ay * bx
+		// 	);
+		// }
 
 		public Vertex2D xy()
 		{
