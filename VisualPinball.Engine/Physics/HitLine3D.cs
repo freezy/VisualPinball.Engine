@@ -49,9 +49,8 @@ namespace VisualPinball.Engine.Physics
 
 			Matrix.RotationAroundAxis(transAxis, -MathF.Sqrt(1 - dot * dot), dot);
 
-			var vTrans1 = v1.Clone().ApplyMatrix2D(Matrix);
-			var vTrans2 = v2.Clone().ApplyMatrix2D(Matrix);
-			var vTrans2Z = vTrans2.Z;
+			var vTrans1 = Matrix * v1;
+			var vTrans2Z = (Matrix * v2).Z;
 
 			// set up HitLineZ parameters
 			Xy.Set(vTrans1.X, vTrans1.Y);
