@@ -60,11 +60,15 @@ namespace VisualPinball.Engine.Math
 		}
 
 		public static Vertex3D operator +(Vertex3D a, Vertex3D b) => new Vertex3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-
 		public static Vertex3D operator -(Vertex3D a, Vertex3D b) => new Vertex3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
 		public static Vertex3D operator *(Vertex3D a, float b) => new Vertex3D(a.X * b, a.Y * b, a.Z * b);
-		public static Vertex3D operator *(float a, Vertex3D b) => new Vertex3D(b.X * a, b.Y * a, b.Z * a);
+		public static Vertex3D operator *(float a, Vertex3D b) => b * a;
 		public static Vertex3D operator /(Vertex3D a, float b) => new Vertex3D(a.X / b, a.Y / b, a.Z / b);
+		public static Vertex3D operator *(Matrix2D matrix, Vertex3D b) => new Vertex3D(
+			matrix.Matrix[0][0] * b.X + matrix.Matrix[0][1] * b.Y + matrix.Matrix[0][2] * b.Z,
+			matrix.Matrix[1][0] * b.X + matrix.Matrix[1][1] * b.Y + matrix.Matrix[1][2] * b.Z,
+			matrix.Matrix[2][0] * b.X + matrix.Matrix[2][1] * b.Y + matrix.Matrix[2][2] * b.Z
+		);
 
 		public static void Reset(Vertex3D v)
 		{
@@ -87,10 +91,10 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		public new Vertex3D Clone()
-		{
-			return new Vertex3D(this);
-		}
+		// public new Vertex3D Clone()
+		// {
+		// 	return new Vertex3D(this);
+		// }
 
 		public new void Normalize()
 		{
@@ -222,7 +226,7 @@ namespace VisualPinball.Engine.Math
 
 		public static Vertex3D GetRotatedAxis(float angle, Vertex3D axis, Vertex3D temp)
 		{
-			var u = axis.Clone();
+			var u = axis;
 			u.Normalize();
 
 			var sinAngle = MathF.Sin((float)(System.Math.PI / 180.0)*angle);
