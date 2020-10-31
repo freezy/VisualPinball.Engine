@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 			}
 			var diff = pos.ToVertex3D().Sub(Data.Center);
 			foreach (var pt in Data.DragPoints) {
-				pt.Center = pt.Center.Add(new Vertex3D(diff.X, diff.Y, 0f));
+				pt.Center += new Vertex3D(diff.X, diff.Y, 0f);
 			}
 			Data.Center = pos.ToVertex2Dxy();
 		}

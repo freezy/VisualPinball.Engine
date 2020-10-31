@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 			Data.DragPoints[0].Center = pos.ToVertex3D();
 			for (int i = 1; i < Data.DragPoints.Length; i++) {
 				var pt = Data.DragPoints[i];
-				pt.Center = pt.Center.Add(diff);
+				pt.Center += diff;
 			}
 		}
 

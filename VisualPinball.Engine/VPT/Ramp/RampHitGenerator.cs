@@ -222,8 +222,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			//!! Hit-walls are still done via 2D line segments with only a single lower and upper border, so the wall will always reach below and above the actual ramp -between- two points of the ramp
 			// Thus, subdivide until at some point the approximation error is 'subtle' enough so that one will usually not notice (i.e. dependent on ball size)
 			if (height2 - height1 > 2.0 * PhysicsConstants.PhysSkin) { //!! use ballsize
-				hitObjects.AddRange(GenerateWallLineSeg(pv1, pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight, item));
-				hitObjects.AddRange(GenerateWallLineSeg(pv1.Clone().Add(pv2).MultiplyScalar(0.5f), pv2, true, (height1 + height2) * 0.5f, height2, wallHeight, item));
+				hitObjects.AddRange(GenerateWallLineSeg(pv1, pv1 + pv2.MultiplyScalar(0.5f), pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight, item));
+				hitObjects.AddRange(GenerateWallLineSeg(pv1 + pv2.MultiplyScalar(0.5f), pv2, true, (height1 + height2) * 0.5f, height2, wallHeight, item));
 
 			} else {
 				hitObjects.Add(new LineSeg(pv1, pv2, height1, height2 + wallHeight, ItemType.Ramp, item));

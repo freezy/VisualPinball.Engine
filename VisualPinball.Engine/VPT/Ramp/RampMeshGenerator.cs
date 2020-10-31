@@ -667,8 +667,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 					currentWidth = _data.WireDiameter;
 				}
 
-				result.MiddlePoints[i] = new Vertex2D(middle.X, middle.Y).Add(normal);
-				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y).Add(normal.Clone().MultiplyScalar(currentWidth * 0.5f));
+				result.MiddlePoints[i] = new Vertex2D(middle.X, middle.Y) + normal;
+				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + normal.Clone().MultiplyScalar(currentWidth * 0.5f);
 				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y).Sub(normal.Clone().MultiplyScalar(currentWidth * 0.5f));
 			}
 

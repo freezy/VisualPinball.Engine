@@ -59,6 +59,8 @@ namespace VisualPinball.Engine.Math
 			}
 		}
 
+		public static Vertex3D operator +(Vertex3D a, Vertex3D b) => new Vertex3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+
 		public static void Reset(Vertex3D v)
 		{
 			v.Set(0, 0, 0);
@@ -147,13 +149,13 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		public Vertex3D Add(Vertex3D v)
-		{
-			X += v.X;
-			Y += v.Y;
-			Z += v.Z;
-			return this;
-		}
+		// public Vertex3D Add(Vertex3D v)
+		// {
+		// 	X += v.X;
+		// 	Y += v.Y;
+		// 	Z += v.Z;
+		// 	return this;
+		// }
 
 		public Vertex3D Cross(Vertex3D v)
 		{
