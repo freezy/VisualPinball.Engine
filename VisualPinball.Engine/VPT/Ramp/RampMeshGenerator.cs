@@ -650,7 +650,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				var currentWidth = percentage * (_data.WidthTop - _data.WidthBottom) + _data.WidthBottom;
 				result.PointHeights[i] = middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight;
 
-				AssignHeightToControlPoint(vertex[i], middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight);
+				AssignHeightToControlPoint(new Vertex2D(vertex[i].X, vertex[i].Y), middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight);
 				result.PointRatios[i] = 1.0f - percentage;
 
 				// only change the width if we want to create vertices for rendering or for the editor

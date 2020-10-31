@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 			if (Data == null || Data.DragPoints.Length == 0) {
 				return;
 			}
-			var diff = pos.ToVertex3D() - Data.Center;
+			var diff = pos.ToVertex2Dxy() - Data.Center;
 			foreach (var pt in Data.DragPoints) {
 				pt.Center += new Vertex3D(diff.X, diff.Y, 0f);
 			}

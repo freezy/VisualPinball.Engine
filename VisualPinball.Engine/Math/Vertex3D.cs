@@ -21,7 +21,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	public class Vertex3D : Vertex2D
+	public class Vertex3D : ___Vertex2D
 	{
 		public static readonly Vertex3D One = new Vertex3D(1.0f, 1.0f, 1.0f);
 		public static readonly Vertex3D Zero = new Vertex3D(0, 0, 0);
@@ -136,16 +136,16 @@ namespace VisualPinball.Engine.Math
 		// 	return this;
 		// }
 
-		public Vertex3D ApplyMatrix2D(Matrix2D matrix)
-		{
-			var x = matrix.Matrix[0][0] * X + matrix.Matrix[0][1] * Y + matrix.Matrix[0][2] * Z;
-			var y = matrix.Matrix[1][0] * X + matrix.Matrix[1][1] * Y + matrix.Matrix[1][2] * Z;
-			var z = matrix.Matrix[2][0] * X + matrix.Matrix[2][1] * Y + matrix.Matrix[2][2] * Z;
-			X = x;
-			Y = y;
-			Z = z;
-			return this;
-		}
+		// public Vertex3D ApplyMatrix2D(Matrix2D matrix)
+		// {
+		// 	var x = matrix.Matrix[0][0] * X + matrix.Matrix[0][1] * Y + matrix.Matrix[0][2] * Z;
+		// 	var y = matrix.Matrix[1][0] * X + matrix.Matrix[1][1] * Y + matrix.Matrix[1][2] * Z;
+		// 	var z = matrix.Matrix[2][0] * X + matrix.Matrix[2][1] * Y + matrix.Matrix[2][2] * Z;
+		// 	X = x;
+		// 	Y = y;
+		// 	Z = z;
+		// 	return this;
+		// }
 
 		public float Dot(Vertex3D v)
 		{
@@ -268,5 +268,96 @@ namespace VisualPinball.Engine.Math
 		}
 
 		public float Magnitude() => MathF.Sqrt(this.Dot(this));
+	}
+
+	[Serializable]
+	public class ___Vertex2D
+	{
+		public float X;
+		public float Y;
+
+		public float GetX() => X;
+		public float GetY() => Y;
+
+		public ___Vertex2D() : this(0.0f, 0.0f) { }
+
+		public ___Vertex2D(float x, float y)
+		{
+			X = x;
+			Y = y;
+		}
+
+		public ___Vertex2D(BinaryReader reader, int len)
+		{
+			X = reader.ReadSingle();
+			Y = reader.ReadSingle();
+			if (len > 8) {
+				reader.BaseStream.Seek(len - 8, SeekOrigin.Current);
+			}
+		}
+
+		public ___Vertex2D Set(float x, float y)
+		{
+			X = x;
+			Y = y;
+			return this;
+		}
+
+		public ___Vertex2D SetZero()
+		{
+			return Set(0, 0);
+		}
+
+		public static ___Vertex2D operator +(___Vertex2D a, ___Vertex2D b) => new ___Vertex2D(a.X + b.X, a.Y + b.Y);
+		public static ___Vertex2D operator -(___Vertex2D a, ___Vertex2D b) => new ___Vertex2D(a.X - b.X, a.Y - b.Y);
+		public static ___Vertex2D operator *(___Vertex2D a, float b) => new ___Vertex2D(a.X * b, a.Y * b);
+		public static ___Vertex2D operator *(float a, ___Vertex2D b) => new ___Vertex2D(b.X * a, b.Y * a);
+
+		public ___Vertex2D Clone()
+		{
+			return new ___Vertex2D(X, Y);
+		}
+
+		public void Normalize()
+		{
+			var oneOverLength = 1.0f / Length();
+			X *= oneOverLength;
+			Y *= oneOverLength;
+		}
+
+		// public ___Vertex2D MultiplyScalar(float scalar)
+		// {
+		// 	X *= scalar;
+		// 	Y *= scalar;
+		// 	return this;
+		// }
+
+		public float Length()
+		{
+			return MathF.Sqrt(X * X + Y * Y);
+		}
+
+		public float LengthSq()
+		{
+			return X * X + Y * Y;
+		}
+
+		public float Dot(___Vertex2D pv)
+		{
+			return X * pv.X + Y * pv.Y;
+		}
+
+		public bool Equals(___Vertex2D v)
+		{
+			if (v == null) {
+				return false;
+			}
+			return X == v.X && Y == v.Y;
+		}
+
+		public override string ToString()
+		{
+			return $"___Vertex2D({X}/{Y})";
+		}
 	}
 }
