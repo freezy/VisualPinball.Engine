@@ -556,9 +556,18 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Material GetMaterial(string name)
 		{
-			return Data.Materials == null || name == null
-				? null
-				: Data.Materials.FirstOrDefault(m => m.Name == name);
+			if (Data.Materials == null || name == null) {
+				return null;
+			}
+
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			foreach (var t in Data.Materials) {
+				if (t.Name == name) {
+					return t;
+				}
+			}
+
+			return null;
 		}
 
 		public void SetTextureContainer(ITableResourceContainer<Texture> container)

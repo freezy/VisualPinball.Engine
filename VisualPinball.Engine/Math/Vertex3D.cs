@@ -64,9 +64,9 @@ namespace VisualPinball.Engine.Math
 		public static Vertex3D operator *(float a, Vertex3D b) => b * a;
 		public static Vertex3D operator /(Vertex3D a, float b) => new Vertex3D(a.X / b, a.Y / b, a.Z / b);
 		public static Vertex3D operator *(Matrix2D matrix, Vertex3D b) => new Vertex3D(
-			matrix.Matrix[0][0] * b.X + matrix.Matrix[0][1] * b.Y + matrix.Matrix[0][2] * b.Z,
-			matrix.Matrix[1][0] * b.X + matrix.Matrix[1][1] * b.Y + matrix.Matrix[1][2] * b.Z,
-			matrix.Matrix[2][0] * b.X + matrix.Matrix[2][1] * b.Y + matrix.Matrix[2][2] * b.Z
+			matrix.M00 * b.X + matrix.M01 * b.Y + matrix.M02 * b.Z,
+			matrix.M10 * b.X + matrix.M11 * b.Y + matrix.M12 * b.Z,
+			matrix.M20 * b.X + matrix.M21 * b.Y + matrix.M22 * b.Z
 		);
 
 		public static void Reset(Vertex3D v)

@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitLine3D : HitLineZ
 	{
-		public readonly Matrix2D Matrix = new Matrix2D();
+		public readonly Matrix2D Matrix = Matrix2D.Identity;
 		public readonly float ZLow;
 		public readonly float ZHigh;
 
