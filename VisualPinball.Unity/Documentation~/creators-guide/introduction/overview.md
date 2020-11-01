@@ -1,5 +1,6 @@
 ---
 uid: vpe-overview
+description: VPE, the Visual Pinball Engine, is a modern, open source pinball simulator using the Unity game engine.
 ---
 
 ![VPE Header](jp-header.png)

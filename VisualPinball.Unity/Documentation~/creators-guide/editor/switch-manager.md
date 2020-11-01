@@ -1,3 +1,6 @@
+---
+description: VPE's switch manager lets you hook up the switches of the playfield to the gamelogic engine.
+---
 # Switch Manager
 
 During gameplay, the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) needs to know what is happening on the playfield. For that reason, real pinball tables have switches all over the playfield that signal when a ball rolls over a certain position. These switches are also built into targets, bumpers, kickers, and some other items (see *[Supported Game Mechanisms](#supported-game-mechanisms)* below).

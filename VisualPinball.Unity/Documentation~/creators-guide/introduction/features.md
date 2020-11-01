@@ -1,5 +1,6 @@
 ---
 uid: features
+description: A brief overview of VPE's features
 ---
 
 # Features

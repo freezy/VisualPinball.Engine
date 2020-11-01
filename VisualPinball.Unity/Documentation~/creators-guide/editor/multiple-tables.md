@@ -1,3 +1,6 @@
+---
+description: VPE supports multiple tables in one scene.
+---
 # Working with Multiple Tables
 
 When working on a creation, you might want to load other tables to pick assets from. For that, Visual Pinball lets you open multiple tables allowing to switch and copy elements between them relatively quickly.

@@ -1,5 +1,6 @@
 ---
 title: Welcome
+description: Visual Pinball for Unity - Documentation, Guides and Tutorials.
 ---
 
 <center>

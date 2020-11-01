@@ -1,3 +1,6 @@
+---
+description: Working with mesh, collider and animation components.
+---
 # Unity Components
 
 When loading or creating a table in Unity, what you're creating is a hierarchy of [GameObjects](https://docs.unity3d.com/Manual/GameObjects.html), the basic building blocks of Unity scenes. By default we group game items by their type when importing, but you can arrange them however you want.

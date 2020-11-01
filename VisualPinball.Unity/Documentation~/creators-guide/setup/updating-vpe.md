@@ -1,3 +1,6 @@
+---
+description: How to update VPE
+---
 # Updating VPE
 
 VPE is under heavy development, so it's frequently updated, usually multiple times per week. In order to not have to delete your existing `VisualPinball.Engine` folder and download and extract the code each time, we recommend using git.

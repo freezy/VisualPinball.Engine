@@ -1,3 +1,6 @@
+---
+description: VPE's coil manager lets you hook up the coils of the playfield to the gamelogic engine.
+---
 # Coil Manager
 
 On a real pinball table, most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor) (also called [solenoids](https://en.wikipedia.org/wiki/Solenoid)). It's the job of the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) to trigger them when needed.

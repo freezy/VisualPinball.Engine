@@ -1,3 +1,6 @@
+---
+description: VPE's gamelogic engine is the code driving your game's logic.
+---
 # Gamelogic Engine
 
 When playing a pinball game, some part of the table is driving the gameplay, i.e. deciding when to flip a coil, turn on a light, show something on the DMD, and so on. In VPE, we call this the *Gamelogic Engine*.

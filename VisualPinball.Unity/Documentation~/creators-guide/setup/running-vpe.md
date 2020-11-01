@@ -1,3 +1,6 @@
+---
+description: How to run VPE
+---
 # Running VPE
 
 Now we can get begin with some simple game play. Open Visual Pinball, create a new "blank" table, and save it somewhere. In Unity, go to *Visual Pinball -> Import VPX* and choose the new `.vpx` file.
