@@ -126,15 +126,15 @@ namespace VisualPinball.Unity
 		public static float3x3 ToUnityFloat3x3(this Matrix2D matrix)
 		{
 			return new float3x3(
-				matrix.Matrix[0][0],
-				matrix.Matrix[0][1],
-				matrix.Matrix[0][2],
-				matrix.Matrix[1][0],
-				matrix.Matrix[1][1],
-				matrix.Matrix[1][2],
-				matrix.Matrix[2][0],
-				matrix.Matrix[2][1],
-				matrix.Matrix[2][2]
+				matrix.M00,
+				matrix.M01,
+				matrix.M02,
+				matrix.M10,
+				matrix.M11,
+				matrix.M12,
+				matrix.M20,
+				matrix.M21,
+				matrix.M22
 			);
 		}
 

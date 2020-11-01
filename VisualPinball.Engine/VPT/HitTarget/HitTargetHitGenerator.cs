@@ -42,15 +42,15 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		private HitObject[] GenerateDropTargetHits(Table.Table table, IItem item)
 		{
-			var addedEdges = new EdgeSet();
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
+			var addedEdges = new EdgeSet(hitMesh.Vertices.Length);
 			return GenerateCollidables(hitMesh, addedEdges, true, table, item);
 		}
 
 		private HitObject[] GenerateHitTargetHits(Table.Table table, IItem item)
 		{
-			var addedEdges = new EdgeSet();
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
+			var addedEdges = new EdgeSet(hitMesh.Vertices.Length);
 			var hitObjects = GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, item).ToList();
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.RotZ));

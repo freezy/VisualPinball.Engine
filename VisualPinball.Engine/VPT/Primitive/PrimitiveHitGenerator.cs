@@ -68,7 +68,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public static IEnumerable<HitObject> MeshToHitObjects(Mesh mesh, ItemType itemType, IItem item, bool onlyTriangles = false)
 		{
 			var hitObjects = new List<HitObject>();
-			var addedEdges = new EdgeSet();
+			var addedEdges = new EdgeSet(mesh.Vertices.Length);
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {

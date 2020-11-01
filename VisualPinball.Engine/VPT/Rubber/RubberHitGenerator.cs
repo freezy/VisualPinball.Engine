@@ -35,8 +35,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public HitObject[] GenerateHitObjects(Table.Table table, IItem item)
 		{
 			var hitObjects = new List<HitObject>();
-			var addedEdges = new EdgeSet();
 			var mesh = _meshGenerator.GetMesh(table, 6, true); //!! adapt hacky code in the function if changing the "6" here
+			var addedEdges = new EdgeSet(mesh.Vertices.Length);
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {

@@ -22,14 +22,19 @@ namespace VisualPinball.Engine.Math
 {
 	public class EdgeSet
 	{
-		private readonly HashSet<string> _edges = new HashSet<string>();
+		private readonly Dictionary<long, bool> _edges;
+
+		public EdgeSet(int capacity)
+		{
+			_edges = new Dictionary<long, bool>(capacity);
+		}
 
 		public void Add(int i, int j) {
-			_edges.Add(GetKey(i, j));
+			_edges.Add(GetKey(i, j), true);
 		}
 
 		public bool Has(int i, int j) {
-			return _edges.Contains(GetKey(i, j));
+			return _edges.ContainsKey(GetKey(i, j));
 		}
 
 		public IEnumerable<HitObject> AddHitEdge(int i, int j, Vertex3D vi, Vertex3D vj, ItemType itemType, IItem item) {
@@ -40,8 +45,9 @@ namespace VisualPinball.Engine.Math
 			return new HitObject[0];
 		}
 
-		private static string GetKey(int i, int j) {
-			return $"{System.Math.Min(i, j)},{System.Math.Max(i, j)}";
+		private static long GetKey(int i, int j)
+		{
+			return ((long) System.Math.Min(i, j) << 32) + System.Math.Max(i, j);
 		}
 	}
 }
