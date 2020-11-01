@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
@@ -31,7 +32,12 @@ namespace VisualPinball.Unity
 		void OnInit(BallManager ballManager);
 	}
 
-	internal interface IApiHittable
+	internal interface IApiCollider
+	{
+		Collider[] GetHittables(Table table);
+	}
+
+	public interface IApiHittable
 	{
 		void OnHit(Entity ballEntity, bool isUnHit = false);
 		event EventHandler<HitEventArgs> Hit;
