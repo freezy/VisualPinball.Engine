@@ -23,6 +23,7 @@
   <meta property="docfx:navrel" content="{{_navRel}}">
   <meta property="docfx:tocrel" content="{{_tocRel}}">
 
+  <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet" />
   <script type="text/javascript">
   var _paq = window._paq || [];
   _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
