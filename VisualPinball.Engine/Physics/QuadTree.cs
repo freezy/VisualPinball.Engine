@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Physics
 		private Primitive _unique; // everything below/including this node shares the same original primitive object (just for early outs if not collidable)
 
 		public readonly QuadTree[] Children = new QuadTree[4];
-		public readonly Vertex3D Center = new Vertex3D();
+		public Vertex3D Center;
 		public List<HitObject> HitObjects;
 		public bool IsLeaf = true;
 

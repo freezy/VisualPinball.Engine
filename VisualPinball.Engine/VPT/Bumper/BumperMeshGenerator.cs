@@ -89,12 +89,8 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		private Mesh GetMesh(string id, Table.Table table, Origin origin) {
-			if (_data.Center == null) {
-				throw new InvalidOperationException($"Cannot export bumper {_data.Name} without center.");
-			}
 
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
-
 			switch (id) {
 				case Base: {
 					var mesh = BaseMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
@@ -134,13 +130,15 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		private Mesh TranslateMesh(Mesh mesh, Func<float, float> zPos, Origin origin) {
 			var generatedMesh = mesh.Clone();
-			foreach (var vertex in generatedMesh.Vertices) {
+			for (var i = 0; i < generatedMesh.Vertices.Length; i++) {
 				if (origin == Origin.Global) {
-					vertex.X += _data.Center.X;
-					vertex.Y += _data.Center.Y;
+					generatedMesh.Vertices[i].X += _data.Center.X;
+					generatedMesh.Vertices[i].Y += _data.Center.Y;
 				}
-				vertex.Z = zPos(vertex.Z);
+
+				generatedMesh.Vertices[i].Z = zPos(generatedMesh.Vertices[i].Z);
 			}
+
 			return generatedMesh;
 		}
 	}

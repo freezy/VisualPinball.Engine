@@ -119,7 +119,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 																	  // fixAngleScale = 0.0; // note: if you force fixAngleScale = 0.0 then all will look as old version
 
 			// lambda used to apply fix
-			void ApplyFix(Vertex3DNoTex2 vert, Vertex2D center, float midAngle, float radius, Vertex2D newCenter)
+			void ApplyFix(ref Vertex3DNoTex2 vert, Vertex2D center, float midAngle, float radius, Vertex2D newCenter)
 			{
 				var vAngle = MathF.Atan2(vert.Y - center.Y, vert.X - center.X);
 				var nAngle = MathF.Atan2(vert.Ny, vert.Nx);
@@ -146,28 +146,27 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 			// base and tip
 			var baseMesh = FlipperBaseMesh.Clone(Base);
-			for (var t = 0; t < 13; t++)
-			{
-				foreach (var v in baseMesh.Vertices)
-				{
-					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
-					{
-						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)-(System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
+			for (var t = 0; t < 13; t++) {
+				for (var i = 0; i < baseMesh.Vertices.Length; i++) {
+					var v = baseMesh.Vertices[i];
+					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
+						ApplyFix(ref baseMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+							(float) -(System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
 					}
 
-					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
-					{
-						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
+					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
+						ApplyFix(ref baseMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+							(float) (System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 
-					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
-					{
-						ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
+					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
+						ApplyFix(ref baseMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+							(float) (-System.Math.PI * 0.5), baseRadius, new Vertex2D(0, 0));
 					}
 
-					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
-					{
-						ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
+					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
+						ApplyFix(ref baseMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+							(float) (System.Math.PI * 0.5), endRadius, new Vertex2D(0, _data.FlipperRadius));
 					}
 				}
 			}
@@ -179,28 +178,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 			if (_data.RubberThickness > 0.0)
 			{
 				var rubberMesh = FlipperBaseMesh.Clone(Rubber);
-				for (var t = 0; t < 13; t++)
-				{
-					foreach (var v in rubberMesh.Vertices)
-					{
-						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z)
-						{
-							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
+				for (var t = 0; t < 13; t++) {
+					for (var i = 0; i < rubberMesh.Vertices.Length; i++) {
+						var v = rubberMesh.Vertices[i];
+						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
+							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness,
+								new Vertex2D(0, 0));
 						}
 
-						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z)
-						{
-							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
+						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
+							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness,
+								new Vertex2D(0, _data.FlipperRadius));
 						}
 
-						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z)
-						{
-							ApplyFix(v, new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y), (float)(-System.Math.PI * 0.5), baseRadius + _data.RubberThickness, new Vertex2D(0, 0));
+						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
+							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness,
+								new Vertex2D(0, 0));
 						}
 
-						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z)
-						{
-							ApplyFix(v, new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y), (float)(System.Math.PI * 0.5), endRadius + _data.RubberThickness, new Vertex2D(0, _data.FlipperRadius));
+						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
+							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness,
+								new Vertex2D(0, _data.FlipperRadius));
 						}
 					}
 				}

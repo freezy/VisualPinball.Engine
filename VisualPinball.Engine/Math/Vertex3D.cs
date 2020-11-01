@@ -21,7 +21,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	public class Vertex3D
+	public struct Vertex3D
 	{
 		public static readonly Vertex3D One = new Vertex3D(1.0f, 1.0f, 1.0f);
 		public static readonly Vertex3D Zero = new Vertex3D(0, 0, 0);
@@ -29,13 +29,6 @@ namespace VisualPinball.Engine.Math
 		public float X;
 		public float Y;
 		public float Z;
-
-		public Vertex3D()
-		{
-			X = 0;
-			Y = 0;
-			Z = 0;
-		}
 
 		public Vertex3D(float x, float y, float z)
 		{
@@ -57,6 +50,8 @@ namespace VisualPinball.Engine.Math
 			Y = reader.ReadSingle();
 			if (len >= 12) {
 				Z = reader.ReadSingle();
+			} else {
+				Z = 0;
 			}
 			if (len > 12) {
 				reader.BaseStream.Seek(len - 12, SeekOrigin.Current);

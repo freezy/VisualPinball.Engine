@@ -128,10 +128,10 @@ namespace VisualPinball.Engine.VPT.Trigger
 				return mesh;
 			}
 
-			foreach (var vertex in mesh.Vertices) {
-				vertex.X += vertex.Nx * _data.WireThickness;
-				vertex.Y += vertex.Ny * _data.WireThickness;
-				vertex.Z += vertex.Nz * _data.WireThickness;
+			for (var i = 0; i < mesh.Vertices.Length; i++) {
+				mesh.Vertices[i].X += mesh.Vertices[i].Nx * _data.WireThickness;
+				mesh.Vertices[i].Y += mesh.Vertices[i].Ny * _data.WireThickness;
+				mesh.Vertices[i].Z += mesh.Vertices[i].Nz * _data.WireThickness;
 			}
 
 			return mesh;

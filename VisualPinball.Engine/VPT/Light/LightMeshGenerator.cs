@@ -147,10 +147,10 @@ namespace VisualPinball.Engine.VPT.Light
 			var transX = origin == Origin.Global ? _data.Center.X : 0f;
 			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
 			var transZ = origin == Origin.Global ? height : 0f;
-			foreach (var vertex in bulbMesh.Vertices) {
-				vertex.X = vertex.X * _data.MeshRadius + transX;
-				vertex.Y = vertex.Y * _data.MeshRadius + transY;
-				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
+			for (var i = 0; i < bulbMesh.Vertices.Length; i++) {
+				bulbMesh.Vertices[i].X = bulbMesh.Vertices[i].X * _data.MeshRadius + transX;
+				bulbMesh.Vertices[i].Y = bulbMesh.Vertices[i].Y * _data.MeshRadius + transY;
+				bulbMesh.Vertices[i].Z = bulbMesh.Vertices[i].Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
 
 			return bulbMesh;
@@ -164,11 +164,12 @@ namespace VisualPinball.Engine.VPT.Light
 			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
 			var transZ = origin == Origin.Global ? height : 0f;
 
-			foreach (var vertex in socketMesh.Vertices) {
-				vertex.X = vertex.X * _data.MeshRadius + transX;
-				vertex.Y = vertex.Y * _data.MeshRadius + transY;
-				vertex.Z = vertex.Z * _data.MeshRadius * table.GetScaleZ() + transZ;
+			for (var i = 0; i < socketMesh.Vertices.Length; i++) {
+				socketMesh.Vertices[i].X = socketMesh.Vertices[i].X * _data.MeshRadius + transX;
+				socketMesh.Vertices[i].Y = socketMesh.Vertices[i].Y * _data.MeshRadius + transY;
+				socketMesh.Vertices[i].Z = socketMesh.Vertices[i].Z * _data.MeshRadius * table.GetScaleZ() + transZ;
 			}
+
 			return socketMesh;
 		}
 
