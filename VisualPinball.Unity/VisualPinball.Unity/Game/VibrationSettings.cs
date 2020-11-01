@@ -14,40 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using Unity.Entities;
-using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemApi<Engine.VPT.Rubber.Rubber, Engine.VPT.Rubber.RubberData>, IApiInitializable, IApiHittable
+	public class VibrationSettings : MonoBehaviour
 	{
-		/// <summary>
-		/// Event emitted when the table is started.
-		/// </summary>
-		public event EventHandler Init;
+		//[Range(0, 0.5f)]
+		public float speed = 0.1f;
 
-		/// <summary>
-		/// Event emitted when the ball hits the rubber.
-		/// </summary>
-		public event EventHandler<HitEventArgs> Hit;
+		//[Range(0, 100f)]
+		public float strength = 10f;
 
-		internal RubberApi(Engine.VPT.Rubber.Rubber item, Entity entity, Player player) : base(item, entity, player)
+		public float duration = 1f;
+
+		private VibrationSystem _vibrationSystem;
+
+		private void Awake()
 		{
+			_vibrationSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VibrationSystem>();
 		}
 
-		#region Events
-
-		void IApiInitializable.OnInit(BallManager ballManager)
+		private void Update()
 		{
-			Init?.Invoke(this, EventArgs.Empty);
+			_vibrationSystem.Speed = speed;
+			_vibrationSystem.Strength = strength;
+			_vibrationSystem.Duration = duration;
 		}
-
-		void IApiHittable.OnHit(float3 hitNormal, bool _)
-		{
-			Hit?.Invoke(this, new HitEventArgs(hitNormal));
-		}
-
-		#endregion
 	}
 }

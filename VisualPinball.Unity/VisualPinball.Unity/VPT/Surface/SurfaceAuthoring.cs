@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
@@ -52,6 +53,7 @@ namespace VisualPinball.Unity
 				IsDisabled = false,
 				Threshold = Data.SlingshotThreshold,
 			});
+
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
 		}
 

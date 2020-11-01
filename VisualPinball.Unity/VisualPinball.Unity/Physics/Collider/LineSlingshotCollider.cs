@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 
 				// !! magic distance, must be a new place if only by a little
 				if (distLs > 0.25f) {
-					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ParentEntity, true));
+					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ParentEntity, collEvent.HitNormal, true));
 
 					// todo slingshot animation
 					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;

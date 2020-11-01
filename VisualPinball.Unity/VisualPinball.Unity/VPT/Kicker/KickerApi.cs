@@ -35,12 +35,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball moves into the kicker.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
 		/// Event emitted when the ball leaves the kicker.
 		/// </summary>
-		public event EventHandler UnHit;
+		public event EventHandler<HitEventArgs> UnHit;
 
 		public KickerApi(Kicker item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -175,14 +175,14 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool isUnHit)
+		void IApiHittable.OnHit(float3 hitNormal, bool isUnHit)
 		{
 			if (isUnHit) {
-				UnHit?.Invoke(this, EventArgs.Empty);
+				UnHit?.Invoke(this, new HitEventArgs(hitNormal));
 				OnSwitch(false);
 
 			} else {
-				Hit?.Invoke(this, EventArgs.Empty);
+				Hit?.Invoke(this, new HitEventArgs(hitNormal));
 				OnSwitch(true);
 			}
 		}

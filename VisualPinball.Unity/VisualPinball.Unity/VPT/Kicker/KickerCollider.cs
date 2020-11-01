@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 						}
 
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, true));
+						events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, collEvent.HitNormal, true));
 
 						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 				} else { // exiting kickers volume
 					// remove kicker to ball's volume set
 					BallData.SetOutsideOf(ref insideOfs, collEntity);
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, collEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, collEntity, collEvent.HitNormal, true));
 				}
 			}
 		}

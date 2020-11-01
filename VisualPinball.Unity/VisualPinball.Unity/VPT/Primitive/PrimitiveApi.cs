@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
@@ -30,7 +31,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball glides on the primitive.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal PrimitiveApi(Engine.VPT.Primitive.Primitive item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -43,9 +44,9 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(float3 hitNormal, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(hitNormal));
 		}
 
 		#endregion

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	public interface IApi
@@ -28,7 +30,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiHittable
 	{
-		void OnHit(bool isUnHit = false);
+		void OnHit(float3 hitNormal, bool isUnHit = false);
 	}
 
 	internal interface IApiRotatable
@@ -38,7 +40,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCollidable
 	{
-		void OnCollide(float hit);
+		void OnCollide(float3 hitNormal, float hit);
 	}
 
 	internal interface IApiSpinnable

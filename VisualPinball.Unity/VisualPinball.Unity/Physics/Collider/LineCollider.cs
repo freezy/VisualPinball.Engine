@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			if (dot <= -_header.Threshold) {
-				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in collEvent.HitNormal, in _header);
 			}
 		}
 

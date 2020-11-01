@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 				movementData.AngleSpeed = -movementData.AngleSpeed;
 			}
 
-			Collider.FireHitEvent(ref ball, ref events, in coll.Header);
+			Collider.FireHitEvent(ref ball, ref events, in collEvent.HitNormal, in coll.Header);
 		}
 
 		#endregion

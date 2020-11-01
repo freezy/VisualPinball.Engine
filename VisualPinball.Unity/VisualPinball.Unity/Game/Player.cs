@@ -16,9 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using NetVips;
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
@@ -76,6 +78,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _keyAssignments = new Dictionary<string, List<string>>();
 		private readonly Dictionary<string, List<Tuple<string, bool>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool>>>();
+		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 
 		public Player()
 		{
@@ -102,6 +105,8 @@ namespace VisualPinball.Unity
 			if (!string.IsNullOrEmpty(debugUiId)) {
 				EngineProvider<IDebugUI>.Set(debugUiId);
 			}
+
+			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		}
 
 		private void Update()
@@ -111,6 +116,8 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
+			_tableApi.Surface("Wall1").Hit -= OnWallHit;
+
 			if (_keyAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
 			}
@@ -136,6 +143,28 @@ namespace VisualPinball.Unity
 			// trigger init events now
 			foreach (var i in _initializables) {
 				i.OnInit(BallManager);
+			}
+
+			_tableApi.Surface("Wall1").Hit += OnWallHit;
+		}
+
+
+		private void OnWallHit(object sender, HitEventArgs e)
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			foreach (var entity in _hittables.Keys) {
+				if (_hittables[entity] == sender) {
+					Debug.Log("Hit at " + e.HitNormal + "!");
+					var pos = entityManager.GetComponentData<Translation>(entity);
+					if (entityManager.HasComponent<VibrationData>(entity)) {
+						Debug.Log("Updating component data");
+						entityManager.SetComponentData(entity, new VibrationData(pos.Value, e.HitNormal, _simulationSystemGroup.TimeMsec));
+					} else {
+						Debug.Log("Adding component data");
+						entityManager.AddComponentData(entity, new VibrationData(pos.Value, e.HitNormal, _simulationSystemGroup.TimeMsec));
+					}
+					break;
+				}
 			}
 		}
 
@@ -388,11 +417,11 @@ namespace VisualPinball.Unity
 					if (!_hittables.ContainsKey(eventData.ItemEntity)) {
 						Debug.LogError($"Cannot find entity {eventData.ItemEntity} in hittables.");
 					}
-					_hittables[eventData.ItemEntity].OnHit();
+					_hittables[eventData.ItemEntity].OnHit(eventData.HitNormal);
 					break;
 
 				case EventId.HitEventsUnhit:
-					_hittables[eventData.ItemEntity].OnHit(true);
+					_hittables[eventData.ItemEntity].OnHit(eventData.HitNormal, true);
 					break;
 
 				case EventId.LimitEventsBos:
@@ -408,7 +437,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case EventId.FlipperEventsCollide:
-					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
+					_collidables[eventData.ItemEntity].OnCollide(eventData.HitNormal, eventData.FloatParam);
 					break;
 
 				case EventId.SurfaceEventsSlingshot:

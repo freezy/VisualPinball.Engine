@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in collEvent.HitNormal, in coll.Header);
 			}
 		}
 	}

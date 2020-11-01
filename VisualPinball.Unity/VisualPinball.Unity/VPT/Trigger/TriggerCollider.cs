@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 						animationData.HitEvent = true;
 					}
 
-					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity, collEvent.HitNormal, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 						animationData.UnHitEvent = true;
 					}
 
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, collEvent.HitNormal, true));
 				}
 			}
 		}

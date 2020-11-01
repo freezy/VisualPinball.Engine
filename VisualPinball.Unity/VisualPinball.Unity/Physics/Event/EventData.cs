@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
@@ -27,19 +28,30 @@ namespace VisualPinball.Unity
 	{
 		public readonly EventId eventId;
 		public readonly Entity ItemEntity;
+		public readonly float3 HitNormal;
 		public readonly float FloatParam;
 		public readonly bool GroupEvent;
 
 		public EventData(EventId eventId, Entity itemEntity, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
+			HitNormal = default;
 			ItemEntity = itemEntity;
 			GroupEvent = groupEvent;
 		}
 
-		public EventData(EventId eventId, Entity itemEntity, float floatParam, bool groupEvent = false) : this()
+		public EventData(EventId eventId, Entity itemEntity, float3 hitNormal, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
+			HitNormal = hitNormal;
+			ItemEntity = itemEntity;
+			GroupEvent = groupEvent;
+		}
+
+		public EventData(EventId eventId, Entity itemEntity, float3 hitNormal, float floatParam, bool groupEvent = false) : this()
+		{
+			this.eventId = eventId;
+			HitNormal = hitNormal;
 			ItemEntity = itemEntity;
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 
@@ -27,5 +29,15 @@ namespace VisualPinball.Unity
 		/// Angle speed with which the new position was reached.
 		/// </summary>
 		public float AngleSpeed;
+	}
+
+	public readonly struct HitEventArgs
+	{
+		public readonly float3 HitNormal;
+
+		public HitEventArgs(float3 hitNormal)
+		{
+			HitNormal = hitNormal;
+		}
 	}
 }
