@@ -36,10 +36,15 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// The ball switches. These are virtual switches that don't exist on the
-		/// playfield, but running <see cref="DeviceSwitch.OnSwitch"/> on them will
+		/// playfield, but running <see cref="DeviceSwitch.SetSwitch"/> on them will
 		/// send the event to the gamelogic engine.
 		/// </summary>
 		private DeviceSwitch[] _ballSwitches;
+
+		/// <summary>
+		/// Number of virtual balls currently in the trough
+		/// </summary>
+		private int _ballCount = 0;
 
 		/// <summary>
 		/// Eject coil triggers the kicker that throws out the ball.
@@ -107,25 +112,64 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		internal void OnEjectCoil(bool closed)
+		/// <summary>
+		/// Create a ball in the trough without triggering extra events
+		/// </summary>
+		internal void AddBall()
 		{
-			if (closed) {
-				Debug.Log("Spawning new ball.");
-				_exitKicker.CreateBall();
-				_exitKicker.Kick();
+			if (_ballCount < Data.BallCount) {
+				_ballSwitches[_ballCount].SetSwitch(true);
 
-				EntrySwitch.OnSwitch(false);
+				_ballCount++;
 			}
 		}
 
+		/// <summary>
+		/// If there are any balls in the trough add one to play and
+		/// trigger any switches which the remaininng balls would activate
+		/// </summary>
+		internal void OnEjectCoil(bool closed)
+		{
+			if (closed && (_ballCount > 0)) {
+				Debug.Log("Spawning new ball.");
+
+				_exitKicker.CreateBall();
+				_exitKicker.Kick();
+
+				for (int i = 0; i < _ballCount; i++) {
+					_ballSwitches[i].ScheduleSwitch(false, Data.SettleTime / 2);
+				}
+
+				_ballCount--;
+
+				for (int i = 0; i < _ballCount; i++) {
+					_ballSwitches[i].ScheduleSwitch(true, Data.SettleTime);
+				}
+			}
+		}
+
+		/// <summary>
+		/// If there's room in the trough remove the ball from play
+		/// and trigger any switches which it would roll over
+		/// </summary>
 		private void OnEntryKickerHit(object sender, EventArgs args)
 		{
-			Debug.Log("Draining ball.");
-			(sender as KickerApi)?.DestroyBall();
+			if (_ballCount < Data.BallCount) {
+				Debug.Log("Draining ball.");
 
-			// todo properly close ball switch, etc
-			EntrySwitch.OnSwitch(true);
+				(sender as KickerApi)?.DestroyBall();
 
+				int openSwitches = Data.BallCount - _ballCount;
+
+				for (int i = 1; i < openSwitches; i++) {
+					_ballSwitches[Data.BallCount - i].ScheduleSwitch(true, Data.SettleTime * i);
+					_ballSwitches[Data.BallCount - i].ScheduleSwitch(false, Data.SettleTime * i + Data.SettleTime / 2);
+				}
+
+				_ballSwitches[_ballCount].ScheduleSwitch(true, Data.SettleTime * openSwitches);
+
+				_ballCount++;
+			}
 		}
 
 		#region Wiring

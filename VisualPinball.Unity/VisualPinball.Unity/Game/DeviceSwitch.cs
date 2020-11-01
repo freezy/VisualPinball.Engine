@@ -43,19 +43,32 @@ namespace VisualPinball.Unity
 			_engineSwitchIds.Add(new SwitchConfig(switchId, _isPulseSwitch, pulseDelay));
 		}
 
-		public void OnSwitch(bool normallyClosed)
+		public void SetSwitch(bool closed)
 		{
 			if (_engine != null && _engineSwitchIds != null) {
 				foreach (var switchConfig in _engineSwitchIds) {
-					_engine.Switch(switchConfig.SwitchId, normallyClosed);
+					_engine.Switch(switchConfig.SwitchId, closed);
 
-					// time switch opening if closed and pulse
-					if (normallyClosed && switchConfig.IsPulseSwitch) {
+					// Schedule switch opening if closed and pulse
+					if (closed && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
 							() => _engine.Switch(switchConfig.SwitchId, false));
 					}
 				}
 			} else {
+				Logger.Warn("Cannot trigger device switch.");
+			}
+		}
+
+		public void ScheduleSwitch(bool closed, int delay)
+		{
+			if (_engine != null && _engineSwitchIds != null) {
+				foreach (var switchConfig in _engineSwitchIds) {
+					SimulationSystemGroup.ScheduleSwitch(delay,
+						() => _engine.Switch(switchConfig.SwitchId, closed));
+				}
+			}
+			else {
 				Logger.Warn("Cannot trigger device switch.");
 			}
 		}
