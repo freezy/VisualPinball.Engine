@@ -62,12 +62,18 @@ namespace VisualPinball.Unity
 		// table related
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
+		private readonly List<IApiCollider> _colliders = new List<IApiCollider>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		internal IEnumerable<IApiCollider> Collidables => _colliders;
+
+		// input related
 		private InputManager _inputManager;
 		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 		[NonSerialized] private readonly LampPlayer _lampPlayer = new LampPlayer();
@@ -168,6 +174,7 @@ namespace VisualPinball.Unity
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
+			_colliders.Add(bumperApi);
 			_hittables[entity] = bumperApi;
 			_switchPlayer.RegisterSwitch(bumper, bumperApi);
 			_coilPlayer.RegisterCoil(bumper, bumperApi);
