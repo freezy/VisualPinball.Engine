@@ -20,12 +20,10 @@ using System.IO;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	public class Vertex2D
+	public struct Vertex2D
 	{
 		public float X;
 		public float Y;
-
-		public Vertex2D() : this(0.0f, 0.0f) { }
 
 		public Vertex2D(float x, float y)
 		{
@@ -109,9 +107,6 @@ namespace VisualPinball.Engine.Math
 
 		public bool Equals(Vertex2D v)
 		{
-			if (v == null) {
-				return false;
-			}
 			return X == v.X && Y == v.Y;
 		}
 

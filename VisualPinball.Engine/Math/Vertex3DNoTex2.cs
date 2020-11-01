@@ -21,7 +21,7 @@ using System.IO;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	public class Vertex3DNoTex2
+	public struct Vertex3DNoTex2
 	{
 		public const int Size = 32;
 
@@ -76,13 +76,16 @@ namespace VisualPinball.Engine.Math
 			Tv = tv;
 		}
 
-		public Vertex3DNoTex2() { }
-
 		public Vertex3DNoTex2(float x, float y, float z)
 		{
 			X = x;
 			Y = y;
 			Z = z;
+			Nx = 0;
+			Ny = 0;
+			Nz = 0;
+			Tu = 0;
+			Tv = 0;
 		}
 
 		public void Write(BinaryWriter writer)
@@ -103,20 +106,6 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex3D GetNormal() {
 			return new Vertex3D(Nx, Ny, Nz);
-		}
-
-		public Vertex3DNoTex2 Clone() {
-			var vertex = new Vertex3DNoTex2 {
-				X = X,
-				Y = Y,
-				Z = Z,
-				Nx = Nx,
-				Ny = Ny,
-				Nz = Nz,
-				Tu = Tu,
-				Tv = Tv
-			};
-			return vertex;
 		}
 
 		public bool HasTextureCoordinates() {

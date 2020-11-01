@@ -80,26 +80,27 @@ namespace VisualPinball.Engine.VPT
 			}
 
 			// transform vertices
-			foreach (var vertex in Vertices) {
-				var vert = new Vertex3D(vertex.X, vertex.Y, vertex.Z).MultiplyMatrix(matrix);
-				vertex.X = vert.X;
-				vertex.Y = vert.Y;
-				vertex.Z = getZ?.Invoke(vert.Z) ?? vert.Z;
+			for (var i = 0; i < Vertices.Length; i++) {
+				var vert = new Vertex3D(Vertices[i].X, Vertices[i].Y, Vertices[i].Z).MultiplyMatrix(matrix);
+				Vertices[i].X = vert.X;
+				Vertices[i].Y = vert.Y;
+				Vertices[i].Z = getZ?.Invoke(vert.Z) ?? vert.Z;
 
-				var norm = new Vertex3D(vertex.Nx, vertex.Ny, vertex.Nz).MultiplyMatrixNoTranslate(normalMatrix ?? matrix);
-				vertex.Nx = norm.X;
-				vertex.Ny = norm.Y;
-				vertex.Nz = norm.Z;
+				var norm = new Vertex3D(Vertices[i].Nx, Vertices[i].Ny, Vertices[i].Nz).MultiplyMatrixNoTranslate(normalMatrix ?? matrix);
+				Vertices[i].Nx = norm.X;
+				Vertices[i].Ny = norm.Y;
+				Vertices[i].Nz = norm.Z;
 			}
+
 			return this;
 		}
 
 		public Mesh MakeTranslation(float x, float y, float z)
 		{
-			foreach (var vertex in Vertices) {
-				vertex.X += x;
-				vertex.Y += y;
-				vertex.Z += z;
+			for (var i = 0; i < Vertices.Length; i++) {
+				Vertices[i].X += x;
+				Vertices[i].Y += y;
+				Vertices[i].Z += z;
 			}
 
 			return this;
@@ -128,7 +129,7 @@ namespace VisualPinball.Engine.VPT
 				Indices = new int[Indices.Length],
 				AnimationFrames = new List<VertData[]>(AnimationFrames.Count)
 			};
-			Vertices.Select(v => v.Clone()).ToArray().CopyTo(mesh.Vertices, 0);
+			Vertices.CopyTo(mesh.Vertices, 0);
 			Indices.CopyTo(mesh.Indices, 0);
 			if (AnimationFrames.Count > 0) {
 				for (int i = 0; i < AnimationFrames.Count; i++) {
@@ -175,11 +176,12 @@ namespace VisualPinball.Engine.VPT
 
 		public Mesh MakeScale(float x, float y, float z)
 		{
-			foreach (var vertex in Vertices) {
-				vertex.X *= x;
-				vertex.Y *= y;
-				vertex.Z *= z;
+			for (var i = 0; i < Vertices.Length; i++) {
+				Vertices[i].X *= x;
+				Vertices[i].Y *= y;
+				Vertices[i].Z *= z;
 			}
+
 			return this;
 		}
 

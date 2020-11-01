@@ -21,7 +21,7 @@ namespace VisualPinball.Engine.Physics
 {
 	public class HitLineZ : HitObject
 	{
-		public readonly Vertex2D Xy;
+		public Vertex2D Xy;
 
 		protected HitLineZ(Vertex2D xy, ItemType itemType, IItem item) : base(itemType, item)
 		{

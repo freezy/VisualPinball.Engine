@@ -23,9 +23,9 @@ namespace VisualPinball.Engine.Physics
 {
 	public class LineSeg : HitObject
 	{
-		public readonly Vertex2D V1;
-		public readonly Vertex2D V2;
-		public readonly Vertex2D Normal = new Vertex2D();
+		public Vertex2D V1;
+		public Vertex2D V2;
+		public Vertex2D Normal;
 		public float Length;
 
 		public LineSeg(Vertex2D p1, Vertex2D p2, float zLow, float zHigh, ItemType objType, IItem item) : base(objType, item)

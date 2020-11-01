@@ -160,8 +160,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 				mesh.Vertices[i + 1 + _data.Sides + 1] = bottomVert;
 
 				// calculate sides
-				mesh.Vertices[_data.Sides * 2 + 2 + i] = topVert.Clone(); // sideTopVert
-				mesh.Vertices[_data.Sides * 3 + 2 + i] = bottomVert.Clone(); // sideBottomVert
+				mesh.Vertices[_data.Sides * 2 + 2 + i] = topVert; // sideTopVert
+				mesh.Vertices[_data.Sides * 3 + 2 + i] = bottomVert; // sideBottomVert
 
 				// calculate bounds for X and Y
 				if (topVert.X < minX) {
