@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Slingshot;
 
-		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Player player) : base(item, entity, player)
+		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

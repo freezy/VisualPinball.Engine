@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public KickerApi(Kicker item, Entity entity, Player player) : base(item, entity, player)
+		public KickerApi(Kicker item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

@@ -76,5 +76,24 @@ namespace VisualPinball.Unity
 			FireEvents = src.FireEvents;
 			IsEnabled = src.IsEnabled;
 		}
+
+
+		public void Init(ColliderInfo info)
+		{
+			if (info.Entity == Entity.Null) {
+				throw new InvalidOperationException("Entity of " + info.ItemType + " " + info.Type + " not set!");
+			}
+			Type = info.Type;
+			ItemType = info.ItemType;
+			Id = info.Id;
+			Entity = info.Entity;
+			ParentEntity = info.ParentEntity != Entity.Null
+				? info.ParentEntity
+				: Entity;
+			Material = info.Material;
+			Threshold = info.Threshold;
+			FireEvents = info.FireEvents;
+			IsEnabled = info.IsEnabled;
+		}
 	}
 }

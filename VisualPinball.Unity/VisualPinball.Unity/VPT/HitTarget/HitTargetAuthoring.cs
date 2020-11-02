@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 
 			// register
 			var hitTarget = transform.GetComponent<HitTargetAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

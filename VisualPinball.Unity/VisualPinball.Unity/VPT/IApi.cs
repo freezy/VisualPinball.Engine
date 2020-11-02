@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using Unity.Entities;
 using System;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Table;
@@ -34,7 +36,8 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCollider
 	{
-		Collider[] GetHittables(Table table);
+		int ColliderCount { get; }
+		void CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId);
 	}
 
 	public interface IApiHittable

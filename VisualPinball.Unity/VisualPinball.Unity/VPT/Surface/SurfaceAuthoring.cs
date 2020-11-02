@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 				IsDisabled = false,
 				Threshold = Data.SlingshotThreshold,
 			});
-			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

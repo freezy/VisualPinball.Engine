@@ -168,9 +168,9 @@ namespace VisualPinball.Unity
 
 		#region Registrations
 
-		public void RegisterBumper(Bumper bumper, Entity entity, GameObject go)
+		public void RegisterBumper(Bumper bumper, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var bumperApi = new BumperApi(bumper, entity, this);
+			var bumperApi = new BumperApi(bumper, entity, parentEntity, this);
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
@@ -181,9 +181,9 @@ namespace VisualPinball.Unity
 			_wirePlayer.RegisterWire(bumper, bumperApi);
 		}
 
-		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
+		public void RegisterFlipper(Flipper flipper, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var flipperApi = new FlipperApi(flipper, entity, this);
+			var flipperApi = new FlipperApi(flipper, entity, parentEntity, this);
 			TableApi.Flippers[flipper.Name] = flipperApi;
 			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
@@ -199,9 +199,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void RegisterGate(Gate gate, Entity entity, GameObject go)
+		public void RegisterGate(Gate gate, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var gateApi = new GateApi(gate, entity, this);
+			var gateApi = new GateApi(gate, entity, parentEntity, this);
 			TableApi.Gates[gate.Name] = gateApi;
 			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
@@ -210,9 +210,9 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(gate, gateApi);
 		}
 
-		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
+		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var hitTargetApi = new HitTargetApi(hitTarget, entity, this);
+			var hitTargetApi = new HitTargetApi(hitTarget, entity, parentEntity, this);
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
@@ -220,9 +220,9 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}
 
-		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
+		public void RegisterKicker(Kicker kicker, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var kickerApi = new KickerApi(kicker, entity, this);
+			var kickerApi = new KickerApi(kicker, entity, parentEntity, this);
 			TableApi.Kickers[kicker.Name] = kickerApi;
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
@@ -242,9 +242,9 @@ namespace VisualPinball.Unity
 			_wirePlayer.RegisterWire(lamp, lightApi);
 		}
 
-		public void RegisterPlunger(Plunger plunger, Entity entity, InputActionReference actionRef)
+		public void RegisterPlunger(Plunger plunger, Entity entity, Entity parentEntity, InputActionReference actionRef)
 		{
-			var plungerApi = new PlungerApi(plunger, entity, this);
+			var plungerApi = new PlungerApi(plunger, entity, parentEntity, this);
 			TableApi.Plungers[plunger.Name] = plungerApi;
 			_apis.Add(plungerApi);
 			_initializables.Add(plungerApi);
@@ -258,35 +258,35 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
+		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var primitiveApi = new PrimitiveApi(primitive, entity, this);
+			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
 			_initializables.Add(primitiveApi);
 			_hittables[entity] = primitiveApi;
 		}
 
-		public void RegisterRamp(Ramp ramp, Entity entity, GameObject go)
+		public void RegisterRamp(Ramp ramp, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rampApi = new RampApi(ramp, entity, this);
+			var rampApi = new RampApi(ramp, entity, parentEntity, this);
 			TableApi.Ramps[ramp.Name] = rampApi;
 			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
 		}
 
-		public void RegisterRubber(Rubber rubber, Entity entity, GameObject go)
+		public void RegisterRubber(Rubber rubber, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rubberApi = new RubberApi(rubber, entity, this);
+			var rubberApi = new RubberApi(rubber, entity, parentEntity, this);
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
 			_hittables[entity] = rubberApi;
 		}
 
-		public void RegisterSurface(Surface surface, Entity entity, GameObject go)
+		public void RegisterSurface(Surface surface, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var surfaceApi = new SurfaceApi(surface, entity, this);
+			var surfaceApi = new SurfaceApi(surface, entity, parentEntity, this);
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
@@ -294,9 +294,9 @@ namespace VisualPinball.Unity
 			_slingshots[entity] = surfaceApi;
 		}
 
-		public void RegisterSpinner(Spinner spinner, Entity entity, GameObject go)
+		public void RegisterSpinner(Spinner spinner, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var spinnerApi = new SpinnerApi(spinner, entity, this);
+			var spinnerApi = new SpinnerApi(spinner, entity, parentEntity, this);
 			TableApi.Spinners[spinner.Name] = spinnerApi;
 			_apis.Add(spinnerApi);
 			_initializables.Add(spinnerApi);
@@ -305,9 +305,9 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
 		}
 
-		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
+		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var triggerApi = new TriggerApi(trigger, entity, this);
+			var triggerApi = new TriggerApi(trigger, entity, parentEntity, this);
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);

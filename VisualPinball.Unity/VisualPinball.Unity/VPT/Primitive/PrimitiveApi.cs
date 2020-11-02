@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(Engine.VPT.Primitive.Primitive item, Entity entity, Player player) : base(item, entity, player)
+		internal PrimitiveApi(Engine.VPT.Primitive.Primitive item, Entity parentEntity, Entity entity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

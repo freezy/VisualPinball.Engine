@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trough;
@@ -162,7 +163,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Init;
 
-		internal TroughApi(Trough item, Player player) : base(item, player)
+		internal TroughApi(Trough item, Player player) : base(item, Entity.Null, Entity.Null, player)
 		{
 			Debug.Log("Trough API instantiated.");
 		}
