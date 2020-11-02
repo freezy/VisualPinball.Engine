@@ -26,6 +26,27 @@ namespace VisualPinball.Unity
 		public BlobPtr<Collider> PlayfieldCollider;
 		public BlobPtr<Collider> GlassCollider;
 
+		public static BlobAssetReference<QuadTreeBlob> CreateBlobAssetReference(ref BlobArray<BlobPtr<Collider>> colliders, Aabb rootBounds, HitPlane playfield, HitPlane glass)
+		{
+			using (var builder = new BlobBuilder(Allocator.Temp)) {
+				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
+				QuadTree.Create(builder, ref colliders, ref rootQuadTree.QuadTree, rootBounds);
+
+				if (playfield != null) {
+					PlaneCollider.Create(builder, playfield, ref rootQuadTree.PlayfieldCollider);
+
+				} else {
+					ref var playfieldCollider = ref builder.Allocate(ref rootQuadTree.PlayfieldCollider);
+					playfieldCollider.Header = new ColliderHeader {
+						Type = ColliderType.None
+					};
+				}
+				PlaneCollider.Create(builder, glass, ref rootQuadTree.GlassCollider);
+
+				return builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
+			}
+		}
+
 		public static BlobAssetReference<QuadTreeBlob> CreateBlobAssetReference(Engine.Physics.QuadTree quadTree, HitPlane playfield, HitPlane glass)
 		{
 			using (var builder = new BlobBuilder(Allocator.Temp)) {

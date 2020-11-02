@@ -76,8 +76,12 @@ namespace VisualPinball.Unity
 			}
 
 			// 2. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
-
-
+			QuadTreeBlob.CreateBlobAssetReference(
+				ref colliderBlob.Value.Colliders,
+				player.Table.BoundingBox.ToAabb(0),
+				null,
+				null
+			);
 
 			Logger.Info("Static QuadTree initialized.");
 		}
