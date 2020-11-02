@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			set => SetIsDropped(value);
 		}
 
-		internal HitTargetApi(Engine.VPT.HitTarget.HitTarget item, Entity entity, Player player) : base(item, entity, player)
+		internal HitTargetApi(Engine.VPT.HitTarget.HitTarget item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

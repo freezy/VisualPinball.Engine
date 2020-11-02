@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

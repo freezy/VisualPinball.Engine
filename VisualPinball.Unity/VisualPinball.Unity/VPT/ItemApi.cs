@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Transforms;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity
 
 		private protected readonly T Item;
 		internal readonly Entity Entity;
+		internal readonly Entity ParentEntity;
 
 		private protected TData Data => Item.Data;
 		private protected Table Table => _player.Table;
@@ -48,18 +50,12 @@ namespace VisualPinball.Unity
 		private readonly SwitchHandler _switchHandler;
 		private protected BallManager BallManager;
 
-		private protected ItemApi(T item, Player player)
-		{
-			Item = item;
-			Entity = Entity.Null;
-			_player = player;
-		}
-
-		private protected ItemApi(T item, Entity entity, Player player)
+		protected ItemApi(T item, Entity entity, Entity parentEntity, Player player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			Item = item;
 			Entity = entity;
+			ParentEntity = parentEntity;
 			_player = player;
 			_switchHandler = new SwitchHandler(Name, player);
 		}
@@ -72,6 +68,20 @@ namespace VisualPinball.Unity
 		private protected void DestroyBall(Entity ballEntity)
 		{
 			BallManager.DestroyEntity(ballEntity);
+		}
+
+		internal ColliderInfo GetColliderInfo(int id, ItemType itemType, ColliderType colliderType) {
+			return new ColliderInfo {
+				Id = id,
+				Type = colliderType,
+				ItemType = itemType,
+				Entity = Entity,
+				ParentEntity = ParentEntity,
+				FireEvents = true,
+				IsEnabled = true,
+				Material = default,
+				Threshold = 0,
+			};
 		}
 
 		void IApi.OnDestroy()

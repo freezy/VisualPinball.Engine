@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

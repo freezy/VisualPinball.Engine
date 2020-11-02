@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 			// register
 			var primitive = GetComponent<PrimitiveAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

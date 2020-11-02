@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal TriggerApi(Engine.VPT.Trigger.Trigger item, Entity entity, Player player) : base(item, entity, player)
+		internal TriggerApi(Engine.VPT.Trigger.Trigger item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public SpinnerApi(Engine.VPT.Spinner.Spinner item, Entity entity, Player player) : base(item, entity, player)
+		public SpinnerApi(Engine.VPT.Spinner.Spinner item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 

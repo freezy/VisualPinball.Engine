@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 			});
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

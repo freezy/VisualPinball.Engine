@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 				Threshold = Data.Threshold
 			});
 
-			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()

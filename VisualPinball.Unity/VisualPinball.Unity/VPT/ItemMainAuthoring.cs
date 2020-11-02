@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
@@ -95,6 +96,19 @@ namespace VisualPinball.Unity
 		/// List of types for parenting. Empty list if only to own parent.
 		/// </summary>
 		public abstract IEnumerable<Type> ValidParents { get; }
+
+		protected Entity ParentEntity {
+			get {
+				var parentAuthoring = ParentAuthoring;
+				if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
+					return new Entity {
+						Index = parentAuthoring.IItem.Index,
+						Version = parentAuthoring.IItem.Version,
+					};
+				}
+				return Entity.Null;
+			}
+		}
 
 		public IItemMainRenderableAuthoring ParentAuthoring => FindParentAuthoring();
 
