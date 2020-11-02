@@ -44,17 +44,6 @@ namespace VisualPinball.Unity
 		}
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
-		int IApiCollider.ColliderCount { get; } = 1;
-
-		void IApiCollider.CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId)
-		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			var colliderId = nextColliderId++;
-
-			CircleCollider.Create(Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
-				GetColliderInfo(colliderId, ItemType.Bumper, ColliderType.Bumper), builder, ref colliders[colliderId]);
-		}
-		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 		void IApiCoil.OnCoil(bool enabled, bool _)
@@ -68,6 +57,27 @@ namespace VisualPinball.Unity
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+
+
+		#region Collision
+
+		ItemType IApiCollider.ItemType { get; } = ItemType.Bumper;
+		bool IApiCollider.FireEvents => Data.HitEvent;
+		bool IApiCollider.IsColliderEnabled => Data.IsCollidable;
+		PhysicsMaterialData IApiCollider.PhysicsMaterial { get; } = default;
+		float IApiCollider.Threshold => Data.Threshold;
+		int IApiCollider.ColliderCount { get; } = 1;
+
+		void IApiCollider.CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId)
+		{
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			var colliderId = nextColliderId++;
+
+			CircleCollider.Create(Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
+				GetColliderInfo(colliderId, ColliderType.Bumper), builder, ref colliders[colliderId]);
+		}
+
+		#endregion
 
 		#region Events
 
