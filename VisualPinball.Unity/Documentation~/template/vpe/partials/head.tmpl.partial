@@ -24,14 +24,14 @@
   <meta property="og:url" content="https://docs.visualpinball.org/">
   <meta property="og:title" content="{{#title}}{{title}}{{/title}}{{^title}}{{>partials/title}}{{/title}} {{#_appTitle}}| {{_appTitle}} {{/_appTitle}}">
   <meta property="og:description" content="{{description}}">
-  <meta property="og:image" content="/images/social-poster.jpg">
+  <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://docs.visualpinball.org/">
   <meta property="twitter:title" content="{{#title}}{{title}}{{/title}}{{^title}}{{>partials/title}}{{/title}} {{#_appTitle}}| {{_appTitle}} {{/_appTitle}}">
   <meta property="twitter:description" content="{{description}}">
-  <meta property="twitter:image" content="/images/social-poster.jpg">
+  <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
 
 
   <meta property="docfx:navrel" content="{{_navRel}}">
