@@ -33,11 +33,16 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
+	internal interface ICollider
+	{
+		Aabb Aabb { get; }
+	}
+
 	/// <summary>
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	internal struct Collider : IComponentData
+	internal struct Collider : IComponentData, ICollider
 	{
 		public ColliderHeader Header;
 
@@ -49,15 +54,24 @@ namespace VisualPinball.Unity
 		public float Threshold => Header.Threshold;
 		public bool FireEvents => Header.FireEvents;
 
-		public static Collider None => new Collider
-		{
-			Header =
-			{
-				Type = ColliderType.None
-			}
+		public static Collider None => new Collider {
+			Header = { Type = ColliderType.None }
 		};
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public unsafe Aabb Aabb {
+			get {
+				fixed (Collider* collider = &this) {
+					switch (collider->Type) {
+						case ColliderType.Bumper:
+						case ColliderType.Circle:
+							return ((CircleCollider*) collider)->Aabb;
+					}
+				}
+				return default;
+			}
+		}
 
 		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
 		{
