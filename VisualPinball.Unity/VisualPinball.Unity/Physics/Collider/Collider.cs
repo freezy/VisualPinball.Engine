@@ -33,16 +33,11 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	internal interface ICollider
-	{
-		Aabb Aabb { get; }
-	}
-
 	/// <summary>
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	internal struct Collider : IComponentData, ICollider
+	internal struct Collider : IComponentData
 	{
 		public ColliderHeader Header;
 

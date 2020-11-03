@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -64,17 +65,20 @@ namespace VisualPinball.Unity
 		ItemType IApiCollider.ItemType { get; } = ItemType.Bumper;
 		bool IApiCollider.FireEvents => Data.HitEvent;
 		bool IApiCollider.IsColliderEnabled => Data.IsCollidable;
-		PhysicsMaterialData IApiCollider.PhysicsMaterial { get; } = default;
+		PhysicsMaterialData IApiCollider.PhysicsMaterial(Table table) => default;
 		float IApiCollider.Threshold => Data.Threshold;
 		int IApiCollider.ColliderCount { get; } = 1;
 
-		void IApiCollider.CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId)
+		void IApiCollider.CreateColliders(Table table, BlobBuilder builder,
+			ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId, ref ColliderBlob colliderBlob)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var colliderId = nextColliderId++;
 
-			CircleCollider.Create(Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
-				GetColliderInfo(colliderId, ColliderType.Bumper), builder, ref colliders[colliderId]);
+			Debug.Log("Allocating CircleCollider at " + colliderId);
+			CircleCollider.Create(builder, Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
+				GetColliderInfo(table, colliderId, ColliderType.Bumper), ref colliders[colliderId]);
+
 		}
 
 		#endregion

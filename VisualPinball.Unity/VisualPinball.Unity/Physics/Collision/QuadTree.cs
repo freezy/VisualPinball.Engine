@@ -18,42 +18,44 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	internal struct QuadTree
 	{
-		public BlobArray<BlobPtr<QuadTree>> Children;
-		public BlobArray<BlobPtr<Aabb>> Bounds;
-		public float3 Center;
-		public bool IsLeaf;
+		private BlobArray<BlobPtr<QuadTree>> _children;
+		private BlobArray<BlobPtr<Aabb>> _bounds;
+		private float3 _center;
+		private bool _isLeaf;
 
 		public static void Create(BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
 		{
-			var children = builder.Allocate(ref dest.Children, 4);
+			var children = builder.Allocate(ref dest._children, 4);
 
 			var aabbs = new Aabb[colliders.Length];
+			Debug.Log("Getting AABBs from " + colliders.Length + " colliders...");
 			for (var i = 0; i < colliders.Length; i++) {
 				aabbs[i] = colliders[i].Value.Aabb;
 			}
-			var bounds = aabbs.ToList();
 
-			dest.CreateNextLevel(builder, rootBounds, 0, 0, bounds, ref children);
+			dest.CreateNextLevel(builder, rootBounds, 0, 0, aabbs.ToList(), ref children);
 		}
 
 		private void CreateNextLevel(BlobBuilder builder, Aabb bounds, int level, int levelEmpty,
 			IReadOnlyCollection<Aabb> remainingBounds, ref BlobBuilderArray<BlobPtr<QuadTree>> children)
 		{
+			_center.x = (bounds.Left + bounds.Right) * 0.5f;
+			_center.y = (bounds.Top + bounds.Bottom) * 0.5f;
+			_center.z = (bounds.ZLow + bounds.ZHigh) * 0.5f;
+
 			if (remainingBounds.Count <= 4) {
-				//!! magic
+				CopyBounds(builder, remainingBounds.ToArray(), ref _bounds);
+				_isLeaf = true;
 				return;
 			}
 
-			IsLeaf = false;
-
-			Center.x = (bounds.Left + bounds.Right) * 0.5f;
-			Center.y = (bounds.Top + bounds.Bottom) * 0.5f;
-			Center.z = (bounds.ZLow + bounds.ZHigh) * 0.5f;
+			_isLeaf = false;
 
 			ref var child0 = ref builder.Allocate(ref children[0]);
 			ref var child1 = ref builder.Allocate(ref children[1]);
@@ -78,20 +80,20 @@ namespace VisualPinball.Unity
 				// 	_unique = null;
 				// }
 
-				if (aabb.Right < Center.x) {
+				if (aabb.Right < _center.x) {
 					oct = 0;
 
-				} else if (aabb.Left > Center.x) {
+				} else if (aabb.Left > _center.x) {
 					oct = 1;
 
 				} else {
 					oct = 128;
 				}
 
-				if (aabb.Bottom < Center.y) {
+				if (aabb.Bottom < _center.y) {
 					oct |= 0;
 
-				} else if (aabb.Top > Center.y) {
+				} else if (aabb.Top > _center.y) {
 					oct |= 2;
 
 				} else {
@@ -112,18 +114,7 @@ namespace VisualPinball.Unity
 			}
 
 			// copy remaining AABBs to blob
-			var boundsBlob = builder.Allocate(ref Bounds, vRemain.Count);
-			for (var i = 0; i < vRemain.Count; i++) {
-				ref var b = ref builder.Allocate(ref boundsBlob[i]);
-				b.Top = vRemain[i].Top;
-				b.Bottom = vRemain[i].Bottom;
-				b.Left = vRemain[i].Left;
-				b.Right = vRemain[i].Right;
-				b.ZLow = vRemain[i].ZLow;
-				b.ZHigh = vRemain[i].ZHigh;
-				b.ColliderEntity = Entity.Null; // todo
-				b.ColliderId = 0; // todo
-			}
+			CopyBounds(builder, vRemain, ref _bounds);
 
 			// check if at least two nodes feature objects, otherwise don't bother subdividing further
 			var countEmpty = vRemain.Count == 0 ? 1 : 0;
@@ -139,28 +130,28 @@ namespace VisualPinball.Unity
 				levelEmpty = 0;
 			}
 
-			if (Center.x - bounds.Left > 0.0001 //!! magic
+			if (_center.x - bounds.Left > 0.0001 //!! magic
 			    && levelEmpty <= 8 // If 8 levels were all just subdividing the same objects without luck, exit & Free the nodes again (but at least empty space was cut off)
 			    && level + 1 < 128 / 3)
 			{
-				CreateNextLevel(builder, ref child0, ref childBounds0, GetBounds(0, in Center, in bounds), level, levelEmpty);
-				CreateNextLevel(builder, ref child1, ref childBounds1, GetBounds(1, in Center, in bounds), level, levelEmpty);
-				CreateNextLevel(builder, ref child2, ref childBounds2, GetBounds(2, in Center, in bounds), level, levelEmpty);
-				CreateNextLevel(builder, ref child3, ref childBounds3, GetBounds(3, in Center, in bounds), level, levelEmpty);
+				CreateNextLevel(builder, ref child0, ref childBounds0, GetBounds(0, in _center, in bounds), level, levelEmpty);
+				CreateNextLevel(builder, ref child1, ref childBounds1, GetBounds(1, in _center, in bounds), level, levelEmpty);
+				CreateNextLevel(builder, ref child2, ref childBounds2, GetBounds(2, in _center, in bounds), level, levelEmpty);
+				CreateNextLevel(builder, ref child3, ref childBounds3, GetBounds(3, in _center, in bounds), level, levelEmpty);
 			}
 		}
 
-		private void CreateNextLevel(BlobBuilder builder, ref QuadTree child, ref List<Aabb> childBounds,
+		private static void CreateNextLevel(BlobBuilder builder, ref QuadTree child, ref List<Aabb> childBounds,
 			in Aabb bounds, int level, int levelEmpty)
 		{
-			var children0 = builder.Allocate(ref child.Children, 4);
-			child.CreateNextLevel(builder, bounds, level + 1, levelEmpty, childBounds, ref children0);
+			var children = builder.Allocate(ref child._children, 4);
+			child.CreateNextLevel(builder, bounds, level + 1, levelEmpty, childBounds, ref children);
 
 		}
 
 		public static void Create(Engine.Physics.QuadTree src, ref QuadTree dest, BlobBuilder builder)
 		{
-			var children = builder.Allocate(ref dest.Children, 4);
+			var children = builder.Allocate(ref dest._children, 4);
 			for (var i = 0; i < 4; i++) {
 				if (src.Children[i] != null) {
 					ref var child = ref builder.Allocate(ref children[i]);
@@ -168,14 +159,30 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var boundsBlob = builder.Allocate(ref dest.Bounds, src.HitObjects.Count);
+			var boundsBlob = builder.Allocate(ref dest._bounds, src.HitObjects.Count);
 			for (var i = 0; i < src.HitObjects.Count; i++) {
 				ref var bounds = ref builder.Allocate(ref boundsBlob[i]);
 				src.HitObjects[i].HitBBox.ToAabb(ref bounds, src.HitObjects[i].Id);
 			}
 
-			dest.Center = src.Center.ToUnityFloat3();
-			dest.IsLeaf = src.IsLeaf;
+			dest._center = src.Center.ToUnityFloat3();
+			dest._isLeaf = src.IsLeaf;
+		}
+
+		private static void CopyBounds(BlobBuilder builder, IReadOnlyList<Aabb> src, ref BlobArray<BlobPtr<Aabb>> dest)
+		{
+			var boundsBlob = builder.Allocate(ref dest, src.Count);
+			for (var i = 0; i < src.Count; i++) {
+				ref var aabb = ref builder.Allocate(ref boundsBlob[i]);
+				aabb.Top = src[i].Top;
+				aabb.Bottom = src[i].Bottom;
+				aabb.Left = src[i].Left;
+				aabb.Right = src[i].Right;
+				aabb.ZLow = src[i].ZLow;
+				aabb.ZHigh = src[i].ZHigh;
+				aabb.ColliderEntity = src[i].ColliderEntity;
+				aabb.ColliderId = src[i].ColliderId;
+			}
 		}
 
 		private static Aabb GetBounds(int i, in float3 center, in Aabb bounds)
@@ -195,36 +202,36 @@ namespace VisualPinball.Unity
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
-			for (var i = 0; i < Bounds.Length; i++) {
-				ref var bounds = ref Bounds[i].Value;
+			for (var i = 0; i < _bounds.Length; i++) {
+				ref var bounds = ref _bounds[i].Value;
 				if (bounds.IntersectRect(ballAabb) && bounds.IntersectSphere(ball.Position, collisionRadiusSqr)) {
 					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
 				}
 			}
 
-			if (!IsLeaf) {
-				var isLeft = ballAabb.Left <= Center.x;
-				var isRight = ballAabb.Right >= Center.x;
+			if (!_isLeaf) {
+				var isLeft = ballAabb.Left <= _center.x;
+				var isRight = ballAabb.Right >= _center.x;
 
-				if (ballAabb.Top <= Center.y) {
+				if (ballAabb.Top <= _center.y) {
 					// Top
 					if (isLeft) {
-						Children[0].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[0].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[1].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[1].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 				}
 
-				if (ballAabb.Bottom >= Center.y) {
+				if (ballAabb.Bottom >= _center.y) {
 					// Bottom
 					if (isLeft) {
-						Children[2].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[2].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						Children[3].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[3].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
 					}
 				}
 			}

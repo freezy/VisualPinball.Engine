@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 			BallManager.DestroyEntity(ballEntity);
 		}
 
-		internal ColliderInfo GetColliderInfo(int id, ColliderType colliderType)
+		internal ColliderInfo GetColliderInfo(Table table, int id, ColliderType colliderType)
 		{
 			if (!(this is IApiCollider c)) {
 				return default;
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 				ParentEntity = ParentEntity,
 				FireEvents = c.FireEvents,
 				IsEnabled = c.IsColliderEnabled,
-				Material = c.PhysicsMaterial,
+				Material = c.PhysicsMaterial(table),
 				Threshold = c.Threshold,
 			};
 		}

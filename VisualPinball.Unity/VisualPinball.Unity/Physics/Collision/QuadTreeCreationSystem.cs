@@ -23,7 +23,6 @@ using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
-using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -44,11 +43,10 @@ namespace VisualPinball.Unity
 			var player = Object.FindObjectOfType<Player>();
 
 			var itemApis = player.Collidables.ToArray();
-			Debug.Log($"Found {itemApis.Length} collidables.");
 
 			// 1. Create collider blob (BlobAssetReference<ColliderBlob>) and AABBs
 			// 1a. setup blob builder
-			BlobAssetReference<ColliderBlob> colliderBlob;
+			BlobAssetReference<ColliderBlob> colliderBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.TempJob)) {
 				ref var root = ref builder.ConstructRoot<ColliderBlob>();
 
@@ -62,26 +60,31 @@ namespace VisualPinball.Unity
 
 				// 1b. for every IApiCollider:
 				foreach (var itemApi in itemApis) {
-
 					// - add colliders to the blob (creates id, assigns entity and parent entity)
 					// - add AABB to the list (and assigns id)
-					itemApi.CreateColliders(player.Table, builder, ref colliders, ref colliderId);
+					itemApi.CreateColliders(player.Table, builder, ref colliders, ref colliderId, ref root);
 				}
 
-				// todo
-				// root.PlayfieldColliderId = playfieldColliderId;
-				// root.GlassColliderId = glassColliderId;
-
-				colliderBlob = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
+				colliderBlobAssetRef = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
 			}
 
+
 			// 2. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
-			QuadTreeBlob.CreateBlobAssetReference(
-				ref colliderBlob.Value.Colliders,
-				player.Table.BoundingBox.ToAabb(0),
-				null,
-				null
-			);
+			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
+			using (var builder = new BlobBuilder(Allocator.Temp)) {
+				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
+				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
+					player.Table.BoundingBox.ToAabb(0));
+
+				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
+			}
+
+
+			// save it to entity
+			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
+			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
+			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
+			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
 
 			Logger.Info("Static QuadTree initialized.");
 		}
@@ -124,7 +127,7 @@ namespace VisualPinball.Unity
 			// 3. create the "ported" (class) quadtree
 			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);
 
-			// 4. convert the "ported" (class) quadtree to "runtime" struct quadtree
+			// 4. convert the "ported" (class) quadtree to "runtime" (struct) quadtree
 			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
 				quadTree,
 				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists

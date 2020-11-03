@@ -16,10 +16,15 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class TableApi : IApiInitializable
+	public class TableApi : IApiInitializable, IApiCollider
 	{
 		private readonly Player _player;
 
@@ -49,6 +54,8 @@ namespace VisualPinball.Unity
 		/// Event emitted before the game starts.
 		/// </summary>
 		public event EventHandler Init;
+
+		#region Items
 
 		/// <summary>
 		/// Returns a bumper by name.
@@ -100,6 +107,13 @@ namespace VisualPinball.Unity
 		public PlungerApi Plunger(string name) => Plungers.ContainsKey(name) ? Plungers[name] : null;
 
 		/// <summary>
+		/// Returns a primitive by name.
+		/// </summary>
+		/// <param name="name">Name of the primitive</param>
+		/// <returns>Primitive or `null` if no primitive with that name exists.</returns>
+		public PrimitiveApi Primitive(string name) => Primitives.ContainsKey(name) ? Primitives[name] : null;
+
+		/// <summary>
 		/// Returns a ramp by name.
 		/// </summary>
 		/// <param name="name">Name of the ramp</param>
@@ -141,6 +155,8 @@ namespace VisualPinball.Unity
 		/// <returns>Trigger or `null` if no trough with that name exists.</returns>
 		public TroughApi Trough(string name) => Troughs.ContainsKey(name) ? Troughs[name] : null;
 
+		#endregion
+
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
@@ -149,5 +165,47 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		ItemType IApiCollider.ItemType { get; } = ItemType.Table;
+		bool IApiCollider.FireEvents { get; } = false;
+		bool IApiCollider.IsColliderEnabled { get; } = true;
+
+		PhysicsMaterialData IApiCollider.PhysicsMaterial(Table table) => new PhysicsMaterialData {
+			Elasticity = table.Data.Elasticity,
+			ElasticityFalloff = table.Data.ElasticityFalloff,
+			Friction = table.Data.Friction,
+			Scatter = table.Data.Scatter
+		};
+
+		float IApiCollider.Threshold { get; } = 0;
+		int IApiCollider.ColliderCount { get; } = 2;
+
+		void IApiCollider.CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders,
+			ref int nextColliderId, ref ColliderBlob colliderBlob)
+		{
+			var info = new ColliderInfo {
+				Type = ColliderType.Plane,
+				ItemType = ItemType.Table,
+				Entity = new Entity { Index = table.Index, Version = table.Version },
+				FireEvents = false,
+				IsEnabled = true,
+				Material = ((IApiCollider)this).PhysicsMaterial(table),
+				Threshold = 0
+			};
+
+			var playfieldColliderId = nextColliderId++;
+			var playfieldInfo = info;
+			info.Id = playfieldColliderId;
+			Debug.Log("Allocating PlaneCollider at " + playfieldColliderId);
+			PlaneCollider.Create(new float3(0, 0, 1), table.TableHeight, playfieldInfo, builder, ref colliders[playfieldColliderId]);
+			colliderBlob.PlayfieldColliderId = playfieldColliderId;
+
+			var glassColliderId = nextColliderId++;
+			var glassInfo = info;
+			info.Id = glassColliderId;
+			Debug.Log("Allocating PlaneCollider at " + glassColliderId);
+			PlaneCollider.Create(new float3(0, 0, -1), table.GlassHeight, glassInfo, builder, ref colliders[glassColliderId]);
+			colliderBlob.GlassColliderId = playfieldColliderId;
+		}
 	}
 }
