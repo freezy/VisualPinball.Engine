@@ -43,12 +43,29 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 
+		public static void Create(float3 normal, float distance, ColliderInfo info,
+			BlobBuilder builder, ref BlobPtr<Collider> dest)
+		{
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
+			ref var collider = ref builder.Allocate(ref ptr);
+			collider.Init(normal, distance, info);
+		}
+
+
 		private void Init(HitPlane src)
 		{
 			_header.Init(ColliderType.Plane, src);
 
 			_normal = src.Normal.ToUnityFloat3();
 			_distance = src.D;
+		}
+
+		private void Init(float3 normal, float distance, ColliderInfo info)
+		{
+			_header.Init(info);
+
+			_normal = normal;
+			_distance = distance;
 		}
 
 		public override string ToString()

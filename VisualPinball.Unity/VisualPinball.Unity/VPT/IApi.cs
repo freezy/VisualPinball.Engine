@@ -40,11 +40,11 @@ namespace VisualPinball.Unity
 		ItemType ItemType { get; }
 		bool FireEvents { get; }
 		bool IsColliderEnabled { get; }
-		PhysicsMaterialData PhysicsMaterial { get; }
 		float Threshold { get; }
-
 		int ColliderCount { get; }
-		void CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId);
+		PhysicsMaterialData PhysicsMaterial(Table table);
+		void CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders,
+			ref int nextColliderId, ref ColliderBlob colliderBlob);
 	}
 
 	public interface IApiHittable
