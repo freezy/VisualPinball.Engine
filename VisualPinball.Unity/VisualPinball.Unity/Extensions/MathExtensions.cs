@@ -92,6 +92,11 @@ namespace VisualPinball.Unity
 			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
 
+		internal static Aabb ToAabb(this Rect3D rect)
+		{
+			return new Aabb(0, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
+		}
+
 		internal static Aabb ToAabb(this Rect3D rect, int colliderId)
 		{
 			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);

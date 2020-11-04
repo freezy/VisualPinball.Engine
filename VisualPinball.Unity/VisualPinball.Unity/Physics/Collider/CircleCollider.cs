@@ -17,14 +17,15 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	internal struct CircleCollider
+	internal struct CircleCollider : ICollider
 	{
 		private ColliderHeader _header;
 
@@ -45,6 +46,27 @@ namespace VisualPinball.Unity
 			ColliderId = _header.Id
 		};
 
+		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info) : this()
+		{
+			_header.Init(info);
+			Center = center;
+			Radius = radius;
+			_zHigh = zHigh;
+			_zLow = zLow;
+		}
+
+
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		{
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(CircleCollider)
+			);
+		}
+
 		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
 		{
 			PerfMarker.Begin();
@@ -55,8 +77,7 @@ namespace VisualPinball.Unity
 		}
 
 		public static void Create(BlobBuilder builder, float2 center, float radius, float zLow, float zHigh,
-			ColliderInfo info,
-			ref BlobPtr<Collider> dest)
+			ColliderInfo info, ref BlobPtr<Collider> dest)
 		{
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);

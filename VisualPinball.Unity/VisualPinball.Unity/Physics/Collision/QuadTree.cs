@@ -31,12 +31,14 @@ namespace VisualPinball.Unity
 
 		public static void Create(BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
 		{
+			// todo skip plane colliders
 			var children = builder.Allocate(ref dest._children, 4);
 
 			var aabbs = new Aabb[colliders.Length];
-			Debug.Log("Getting AABBs from " + colliders.Length + " colliders...");
+			var cs = new Collider[colliders.Length];
 			for (var i = 0; i < colliders.Length; i++) {
 				aabbs[i] = colliders[i].Value.Aabb;
+				cs[i] = colliders[i].Value;
 			}
 
 			dest.CreateNextLevel(builder, rootBounds, 0, 0, aabbs.ToList(), ref children);
@@ -203,9 +205,9 @@ namespace VisualPinball.Unity
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = 0; i < _bounds.Length; i++) {
-				ref var bounds = ref _bounds[i].Value;
-				if (bounds.IntersectRect(ballAabb) && bounds.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
+				ref var aabb = ref _bounds[i].Value;
+				if (aabb.IntersectRect(ballAabb) && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = aabb.ColliderId });
 				}
 			}
 

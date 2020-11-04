@@ -114,7 +114,6 @@ namespace VisualPinball.Unity
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
-			_colliders.Add(_tableApi);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;

@@ -45,6 +45,8 @@ namespace VisualPinball.Unity
 		PhysicsMaterialData PhysicsMaterial(Table table);
 		void CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders,
 			ref int nextColliderId, ref ColliderBlob colliderBlob);
+
+		void CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId);
 	}
 
 	public interface IApiHittable

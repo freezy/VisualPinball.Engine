@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Transactions;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -75,10 +77,17 @@ namespace VisualPinball.Unity
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var colliderId = nextColliderId++;
 
-			Debug.Log("Allocating CircleCollider at " + colliderId);
 			CircleCollider.Create(builder, Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
 				GetColliderInfo(table, colliderId, ColliderType.Bumper), ref colliders[colliderId]);
+		}
 
+		void IApiCollider.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			var colliderId = nextColliderId++;
+
+			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
+				height + Data.HeightScale, GetColliderInfo(table, colliderId, ColliderType.Bumper)));
 		}
 
 		#endregion
