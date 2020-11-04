@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class TableApi : IApiInitializable, IApiCollider
+	public class TableApi : IApiInitializable
 	{
 		private readonly Player _player;
 
@@ -166,22 +166,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		ItemType IApiCollider.ItemType { get; } = ItemType.Table;
-		bool IApiCollider.FireEvents { get; } = false;
-		bool IApiCollider.IsColliderEnabled { get; } = true;
-
-		PhysicsMaterialData IApiCollider.PhysicsMaterial(Table table) => new PhysicsMaterialData {
-			Elasticity = table.Data.Elasticity,
-			ElasticityFalloff = table.Data.ElasticityFalloff,
-			Friction = table.Data.Friction,
-			Scatter = table.Data.Scatter
-		};
-
-		float IApiCollider.Threshold { get; } = 0;
-		int IApiCollider.ColliderCount { get; } = 2;
-
-		void IApiCollider.CreateColliders(Table table, BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders,
-			ref int nextColliderId, ref ColliderBlob colliderBlob)
+		internal (PlaneCollider, PlaneCollider) CreateColliders(Table table, ref int nextColliderId)
 		{
 			var info = new ColliderInfo {
 				Type = ColliderType.Plane,
@@ -189,23 +174,27 @@ namespace VisualPinball.Unity
 				Entity = new Entity { Index = table.Index, Version = table.Version },
 				FireEvents = false,
 				IsEnabled = true,
-				Material = ((IApiCollider)this).PhysicsMaterial(table),
+				Material = new PhysicsMaterialData {
+					Elasticity = table.Data.Elasticity,
+					ElasticityFalloff = table.Data.ElasticityFalloff,
+					Friction = table.Data.Friction,
+					Scatter = table.Data.Scatter
+				},
 				Threshold = 0
 			};
 
 			var playfieldColliderId = nextColliderId++;
 			var playfieldInfo = info;
-			info.Id = playfieldColliderId;
-			Debug.Log("Allocating PlaneCollider at " + playfieldColliderId);
-			PlaneCollider.Create(new float3(0, 0, 1), table.TableHeight, playfieldInfo, builder, ref colliders[playfieldColliderId]);
-			colliderBlob.PlayfieldColliderId = playfieldColliderId;
+			playfieldInfo.Id = playfieldColliderId;
 
 			var glassColliderId = nextColliderId++;
 			var glassInfo = info;
-			info.Id = glassColliderId;
-			Debug.Log("Allocating PlaneCollider at " + glassColliderId);
-			PlaneCollider.Create(new float3(0, 0, -1), table.GlassHeight, glassInfo, builder, ref colliders[glassColliderId]);
-			colliderBlob.GlassColliderId = playfieldColliderId;
+			glassInfo.Id = glassColliderId;
+
+			return (
+				new PlaneCollider(new float3(0, 0, 1), table.TableHeight, playfieldInfo),
+				new PlaneCollider(new float3(0, 0, -1), table.GlassHeight, glassInfo)
+			);
 		}
 	}
 }

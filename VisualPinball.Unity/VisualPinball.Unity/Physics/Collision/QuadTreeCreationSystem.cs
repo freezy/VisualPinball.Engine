@@ -23,6 +23,7 @@ using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
+using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -41,40 +42,40 @@ namespace VisualPinball.Unity
 		public static void Create(EntityManager entityManager)
 		{
 			var player = Object.FindObjectOfType<Player>();
-
 			var itemApis = player.Collidables.ToArray();
 
-			// 1. Create collider blob (BlobAssetReference<ColliderBlob>) and AABBs
-			// 1a. setup blob builder
+			// 1. generate colliders
+			var colliderId = 0;
+			var colliderList = new List<ICollider>();
+			var (playfieldCollider, glassCollider) = player.TableApi.CreateColliders(player.Table, ref colliderId);
+			foreach (var itemApi in itemApis) {
+				itemApi.CreateColliders(player.Table, colliderList, ref colliderId);
+			}
+
+			// 1. now we know how many there are, create a blob asset reference
 			BlobAssetReference<ColliderBlob> colliderBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.TempJob)) {
 				ref var root = ref builder.ConstructRoot<ColliderBlob>();
+				var colliders = builder.Allocate(ref root.Colliders, colliderList.Count + 2); // plane colliders are not in this list
 
-				var colliderCount = 0;
-				foreach (var itemApi in itemApis) {
-					colliderCount += itemApi.ColliderCount;
+				playfieldCollider.Allocate(builder, ref colliders);
+				glassCollider.Allocate(builder, ref colliders);
+
+				root.PlayfieldColliderId = playfieldCollider.Id;
+				root.GlassColliderId = glassCollider.Id;
+
+				foreach (var collider in colliderList) {
+					collider.Allocate(builder, ref colliders);
 				}
-
-				var colliders = builder.Allocate(ref root.Colliders, colliderCount);
-				var colliderId = 0;
-
-				// 1b. for every IApiCollider:
-				foreach (var itemApi in itemApis) {
-					// - add colliders to the blob (creates id, assigns entity and parent entity)
-					// - add AABB to the list (and assigns id)
-					itemApi.CreateColliders(player.Table, builder, ref colliders, ref colliderId, ref root);
-				}
-
 				colliderBlobAssetRef = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
 			}
 
-
-			// 2. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
+			// 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
 			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.Temp)) {
 				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
 				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
-					player.Table.BoundingBox.ToAabb(0));
+					player.Table.BoundingBox.ToAabb());
 
 				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
 			}

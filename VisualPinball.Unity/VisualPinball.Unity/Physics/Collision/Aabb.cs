@@ -91,14 +91,16 @@ namespace VisualPinball.Unity
 			return ex + ey + ez <= sphereRsqr;
 		}
 
+		// Checking Aabb 442.2034 → 509.7966 | 976.6798 ↘ 1044.273 | -8.79384 ↑ 58.79945 against Aabb 431 → 521 | 1036 ↘ 1126 | 90 ↑ 0 (2)
+
 		public bool IntersectRect(Aabb rc)
 		{
-			return Right >= rc.Left
-			       && Bottom >= rc.Top
-			       && Left <= rc.Right
-			       && Top <= rc.Bottom
-			       && ZLow <= rc.ZHigh
-			       && ZHigh >= rc.ZLow;
+			return Right >= rc.Left  // 521 >= 442.2034
+			       && Bottom >= rc.Top // 1126 >= 976.6798
+			       && Left <= rc.Right // 431 <= 509.7966
+			       && Top <= rc.Bottom // 1036 <= 1044.273
+			       && ZLow <= rc.ZHigh // 0 <= -8.79384
+			       && ZHigh >= rc.ZLow; // 90 >= 58.79945
 		}
 
 		public override string ToString()
