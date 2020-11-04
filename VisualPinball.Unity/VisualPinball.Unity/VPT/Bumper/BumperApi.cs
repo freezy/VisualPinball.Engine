@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Transactions;
 using Unity.Entities;
-using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -69,17 +68,6 @@ namespace VisualPinball.Unity
 		bool IApiCollider.IsColliderEnabled => Data.IsCollidable;
 		PhysicsMaterialData IApiCollider.PhysicsMaterial(Table table) => default;
 		float IApiCollider.Threshold => Data.Threshold;
-		int IApiCollider.ColliderCount { get; } = 1;
-
-		void IApiCollider.CreateColliders(Table table, BlobBuilder builder,
-			ref BlobBuilderArray<BlobPtr<Collider>> colliders, ref int nextColliderId, ref ColliderBlob colliderBlob)
-		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			var colliderId = nextColliderId++;
-
-			CircleCollider.Create(builder, Data.Center.ToUnityFloat2(), Data.Radius, height, height + Data.HeightScale,
-				GetColliderInfo(table, colliderId, ColliderType.Bumper), ref colliders[colliderId]);
-		}
 
 		void IApiCollider.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
 		{

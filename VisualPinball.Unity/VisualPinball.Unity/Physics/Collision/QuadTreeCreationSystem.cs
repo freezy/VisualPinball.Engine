@@ -15,15 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Engine.Physics;
-using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -52,7 +49,7 @@ namespace VisualPinball.Unity
 				itemApi.CreateColliders(player.Table, colliderList, ref colliderId);
 			}
 
-			// 1. now we know how many there are, create a blob asset reference
+			// 2. now we know how many there are, create a blob asset reference
 			BlobAssetReference<ColliderBlob> colliderBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.TempJob)) {
 				ref var root = ref builder.ConstructRoot<ColliderBlob>();
@@ -88,73 +85,6 @@ namespace VisualPinball.Unity
 			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
 
 			Logger.Info("Static QuadTree initialized.");
-		}
-
-		public static void CreateLegacy(EntityManager entityManager)
-		{
-			var table = Object.FindObjectOfType<TableAuthoring>().Table;
-			var stopWatch = new Stopwatch();
-
-			stopWatch.Start();
-
-			// 1. init playables - this already creates colliders for some items
-			foreach (var playable in table.Playables) {
-				playable.Init(table);
-			}
-			PerfMarkerInitItems.End();
-
-			// 2. now collect all hit objects, resulting in creation of the remaining colliders. this also sets the IDs
-			var hittables = table.Hittables.Where(hittable => hittable.IsCollidable).ToArray();
-			var hitObjects = new List<HitObject>();
-			var id = 0;
-			var log = "";
-			var c = 0;
-
-			foreach (var item in hittables) {
-				var hitShapes = item.GetHitShapes();
-				log += item.Name + ": " + hitShapes.Length + "\n";
-				c += hitShapes.Length;
-				foreach (var hitObject in hitShapes) {
-					hitObject.SetIndex(item.Index, item.Version, item.ParentIndex, item.ParentVersion);
-					hitObject.Id = id++;
-					hitObject.CalcHitBBox();
-					hitObjects.Add(hitObject);
-				}
-			}
-			stopWatch.Stop();
-			Logger.Info("Collider Count:\n" + log + "\nTotal: " + c + " colliders in " + stopWatch.ElapsedMilliseconds + "ms");
-			PerfMarkerGenerateColliders.End();
-
-			// 3. create the "ported" (class) quadtree
-			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);
-
-			// 4. convert the "ported" (class) quadtree to "runtime" (struct) quadtree
-			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
-				quadTree,
-				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists
-				table.GenerateGlassHit()
-			);
-			PerfMarkerCreateQuadTree.End();
-
-			// playfield and glass need special treatment, since not part of the quad tree
-			PerfMarkerAllocate.Begin();
-			var playfieldHitObject = table.GeneratePlayfieldHit();
-			var glassHitObject = table.GenerateGlassHit();
-			playfieldHitObject.Id = id++;
-			glassHitObject.Id = id;
-			hitObjects.Add(playfieldHitObject);
-			hitObjects.Add(glassHitObject);
-
-			// 5. construct collider blob out of hit objects - this converts hit objects to structs
-			var colliderBlob = ColliderBlob.CreateBlobAssetReference(hitObjects, playfieldHitObject.Id, glassHitObject.Id);
-			PerfMarkerAllocate.End();
-
-			// save it to entity
-			PerfMarkerSaveToEntity.Begin();
-			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
-			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
-			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
-			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
 		}
 	}
 }
