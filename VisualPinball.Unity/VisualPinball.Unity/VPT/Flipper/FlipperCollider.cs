@@ -33,26 +33,6 @@ namespace VisualPinball.Unity
 		private float _zLow;
 		private float _zHigh;
 
-		public ColliderType Type => _header.Type;
-
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperCollider.Create");
-
-		public static void Create(BlobBuilder builder, FlipperHit src, ref BlobPtr<Collider> dest)
-		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
-			PerfMarker.End();
-		}
-
-		private void Init(FlipperHit src)
-		{
-			_header.Init(ColliderType.Flipper, src);
-			_hitCircleBase = CircleCollider.Create(src.HitCircleBase);
-			_zLow = src.HitBBox.ZLow;
-			_zHigh = src.HitBBox.ZHigh;
-		}
 
 		#region Narrowphase
 

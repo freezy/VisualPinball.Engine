@@ -17,23 +17,20 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
 	internal struct CircleCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		public float2 Center;
-		public float Radius;
+		public readonly float2 Center;
+		public readonly float Radius;
 
-		private float _zHigh;
-		private float _zLow;
+		private readonly float _zHigh;
+		private readonly float _zLow;
 
 		public Aabb Aabb => new Aabb {
 			Left = Center.x - Radius,
@@ -55,7 +52,6 @@ namespace VisualPinball.Unity
 			_zLow = zLow;
 		}
 
-
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[_header.Id]);
@@ -65,53 +61,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(CircleCollider)
 			);
-		}
-
-		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
-		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src, type);
-			PerfMarker.End();
-		}
-
-		public static void Create(BlobBuilder builder, float2 center, float radius, float zLow, float zHigh,
-			ColliderInfo info, ref BlobPtr<Collider> dest)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(center, radius, zLow, zHigh, info);
-		}
-
-
-		public static CircleCollider Create(HitCircle src, ColliderType type = ColliderType.Circle)
-		{
-			var collider = default(CircleCollider);
-			collider.Init(src, type);
-			return collider;
-		}
-
-		private void Init(HitCircle src, ColliderType type)
-		{
-			_header.Init(type, src);
-
-			Center = src.Center.ToUnityFloat2();
-			Radius = src.Radius;
-
-			_zHigh = src.HitBBox.ZHigh;
-			_zLow = src.HitBBox.ZLow;
-		}
-
-		private void Init(float2 center, float radius, float zLow, float zHigh, ColliderInfo info)
-		{
-			_header.Init(info);
-
-			Center = center;
-			Radius = radius;
-
-			_zHigh = zHigh;
-			_zLow = zLow;
 		}
 
 		#region Narrowphase

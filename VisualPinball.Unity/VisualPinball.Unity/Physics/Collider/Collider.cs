@@ -69,64 +69,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void Create(BlobBuilder builder, HitObject src, ref BlobPtr<Collider> dest)
-		{
-			switch (src)
-			{
-				case KickerHit kickerHit:
-					CircleCollider.Create(builder, kickerHit, ref dest, ColliderType.KickerCircle);
-					break;
-				case TriggerHitCircle triggerHitCircle:
-					CircleCollider.Create(builder, triggerHitCircle, ref dest, ColliderType.TriggerCircle);
-					break;
-				case TriggerHitLineSeg triggerHitLine:
-					LineCollider.Create(builder, triggerHitLine, ref dest, ColliderType.TriggerLine);
-					break;
-				case BumperHit bumperHit:
-					CircleCollider.Create(builder, bumperHit, ref dest, ColliderType.Bumper);
-					break;
-				case HitCircle hitCircle:
-					CircleCollider.Create(builder, hitCircle, ref dest);
-					break;
-				case LineSegSlingshot lineSegSlingshot:
-					LineSlingshotCollider.Create(builder, lineSegSlingshot, ref dest);
-					break;
-				case FlipperHit flipperHit:
-					FlipperCollider.Create(builder, flipperHit, ref dest);
-					break;
-				case GateHit gateHit:
-					GateCollider.Create(builder, gateHit, ref dest);
-					break;
-				case LineSeg lineSeg:
-					LineCollider.Create(builder, lineSeg, ref dest);
-					break;
-				case HitLine3D hitLine3D:
-					Line3DCollider.Create(builder, hitLine3D, ref dest);
-					break;
-				case HitLineZ hitLineZ:
-					LineZCollider.Create(builder, hitLineZ, ref dest);
-					break;
-				case HitPoint hitPoint:
-					PointCollider.Create(builder, hitPoint, ref dest);
-					break;
-				case HitPlane hitPlane:
-					PlaneCollider.Create(builder, hitPlane, ref dest);
-					break;
-				case PlungerHit plungerCollider:
-					PlungerCollider.Create(builder, plungerCollider, ref dest);
-					break;
-				case SpinnerHit spinnerHit:
-					SpinnerCollider.Create(builder, spinnerHit, ref dest);
-					break;
-				case HitTriangle hitTriangle:
-					TriangleCollider.Create(builder, hitTriangle, ref dest);
-					break;
-				default:
-					Logger.Warn("Unsupported collider {0}, skipping.", src.GetType().Name);
-					break;
-			}
-		}
-
 		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallData ball, float dTime)
 		{

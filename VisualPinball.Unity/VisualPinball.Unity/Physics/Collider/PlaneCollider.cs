@@ -17,10 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -28,12 +25,10 @@ namespace VisualPinball.Unity
 	{
 		public int Id => _header.Id;
 
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private float3 _normal;
-		private float _distance;
-
-		public ColliderType Type => _header.Type;
+		private readonly float3 _normal;
+		private readonly float _distance;
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
@@ -51,40 +46,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(PlaneCollider)
 			);
-		}
-
-		public static void Create(BlobBuilder builder, HitPlane src, ref BlobPtr<Collider> dest)
-		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
-			PerfMarker.End();
-		}
-
-		public static void Create(float3 normal, float distance, ColliderInfo info,
-			BlobBuilder builder, ref BlobPtr<Collider> dest)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(normal, distance, info);
-		}
-
-
-		private void Init(HitPlane src)
-		{
-			_header.Init(ColliderType.Plane, src);
-
-			_normal = src.Normal.ToUnityFloat3();
-			_distance = src.D;
-		}
-
-		private void Init(float3 normal, float distance, ColliderInfo info)
-		{
-			_header.Init(info);
-
-			_normal = normal;
-			_distance = distance;
 		}
 
 		public override string ToString()
