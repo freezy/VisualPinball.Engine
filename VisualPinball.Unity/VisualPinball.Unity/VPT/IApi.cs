@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		void OnInit(BallManager ballManager);
 	}
 
-	internal interface IApiCollider
+	internal interface IColliderGenerator
 	{
 		ItemType ItemType { get; }
 		bool FireEvents { get; }

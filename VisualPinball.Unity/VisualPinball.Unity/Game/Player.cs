@@ -62,16 +62,18 @@ namespace VisualPinball.Unity
 		// table related
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
-		private readonly List<IApiCollider> _colliders = new List<IApiCollider>();
+		private readonly List<IColliderGenerator> _colliderGenerators = new List<IColliderGenerator>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
+		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal IEnumerable<IApiCollider> Collidables => _colliders;
+		internal IEnumerable<IColliderGenerator> ColliderGenerators => _colliderGenerators;
 
 		// input related
 		private InputManager _inputManager;
@@ -173,7 +175,7 @@ namespace VisualPinball.Unity
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
-			_colliders.Add(bumperApi);
+			_colliderGenerators.Add(bumperApi);
 			_hittables[entity] = bumperApi;
 			_switchPlayer.RegisterSwitch(bumper, bumperApi);
 			_coilPlayer.RegisterCoil(bumper, bumperApi);
@@ -186,6 +188,8 @@ namespace VisualPinball.Unity
 			TableApi.Flippers[flipper.Name] = flipperApi;
 			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
+			_colliderGenerators.Add(flipperApi);
+			Flippers[entity] = flipper;
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;

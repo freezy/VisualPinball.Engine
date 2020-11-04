@@ -21,18 +21,50 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
-	internal struct FlipperCollider
+	internal struct FlipperCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private CircleCollider _hitCircleBase;
-		private float _zLow;
-		private float _zHigh;
+		private readonly CircleCollider _hitCircleBase;
+		private readonly float _zLow;
+		private readonly float _zHigh;
 
+		public Aabb Aabb(Player player)
+		{
+			var flipper = player.Flippers[_header.Entity];
+			return new Aabb {
+				Left = _hitCircleBase.Center.x - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
+				Right = _hitCircleBase.Center.x + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
+				Top = _hitCircleBase.Center.y - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
+				Bottom = _hitCircleBase.Center.y + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
+				ZLow = _hitCircleBase.Aabb.ZLow,
+				ZHigh = _hitCircleBase.Aabb.ZHigh,
+				ColliderEntity = _header.Entity,
+				ColliderId = _header.Id
+			};
+		}
+
+		public FlipperCollider(CircleCollider hitCircleBase, ColliderInfo info) : this()
+		{
+			_header.Init(info);
+			_hitCircleBase = hitCircleBase;
+			_zLow = hitCircleBase.Aabb.ZLow;
+			_zHigh = hitCircleBase.Aabb.ZHigh;
+		}
+
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		{
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(FlipperCollider)
+			);
+		}
 
 		#region Narrowphase
 

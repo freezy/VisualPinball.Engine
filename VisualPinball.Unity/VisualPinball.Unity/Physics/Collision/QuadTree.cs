@@ -29,19 +29,18 @@ namespace VisualPinball.Unity
 		private float3 _center;
 		private bool _isLeaf;
 
-		public static void Create(BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
+		public static void Create(Player player, BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
 		{
-			// todo skip plane colliders
 			var children = builder.Allocate(ref dest._children, 4);
-
-			var aabbs = new Aabb[colliders.Length];
-			var cs = new Collider[colliders.Length];
+			var aabbs = new List<Aabb>();
 			for (var i = 0; i < colliders.Length; i++) {
-				aabbs[i] = colliders[i].Value.Aabb;
-				cs[i] = colliders[i].Value;
+				if (colliders[i].Value.Type != ColliderType.Plane) {
+					Debug.Log("Adding aab " + colliders[i].Value.Aabb(player) + " (" + colliders[i].Value.Type + ")");
+					aabbs.Add(colliders[i].Value.Aabb(player));
+				}
 			}
 
-			dest.CreateNextLevel(builder, rootBounds, 0, 0, aabbs.ToList(), ref children);
+			dest.CreateNextLevel(builder, rootBounds, 0, 0, aabbs, ref children);
 		}
 
 		private void CreateNextLevel(BlobBuilder builder, Aabb bounds, int level, int levelEmpty,

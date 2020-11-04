@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		public static void Create(EntityManager entityManager)
 		{
 			var player = Object.FindObjectOfType<Player>();
-			var itemApis = player.Collidables.ToArray();
+			var itemApis = player.ColliderGenerators.ToArray();
 
 			// 1. generate colliders
 			var colliderId = 0;
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.Temp)) {
 				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
-				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
+				QuadTree.Create(player, builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
 					player.Table.BoundingBox.ToAabb());
 
 				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
