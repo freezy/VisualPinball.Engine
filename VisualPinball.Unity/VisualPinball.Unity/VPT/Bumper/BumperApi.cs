@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiCollider, IApiSwitch, IApiCoil
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -61,18 +61,18 @@ namespace VisualPinball.Unity
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
 
-		#region Collision
+		#region Collider Generation
 
-		ItemType IApiCollider.ItemType { get; } = ItemType.Bumper;
-		bool IApiCollider.FireEvents => Data.HitEvent;
-		bool IApiCollider.IsColliderEnabled => Data.IsCollidable;
-		PhysicsMaterialData IApiCollider.PhysicsMaterial(Table table) => default;
-		float IApiCollider.Threshold => Data.Threshold;
+		ItemType IColliderGenerator.ItemType { get; } = ItemType.Bumper;
+		bool IColliderGenerator.FireEvents => Data.HitEvent;
+		bool IColliderGenerator.IsColliderEnabled => Data.IsCollidable;
+		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => default;
+		float IColliderGenerator.Threshold => Data.Threshold;
 
-		void IApiCollider.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var colliderId = nextColliderId++;
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
 				height + Data.HeightScale, GetColliderInfo(table, colliderId, ColliderType.Bumper)));

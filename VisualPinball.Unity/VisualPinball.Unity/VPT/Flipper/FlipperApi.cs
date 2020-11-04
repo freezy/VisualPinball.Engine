@@ -18,9 +18,13 @@
 #pragma warning disable 67
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -29,7 +33,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
+		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -163,6 +167,40 @@ namespace VisualPinball.Unity
 		void IApiCollidable.OnCollide(Entity ballEntity, float hit)
 		{
 			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = hit });
+		}
+
+		#endregion
+
+		#region Collider Generator
+
+		ItemType IColliderGenerator.ItemType { get; } = ItemType.Flipper;
+		bool IColliderGenerator.FireEvents { get; } = false;
+		bool IColliderGenerator.IsColliderEnabled => Data.IsEnabled;
+		float IColliderGenerator.Threshold { get; } = 0;
+		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => new PhysicsMaterialData {
+			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideElasticityFalloff
+				: Data.ElasticityFalloff,
+			Elasticity = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideElasticity
+				: Data.Elasticity,
+			Friction = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideFriction
+				: Data.Friction,
+			Scatter = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideScatterAngle
+				: Data.Scatter
+			)
+		};
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderId = nextColliderId++;
+			var info = GetColliderInfo(table, colliderId, ColliderType.Flipper);
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			var baseRadius = math.max(Data.BaseRadius, 0.01f);
+			var hitCircleBase = new CircleCollider(Data.Center.ToUnityFloat2(), baseRadius, height, height + Data.Height, info);
+
+			colliders.Add(new FlipperCollider(hitCircleBase, info));
 		}
 
 		#endregion

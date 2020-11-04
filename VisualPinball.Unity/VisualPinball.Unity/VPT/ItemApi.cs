@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 
 		internal ColliderInfo GetColliderInfo(Table table, int id, ColliderType colliderType)
 		{
-			if (!(this is IApiCollider c)) {
+			if (!(this is IColliderGenerator c)) {
 				return default;
 			}
 			return new ColliderInfo {

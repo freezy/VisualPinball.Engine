@@ -56,17 +56,19 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public unsafe Aabb Aabb {
-			get {
-				fixed (Collider* collider = &this) {
-					switch (collider->Type) {
-						case ColliderType.Bumper:
-						case ColliderType.Circle:
-							return ((CircleCollider*) collider)->Aabb;
-					}
+		public unsafe Aabb Aabb(Player player) {
+			fixed (Collider* collider = &this) {
+				switch (collider->Type) {
+					case ColliderType.Bumper:
+					case ColliderType.Circle:
+						return ((CircleCollider*) collider)->Aabb;
+					case ColliderType.Flipper:
+						return ((FlipperCollider*) collider)->Aabb(player);
+					default:
+						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
 				}
-				return default;
 			}
+			return default;
 		}
 
 		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
