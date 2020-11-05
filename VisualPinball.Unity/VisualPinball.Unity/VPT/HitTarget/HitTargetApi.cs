@@ -15,12 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class HitTargetApi : ItemApi<Engine.VPT.HitTarget.HitTarget, Engine.VPT.HitTarget.HitTargetData>,
-		IApiInitializable, IApiHittable, IApiSwitch
+		IApiInitializable, IApiHittable, IApiSwitch, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -99,6 +103,19 @@ namespace VisualPinball.Unity
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 			OnSwitch(true);
+		}
+
+		#endregion
+
+		#region Colliders
+
+		internal override bool FireHitEvents => Data.UseHitEvent;
+		internal override float HitThreshold => Data.Threshold;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new HitTargetColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
 		}
 
 		#endregion

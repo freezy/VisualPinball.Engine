@@ -27,6 +27,7 @@ namespace VisualPinball.Engine.VPT.Trough
 	{
 		public override string ItemName { get; } = "Trough";
 		public override string ItemGroupName { get; } = null;
+		public override ItemType ItemType { get; } = ItemType.Trough;
 
 		public const string EntrySwitchId = "drain_switch";
 		public const string TroughSwitchId = "trough_switch";

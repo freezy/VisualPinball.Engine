@@ -17,19 +17,10 @@
 using System;
 using NLog;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Engine.VPT.Trigger;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
@@ -49,6 +40,7 @@ namespace VisualPinball.Unity
 		public PhysicsMaterialData Material => Header.Material;
 		public float Threshold => Header.Threshold;
 		public bool FireEvents => Header.FireEvents;
+		public ItemType ItemType => Header.ItemType;
 
 		public static Collider None => new Collider {
 			Header = { Type = ColliderType.None }
@@ -68,6 +60,16 @@ namespace VisualPinball.Unity
 						return ((GateCollider*) collider)->Aabb;
 					case ColliderType.Line:
 						return ((LineCollider*) collider)->Aabb;
+					case ColliderType.Line3D:
+						return ((Line3DCollider*) collider)->Aabb;
+					case ColliderType.LineSlingShot:
+						return ((LineSlingshotCollider*) collider)->Aabb;
+					case ColliderType.LineZ:
+						return ((LineZCollider*) collider)->Aabb;
+					case ColliderType.Point:
+						return ((PointCollider*) collider)->Aabb;
+					case ColliderType.Triangle:
+						return ((TriangleCollider*) collider)->Aabb;
 					default:
 						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
 				}

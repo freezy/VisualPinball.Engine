@@ -25,6 +25,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 	{
 		public override string ItemName { get; } = "Ramp";
 		public override string ItemGroupName { get; } = "Ramps";
+		public override ItemType ItemType { get; } = ItemType.Ramp;
 
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }

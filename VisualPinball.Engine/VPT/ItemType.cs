@@ -55,5 +55,10 @@ namespace VisualPinball.Engine.VPT
 		// VPE internal
 		Ball = 100,
 		Trough = 101,
+
+		// not game items
+		Sound = 1000,
+		Texture = 1001,
+		Mapping = 1002,
 	}
 }

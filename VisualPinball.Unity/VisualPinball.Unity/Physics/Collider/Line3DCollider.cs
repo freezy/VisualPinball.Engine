@@ -18,39 +18,78 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	internal struct Line3DCollider
+	internal struct Line3DCollider : ICollider
 	{
 		private ColliderHeader _header;
 
-		private float2 _xy;
-		private float _zLow;
-		private float _zHigh;
-		private float3x3 _matrix;
+		// these are all used when casting this to LineZCollider,
+		// so the order is important too.
+		// ReSharper disable once NotAccessedField.Local
+		private readonly float2 _xy;
+		// ReSharper disable once NotAccessedField.Local
+		private readonly float _zLow;
+		// ReSharper disable once NotAccessedField.Local
+		private readonly float _zHigh;
+		private readonly float3x3 _matrix;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("Line3DCollider.Create");
+		public readonly Aabb Aabb;
 
-		public static void Create(BlobBuilder builder, HitLine3D src, ref BlobPtr<Collider> dest)
+		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref linePtr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info, ColliderType.Line3D);
+
+			var vLine = math.normalize(v2 - v1);
+
+			// Axis of rotation to make 3D cylinder a cylinder along the z-axis
+			var transAxis = new float3(vLine.y, -vLine.x, 0.0f);
+
+			var l = math.lengthsq(transAxis);
+
+			// line already points in z axis?
+			if (l <= 1e-6f) {
+				// choose arbitrary rotation vector
+				transAxis.Set(1, 0f, 0f);
+			} else {
+				transAxis /= math.sqrt(l);
+			}
+
+			// Angle to rotate the line into the z-axis
+			var dot = vLine.z;
+
+			_matrix = new float3x3();
+			_matrix.RotationAroundAxis(transAxis, -math.sqrt(1 - dot * dot), dot);
+
+			var trans1 = math.mul(_matrix, v1);
+			var trans2Z = math.mul(_matrix, v2).z;
+
+			// set up HitLineZ parameters
+			_xy.x = trans1.x;
+			_xy.y = trans1.y;
+			_zLow = math.min(trans1.z, trans2Z);
+			_zHigh = math.max(trans1.z, trans2Z);
+
+			Aabb.Left = math.min(v1.x, v2.x);
+			Aabb.Right = math.max(v1.x, v2.x);
+			Aabb.Top = math.min(v1.y, v2.y);
+			Aabb.Bottom = math.max(v1.y, v2.y);
+			Aabb.ZLow = math.min(v1.z, v2.z);
+			Aabb.ZHigh = math.max(v1.z, v2.z);
+			Aabb.ColliderId = _header.Id;
+			Aabb.ColliderEntity = _header.Entity;
 		}
 
-		private void Init(HitLine3D src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Init(ColliderType.Line3D, src);
-
-			_xy = src.Xy.ToUnityFloat2();
-			_zLow = src.ZLow;
-			_zHigh = src.ZHigh;
-			_matrix = src.Matrix.ToUnityFloat3x3();
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(Line3DCollider)
+			);
 		}
 
 		#region Narrowphase

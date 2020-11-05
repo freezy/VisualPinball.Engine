@@ -36,6 +36,7 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public override string ItemName { get; } = "Table";
 		public override string ItemGroupName { get; } = "Playfield";
+		public override ItemType ItemType { get; } = ItemType.Table;
 
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }

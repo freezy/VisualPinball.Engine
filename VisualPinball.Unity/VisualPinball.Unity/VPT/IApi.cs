@@ -37,11 +37,6 @@ namespace VisualPinball.Unity
 
 	internal interface IColliderGenerator
 	{
-		ItemType ItemType { get; }
-		bool FireEvents { get; }
-		bool IsColliderEnabled { get; }
-		float Threshold { get; }
-		PhysicsMaterialData PhysicsMaterial(Table table);
 		void CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId);
 	}
 

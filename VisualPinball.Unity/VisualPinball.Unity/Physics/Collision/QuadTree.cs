@@ -38,13 +38,14 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < colliders.Length; i++) {
 				if (colliders[i].Value.Type != ColliderType.Plane) {
 					var aabb = colliders[i].Value.Aabb(player);
+					Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
 					if (aabb.ColliderEntity == Entity.Null) {
-						throw new InvalidOperationException("Entity of " + aabb + " must be set.");
+						throw new InvalidOperationException($"Entity of {aabb} must be set ({colliders[i].Value.ItemType}).");
 					}
 					if (aabb.ColliderId == 0) {
-						throw new InvalidOperationException("ColliderId of " + aabb + " must be set.");
+						throw new InvalidOperationException($"ColliderId of {aabb} must be set ({colliders[i].Value.ItemType}).");
 					}
-					Debug.Log("Adding aab " + colliders[i].Value.Aabb(player) + " (" + colliders[i].Value.Type + ")");
+
 					aabbs.Add(aabb);
 					cs.Add(colliders[i].Value);
 				}

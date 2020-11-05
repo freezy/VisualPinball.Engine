@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 				Elasticity = src.Elasticity,
 				ElasticityFalloff = src.ElasticityFalloff,
 				Friction = src.Friction,
-				Scatter = src.Scatter,
+				ScatterAngleRad = src.Scatter,
 			};
 
 			_lineSegBase = LineCollider.Create(src.LineSegBase);

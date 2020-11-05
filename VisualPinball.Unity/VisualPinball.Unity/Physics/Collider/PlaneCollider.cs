@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
-			_header.Init(info);
+			_header.Init(info, ColliderType.Plane);
 			_normal = normal;
 			_distance = distance;
 		}

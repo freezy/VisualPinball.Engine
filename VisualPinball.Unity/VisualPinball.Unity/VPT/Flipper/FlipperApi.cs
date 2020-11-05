@@ -173,11 +173,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generator
 
-		ItemType IColliderGenerator.ItemType { get; } = ItemType.Flipper;
-		bool IColliderGenerator.FireEvents { get; } = false;
-		bool IColliderGenerator.IsColliderEnabled => Data.IsEnabled;
-		float IColliderGenerator.Threshold { get; } = 0;
-		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => new PhysicsMaterialData {
+		internal override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
 			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
 				? Data.OverrideElasticityFalloff
 				: Data.ElasticityFalloff,
@@ -187,20 +183,26 @@ namespace VisualPinball.Unity
 			Friction = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
 				? Data.OverrideFriction
 				: Data.Friction,
-			Scatter = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+			ScatterAngleRad = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
 				? Data.OverrideScatterAngle
 				: Data.Scatter
 			)
 		};
+
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
 		{
-			var colliderId = nextColliderId++;
-			var info = GetColliderInfo(table, colliderId, ColliderType.Flipper);
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var baseRadius = math.max(Data.BaseRadius, 0.01f);
-			var hitCircleBase = new CircleCollider(Data.Center.ToUnityFloat2(), baseRadius, height, height + Data.Height, info);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, info));
+			var hitCircleBase = new CircleCollider(
+				Data.Center.ToUnityFloat2(),
+				baseRadius,
+				height,
+				height + Data.Height,
+				GetColliderInfo(table)
+			);
+
+			colliders.Add(new FlipperCollider(hitCircleBase, GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
 		#endregion

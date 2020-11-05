@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
-			_header.Init(info);
+			_header.Init(info, ColliderType.Gate);
 			_lineSeg0 = lineSeg0;
 			_lineSeg1 = lineSeg1;
 		}
