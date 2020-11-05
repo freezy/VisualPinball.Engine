@@ -24,43 +24,63 @@ using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	internal struct LineSlingshotCollider
+	internal struct LineSlingshotCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private float2 _v1;
-		private float2 _v2;
+		private readonly float2 _v1;
+		private readonly float2 _v2;
 		private float2 _normal;
 		private float _length;
-		private float _zLow;
-		private float _zHigh;
-		private float _force;
+		private readonly float _zLow;
+		private readonly float _zHigh;
+		private readonly float _force;
 
-		public ColliderType Type => _header.Type;
+		public Aabb Aabb => new Aabb {
+			Left = math.min(_v1.x, _v2.x),
+			Right = math.max(_v1.x, _v2.x),
+			Top = math.min(_v1.y, _v2.y),
+			Bottom = math.max(_v1.y, _v2.y),
+			ZLow = _zLow,
+			ZHigh = _zHigh,
+			ColliderId = _header.Id,
+			ColliderEntity = _header.Entity
+		};
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineSlingshotCollider.Create");
-
-		public static void Create(BlobBuilder builder, LineSegSlingshot src, ref BlobPtr<Collider> dest)
+		public LineSlingshotCollider(float force, float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref linePtr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info, ColliderType.LineSlingShot);
+			_force = force;
+			_v1 = v1;
+			_v2 = v2;
+			_zLow = zLow;
+			_zHigh = zHigh;
+			CalcNormal();
 		}
 
-		private void Init(LineSegSlingshot src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Init(ColliderType.LineSlingShot, src);
-
-			_v1 = src.V1.ToUnityFloat2();
-			_v2 = src.V2.ToUnityFloat2();
-			_normal = src.Normal.ToUnityFloat2();
-			_length = src.Length;
-			_zHigh = src.HitBBox.ZHigh;
-			_zLow = src.HitBBox.ZLow;
-			_force = src.Force;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(LineSlingshotCollider)
+			);
 		}
+
+		private void CalcNormal()
+		{
+			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
+			_length = math.length(vT);
+
+			// Set up line normal
+			var invLength = 1.0f / _length;
+			_normal.x = vT.y * invLength;
+			_normal.y = -vT.x * invLength;
+		}
+
+		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
@@ -72,6 +92,10 @@ namespace VisualPinball.Unity
 			ref var lineColl = ref UnsafeUtility.As<LineSlingshotCollider, LineCollider>(ref coll);
 			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, in ball, dTime, true, true, true);
 		}
+
+		#endregion
+
+		#region Collision
 
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
 		{
@@ -125,5 +149,7 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+		#endregion
 	}
 }

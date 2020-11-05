@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.VPT.Decal
 	{
 		public override string ItemName { get; } = "Decal";
 		public override string ItemGroupName { get; } = "Decals";
+		public override ItemType ItemType { get; } = ItemType.Decal;
 
 		public Decal(DecalData data) : base(data)
 		{

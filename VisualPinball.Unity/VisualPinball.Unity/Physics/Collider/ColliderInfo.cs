@@ -23,11 +23,10 @@ namespace VisualPinball.Unity
 	{
 		public int Id;
 		public ItemType ItemType;
-		public ColliderType Type;
 		public Entity Entity;
 		public Entity ParentEntity;
 		public PhysicsMaterialData Material;
-		public float Threshold;
+		public float HitThreshold;
 		public bool FireEvents;
 		public bool IsEnabled;
 	}

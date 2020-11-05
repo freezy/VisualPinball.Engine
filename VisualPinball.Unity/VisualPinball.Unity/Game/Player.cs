@@ -220,6 +220,7 @@ namespace VisualPinball.Unity
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
+			_colliderGenerators.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
 			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}

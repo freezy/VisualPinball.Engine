@@ -25,6 +25,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	{
 		public override string ItemName { get; } = "Target";
 		public override string ItemGroupName { get; } = "Targets";
+		public override ItemType ItemType { get; } = ItemType.HitTarget;
 
 		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
 		public float RotationY { get => Data.RotZ; set => Data.RotZ = value; }
@@ -33,14 +34,14 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		public HitObject[] GetHitShapes() => _hits;
 
-		private readonly HitTargetMeshGenerator _meshGenerator;
+		public readonly HitTargetMeshGenerator MeshGenerator;
 		private readonly HitTargetHitGenerator _hitGenerator;
 		private HitObject[] _hits;
 
 		public HitTarget(HitTargetData data) : base(data)
 		{
-			_meshGenerator = new HitTargetMeshGenerator(Data);
-			_hitGenerator = new HitTargetHitGenerator(Data, _meshGenerator);
+			MeshGenerator = new HitTargetMeshGenerator(Data);
+			_hitGenerator = new HitTargetHitGenerator(Data, MeshGenerator);
 		}
 
 		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName))
@@ -60,16 +61,16 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
 		#endregion

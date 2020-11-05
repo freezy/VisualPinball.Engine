@@ -60,25 +60,10 @@ namespace VisualPinball.Unity
 				_data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)
 			);
 
-			var lineSeg0 = new LineCollider(
-				v1,
-				v2,
-				height,
-				height + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
-			);
+			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo(table));
+			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo(table));
 
-			var lineSeg1 = new LineCollider(
-				v2,
-				v1,
-				height,
-				height + 2.0f * PhysicsConstants.PhysSkin,
-				ItemType.Gate
-			);
-
-			var colliderId = nextColliderId++;
-			var info = _api.GetColliderInfo(table, colliderId, ColliderType.Gate);
-			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, info));
+			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
 		private void GenerateLineCollider(Table table, ICollection<ICollider> colliders, ref int nextColliderId, float height, float2 tangent)
@@ -97,10 +82,7 @@ namespace VisualPinball.Unity
 			// oversize by the ball's radius to prevent the ball from clipping through
 			var rgv0 = _data.Center.ToUnityFloat2() + tangent * (halfLength + PhysicsConstants.PhysSkin);
 			var rgv1 = _data.Center.ToUnityFloat2() - tangent * (halfLength + PhysicsConstants.PhysSkin);
-
-			var colliderId = nextColliderId++;
-			var info = _api.GetColliderInfo(table, colliderId, ColliderType.Line);
-
+			var info = _api.GetNextColliderInfo(table, ref nextColliderId);
 			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
 		}
 
@@ -111,24 +93,20 @@ namespace VisualPinball.Unity
 			}
 
 			var halfLength = _data.Length * 0.5f;
-			var colliderId0 = nextColliderId++;
-			var info0 = _api.GetColliderInfo(table, colliderId0, ColliderType.Circle);
 			colliders.Add(new CircleCollider(
 				_data.Center.ToUnityFloat2() + tangent * halfLength,
 				0.01f,
 				height,
 				height + _data.Height,
-				info0
+				_api.GetNextColliderInfo(table, ref nextColliderId)
 			));
 
-			var colliderId1 = nextColliderId++;
-			var info1 = _api.GetColliderInfo(table, colliderId1, ColliderType.Circle);
 			colliders.Add(new CircleCollider(
 				_data.Center.ToUnityFloat2() - tangent * halfLength,
 				0.01f,
 				height,
 				height + _data.Height,
-				info1
+				_api.GetNextColliderInfo(table, ref nextColliderId)
 			));
 		}
 	}

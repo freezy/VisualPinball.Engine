@@ -110,15 +110,12 @@ namespace VisualPinball.Unity
 
 		#region Colliders
 
-		ItemType IColliderGenerator.ItemType { get; } = ItemType.Gate;
-		bool IColliderGenerator.FireEvents { get; } = true;
-		bool IColliderGenerator.IsColliderEnabled => Data.IsCollidable;
-		float IColliderGenerator.Threshold { get; } = 0;
-		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => new PhysicsMaterialData {
+		internal override bool IsColliderEnabled => Data.IsCollidable;
+		internal override PhysicsMaterialData GetPhysicsMaterial(Table table)=> new PhysicsMaterialData {
 			Elasticity = Data.Elasticity,
 			ElasticityFalloff = 0,
 			Friction = Data.Friction,
-			Scatter = 0
+			ScatterAngleRad = 0
 		};
 
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)

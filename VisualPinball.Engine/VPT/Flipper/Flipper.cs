@@ -25,6 +25,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 	{
 		public override string ItemName { get; } = "Flipper";
 		public override string ItemGroupName { get; } = "Flippers";
+		public override ItemType ItemType { get; } = ItemType.Flipper;
 
 		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
 		public float RotationY { get => Data.StartAngle; set => Data.StartAngle = value; }

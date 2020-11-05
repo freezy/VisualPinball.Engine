@@ -29,6 +29,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 	{
 		public override string ItemName { get; } = "Mapping";
 		public override string ItemGroupName { get; } = "Mappings";
+		public override ItemType ItemType { get; } = ItemType.Mapping;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.VPT.DispReel
 	{
 		public override string ItemName { get; } = "Disp Reel";
 		public override string ItemGroupName { get; } = "Disp Reels";
+		public override ItemType ItemType { get; } = ItemType.DispReel;
 
 		public DispReel(DispReelData data) : base(data)
 		{

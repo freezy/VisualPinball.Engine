@@ -20,33 +20,41 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
-	internal struct PointCollider
+	internal struct PointCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private float3 _p;
+		private readonly float3 _p;
 
-		public ColliderType Type => _header.Type;
+		public Aabb Aabb => new Aabb {
+			Left = _p.x,
+			Right = _p.x,
+			Top = _p.y,
+			Bottom = _p.y,
+			ZLow = _p.z,
+			ZHigh = _p.z,
+			ColliderEntity = _header.Entity,
+			ColliderId = _header.Id,
+		};
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PointCollider.Create");
-
-		public static void Create(BlobBuilder builder, HitPoint src, ref BlobPtr<Collider> dest)
+		public PointCollider(float3 p, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var colliderPtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref colliderPtr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info, ColliderType.Point);
+			_p = p;
 		}
 
-		private void Init(HitPoint src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Init(ColliderType.Point, src);
-			_p = src.P.ToUnityFloat3();
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(PointCollider)
+			);
 		}
 
 		#region Narrowphase

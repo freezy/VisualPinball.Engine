@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 
 		public FlipperCollider(CircleCollider hitCircleBase, ColliderInfo info) : this()
 		{
-			_header.Init(info);
+			_header.Init(info, ColliderType.Flipper);
 			_hitCircleBase = hitCircleBase;
 			_zLow = hitCircleBase.Aabb.ZLow;
 			_zHigh = hitCircleBase.Aabb.ZHigh;

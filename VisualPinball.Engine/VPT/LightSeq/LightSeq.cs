@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.VPT.LightSeq
 	{
 		public override string ItemName { get; } = "Light Sequence";
 		public override string ItemGroupName { get; } = "Light Sequences";
+		public override ItemType ItemType { get; } = ItemType.LightSeq;
 
 		public LightSeq(LightSeqData data) : base(data)
 		{

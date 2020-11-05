@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.VPT.Sound
 	{
 		public override string ItemName { get; } = "Sound";
 		public override string ItemGroupName { get; } = "Sounds";
+		public override ItemType ItemType { get; } = ItemType.Sound;
 
 		public Sound(string name) : this(new SoundData(name))
 		{

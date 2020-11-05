@@ -63,19 +63,15 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		ItemType IColliderGenerator.ItemType { get; } = ItemType.Bumper;
-		bool IColliderGenerator.FireEvents => Data.HitEvent;
-		bool IColliderGenerator.IsColliderEnabled => Data.IsCollidable;
-		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => default;
-		float IColliderGenerator.Threshold => Data.Threshold;
+		internal override bool IsColliderEnabled => Data.IsCollidable;
+		internal override bool FireHitEvents => Data.HitEvent;
+		internal override float HitThreshold => Data.Threshold;
 
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
 		{
-			var colliderId = nextColliderId++;
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
-				height + Data.HeightScale, GetColliderInfo(table, colliderId, ColliderType.Bumper)));
+				height + Data.HeightScale, GetNextColliderInfo(table, ref nextColliderId), ColliderType.Bumper));
 		}
 
 		#endregion

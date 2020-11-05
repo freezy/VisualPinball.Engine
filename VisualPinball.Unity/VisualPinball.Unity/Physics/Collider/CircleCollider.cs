@@ -43,9 +43,9 @@ namespace VisualPinball.Unity
 			ColliderId = _header.Id
 		};
 
-		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info) : this()
+		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
-			_header.Init(info);
+			_header.Init(info, type);
 			Center = center;
 			Radius = radius;
 			_zHigh = zHigh;

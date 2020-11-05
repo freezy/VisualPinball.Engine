@@ -27,6 +27,7 @@ namespace VisualPinball.Engine.VPT
 	{
 		public override string ItemName { get; } = "Texture";
 		public override string ItemGroupName { get; } = "Textures";
+		public override ItemType ItemType { get; } = ItemType.Texture;
 
 		public static readonly Texture BallDebug = new Texture(Resource.BallDebug);
 		public static readonly Texture BumperBase = new Texture(Resource.BumperBase);

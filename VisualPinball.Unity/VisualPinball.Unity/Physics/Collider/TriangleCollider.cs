@@ -20,43 +20,53 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	internal struct TriangleCollider
+	internal struct TriangleCollider : ICollider
 	{
 		private ColliderHeader _header;
 
-		private float3 _rgv0;
-		private float3 _rgv1;
-		private float3 _rgv2;
-		private float3 _normal;
-
-		public ColliderType Type => _header.Type;
+		private readonly float3 _rgv0;
+		private readonly float3 _rgv1;
+		private readonly float3 _rgv2;
+		private readonly float3 _normal;
 
 		public float3 Normal() => _normal;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriangleCollider.Create");
+		public Aabb Aabb => new Aabb {
+			Left = math.min(_rgv0.x, math.min(_rgv1.x, _rgv2.x)),
+			Right = math.max(_rgv0.x, math.max(_rgv1.x, _rgv2.x)),
+			Top = math.min(_rgv0.y, math.min(_rgv1.y, _rgv2.y)),
+			Bottom = math.max(_rgv0.y, math.max(_rgv1.y, _rgv2.y)),
+			ZLow = math.min(_rgv0.z, math.min(_rgv1.z, _rgv2.z)),
+			ZHigh = math.max(_rgv0.z, math.max(_rgv1.z, _rgv2.z)),
+			ColliderEntity = _header.Entity,
+			ColliderId = _header.Id
+		};
 
-		public static void Create(BlobBuilder builder, HitTriangle src, ref BlobPtr<Collider> dest)
+		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var trianglePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref trianglePtr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info, ColliderType.Triangle);
+			_rgv0 = rgv0;
+			_rgv1 = rgv1;
+			_rgv2 = rgv2;
+
+			var e0 = rgv2 - rgv0;
+			var e1 = rgv1 - rgv0;
+			_normal = math.normalizesafe(math.cross(e0, e1));
 		}
 
-		private void Init(HitTriangle src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Init(ColliderType.Triangle, src);
-
-			_rgv0 = src.Rgv[0].ToUnityFloat3();
-			_rgv1 = src.Rgv[1].ToUnityFloat3();
-			_rgv2 = src.Rgv[2].ToUnityFloat3();
-			_normal = src.Normal.ToUnityFloat3();
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(TriangleCollider)
+			);
 		}
 
 		#region Narrowphase

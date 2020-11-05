@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 				Elasticity = src.Elasticity,
 				ElasticityFalloff = src.ElasticityFalloff,
 				Friction = src.Friction,
-				Scatter = src.Scatter,
+				ScatterAngleRad = src.Scatter,
 			};
 			Threshold = src.Threshold;
 			FireEvents = src.FireEvents;
@@ -94,12 +94,12 @@ namespace VisualPinball.Unity
 		}
 
 
-		public void Init(ColliderInfo info)
+		public void Init(ColliderInfo info, ColliderType colliderType)
 		{
 			if (info.Entity == Entity.Null) {
-				throw new InvalidOperationException("Entity of " + info.ItemType + " " + info.Type + " not set!");
+				throw new InvalidOperationException("Entity of " + info.ItemType + " " + colliderType + " not set!");
 			}
-			Type = info.Type;
+			Type = colliderType;
 			ItemType = info.ItemType;
 			Id = info.Id;
 			Entity = info.Entity;
@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 				? info.ParentEntity
 				: Entity;
 			Material = info.Material;
-			Threshold = info.Threshold;
+			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
 			IsEnabled = info.IsEnabled;
 		}

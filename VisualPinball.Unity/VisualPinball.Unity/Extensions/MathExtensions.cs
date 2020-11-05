@@ -22,12 +22,34 @@ namespace VisualPinball.Unity
 {
 	public static class MathExtensions
 	{
+		public static void Set(this ref float3 vector, float x, float y, float z)
+		{
+			vector.x = x;
+			vector.y = y;
+			vector.z = z;
+		}
+
+		public static void RotationAroundAxis(this float3x3 m, float3 axis, float rSin, float rCos)
+		{
+			m.c0.x = axis.x * axis.x + rCos * (1.0f - axis.x * axis.x);
+			m.c0.y = axis.x * axis.y * (1.0f - rCos) - axis.z * rSin;
+			m.c0.z = axis.z * axis.x * (1.0f - rCos) + axis.y * rSin;
+
+			m.c1.x = axis.x * axis.y * (1.0f - rCos) + axis.z * rSin;
+			m.c1.y = axis.y * axis.y + rCos * (1.0f - axis.y * axis.y);
+			m.c1.z = axis.y * axis.z * (1.0f - rCos) - axis.x * rSin;
+
+			m.c2.x = axis.z * axis.x * (1.0f - rCos) - axis.y * rSin;
+			m.c2.y = axis.y * axis.z * (1.0f - rCos) + axis.x * rSin;
+			m.c2.z = axis.z * axis.z + rCos * (1.0f - axis.z * axis.z);
+		}
+
 		public static Vertex3D ToVertex3D(this Vector3 vector)
 		{
 			return new Vertex3D(vector.x, vector.y, vector.z);
 		}
 
-		public static Vertex2D ToVertex2Dxy(this Vector3 vector)
+		public static Vertex2D ToVertex2Dxy(this ref Vector3 vector)
 		{
 			return new Vertex2D(vector.x, vector.y);
 		}
@@ -42,7 +64,7 @@ namespace VisualPinball.Unity
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
 		}
 
-		public static Vector3 ToUnityVector3(this Vertex3D vertex, float z)
+		public static Vector3 ToUnityVector3(this ref Vertex3D vertex, float z)
 		{
 			return new Vector3(vertex.X, vertex.Y, z);
 		}
@@ -50,11 +72,6 @@ namespace VisualPinball.Unity
 		public static float3 ToUnityFloat3(this Vertex3D vertex)
 		{
 			return new float3(vertex.X, vertex.Y, vertex.Z);
-		}
-
-		public static Vertex3D ToVertex3D(this Vector2 vector, float z)
-		{
-			return new Vertex3D(vector.x, vector.y, z);
 		}
 
 		public static Vertex2D ToVertex2D(this Vector2 vector)
@@ -72,22 +89,27 @@ namespace VisualPinball.Unity
 			return new Vector2(vertex.X, vertex.Y);
 		}
 
-		public static float2 ToUnityFloat2(this Vertex2D vertex)
+		public static float2 ToUnityFloat2(this ref Vertex2D vertex)
 		{
 			return new float2(vertex.X, vertex.Y);
 		}
 
-		public static Vector3 ToUnityVector3(this Vertex3DNoTex2 vertex)
+		public static Vector3 ToUnityVector3(this ref Vertex3DNoTex2 vertex)
 		{
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
 		}
 
-		public static Vector3 ToUnityNormalVector3(this Vertex3DNoTex2 vertex)
+		public static float3 ToUnityFloat3(this Vertex3DNoTex2 vertex)
+		{
+			return new float3(vertex.X, vertex.Y, vertex.Z);
+		}
+
+		public static Vector3 ToUnityNormalVector3(this ref Vertex3DNoTex2 vertex)
 		{
 			return new Vector3(vertex.Nx, vertex.Ny, vertex.Nz);
 		}
 
-		public static Vector3 ToUnityUvVector2(this Vertex3DNoTex2 vertex)
+		public static Vector3 ToUnityUvVector2(this ref Vertex3DNoTex2 vertex)
 		{
 			return new Vector2(vertex.Tu, -vertex.Tv);
 		}
@@ -95,11 +117,6 @@ namespace VisualPinball.Unity
 		internal static Aabb ToAabb(this Rect3D rect)
 		{
 			return new Aabb(0, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
-		}
-
-		internal static Aabb ToAabb(this Rect3D rect, int colliderId)
-		{
-			return new Aabb(colliderId, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
 
 		public static float PercentageToRatio(this float percent)
@@ -117,7 +134,7 @@ namespace VisualPinball.Unity
 			return ratio * 100.0f;
 		}
 
-		internal static void ToAabb(this Rect3D rect, ref Aabb aabb, int colliderId)
+		internal static void ToAabb(this ref Rect3D rect, ref Aabb aabb, int colliderId)
 		{
 			aabb.ColliderId = colliderId;
 			aabb.Left = rect.Left;

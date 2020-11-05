@@ -88,7 +88,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var scatterAngle = material.Scatter;
+			var scatterAngle = material.ScatterAngleRad;
 			if (scatterAngle < 0.0) {
 				scatterAngle = HardScatter;
 			} // if < 0 use global value
