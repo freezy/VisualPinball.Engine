@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable,
-		IApiHittable, IApiRotatable, IApiSwitch
+		IApiHittable, IApiRotatable, IApiSwitch, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -70,6 +73,7 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
+
 		public GateApi(Engine.VPT.Gate.Gate item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
@@ -104,5 +108,25 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Colliders
+
+		ItemType IColliderGenerator.ItemType { get; } = ItemType.Gate;
+		bool IColliderGenerator.FireEvents { get; } = true;
+		bool IColliderGenerator.IsColliderEnabled => Data.IsCollidable;
+		float IColliderGenerator.Threshold { get; } = 0;
+		PhysicsMaterialData IColliderGenerator.PhysicsMaterial(Table table) => new PhysicsMaterialData {
+			Elasticity = Data.Elasticity,
+			ElasticityFalloff = 0,
+			Friction = Data.Friction,
+			Scatter = 0
+		};
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new GateColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		#endregion
 	}
 }

@@ -18,37 +18,34 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
-using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	internal struct GateCollider
+	internal struct GateCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private LineCollider _lineSeg0;
-		private LineCollider _lineSeg1;
+		private readonly LineCollider _lineSeg0;
+		private readonly LineCollider _lineSeg1;
 
-		public ColliderType Type => _header.Type;
+		public Aabb Aabb => _lineSeg0.Aabb.Apply(_header);
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateCollider.Create");
-
-		public static void Create(BlobBuilder builder, GateHit src, ref BlobPtr<Collider> dest)
+		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info);
+			_lineSeg0 = lineSeg0;
+			_lineSeg1 = lineSeg1;
 		}
 
-		private void Init(GateHit src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Init(ColliderType.Gate, src);
-
-			_lineSeg0 = LineCollider.Create(src.LineSeg0);
-			_lineSeg1 = LineCollider.Create(src.LineSeg1);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(GateCollider)
+			);
 		}
 
 		#region Narrowphase

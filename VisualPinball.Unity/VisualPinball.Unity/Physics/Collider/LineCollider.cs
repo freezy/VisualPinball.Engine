@@ -25,33 +25,63 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	internal struct LineCollider
+	internal struct LineCollider : ICollider
 	{
 		private ColliderHeader _header;
 
 		private float2 _v1;
 		private float2 _v2;
 		private float2 _normal;
-		private float _length;
 		private float _zLow;
 		private float _zHigh;
+		private float _length;
 
-		public ColliderType Type => _header.Type;
-		public ItemType ItemType => _header.ItemType;
-		public Entity Entity => _header.Entity;
+		public Aabb Aabb => new Aabb {
+			Left = math.min(_v1.x, _v2.x),
+			Right = math.max(_v1.x, _v2.x),
+			Top = math.min(_v1.y, _v2.y),
+			Bottom = math.max(_v1.y, _v2.y),
+			ZLow = _zLow,
+			ZHigh = _zHigh,
+			ColliderId = _header.Id,
+			ColliderEntity = _header.Entity
+		};
+
+		private ItemType ItemType => _header.ItemType;
+		private Entity Entity => _header.Entity;
 
 		public float V1y { set => _v1.y = value; }
 		public float V2y { set => _v2.y = value; }
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineCollider.Create");
-
-		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Line)
+		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref linePtr);
-			collider.Init(src, type);
-			PerfMarker.End();
+			_header.Init(info);
+			_v1 = v1;
+			_v2 = v2;
+			_zLow = zLow;
+			_zHigh = zHigh;
+			CalcNormal();
+		}
+
+		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ItemType itemType) : this()
+		{
+			_header.Init(ColliderType.Line, itemType);
+			_v1 = v1;
+			_v2 = v2;
+			_zLow = zLow;
+			_zHigh = zHigh;
+			CalcNormal();
+		}
+
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		{
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(LineCollider)
+			);
 		}
 
 		public static LineCollider Create(LineSeg src, ColliderType type = ColliderType.Line)
@@ -228,9 +258,10 @@ namespace VisualPinball.Unity
 		public void CalcNormal()
 		{
 			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
+			_length = math.length(vT);
 
 			// Set up line normal
-			var invLength = 1.0f /  math.length(vT);
+			var invLength = 1.0f / _length;
 			_normal.x = vT.y * invLength;
 			_normal.y = -vT.x * invLength;
 		}
