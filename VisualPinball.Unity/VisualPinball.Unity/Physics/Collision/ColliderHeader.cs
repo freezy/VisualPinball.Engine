@@ -77,6 +77,22 @@ namespace VisualPinball.Unity
 			IsEnabled = src.IsEnabled;
 		}
 
+		/// <summary>
+		/// Initializes the header for internal colliders, i.e. colliders
+		/// that sit within another collider and aren't themselves part
+		/// of the quadtree/collider blob.
+		/// </summary>
+		/// <param name="colliderType"></param>
+		/// <param name="itemType"></param>
+		public void Init(ColliderType colliderType, ItemType itemType)
+		{
+			Type = colliderType;
+			ItemType = itemType;
+			Threshold = 0;
+			FireEvents = true; // todo probably dynamic?
+			IsEnabled = true;
+		}
+
 
 		public void Init(ColliderInfo info)
 		{

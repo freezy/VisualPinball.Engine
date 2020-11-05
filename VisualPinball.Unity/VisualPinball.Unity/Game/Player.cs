@@ -208,6 +208,7 @@ namespace VisualPinball.Unity
 			TableApi.Gates[gate.Name] = gateApi;
 			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
+			_colliderGenerators.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
 			_switchPlayer.RegisterSwitch(gate, gateApi);

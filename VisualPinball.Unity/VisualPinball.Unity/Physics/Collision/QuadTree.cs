@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
@@ -33,10 +34,19 @@ namespace VisualPinball.Unity
 		{
 			var children = builder.Allocate(ref dest._children, 4);
 			var aabbs = new List<Aabb>();
+			var cs = new List<Collider>();
 			for (var i = 0; i < colliders.Length; i++) {
 				if (colliders[i].Value.Type != ColliderType.Plane) {
+					var aabb = colliders[i].Value.Aabb(player);
+					if (aabb.ColliderEntity == Entity.Null) {
+						throw new InvalidOperationException("Entity of " + aabb + " must be set.");
+					}
+					if (aabb.ColliderId == 0) {
+						throw new InvalidOperationException("ColliderId of " + aabb + " must be set.");
+					}
 					Debug.Log("Adding aab " + colliders[i].Value.Aabb(player) + " (" + colliders[i].Value.Type + ")");
-					aabbs.Add(colliders[i].Value.Aabb(player));
+					aabbs.Add(aabb);
+					cs.Add(colliders[i].Value);
 				}
 			}
 

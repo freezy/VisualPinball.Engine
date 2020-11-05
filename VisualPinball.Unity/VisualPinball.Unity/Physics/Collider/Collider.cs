@@ -64,6 +64,10 @@ namespace VisualPinball.Unity
 						return ((CircleCollider*) collider)->Aabb;
 					case ColliderType.Flipper:
 						return ((FlipperCollider*) collider)->Aabb(player);
+					case ColliderType.Gate:
+						return ((GateCollider*) collider)->Aabb;
+					case ColliderType.Line:
+						return ((LineCollider*) collider)->Aabb;
 					default:
 						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
 				}
