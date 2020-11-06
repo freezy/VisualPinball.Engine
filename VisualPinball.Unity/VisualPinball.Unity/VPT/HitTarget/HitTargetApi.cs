@@ -17,13 +17,12 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class HitTargetApi : ItemApi<Engine.VPT.HitTarget.HitTarget, Engine.VPT.HitTarget.HitTargetData>,
+	public class HitTargetApi : ItemApi<HitTarget, HitTargetData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IColliderGenerator
 	{
 		/// <summary>
@@ -55,7 +54,7 @@ namespace VisualPinball.Unity
 			set => SetIsDropped(value);
 		}
 
-		internal HitTargetApi(Engine.VPT.HitTarget.HitTarget item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		internal HitTargetApi(HitTarget item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
 
