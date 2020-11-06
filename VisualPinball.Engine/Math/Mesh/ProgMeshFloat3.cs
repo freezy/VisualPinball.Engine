@@ -6,7 +6,7 @@
 
 namespace VisualPinball.Engine.Math.Mesh
 {
-	internal readonly struct ProgMeshFloat3
+	public readonly struct ProgMeshFloat3
 	{
 		public readonly float X;
 		public readonly float Y;

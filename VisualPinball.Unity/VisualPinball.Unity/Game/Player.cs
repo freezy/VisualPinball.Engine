@@ -270,6 +270,7 @@ namespace VisualPinball.Unity
 			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
+			_colliderGenerators.Add(primitiveApi);
 			_initializables.Add(primitiveApi);
 			_hittables[entity] = primitiveApi;
 		}

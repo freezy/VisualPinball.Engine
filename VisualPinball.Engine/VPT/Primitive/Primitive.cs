@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public bool UseAsPlayfield;
 
-		private readonly PrimitiveMeshGenerator _meshGenerator;
+		public readonly PrimitiveMeshGenerator MeshGenerator;
 		private readonly PrimitiveHitGenerator _hitGenerator;
 		private HitObject[] _hits;
 		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Primitive(PrimitiveData data) : base(data)
 		{
-			_meshGenerator = new PrimitiveMeshGenerator(Data);
+			MeshGenerator = new PrimitiveMeshGenerator(Data);
 			_hitGenerator = new PrimitiveHitGenerator(this);
 		}
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, _meshGenerator, this);
+			_hits = _hitGenerator.GenerateHitObjects(table, MeshGenerator, this);
 		}
 
 		public static Primitive GetDefault(Table.Table table)
@@ -64,25 +64,25 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
-			_meshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
+			MeshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>
-			_meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
 
 		#endregion
 
 		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;
 
-		public Mesh GetMesh() => _meshGenerator.GetMesh();
+		public Mesh GetMesh() => MeshGenerator.GetMesh();
 
 	}
 }

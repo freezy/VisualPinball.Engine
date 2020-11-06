@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Math.Mesh
 	/// vertex version).  After permuting your vertices, the
 	/// map Array indicates to which vertex each vertex is collapsed to.
 	/// </summary>
-	internal class ProgMesh
+	public class ProgMesh
 	{
 		public readonly List<ProgMeshVertex> Vertices = new List<ProgMeshVertex>();
 		public readonly List<ProgMeshTriangle> Triangles = new List<ProgMeshTriangle>();

@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class PrimitiveApi : ItemApi<Engine.VPT.Primitive.Primitive, Engine.VPT.Primitive.PrimitiveData>,
-		IApiInitializable, IApiHittable
+	public class PrimitiveApi : ItemApi<Primitive, PrimitiveData>,
+		IApiInitializable, IApiHittable, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -32,9 +35,22 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(Engine.VPT.Primitive.Primitive item, Entity parentEntity, Entity entity, Player player) : base(item, entity, parentEntity, player)
+		internal PrimitiveApi(Primitive item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
+
+		#region Colliders
+
+		internal override bool FireHitEvents => Data.HitEvent;
+		internal override float HitThreshold => Data.Threshold;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new PrimitiveColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		#endregion
 
 		#region Events
 

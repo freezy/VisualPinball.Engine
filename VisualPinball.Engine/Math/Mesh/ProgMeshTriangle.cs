@@ -9,7 +9,7 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Engine.Math.Mesh
 {
-	internal class ProgMeshTriangle
+	public class ProgMeshTriangle
 	{
 		/// <summary>
 		/// The 3 points that make this tri
@@ -113,7 +113,7 @@ namespace VisualPinball.Engine.Math.Mesh
 		}
 	}
 
-	internal readonly struct ProgMeshTriData {
+	public readonly struct ProgMeshTriData {
 
 		public readonly int[] V;
 
