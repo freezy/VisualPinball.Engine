@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace VisualPinball.Engine.Math.Mesh
 {
-	internal static class ProgMeshUtil
+	public static class ProgMeshUtil
 	{
 		public static void RemoveFillWithBack<T>(List<T> c, T t)
 		{

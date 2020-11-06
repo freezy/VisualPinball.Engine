@@ -18,7 +18,7 @@ namespace VisualPinball.Engine.Math.Mesh
 	/// From a vertex we wish to be able to quickly get the
 	/// neighboring faces and vertices.
 	/// </summary>
-	internal class ProgMeshVertex
+	public class ProgMeshVertex
 	{
 		/// <summary>
 		/// location of point in euclidean space
