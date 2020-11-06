@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
+	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -150,6 +151,17 @@ namespace VisualPinball.Unity
 			} else {
 				LimitBos?.Invoke(this, new StrokeEventArgs { Speed = speed });
 			}
+		}
+
+		#endregion
+
+		#region Collider Generation
+
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			colliders.Add(new PlungerCollider(Data, zHeight, GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
 		#endregion

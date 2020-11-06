@@ -231,6 +231,7 @@ namespace VisualPinball.Unity
 			TableApi.Kickers[kicker.Name] = kickerApi;
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
+			_colliderGenerators.Add(kickerApi);
 			_hittables[entity] = kickerApi;
 			_switchPlayer.RegisterSwitch(kicker, kickerApi);
 			_coilPlayer.RegisterCoil(kicker, kickerApi);
@@ -252,6 +253,7 @@ namespace VisualPinball.Unity
 			var plungerApi = new PlungerApi(plunger, entity, parentEntity, this);
 			TableApi.Plungers[plunger.Name] = plungerApi;
 			_apis.Add(plungerApi);
+			_colliderGenerators.Add(plungerApi);
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
 			_coilPlayer.RegisterCoilDevice(plunger, plungerApi);
