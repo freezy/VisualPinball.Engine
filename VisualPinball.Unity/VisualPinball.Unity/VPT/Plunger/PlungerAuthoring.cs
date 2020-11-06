@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -61,17 +63,32 @@ namespace VisualPinball.Unity
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction);
 
-			Item.Init(table);
-			var hit = Item.PlungerHit;
-			hit.SetIndex(entity.Index, entity.Version, 0, 0);
+			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			var x = Data.Center.X - Data.Width;
+			var y = Data.Center.Y + Data.Height;
+			var x2 = Data.Center.X + Data.Width;
+
+			var frameTop = Data.Center.Y - Data.Stroke;
+			var frameBottom = Data.Center.Y;
+			var frameLen = frameBottom - frameTop;
+			var restPos = Data.ParkPosition;
+			var position = frameTop + restPos * frameLen;
+
+			var info = new ColliderInfo {
+				Entity = entity,
+				FireEvents = true,
+				IsEnabled = true,
+				ItemType = ItemType.Plunger,
+				ParentEntity = entity
+			};
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
 				MomentumXfer = Data.MomentumXfer,
 				ScatterVelocity = Data.ScatterVelocity,
-				FrameStart = hit.FrameBottom,
-				FrameEnd = hit.FrameTop,
-				FrameLen = hit.FrameLen,
-				RestPosition = hit.RestPos,
+				FrameStart = frameBottom,
+				FrameEnd = frameTop,
+				FrameLen = frameLen,
+				RestPosition = restPos,
 				IsAutoPlunger = Data.AutoPlunger,
 				IsMechPlunger = Data.IsMechPlunger,
 				SpeedFire = Data.SpeedFire,
@@ -79,20 +96,20 @@ namespace VisualPinball.Unity
 			});
 
 			dstManager.AddComponentData(entity, new PlungerColliderData {
-				JointEnd0 = LineZCollider.Create(hit.JointEnd[0]),
-				JointEnd1 = LineZCollider.Create(hit.JointEnd[1]),
-				LineSegEnd = LineCollider.Create(hit.LineSegEnd),
-				LineSegSide0 = LineCollider.Create(hit.LineSegSide[0]),
-				LineSegSide1 = LineCollider.Create(hit.LineSegSide[1])
+				LineSegSide0 = new LineCollider(new float2(x + 0.0001f, position), new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info),
+				LineSegSide1 = new LineCollider(new float2(x2, y), new float2(x2 + 0.0001f, position), zHeight, zHeight + Plunger.PlungerHeight, info),
+				LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
+				JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
+				JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 			});
 
 			dstManager.AddComponentData(entity, new PlungerMovementData {
 				FireBounce = 0f,
-				Position = hit.Position,
+				Position = position,
 				RetractMotion = false,
 				ReverseImpulse = 0f,
 				Speed = 0f,
-				TravelLimit = hit.FrameTop,
+				TravelLimit = frameTop,
 				FireSpeed = 0f,
 				FireTimer = 0
 			});

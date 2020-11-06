@@ -53,6 +53,7 @@ namespace VisualPinball.Unity
 				switch (collider->Type) {
 					case ColliderType.Bumper:
 					case ColliderType.Circle:
+					case ColliderType.KickerCircle:
 						return ((CircleCollider*) collider)->Aabb;
 					case ColliderType.Flipper:
 						return ((FlipperCollider*) collider)->Aabb(player);
@@ -68,13 +69,14 @@ namespace VisualPinball.Unity
 						return ((LineZCollider*) collider)->Aabb;
 					case ColliderType.Point:
 						return ((PointCollider*) collider)->Aabb;
+					case ColliderType.Plunger:
+						return ((PlungerCollider*) collider)->Aabb;
 					case ColliderType.Triangle:
 						return ((TriangleCollider*) collider)->Aabb;
 					default:
 						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
 				}
 			}
-			return default;
 		}
 
 		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,

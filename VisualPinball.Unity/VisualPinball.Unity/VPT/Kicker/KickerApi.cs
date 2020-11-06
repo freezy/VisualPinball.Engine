@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Kicker;
@@ -23,7 +24,8 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
+	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable,
+		IApiSwitch, IApiCoil, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -183,6 +185,23 @@ namespace VisualPinball.Unity
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+
+		#region Collider Generation
+
+		internal override bool IsColliderEnabled => Data.IsEnabled;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ();
+
+			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
+			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
+
+			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), radius, height,
+				height + Data.HitHeight, GetNextColliderInfo(table, ref nextColliderId), ColliderType.KickerCircle));
+		}
+
+		#endregion
 
 		#region Events
 
