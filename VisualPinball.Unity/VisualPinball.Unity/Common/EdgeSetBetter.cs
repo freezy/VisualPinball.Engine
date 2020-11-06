@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using Unity.Mathematics;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

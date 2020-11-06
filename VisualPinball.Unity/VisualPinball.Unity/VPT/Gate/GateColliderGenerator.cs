@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Table;
 

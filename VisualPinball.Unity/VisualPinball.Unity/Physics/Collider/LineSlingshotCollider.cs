@@ -20,7 +20,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {

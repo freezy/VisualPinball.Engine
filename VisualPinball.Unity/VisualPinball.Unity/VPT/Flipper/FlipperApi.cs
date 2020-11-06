@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 
