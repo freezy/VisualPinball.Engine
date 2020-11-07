@@ -93,13 +93,13 @@ namespace VisualPinball.Unity
 
 				if (!onlyTriangles) {
 
-					if (addedEdges.ShouldAddHitEdge(i0, i1, rgv0, rgv2)) {
+					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
 						colliders.Add(new Line3DCollider(rgv0, rgv2, _api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
-					if (addedEdges.ShouldAddHitEdge(i1, i2, rgv2, rgv1)) {
+					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
 						colliders.Add(new Line3DCollider(rgv2, rgv1, _api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
-					if (addedEdges.ShouldAddHitEdge(i2, i0, rgv1, rgv0)) {
+					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
 						colliders.Add(new Line3DCollider(rgv1, rgv0, _api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
 				}

@@ -290,6 +290,7 @@ namespace VisualPinball.Unity
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
+			_colliderGenerators.Add(rubberApi);
 			_hittables[entity] = rubberApi;
 		}
 

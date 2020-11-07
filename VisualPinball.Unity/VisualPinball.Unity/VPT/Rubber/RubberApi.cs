@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemApi<Engine.VPT.Rubber.Rubber, Engine.VPT.Rubber.RubberData>, IApiInitializable, IApiHittable
+	public class RubberApi : ItemApi<Engine.VPT.Rubber.Rubber, Engine.VPT.Rubber.RubberData>,
+		IApiInitializable, IApiHittable, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -34,6 +37,19 @@ namespace VisualPinball.Unity
 		internal RubberApi(Engine.VPT.Rubber.Rubber item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
+
+		#region Collider Generation
+
+		internal override bool FireHitEvents => Data.HitEvent;
+		internal override float HitThreshold { get; } = 2.0f; // hard coded threshold for now
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new RubberColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		#endregion
 
 		#region Events
 

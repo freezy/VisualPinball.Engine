@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 			return _edges.ContainsKey(GetKey(i, j));
 		}
 
-		internal bool ShouldAddHitEdge(int i, int j, float3 vi, float3 vj) {
+		internal bool ShouldAddHitEdge(int i, int j) {
 			if (!Has(i, j)) {
 				Add(i, j);
 				return true;
