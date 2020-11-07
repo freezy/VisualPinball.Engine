@@ -32,14 +32,14 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public HitObject[] GetHitShapes() => _hits;
 
-		private readonly RubberMeshGenerator _meshGenerator;
+		public readonly RubberMeshGenerator MeshGenerator;
 		private readonly RubberHitGenerator _hitGenerator;
 		private HitObject[] _hits;
 
 		public Rubber(RubberData data) : base(data)
 		{
-			_meshGenerator = new RubberMeshGenerator(Data);
-			_hitGenerator = new RubberHitGenerator(Data, _meshGenerator);
+			MeshGenerator = new RubberMeshGenerator(Data);
+			_hitGenerator = new RubberHitGenerator(Data, MeshGenerator);
 		}
 
 		public Rubber(BinaryReader reader, string itemName) : this(new RubberData(reader, itemName))
@@ -71,12 +71,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
 		}
 
 		#endregion
