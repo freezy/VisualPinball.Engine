@@ -16,6 +16,7 @@
 
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
@@ -27,6 +28,12 @@ namespace VisualPinball.Unity
 			vector.x = x;
 			vector.y = y;
 			vector.z = z;
+		}
+
+		public static bool IsZero(this ref float3 v)
+		{
+			return math.abs(v.x) < Constants.FloatMin && math.abs(v.y) < Constants.FloatMin &&
+			       math.abs(v.z) < Constants.FloatMin;
 		}
 
 		public static void RotationAroundAxis(this float3x3 m, float3 axis, float rSin, float rCos)

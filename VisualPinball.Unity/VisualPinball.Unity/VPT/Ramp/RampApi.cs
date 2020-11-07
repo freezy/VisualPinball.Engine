@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemApi<Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable
+	public class RampApi : ItemApi<Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -36,6 +38,19 @@ namespace VisualPinball.Unity
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		#endregion
+
+		#region Collider Generation
+
+		internal override bool FireHitEvents => Data.HitEvent;
+		internal override float HitThreshold => Data.Threshold;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new RampColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
 		}
 
 		#endregion

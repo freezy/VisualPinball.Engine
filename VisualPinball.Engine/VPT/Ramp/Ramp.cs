@@ -38,14 +38,14 @@ namespace VisualPinball.Engine.VPT.Ramp
 		|| Data.RampType == RampType.RampType3WireLeft
 		|| Data.RampType == RampType.RampType3WireRight;
 
-		private readonly RampMeshGenerator _meshGenerator;
+		public readonly RampMeshGenerator MeshGenerator;
 		private readonly RampHitGenerator _hitGenerator;
 		private HitObject[] _hits;
 
 		public Ramp(RampData data) : base(data)
 		{
-			_meshGenerator = new RampMeshGenerator(Data);
-			_hitGenerator = new RampHitGenerator(Data, _meshGenerator);
+			MeshGenerator = new RampMeshGenerator(Data);
+			_hitGenerator = new RampHitGenerator(Data, MeshGenerator);
 		}
 
 		public Ramp(BinaryReader reader, string itemName) : this(new RampData(reader, itemName))
@@ -77,12 +77,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, id, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, asRightHanded);
+			return MeshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 
 		#endregion
@@ -91,7 +91,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public float GetSurfaceHeight(float x, float y, Table.Table table)
 		{
-			var vVertex = _meshGenerator.GetCentralCurve(table);
+			var vVertex = MeshGenerator.GetCentralCurve(table);
 			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(x, y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
