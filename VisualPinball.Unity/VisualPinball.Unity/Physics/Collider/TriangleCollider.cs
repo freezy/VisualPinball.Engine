@@ -28,8 +28,8 @@ namespace VisualPinball.Unity
 	{
 		private ColliderHeader _header;
 
-		private readonly float3 _rgv0;
-		private readonly float3 _rgv1;
+		public readonly float3 _rgv0;
+		public readonly float3 _rgv1;
 		private readonly float3 _rgv2;
 		private readonly float3 _normal;
 
@@ -67,6 +67,14 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(TriangleCollider)
 			);
+		}
+
+		public static bool IsDegenerate(float3 rg0, float3 rg1, float3 rg2)
+		{
+			var e0 = rg2 - rg0;
+			var e1 = rg1 - rg0;
+			var normal = math.normalizesafe(math.cross(e0, e1));
+			return normal.IsZero();
 		}
 
 		#region Narrowphase

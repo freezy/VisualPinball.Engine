@@ -544,7 +544,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return vertices;
 		}
 
-		internal RampVertex GetRampVertex(Table.Table table, float accuracy, bool incWidth)
+		public RampVertex GetRampVertex(Table.Table table, float accuracy, bool incWidth)
 		{
 			var result = new RampVertex();
 

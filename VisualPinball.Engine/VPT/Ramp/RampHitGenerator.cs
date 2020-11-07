@@ -127,7 +127,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				//!! this is not efficient at all, use native triangle-soup directly somehow
 				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
-
 				if (!ph3dpoly.IsDegenerate) { // degenerate triangles happen if width is 0 at some point
 					hitObjects.Add(ph3dpoly);
 					hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly, item));
@@ -145,11 +144,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 				hitObjects.Add(GenerateJoint(rgv3D[1], rgv3D[2], item));
 
 				ph3dpoly = new HitTriangle(rgv3D, ItemType.Ramp, item);
-				if (!ph3dpoly.IsDegenerate)
+				if (!ph3dpoly.IsDegenerate) {
 					hitObjects.Add(ph3dpoly);
-
-				hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly, item));
-				ph3dpolyOld = ph3dpoly;
+					hitObjects.AddRange(CheckJoint(ph3dpolyOld, ph3dpoly, item));
+					ph3dpolyOld = ph3dpoly;
+				}
 			}
 
 			if (vertexCount >= 2) {
