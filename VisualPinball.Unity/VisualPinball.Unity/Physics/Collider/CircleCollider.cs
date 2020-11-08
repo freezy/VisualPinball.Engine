@@ -52,15 +52,6 @@ namespace VisualPinball.Unity
 			_zLow = zLow;
 		}
 
-		// public CircleCollider(float2 center, float radius, float zLow, float zHigh, ItemType itemType) : this()
-		// {
-		// 	_header.Init(ColliderType.Circle, itemType);
-		// 	Center = center;
-		// 	Radius = radius;
-		// 	_zHigh = zHigh;
-		// 	_zLow = zLow;
-		// }
-
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[_header.Id]);

@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		private readonly LineCollider _lineSeg0;
 		private readonly LineCollider _lineSeg1;
 
-		public Aabb Aabb => _lineSeg0.Aabb.Apply(_header);
+		public Aabb Aabb => _lineSeg0.Aabb;
 
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{

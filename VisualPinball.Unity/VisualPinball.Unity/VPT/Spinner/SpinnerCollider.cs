@@ -17,46 +17,52 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	internal struct SpinnerCollider
+	internal struct SpinnerCollider : ICollider
 	{
-		private ColliderHeader _header;
+		private readonly ColliderHeader _header;
 
-		private LineCollider _lineSeg0;
-		private LineCollider _lineSeg1;
+		private readonly LineCollider _lineSeg0;
+		private readonly LineCollider _lineSeg1;
 
-		public ColliderType Type => _header.Type;
+		public Aabb Aabb => _lineSeg0.Aabb;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerCollider.Create");
-
-		public static void Create(BlobBuilder builder, SpinnerHit src, ref BlobPtr<Collider> dest)
+		public SpinnerCollider(SpinnerData data, float height, ColliderInfo info) : this()
 		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
-			PerfMarker.End();
+			_header.Init(info, ColliderType.Spinner);
+
+			var halfLength = data.Length * 0.5f;
+
+			var radAngle = math.radians(data.Rotation);
+			var sn = math.sin(radAngle);
+			var cs = math.cos(radAngle);
+
+			var v1 = new float2(
+				data.Center.X - cs * (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
+				data.Center.Y - sn * (halfLength + PhysicsConstants.PhysSkin)  // spinner
+			);
+			var v2 = new float2(
+				data.Center.X + cs * (halfLength + PhysicsConstants.PhysSkin), // oversize by the ball radius
+				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
+			);
+
+			_lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
+			_lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
 		}
 
-		private void Init(SpinnerHit src)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			_header.Type = ColliderType.Spinner;
-			_header.ItemType = src.ObjType;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			_header.Id = src.Id;
-			_header.Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				ScatterAngleRad = src.Scatter,
-			};
-
-			_lineSeg0 = LineCollider.Create(src.LineSeg0);
-			_lineSeg1 = LineCollider.Create(src.LineSeg1);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref colliders[_header.Id]);
+			ref var collider = ref builder.Allocate(ref ptr);
+			UnsafeUtility.MemCpy(
+				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf(ref this),
+				sizeof(SpinnerCollider)
+			);
 		}
 
 		#region Narrowphase

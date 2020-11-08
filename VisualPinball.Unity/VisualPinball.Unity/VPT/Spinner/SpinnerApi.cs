@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class SpinnerApi : ItemApi<Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
-		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch
+		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -72,6 +74,18 @@ namespace VisualPinball.Unity
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+
+		#region Collider Generation
+
+		internal override bool FireHitEvents { get; } = true;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new SpinnerColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		#endregion
 
 		#region Events
 

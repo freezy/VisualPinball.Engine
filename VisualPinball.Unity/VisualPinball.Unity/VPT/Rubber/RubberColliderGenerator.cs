@@ -24,14 +24,11 @@ namespace VisualPinball.Unity
 	public class RubberColliderGenerator
 	{
 		private readonly RubberApi _api;
-		private readonly RubberData _data;
 		private readonly RubberMeshGenerator _meshGenerator;
-		private bool _useAsPlayfield;
 
 		public RubberColliderGenerator(RubberApi rubberApi)
 		{
 			_api = rubberApi;
-			_data = rubberApi.Data;
 			_meshGenerator = rubberApi.Item.MeshGenerator;
 		}
 
