@@ -107,30 +107,19 @@ namespace VisualPinball.Unity
 
 		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders, ref int nextColliderId)
 		{
-			var inputVerts = new TriangulatorVector2[rgv.Length];
-			// var normal = new float3();
+			var inputVerts = new float2[rgv.Length];
 
 			// Newell's method for normal computation
 			for (var i = 0; i < rgv.Length; ++i) {
-				// var m = i < rgv.Length - 1 ? i + 1 : 0;
-				// normal.x += (rgv[i].y - rgv[m].y) * (rgv[i].z + rgv[m].z);
-				// normal.y += (rgv[i].z - rgv[m].z) * (rgv[i].x + rgv[m].x);
-				// normal.z += (rgv[i].x - rgv[m].x) * (rgv[i].y + rgv[m].y);
-				inputVerts[i] = new TriangulatorVector2(rgv[i].x, rgv[i].y);
+				inputVerts[i] = rgv[i].xy;
 			}
-
-			// var sqrLen = math.lengthsq(normal);
-			// var invLen = sqrLen > 0.0f ? -1.0f / math.sqrt(sqrLen) : 0.0f; // normal NOTE is flipped! Thus we need vertices in CCW order
-			// normal.x *= invLen;
-			// normal.y *= invLen;
-			// normal.z *= invLen;
 
 			// todo make triangulator use float3
 			Triangulator.Triangulate(inputVerts, WindingOrder.CounterClockwise, out var outputVerts, out var outputIndices);
 
 			var triangulatedVerts = new Vertex3DNoTex2[outputVerts.Length];
 			for (var i = 0; i < outputVerts.Length; i++) {
-				triangulatedVerts[i] = new Vertex3DNoTex2(outputVerts[i].X, outputVerts[i].Y, rgv[0].z);
+				triangulatedVerts[i] = new Vertex3DNoTex2(outputVerts[i].x, outputVerts[i].y, rgv[0].z);
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 

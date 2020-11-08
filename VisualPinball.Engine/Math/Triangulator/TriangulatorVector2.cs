@@ -6,7 +6,7 @@ using System;
 
 namespace VisualPinball.Engine.Math.Triangulator
 {
-	public struct TriangulatorVector2 : IEquatable<TriangulatorVector2>
+	internal struct TriangulatorVector2 : IEquatable<TriangulatorVector2>
 	{
 		#region Public Static Properties
 
