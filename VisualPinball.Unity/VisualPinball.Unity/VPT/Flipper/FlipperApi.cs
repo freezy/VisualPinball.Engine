@@ -170,7 +170,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Collider Generator
+		#region Collider Generation
 
 		internal override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
 			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
@@ -204,7 +204,11 @@ namespace VisualPinball.Unity
 			colliders.Add(new FlipperCollider(hitCircleBase, GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
+		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
+			GetNextColliderInfo(table, ref nextColliderId);
+
 		#endregion
+
 	}
 
 

@@ -81,6 +81,27 @@ namespace VisualPinball.Unity
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
+		#region Collider Generation
+
+		internal override bool IsColliderEnabled => Data.IsCollidable;
+		internal override PhysicsMaterialData GetPhysicsMaterial(Table table)=> new PhysicsMaterialData {
+			Elasticity = Data.Elasticity,
+			ElasticityFalloff = 0,
+			Friction = Data.Friction,
+			ScatterAngleRad = 0
+		};
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new GateColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
+			GetNextColliderInfo(table, ref nextColliderId);
+
+		#endregion
+
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
@@ -103,24 +124,6 @@ namespace VisualPinball.Unity
 			} else {
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
-		}
-
-		#endregion
-
-		#region Colliders
-
-		internal override bool IsColliderEnabled => Data.IsCollidable;
-		internal override PhysicsMaterialData GetPhysicsMaterial(Table table)=> new PhysicsMaterialData {
-			Elasticity = Data.Elasticity,
-			ElasticityFalloff = 0,
-			Friction = Data.Friction,
-			ScatterAngleRad = 0
-		};
-
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
-		{
-			var colliderGenerator = new GateColliderGenerator(this);
-			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
 		}
 
 		#endregion

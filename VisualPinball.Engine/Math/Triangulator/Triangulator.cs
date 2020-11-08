@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 	/// used as part of your content pipeline or at load-time. It is not something you want to be
 	/// using each and every frame unless you really don't care about garbage.
 	/// </summary>
-	internal static class Triangulator
+	public static class Triangulator
 	{
 		#region Fields
 
@@ -66,9 +66,9 @@ namespace VisualPinball.Engine.Math.Triangulator
 		/// <param name="outputVertices">The resulting vertices that include any reversals of winding order and holes.</param>
 		/// <param name="indices">The resulting indices for rendering the shape as a triangle list.</param>
 		public static void Triangulate(
-			Vector2[] inputVertices,
+			TriangulatorVector2[] inputVertices,
 			WindingOrder desiredWindingOrder,
-			out Vector2[] outputVertices,
+			out TriangulatorVector2[] outputVertices,
 			out int[] indices)
 		{
 			Log("\nBeginning triangulation...");
@@ -79,7 +79,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 			if (DetermineWindingOrder(inputVertices) == WindingOrder.Clockwise)
 				outputVertices = ReverseWindingOrder(inputVertices);
 			else
-				outputVertices = (Vector2[])inputVertices.Clone();
+				outputVertices = (TriangulatorVector2[])inputVertices.Clone();
 
 			//clear all of the lists
 			polygonVertices.Clear();
@@ -141,7 +141,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 		/// <param name="shapeVerts">An array of vertices for the primary shape.</param>
 		/// <param name="holeVerts">An array of vertices for the hole to be cut. It is assumed that these vertices lie completely within the shape verts.</param>
 		/// <returns>The new array of vertices that can be passed to Triangulate to properly triangulate the shape with the hole.</returns>
-		public static Vector2[] CutHoleInShape(Vector2[] shapeVerts, Vector2[] holeVerts)
+		public static TriangulatorVector2[] CutHoleInShape(TriangulatorVector2[] shapeVerts, TriangulatorVector2[] holeVerts)
 		{
 			Log("\nCutting hole into shape...");
 
@@ -205,7 +205,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 			LineSegment closestSegment = new LineSegment();
 			foreach (LineSegment segment in segmentsToTest)
 			{
-				float? intersection = segment.IntersectsWithRay(rightMostHoleVertex.Position, Vector2.UnitX);
+				float? intersection = segment.IntersectsWithRay(rightMostHoleVertex.Position, TriangulatorVector2.UnitX);
 				if (intersection != null)
 				{
 					if (closestPoint == null || closestPoint.Value > intersection.Value)
@@ -222,7 +222,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 				return shapeVerts;
 
 			//otherwise we can find our mutually visible vertex to split the polygon
-			Vector2 I = rightMostHoleVertex.Position + Vector2.UnitX * closestPoint.Value;
+			TriangulatorVector2 I = rightMostHoleVertex.Position + TriangulatorVector2.UnitX * closestPoint.Value;
 			Vertex P = closestSegment.A.Position.X > closestSegment.B.Position.X
 				? closestSegment.A
 				: closestSegment.B;
@@ -244,8 +244,8 @@ namespace VisualPinball.Engine.Math.Triangulator
 				foreach (Vertex v in interiorReflexVertices)
 				{
 					//compute the dot product of the vector against the UnitX
-					Vector2 d = Vector2.Normalize(v.Position - rightMostHoleVertex.Position);
-					float dot = Vector2.Dot(Vector2.UnitX, d);
+					TriangulatorVector2 d = TriangulatorVector2.Normalize(v.Position - rightMostHoleVertex.Position);
+					float dot = TriangulatorVector2.Dot(TriangulatorVector2.UnitX, d);
 
 					//if this line is the closest we've found
 					if (dot > closestDot)
@@ -281,7 +281,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 #endif
 
 			//finally we write out the new polygon vertices and return them out
-			Vector2[] newShapeVerts = new Vector2[polygonVertices.Count];
+			TriangulatorVector2[] newShapeVerts = new TriangulatorVector2[polygonVertices.Count];
 			for (int i = 0; i < polygonVertices.Count; i++)
 				newShapeVerts[i] = polygonVertices[i].Value.Position;
 
@@ -298,7 +298,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 		/// <param name="vertices">The vertices of the polygon.</param>
 		/// <param name="windingOrder">The desired winding order.</param>
 		/// <returns>A new set of vertices if the winding order didn't match; otherwise the original set.</returns>
-		public static Vector2[] EnsureWindingOrder(Vector2[] vertices, WindingOrder windingOrder)
+		public static TriangulatorVector2[] EnsureWindingOrder(TriangulatorVector2[] vertices, WindingOrder windingOrder)
 		{
 			Log("\nEnsuring winding order of {0}...", windingOrder);
 			if (DetermineWindingOrder(vertices) != windingOrder)
@@ -320,14 +320,14 @@ namespace VisualPinball.Engine.Math.Triangulator
 		/// </summary>
 		/// <param name="vertices">The vertices of the polygon.</param>
 		/// <returns>The new vertices for the polygon with the opposite winding order.</returns>
-		public static Vector2[] ReverseWindingOrder(Vector2[] vertices)
+		public static TriangulatorVector2[] ReverseWindingOrder(TriangulatorVector2[] vertices)
 		{
 			Log("\nReversing winding order...");
-			Vector2[] newVerts = new Vector2[vertices.Length];
+			TriangulatorVector2[] newVerts = new TriangulatorVector2[vertices.Length];
 
 #if DEBUG
 			StringBuilder vString = new StringBuilder();
-			foreach (Vector2 v in vertices)
+			foreach (TriangulatorVector2 v in vertices)
 				vString.Append(string.Format("{0}, ", v));
 			Log("Original Vertices: {0}", vString);
 #endif
@@ -338,7 +338,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 
 #if DEBUG
 			vString = new StringBuilder();
-			foreach (Vector2 v in newVerts)
+			foreach (TriangulatorVector2 v in newVerts)
 				vString.Append(string.Format("{0}, ", v));
 			Log("New Vertices After Reversal: {0}\n", vString);
 #endif
@@ -355,19 +355,19 @@ namespace VisualPinball.Engine.Math.Triangulator
 		/// </summary>
 		/// <param name="vertices">The vertices of the polygon.</param>
 		/// <returns>The calculated winding order of the polygon.</returns>
-		public static WindingOrder DetermineWindingOrder(Vector2[] vertices)
+		public static WindingOrder DetermineWindingOrder(TriangulatorVector2[] vertices)
 		{
 			int clockWiseCount = 0;
 			int counterClockWiseCount = 0;
-			Vector2 p1 = vertices[0];
+			TriangulatorVector2 p1 = vertices[0];
 
 			for (int i = 1; i < vertices.Length; i++)
 			{
-				Vector2 p2 = vertices[i];
-				Vector2 p3 = vertices[(i + 1) % vertices.Length];
+				TriangulatorVector2 p2 = vertices[i];
+				TriangulatorVector2 p3 = vertices[(i + 1) % vertices.Length];
 
-				Vector2 e1 = p1 - p2;
-				Vector2 e2 = p3 - p2;
+				TriangulatorVector2 e1 = p1 - p2;
+				TriangulatorVector2 e2 = p3 - p2;
 
 				if (e1.X * e2.Y - e1.Y * e2.X >= 0)
 					clockWiseCount++;
@@ -546,11 +546,11 @@ namespace VisualPinball.Engine.Math.Triangulator
 			Vertex p = polygonVertices[polygonVertices.IndexOf(c) - 1].Value;
 			Vertex n = polygonVertices[polygonVertices.IndexOf(c) + 1].Value;
 
-			Vector2 d1 = Vector2.Normalize(c.Position - p.Position);
-			Vector2 d2 = Vector2.Normalize(n.Position - c.Position);
-			Vector2 n2 = new Vector2(-d2.Y, d2.X);
+			TriangulatorVector2 d1 = TriangulatorVector2.Normalize(c.Position - p.Position);
+			TriangulatorVector2 d2 = TriangulatorVector2.Normalize(n.Position - c.Position);
+			TriangulatorVector2 n2 = new TriangulatorVector2(-d2.Y, d2.X);
 
-			return Vector2.Dot(d1, n2) <= 0f;
+			return TriangulatorVector2.Dot(d1, n2) <= 0f;
 		}
 
 		#endregion

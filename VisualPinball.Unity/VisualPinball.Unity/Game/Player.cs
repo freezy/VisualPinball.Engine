@@ -300,6 +300,7 @@ namespace VisualPinball.Unity
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
+			_colliderGenerators.Add(surfaceApi);
 			_hittables[entity] = surfaceApi;
 			_slingshots[entity] = surfaceApi;
 		}
