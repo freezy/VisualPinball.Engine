@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
+
 		#region Collider Generation
 
 		internal override bool FireHitEvents { get; } = true;

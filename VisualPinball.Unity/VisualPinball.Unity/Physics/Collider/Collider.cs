@@ -54,11 +54,13 @@ namespace VisualPinball.Unity
 					case ColliderType.Bumper:
 					case ColliderType.Circle:
 					case ColliderType.KickerCircle:
+					case ColliderType.TriggerCircle:
 						return ((CircleCollider*) collider)->Aabb;
 					case ColliderType.Flipper:
 						return ((FlipperCollider*) collider)->Aabb(player);
 					case ColliderType.Gate:
 						return ((GateCollider*) collider)->Aabb;
+					case ColliderType.TriggerLine:
 					case ColliderType.Line:
 						return ((LineCollider*) collider)->Aabb;
 					case ColliderType.Line3D:

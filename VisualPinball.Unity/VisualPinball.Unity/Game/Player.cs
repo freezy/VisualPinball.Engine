@@ -323,6 +323,7 @@ namespace VisualPinball.Unity
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
+			_colliderGenerators.Add(triggerApi);
 			_hittables[entity] = triggerApi;
 			_switchPlayer.RegisterSwitch(trigger, triggerApi);
 		}
