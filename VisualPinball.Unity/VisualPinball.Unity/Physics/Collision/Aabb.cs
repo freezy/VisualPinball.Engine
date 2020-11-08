@@ -103,14 +103,6 @@ namespace VisualPinball.Unity
 			       && ZHigh >= rc.ZLow; // 90 >= 58.79945
 		}
 
-		public Aabb Apply(ColliderHeader header)
-		{
-			var aabb = this;
-			aabb.ColliderId = header.Id;
-			aabb.ColliderEntity = header.Entity;
-			return aabb;
-		}
-
 		public override string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh} ({ColliderId}:{ColliderEntity})";
