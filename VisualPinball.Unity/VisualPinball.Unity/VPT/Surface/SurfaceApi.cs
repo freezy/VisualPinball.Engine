@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Entities;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class SurfaceApi : ItemApi<Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
-		IApiInitializable, IApiHittable, IApiSlingshot
+		IApiInitializable, IApiHittable, IApiSlingshot, IColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -40,6 +42,21 @@ namespace VisualPinball.Unity
 		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
+		#region Collider Generation
+
+		internal override bool FireHitEvents { get; } = true;
+		internal override float HitThreshold => Data.Threshold;
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var colliderGenerator = new SurfaceColliderGenerator(this);
+			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+		}
+
+		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
+			GetNextColliderInfo(table, ref nextColliderId);
+
+		#endregion
 
 		#region Events
 

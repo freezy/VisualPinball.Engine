@@ -50,6 +50,9 @@ namespace VisualPinball.Unity
 			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
 		}
 
+		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
+			GetNextColliderInfo(table, ref nextColliderId);
+
 		#endregion
 
 		#region Events

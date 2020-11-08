@@ -35,21 +35,21 @@ namespace VisualPinball.Engine.Math.Triangulator
 			B = b;
 		}
 
-		public float? IntersectsWithRay(Vector2 origin, Vector2 direction)
+		public float? IntersectsWithRay(TriangulatorVector2 origin, TriangulatorVector2 direction)
 		{
 			float largestDistance = MathHelper.Max(A.Position.X - origin.X, B.Position.X - origin.X) * 2f;
 			LineSegment raySegment = new LineSegment(new Vertex(origin, 0), new Vertex(origin + direction * largestDistance, 0));
 
-			Vector2? intersection = FindIntersection(this, raySegment);
+			TriangulatorVector2? intersection = FindIntersection(this, raySegment);
 			float? value = null;
 
 			if (intersection != null)
-				value = Vector2.Distance(origin, intersection.Value);
+				value = TriangulatorVector2.Distance(origin, intersection.Value);
 
 			return value;
 		}
 
-		public static Vector2? FindIntersection(LineSegment a, LineSegment b)
+		public static TriangulatorVector2? FindIntersection(LineSegment a, LineSegment b)
 		{
 			float x1 = a.A.Position.X;
 			float y1 = a.A.Position.Y;

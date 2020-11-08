@@ -68,10 +68,10 @@ namespace VisualPinball.Unity
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			GenerateCollidersFromMesh(table, mesh, colliders, ref nextColliderId);
+			GenerateCollidersFromMesh(table, mesh, _api, colliders, ref nextColliderId);
 		}
 
-		private void GenerateCollidersFromMesh(Table table, Mesh mesh, ICollection<ICollider> colliders, ref int nextColliderId, bool onlyTriangles = false)
+		internal static void GenerateCollidersFromMesh(Table table, Mesh mesh, IColliderGenerator api, ICollection<ICollider> colliders, ref int nextColliderId, bool onlyTriangles = false)
 		{
 			var addedEdges = EdgeSetBetter.Get(mesh.Vertices.Length);
 
@@ -89,18 +89,18 @@ namespace VisualPinball.Unity
 
 				// todo handle playfield mehs
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, api.GetNextColliderInfo(table, ref nextColliderId)));
 
 				if (!onlyTriangles) {
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, _api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, _api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, _api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, api.GetNextColliderInfo(table, ref nextColliderId)));
 					}
 				}
 			}
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			// add collision vertices
 			if (!onlyTriangles) {
 				foreach (var vertex in mesh.Vertices) {
-					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), _api.GetNextColliderInfo(table, ref nextColliderId)));
+					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), api.GetNextColliderInfo(table, ref nextColliderId)));
 				}
 			}
 		}

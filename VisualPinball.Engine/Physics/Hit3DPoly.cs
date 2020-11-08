@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.Physics
 
 		public IEnumerable<HitObject> ConvertToTriangles()
 		{
-			var inputVerts = Rgv.Select(v => new Vector2(v.X, v.Y)).ToArray();
+			var inputVerts = Rgv.Select(v => new TriangulatorVector2(v.X, v.Y)).ToArray();
 			Triangulator.Triangulate(inputVerts, WindingOrder.CounterClockwise, out var outputVerts, out var outputIndices);
 
 			var mesh = new Mesh(

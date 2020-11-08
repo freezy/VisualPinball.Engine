@@ -26,10 +26,10 @@ namespace VisualPinball.Engine.Math.Triangulator
 {
 	internal readonly struct Vertex
 	{
-		public readonly Vector2 Position;
+		public readonly TriangulatorVector2 Position;
 		public readonly int Index;
 
-		public Vertex(Vector2 position, int index)
+		public Vertex(TriangulatorVector2 position, int index)
 		{
 			Position = position;
 			Index = index;

@@ -142,6 +142,20 @@ namespace VisualPinball.Unity
 
 		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
 
+
+		#region Collider Generation
+
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		{
+			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
+			colliders.Add(new PlungerCollider(Data, zHeight, GetNextColliderInfo(table, ref nextColliderId)));
+		}
+
+		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
+			GetNextColliderInfo(table, ref nextColliderId);
+
+		#endregion
+
 		#region Events
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
@@ -151,17 +165,6 @@ namespace VisualPinball.Unity
 			} else {
 				LimitBos?.Invoke(this, new StrokeEventArgs { Speed = speed });
 			}
-		}
-
-		#endregion
-
-		#region Collider Generation
-
-
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
-		{
-			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			colliders.Add(new PlungerCollider(Data, zHeight, GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
 		#endregion

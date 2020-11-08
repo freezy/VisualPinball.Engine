@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 	internal interface IColliderGenerator
 	{
 		void CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId);
+		ColliderInfo GetNextColliderInfo(Table table, ref int nextColliderId);
 	}
 
 	public interface IApiHittable
