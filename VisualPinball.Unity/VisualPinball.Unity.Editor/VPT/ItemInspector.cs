@@ -103,18 +103,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnHierarchyChange()
-		{
-			if (target is MonoBehaviour bh && target is IIdentifiableItemAuthoring item && bh != null) {
-				var go = bh.gameObject;
-				if (item.Name != go.name) {
-					var oldName = item.Name;
-					item.Name = go.name;
-					ItemRenamed?.Invoke(item, oldName, go.name);
-				}
-			}
-		}
-
 		protected void OnPreInspectorGUI()
 		{
 			if (!(target is IItemMainRenderableAuthoring item)) {

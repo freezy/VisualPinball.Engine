@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Trigger;
@@ -35,6 +36,12 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Max Balls", ref Data.BallCount, false);
 			ItemDataField("Switch Count", ref Data.SwitchCount, false);
 			ItemDataField("Settle Time", ref Data.SettleTime, false);
+		}
+
+		protected override void FinishEdit(string label, bool dirtyMesh = true)
+		{
+			base.FinishEdit(label, dirtyMesh);
+			ItemAuthoring.UpdatePosition();
 		}
 	}
 }
