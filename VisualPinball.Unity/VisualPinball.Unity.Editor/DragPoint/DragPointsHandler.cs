@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Authoring item
 		/// </summary>
-		public IItemMainAuthoring Editable { get; private set; }
+		public IItemMainRenderableAuthoring Editable { get; private set; }
 
 		/// <summary>
 		/// Authoring item as IDragPointsEditable
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 		/// <exception cref="ArgumentException"></exception>
 		public DragPointsHandler(Object target)
 		{
-			Editable = target as IItemMainAuthoring
+			Editable = target as IItemMainRenderableAuthoring
 			    ?? throw new ArgumentException("Target must extend `IEditableItemAuthoring`.");
 
 			DragPointEditable = target as IDragPointsEditable

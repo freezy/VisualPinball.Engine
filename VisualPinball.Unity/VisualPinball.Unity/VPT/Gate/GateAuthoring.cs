@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
-	public class GateAuthoring : ItemMainAuthoring<Gate, GateData>,
+	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Gate InstantiateItem(GateData data) => new Gate(data);

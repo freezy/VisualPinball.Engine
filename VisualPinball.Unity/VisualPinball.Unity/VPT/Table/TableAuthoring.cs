@@ -54,7 +54,7 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableAuthoring : ItemMainAuthoring<Table, TableData>
+	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
 		protected override Table InstantiateItem(TableData data) => RecreateTable(data);
 
@@ -257,7 +257,7 @@ namespace VisualPinball.Unity
 		}
 
 		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
-			where TItem : Item<TData>, IRenderable
+			where TItem : Item<TData>
 			where TComp : ItemMainAuthoring<TItem, TData>
 		{
 			foreach (var component in GetComponentsInChildren<TComp>(true))

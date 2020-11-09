@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 		where TMeshAuthoring : ItemMeshAuthoring<TItem, TData, TMainAuthoring>
 		where TData : ItemData
 		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		protected TMeshAuthoring MeshAuthoring;
 

@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperAuthoring : ItemMainAuthoring<Bumper, BumperData>,
+	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);

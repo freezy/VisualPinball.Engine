@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,45 +24,11 @@ namespace VisualPinball.Unity
 {
 	public interface IItemMainAuthoring : IItemAuthoring
 	{
-		bool IsLocked { get; set; }
-
-		bool CanBeTransformed { get; }
 
 		IEnumerable<Type> ValidParents { get; }
 
 		GameObject gameObject { get; }
 
-		/// <summary>
-		/// Sets the mesh of all mesh sub components to dirty.
-		/// </summary>
-		void SetMeshDirty();
-		void RebuildMeshIfDirty();
-
 		void Destroy();
-		void DestroyMeshComponent();
-		void DestroyColliderComponent();
-
-		// the following interfaces allow each item behavior to define which axes should
-		// be shown on the scene view gizmo, the gizmo itself will use the associated
-		// get and set methods, which are expected to update item data directly
-		ItemDataTransformType EditorPositionType { get; }
-		Vector3 GetEditorPosition();
-		void SetEditorPosition(Vector3 pos);
-
-		ItemDataTransformType EditorRotationType { get; }
-		Vector3 GetEditorRotation();
-		void SetEditorRotation(Vector3 pos);
-
-		ItemDataTransformType EditorScaleType { get; }
-		Vector3 GetEditorScale();
-		void SetEditorScale(Vector3 pos);
-	}
-
-	public enum ItemDataTransformType
-	{
-		None,
-		OneD,
-		TwoD,
-		ThreeD,
 	}
 }

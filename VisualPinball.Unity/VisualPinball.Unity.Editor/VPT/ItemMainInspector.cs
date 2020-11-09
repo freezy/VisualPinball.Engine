@@ -19,14 +19,13 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class ItemMainInspector<TItem, TData, TMainAuthoring> : ItemInspector
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
+		where TItem : Item<TData>
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		protected TMainAuthoring ItemAuthoring;

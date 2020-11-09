@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
-	public class FlipperAuthoring : ItemMainAuthoring<Flipper, FlipperData>,
+	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);

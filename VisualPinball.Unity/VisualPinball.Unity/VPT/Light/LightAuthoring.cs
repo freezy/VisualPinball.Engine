@@ -30,7 +30,7 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainAuthoring<Light, LightData>
+	public class LightAuthoring : ItemMainRenderableAuthoring<Light, LightData>
 	{
 		private UnityEngine.Light _unityLight;
 

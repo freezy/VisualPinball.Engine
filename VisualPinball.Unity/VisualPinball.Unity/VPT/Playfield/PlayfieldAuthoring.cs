@@ -23,7 +23,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldAuthoring : ItemMainAuthoring<Table, TableData>,
+	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>,
 		IConvertGameObjectToEntity
 	{
 		public override bool CanBeTransformed => false;

@@ -27,13 +27,13 @@ namespace VisualPinball.Unity
 	public abstract class ItemMeshAuthoring<TItem, TData, TAuthoring> : ItemSubAuthoring<TItem, TData, TAuthoring>, IItemMeshAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IRenderable
-		where TAuthoring : ItemMainAuthoring<TItem, TData>
+		where TAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
 		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
 		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
 
-		public IItemMainAuthoring IMainAuthoring => MainAuthoring;
+		public IItemMainRenderableAuthoring IMainAuthoring => MainAuthoring;
 
 		protected virtual string MeshId => null;
 		protected abstract bool IsVisible { get; set; }
