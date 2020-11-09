@@ -22,7 +22,10 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Networking.PlayerConnection;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trough;
 
@@ -37,22 +40,40 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
+		private Vector3 EntryPickerPos(float height) => string.IsNullOrEmpty(Data.EntryKicker)
+			? Vector3.zero
+			: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(height);
+
+		private Vector3 ExitKickerPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
+			? Vector3.zero
+			: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(height);
+
+
 		public override void Restore()
 		{
 			Item.Name = name;
 		}
 
+		private void OnDrawGizmosSelected()
+		{
+			if (!string.IsNullOrEmpty(Data.EntryKicker) && !string.IsNullOrEmpty(Data.ExitKicker)) {
+				var ltw = GetComponentInParent<TableAuthoring>().transform;
+				var entryPos = EntryPickerPos(0f);
+				var exitPos = ExitKickerPos(0f);
+				var entryWorldPos = ltw.TransformPoint(entryPos);
+				var exitWorldPos = ltw.TransformPoint(exitPos);
+				var localPos = transform.localPosition;
+				var localPos0 = new Vector3(localPos.x, localPos.y, 0f);
+				var pos = ltw.TransformPoint(localPos0);
+				DrawArrow(entryWorldPos, pos - entryWorldPos);
+				DrawArrow(pos, exitWorldPos - pos);
+			}
+		}
+
 		public void UpdatePosition()
 		{
 			// place trough between entry and exit kicker
-			var entryPos = string.IsNullOrEmpty(Data.EntryKicker)
-				? Vector3.zero
-				: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(100f);
-			var exitPos = string.IsNullOrEmpty(Data.ExitKicker)
-				? Vector3.zero
-				: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(100f);
-
-			var pos = (entryPos + exitPos) / 2;
+			var pos = (EntryPickerPos(75f) + ExitKickerPos(75f)) / 2;
 			transform.localPosition = pos;
 		}
 

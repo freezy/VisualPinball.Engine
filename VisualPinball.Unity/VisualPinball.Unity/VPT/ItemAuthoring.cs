@@ -75,5 +75,16 @@ namespace VisualPinball.Unity
 		protected virtual void ItemDataChanged()
 		{
 		}
+
+		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
+		{
+			Debug.DrawRay(pos, direction);
+
+			var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180+arrowHeadAngle,0) * new Vector3(0,0,1);
+			var left = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180-arrowHeadAngle,0) * new Vector3(0,0,1);
+			Debug.DrawRay(pos + direction, right * arrowHeadLength);
+			Debug.DrawRay(pos + direction, left * arrowHeadLength);
+		}
+
 	}
 }
