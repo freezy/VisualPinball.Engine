@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 	/// <typeparam name="TData"></typeparam>
 	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
+		where TItem : Item<TData>
 	{
 		public string Name { get => Item.Name; set => Item.Name = value; }
 

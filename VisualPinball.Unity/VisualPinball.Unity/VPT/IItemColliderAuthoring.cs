@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	public interface IItemColliderAuthoring : IItemAuthoring
 	{
-		IItemMainAuthoring MainAuthoring { get; }
+		IItemMainRenderableAuthoring MainAuthoring { get; }
 
 		IEnumerable<Type> ValidParents { get; }
 	}

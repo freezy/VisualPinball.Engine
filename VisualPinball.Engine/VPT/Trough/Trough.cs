@@ -23,7 +23,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Trough
 {
-	public class Trough : Item<TroughData>, IRenderable, ISwitchableDevice, ICoilableDevice
+	public class Trough : Item<TroughData>, ISwitchableDevice, ICoilableDevice
 	{
 		public override string ItemName { get; } = "Trough";
 		public override string ItemGroupName { get; } = null;
@@ -59,29 +59,6 @@ namespace VisualPinball.Engine.VPT.Trough
 				? $"Ball {i + 1} (entry)"
 				: $"Ball {i + 1}";
 		}
-
-		#region IRenderable
-
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin)
-		{
-			return Matrix3D.Identity;
-		}
-
-		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return null;
-		}
-
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return new RenderObjectGroup(Data.Name, "trough", Matrix3D.Identity, new RenderObject[0]);
-		}
-
-		// todo create a non-renderable abstraction and remove IRenderable from this
-		public Vertex3D Position { get => Vertex3D.Zero; set { } }
-		public float RotationY { get => 0f; set { } }
-
-		#endregion
 
 		public static Trough GetDefault(Table.Table table)
 		{

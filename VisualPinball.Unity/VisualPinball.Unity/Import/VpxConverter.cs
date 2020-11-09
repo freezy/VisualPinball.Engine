@@ -197,20 +197,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static ConvertedItem CreateGameObjects(Table table, IRenderable renderable, GameObject parent)
+		public static ConvertedItem CreateGameObjects(Table table, IItem item, GameObject parent)
 		{
-			var obj = new GameObject(renderable.Name);
+			var obj = new GameObject(item.Name);
 			obj.transform.parent = parent.transform;
 
-			var importedObject = SetupGameObjects(renderable, obj);
+			var importedObject = SetupGameObjects(item, obj);
 
 			// apply transformation
-			obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
+			if (item is IRenderable renderable) {
+				obj.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
+			}
 
 			return importedObject;
 		}
 
-		private static ConvertedItem SetupGameObjects(IRenderable item, GameObject obj)
+		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
 		{
 			switch (item) {
 				case Bumper bumper:             return bumper.SetupGameObject(obj);
@@ -326,14 +328,18 @@ namespace VisualPinball.Unity
 
 		public void DestroyMeshComponent()
 		{
-			MainAuthoring.DestroyMeshComponent();
-			MeshAuthoring = new IItemMeshAuthoring[0];
+			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
+				renderableAuthoring.DestroyMeshComponent();
+				MeshAuthoring = new IItemMeshAuthoring[0];
+			}
 		}
 
 		public void DestroyColliderComponent()
 		{
-			MainAuthoring.DestroyColliderComponent();
-			ColliderAuthoring = null;
+			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
+				renderableAuthoring.DestroyColliderComponent();
+				ColliderAuthoring = null;
+			}
 		}
 
 		public bool IsValidChild(ConvertedItem parent)

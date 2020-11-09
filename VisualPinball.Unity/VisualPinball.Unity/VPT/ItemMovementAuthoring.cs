@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		IItemMovementAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		protected Entity MainEntity {
 			get {

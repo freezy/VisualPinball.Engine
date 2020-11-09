@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!(target is IItemMainAuthoring item)) {
+			if (!(target is IItemMainRenderableAuthoring item)) {
 				return;
 			}
 
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			if (!(target is IItemMainAuthoring item)) {
+			if (!(target is IItemMainRenderableAuthoring item)) {
 				return;
 			}
 
@@ -348,7 +348,7 @@ namespace VisualPinball.Unity.Editor
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
-					case IItemMainAuthoring mainItem:
+					case IItemMainRenderableAuthoring mainItem:
 						mainItem.SetMeshDirty();
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;

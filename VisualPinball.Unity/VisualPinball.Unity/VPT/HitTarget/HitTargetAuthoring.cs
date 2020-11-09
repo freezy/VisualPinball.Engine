@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetAuthoring : ItemMainAuthoring<HitTarget, HitTargetData>,
+	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);

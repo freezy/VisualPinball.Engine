@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerAuthoring : ItemMainAuthoring<Spinner, SpinnerData>,
+	public class SpinnerAuthoring : ItemMainRenderableAuthoring<Spinner, SpinnerData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);

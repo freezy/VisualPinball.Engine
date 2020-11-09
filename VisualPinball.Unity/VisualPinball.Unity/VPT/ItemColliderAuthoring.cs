@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		IItemColliderAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IHittable, IRenderable
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		[NonSerialized]
 		public bool ShowGizmos;
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 
 		public HitObject[] HitObjects { get; private set; }
 
-		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
+		public new IItemMainRenderableAuthoring MainAuthoring => base.MainAuthoring;
 
 		private void OnDrawGizmosSelected()
 		{

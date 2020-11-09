@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		List<MemberInfo> MaterialRefs { get; }
 		List<MemberInfo> TextureRefs { get; }
 
-		IItemMainAuthoring IMainAuthoring { get; }
+		IItemMainRenderableAuthoring IMainAuthoring { get; }
 
 		GameObject gameObject { get; }
 

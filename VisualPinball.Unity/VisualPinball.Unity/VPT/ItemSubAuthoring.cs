@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	public abstract class ItemSubAuthoring<TItem, TData, TMainAuthoring> : ItemAuthoring<TItem, TData>
 		where TItem : Item<TData>, IRenderable
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		/// <summary>
 		/// We're in a sub component here, so in order to retrieve the data,
@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public TMainAuthoring MainAuthoring => FindMainAuthoring();
 
-		public IItemMainAuthoring ParentAuthoring => MainAuthoring.ParentAuthoring;
+		public IItemMainRenderableAuthoring ParentAuthoring => MainAuthoring.ParentAuthoring;
 
 		public abstract IEnumerable<Type> ValidParents { get; }
 

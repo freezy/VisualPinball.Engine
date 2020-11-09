@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
+	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 

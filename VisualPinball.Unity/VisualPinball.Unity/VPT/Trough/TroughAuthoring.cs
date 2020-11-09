@@ -28,25 +28,18 @@ using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Trough")]
 	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring, ICoilDeviceAuthoring
 	{
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Item.AvailableSwitches;
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
+
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
-		protected override Type MeshAuthoringType { get; } = null;
-		protected override Type ColliderAuthoringType { get; } = null;
 
 		public override void Restore()
 		{
 			Item.Name = name;
-		}
-
-		private void Awake()
-		{
-			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
 
 		private void OnDestroy()

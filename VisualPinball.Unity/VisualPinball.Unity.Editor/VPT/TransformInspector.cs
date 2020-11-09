@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// The first selected item
 		/// </summary>
-		private IItemMainAuthoring _primaryItem;
+		private IItemMainRenderableAuthoring _primaryItem;
 
 		/// <summary>
 		/// On multi-selection, these are the other selected items.
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var t in targets) {
 
 				// must be main but not the table itself
-				var item = (t as Transform)?.GetComponent<IItemMainAuthoring>();
+				var item = (t as Transform)?.GetComponent<IItemMainRenderableAuthoring>();
 				useDefault = useDefault && (t as Transform)?.GetComponent<IItemAuthoring>() == null;
 				if (item != null && !(item is TableAuthoring)) {
 
@@ -361,7 +361,7 @@ namespace VisualPinball.Unity.Editor
 		private class SecondaryItem
 		{
 			public Transform Transform;
-			public IItemMainAuthoring Item;
+			public IItemMainRenderableAuthoring Item;
 			public Vector3 Offset;
 		}
 	}
