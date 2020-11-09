@@ -30,14 +30,14 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public const string JamSwitchId = "jam";
 		public const string EjectCoilId = "eject";
-		public const string CoilId = "entry";
+		public const string EntryCoilId = "entry";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
 			.Select((_, i) => new GamelogicEngineSwitch {Description = SwitchDescription(i), Id = $"{i + 1}"})
 			.Concat( new[]{ new GamelogicEngineSwitch{Description = "Jam Switch", Id = JamSwitchId} });
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil {Description = "Entry", Id = CoilId},
+			new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId},
 			new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
 		};
 
@@ -52,14 +52,12 @@ namespace VisualPinball.Engine.VPT.Trough
 		private string SwitchDescription(int i)
 		{
 			if (i == 0) {
-				return $"Ball {i + 1} (eject)";
+				return "Ball 1 (eject)";
 			}
 
-			if (i == Data.SwitchCount - 1) {
-				return  $"Ball {i + 1} (entry)";
-			}
-
-			return  $"Ball {i + 1}";
+			return i == Data.SwitchCount - 1
+				? $"Ball {i + 1} (entry)"
+				: $"Ball {i + 1}";
 		}
 
 		#region IRenderable
