@@ -42,6 +42,20 @@ namespace VisualPinball.Unity
 			Item.Name = name;
 		}
 
+		public void UpdatePosition()
+		{
+			// place trough between entry and exit kicker
+			var entryPos = string.IsNullOrEmpty(Data.EntryKicker)
+				? Vector3.zero
+				: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(100f);
+			var exitPos = string.IsNullOrEmpty(Data.ExitKicker)
+				? Vector3.zero
+				: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(100f);
+
+			var pos = (entryPos + exitPos) / 2;
+			transform.localPosition = pos;
+		}
+
 		private void OnDestroy()
 		{
 			if (!Application.isPlaying) {
