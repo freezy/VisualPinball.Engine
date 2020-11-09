@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 				if (colliders[i].Value.Type != ColliderType.Plane) {
 					var c = colliders[i].Value;
 					var aabb = colliders[i].Value.Aabb(player);
-					Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
+					//Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
 					if (aabb.ColliderEntity == Entity.Null) {
 						throw new InvalidOperationException($"Entity of {aabb} must be set ({colliders[i].Value.ItemType}).");
 					}
