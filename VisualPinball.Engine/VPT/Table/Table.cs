@@ -407,7 +407,6 @@ namespace VisualPinball.Engine.VPT.Table
 		/// <returns>True if the game item exists, false otherwise</returns>
 		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
 
-
 		/// <summary>
 		/// Returns all game items of a given type.
 		/// </summary>

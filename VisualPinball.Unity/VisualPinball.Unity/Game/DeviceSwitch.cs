@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 				}
 			}
 			else {
-				Logger.Warn("Cannot trigger device switch.");
+				Logger.Warn("Cannot schedule device switch.");
 			}
 		}
 	}

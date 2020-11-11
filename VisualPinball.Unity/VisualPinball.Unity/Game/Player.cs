@@ -368,16 +368,25 @@ namespace VisualPinball.Unity
 
 						case SwitchSource.Device
 							when !string.IsNullOrEmpty(switchData.Device)
-							     && _switchDevices.ContainsKey(switchData.Device): {
-						}
+							     && _switchDevices.ContainsKey(switchData.Device):
+						{
 							var device = _switchDevices[switchData.Device];
 							var deviceSwitch = device.Switch(switchData.DeviceItem);
 							if (deviceSwitch != null) {
 								deviceSwitch.AddSwitchId(switchData.Id, 0);
+								Debug.Log($"Adding switch {switchData.Id} to device {switchData.Device} ({switchData.DeviceItem})");
 
 							} else {
 								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
 							}
+							break;
+						}
+						case SwitchSource.Device when string.IsNullOrEmpty(switchData.Device):
+							Logger.Warn($"Switch device not set for switch \"{switchData.Id}\".");
+							break;
+
+						case SwitchSource.Device when !_switchDevices.ContainsKey(switchData.Device):
+							Logger.Warn($"Unknown switch device \"{switchData.Device}\" for switch \"{switchData.Id}\".");
 							break;
 
 						case SwitchSource.Constant:

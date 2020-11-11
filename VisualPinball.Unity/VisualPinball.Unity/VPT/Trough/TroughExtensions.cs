@@ -24,7 +24,6 @@ namespace VisualPinball.Unity
 	{
 		public static ConvertedItem SetupGameObject(this Engine.VPT.Trough.Trough trough, GameObject obj)
 		{
-
 			var mainAuthoring = obj.AddComponent<TroughAuthoring>();
 			mainAuthoring.SetItem(trough);
 			mainAuthoring.UpdatePosition();

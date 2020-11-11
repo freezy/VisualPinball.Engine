@@ -275,10 +275,10 @@ namespace VisualPinball.Unity
 		private void CreateTrough()
 		{
 			var troughData = new TroughData("Trough");
-			if (_table.Kicker("BallRelease") != null) {
+			if (_table.Has<Kicker>("BallRelease")) {
 				troughData.ExitKicker = "BallRelease";
 			}
-			if (_table.Kicker("Drain") != null) {
+			if (_table.Has<Kicker>("Drain")) {
 				troughData.EntryKicker = "Drain";
 			}
 			var item = new Trough(troughData);
