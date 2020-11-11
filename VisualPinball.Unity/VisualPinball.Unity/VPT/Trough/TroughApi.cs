@@ -16,8 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trough;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -74,6 +76,8 @@ namespace VisualPinball.Unity
 		private DeviceSwitch EntrySwitch => _ballSwitches[Data.SwitchCount - 1];
 		private DeviceSwitch EjectSwitch => _ballSwitches[0];
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -126,12 +130,12 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// If there are any balls in the trough add one to play and
-		/// trigger any switches which the remaininng balls would activate
+		/// trigger any switches which the remaining balls would activate
 		/// </summary>
 		internal void OnEjectCoil(bool closed)
 		{
 			if (closed && (_ballCount > 0)) {
-				Debug.Log("Spawning new ball.");
+				Logger.Info("Spawning new ball.");
 
 				_exitKicker.CreateBall();
 				_exitKicker.Kick();
@@ -155,7 +159,7 @@ namespace VisualPinball.Unity
 		private void OnEntryKickerHit(object sender, EventArgs args)
 		{
 			if (_ballCount < Data.BallCount) {
-				Debug.Log("Draining ball.");
+				Logger.Info("Draining ball.");
 
 				(sender as KickerApi)?.DestroyBall();
 
@@ -208,7 +212,7 @@ namespace VisualPinball.Unity
 					//_switchLookup[sw.Id] = _jamSwitch;
 
 				} else {
-					Debug.LogWarning($"Unknown switch ID {sw.Id}");
+					Logger.Warn($"Unknown switch ID {sw.Id}");
 				}
 			}
 
@@ -221,7 +225,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Debug.Log("Destroying trough!");
+			Logger.Info("Destroying trough!");
 
 			if (_entryKicker != null) {
 				_entryKicker.Hit -= OnEntryKickerHit;
