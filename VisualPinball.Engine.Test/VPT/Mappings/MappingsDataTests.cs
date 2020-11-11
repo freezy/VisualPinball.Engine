@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 
 		private static void ValidateTableData(MappingsData data)
 		{
-			data.Switches.Length.Should().Be(4);
+			data.Switches.Length.Should().Be(13);
 
 			data.Switches[0].Id.Should().Be("s_create_ball");
 			data.Switches[0].Description.Should().Be("Create Ball");
@@ -72,7 +72,20 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Switches[3].Source.Should().Be(SwitchSource.Constant);
 			data.Switches[3].Constant.Should().Be(SwitchConstant.NormallyClosed);
 
-			data.Coils.Length.Should().Be(2);
+			data.Switches[3].Id.Should().Be("s_right_flipper");
+			data.Switches[3].Description.Should().Be("Right Flipper");
+			data.Switches[3].Source.Should().Be(SwitchSource.Constant);
+			data.Switches[3].Constant.Should().Be(SwitchConstant.NormallyClosed);
+
+			data.Switches[7].Id.Should().Be("s_trough1");
+			data.Switches[7].Description.Should().Be("Trough 1 (eject)");
+			data.Switches[7].Source.Should().Be(SwitchSource.Device);
+			data.Switches[7].Device.Should().Be("Trough");
+			data.Switches[7].DeviceItem.Should().Be("1");
+			data.Switches[7].Type.Should().Be(SwitchType.OnOff);
+			data.Switches[7].PulseDelay.Should().Be(250);
+
+			data.Coils.Length.Should().Be(6);
 
 			data.Coils[0].Id.Should().Be("c_auto_plunger");
 			data.Coils[0].Description.Should().Be("Auto Plunger");
@@ -86,6 +99,14 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Coils[1].PlayfieldItem.Should().Be("Flipper1");
 			data.Coils[1].Type.Should().Be(CoilType.DualWound);
 			data.Coils[1].HoldCoilId.Should().Be("c_left_flipper_hold");
+
+			data.Coils[5].Id.Should().Be("c_trough_eject");
+			data.Coils[5].Description.Should().Be("Trough Eject");
+			data.Coils[5].Destination.Should().Be(CoilDestination.Device);
+			data.Coils[5].Device.Should().Be("Trough");
+			data.Coils[5].DeviceItem.Should().Be("eject");
+			data.Coils[5].Type.Should().Be(CoilType.SingleWound);
+			data.Coils[5].HoldCoilId.Should().Be("");
 		}
 	}
 }
