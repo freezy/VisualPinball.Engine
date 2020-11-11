@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		public void Init(ColliderType type, HitObject src)
 		{
 			if (src.ItemIndex == 0 && src.ItemVersion == 0) {
-				throw new InvalidOperationException("Entity of " + type + " " + ItemType + " not set!");
+				throw new InvalidOperationException("Entity of " + type + " " + ItemType + " (" + src.Item.Name + ") not set!");
 			}
 			Type = type;
 			ItemType = src.ObjType;

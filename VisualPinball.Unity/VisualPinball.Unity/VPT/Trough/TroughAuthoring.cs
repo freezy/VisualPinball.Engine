@@ -48,6 +48,10 @@ namespace VisualPinball.Unity
 			? Vector3.zero
 			: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(height);
 
+		private void Awake()
+		{
+			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
+		}
 
 		public override void Restore()
 		{
