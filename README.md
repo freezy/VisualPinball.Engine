@@ -15,6 +15,8 @@ other "current gen" engines, while keeping backwards-compatibility.
 VPE also aims to significantly improve the editor experience by extending the 
 editor of the game engine.
 
+For a more detailed overview, header over to the [website](https://docs.visualpinball.org/creators-guide/introduction/overview.html)!
+
 ## How?
 
 The "core" of VPE (i.e. the `VisualPinball.Engine` project) is a pure C# port
@@ -32,7 +34,7 @@ VPE is still work in progress. You can check the current features list [here](ht
 and the open issues [here](https://github.com/freezy/VisualPinball.Engine/issues).
 
 There are a few videos in the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651), 
-where you can discuss.
+where you can discuss. Screenshots are [here](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots! :)
 
 ## Credits
 
