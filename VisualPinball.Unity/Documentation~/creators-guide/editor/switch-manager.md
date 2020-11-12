@@ -41,6 +41,8 @@ The **Source** column defines where the element in the next column is located. T
 - *Playfield* lets you choose a game item in the playfield
 - *Input System* lets you choose an input action from a pre-defined list, i.e. cabinet switches
 - *Constant* sets the switch at the beginning of the game to the given value.
+- *Device* lets you choose a switch device to select a switch from. Switch devices are mechanisms that contain multiple switches, for example [troughs](../manual/mechanisms/troughs.md).
+
 
 ### Element
 
@@ -52,6 +54,8 @@ For **Playfield**, you can choose a game item that triggers switch events. Curre
 > We realize that you might want to use other game items like ramps and walls to emit switch events as well, and we will address this at some point, but for now we're keeping it simple.
 
 If **Input System** is selected, you choose which input action to use. We call it "input action", because it's not an actual key binding. While actions have default key bindings, the final bindings will be defined in the host application (the VPE player). So what VPE is dealing with in terms of keyboard input is what we call *input actions*.
+
+If the source is **Device**, there are two values to select. Firstly, the actual switch device, and secondly which switch of that device should be connected to the gamelogic engine.
 
 Finally, if **Constant** is selected, you choose the value that will be permanently set at the beginning of the game.
 
