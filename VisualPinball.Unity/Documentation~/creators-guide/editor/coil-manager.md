@@ -23,11 +23,14 @@ The **Description** column is an optional free text field. If you're setting up 
 
 ### Destination
 
-The **Destination** column defines where the element in the next column is located. Currently, VPE only supports playfield items with one coil. In the future, VPE will support devices with multiple coils, which will also be listed here.
+The **Destination** column defines where the element in the next column is located. There are two options:
+
+- *Playfield* lets you select a game element on the playfield that features a coil
+- *Device* lets you choose a mechanism which includes multiple coils. We call them *coil devices*, for example [troughs](../manual/mechanisms/troughs.md).
 
 ### Element
 
-The **Element** column is where you choose the playfield element with the coil. VPE can receive coil events for bumpers, flippers, kickers and plungers.
+The **Element** column is where you choose which element in the previous destination column should be activated. VPE can receive coil events for bumpers, flippers, kickers and plungers and of course coile devices.
 
 > [!note]
 > Bumpers are currently hard-wired, i.e. their switch will directly trigger the coil without going through the gamelogic engine. That means they don't need to be configured in the switch- or coil manager. VPE will make this configurable in the future.
