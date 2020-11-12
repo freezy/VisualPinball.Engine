@@ -17,6 +17,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
+using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -25,12 +26,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class RubberMeshGenerator : MeshGenerator
 	{
-		public readonly Vertex3D MiddlePoint = new Vertex3D();
 		private readonly RubberData _data;
-
-		protected override Vertex3D Position => new Vertex3D(MiddlePoint.X, MiddlePoint.Y, MiddlePoint.Z);
+		protected override Vertex3D Position => new Vertex3D(_data.MiddlePoint.X, _data.MiddlePoint.Y, _data.MiddlePoint.Z);
 		protected override Vertex3D Scale => Vertex3D.One;
 		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public RubberMeshGenerator(RubberData data)
 		{
@@ -80,9 +80,17 @@ namespace VisualPinball.Engine.VPT.Rubber
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
 				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table.TableHeight);
+				if (_data.Name == "Rubber4") {
+					Logger.Info("[rubber] GetTransformationMatrix(1): height = {0}", Position.Y,
+						_data.Height + table.TableHeight);
+				}
 
 			} else {
 				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
+				if (_data.Name == "Rubber4") {
+					Logger.Info("[rubber] GetTransformationMatrix(2): height = {0}",
+						_data.Height * table.GetScaleZ() + table.TableHeight);
+				}
 			}
 
 			vertMatrix.Multiply(tempMat);
@@ -231,9 +239,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 				}
 			}
 
-			MiddlePoint.X = (maxX + minX) * 0.5f;
-			MiddlePoint.Y = (maxY + minY) * 0.5f;
-			MiddlePoint.Z = (maxZ + minZ) * 0.5f;
+			_data.MiddlePoint.X = (maxX + minX) * 0.5f;
+			_data.MiddlePoint.Y = (maxY + minY) * 0.5f;
+			_data.MiddlePoint.Z = (maxZ + minZ) * 0.5f;
 
 			return mesh;
 		}

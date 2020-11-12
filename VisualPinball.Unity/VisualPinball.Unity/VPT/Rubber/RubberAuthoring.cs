@@ -36,7 +36,6 @@ namespace VisualPinball.Unity
 		IDragPointsEditable, IConvertGameObjectToEntity
 	{
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
-
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);
 
@@ -81,6 +80,7 @@ namespace VisualPinball.Unity
 					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
