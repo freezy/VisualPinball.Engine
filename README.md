@@ -34,7 +34,7 @@ VPE is still work in progress. You can check the current features list [here](ht
 and the open issues [here](https://github.com/freezy/VisualPinball.Engine/issues).
 
 There are a few videos in the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651), 
-where you can discuss. Screenshots are [here](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots! :)
+where you can discuss. Screenshots are [here](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots)! :)
 
 ## Credits
 
