@@ -35,25 +35,25 @@ namespace VisualPinball.Engine.VPT.Trough
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
 
-		[BiffString("NAME", IsWideString = true, Pos = 9)]
+		[BiffString("NAME", IsWideString = true, Pos = 1)]
 		public string Name;
 
-		[BiffString("ENTK", Pos = 1)]
+		[BiffString("ENTK", Pos = 2)]
 		public string EntryKicker = string.Empty;
 
-		[BiffString("EXIT", Pos = 10)]
+		[BiffString("EXIT", Pos = 3)]
 		public string ExitKicker = string.Empty;
 
-		[BiffString("JAMS", Pos = 2)]
+		[BiffString("JAMS", Pos = 4)]
 		public string JamSwitch = string.Empty;
 
-		[BiffInt("BCNT", Pos = 3)]
+		[BiffInt("BCNT", Pos = 5)]
 		public int BallCount = 6;
 
-		[BiffInt("SCNT", Pos = 4)]
+		[BiffInt("SCNT", Pos = 6)]
 		public int SwitchCount = 6;
 
-		[BiffInt("TIME", Pos = 5)]
+		[BiffInt("TIME", Pos = 7)]
 		public int SettleTime = 100;
 
 		public TroughData(string name) : base(StoragePrefix.GameItem)

@@ -19,7 +19,6 @@ using System.IO;
 using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Trough
 {

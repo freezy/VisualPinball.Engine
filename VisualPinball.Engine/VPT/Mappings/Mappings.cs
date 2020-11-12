@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NetVips;
 using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
