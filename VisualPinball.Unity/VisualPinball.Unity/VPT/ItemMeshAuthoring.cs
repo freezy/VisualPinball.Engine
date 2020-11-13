@@ -112,6 +112,7 @@ namespace VisualPinball.Unity
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
 				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;
+				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
 				smr.enabled = ro.IsVisible;
 			} else {
 				var mr = gameObject.AddComponent<MeshRenderer>();

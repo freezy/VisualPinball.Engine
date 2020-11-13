@@ -112,6 +112,7 @@ namespace VisualPinball.Unity
 				Vector3[] deltaNormals = new Vector3[vpMesh.Vertices.Length];
 
 				float weight = deltaWeight;
+				mesh.ClearBlendShapes();
 				for (int i = 0; i < vpMesh.AnimationFrames.Count; i++, weight+= deltaWeight) {
 
 					for (int j = 0; j < vpMesh.Vertices.Length; j++) {

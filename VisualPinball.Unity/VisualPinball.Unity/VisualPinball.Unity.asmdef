@@ -2,6 +2,7 @@
 	"name": "VisualPinball.Unity",
 	"references": [
 		"Unity.Burst",
+		"Unity.Deformations",
 		"Unity.Entities",
 		"Unity.Entities.Hybrid",
 		"Unity.Collections",

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public const string Rod = "Rod";
 		public const string Spring = "Spring";
 
-		public int NumFrames { get; set; }
+		public int NumFrames { get; private set; }
 
 		private readonly PlungerData _data;
 		private PlungerDesc _desc;
@@ -53,7 +55,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private int _latheIndices;
 		private int _springIndices;
 
-		private const int PlungerFrameCount = 25;
+		private const int PlungerFrameCount = 3;
+		private const float DefaultPosition = 20f / 25f;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PlungerMeshGenerator(PlungerData data)
@@ -62,13 +66,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Init(null);
 		}
 
-		public RenderObject GetRenderObject(int frame, Table.Table table, string id, Origin origin, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
 			Init(table);
 			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
 			switch (id) {
 				case Flat:
-					var flatMesh = BuildFlatMesh(frame);
+					var flatMesh = BuildFlatMesh();
 					return new RenderObject(
 						id,
 						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
@@ -77,7 +81,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					);
 				case Rod:
 					CalculateArraySizes();
-					var rodMesh = BuildRodMesh(frame);
+					var rodMesh = BuildRodMesh();
 					return new RenderObject(
 						id,
 						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
@@ -86,7 +90,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					);
 				case Spring:
 					CalculateArraySizes();
-					var springMesh = BuildSpringMesh(frame);
+					var springMesh = BuildSpringMesh();
 					return new RenderObject(
 						id,
 						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
@@ -108,7 +112,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 			// flat plunger
 			if (_data.Type == PlungerType.PlungerTypeFlat) {
-				var flatMesh = BuildFlatMesh(frame);
+				var flatMesh = BuildFlatMesh();
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 					new RenderObject(
 						Flat,
@@ -120,11 +124,11 @@ namespace VisualPinball.Engine.VPT.Plunger
 			}
 
 			CalculateArraySizes();
-			var rodMesh = BuildRodMesh(frame);
+			var rodMesh = BuildRodMesh();
 
 			// custom plunger
 			if (_data.Type == PlungerType.PlungerTypeCustom) {
-				var springMesh = BuildSpringMesh(frame);
+				var springMesh = BuildSpringMesh();
 
 				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
 					new RenderObject(
@@ -244,14 +248,22 @@ namespace VisualPinball.Engine.VPT.Plunger
 		/// <summary>
 		/// Flat plunger - overlay the alpha image on a rectangular surface.
 		/// </summary>
-		/// <param name="frame">Animation frame</param>
 		/// <returns></returns>
-		private Mesh BuildFlatMesh(int frame)
+		private Mesh BuildFlatMesh()
 		{
-			return new Mesh("flat") {
-				Vertices = BuildFlatVertices(frame),
-				Indices = new[] {0, 1, 2, 2, 3, 0}
+			var mesh = new Mesh("flat") {
+				Vertices = BuildFlatVertices(0),
+				Indices = new[] {0, 1, 2, 2, 3, 0},
+				AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount),
+				AnimationDefaultPosition = DefaultPosition
 			};
+
+			for (var i = 0; i < PlungerFrameCount; i++) {
+				var vertices = BuildRodVertices(i);
+				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
+			}
+
+			return mesh;
 		}
 
 		public Vertex3DNoTex2[] BuildFlatVertices(int frame)
@@ -328,12 +340,11 @@ namespace VisualPinball.Engine.VPT.Plunger
 		/// cylinder surface. Work outwards on the texture to wrap it around the
 		/// cylinder.
 		/// </summary>
-		/// <param name="frame"></param>
 		/// <returns></returns>
-		private Mesh BuildRodMesh(int frame)
+		private Mesh BuildRodMesh()
 		{
 			var mesh = new Mesh("rod") {
-				Vertices = BuildRodVertices(frame),
+				Vertices = BuildRodVertices(0),
 				Indices = new int[_latheIndices]
 			};
 
@@ -349,6 +360,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 					mesh.Indices[k++] = (m + offset + 1) % _latheVts;
 					mesh.Indices[k++] = (m + offset) % _latheVts;
 				}
+			}
+
+			mesh.AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount);
+			mesh.AnimationDefaultPosition = DefaultPosition;
+			for (var i = 0; i < PlungerFrameCount; i++) {
+				var vertices = BuildRodVertices(i);
+				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
 			}
 
 			return mesh;
@@ -432,12 +450,11 @@ namespace VisualPinball.Engine.VPT.Plunger
 		///
 		/// So use the true rod base (rodY) position to figure the spring length.
 		/// </summary>
-		/// <param name="frame"></param>
 		/// <returns></returns>
-		private Mesh BuildSpringMesh(int frame)
+		private Mesh BuildSpringMesh()
 		{
 			var mesh = new Mesh("spring") {
-				Vertices = BuildSpringVertices(frame),
+				Vertices = BuildSpringVertices(0),
 				Indices = new int[_springIndices]
 			};
 
@@ -492,6 +509,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 				// 	mesh.Indices[k++] = i + 1;
 				// 	mesh.Indices[k++] = i + 2;
 				// }
+			}
+
+			mesh.AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount);
+			mesh.AnimationDefaultPosition = DefaultPosition;
+			for (var i = 0; i < PlungerFrameCount; i++) {
+				var vertices = BuildSpringVertices(i);
+				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
 			}
 
 			return mesh;
