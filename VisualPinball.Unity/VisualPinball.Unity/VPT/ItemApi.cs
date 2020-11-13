@@ -50,6 +50,15 @@ namespace VisualPinball.Unity
 		private readonly SwitchHandler _switchHandler;
 		private protected BallManager BallManager;
 
+		protected ItemApi(TItem item, Player player)
+		{
+			Item = item;
+			Entity = Entity.Null;
+			ParentEntity = Entity.Null;
+			_player = player;
+			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
+		}
+
 		protected ItemApi(TItem item, Entity entity, Entity parentEntity, Player player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
