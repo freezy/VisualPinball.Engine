@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Init;
 
-		internal TroughApi(Trough item, Player player) : base(item, Entity.Null, Entity.Null, player)
+		internal TroughApi(Trough item, Player player) : base(item, player)
 		{
 			Debug.Log("Trough API instantiated.");
 		}
