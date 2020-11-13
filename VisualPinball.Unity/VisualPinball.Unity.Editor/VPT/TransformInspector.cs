@@ -128,7 +128,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected virtual void OnSceneGUI()
+		private void OnSceneGUI()
 		{
 			if (_defaultEditor != null) {
 				return;
