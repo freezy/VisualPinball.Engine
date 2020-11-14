@@ -45,6 +45,9 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffMappingsCoilAttribute("MCOI", TagAll = true, Pos = 1001)]
 		public MappingsCoilData[] Coils = Array.Empty<MappingsCoilData>();
 
+		[BiffMappingsWireAttribute("MWIR", TagAll = true, Pos = 1002)]
+		public MappingsWireData[] Wires = Array.Empty<MappingsWireData>();
+
 		#region BIFF
 
 		static MappingsData()
@@ -106,6 +109,25 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public void RemoveAllCoils()
 		{
 			Coils = Array.Empty<MappingsCoilData>();
+		}
+
+		#endregion
+
+		#region Wires
+
+		public void AddWire(MappingsWireData data)
+		{
+			Wires = Wires.Append(data).ToArray();
+		}
+
+		public void RemoveWire(MappingsWireData data)
+		{
+			Wires = Wires.Except(new[] { data }).ToArray();
+		}
+
+		public void RemoveAllWires()
+		{
+			Wires = Array.Empty<MappingsWireData>();
 		}
 
 		#endregion

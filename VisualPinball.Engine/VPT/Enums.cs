@@ -169,4 +169,16 @@ namespace VisualPinball.Engine.VPT
 		public const int SingleWound = 0;
 		public const int DualWound = 1;
 	}
+
+	public static class WireDestination
+	{
+		public const int Playfield = 0;
+		public const int Device = 1;
+	}
+
+	public static class WireType
+	{
+		public const int OnOff = 0;
+		public const int Pulse = 1;
+	}
 }

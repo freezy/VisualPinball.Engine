@@ -194,48 +194,46 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderInputSystemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
+			var inputSystemList = new List<InputSystemEntry>();
+			var tmpIndex = 0;
+			var selectedIndex = -1;
+			var options = new List<string>();
+
+			foreach (var actionMapName in _inputManager.GetActionMapNames())
 			{
-				var inputSystemList = new List<InputSystemEntry>();
-				var tmpIndex = 0;
-				var selectedIndex = -1;
-				var options = new List<string>();
-
-				foreach (var actionMapName in _inputManager.GetActionMapNames())
+				if (options.Count > 0)
 				{
-					if (options.Count > 0)
-					{
-						options.Add("");
-						inputSystemList.Add(new InputSystemEntry());
-						tmpIndex++;
-					}
-
-					foreach (var actionName in _inputManager.GetActionNames(actionMapName))
-					{
-						inputSystemList.Add(new InputSystemEntry
-						{
-							ActionMapName = actionMapName,
-							ActionName = actionName
-						});
-
-						options.Add(actionName.Replace('/', '\u2215'));
-
-						if (actionMapName == switchListData.InputActionMap && actionName == switchListData.InputAction)
-						{
-							selectedIndex = tmpIndex;
-						}
-
-						tmpIndex++;
-					}
+					options.Add("");
+					inputSystemList.Add(new InputSystemEntry());
+					tmpIndex++;
 				}
 
-				EditorGUI.BeginChangeCheck();
-				var index = EditorGUI.Popup(cellRect, selectedIndex, options.ToArray());
-				if (EditorGUI.EndChangeCheck())
+				foreach (var actionName in _inputManager.GetActionNames(actionMapName))
 				{
-					switchListData.InputActionMap = inputSystemList[index].ActionMapName;
-					switchListData.InputAction = inputSystemList[index].ActionName;
-					updateAction(switchListData);
+					inputSystemList.Add(new InputSystemEntry
+					{
+						ActionMapName = actionMapName,
+						ActionName = actionName
+					});
+
+					options.Add(actionName.Replace('/', '\u2215'));
+
+					if (actionMapName == switchListData.InputActionMap && actionName == switchListData.InputAction)
+					{
+						selectedIndex = tmpIndex;
+					}
+
+					tmpIndex++;
 				}
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var index = EditorGUI.Popup(cellRect, selectedIndex, options.ToArray());
+			if (EditorGUI.EndChangeCheck())
+			{
+				switchListData.InputActionMap = inputSystemList[index].ActionMapName;
+				switchListData.InputAction = inputSystemList[index].ActionName;
+				updateAction(switchListData);
 			}
 		}
 
