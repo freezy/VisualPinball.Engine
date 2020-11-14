@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 			var mainAuthoring = obj.AddComponent<TroughAuthoring>();
 			mainAuthoring.SetItem(trough);
 			mainAuthoring.UpdatePosition();
-			obj.GetComponentInParent<Player>().RegisterTrough(trough, obj);
+			//obj.GetComponentInParent<Player>()?.RegisterTrough(trough, obj);
 			return new ConvertedItem(mainAuthoring);
 		}
 	}
