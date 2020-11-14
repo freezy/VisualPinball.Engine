@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 		/// If there's room in the trough remove the ball from play
 		/// and trigger any switches which it would roll over
 		/// </summary>
-		private void OnEntryKickerHit(object sender, EventArgs args)
+		private void OnEntryKickerHit(object sender, HitEventArgs args)
 		{
 			if (_ballCount < Data.BallCount) {
 				Logger.Info("Draining ball.");

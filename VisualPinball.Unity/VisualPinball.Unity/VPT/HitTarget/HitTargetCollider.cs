@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -22,7 +23,7 @@ namespace VisualPinball.Unity
 	internal static class HitTargetCollider
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
+			ref HitTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
@@ -31,7 +32,7 @@ namespace VisualPinball.Unity
 			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in coll.Header);
 			}
 		}
 	}

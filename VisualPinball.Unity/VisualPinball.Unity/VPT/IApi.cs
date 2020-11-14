@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using Unity.Entities;
+
 namespace VisualPinball.Unity
 {
 	public interface IApi
@@ -29,7 +32,8 @@ namespace VisualPinball.Unity
 
 	internal interface IApiHittable
 	{
-		void OnHit(bool isUnHit = false);
+		void OnHit(Entity ballEntity, bool isUnHit = false);
+		event EventHandler<HitEventArgs> Hit;
 	}
 
 	internal interface IApiRotatable
@@ -39,7 +43,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCollidable
 	{
-		void OnCollide(float hit);
+		void OnCollide(Entity ballEntity, float hit);
 	}
 
 	internal interface IApiSpinnable
@@ -49,7 +53,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSlingshot
 	{
-		void OnSlingshot();
+		void OnSlingshot(Entity ballEntity);
 	}
 
 	internal interface IApiSwitch

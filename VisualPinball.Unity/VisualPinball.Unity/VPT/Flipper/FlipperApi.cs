@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
 		/// Event emitted when the flipper collided with the ball.
@@ -117,9 +117,9 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiCollidable.OnCollide(float hit)
+		void IApiCollidable.OnCollide(Entity ballEntity, float hit)
 		{
 			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = hit });
 		}

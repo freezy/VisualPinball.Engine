@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		///
 		/// Also note that the gate must be collidable.
 		/// </remarks>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
 		/// Event emitted when the gate passes its parked position. Only
@@ -79,9 +79,9 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 			OnSwitch(true);
 		}
 
