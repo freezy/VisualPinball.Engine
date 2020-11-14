@@ -18,6 +18,7 @@ using Unity.Deformations;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -42,6 +43,8 @@ namespace VisualPinball.Unity
 				var blendShapeWeight = blendShapeWeights[0];
 				blendShapeWeight.Value = math.clamp(1 / 25f * animationData.CurrentFrame, 0, 1);
 				blendShapeWeights[0] = blendShapeWeight;
+
+				Debug.Log("Animating plunger to " + blendShapeWeight.Value + " (" + animationData.CurrentFrame + ")");
 
 				// var meshComponent = EntityManager.GetComponentData<BlendShapeWeight>(entity);
 				//
