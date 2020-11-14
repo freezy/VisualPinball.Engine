@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using Unity.Profiling;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -38,11 +39,13 @@ namespace VisualPinball.Unity
 				var frame0 = (int)((movementData.Position - staticData.FrameStart) / (staticData.FrameEnd - staticData.FrameStart) * (staticData.NumFrames - 1) + 0.5f);
 				var frame = frame0 < 0 ? 0 : frame0 >= staticData.NumFrames ? staticData.NumFrames - 1 : frame0;
 
+				//Debug.Log($"[plunger] frame0 = {frame0} frame = {frame}");
 
 				if (animationDatas.HasComponent(staticData.RodEntity)) {
 					var rodAnimData = animationDatas[staticData.RodEntity];
 					if (rodAnimData.CurrentFrame != frame) {
 						rodAnimData.CurrentFrame = frame;
+						rodAnimData.NumFrames = staticData.NumFrames;
 						rodAnimData.IsDirty = true;
 						animationDatas[staticData.RodEntity] = rodAnimData;
 					}
@@ -52,6 +55,7 @@ namespace VisualPinball.Unity
 					var springAnimData = animationDatas[staticData.SpringEntity];
 					if (springAnimData.CurrentFrame != frame) {
 						springAnimData.CurrentFrame = frame;
+						springAnimData.NumFrames = staticData.NumFrames;
 						springAnimData.IsDirty = true;
 						animationDatas[staticData.SpringEntity] = springAnimData;
 					}
@@ -61,6 +65,7 @@ namespace VisualPinball.Unity
 					var flatAnimData = animationDatas[staticData.FlatEntity];
 					if (flatAnimData.CurrentFrame != frame) {
 						flatAnimData.CurrentFrame = frame;
+						flatAnimData.NumFrames = staticData.NumFrames;
 						flatAnimData.IsDirty = true;
 						animationDatas[staticData.FlatEntity] = flatAnimData;
 					}

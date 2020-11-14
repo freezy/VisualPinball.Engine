@@ -31,7 +31,8 @@ namespace VisualPinball.Unity
 		{
 			var marker = PerfMarker;
 
-			Entities.WithoutBurst().ForEach((Entity entity, ref PlungerAnimationData animationData, ref DynamicBuffer<BlendShapeWeight> blendShapeWeights) => {
+			Entities.ForEach((Entity entity, ref PlungerAnimationData animationData,
+				ref DynamicBuffer<BlendShapeWeight> blendShapeWeights) => {
 
 				if (!animationData.IsDirty) {
 					return;
@@ -40,28 +41,10 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
+				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
 				var blendShapeWeight = blendShapeWeights[0];
-				blendShapeWeight.Value = math.clamp(1 / 25f * animationData.CurrentFrame, 0, 1);
+				blendShapeWeight.Value = weight;
 				blendShapeWeights[0] = blendShapeWeight;
-
-				Debug.Log("Animating plunger to " + blendShapeWeight.Value + " (" + animationData.CurrentFrame + ")");
-
-				// var meshComponent = EntityManager.GetComponentData<BlendShapeWeight>(entity);
-				//
-				//
-				//
-				// var frame = animationData.CurrentFrame;
-				// var count = meshComponent.mesh.vertices.Length;
-				// var startPos = frame * count;
-				//
-				// var vector3Buffer = EntityManager.GetBuffer<PlungerMeshBufferElement>(entity).Reinterpret<Vector3>();
-				// meshComponent.mesh.SetVertices(vector3Buffer.AsNativeArray(), startPos, count);
-				//
-				// // a bit dirty, but that means it's a flat mesh, hence update UVs as well.
-				// if (count == 4) {
-				// 	var uvBuffer = EntityManager.GetBuffer<PlungerUvBufferElement>(entity).Reinterpret<Vector2>();
-				// 	meshComponent.mesh.SetUVs(0, uvBuffer.AsNativeArray(), startPos, count);
-				// }
 
 				marker.End();
 

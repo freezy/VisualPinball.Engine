@@ -162,7 +162,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			var stroke = _data.Stroke;
 			_beginY = _data.Center.Y;
 			_endY = _data.Center.Y - stroke;
-			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
+			NumFrames = (int)(stroke * (float)(25 / 80.0)) + 1; // 25 frames per 80 units travel
 			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
 			_dyPerFrame = (_endY - _beginY) * _invScale;
 			_circlePoints = _data.Type == PlungerType.PlungerTypeFlat ? 0 : 24;
