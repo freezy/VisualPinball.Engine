@@ -35,11 +35,8 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 4, HeaderName = "Destination Element", Width = 270)]
 		public string DestinationElement;
 
-		[ManagerListColumn(Order = 5, HeaderName = "Type", Width = 100)]
-		public int Type;
-
-		[ManagerListColumn(Order = 6, HeaderName = "Off", Width = 100)]
-		public string Off;
+		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
+		public int PulseDelay;
 
 		public string Description;
 
@@ -53,9 +50,6 @@ namespace VisualPinball.Unity.Editor
 		public string DestinationPlayfieldItem;
 		public string DestinationDevice;
 		public string DestinationDeviceItem;
-
-
-		public int Pulse;
 
 		public MappingsWireData MappingsWireData;
 
@@ -75,8 +69,7 @@ namespace VisualPinball.Unity.Editor
 			DestinationDevice = mappingsWireData.DestinationDevice;
 			DestinationDeviceItem = mappingsWireData.DestinationDeviceItem;
 
-			Type = mappingsWireData.Type;
-			Pulse = mappingsWireData.Pulse;
+			PulseDelay = mappingsWireData.PulseDelay;
 
 			MappingsWireData = mappingsWireData;
 		}
@@ -98,8 +91,7 @@ namespace VisualPinball.Unity.Editor
 			MappingsWireData.DestinationDevice = DestinationDevice;
 			MappingsWireData.DestinationDeviceItem = DestinationDeviceItem;
 
-			MappingsWireData.Type = Type;
-			MappingsWireData.Pulse = Pulse;
+			MappingsWireData.PulseDelay = PulseDelay;
 		}
 	}
 }

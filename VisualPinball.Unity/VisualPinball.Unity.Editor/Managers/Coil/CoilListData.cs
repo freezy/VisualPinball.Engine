@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
 		public int Type;
 
-		[ManagerListColumn(Order = 6, HeaderName = "Hold Coil", Width = 135)]
+		[ManagerListColumn(Order = 5, HeaderName = "Hold Coil", Width = 135)]
 		public string HoldCoilId;
 
 		public string Id;
