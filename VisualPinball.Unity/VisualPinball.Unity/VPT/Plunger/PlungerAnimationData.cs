@@ -21,6 +21,7 @@ namespace VisualPinball.Unity
 	internal struct PlungerAnimationData : IComponentData
 	{
 		public int CurrentFrame;
+		public int NumFrames;
 		public bool IsDirty;
 
 	}
