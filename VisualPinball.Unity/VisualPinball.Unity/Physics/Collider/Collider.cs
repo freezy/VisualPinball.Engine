@@ -167,8 +167,8 @@ namespace VisualPinball.Unity
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
 		public static unsafe void Collide(ref Collider coll, ref BallData ballData,
-			ref NativeQueue<EventData>.ParallelWriter events, in CollisionEventData collEvent,
-			ref Random random)
+			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity,
+			in CollisionEventData collEvent, ref Random random)
 		{
 			fixed (Collider* collider = &coll)
 			{
@@ -178,22 +178,22 @@ namespace VisualPinball.Unity
 						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
 						break;
 					case ColliderType.Line:
-						((LineCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						((LineCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
 						break;
 					case ColliderType.Line3D:
-						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
 						break;
 					case ColliderType.LineZ:
-						((LineZCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						((LineZCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
 						break;
 					case ColliderType.Plane:
 						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
 						break;
 					case ColliderType.Point:
-						((PointCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						((PointCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
 						break;
 					case ColliderType.Triangle:
-						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in collEvent, ref random);
+						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
 						break;
 
 					default:
@@ -202,7 +202,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
+		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
@@ -218,7 +218,7 @@ namespace VisualPinball.Unity
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ParentEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ParentEntity, ballEntity, true));
 				}
 			}
 		}

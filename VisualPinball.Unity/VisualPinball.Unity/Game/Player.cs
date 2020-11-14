@@ -544,11 +544,11 @@ namespace VisualPinball.Unity
 					if (!_hittables.ContainsKey(eventData.ItemEntity)) {
 						Debug.LogError($"Cannot find entity {eventData.ItemEntity} in hittables.");
 					}
-					_hittables[eventData.ItemEntity].OnHit();
+					_hittables[eventData.ItemEntity].OnHit(eventData.BallEntity);
 					break;
 
 				case EventId.HitEventsUnhit:
-					_hittables[eventData.ItemEntity].OnHit(true);
+					_hittables[eventData.ItemEntity].OnHit(eventData.BallEntity, true);
 					break;
 
 				case EventId.LimitEventsBos:
@@ -564,11 +564,11 @@ namespace VisualPinball.Unity
 					break;
 
 				case EventId.FlipperEventsCollide:
-					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
+					_collidables[eventData.ItemEntity].OnCollide(eventData.BallEntity, eventData.FloatParam);
 					break;
 
 				case EventId.SurfaceEventsSlingshot:
-					_slingshots[eventData.ItemEntity].OnSlingshot();
+					_slingshots[eventData.ItemEntity].OnSlingshot(eventData.BallEntity);
 					break;
 
 				default:

@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball hits the hit target.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
 		/// Sets the status of a drop target.
@@ -87,9 +87,9 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 			OnSwitch(true);
 		}
 
