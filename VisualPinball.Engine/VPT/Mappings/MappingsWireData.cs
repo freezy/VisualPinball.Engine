@@ -73,13 +73,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffString("DDIT", IsWideString = true, Pos = 12)]
 		public string DestinationDeviceItem = string.Empty;
 
-		/* Type */
-
-		[BiffInt("TYPE", Pos = 13)]
-		public int Type = WireType.OnOff;
-
-		[BiffInt("PLSE", Pos = 14)]
-		public int Pulse = 10;
+		[BiffInt("PLSE", Pos = 13)]
+		public int PulseDelay = 250;
 
 		#region BIFF
 

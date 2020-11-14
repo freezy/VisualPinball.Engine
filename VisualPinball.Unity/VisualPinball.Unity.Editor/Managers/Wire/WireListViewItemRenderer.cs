@@ -31,8 +31,6 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly string[] OPTIONS_DESTINATION = { "Playfield", "Device" };
 
-		private readonly string[] OPTIONS_WIRE_TYPE = { "On \u2215 Off", "Pulse" };
-
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -46,8 +44,7 @@ namespace VisualPinball.Unity.Editor
 			SourceElement = 2,
 			Destination = 3,
 			DestinationElement = 4,
-			Type = 5,
-			Off = 6
+			PulseDelay = 5,
 		}
 
 		private readonly Dictionary<string, ISwitchAuthoring> _switches;
@@ -88,11 +85,8 @@ namespace VisualPinball.Unity.Editor
 				case WireListColumn.DestinationElement:
 					RenderDestinationElement(tableAuthoring, data, cellRect, updateAction);
 					break;
-				case WireListColumn.Type:
-					RenderType(data, cellRect, updateAction);
-					break;
-				case WireListColumn.Off:
-					RenderOff(data, cellRect, updateAction);
+				case WireListColumn.PulseDelay:
+					RenderPulseDelay(data, cellRect, updateAction);
 					break;
 			}
 		}
@@ -404,25 +398,12 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 		}
 
-		private void RenderType(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			if (wireListData.Destination == WireDestination.Playfield)
+			if (wireListData.Source == SwitchSource.Playfield && _switches.ContainsKey(wireListData.SourcePlayfieldItem.ToLower()))
 			{
-				EditorGUI.BeginChangeCheck();
-				var index = EditorGUI.Popup(cellRect, (int)wireListData.Type, OPTIONS_WIRE_TYPE);
-				if (EditorGUI.EndChangeCheck())
-				{
-					wireListData.Type = index;
-					updateAction(wireListData);
-				}
-			}
-		}
-
-		private void RenderOff(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			if ( wireListData.Destination == WireDestination.Playfield)
-			{
-				if (wireListData.Type == WireType.Pulse)
+				var switchable = _switches[wireListData.SourcePlayfieldItem.ToLower()];
+				if (switchable.Switchable.IsPulseSwitch)
 				{
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
@@ -432,10 +413,10 @@ namespace VisualPinball.Unity.Editor
 					intFieldRect.width -= 25;
 
 					EditorGUI.BeginChangeCheck();
-					var pulse = EditorGUI.IntField(intFieldRect, wireListData.Pulse);
+					var pulse = EditorGUI.IntField(intFieldRect, wireListData.PulseDelay);
 					if (EditorGUI.EndChangeCheck())
 					{
-						wireListData.Pulse = pulse;
+						wireListData.PulseDelay = pulse;
 						updateAction(wireListData);
 					}
 

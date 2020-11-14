@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
 		public string Element;
 
-		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
+		[ManagerListColumn(Order = 4, HeaderName = "Pulse Delay", Width = 100)]
 		public int PulseDelay;
 
 		public string Id;
