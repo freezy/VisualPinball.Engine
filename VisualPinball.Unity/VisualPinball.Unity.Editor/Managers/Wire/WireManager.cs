@@ -18,31 +18,37 @@ using System.Collections.Generic;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// Editor UI for VPE coils
+	/// Editor UI for VPE wirees
 	/// </summary>
 	///
 
-	class CoilManager : ManagerWindow<CoilListData>
+	class WireManager : ManagerWindow<WireListData>
 	{
+		private readonly string RESOURCE_PATH = "Assets/Resources";
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected override string DataTypeName => "Coil";
+		protected override string DataTypeName => "Wire";
 
 		protected override bool DetailsEnabled => false;
 		protected override bool ListViewItemRendererEnabled => true;
 
-		private readonly List<GamelogicEngineCoil> _gleCoils = new List<GamelogicEngineCoil>();
+		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
+		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices = new Dictionary<string, ISwitchDeviceAuthoring>();
+
 		private readonly Dictionary<string, ICoilAuthoring> _coils = new Dictionary<string, ICoilAuthoring>();
 		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices = new Dictionary<string, ICoilDeviceAuthoring>();
 
-		private CoilListViewItemRenderer _listViewItemRenderer;
+		private InputManager _inputManager;
+		private bool _needsAssetRefresh;
+
+		private WireListViewItemRenderer _listViewItemRenderer;
 
 		private class SerializedMappings : ScriptableObject
 		{
@@ -51,15 +57,15 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedMappings _recordMappings;
 
-		[MenuItem("Visual Pinball/Coil Manager", false, 107)]
+		[MenuItem("Visual Pinball/Wire Manager", false, 108)]
 		public static void ShowWindow()
 		{
-			GetWindow<CoilManager>();
+			GetWindow<WireManager>();
 		}
 
 		public override void OnEnable()
 		{
-			titleContent = new GUIContent("Coil Manager", Icons.Coil(IconSize.Small));
+			titleContent = new GUIContent("Wire Manager");
 
 			RowHeight = 22;
 
@@ -68,7 +74,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnFocus()
 		{
-			_listViewItemRenderer = new CoilListViewItemRenderer(_gleCoils, _coils, _coilDevices);
+			_inputManager = new InputManager(RESOURCE_PATH);
+			_listViewItemRenderer = new WireListViewItemRenderer(_switches, _switchDevices, _inputManager, _coils, _coilDevices);
+			_needsAssetRefresh = true;
 
 			base.OnFocus();
 		}
@@ -89,55 +97,51 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
+			if (_needsAssetRefresh)
+			{
+				AssetDatabase.Refresh();
+				_needsAssetRefresh = false;
+			}
+
 			return true;
 		}
 
 		protected override void OnButtonBarGUI()
 		{
-			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
-			{
-				if (_tableAuthoring != null)
-				{
-					RecordUndo("Populate all coil mappings");
-					_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.Table.Coilables, _tableAuthoring.Table.CoilableDevices);
-					Reload();
-				}
-			}
-
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
 				if (_tableAuthoring != null)
 				{
-					if (EditorUtility.DisplayDialog("Coil Manager", "Are you sure want to remove all coil mappings?", "Yes", "Cancel")) {
-						RecordUndo("Remove all coil mappings");
-						_tableAuthoring.Mappings.RemoveAllCoils();
+					if (EditorUtility.DisplayDialog("Wire Manager", "Are you sure want to remove all wire mappings?", "Yes", "Cancel")) {
+						RecordUndo("Remove all wire mappings");
+						_tableAuthoring.Mappings.RemoveAllWires();
 					}
 					Reload();
 				}
 			}
 		}
 
-		protected override void OnListViewItemRenderer(CoilListData data, Rect cellRect, int column)
+		protected override void OnListViewItemRenderer(WireListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, coilListData => {
+			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, wireListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
-				coilListData.Update();
+				wireListData.Update();
 			});
 		}
 
 		#region Data management
-		protected override List<CoilListData> CollectData()
+		protected override List<WireListData> CollectData()
 		{
-			List<CoilListData> data = new List<CoilListData>();
+			List<WireListData> data = new List<WireListData>();
 
-			foreach (var mappingsCoilData in _tableAuthoring.Mappings.Coils)
+			foreach (var mappingsWireData in _tableAuthoring.Mappings.Wires)
 			{
-				data.Add(new CoilListData(mappingsCoilData));
+				data.Add(new WireListData(mappingsWireData));
 			}
 
+			RefreshSwitches();
 			RefreshCoils();
-			RefreshCoilIds();
 
 			return data;
 		}
@@ -146,30 +150,22 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddCoil(new MappingsCoilData());
+			_tableAuthoring.Mappings.AddWire(new MappingsWireData());
 		}
 
-		protected override void RemoveData(string undoName, CoilListData data)
+		protected override void RemoveData(string undoName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.RemoveCoil(data.MappingsCoilData);
+			_tableAuthoring.Mappings.RemoveWire(data.MappingsWireData);
 		}
 
-		protected override void CloneData(string undoName, string newName, CoilListData data)
+		protected override void CloneData(string undoName, string newName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddCoil(new MappingsCoilData
+			_tableAuthoring.Mappings.AddWire(new MappingsWireData
 			{
-				Id = data.Id,
-				Description = data.Description,
-				Destination = data.Destination,
-				PlayfieldItem = data.PlayfieldItem,
-				Device = data.Device,
-				DeviceItem = data.DeviceItem,
-				Type = data.Type,
-				HoldCoilId = data.HoldCoilId
 			});
 		}
 		#endregion
@@ -187,35 +183,43 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 		}
 
+		private void RefreshSwitches()
+		{
+			_switches.Clear();
+			_switchDevices.Clear();
+
+			if (_tableAuthoring != null)
+			{
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>())
+				{
+					_switches.Add(item.Name.ToLower(), item);
+				}
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchDeviceAuthoring>())
+				{
+					_switchDevices.Add(item.Name.ToLower(), item);
+				}
+			}
+		}
+
 		private void RefreshCoils()
 		{
 			_coils.Clear();
 			_coilDevices.Clear();
 
-			if (_tableAuthoring != null) {
+			if (_tableAuthoring != null)
+			{
 
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>()) {
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>())
+				{
 					_coils.Add(item.Name.ToLower(), item);
 				}
 
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>()) {
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>())
+				{
 					_coilDevices.Add(item.Name.ToLower(), item);
 				}
 			}
 		}
-
-		private void RefreshCoilIds()
-		{
-			_gleCoils.Clear();
-			_gleCoils.AddRange(_tableAuthoring.Table.Mappings.GetCoils(GetAvailableEngineCoils()));
-		}
-
-		private GamelogicEngineCoil[] GetAvailableEngineCoils()
-		{
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			return gle == null ? new GamelogicEngineCoil[0] : ((IGamelogicEngineWithCoils) gle.GameEngine).AvailableCoils;
-		}
-
 		#endregion
 
 		#region Undo Redo
@@ -244,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_recordMappings.Table = _tableAuthoring;
 			_recordMappings.Mappings = _tableAuthoring.Mappings;
-
+			
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion

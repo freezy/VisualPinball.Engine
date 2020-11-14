@@ -62,8 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnEnable()
 		{
-			titleContent = new GUIContent("Switch Manager",
-				Icons.Switch(false, size: IconSize.Small));
+			titleContent = new GUIContent("Switch Manager", Icons.Switch(false, size: IconSize.Small));
 
 			RowHeight = 22;
 
