@@ -21,6 +21,7 @@ using System.Reflection;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Resources;
 
 namespace VisualPinball.Unity
 {
@@ -108,7 +109,16 @@ namespace VisualPinball.Unity
 			mf.sharedMesh = mesh;
 
 			// apply material
-			if (ro.Mesh.AnimationFrames.Count > 0) {
+			if (ro.Mesh.AnimationFrames.Count == 1) {
+				var mr = gameObject.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				mr.enabled = ro.IsVisible;
+
+				// const string lerpMatPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Resources/LerpVertexMaterial.mat";
+				// var lerpMat = UnityEngine.Resources.Load<UnityEngine.Material>(lerpMatPath);
+				// mr.materials[0] = lerpMat;
+
+			} else if (ro.Mesh.AnimationFrames.Count > 1) {
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
 				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;

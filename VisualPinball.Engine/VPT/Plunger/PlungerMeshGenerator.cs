@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private int _latheIndices;
 		private int _springIndices;
 
-		private const int PlungerFrameCount = 3;
+		//private const int PlungerFrameCount = 3;
 		private const float DefaultPosition = 20f / 25f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -254,14 +254,12 @@ namespace VisualPinball.Engine.VPT.Plunger
 			var mesh = new Mesh("flat") {
 				Vertices = BuildFlatVertices(0),
 				Indices = new[] {0, 1, 2, 2, 3, 0},
-				AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount),
+				AnimationFrames = new List<Mesh.VertData[]>(1),
 				AnimationDefaultPosition = DefaultPosition
 			};
 
-			for (var i = 0; i < PlungerFrameCount; i++) {
-				var vertices = BuildRodVertices(i);
-				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
-			}
+			var vertices = BuildRodVertices(NumFrames);
+			mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
 
 			return mesh;
 		}
@@ -362,12 +360,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 				}
 			}
 
-			mesh.AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount);
+			mesh.AnimationFrames = new List<Mesh.VertData[]>(1);
 			mesh.AnimationDefaultPosition = DefaultPosition;
-			for (var i = 0; i < PlungerFrameCount; i++) {
-				var vertices = BuildRodVertices(i);
-				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
-			}
+			var vertices = BuildRodVertices(NumFrames);
+			mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
 
 			return mesh;
 		}
@@ -511,12 +507,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 				// }
 			}
 
-			mesh.AnimationFrames = new List<Mesh.VertData[]>(PlungerFrameCount);
+			mesh.AnimationFrames = new List<Mesh.VertData[]>(1);
 			mesh.AnimationDefaultPosition = DefaultPosition;
-			for (var i = 0; i < PlungerFrameCount; i++) {
-				var vertices = BuildSpringVertices(i);
-				mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
-			}
+			var vertices = BuildSpringVertices(NumFrames);
+			mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
 
 			return mesh;
 		}
