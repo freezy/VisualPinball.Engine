@@ -26,7 +26,7 @@ Shader "Visual Pinball/Built-In/LerpVertex"
         {
             float2 uv_MainTex;
             float4 texcoord1 : TEXCOORD1;
-            //float4 texcoord2 : TEXCOORD2;
+            
 
             INTERNAL_DATA
         };
@@ -38,14 +38,10 @@ Shader "Visual Pinball/Built-In/LerpVertex"
 
         fixed4 _Color;
 
-        void vert(inout appdata_full v, out Input o)
+        void vert(inout appdata_full v)
         {
-            UNITY_INITIALIZE_OUTPUT(Input, o);
+            v.vertex.xyz += float3(0, v.texcoord2.y * _Amount, 0);
 
-            v.vertex.xyz += v.texcoord1.xyz * _Amount;
-            //v.normal.xyz += v.texcoord2.xyz * _Amount;
-
-            //v.normal = normalize(v.normal);
         }
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
