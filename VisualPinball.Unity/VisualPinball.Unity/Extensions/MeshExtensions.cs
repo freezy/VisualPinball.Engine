@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 			var unityVertices = unityMesh.vertices;
 			var unityNormals = unityMesh.normals;
 
-			for (int i = 0; i < vpMesh.Vertices.Length; i++) {
+			for (var i = 0; i < vpMesh.Vertices.Length; i++) {
 				var unityVertex = unityVertices[i];
 				var unityNormal = unityNormals[i];
 				var unityUv = unityMesh.uv[i];
@@ -43,24 +43,24 @@ namespace VisualPinball.Unity
 			vpMesh.Indices = unityMesh.triangles;
 
 			if (unityMesh.blendShapeCount > 0) {
-				int animationIndex = unityMesh.GetBlendShapeIndex(AnimationShape);
+				var animationIndex = unityMesh.GetBlendShapeIndex(AnimationShape);
 
 				// use the first blendshape if none with default name
 				if (animationIndex < 0) {
 					animationIndex = 0;
 				}
 
-				Vector3[] deltaVertices = new Vector3[unityMesh.vertexCount];
-				Vector3[] deltaNormals = new Vector3[unityMesh.vertexCount];
+				var deltaVertices = new Vector3[unityMesh.vertexCount];
+				var deltaNormals = new Vector3[unityMesh.vertexCount];
 
-				int frameCount = unityMesh.GetBlendShapeFrameCount(animationIndex);
-				for (int i = 0; i < frameCount; i++) {
+				var frameCount = unityMesh.GetBlendShapeFrameCount(animationIndex);
+				for (var i = 0; i < frameCount; i++) {
 					unityMesh.GetBlendShapeFrameVertices(animationIndex, i, deltaVertices, deltaNormals, null);
 
-					Engine.VPT.Mesh.VertData[] frameData = new Engine.VPT.Mesh.VertData[unityMesh.vertexCount];
-					for (int j = 0; j < unityMesh.vertexCount; j++) {
-						Vector3 vertex = deltaVertices[j] + unityVertices[j];
-						Vector3 normal = deltaNormals[j] + unityNormals[j];
+					var frameData = new Engine.VPT.Mesh.VertData[unityMesh.vertexCount];
+					for (var j = 0; j < unityMesh.vertexCount; j++) {
+						var vertex = deltaVertices[j] + unityVertices[j];
+						var normal = deltaNormals[j] + unityNormals[j];
 						frameData[j] = new Engine.VPT.Mesh.VertData(
 							vertex.x, vertex.y, vertex.z,
 							normal.x, normal.y, normal.z);
@@ -124,22 +124,21 @@ namespace VisualPinball.Unity
 				mesh.SetUVs(2, deltaVertices);
 				mesh.SetUVs(3, deltaNormals);
 
-			} else if (vpMesh.AnimationFrames.Count > 1) {
+			} else if (vpMesh.AnimationFrames.Count > 0) {
 
-				float deltaWeight = 1f / vpMesh.AnimationFrames.Count;
-				Vector3[] deltaVertices = new Vector3[vpMesh.Vertices.Length];
-				Vector3[] deltaNormals = new Vector3[vpMesh.Vertices.Length];
+				var deltaWeight = 1f / vpMesh.AnimationFrames.Count;
+				var deltaVertices = new Vector3[vpMesh.Vertices.Length];
+				var deltaNormals = new Vector3[vpMesh.Vertices.Length];
 
-				float weight = deltaWeight;
+				var weight = deltaWeight;
 				mesh.ClearBlendShapes();
-				for (int i = 0; i < vpMesh.AnimationFrames.Count; i++, weight+= deltaWeight) {
-
-					for (int j = 0; j < vpMesh.Vertices.Length; j++) {
-						deltaVertices[j] = vpMesh.AnimationFrames[i][j].ToUnityVector3() - vertices[j];
-
-						deltaNormals[j] = vpMesh.AnimationFrames[i][j].ToUnityNormalVector3() - normals[j];
+				foreach (var vertData in vpMesh.AnimationFrames) {
+					for (var j = 0; j < vpMesh.Vertices.Length; j++) {
+						deltaVertices[j] = vertData[j].ToUnityVector3() - vertices[j];
+						deltaNormals[j] = vertData[j].ToUnityNormalVector3() - normals[j];
 					}
 					mesh.AddBlendShapeFrame(AnimationShape, weight, deltaVertices, deltaNormals, null);
+					weight += deltaWeight;
 				}
 
 				// HACK this is insane and almost certainly a Unity bug

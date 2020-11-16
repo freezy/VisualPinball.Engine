@@ -114,8 +114,9 @@ namespace VisualPinball.Unity
 				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
 				mr.enabled = ro.IsVisible;
 
-				var lerpMat = new UnityEngine.Material(Shader.Find("Visual Pinball/Built-In/LerpVertex"));
-				mr.sharedMaterials = new[] {lerpMat};
+				// todo find RP-specific shader
+				// var lerpMat = new UnityEngine.Material();
+				// mr.sharedMaterials = new[] {lerpMat};
 
 			} else if (ro.Mesh.AnimationFrames.Count > 1) {
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();

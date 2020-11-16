@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
-		private readonly Dictionary<PbrMaterial, Material> _unityMaterials = new Dictionary<PbrMaterial, Material>();
+		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
 		/// <summary>
 		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
@@ -179,10 +179,10 @@ namespace VisualPinball.Unity
 
 		public void AddMaterial(PbrMaterial vpxMat, Material material)
 		{
-			Material oldMaterial = null;
-			_unityMaterials.TryGetValue(vpxMat, out oldMaterial);
+			UnityEngine.Material oldMaterial = null;
+			_unityMaterials.TryGetValue(vpxMat.Id, out oldMaterial);
 
-			_unityMaterials[vpxMat] = material;
+			_unityMaterials[vpxMat.Id] = material;
 			if (oldMaterial != null) {
 				Destroy(oldMaterial);
 			}
@@ -190,8 +190,8 @@ namespace VisualPinball.Unity
 
 		public Material GetMaterial(PbrMaterial vpxMat)
 		{
-			if (_unityMaterials.ContainsKey(vpxMat)) {
-				return _unityMaterials[vpxMat];
+			if (_unityMaterials.ContainsKey(vpxMat.Id)) {
+				return _unityMaterials[vpxMat.Id];
 			}
 			return null;
 		}
