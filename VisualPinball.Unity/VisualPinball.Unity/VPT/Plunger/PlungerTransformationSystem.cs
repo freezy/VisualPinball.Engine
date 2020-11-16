@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Deformations;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -27,7 +26,7 @@ namespace VisualPinball.Unity
 	internal class PlungerTransformationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
-		private static readonly int WeightValue = Shader.PropertyToID("_Value");
+		private static readonly int Amount = Shader.PropertyToID("_Amount");
 
 		protected override void OnUpdate()
 		{
@@ -43,7 +42,7 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
-				renderMesh.material.SetFloat(WeightValue, weight);
+				renderMesh.material.SetFloat(Amount, weight);
 
 				marker.End();
 
