@@ -69,7 +69,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
 			Init(table);
-			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image), vertexLerp: true);
 			switch (id) {
 				case Flat:
 					var flatMesh = BuildFlatMesh();
@@ -258,8 +258,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 				AnimationDefaultPosition = DefaultPosition
 			};
 
-			var vertices = BuildRodVertices(NumFrames);
-			mesh.AnimationFrames.Add(vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz)).ToArray());
+			var vertices = BuildFlatVertices(NumFrames);
+			var vertDatas = vertices.Select(v => new Mesh.VertData(v.X, v.Y, v.Z, v.Nx, v.Ny, v.Nz));
+			mesh.AnimationFrames.Add(vertDatas.ToArray());
 
 			return mesh;
 		}

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using System.Text;
 using VisualPinball.Engine.Common;
@@ -32,6 +33,8 @@ namespace VisualPinball.Engine.VPT
 		public bool HasMap => Map != null;
 		public bool HasNormalMap => NormalMap != null;
 		public BlendMode MapBlendMode => GetBlendMode();
+
+		public bool VertexLerpWithUvEnabled;
 
 		public Color Color => _material?.BaseColor ?? new Color(0xffffff, ColorFormat.Bgr);
 		public bool IsMetal => _material?.IsMetal ?? false;
@@ -52,17 +55,19 @@ namespace VisualPinball.Engine.VPT
 
 		private readonly Material _material;
 
-		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null)
+		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null, bool vertexLerp = false)
 		{
 			_material = material;
 			Map = map;
 			NormalMap = normalMap;
 			EnvMap = envMap;
+			VertexLerpWithUvEnabled = vertexLerp;
 			Id = string.Join("-", new[] {
 					_material?.Name.ToNormalizedName() ?? NameNoMaterial,
 					Map?.Name.ToNormalizedName() ?? NameNoMap,
 					NormalMap?.Name.ToNormalizedName() ?? NameNoNormalMap,
-					EnvMap?.Name.ToNormalizedName() ?? NameNoEnvMap
+					EnvMap?.Name.ToNormalizedName() ?? NameNoEnvMap,
+					vertexLerp ? "skinned" : string.Empty
 				}
 				.Reverse()
 				.SkipWhile(s => s.StartsWith("__no_"))

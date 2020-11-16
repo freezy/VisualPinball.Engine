@@ -18,6 +18,7 @@ using Unity.Deformations;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using Unity.Rendering;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -26,13 +27,13 @@ namespace VisualPinball.Unity
 	internal class PlungerTransformationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
+		private static readonly int WeightValue = Shader.PropertyToID("_Value");
 
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
 
-			Entities.ForEach((Entity entity, ref PlungerAnimationData animationData,
-				ref DynamicBuffer<BlendShapeWeight> blendShapeWeights) => {
+			Entities.WithoutBurst().ForEach((Entity entity, ref PlungerAnimationData animationData, in RenderMesh renderMesh) => {
 
 				if (!animationData.IsDirty) {
 					return;
@@ -42,9 +43,7 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
-				var blendShapeWeight = blendShapeWeights[0];
-				blendShapeWeight.Value = weight;
-				blendShapeWeights[0] = blendShapeWeight;
+				renderMesh.material.SetFloat(WeightValue, weight);
 
 				marker.End();
 
