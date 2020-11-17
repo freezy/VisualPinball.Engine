@@ -40,6 +40,13 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
+		private static readonly int Amount = Shader.PropertyToID("_Amount");
+
+		private void Start()
+		{
+			UpdateParkPosition(1 - Data.ParkPosition);
+		}
+
 		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
 			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
 			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
@@ -182,8 +189,28 @@ namespace VisualPinball.Unity
 					}
 					break;
 			}
+
+			UpdateParkPosition(1 - Data.ParkPosition);
 		}
 
+		public void UpdateParkPosition(float pos)
+		{
+			switch (Data.Type) {
+				case PlungerType.PlungerTypeFlat: {
+					SetMaterialProperty<PlungerFlatMeshAuthoring>(Amount, pos);
+					break;
+				}
+				case PlungerType.PlungerTypeCustom: {
+					SetMaterialProperty<PlungerRodMeshAuthoring>(Amount, pos);
+					SetMaterialProperty<PlungerSpringMeshAuthoring>(Amount, pos);
+					break;
+				}
+				case PlungerType.PlungerTypeModern: {
+					SetMaterialProperty<PlungerRodMeshAuthoring>(Amount, pos);
+					break;
+				}
+			}
+		}
 
 		private void OnDestroy()
 		{
