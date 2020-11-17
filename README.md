@@ -3,8 +3,7 @@
 
 *A library that implements world's favorite pinball simulator.*
 
-[![build](https://img.shields.io/appveyor/build/freezy/visualpinball-engine?style=flat-square)](https://ci.appveyor.com/project/freezy/visualpinball-engine)
-[![build](https://img.shields.io/appveyor/tests/freezy/visualpinball-engine?compact_message&style=flat-square)](https://ci.appveyor.com/project/freezy/visualpinball-engine)
+[![build](https://github.com/freezy/VisualPinball.Engine/workflows/.github/workflows/VisualPinball.Engine.yml/badge.svg)](https://github.com/freezy/VisualPinball.Engine/actions?query=workflow%3A.github%2Fworkflows%2FVisualPinball.Engine.yml) [![build](https://github.com/freezy/VisualPinball.Engine/workflows/.github/workflows/VisualPinball.Engine.Unity.Documentation.yml/badge.svg)](https://docs.visualpinball.org/)
 
 ## Why?
 
