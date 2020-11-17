@@ -41,6 +41,9 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffString("ENTK", Pos = 2)]
 		public string EntryKicker = string.Empty;
 
+		[BiffString("ENTT", Pos = 8)]
+		public string EntryTrigger = string.Empty;
+
 		[BiffString("EXIT", Pos = 3)]
 		public string ExitKicker = string.Empty;
 

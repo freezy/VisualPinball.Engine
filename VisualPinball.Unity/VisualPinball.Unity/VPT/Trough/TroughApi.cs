@@ -26,9 +26,14 @@ namespace VisualPinball.Unity
 	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
-		/// The entry kicker is where the ball rolls into the trough.
+		/// The ball manager.
 		/// </summary>
-		private KickerApi _entryKicker;
+		private BallManager BallManager;
+
+		/// <summary>
+		/// The kicker or trigger where the ball rolls into the trough.
+		/// </summary>
+		private IApiHittable _entryHittable;
 
 		/// <summary>
 		/// The exit kicker is where new balls are created when we get the eject
@@ -158,12 +163,12 @@ namespace VisualPinball.Unity
 		/// If there's room in the trough remove the ball from play
 		/// and trigger any switches which it would roll over
 		/// </summary>
-		private void OnEntryKickerHit(object sender, HitEventArgs args)
+		private void OnEntryHit(object sender, HitEventArgs args)
 		{
 			if (_ballCount < Data.BallCount) {
-				Logger.Info("Draining ball.");
+				Logger.Info("Draining ball into trough.");
 
-				(sender as KickerApi)?.DestroyBall();
+				BallManager.DestroyEntity(args.BallEntity);
 
 				int openSwitches = Data.BallCount - _ballCount;
 
@@ -182,14 +187,20 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			BallManager = ballManager;
+
 			// playfield elements
-			_entryKicker = TableApi.Kicker(Data.EntryKicker);
 			_exitKicker = TableApi.Kicker(Data.ExitKicker);
 			_jamTrigger = TableApi.Trigger(Data.JamSwitch);
 
-			// setup entry kicker handler
-			if (_entryKicker != null) {
-				_entryKicker.Hit += OnEntryKickerHit;
+			// setup entry handler
+			_entryHittable = TableApi.Kicker(Data.EntryKicker);
+			if (_entryHittable == null) {
+				_entryHittable = TableApi.Trigger(Data.EntryTrigger);
+			}
+
+			if (_entryHittable != null) {
+				_entryHittable.Hit += OnEntryHit;
 			}
 
 			// in case we need also need to handle jam events here, uncomment
@@ -229,8 +240,8 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("Destroying trough!");
 
-			if (_entryKicker != null) {
-				_entryKicker.Hit -= OnEntryKickerHit;
+			if (_entryHittable != null) {
+				_entryHittable.Hit -= OnEntryHit;
 			}
 
 			// in case we need also need to handle jam events here, uncomment
