@@ -16,7 +16,6 @@
 
 using Unity.Entities;
 using Unity.Profiling;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
