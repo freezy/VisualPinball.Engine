@@ -21,7 +21,6 @@ using System.Reflection;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Resources;
 
 namespace VisualPinball.Unity
 {
