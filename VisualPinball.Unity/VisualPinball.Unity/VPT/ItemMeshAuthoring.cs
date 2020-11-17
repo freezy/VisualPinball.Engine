@@ -109,16 +109,7 @@ namespace VisualPinball.Unity
 			mf.sharedMesh = mesh;
 
 			// apply material
-			if (ro.Mesh.AnimationFrames.Count == 1) {
-				var mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
-				mr.enabled = ro.IsVisible;
-
-				// todo find RP-specific shader
-				// var lerpMat = new UnityEngine.Material();
-				// mr.sharedMaterials = new[] {lerpMat};
-
-			} else if (ro.Mesh.AnimationFrames.Count > 1) {
+			if (ro.Mesh.AnimationFrames.Count > 1) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
 				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;
