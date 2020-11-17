@@ -40,11 +40,13 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
-		private Vector3 EntryPickerPos(float height) => string.IsNullOrEmpty(Data.EntryKicker)
+		private Vector3 EntryPos(float height) => string.IsNullOrEmpty(Data.EntryKicker)
+			? string.IsNullOrEmpty(Data.EntryTrigger)
 			? Vector3.zero
+			: Table.Trigger(Data.EntryTrigger).Data.Center.ToUnityVector3(height)
 			: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(height);
 
-		private Vector3 ExitKickerPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
+		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
 			? Vector3.zero
 			: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(height);
 
@@ -62,8 +64,8 @@ namespace VisualPinball.Unity
 		{
 			if (!string.IsNullOrEmpty(Data.EntryKicker) && !string.IsNullOrEmpty(Data.ExitKicker)) {
 				var ltw = GetComponentInParent<TableAuthoring>().transform;
-				var entryPos = EntryPickerPos(0f);
-				var exitPos = ExitKickerPos(0f);
+				var entryPos = EntryPos(0f);
+				var exitPos = ExitPos(0f);
 				var entryWorldPos = ltw.TransformPoint(entryPos);
 				var exitWorldPos = ltw.TransformPoint(exitPos);
 				var localPos = transform.localPosition;
@@ -77,7 +79,7 @@ namespace VisualPinball.Unity
 		public void UpdatePosition()
 		{
 			// place trough between entry and exit kicker
-			var pos = (EntryPickerPos(75f) + ExitKickerPos(75f)) / 2;
+			var pos = (EntryPos(75f) + ExitPos(75f)) / 2;
 			transform.localPosition = pos;
 		}
 
