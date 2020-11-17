@@ -152,13 +152,15 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void ItemDataSlider(string label, ref float field, float leftVal, float rightVal, bool dirtyMesh = true)
+		public void ItemDataSlider(string label, ref float field, float leftVal, float rightVal, bool dirtyMesh = true, Action<float, float> onChanged = null)
 		{
 			EditorGUI.BeginChangeCheck();
 			var val = EditorGUILayout.Slider(label, field, leftVal, rightVal);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishEdit(label, dirtyMesh);
+				var fieldBefore = field;
 				field = val;
+				onChanged?.Invoke(fieldBefore, field);
 			}
 		}
 
