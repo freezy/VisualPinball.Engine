@@ -55,14 +55,14 @@ namespace VisualPinball.Engine.VPT
 
 		private readonly Material _material;
 
-		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null, bool vertexLerp = false)
+		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null, bool vertexLerp = false, string id = null)
 		{
 			_material = material;
 			Map = map;
 			NormalMap = normalMap;
 			EnvMap = envMap;
 			VertexLerpWithUvEnabled = vertexLerp;
-			Id = string.Join("-", new[] {
+			Id = id ?? string.Join("-", new[] {
 					_material?.Name.ToNormalizedName() ?? NameNoMaterial,
 					Map?.Name.ToNormalizedName() ?? NameNoMap,
 					NormalMap?.Name.ToNormalizedName() ?? NameNoNormalMap,
