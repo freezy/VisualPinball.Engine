@@ -96,9 +96,12 @@ namespace VisualPinball.Engine.VPT.Surface
 				var dx = pv1.X - pv2.X;
 				var dy = pv1.Y - pv2.Y;
 
-				var invLen = 1.0f / MathF.Sqrt(dx * dx + dy * dy);
-
-				rgNormal[i] = new Vertex2D {X = dy * invLen, Y = dx * invLen};
+				if (dx != 0.0f || dy != 0.0f) {
+					var invLen = 1.0f / MathF.Sqrt(dx * dx + dy * dy);
+					rgNormal[i] = new Vertex2D { X = dy * invLen, Y = dx * invLen };
+				} else {
+					rgNormal[i] = new Vertex2D { X = 0.0f, Y = 0.0f };
+				}
 			}
 
 			// draw top
@@ -180,9 +183,12 @@ namespace VisualPinball.Engine.VPT.Surface
 				var dx = pv1.X - pv2.X;
 				var dy = pv1.Y - pv2.Y;
 
-				var invLen = 1.0f / MathF.Sqrt(dx * dx + dy * dy);
-
-				rgNormal[i] = new Vertex2D {X = dy * invLen, Y = dx * invLen};
+				if (dx != 0.0f || dy != 0.0f) {
+					var invLen = 1.0f / MathF.Sqrt(dx * dx + dy * dy);
+					rgNormal[i] = new Vertex2D { X = dy * invLen, Y = dx * invLen };
+				} else {
+					rgNormal[i] = new Vertex2D { X = 0.0f, Y = 0.0f };
+				}
 			}
 
 			var bottom = _data.HeightBottom * table.GetScaleZ() + table.TableHeight;
