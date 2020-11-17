@@ -424,7 +424,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
 						Nx = c.nx * sn,
 						Ny = c.ny,
-						Nz = -c.nx * cs,
+						Nz = c.nx * cs,
 						Tu = tu,
 						Tv = tv
 					};
@@ -576,7 +576,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					    _zScale,
 					Nx = sn,
 					Ny = 0.0f,
-					Nz = -cs,
+					Nz = cs,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.85f
 				};
