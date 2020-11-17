@@ -19,9 +19,6 @@
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Unity.Deformations, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\Plugins\.unity\Unity.Deformations.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\Plugins\.unity\UnityEngine.dll</HintPath>
     </Reference>

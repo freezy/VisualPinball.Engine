@@ -17,8 +17,6 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
-using Unity.Transforms;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -49,17 +47,6 @@ namespace VisualPinball.Unity
 			dstManager.AddComponentData(entity, new PlungerAnimationData {
 				CurrentFrame = 0
 			});
-
-			// var archeType = dstManager.Get
-			// Entity entity2 = dstManager.CreateEntity(entityArchetype);
-			// dstManager.SetComponentData(entity2, new Translation { Value = translation });
-			// dstManager.SetComponentData(entity2, new Scale { Value = treeScale });
-			// dstManager.SetSharedComponentData( entity2,
-			// 	new RenderMesh {
-			// 		mesh = treesComponentList[randomValue].mesh,
-			// 		material = treesComponentList[randomValue].materials[p],
-			// 		subMesh = p
-			// 	});
 
 			// add mesh data
 			var meshBuffer = dstManager.AddBuffer<PlungerMeshBufferElement>(entity);
