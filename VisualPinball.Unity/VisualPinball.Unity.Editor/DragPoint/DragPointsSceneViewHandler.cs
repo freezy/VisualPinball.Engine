@@ -145,13 +145,16 @@ namespace VisualPinball.Unity.Editor
 
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
+					var minDist = float.MaxValue;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						var segments = controlPointsSegments[controlPoint.Index].ToArray();
 						if (segments.Length > 1) {
 							Handles.color = _handler.DragPointEditable.GetDragPointExposition().Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
 							Handles.DrawAAPolyLine(CurveWidth, segments);
 							var closestToPath = HandleUtility.ClosestPointToPolyLine(segments);
-							if (_handler.CurveTravellerControlPointIdx == -1 && closestToPath == _handler.CurveTravellerPosition) {
+							var dist = (closestToPath - _handler.CurveTravellerPosition).magnitude;
+							if (dist < minDist) {
+								minDist = dist;
 								_handler.CurveTravellerControlPointIdx = controlPoint.Index;
 							}
 						}
