@@ -80,17 +80,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
 				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table.TableHeight);
-				if (_data.Name == "Rubber4") {
-					Logger.Info("[rubber] GetTransformationMatrix(1): height = {0}", Position.Y,
-						_data.Height + table.TableHeight);
-				}
 
 			} else {
 				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
-				if (_data.Name == "Rubber4") {
-					Logger.Info("[rubber] GetTransformationMatrix(2): height = {0}",
-						_data.Height * table.GetScaleZ() + table.TableHeight);
-				}
 			}
 
 			vertMatrix.Multiply(tempMat);
