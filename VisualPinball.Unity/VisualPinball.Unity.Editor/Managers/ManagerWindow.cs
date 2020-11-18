@@ -60,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected bool IsTableSelected => _listView != null && _tableAuthoring != null;
+
 		private float _rowHeight;
 
 		protected T _selectedItem;
@@ -67,14 +69,14 @@ namespace VisualPinball.Unity.Editor
 		private List<T> _data = new List<T>();
 		private ManagerListView<T> _listView;
 		private TreeViewState _treeViewState;
-		private bool _renaming = false;
-		private string _renameBuffer = "";
+		private bool _renaming;
+		private string _renameBuffer = string.Empty;
 		[SerializeField] private string _forceSelectItemWithName;
-		private bool _isImplAddNewData = false;
-		private bool _isImplRemoveData = false;
-		private bool _isImplCloneData = false;
-		private bool _isImplMoveData = false;
-		private bool _isImplRenameExistingItem = false;
+		private bool _isImplAddNewData;
+		private bool _isImplRemoveData;
+		private bool _isImplCloneData;
+		private bool _isImplMoveData;
+		private bool _isImplRenameExistingItem;
 		private Vector2 _scrollPos = Vector2.zero;
 
 		protected void Reload()
@@ -133,6 +135,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.BeginHorizontal();
+			EditorGUI.BeginDisabledGroup(!IsTableSelected);
 			if (_isImplAddNewData && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
 				Add();
 			}
@@ -154,6 +157,7 @@ namespace VisualPinball.Unity.Editor
 				Clone();
 			}
 			OnButtonBarGUI();
+			EditorGUI.EndDisabledGroup();
 			EditorGUILayout.EndHorizontal();
 
 			if (_isImplMoveData && _selectedItem != null) {

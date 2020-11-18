@@ -110,14 +110,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
-				if (_tableAuthoring != null)
-				{
-					if (EditorUtility.DisplayDialog("Wire Manager", "Are you sure want to remove all wire mappings?", "Yes", "Cancel")) {
-						RecordUndo("Remove all wire mappings");
-						_tableAuthoring.Mappings.RemoveAllWires();
-					}
-					Reload();
+				if (EditorUtility.DisplayDialog("Wire Manager", "Are you sure want to remove all wire mappings?", "Yes", "Cancel")) {
+					RecordUndo("Remove all wire mappings");
+					_tableAuthoring.Mappings.RemoveAllWires();
 				}
+				Reload();
 			}
 		}
 

@@ -107,24 +107,18 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
-				if (_tableAuthoring != null)
-				{
-					RecordUndo("Populate all switch mappings");
-					_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables, _tableAuthoring.Table.SwitchableDevices);
-					Reload();
-				}
+				RecordUndo("Populate all switch mappings");
+				_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables, _tableAuthoring.Table.SwitchableDevices);
+				Reload();
 			}
 
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
-				if (_tableAuthoring != null)
-				{
-					if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
-						RecordUndo("Remove all switch mappings");
-						_tableAuthoring.Mappings.RemoveAllSwitches();
-					}
-					Reload();
+				if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
+					RecordUndo("Remove all switch mappings");
+					_tableAuthoring.Mappings.RemoveAllSwitches();
 				}
+				Reload();
 			}
 		}
 
