@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -568,7 +569,7 @@ namespace VisualPinball.Engine.Math.Triangulator
 		[Conditional("DEBUG")]
 		private static void Log(string format, params object[] parameters)
 		{
-			System.Console.WriteLine(format, parameters);
+			Console.WriteLine(format, parameters);
 		}
 
 		#endregion
