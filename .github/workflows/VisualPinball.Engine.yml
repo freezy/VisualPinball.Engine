@@ -12,11 +12,11 @@ jobs:
         run: ls -lart VisualPinball.Engine.Test/.bin/Release/netcoreapp3.1
         shell: bash
       - name: Test
-        run: dotnet test -r win-x64 //p:CollectCoverage=true //p:CoverletOutputFormat="lcov" //p:CoverletOutput="../lcov" //p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" //p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
-        shell: bash
+        run: dotnet test -r win-x64 /p:CollectCoverage=true /p:CoverletOutputFormat=\"lcov\" /p:CoverletOutput=../lcov /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
+        shell: cmd
       - name: Publish Coverage
         run: codecov -f "lcov.opencover.xml"
-        shell: bash
+        shell: cmd
 
   visualpinball-engine-win-x86:
     runs-on: windows-latest
