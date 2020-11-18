@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnEnable()
 		{
-			titleContent = new GUIContent("Wire Manager");
+			titleContent = new GUIContent("Wire Manager", Icons.Plug(IconSize.Small));
 
 			RowHeight = 22;
 
@@ -248,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_recordMappings.Table = _tableAuthoring;
 			_recordMappings.Mappings = _tableAuthoring.Mappings;
-			
+
 			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion
