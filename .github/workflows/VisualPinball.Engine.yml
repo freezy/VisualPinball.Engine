@@ -12,7 +12,7 @@ jobs:
         run: ls -lart VisualPinball.Engine.Test/.bin/Release/netcoreapp3.1
         shell: bash
       - name: Test
-        run: dotnet test -r win-x64 /p:CollectCoverage="true"
+        run: dotnet test -r win-x64 //p:CollectCoverage="true"
         shell: bash
       - name: Publish Coverage
         run: codecov -f "lcov.opencover.xml"
