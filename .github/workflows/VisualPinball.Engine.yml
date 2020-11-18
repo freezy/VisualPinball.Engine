@@ -14,9 +14,12 @@ jobs:
       - name: Test
         run: dotnet test -r win-x64 /p:CollectCoverage=true /p:CoverletOutputFormat=\"lcov\" /p:CoverletOutput=../lcov /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
         shell: cmd
+      - name: Download Codecov Bash
+        run: bash <(curl -s https://codecov.io/bash)
+        shell: bash
       - name: Publish Coverage
         run: codecov -f "lcov.opencover.xml"
-        shell: cmd
+        shell: bash
 
   visualpinball-engine-win-x86:
     runs-on: windows-latest
