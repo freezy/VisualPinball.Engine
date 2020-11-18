@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 		private const string LightName = "light";
 		private const string PlayfieldName = "playfield";
 		private const string PlungerName = "plunger";
+		private const string PlugName = "plug";
 		private const string PrimitiveName = "primitive";
 		private const string RampName = "ramp";
 		private const string RubberName = "rubber";
@@ -61,8 +62,8 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName, PlungerName,
-			PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName, TriggerName,
-			TroughName, SwitchNcName, SwitchNoName
+			PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName,
+			TriggerName, TroughName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -101,6 +102,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
+		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
