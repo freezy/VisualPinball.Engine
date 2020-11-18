@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils
 	{
-		public string Name => "Default Game Engine";
+		public string Name { get; } = "Default Game Engine";
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";

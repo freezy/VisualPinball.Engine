@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Entities;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -37,6 +36,7 @@ namespace VisualPinball.Unity
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;
+		private readonly SwitchHandler _switchHandler;
 
 		protected ItemApi(T item, Player player)
 		{
@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			_player = player;
+			_switchHandler = new SwitchHandler(player, (IGamelogicEngineWithSwitches)player.GameEngine);
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
@@ -61,33 +62,17 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private List<SwitchConfig> _switchIds;
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected DeviceSwitch CreateSwitch(bool isPulseSwitch) => new DeviceSwitch(isPulseSwitch, _gamelogicEngineWithSwitches);
+		protected DeviceSwitch CreateSwitch(bool isPulseSwitch) => new DeviceSwitch(isPulseSwitch, _gamelogicEngineWithSwitches, _player);
 
-		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay)
-		{
-			if (_switchIds == null) {
-				_switchIds = new List<SwitchConfig>();
-			}
-			_switchIds.Add(new SwitchConfig(switchId, isPulseSwitch, pulseDelay));
-		}
+		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay) =>
+			_switchHandler.AddSwitchId(switchId, isPulseSwitch, pulseDelay);
 
-		protected void OnSwitch(bool normallyClosed)
-		{
-			if (_gamelogicEngineWithSwitches != null && _switchIds != null) {
-				foreach (var switchConfig in _switchIds) {
-					_gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, normallyClosed);
+		internal void AddWireDest(WireDestConfig wireConfig, bool isPulseSwitch) =>
+			_switchHandler.AddWireDest(wireConfig, isPulseSwitch);
 
-					// time switch opening if closed and pulse
-					if (normallyClosed && switchConfig.IsPulseSwitch) {
-						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
-							() => _gamelogicEngineWithSwitches.Switch(switchConfig.SwitchId, false));
-					}
-				}
-			}
-		}
+		protected void OnSwitch(bool normallyClosed) => _switchHandler.OnSwitch(normallyClosed);
 
 		#endregion
 	}

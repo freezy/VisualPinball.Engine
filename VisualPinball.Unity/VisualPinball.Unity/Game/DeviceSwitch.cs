@@ -14,63 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using NLog;
-using Unity.Entities;
-
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Devices switches are switches withing a device that are not directly
+	/// linked to any game item.
+	/// </summary>
 	public class DeviceSwitch : IApiSwitch
 	{
 		private readonly bool _isPulseSwitch;
-		private List<SwitchConfig> _engineSwitchIds;
-		private readonly IGamelogicEngineWithSwitches _engine;
-		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(bool isPulseSwitch, IGamelogicEngineWithSwitches engine)
+		public DeviceSwitch(bool isPulseSwitch, IGamelogicEngineWithSwitches engine, Player player)
 		{
 			_isPulseSwitch = isPulseSwitch;
-			_engine = engine;
+			_switchHandler = new SwitchHandler(player, engine);
 		}
 
-		public void AddSwitchId(string switchId, int pulseDelay)
-		{
-			if (_engineSwitchIds == null) {
-				_engineSwitchIds = new List<SwitchConfig>();
-			}
+		public void AddSwitchId(string switchId, int pulseDelay) => _switchHandler.AddSwitchId(switchId, _isPulseSwitch, pulseDelay);
 
-			_engineSwitchIds.Add(new SwitchConfig(switchId, _isPulseSwitch, pulseDelay));
-		}
+		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig, _isPulseSwitch);
 
-		public void SetSwitch(bool closed)
-		{
-			if (_engine != null && _engineSwitchIds != null) {
-				foreach (var switchConfig in _engineSwitchIds) {
-					_engine.Switch(switchConfig.SwitchId, closed);
+		public void SetSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 
-					// Schedule switch opening if closed and pulse
-					if (closed && switchConfig.IsPulseSwitch) {
-						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
-							() => _engine.Switch(switchConfig.SwitchId, false));
-					}
-				}
-			} else {
-				Logger.Warn("Cannot trigger device switch.");
-			}
-		}
-
-		public void ScheduleSwitch(bool closed, int delay)
-		{
-			if (_engine != null && _engineSwitchIds != null) {
-				foreach (var switchConfig in _engineSwitchIds) {
-					SimulationSystemGroup.ScheduleSwitch(delay,
-						() => _engine.Switch(switchConfig.SwitchId, closed));
-				}
-			}
-			else {
-				Logger.Warn("Cannot schedule device switch.");
-			}
-		}
+		public void ScheduleSwitch(bool closed, int delay) => _switchHandler.ScheduleSwitch(closed, delay);
 	}
 }
