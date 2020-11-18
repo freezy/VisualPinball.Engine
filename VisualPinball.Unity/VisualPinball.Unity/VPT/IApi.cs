@@ -55,6 +55,7 @@ namespace VisualPinball.Unity
 	internal interface IApiSwitch
 	{
 		void AddSwitchId(string switchId, int pulseDelay);
+		void AddWireDest(WireDestConfig wireConfig);
 	}
 
 	internal interface IApiSwitchDevice
@@ -67,8 +68,18 @@ namespace VisualPinball.Unity
 		IApiCoil Coil(string coilId);
 	}
 
-	internal interface IApiCoil
+	internal interface IApiCoil : IApiWireDest
 	{
 		void OnCoil(bool enabled, bool isHoldCoil);
+	}
+
+	internal interface IApiWireDest
+	{
+		void OnChange(bool enabled);
+	}
+
+	internal interface IApiWireDeviceDest
+	{
+		IApiWireDest Wire(string coilId);
 	}
 }

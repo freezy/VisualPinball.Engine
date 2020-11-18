@@ -76,6 +76,24 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffInt("PLSE", Pos = 13)]
 		public int PulseDelay = 250;
 
+		public string Src { get {
+			switch (Source) {
+				case SwitchSource.Playfield: return SourcePlayfieldItem;
+				case SwitchSource.Device: return $"{SourceDevice}:{SourceDeviceItem}";
+				case SwitchSource.InputSystem: return $"{SourceInputActionMap}:{SourceInputAction}";
+				case SwitchSource.Constant: return "<constant value>";
+				default: return "<unknown source>";
+			}
+		}}
+
+		public string Dst { get {
+			switch (Destination) {
+				case WireDestination.Playfield: return DestinationPlayfieldItem;
+				case WireDestination.Device: return $"{DestinationDevice}:{DestinationDeviceItem}";
+				default: return "<unknown destination>";
+			}
+		}}
+
 		#region BIFF
 
 		static MappingsWireData()

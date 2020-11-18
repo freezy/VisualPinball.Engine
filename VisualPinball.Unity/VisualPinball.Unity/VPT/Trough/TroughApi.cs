@@ -23,7 +23,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice
+	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// The entry kicker is where the ball rolls into the trough.
@@ -115,6 +115,8 @@ namespace VisualPinball.Unity
 			}
 			return null;
 		}
+
+		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
 
 		/// <summary>
 		/// Create a ball in the trough without triggering extra events
@@ -259,5 +261,7 @@ namespace VisualPinball.Unity
 		{
 			_troughApi.OnEjectCoil(closed);
 		}
+
+		public void OnChange(bool enabled) => OnCoil(enabled, false);
 	}
 }

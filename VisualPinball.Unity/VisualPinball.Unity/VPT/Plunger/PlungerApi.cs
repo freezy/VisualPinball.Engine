@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoil
+	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoil, IApiWireDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -99,6 +99,8 @@ namespace VisualPinball.Unity
 				Fire();
 			}
 		}
+
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
 		#region Events
 

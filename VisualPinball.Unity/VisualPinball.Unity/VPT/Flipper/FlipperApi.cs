@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
+		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil, IApiWireDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -86,6 +86,7 @@ namespace VisualPinball.Unity
 		}
 
 		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig, Item.IsPulseSwitch);
 
 		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
 		{
@@ -107,6 +108,7 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
 		#region Events
 

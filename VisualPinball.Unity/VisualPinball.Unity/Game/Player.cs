@@ -71,6 +71,8 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
 		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
 		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
+		private readonly Dictionary<string, IApiWireDest> _wires = new Dictionary<string, IApiWireDest>();
+		private readonly Dictionary<string, IApiWireDeviceDest> _wireDevices = new Dictionary<string, IApiWireDeviceDest>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -78,13 +80,17 @@ namespace VisualPinball.Unity
 		private InputManager _inputManager;
 
 		[NonSerialized]
-		private readonly Dictionary<string, List<string>> _keyAssignments = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, List<string>> _keySwitchAssignments = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
 
 		public Player()
 		{
 			_initializables.Add(TableApi);
 		}
+
+		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
+		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
 
 		#region Lifecycle
 
@@ -115,7 +121,7 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
-			if (_keyAssignments.Count > 0) {
+			if (_keySwitchAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
 			}
 			if (_coilAssignments.Count > 0) {
@@ -146,6 +152,9 @@ namespace VisualPinball.Unity
 			// hook up mapping configuration
 			SetupSwitchMapping();
 			SetupCoilMapping();
+			SetupWireMapping();
+
+			GameEngine?.OnInit(TableApi, BallManager);
 		}
 
 		#endregion
@@ -161,6 +170,7 @@ namespace VisualPinball.Unity
 			_hittables[entity] = bumperApi;
 			_switches[bumper.Name] = bumperApi;
 			_coils[bumper.Name] = bumperApi;
+			_wires[bumper.Name] = bumperApi;
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -174,6 +184,7 @@ namespace VisualPinball.Unity
 			_collidables[entity] = flipperApi;
 			_switches[flipper.Name] = flipperApi;
 			_coils[flipper.Name] = flipperApi;
+			_wires[flipper.Name] = flipperApi;
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -210,6 +221,7 @@ namespace VisualPinball.Unity
 			_hittables[entity] = kickerApi;
 			_switches[kicker.Name] = kickerApi;
 			_coils[kicker.Name] = kickerApi;
+			_wires[kicker.Name] = kickerApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -220,6 +232,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
 			_coils[plunger.Name] = plungerApi;
+			_wires[plunger.Name] = plungerApi;
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
@@ -286,6 +299,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(troughApi);
 			_switchDevices[trough.Name] = troughApi;
 			_coilDevices[trough.Name] = troughApi;
+			_wireDevices[trough.Name] = troughApi;
 		}
 
 		#endregion
@@ -342,7 +356,7 @@ namespace VisualPinball.Unity
 			if (GameEngine is IGamelogicEngineWithSwitches) {
 
 				var config = Table.Mappings;
-				_keyAssignments.Clear();
+				_keySwitchAssignments.Clear();
 				foreach (var switchData in config.Data.Switches) {
 					switch (switchData.Source) {
 
@@ -356,10 +370,10 @@ namespace VisualPinball.Unity
 						}
 
 						case SwitchSource.InputSystem:
-							if (!_keyAssignments.ContainsKey(switchData.InputAction)) {
-								_keyAssignments[switchData.InputAction] = new List<string>();
+							if (!_keySwitchAssignments.ContainsKey(switchData.InputAction)) {
+								_keySwitchAssignments[switchData.InputAction] = new List<string>();
 							}
-							_keyAssignments[switchData.InputAction].Add(switchData.Id);
+							_keySwitchAssignments[switchData.InputAction].Add(switchData.Id);
 							break;
 
 						case SwitchSource.Playfield:
@@ -374,7 +388,6 @@ namespace VisualPinball.Unity
 							var deviceSwitch = device.Switch(switchData.DeviceItem);
 							if (deviceSwitch != null) {
 								deviceSwitch.AddSwitchId(switchData.Id, 0);
-								Debug.Log($"Adding switch {switchData.Id} to device {switchData.Device} ({switchData.DeviceItem})");
 
 							} else {
 								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
@@ -398,11 +411,73 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				if (_keyAssignments.Count > 0) {
+				if (_keySwitchAssignments.Count > 0) {
 					_inputManager.Enable(HandleKeyInput);
 				}
 			}
-			GameEngine.OnInit(TableApi, BallManager);
+		}
+
+		private void SetupWireMapping()
+		{
+			var config = Table.Mappings;
+			_keyWireAssignments.Clear();
+			foreach (var wireData in config.Data.Wires) {
+				switch (wireData.Source) {
+
+					case SwitchSource.Playfield
+						when !string.IsNullOrEmpty(wireData.SourcePlayfieldItem)
+						     && _switches.ContainsKey(wireData.SourcePlayfieldItem):
+					{
+						_switches[wireData.SourcePlayfieldItem].AddWireDest(new WireDestConfig(wireData));
+						break;
+					}
+
+					case SwitchSource.InputSystem:
+						if (!_keyWireAssignments.ContainsKey(wireData.SourceInputAction)) {
+							_keyWireAssignments[wireData.SourceInputAction] = new List<WireDestConfig>();
+						}
+						_keyWireAssignments[wireData.SourceInputAction].Add(new WireDestConfig(wireData));
+						break;
+
+					case SwitchSource.Playfield:
+						Logger.Warn($"Cannot find wire switch \"{wireData.Src}\" on playfield!");
+						break;
+
+					case SwitchSource.Device
+						when !string.IsNullOrEmpty(wireData.SourceDevice)
+						     && _switchDevices.ContainsKey(wireData.SourceDevice):
+					{
+						var device = _switchDevices[wireData.SourceDevice];
+						var deviceSwitch = device.Switch(wireData.SourceDeviceItem);
+						if (deviceSwitch != null) {
+							deviceSwitch.AddWireDest(new WireDestConfig(wireData));
+							Logger.Info($"Wiring device switch \"{wireData.Src}\" to \"{wireData.Dst}\"");
+
+						} else {
+							Logger.Warn($"Unknown switch \"{wireData.Src}\" to wire to \"{wireData.Dst}\".");
+						}
+						break;
+					}
+					case SwitchSource.Device when string.IsNullOrEmpty(wireData.SourceDevice):
+						Logger.Warn($"Switch device not set for switch \"{wireData.Src}\".");
+						break;
+
+					case SwitchSource.Device when !_switchDevices.ContainsKey(wireData.SourceDevice):
+						Logger.Warn($"Unknown switch device \"{wireData.SourceDevice}\" to wire to \"{wireData.Dst}\".");
+						break;
+
+					case SwitchSource.Constant:
+						break;
+
+					default:
+						Logger.Warn($"Unknown wire switch source \"{wireData.Source}\".");
+						break;
+				}
+			}
+
+			if (_keySwitchAssignments.Count > 0) {
+				_inputManager.Enable(HandleKeyInput);
+			}
 		}
 
 		private void HandleKeyInput(object obj, InputActionChange change)
@@ -412,12 +487,25 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction) obj;
-					if (_keyAssignments.ContainsKey(action.name)) {
-						foreach (var switchId in _keyAssignments[action.name]) {
+					if (_keySwitchAssignments.ContainsKey(action.name)) {
+						foreach (var switchId in _keySwitchAssignments[action.name]) {
 							engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
 						}
 					} else {
 						Logger.Info($"Unmapped input command \"{action.name}\".");
+					}
+
+					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
+						foreach (var wireConfig in _keyWireAssignments[action.name]) {
+							switch (wireConfig.Destination) {
+								case WireDestination.Playfield:
+									Wire(wireConfig.PlayfieldItem)?.OnChange(change == InputActionChange.ActionStarted);
+									break;
+
+								case WireDestination.Device:
+									break;
+							}
+						}
 					}
 					break;
 			}
@@ -443,7 +531,6 @@ namespace VisualPinball.Unity
 				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
 			}
 		}
-
 
 		#endregion
 

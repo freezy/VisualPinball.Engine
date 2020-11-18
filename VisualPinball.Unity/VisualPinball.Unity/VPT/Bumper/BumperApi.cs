@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiWireDest
 	{
 
 		/// <summary>
@@ -38,10 +38,15 @@ namespace VisualPinball.Unity
 		}
 
 		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig, Item.IsPulseSwitch);
 
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			// bumper coils are currently triggered automatically on hit
+		}
+
+		void IApiWireDest.OnChange(bool enabled)
+		{
 		}
 
 		#region Events
