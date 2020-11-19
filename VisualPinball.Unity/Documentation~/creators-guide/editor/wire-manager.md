@@ -26,7 +26,7 @@ The **Source** column defines the type of source you are connecting to. There ar
 - *Playfield* lets you select any game item that qualifies as a source from the playfield.
 - *Input System* lets you select an input action from a pre-defined list, e.g. cabinet switches.
 - *Constant* sets the destination to a constant value.
-- *Device* lets you select a source device. Such devices are mechanisms that include multiple sources, i.e. [troughs](../manual/mechanisms/troughs.md).
+- *Device* lets you select a source device. Such devices are mechanisms that include multiple sources, for example [troughs](../manual/mechanisms/troughs.md).
 
 ### Source Element
 
@@ -45,7 +45,7 @@ Finally, if **Constant** is selected, you select the value that will be permanen
 Under **Destination** you can select the type of the element that will *receive* the switch changes. There are two types to choose from:
 
 - *Playfield* lets you select any game item that qualifies as a destination from the playfield
-- *Device* lets you choose a destination device. Such devices are mechanisms that include multiple coils or lamps, i.e. [troughs](../manual/mechanisms/troughs.md).
+- *Device* lets you choose a destination device. Such devices are mechanisms that include multiple coils or lamps, for example [troughs](../manual/mechanisms/troughs.md).
 
 ### Destination Element
 
