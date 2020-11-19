@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Mappings
 {
@@ -40,6 +41,25 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
 			ValidateTableData(writtenTable.Mappings.Data);
+		}
+
+		[Test]
+		public void ShouldReturnEmptyIfEmpty()
+		{
+			var table = new TableBuilder().Build();
+			table.Mappings.IsEmpty().Should().BeTrue();
+		}
+
+		[Test]
+		public void ShouldReturnNotEmptyIfNoEmpty()
+		{
+			var tableS = new TableBuilder().Build();
+			tableS.Mappings.Data.AddSwitch(new MappingsSwitchData());
+			tableS.Mappings.IsEmpty().Should().BeFalse();
+
+			var tableC = new TableBuilder().Build();
+			tableC.Mappings.Data.AddCoil(new MappingsCoilData());
+			tableC.Mappings.IsEmpty().Should().BeFalse();
 		}
 
 		private static void ValidateTableData(MappingsData data)
