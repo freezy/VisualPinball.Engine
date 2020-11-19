@@ -1,0 +1,148 @@
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
+
+namespace VisualPinball.Engine.Test.VPT.Mappings
+{
+	public class CoilPopulationTests
+	{
+		[Test]
+		public void ShouldMapACoilWithTheSameName()
+		{
+			var table = new TableBuilder()
+				.AddFlipper("left_flipper")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "left_flipper"}
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Should().HaveCount(1);
+			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
+			table.Mappings.Data.Coils[0].Id.Should().Be("left_flipper");
+			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
+		}
+
+		[Test]
+		public void ShouldNotMapACoilWithADifferentName()
+		{
+			var table = new TableBuilder()
+				.AddFlipper("left_flipper")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "left_flipper_"}
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+			table.Mappings.Data.Coils.Should().HaveCount(1);
+			table.Mappings.Data.Coils[0].Id.Should().Be("left_flipper_");
+			table.Mappings.Data.Coils[0].PlayfieldItem.Should().BeEmpty();
+		}
+
+		[Test]
+		public void ShouldMapACoilByHint()
+		{
+			var table = new TableBuilder()
+				.AddFlipper("left_flipper")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "foobar", PlayfieldItemHint = "left_flipper"}
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Should().HaveCount(1);
+			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
+			table.Mappings.Data.Coils[0].Id.Should().Be("foobar");
+			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
+		}
+
+		[Test]
+		public void ShouldMapAHoldCoilByHint()
+		{
+			var table = new TableBuilder()
+				.AddFlipper("left_flipper")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "left_flipper_power", PlayfieldItemHint = "left_flipper"},
+				new GamelogicEngineCoil {Id = "left_flipper_hold",  MainCoilIdOfHoldCoil = "left_flipper_power"},
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Should().HaveCount(1);
+			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
+			table.Mappings.Data.Coils[0].Id.Should().Be("left_flipper_power");
+			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
+			table.Mappings.Data.Coils[0].HoldCoilId.Should().Be("left_flipper_hold");
+		}
+
+		[Test]
+		public void ShouldMapAHoldCoilAsMainCoilIfHintedMainCoilNotFound()
+		{
+			var table = new TableBuilder()
+				.AddFlipper("left_flipper")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "left_flipper_power", PlayfieldItemHint = "left_flipper"},
+				new GamelogicEngineCoil {Id = "left_flipper_hold", MainCoilIdOfHoldCoil = "foobar"},
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Should().HaveCount(2);
+			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
+			table.Mappings.Data.Coils[0].Id.Should().Be("left_flipper_power");
+			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
+			table.Mappings.Data.Coils[0].HoldCoilId.Should().BeEmpty();
+
+			table.Mappings.Data.Coils[1].Id.Should().Be("left_flipper_hold");
+			table.Mappings.Data.Coils[1].PlayfieldItem.Should().BeEmpty();
+			table.Mappings.Data.Coils[1].HoldCoilId.Should().BeEmpty();
+		}
+
+		[Test]
+		public void ShouldMapADeviceCoilByHint()
+		{
+			var table = new TableBuilder()
+				.AddTrough("my_trough")
+				.Build();
+
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "eject_trough", DeviceHint = "my_trough", DeviceItemHint = "eject"}
+			};
+
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Should().HaveCount(1);
+			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Device);
+			table.Mappings.Data.Coils[0].Id.Should().Be("eject_trough");
+			table.Mappings.Data.Coils[0].Device.Should().Be("my_trough");
+			table.Mappings.Data.Coils[0].DeviceItem.Should().Be("eject");
+		}
+	}
+}

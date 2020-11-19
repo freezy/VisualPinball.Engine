@@ -188,6 +188,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
 		/// <param name="tableCoils">List of coils on the playfield</param>
+		/// <param name="tableCoilDevices">List of coil devices in the table</param>
 		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, IEnumerable<ICoilable> tableCoils, IEnumerable<ICoilableDevice> tableCoilDevices)
 		{
 			var coils = tableCoils

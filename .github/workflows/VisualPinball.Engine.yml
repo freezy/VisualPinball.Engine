@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x' 
+          dotnet-version: '3.1.x'
       - uses: nuget/setup-nuget@v1
       - name: Build
         run: dotnet build -c Release -r win-x64
@@ -16,6 +16,10 @@ jobs:
         shell: bash
       - name: Test
         run: dotnet test -r win-x64 /p:CollectCoverage=true /p:CoverletOutputFormat=\"lcov\" /p:CoverletOutput=../lcov /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
+        # local report:
+        #  dotnet test -r win-x64 /p:CollectCoverage=true /p:CoverletOutputFormat=\"opencover\" /p:CoverletOutput=../lcov /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
+        #  dotnet tool install -g dotnet-reportgenerator-globaltool
+        #  reportgenerator -reports:lcov.opencover.xml -targetdir:coveragereport -reporttypes:Html
         shell: cmd
       - name: Publish Coverage
         run: bash <(curl -s https://codecov.io/bash)
@@ -27,7 +31,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x' 
+          dotnet-version: '3.1.x'
       - uses: nuget/setup-nuget@v1
       - name: Build
         run: dotnet build -c Release -r win-x86
@@ -44,7 +48,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x' 
+          dotnet-version: '3.1.x'
       - uses: nuget/setup-nuget@v1
       - name: Build
         run: dotnet build -c Release -r osx-x64
@@ -59,7 +63,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x' 
+          dotnet-version: '3.1.x'
       - uses: nuget/setup-nuget@v1
       - name: Build
         run: dotnet build -c Release -r linux-x64
