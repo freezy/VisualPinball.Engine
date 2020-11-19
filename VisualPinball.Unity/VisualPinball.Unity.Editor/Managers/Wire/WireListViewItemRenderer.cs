@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	public class WireListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_SOURCE = { "Input System", "Playfield", "Constant", "Device" };
-		private readonly string[] OPTIONS_SOURCE_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
+		private readonly string[] OPTIONS_SOURCE_CONSTANT = { "On", "Off" };
 
 		private readonly string[] OPTIONS_DESTINATION = { "Playfield", "Device" };
 

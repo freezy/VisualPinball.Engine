@@ -38,15 +38,13 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
 		/// </summary>
-		/// <param name="switchId">ID expected by the gamelogic engine</param>
-		/// <param name="isPulseSwitch">If true, automatically send close after <see cref="pulseDelay"/> ms.</param>
-		/// <param name="pulseDelay">If pulse, send close after this value in milliseconds.</param>
-		public void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay)
+		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
+		public void AddSwitchId(SwitchConfig switchConfig)
 		{
 			if (_switchIds == null) {
 				_switchIds = new List<SwitchConfig>();
 			}
-			_switchIds.Add(new SwitchConfig(switchId, isPulseSwitch, pulseDelay));
+			_switchIds.Add(switchConfig);
 		}
 
 		/// <summary>
@@ -54,13 +52,12 @@ namespace VisualPinball.Unity
 		/// a coil within a coil device.
 		/// </summary>
 		/// <param name="wireConfig">Configuration which game item to link to</param>
-		/// <param name="isPulseSwitch">If true, automatically send close after <see cref="WireDestConfig.PulseDelay"/> ms.</param>
-		public void AddWireDest(WireDestConfig wireConfig, bool isPulseSwitch)
+		public void AddWireDest(WireDestConfig wireConfig)
 		{
 			if (_wires == null) {
 				_wires = new List<WireDestConfig>();
 			}
-			_wires.Add(wireConfig.WithPulseSource(isPulseSwitch));
+			_wires.Add(wireConfig);
 		}
 
 		/// <summary>
