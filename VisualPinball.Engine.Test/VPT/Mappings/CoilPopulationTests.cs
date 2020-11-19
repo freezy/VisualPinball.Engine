@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Mappings
@@ -32,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "left_flipper"}
+				new GamelogicEngineCoil {Id = "left_flipper", Description = "Left Flipper"}
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -40,6 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Mappings.Data.Coils.Should().HaveCount(1);
 			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
 			table.Mappings.Data.Coils[0].Id.Should().Be("left_flipper");
+			table.Mappings.Data.Coils[0].Description.Should().Be("Left Flipper");
 			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
 		}
 
@@ -143,6 +146,19 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Mappings.Data.Coils[0].Id.Should().Be("eject_trough");
 			table.Mappings.Data.Coils[0].Device.Should().Be("my_trough");
 			table.Mappings.Data.Coils[0].DeviceItem.Should().Be("eject");
+		}
+
+		[Test]
+		public void ShouldReturnCustomCoilsSorted()
+		{
+			var table = new TableBuilder().Build();
+			table.Mappings.Data.AddCoil(new MappingsCoilData {Id = "zzz"});
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil {Id = "yyy" }
+			};
+			var coils = table.Mappings.GetCoils(gameEngineCoils).ToArray();
+			coils[0].Id.Should().Be("yyy");
+			coils[1].Id.Should().Be("zzz");
 		}
 	}
 }
