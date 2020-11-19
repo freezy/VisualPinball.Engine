@@ -120,6 +120,7 @@ namespace VisualPinball.Unity
 		{
 			Mappings.Coils = mappings.Coils.ToArray();
 			Mappings.Switches = mappings.Switches.ToArray();
+			Mappings.Wires = mappings.Wires.ToArray();
 		}
 
 		public void MarkDirty<T>(string name) where T : IItem
