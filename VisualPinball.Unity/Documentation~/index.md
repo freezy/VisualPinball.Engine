@@ -6,7 +6,7 @@ description: Visual Pinball for Unity - Documentation, Guides and Tutorials.
 <center>
 Welcome to the documentation of the
 
-![Visual Pinball Engine](vpe.svg)
+<img width="80%" alt="Visual Pinball Engine" src="vpe.svg" style="margin: 25px 0" class="logo" />
 
 [Start here with the creator's guide](xref:vpe-overview).
 

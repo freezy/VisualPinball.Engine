@@ -1,6 +1,6 @@
 $(document).ready(function() {
         //find all images, but not the logo, and add the lightbox
-        $('img').not('#logo').each(function(){
+        $('img').not('.logo').each(function(){
             var $img = $(this);
             var filename = $img.attr('src')
             //add cursor
