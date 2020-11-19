@@ -53,7 +53,7 @@ Finally, if **Constant** is selected, you choose the value that will be permanen
 
 ### Pulse Delay
 
-Internally, VPX connects switches to events. For example, a trigger on the playfield has a `Hit` event, which occurs when the ball rolls into the trigger's collision zone, and an `UnHit` event when the ball leaves that zone. These two events close and open the trigger's switch.
+Internally, VPE connects switches to events. For example, a trigger on the playfield has a `Hit` event, which occurs when the ball rolls into the trigger's collision zone, and an `UnHit` event when the ball leaves that zone. These two events close and open the trigger's switch.
 
 However, not all mechanisms behave like that. For example a spinner emits a single `Spin` event. So to prevent the switch from being closed indefinitely VPE automatically re-opens it after a given delay.
 
