@@ -17,6 +17,7 @@
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -56,6 +57,16 @@ namespace VisualPinball.Engine.VPT.Table
 			};
 
 			_table.Add(new Flipper.Flipper(data));
+			return this;
+		}
+
+		public TableBuilder AddTrough(string name)
+		{
+			var data = new TroughData($"GameItem{_gameItem++}") {
+				Name = name
+			};
+
+			_table.Add(new Trough.Trough(data));
 			return this;
 		}
 
