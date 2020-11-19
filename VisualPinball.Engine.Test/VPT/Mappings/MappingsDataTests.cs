@@ -107,6 +107,22 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Coils[5].DeviceItem.Should().Be("eject");
 			data.Coils[5].Type.Should().Be(CoilType.SingleWound);
 			data.Coils[5].HoldCoilId.Should().Be("");
+
+			data.Wires.Length.Should().Be(2);
+
+			data.Wires[0].Description.Should().Be("Left Flipper Input Activate Bumper");
+			data.Wires[0].Source.Should().Be(SwitchSource.InputSystem);
+			data.Wires[0].SourceInputActionMap.Should().Be("Cabinet Switches");
+			data.Wires[0].SourceInputAction.Should().Be("Left Flipper");
+			data.Wires[0].Destination.Should().Be(WireDestination.Playfield);
+			data.Wires[0].DestinationPlayfieldItem.Should().Be("Bumper1");
+
+			data.Wires[1].Description.Should().Be("Bumper1 Activate Bumper2");
+			data.Wires[1].Source.Should().Be(SwitchSource.Playfield);
+			data.Wires[1].SourcePlayfieldItem.Should().Be("Bumper1");
+			data.Wires[1].Destination.Should().Be(WireDestination.Playfield);
+			data.Wires[1].DestinationPlayfieldItem.Should().Be("Bumper2");
+			data.Wires[1].PulseDelay.Should().Be(200);
 		}
 	}
 }
