@@ -31,9 +31,9 @@ namespace VisualPinball.Unity
 			_switchHandler = new SwitchHandler(player, engine);
 		}
 
-		public void AddSwitchId(string switchId, int pulseDelay) => _switchHandler.AddSwitchId(switchId, _isPulseSwitch, pulseDelay);
+		public void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig.WithPulse(_isPulseSwitch));
 
-		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig, _isPulseSwitch);
+		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 
 		public void SetSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 

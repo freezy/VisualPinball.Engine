@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitch
 	{
-		void AddSwitchId(string switchId, int pulseDelay);
+		void AddSwitchId(SwitchConfig switchConfig);
 		void AddWireDest(WireDestConfig wireConfig);
 	}
 

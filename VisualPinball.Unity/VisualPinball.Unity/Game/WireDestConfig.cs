@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 
 namespace VisualPinball.Unity
 {
-	public class WireDestConfig
+	public struct WireDestConfig
 	{
 		public readonly int Destination;
 		public readonly string PlayfieldItem;
@@ -35,9 +34,10 @@ namespace VisualPinball.Unity
 			Device = data.DestinationDevice;
 			DeviceItem = data.DestinationDeviceItem;
 			PulseDelay = data.PulseDelay;
+			IsPulseSource = false;
 		}
 
-		public WireDestConfig WithPulseSource(bool isPulseSource)
+		public WireDestConfig WithPulse(bool isPulseSource)
 		{
 			IsPulseSource = isPulseSource;
 			return this;

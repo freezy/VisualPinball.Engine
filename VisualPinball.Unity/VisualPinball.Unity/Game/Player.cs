@@ -124,8 +124,8 @@ namespace VisualPinball.Unity
 			if (_keySwitchAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
 			}
-			if (_coilAssignments.Count > 0) {
-				(GameEngine as IGamelogicEngineWithCoils).OnCoilChanged -= HandleCoilEvent;
+			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
 			}
 
 			foreach (var i in _apis) {
@@ -304,7 +304,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Mapping
+		#region Mappings
 
 		private void SetupCoilMapping()
 		{
@@ -365,7 +365,7 @@ namespace VisualPinball.Unity
 							     && _switches.ContainsKey(switchData.PlayfieldItem):
 						{
 							var element = _switches[switchData.PlayfieldItem];
-							element.AddSwitchId(switchData.Id, switchData.PulseDelay);
+							element.AddSwitchId(new SwitchConfig(switchData));
 							break;
 						}
 
@@ -387,7 +387,7 @@ namespace VisualPinball.Unity
 							var device = _switchDevices[switchData.Device];
 							var deviceSwitch = device.Switch(switchData.DeviceItem);
 							if (deviceSwitch != null) {
-								deviceSwitch.AddSwitchId(switchData.Id, 0);
+								deviceSwitch.AddSwitchId(new SwitchConfig(switchData));
 
 							} else {
 								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
@@ -482,14 +482,15 @@ namespace VisualPinball.Unity
 
 		private void HandleKeyInput(object obj, InputActionChange change)
 		{
-			var engineWithSwitches = GameEngine as IGamelogicEngineWithSwitches;
 			switch (change) {
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction) obj;
 					if (_keySwitchAssignments.ContainsKey(action.name)) {
-						foreach (var switchId in _keySwitchAssignments[action.name]) {
-							engineWithSwitches.Switch(switchId,change == InputActionChange.ActionStarted);
+						if (GameEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
+							foreach (var switchId in _keySwitchAssignments[action.name]) {
+								engineWithSwitches.Switch(switchId, change == InputActionChange.ActionStarted);
+							}
 						}
 					} else {
 						Logger.Info($"Unmapped input command \"{action.name}\".");

@@ -14,19 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.VPT.Mappings;
+
 namespace VisualPinball.Unity
 {
-	public readonly struct SwitchConfig
+	public struct SwitchConfig
 	{
 		public readonly string SwitchId;
 		public readonly int PulseDelay;
-		public readonly bool IsPulseSwitch;
+		public bool IsPulseSwitch;
 
-		public SwitchConfig(string switchId, bool isPulseSwitch, int pulseDelay)
+		public SwitchConfig(MappingsSwitchData switchData)
 		{
-			SwitchId = switchId;
-			PulseDelay = pulseDelay;
+			SwitchId = switchData.Id;
+			IsPulseSwitch = false;
+			PulseDelay = switchData.PulseDelay;
+		}
+
+		public SwitchConfig WithPulse(bool isPulseSwitch)
+		{
 			IsPulseSwitch = isPulseSwitch;
+			return this;
 		}
 	}
 }

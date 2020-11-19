@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
@@ -76,6 +77,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffInt("PLSE", Pos = 13)]
 		public int PulseDelay = 250;
 
+		[ExcludeFromCodeCoverage]
 		public string Src { get {
 			switch (Source) {
 				case SwitchSource.Playfield: return SourcePlayfieldItem;
@@ -86,6 +88,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 			}
 		}}
 
+		[ExcludeFromCodeCoverage]
 		public string Dst { get {
 			switch (Destination) {
 				case WireDestination.Playfield: return DestinationPlayfieldItem;

@@ -20,9 +20,8 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiWireDest
+	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
-
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -37,17 +36,20 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiSwitch.AddSwitchId(string switchId, int pulseDelay) => AddSwitchId(switchId, Item.IsPulseSwitch, pulseDelay);
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig, Item.IsPulseSwitch);
+		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
-			// bumper coils are currently triggered automatically on hit
+			if (enabled) {
+				var bumperData = EntityManager.GetComponentData<BumperStaticData>(Entity);
+				var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(bumperData.RingEntity);
+				ringAnimation.IsHit = true;
+				EntityManager.SetComponentData(bumperData.RingEntity, ringAnimation);
+			}
 		}
 
-		void IApiWireDest.OnChange(bool enabled)
-		{
-		}
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
 		#region Events
 

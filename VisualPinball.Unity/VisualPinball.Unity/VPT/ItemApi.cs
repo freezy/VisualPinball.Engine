@@ -66,11 +66,9 @@ namespace VisualPinball.Unity
 
 		protected DeviceSwitch CreateSwitch(bool isPulseSwitch) => new DeviceSwitch(isPulseSwitch, _gamelogicEngineWithSwitches, _player);
 
-		protected void AddSwitchId(string switchId, bool isPulseSwitch, int pulseDelay) =>
-			_switchHandler.AddSwitchId(switchId, isPulseSwitch, pulseDelay);
+		protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
 
-		internal void AddWireDest(WireDestConfig wireConfig, bool isPulseSwitch) =>
-			_switchHandler.AddWireDest(wireConfig, isPulseSwitch);
+		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 
 		protected void OnSwitch(bool normallyClosed) => _switchHandler.OnSwitch(normallyClosed);
 
