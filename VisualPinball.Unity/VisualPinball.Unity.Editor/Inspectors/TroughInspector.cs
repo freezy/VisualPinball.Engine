@@ -17,49 +17,22 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TroughAuthoring))]
 	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
 	{
-		static GUIContent[] s_popupOptions = {
-			new GUIContent("Entry Kicker"),
-			new GUIContent("Entry Trigger"),
-		};
-
-		private int m_entryOption = 0;
-
-		protected override void OnEnable()
-		{
-			if (string.IsNullOrEmpty(Data.EntryKicker)) {
-				m_entryOption = 1;
-			}
-			else {
-				m_entryOption = 0;
-			}
-
-			base.OnEnable();
-		}
-
 		public override void OnInspectorGUI()
 		{
-			EditorGUILayout.BeginHorizontal();
-			m_entryOption = EditorGUILayout.Popup(m_entryOption, s_popupOptions);
-			if (m_entryOption > 0) {
-				ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("", "entryTrigger", ref Data.EntryTrigger);
-			}
-			else {
-				ItemReferenceField<KickerAuthoring, Kicker, KickerData>("", "entryKicker", ref Data.EntryKicker);
-			}
-			EditorGUILayout.EndHorizontal();
-
-			ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", "exitKicker", ref Data.ExitKicker);
-			ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("Jam Switch", "jamSwitch", ref Data.JamSwitch);
+			ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntryTrigger, n => Data.EntryTrigger = n);
+			// ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", "exitKicker", ref Data.ExitKicker);
+			// ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("Jam Switch", "jamSwitch", ref Data.JamSwitch);
+			ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
+			ObjectReferenceField<TriggerAuthoring>("Jam Switch", "Triggers", "None (Trigger)", "JamSwitch", Data.JamSwitch, n => Data.JamSwitch = n);
 
 			ItemDataField("Max Balls", ref Data.BallCount, false);
 			ItemDataField("Switch Count", ref Data.SwitchCount, false);
