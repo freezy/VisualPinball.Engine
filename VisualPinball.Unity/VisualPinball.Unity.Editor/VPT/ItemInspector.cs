@@ -344,29 +344,36 @@ namespace VisualPinball.Unity.Editor
 
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
 			var objectFieldButton = GUI.skin.GetStyle("ObjectFieldButton");
+			var suffixButtonPos = new Rect(pos.xMax - 19f, pos.y + 1, 19f, pos.height - 2);
 
 			EditorGUIUtility.SetIconSize(new Vector2(12f, 12f));
 			if (Event.current.type == EventType.MouseDown && pos.Contains(Event.current.mousePosition)) {
-				if (_itemPickDropdownState == null) {
-					_itemPickDropdownState = new AdvancedDropdownState();
+
+				if (obj != null && !suffixButtonPos.Contains(Event.current.mousePosition)) {
+					EditorGUIUtility.PingObject(obj.gameObject);
+
+				} else {
+					if (_itemPickDropdownState == null) {
+						_itemPickDropdownState = new AdvancedDropdownState();
+					}
+
+					var dropdown = new ItemSearchableDropdown<T>(
+						_itemPickDropdownState,
+						_table,
+						pickerLabel,
+						item => {
+							if (item is MonoBehaviour mb) {
+								_objItems[cacheKey] = mb;
+							}
+							onSelected(item.Name);
+						}
+					);
+					dropdown.Show(pos);
 				}
 
-				var dropdown = new ItemSearchableDropdown<T>(
-					_itemPickDropdownState,
-					_table,
-					pickerLabel,
-					item => {
-						if (item is MonoBehaviour mb) {
-							_objItems[cacheKey] = mb;
-						}
-						onSelected(item.Name);
-					}
-				);
-				dropdown.Show(pos);
 			}
 			if (Event.current.type == EventType.Repaint) {
 				EditorStyles.objectField.Draw(pos, content, id, DragAndDrop.activeControlID == id, pos.Contains(Event.current.mousePosition));
-				var suffixButtonPos = new Rect(pos.xMax - 19f, pos.y, 19f, pos.height);
 				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
 			}
 		}
