@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 		internal readonly Dictionary<string, TriggerApi> Triggers = new Dictionary<string, TriggerApi>();
+		internal readonly Dictionary<string, TroughApi> Troughs = new Dictionary<string, TroughApi>();
 		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
 
 		public TableApi(Player player)
@@ -124,6 +125,13 @@ namespace VisualPinball.Unity
 		/// <param name="name">Name of the trigger</param>
 		/// <returns>Trigger or `null` if no trigger with that name exists.</returns>
 		public TriggerApi Trigger(string name) => Triggers.ContainsKey(name) ? Triggers[name] : null;
+
+		/// <summary>
+		/// Returns a trough by name.
+		/// </summary>
+		/// <param name="name">Name of the trough</param>
+		/// <returns>Trigger or `null` if no trough with that name exists.</returns>
+		public TroughApi Trough(string name) => Troughs.ContainsKey(name) ? Troughs[name] : null;
 
 		#region Events
 

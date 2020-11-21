@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Editor
@@ -33,6 +34,19 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Max Balls", ref Data.BallCount, false);
 			ItemDataField("Switch Count", ref Data.SwitchCount, false);
 			ItemDataField("Settle Time", ref Data.SettleTime, false);
+
+			if (Application.isPlaying) {
+				EditorGUILayout.Separator();
+				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+
+				var troughApi = _table.GetComponent<Player>().TableApi.Trough(Item.Name);
+
+				EditorGUI.BeginDisabledGroup(true);
+				for (var i = 0; i < troughApi.NumBallSwitches; i++) {
+					EditorGUILayout.Toggle("Ball " + i, troughApi.BallSwitch(i).IsClosed);
+				}
+				EditorGUI.EndDisabledGroup();
+			}
 		}
 
 		protected override void FinishEdit(string label, bool dirtyMesh = true)
