@@ -302,6 +302,7 @@ namespace VisualPinball.Unity
 		public void RegisterTrough(Trough trough, GameObject go)
 		{
 			var troughApi = new TroughApi(trough, this);
+			TableApi.Troughs[trough.Name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
 			_switchDevices[trough.Name] = troughApi;

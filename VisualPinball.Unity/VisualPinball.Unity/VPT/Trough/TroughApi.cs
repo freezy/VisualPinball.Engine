@@ -25,6 +25,9 @@ namespace VisualPinball.Unity
 {
 	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
+		public int NumBallSwitches => Data.SwitchCount;
+		public DeviceSwitch BallSwitch(int n) => _ballSwitches[n];
+
 		/// <summary>
 		/// The ball manager.
 		/// </summary>
