@@ -28,12 +28,16 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The ball manager.
 		/// </summary>
-		private BallManager BallManager;
+		private BallManager _ballManager;
 
 		/// <summary>
-		/// The kicker or trigger where the ball rolls into the trough.
+		/// The switch that indicates that a ball has rolled into the switch.
 		/// </summary>
-		private IApiHittable _entryHittable;
+		///
+		/// <remarks>
+		/// This immediately triggers a ball destruction, since the balls aren't physically kept in the trough.
+		/// </remarks>
+		private IApiSwitch _entrySwitch;
 
 		/// <summary>
 		/// The exit kicker is where new balls are created when we get the eject
@@ -163,12 +167,12 @@ namespace VisualPinball.Unity
 		/// If there's room in the trough remove the ball from play
 		/// and trigger any switches which it would roll over
 		/// </summary>
-		private void OnEntryHit(object sender, HitEventArgs args)
+		private void OnEntrySwitch(object sender, SwitchEventArgs args)
 		{
 			if (_ballCount < Data.BallCount) {
 				Logger.Info("Draining ball into trough.");
 
-				BallManager.DestroyEntity(args.BallEntity);
+				_ballManager.DestroyEntity(args.BallEntity);
 
 				int openSwitches = Data.BallCount - _ballCount;
 
@@ -187,20 +191,16 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			BallManager = ballManager;
+			_ballManager = ballManager;
 
 			// playfield elements
 			_exitKicker = TableApi.Kicker(Data.ExitKicker);
-			_jamTrigger = TableApi.Trigger(Data.JamSwitch);
+			_jamTrigger = TableApi.Trigger(Data.JamTrigger);
+			_entrySwitch = TableApi.Switch(Data.EntrySwitch);
 
 			// setup entry handler
-			_entryHittable = TableApi.Kicker(Data.EntryKicker);
-			if (_entryHittable == null) {
-				_entryHittable = TableApi.Trigger(Data.EntryTrigger);
-			}
-
-			if (_entryHittable != null) {
-				_entryHittable.Hit += OnEntryHit;
+			if (_entrySwitch != null) {
+				_entrySwitch.Switch += OnEntrySwitch;
 			}
 
 			// in case we need also need to handle jam events here, uncomment
@@ -240,8 +240,8 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("Destroying trough!");
 
-			if (_entryHittable != null) {
-				_entryHittable.Hit -= OnEntryHit;
+			if (_entrySwitch != null) {
+				_entrySwitch.Switch -= OnEntrySwitch;
 			}
 
 			// in case we need also need to handle jam events here, uncomment

@@ -58,6 +58,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<RotationEventArgs> LimitEos;
 
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
 		// todo
 		public event EventHandler Timer;
 
@@ -99,6 +104,7 @@ namespace VisualPinball.Unity
 			} else {
 				if (_isEos && isHoldCoil) {
 					_isEos = false;
+					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 					OnSwitch(false);
 					RotateToStart();
 				}
@@ -126,8 +132,9 @@ namespace VisualPinball.Unity
 		{
 			if (direction) {
 				_isEos = true;
-				OnSwitch(true);
 				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
+				Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+				OnSwitch(true);
 
 			} else {
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });

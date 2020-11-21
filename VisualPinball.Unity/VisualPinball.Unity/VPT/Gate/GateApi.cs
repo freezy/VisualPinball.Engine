@@ -62,6 +62,11 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public event EventHandler<RotationEventArgs> LimitEos;
 
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
 		// todo
 		public event EventHandler Timer;
 
@@ -82,6 +87,7 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 			OnSwitch(true);
 		}
 

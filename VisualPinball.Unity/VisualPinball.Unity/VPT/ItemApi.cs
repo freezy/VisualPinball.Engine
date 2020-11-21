@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 
-		protected void OnSwitch(bool normallyClosed) => _switchHandler.OnSwitch(normallyClosed);
+		protected void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 
 		#endregion
 	}

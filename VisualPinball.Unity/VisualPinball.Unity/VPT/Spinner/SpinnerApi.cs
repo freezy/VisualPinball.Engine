@@ -57,6 +57,11 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public event EventHandler Spin;
 
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
 		// todo
 		public event EventHandler Timer;
 
@@ -77,6 +82,7 @@ namespace VisualPinball.Unity
 		void IApiSpinnable.OnSpin()
 		{
 			Spin?.Invoke(this, EventArgs.Empty);
+			Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
 			OnSwitch(true);
 		}
 

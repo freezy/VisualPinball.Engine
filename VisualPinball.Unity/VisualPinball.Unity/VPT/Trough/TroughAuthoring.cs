@@ -27,6 +27,8 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
@@ -40,11 +42,18 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
-		private Vector3 EntryPos(float height) => string.IsNullOrEmpty(Data.EntryKicker)
-			? string.IsNullOrEmpty(Data.EntryTrigger)
-			? Vector3.zero
-			: Table.Trigger(Data.EntryTrigger).Data.Center.ToUnityVector3(height)
-			: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(height);
+		private Vector3 EntryPos(float height)
+		{
+			if (string.IsNullOrEmpty(Data.EntrySwitch)) {
+				return Vector3.zero;
+			}
+			if (Table.Has<Trigger>(Data.EntrySwitch)) {
+				return Table.Trigger(Data.EntrySwitch).Data.Center.ToUnityVector3(height);
+			}
+			return Table.Has<Kicker>(Data.EntrySwitch)
+				? Table.Kicker(Data.EntrySwitch).Data.Center.ToUnityVector3(height)
+				: Vector3.zero;
+		}
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
 			? Vector3.zero

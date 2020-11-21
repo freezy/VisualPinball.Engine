@@ -58,8 +58,28 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitch
 	{
+		/// <summary>
+		/// Set up this switch to send its status to the gamelogic engine with the given ID.
+		/// </summary>
+		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
 		void AddSwitchId(SwitchConfig switchConfig);
+
+		/// <summary>
+		/// Set up this switch to directly trigger another game item (coil or lamp), or
+		/// a coil within a coil device.
+		/// </summary>
+		/// <param name="wireConfig">Configuration which game item to link to</param>
 		void AddWireDest(WireDestConfig wireConfig);
+
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		///
+		/// <remarks>
+		/// If the ball triggered the switch, you'll get the ball entity as well.
+		/// Note that for pulse switches, you currently only get the "closed" event.
+		/// </remarks>
+		event EventHandler<SwitchEventArgs> Switch;
 	}
 
 	internal interface IApiSwitchDevice
