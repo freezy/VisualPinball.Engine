@@ -48,6 +48,9 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffMappingsWireAttribute("MWIR", TagAll = true, Pos = 1002)]
 		public MappingsWireData[] Wires = Array.Empty<MappingsWireData>();
 
+		[BiffMappingsLampAttribute("MLMP", TagAll = true, Pos = 1003)]
+		public MappingsLampData[] Lamps = Array.Empty<MappingsLampData>();
+
 		#region BIFF
 
 		static MappingsData()
@@ -128,6 +131,25 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public void RemoveAllWires()
 		{
 			Wires = Array.Empty<MappingsWireData>();
+		}
+
+		#endregion
+
+		#region Lamps
+
+		public void AddLamp(MappingsLampData data)
+		{
+			Lamps = Lamps.Append(data).ToArray();
+		}
+
+		public void RemoveLamp(MappingsLampData data)
+		{
+			Lamps = Lamps.Except(new[] { data }).ToArray();
+		}
+
+		public void RemoveAllLamps()
+		{
+			Lamps = Array.Empty<MappingsLampData>();
 		}
 
 		#endregion

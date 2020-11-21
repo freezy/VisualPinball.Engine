@@ -190,4 +190,10 @@ namespace VisualPinball.Engine.VPT
 		public const int OnOff = 0;
 		public const int Pulse = 1;
 	}
+
+	public static class LampDestination
+	{
+		public const int Playfield = 0;
+		public const int Device = 1;
+	}
 }
