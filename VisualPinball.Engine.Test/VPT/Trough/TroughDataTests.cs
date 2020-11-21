@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 			data.SettleTime.Should().Be(112);
 			data.EntryKicker.Should().Be("BallDrain");
 			data.ExitKicker.Should().Be("BallRelease");
-			data.JamSwitch.Should().Be("TroughJam");
+			data.JamTrigger.Should().Be("TroughJam");
 		}
 	}
 }

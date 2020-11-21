@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using Unity.Entities;
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
@@ -24,6 +27,7 @@ namespace VisualPinball.Unity
 	{
 		private readonly bool _isPulseSwitch;
 		private readonly SwitchHandler _switchHandler;
+		public event EventHandler<SwitchEventArgs> Switch;
 
 		public DeviceSwitch(bool isPulseSwitch, IGamelogicEngineWithSwitches engine, Player player)
 		{
@@ -35,7 +39,11 @@ namespace VisualPinball.Unity
 
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 
-		public void SetSwitch(bool closed) => _switchHandler.OnSwitch(closed);
+		public void SetSwitch(bool closed)
+		{
+			_switchHandler.OnSwitch(closed);
+			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
+		}
 
 		public void ScheduleSwitch(bool closed, int delay) => _switchHandler.ScheduleSwitch(closed, delay);
 	}

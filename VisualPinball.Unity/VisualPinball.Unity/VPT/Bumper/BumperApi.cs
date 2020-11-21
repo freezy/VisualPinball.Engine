@@ -32,6 +32,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
 		public BumperApi(Bumper item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
@@ -61,6 +66,7 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballEntity));
 			OnSwitch(true);
 		}
 

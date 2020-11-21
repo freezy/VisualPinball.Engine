@@ -33,6 +33,11 @@ namespace VisualPinball.Unity
 		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
+		/// <summary>
 		/// Sets the status of a drop target.
 		/// </summary>
 		///
@@ -90,6 +95,7 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 			OnSwitch(true);
 		}
 

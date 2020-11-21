@@ -21,6 +21,8 @@ namespace VisualPinball.Unity
 {
 	public class TableApi : IApiInitializable
 	{
+		private readonly Player _player;
+
 		internal readonly Dictionary<string, BumperApi> Bumpers = new Dictionary<string, BumperApi>();
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
 		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
@@ -33,6 +35,13 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
 		internal readonly Dictionary<string, TriggerApi> Triggers = new Dictionary<string, TriggerApi>();
 		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
+
+		public TableApi(Player player)
+		{
+			_player = player;
+		}
+
+		internal IApiSwitch Switch(string name) => _player.Switch(name);
 
 		/// <summary>
 		/// Event emitted before the game starts.

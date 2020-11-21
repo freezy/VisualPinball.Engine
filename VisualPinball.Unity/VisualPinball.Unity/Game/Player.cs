@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public TableApi TableApi { get; } = new TableApi();
+		public TableApi TableApi { get; }
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -86,11 +86,18 @@ namespace VisualPinball.Unity
 
 		public Player()
 		{
+			TableApi = new TableApi(this);
 			_initializables.Add(TableApi);
 		}
 
+		#region Access
+
+		internal IApiSwitch Switch(string n) => _switches.ContainsKey(n) ? _switches[n] : null;
 		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
 		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
+
+		#endregion
+
 
 		#region Lifecycle
 

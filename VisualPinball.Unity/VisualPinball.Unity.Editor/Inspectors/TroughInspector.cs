@@ -26,9 +26,9 @@ namespace VisualPinball.Unity.Editor
 	{
 		public override void OnInspectorGUI()
 		{
-			ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntryTrigger, n => Data.EntryTrigger = n);
+			ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntrySwitch, n => Data.EntrySwitch = n);
 			ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
-			ObjectReferenceField<TriggerAuthoring>("Jam Switch", "Triggers", "None (Trigger)", "JamSwitch", Data.JamSwitch, n => Data.JamSwitch = n);
+			ObjectReferenceField<TriggerAuthoring>("Jam Trigger", "Triggers", "None (Trigger)", "JamTrigger", Data.JamTrigger, n => Data.JamTrigger = n);
 
 			ItemDataField("Max Balls", ref Data.BallCount, false);
 			ItemDataField("Switch Count", ref Data.SwitchCount, false);

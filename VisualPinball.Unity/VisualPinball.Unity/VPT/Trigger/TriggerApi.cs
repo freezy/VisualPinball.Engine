@@ -37,6 +37,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> UnHit;
 
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
 		internal TriggerApi(Engine.VPT.Trigger.Trigger item, Entity entity, Player player) : base(item, entity, player)
 		{
 		}
@@ -55,10 +60,12 @@ namespace VisualPinball.Unity
 		{
 			if (isUnHit) {
 				UnHit?.Invoke(this, new HitEventArgs(ballEntity));
+				Switch?.Invoke(this, new SwitchEventArgs(false, ballEntity));
 				OnSwitch(false);
 
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballEntity));
+				Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 				OnSwitch(true);
 			}
 		}
