@@ -249,6 +249,10 @@ namespace VisualPinball.Engine.VPT.Table
 		public IEnumerable<ICoilableDevice> CoilableDevices => new ICoilableDevice[0]
 			.Concat(_troughs.Values);
 
+		public IEnumerable<ILightable> Lightables => new ILightable[0]
+			.Concat(_lights.Values)
+			.Concat(_flashers.Values);
+
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
 		{
 			if (updateStorageIndices) {

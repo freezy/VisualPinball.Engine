@@ -30,11 +30,12 @@ namespace VisualPinball.Unity
 	/// them up to the switches.
 	/// </summary>
 	[Serializable]
-	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils
+	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils, IGamelogicEngineWithLamps
 	{
 		public string Name { get; } = "Default Game Engine";
 
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
+		public event EventHandler<LampEventArgs> OnLampChanged;
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
@@ -79,6 +80,11 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" },
 			new GamelogicEngineCoil { Id = CoilTroughEject, Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EjectCoilId},
 			new GamelogicEngineCoil { Id = CoilTroughEntry, Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId},
+		};
+
+		public GamelogicEngineLamp[] AvailableLamps { get; } =
+		{
+			new GamelogicEngineLamp { Id = "l_11", Description = "Matrix Lamp 11" }
 		};
 
 		private TableApi _tableApi;

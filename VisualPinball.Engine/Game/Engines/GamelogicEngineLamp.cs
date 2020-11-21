@@ -1,5 +1,5 @@
-// Visual Pinball Engine
-// Copyright (C) 2021 freezy and VPE Team
+﻿// Visual Pinball Engine
+// Copyright (C) 2020 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.IO;
-using VisualPinball.Engine.Game;
-
-namespace VisualPinball.Engine.VPT.Flasher
+namespace VisualPinball.Engine.Game.Engines
 {
-	public class Flasher : Item<FlasherData>, ILightable
+	public struct GamelogicEngineLamp
 	{
-		public override string ItemName { get; } = "Flasher";
-		public override string ItemGroupName { get; } = "Flashers";
-
-		public Flasher(FlasherData data) : base(data)
-		{
-		}
-
-		public Flasher(BinaryReader reader, string itemName) : this(new FlasherData(reader, itemName))
-		{
-		}
+		public string Id;
+		public string Description;
+		public string PlayfieldItemHint;
 	}
 }

@@ -329,5 +329,87 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		#endregion
 
+
+		#region Lamp Population
+
+		/// <summary>
+		/// Auto-matches the lamps provided by the gamelogic engine with the
+		/// lamps on the playfield.
+		/// </summary>
+		/// <param name="engineLamps">List of lamps provided by the gamelogic engine</param>
+		/// <param name="tablelamps">List of lamps on the playfield</param>
+		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, IEnumerable<ILightable> tableLamps)
+		{
+			var lamps = tableLamps
+				.GroupBy(x => x.Name.ToLower())
+				.ToDictionary(x => x.Key, x => x.First());
+
+			foreach (var engineLamp in GetLamps(engineLamps)) {
+
+				var lampMapping = Data.Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id);
+				if (lampMapping == null) {
+
+					var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
+					var playfieldItem = GuessPlayfieldLamp(lamps, engineLamp);
+
+					Data.AddLamp(new MappingsLampData
+					{
+						Id = engineLamp.Id,
+						Description = description,
+						Destination = LampDestination.Playfield,
+						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+					});
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns a sorted list of lamp names from the gamelogic engine,
+		/// appended with the additional names in the lamp mapping. In short,
+		/// the list of lamp names to choose from.
+		/// </summary>
+		/// <param name="engineLamps">Lamp names provided by the gamelogic engine</param>
+		/// <returns>All lamp names</returns>
+		public IEnumerable<GamelogicEngineLamp> GetLamps(GamelogicEngineLamp[] engineLamps)
+		{
+			var lamps = new List<GamelogicEngineLamp>();
+
+			// first, add lamps from the gamelogic engine
+			if (engineLamps != null) {
+				lamps.AddRange(engineLamps);
+			}
+
+			// then add lamp ids that were added manually
+			foreach (var mappingsLampData in Data.Lamps) {
+				if (!lamps.Exists(entry => entry.Id == mappingsLampData.Id)) {
+					lamps.Add(new GamelogicEngineLamp
+					{
+						Id = mappingsLampData.Id
+					});
+
+				}
+			}
+
+			lamps.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
+			return lamps;
+		}
+
+		private static ILightable GuessPlayfieldLamp(Dictionary<string, ILightable> lamps, GamelogicEngineLamp lamp)
+		{
+			// first, match by regex if hint provided
+			if (!string.IsNullOrEmpty(lamp.PlayfieldItemHint)) {
+				foreach (var lampName in lamps.Keys) {
+					var regex = new Regex(lamp.PlayfieldItemHint.ToLower());
+					if (regex.Match(lampName).Success) {
+						return lamps[lampName];
+					}
+				}
+			}
+
+			// second, match by id
+			return lamps.ContainsKey(lamp.Id) ? lamps[lamp.Id] : null;
+		}
+
+		#endregion
 	}
 }
