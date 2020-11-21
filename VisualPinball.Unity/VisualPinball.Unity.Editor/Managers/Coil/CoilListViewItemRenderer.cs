@@ -189,7 +189,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Coil Items",
 					item => {
-						coilListData.PlayfieldItem = item.Name;
+						coilListData.PlayfieldItem = item != null ? item.Name : string.Empty;
 						updateAction(coilListData);
 					}
 				);
@@ -210,7 +210,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Coil Devices",
 					item => {
-						coilListData.Device = item.Name;
+						coilListData.Device = item != null ? item.Name : string.Empty;
 						updateAction(coilListData);
 					}
 				);

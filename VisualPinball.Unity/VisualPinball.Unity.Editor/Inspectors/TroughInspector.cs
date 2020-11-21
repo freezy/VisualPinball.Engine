@@ -17,8 +17,6 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Editor
@@ -29,8 +27,6 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntryTrigger, n => Data.EntryTrigger = n);
-			// ItemReferenceField<KickerAuthoring, Kicker, KickerData>("Exit Kicker", "exitKicker", ref Data.ExitKicker);
-			// ItemReferenceField<TriggerAuthoring, Trigger, TriggerData>("Jam Switch", "jamSwitch", ref Data.JamSwitch);
 			ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
 			ObjectReferenceField<TriggerAuthoring>("Jam Switch", "Triggers", "None (Trigger)", "JamSwitch", Data.JamSwitch, n => Data.JamSwitch = n);
 

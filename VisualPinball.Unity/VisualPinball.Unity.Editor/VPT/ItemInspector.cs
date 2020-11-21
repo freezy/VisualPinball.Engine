@@ -362,10 +362,16 @@ namespace VisualPinball.Unity.Editor
 						_table,
 						pickerLabel,
 						item => {
-							if (item is MonoBehaviour mb) {
-								_objItems[cacheKey] = mb;
+							switch (item) {
+								case null:
+									_objItems[cacheKey] = null;
+									onSelected(string.Empty);
+									break;
+								case MonoBehaviour mb:
+									_objItems[cacheKey] = mb;
+									onSelected(item.Name);
+									break;
 							}
-							onSelected(item.Name);
 						}
 					);
 					dropdown.Show(pos);
