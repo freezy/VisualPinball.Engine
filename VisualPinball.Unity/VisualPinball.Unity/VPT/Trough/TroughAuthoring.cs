@@ -44,20 +44,20 @@ namespace VisualPinball.Unity
 
 		private Vector3 EntryPos(float height)
 		{
-			if (string.IsNullOrEmpty(Data.EntrySwitch)) {
+			if (string.IsNullOrEmpty(Data.PlayfieldEntrySwitch)) {
 				return Vector3.zero;
 			}
-			if (Table.Has<Trigger>(Data.EntrySwitch)) {
-				return Table.Trigger(Data.EntrySwitch).Data.Center.ToUnityVector3(height);
+			if (Table.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
+				return Table.Trigger(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
 			}
-			return Table.Has<Kicker>(Data.EntrySwitch)
-				? Table.Kicker(Data.EntrySwitch).Data.Center.ToUnityVector3(height)
+			return Table.Has<Kicker>(Data.PlayfieldEntrySwitch)
+				? Table.Kicker(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
 				: Vector3.zero;
 		}
 
-		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
+		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(height);
+			: Table.Kicker(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
 
 		private void Awake()
 		{
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
-			if (!string.IsNullOrEmpty(Data.EntryKicker) && !string.IsNullOrEmpty(Data.ExitKicker)) {
+			if (!string.IsNullOrEmpty(Data.PlayfieldEntrySwitch) && !string.IsNullOrEmpty(Data.PlayfieldExitKicker)) {
 				var ltw = GetComponentInParent<TableAuthoring>().transform;
 				var entryPos = EntryPos(0f);
 				var exitPos = ExitPos(0f);

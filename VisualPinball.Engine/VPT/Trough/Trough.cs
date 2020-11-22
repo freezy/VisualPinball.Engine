@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,18 +28,67 @@ namespace VisualPinball.Engine.VPT.Trough
 		public override string ItemName { get; } = "Trough";
 		public override string ItemGroupName { get; } = null;
 
-		public const string JamSwitchId = "jam";
-		public const string EjectCoilId = "eject";
-		public const string EntryCoilId = "entry";
+		public const string EntrySwitchId = "drain_switch";
+		public const string TroughSwitchId = "trough_switch";
+		public const string EjectCoilId = "eject_coil";
+		public const string EntryCoilId = "entry_coil";
 
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
-			.Select((_, i) => new GamelogicEngineSwitch {Description = SwitchDescription(i), Id = $"{i + 1}"})
-			.Concat( new[]{ new GamelogicEngineSwitch{Description = "Jam Switch", Id = JamSwitchId} });
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches {
+			get {
+				switch (Data.Type) {
+					case TroughType.Modern:
+						return Enumerable.Repeat(0, Data.SwitchCount)
+							.Select((_, i) => new GamelogicEngineSwitch
+								{ Description = SwitchDescription(i), Id = $"{i + 1}" });
 
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId},
-			new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
-		};
+					case TroughType.TwoCoilsNSwitches:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Entry Switch", Id = EntrySwitchId}
+						}.Concat(Enumerable.Repeat(0, Data.SwitchCount)
+							.Select((_, i) => new GamelogicEngineSwitch
+								{ Description = SwitchDescription(i), Id = $"{i + 1}"} )
+						);
+
+					case TroughType.TwoCoilsOneSwitch:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Entry Switch", Id = EntrySwitchId},
+							new GamelogicEngineSwitch {Description = "Trough Switch", Id = TroughSwitchId},
+						};
+
+					case TroughType.ClassicSingleBall:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Drain Switch", Id = EntrySwitchId},
+						};
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+
+				}
+			}
+		}
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils {
+			get {
+				switch (Data.Type) {
+					case TroughType.Modern:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+						};
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId},
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+						};
+					case TroughType.ClassicSingleBall:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId}
+						};
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
 
 		public Trough(TroughData data) : base(data)
 		{

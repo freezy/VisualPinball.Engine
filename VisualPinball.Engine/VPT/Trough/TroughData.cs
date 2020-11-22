@@ -41,26 +41,23 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffInt("TYPE", Pos = 2)]
 		public int Type = TroughType.Modern;
 
-		[BiffString("ENTK", Pos = 3)]
-		public string EntryKicker = string.Empty;
+		[BiffString("ENTS", Pos = 3)]
+		public string PlayfieldEntrySwitch = string.Empty;
 
-		[BiffString("ENTS", Pos = 4)]
-		public string EntrySwitch = string.Empty;
+		[BiffString("EXIT", Pos = 4)]
+		public string PlayfieldExitKicker = string.Empty;
 
-		[BiffString("EXIT", Pos = 5)]
-		public string ExitKicker = string.Empty;
-
-		[BiffString("JAMT", Pos = 6)]
-		public string JamTrigger = string.Empty;
-
-		[BiffInt("BCNT", Pos = 7)]
+		[BiffInt("BCNT", Pos = 5)]
 		public int BallCount = 6;
 
-		[BiffInt("SCNT", Pos = 8)]
+		[BiffInt("SCNT", Pos = 6)]
 		public int SwitchCount = 6;
 
-		[BiffInt("TIME", Pos = 9)]
-		public int SettleTime = 100;
+		[BiffInt("RTIM", Pos = 7)]
+		public int RollTime = 100;
+
+		[BiffInt("KTIM", Pos = 8)]
+		public int KickTime = 200;
 
 		public TroughData(string name) : base(StoragePrefix.GameItem)
 		{

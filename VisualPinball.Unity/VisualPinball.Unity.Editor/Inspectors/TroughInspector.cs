@@ -50,17 +50,23 @@ namespace VisualPinball.Unity.Editor
 				ItemDataSlider("Ball Count", ref Data.BallCount, 1, 10, false);
 			}
 
-			if (Data.Type == TroughType.Modern || Data.Type == TroughType.TwoCoilsNSwitches) {
-				ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
+			switch (Data.Type) {
+				case TroughType.Modern:
+				case TroughType.TwoCoilsNSwitches:
+					ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
+					break;
+				case TroughType.TwoCoilsOneSwitch:
+					ItemDataSlider("Switch Position", ref Data.SwitchCount, 1, 10, false);
+					break;
 			}
-			ItemDataField("Settle Time (ms)", ref Data.SettleTime, false);
+			ItemDataField("Kick Time (ms)", ref Data.RollTime, false);
+			ItemDataField("Roll Time (ms)", ref Data.KickTime, false);
 
 			if (!Application.isPlaying) {
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Hooks")) {
 					EditorGUI.indentLevel++;
-					ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntrySwitch, n => Data.EntrySwitch = n);
-					ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
-					ObjectReferenceField<TriggerAuthoring>("Jam Trigger", "Triggers", "None (Trigger)", "JamTrigger", Data.JamTrigger, n => Data.JamTrigger = n);
+					ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.PlayfieldEntrySwitch, n => Data.PlayfieldEntrySwitch = n);
+					ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.PlayfieldExitKicker, n => Data.PlayfieldExitKicker = n);
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();
@@ -73,8 +79,24 @@ namespace VisualPinball.Unity.Editor
 				var troughApi = _table.GetComponent<Player>().TableApi.Trough(Item.Name);
 
 				EditorGUI.BeginDisabledGroup(true);
-				for (var i = troughApi.NumBallSwitches - 1; i >= 0; i--) {
-					EditorGUILayout.Toggle(SwitchDescription(i), troughApi.BallSwitch(i).IsClosed);
+				if (Data.Type != TroughType.Modern) {
+					EditorGUILayout.Toggle("Drain Switch", troughApi.EntrySwitch.IsClosed);
+				}
+
+				if (Data.Type == TroughType.TwoCoilsOneSwitch) {
+					EditorGUILayout.Toggle("Stack Switch", troughApi.StackSwitch().IsClosed);
+
+				} else if (Data.Type != TroughType.ClassicSingleBall) {
+					for (var i = troughApi.NumBallSwitches - 1; i >= 0; i--) {
+						EditorGUILayout.Toggle(SwitchDescription(i), troughApi.StackSwitch(i).IsClosed);
+					}
+				}
+
+				if (troughApi.UncountedDrainBalls > 0) {
+					EditorGUILayout.LabelField("Undrained balls:", troughApi.UncountedDrainBalls.ToString());
+				}
+				if (troughApi.UncountedStackBalls > 0) {
+					EditorGUILayout.LabelField("Unswitched balls:", troughApi.UncountedStackBalls.ToString());
 				}
 				EditorGUI.EndDisabledGroup();
 			}
@@ -86,15 +108,9 @@ namespace VisualPinball.Unity.Editor
 			ItemAuthoring.UpdatePosition();
 		}
 
-		private string SwitchDescription(int i)
+		private static string SwitchDescription(int i)
 		{
-			if (i == 0) {
-				return "Ball 1 (eject)";
-			}
-
-			return i == Data.SwitchCount - 1
-				? $"Ball {i + 1} (entry)"
-				: $"Ball {i + 1}";
+			return i == 0 ? "Ball 1 (eject)" : $"Ball {i + 1}";
 		}
 	}
 }
