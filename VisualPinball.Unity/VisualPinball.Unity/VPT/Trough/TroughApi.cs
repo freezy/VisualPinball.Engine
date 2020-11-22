@@ -87,6 +87,8 @@ namespace VisualPinball.Unity
 
 		private DeviceSwitch EntrySwitch => _ballSwitches[Data.SwitchCount - 1];
 		private DeviceSwitch EjectSwitch => _ballSwitches[0];
+		private bool _isSetup;
+
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -100,35 +102,58 @@ namespace VisualPinball.Unity
 			Debug.Log("Trough API instantiated.");
 		}
 
-		/// <summary>
-		/// This is called when the player starts. It tells the trough
-		/// "please give me switch XXX so I can hook it up to the gamelogic engine".
-		/// </summary>
-		/// <param name="switchId"></param>
-		/// <returns></returns>
-		IApiSwitch IApiSwitchDevice.Switch(string switchId)
+		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			// if the engine is asking for the jam switch, return the trigger directly.
-			if (switchId == Trough.JamSwitchId) {
-				return _jamTrigger;
-			}
-			return _switchLookup.ContainsKey(switchId) ? _switchLookup[switchId] : null;
-		}
+			_ballManager = ballManager;
 
-		/// <summary>
-		/// Returns a coil by ID. Same principle as <see cref="Switch"/>
-		/// </summary>
-		/// <param name="coilId"></param>
-		/// <returns></returns>
-		IApiCoil IApiCoilDevice.Coil(string coilId)
-		{
-			if (coilId == Trough.EjectCoilId) {
-				return _ejectCoil;
-			}
-			return null;
-		}
+			// playfield elements
+			_entrySwitch = TableApi.Switch(Data.EntrySwitch);
+			_exitKicker = TableApi.Kicker(Data.ExitKicker);
+			_jamTrigger = TableApi.Trigger(Data.JamTrigger);
+			_isSetup = _entrySwitch != null && _exitKicker != null;
 
-		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
+			// setup entry handler
+			if (_entrySwitch != null) {
+				_entrySwitch.Switch += OnEntry;
+			}
+
+			// in case we need also need to handle jam events here, uncomment
+			// if (_jamTrigger != null) {
+			// 	_jamTrigger.Hit += OnJamTriggerHit;
+			// 	_jamTrigger.UnHit += OnJamTriggerUnHit;
+			// }
+
+			// create switches to hook up
+			_ballSwitches = new DeviceSwitch[Data.SwitchCount];
+			foreach (var sw in Item.AvailableSwitches) {
+				if (int.TryParse(sw.Id, out var id)) {
+					_ballSwitches[id - 1] = CreateSwitch(sw.Id, false);
+					_switchLookup[sw.Id] = _ballSwitches[id - 1];
+
+				} else if (sw.Id == Trough.JamSwitchId) {
+					// we short-wire the jam trigger to the switch, so we don't care about it here,
+					// all the jam trigger does push its switch events to the gamelogic engine. in
+					// case we need to hook into the jam trigger logic here, uncomment those two
+					// lines and and relay the events manually to the engine.
+					//_jamSwitch = CreateSwitch(false);
+					//_switchLookup[sw.Id] = _jamSwitch;
+
+				} else {
+					Logger.Warn($"Unknown switch ID {sw.Id}");
+				}
+			}
+
+			// setup eject coil
+			_ejectCoil = new TroughEjectCoil(this);
+
+			// set number of balls in the trough
+			for (var i = 0; i < Data.BallCount; i++) {
+				AddBall();
+			}
+
+			// finally, emit the event for anyone else to chew on
+			Init?.Invoke(this, EventArgs.Empty);
+		}
 
 		/// <summary>
 		/// Create a ball in the trough without triggering extra events
@@ -148,19 +173,23 @@ namespace VisualPinball.Unity
 		/// </summary>
 		internal void OnEjectCoil(bool closed)
 		{
+			if (!_isSetup) {
+				Logger.Warn($"Trough {Data.Name} not set up, ignoring.");
+				return;
+			}
 			if (closed && (_ballCount > 0)) {
 				Logger.Info("Spawning new ball.");
 
 				_exitKicker.CreateBall();
 				_exitKicker.Kick();
 
-				for (int i = 0; i < _ballCount; i++) {
+				for (var i = 0; i < _ballCount; i++) {
 					_ballSwitches[i].ScheduleSwitch(false, Data.SettleTime / 2);
 				}
 
 				_ballCount--;
 
-				for (int i = 0; i < _ballCount; i++) {
+				for (var i = 0; i < _ballCount; i++) {
 					_ballSwitches[i].ScheduleSwitch(true, Data.SettleTime);
 				}
 			}
@@ -170,81 +199,64 @@ namespace VisualPinball.Unity
 		/// If there's room in the trough remove the ball from play
 		/// and trigger any switches which it would roll over
 		/// </summary>
-		private void OnEntrySwitch(object sender, SwitchEventArgs args)
+		private void OnEntry(object sender, SwitchEventArgs args)
 		{
-			if (_ballCount < Data.BallCount) {
-				Logger.Info("Draining ball into trough.");
+			Logger.Info("Draining ball into trough.");
 
-				_ballManager.DestroyEntity(args.BallEntity);
+			_ballManager.DestroyEntity(args.BallEntity);
+			var openSwitches = Data.SwitchCount - _ballCount;
 
-				int openSwitches = Data.BallCount - _ballCount;
-
-				for (int i = 1; i < openSwitches; i++) {
-					_ballSwitches[Data.BallCount - i].ScheduleSwitch(true, Data.SettleTime * i);
-					_ballSwitches[Data.BallCount - i].ScheduleSwitch(false, Data.SettleTime * i + Data.SettleTime / 2);
-				}
-
-				_ballSwitches[_ballCount].ScheduleSwitch(true, Data.SettleTime * openSwitches);
-
-				_ballCount++;
+			for (var i = 1; i < openSwitches; i++) {
+				var t = Data.SettleTime * i;
+				var pos = Data.SwitchCount - i;
+				_ballSwitches[pos].ScheduleSwitch(true, t);
+				_ballSwitches[pos].ScheduleSwitch(false, t + Data.SettleTime / 2);
 			}
+			// switch nearest to the eject comes last, but doesn't close.
+			_ballSwitches[_ballCount].ScheduleSwitch(true, Data.SettleTime * openSwitches);
+
+			_ballCount++;
 		}
 
 		#region Wiring
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		/// <summary>
+		/// This is called when the player starts. It tells the trough
+		/// "please give me switch XXX so I can hook it up to the gamelogic engine".
+		/// </summary>
+		/// <param name="switchId"></param>
+		/// <returns></returns>
+		IApiSwitch IApiSwitchDevice.Switch(string switchId)
 		{
-			_ballManager = ballManager;
-
-			// playfield elements
-			_exitKicker = TableApi.Kicker(Data.ExitKicker);
-			_jamTrigger = TableApi.Trigger(Data.JamTrigger);
-			_entrySwitch = TableApi.Switch(Data.EntrySwitch);
-
-			// setup entry handler
-			if (_entrySwitch != null) {
-				_entrySwitch.Switch += OnEntrySwitch;
+			// if the engine is asking for the jam switch, return the trigger directly.
+			if (switchId == Trough.JamSwitchId) {
+				return _jamTrigger;
 			}
-
-			// in case we need also need to handle jam events here, uncomment
-			// if (_jamTrigger != null) {
-			// 	_jamTrigger.Hit += OnJamTriggerHit;
-			// 	_jamTrigger.UnHit += OnJamTriggerUnHit;
-			// }
-
-			// create switches to hook up
-			_ballSwitches = new DeviceSwitch[Data.SwitchCount];
-			foreach (var sw in Item.AvailableSwitches) {
-				if (int.TryParse(sw.Id, out var id)) {
-					_ballSwitches[id - 1] = CreateSwitch(false);
-					_switchLookup[sw.Id] = _ballSwitches[id - 1];
-
-				} else if (sw.Id == Trough.JamSwitchId) {
-					// we short-wire the jam trigger to the switch, so we don't care about it here,
-					// all the jam trigger does push its switch events to the gamelogic engine. in
-					// case we need to hook into the jam trigger logic here, uncomment those two
-					// lines and and relay the events manually to the engine.
-					//_jamSwitch = CreateSwitch(false);
-					//_switchLookup[sw.Id] = _jamSwitch;
-
-				} else {
-					Logger.Warn($"Unknown switch ID {sw.Id}");
-				}
-			}
-
-			// setup eject coil
-			_ejectCoil = new TroughEjectCoil(this);
-
-			// finally, emit the event for anyone else to chew on
-			Init?.Invoke(this, EventArgs.Empty);
+			return _switchLookup.ContainsKey(switchId) ? _switchLookup[switchId] : null;
 		}
+
+		/// <summary>
+		/// Returns a coil by ID. Same principle as <see cref="IApiSwitchDevice.Switch"/>
+		/// </summary>
+		/// <param name="coilId"></param>
+		/// <returns></returns>
+		IApiCoil IApiCoilDevice.Coil(string coilId)
+		{
+			if (coilId == Trough.EjectCoilId) {
+				return _ejectCoil;
+			}
+			return null;
+		}
+
+		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
+
 
 		void IApi.OnDestroy()
 		{
 			Logger.Info("Destroying trough!");
 
 			if (_entrySwitch != null) {
-				_entrySwitch.Switch -= OnEntrySwitch;
+				_entrySwitch.Switch -= OnEntry;
 			}
 
 			// in case we need also need to handle jam events here, uncomment

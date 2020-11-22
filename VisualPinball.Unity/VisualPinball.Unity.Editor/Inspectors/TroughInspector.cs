@@ -47,22 +47,24 @@ namespace VisualPinball.Unity.Editor
 			DropDownField("Type", ref Data.Type, TypeLabels, TypeValues);
 
 			if (Data.Type != TroughType.ClassicSingleBall) {
-				ItemDataField("Ball Count", ref Data.BallCount, false);
+				ItemDataSlider("Ball Count", ref Data.BallCount, 1, 10, false);
 			}
 
 			if (Data.Type == TroughType.Modern || Data.Type == TroughType.TwoCoilsNSwitches) {
-				ItemDataField("Switch Count", ref Data.SwitchCount, false);
+				ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
 			}
 			ItemDataField("Settle Time (ms)", ref Data.SettleTime, false);
 
-			if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Hooks")) {
-				EditorGUI.indentLevel++;
-				ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntrySwitch, n => Data.EntrySwitch = n);
-				ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
-				ObjectReferenceField<TriggerAuthoring>("Jam Trigger", "Triggers", "None (Trigger)", "JamTrigger", Data.JamTrigger, n => Data.JamTrigger = n);
-				EditorGUI.indentLevel--;
+			if (!Application.isPlaying) {
+				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Hooks")) {
+					EditorGUI.indentLevel++;
+					ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.EntrySwitch, n => Data.EntrySwitch = n);
+					ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.ExitKicker, n => Data.ExitKicker = n);
+					ObjectReferenceField<TriggerAuthoring>("Jam Trigger", "Triggers", "None (Trigger)", "JamTrigger", Data.JamTrigger, n => Data.JamTrigger = n);
+					EditorGUI.indentLevel--;
+				}
+				EditorGUILayout.EndFoldoutHeaderGroup();
 			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (Application.isPlaying) {
 				EditorGUILayout.Separator();
