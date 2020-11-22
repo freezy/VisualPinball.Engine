@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			_player = player;
-			_switchHandler = new SwitchHandler(player, (IGamelogicEngineWithSwitches)player.GameEngine);
+			_switchHandler = new SwitchHandler(Name, player, (IGamelogicEngineWithSwitches)player.GameEngine);
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected DeviceSwitch CreateSwitch(bool isPulseSwitch) => new DeviceSwitch(isPulseSwitch, _gamelogicEngineWithSwitches, _player);
+		protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _gamelogicEngineWithSwitches, _player);
 
 		protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
 

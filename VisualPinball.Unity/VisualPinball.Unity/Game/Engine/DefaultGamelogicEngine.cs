@@ -35,6 +35,8 @@ namespace VisualPinball.Unity
 	{
 		public string Name { get; } = "Default Game Engine";
 
+		public event EventHandler<CoilEventArgs> OnCoilChanged;
+
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
@@ -94,6 +96,9 @@ namespace VisualPinball.Unity
 			_tableApi = tableApi;
 			_ballManager = ballManager;
 
+			// debug print stuff
+			OnCoilChanged += DebugPrintCoil;
+
 			_switchStatus[SwLeftFlipper] = false;
 			_switchStatus[SwLeftFlipperEos] = false;
 			_switchStatus[SwRightFlipper] = false;
@@ -101,8 +106,8 @@ namespace VisualPinball.Unity
 			_switchStatus[SwPlunger] = false;
 			_switchStatus[SwCreateBall] = false;
 
-			// debug print stuff
-			OnCoilChanged += DebugPrintCoil;
+			// eject ball onto playfield
+			OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
 		}
 
 		public void OnUpdate()
@@ -113,8 +118,6 @@ namespace VisualPinball.Unity
 		{
 			OnCoilChanged -= DebugPrintCoil;
 		}
-
-		public event EventHandler<CoilEventArgs> OnCoilChanged;
 
 		public void Switch(string id, bool normallyClosed)
 		{

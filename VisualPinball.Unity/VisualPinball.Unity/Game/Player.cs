@@ -121,27 +121,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void Update()
-		{
-			GameEngine?.OnUpdate();
-		}
-
-		private void OnDestroy()
-		{
-			if (_keySwitchAssignments.Count > 0) {
-				_inputManager.Disable(HandleKeyInput);
-			}
-			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
-				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
-			}
-
-			foreach (var i in _apis) {
-				i.OnDestroy();
-			}
-
-			GameEngine?.OnDestroy();
-		}
-
 		private void Start()
 		{
 
@@ -162,6 +141,27 @@ namespace VisualPinball.Unity
 			SetupWireMapping();
 
 			GameEngine?.OnInit(TableApi, BallManager);
+		}
+
+		private void Update()
+		{
+			GameEngine?.OnUpdate();
+		}
+
+		private void OnDestroy()
+		{
+			if (_keySwitchAssignments.Count > 0) {
+				_inputManager.Disable(HandleKeyInput);
+			}
+			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
+			}
+
+			foreach (var i in _apis) {
+				i.OnDestroy();
+			}
+
+			GameEngine?.OnDestroy();
 		}
 
 		#endregion

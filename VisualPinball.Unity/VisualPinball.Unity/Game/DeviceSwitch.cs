@@ -26,15 +26,15 @@ namespace VisualPinball.Unity
 	public class DeviceSwitch : IApiSwitch
 	{
 		public event EventHandler<SwitchEventArgs> Switch;
-		public bool IsClosed;
+		public bool IsClosed => _switchHandler.IsClosed;
 
 		private readonly bool _isPulseSwitch;
 		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(bool isPulseSwitch, IGamelogicEngineWithSwitches engine, Player player)
+		public DeviceSwitch(string name, bool isPulseSwitch, IGamelogicEngineWithSwitches engine, Player player)
 		{
 			_isPulseSwitch = isPulseSwitch;
-			_switchHandler = new SwitchHandler(player, engine);
+			_switchHandler = new SwitchHandler(name, player, engine);
 		}
 
 		public void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig.WithPulse(_isPulseSwitch));
@@ -43,7 +43,6 @@ namespace VisualPinball.Unity
 
 		public void SetSwitch(bool closed)
 		{
-			IsClosed = closed;
 			_switchHandler.OnSwitch(closed);
 			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
 		}
