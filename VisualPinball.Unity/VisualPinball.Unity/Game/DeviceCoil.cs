@@ -15,29 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemApi<Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable
+	public class DeviceCoil: IApiCoil
 	{
-		/// <summary>
-		/// Event emitted when the table is started.
-		/// </summary>
-		public event EventHandler Init;
+		private readonly Action _onEnable;
+		private readonly Action _onDisable;
 
-		internal RampApi(Engine.VPT.Ramp.Ramp item, Entity entity, Player player) : base(item, entity, player)
+		public DeviceCoil(Action onEnable = null, Action onDisable = null)
 		{
+			_onEnable = onEnable;
+			_onDisable = onDisable;
 		}
 
-		#region Events
-
-		void IApiInitializable.OnInit(BallManager ballManager)
+		public void OnCoil(bool enabled, bool isHoldCoil)
 		{
-			base.OnInit(ballManager);
-			Init?.Invoke(this, EventArgs.Empty);
+			if (enabled) {
+				_onEnable?.Invoke();
+			} else {
+				_onDisable?.Invoke();
+			}
 		}
 
-		#endregion
+		public void OnChange(bool enabled) => OnCoil(enabled, false);
 	}
 }

@@ -44,10 +44,9 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		{
 			data.BallCount.Should().Be(3);
 			data.SwitchCount.Should().Be(4);
-			data.SettleTime.Should().Be(112);
-			data.EntryKicker.Should().Be("BallDrain");
-			data.ExitKicker.Should().Be("BallRelease");
-			data.JamTrigger.Should().Be("TroughJam");
+			data.RollTime.Should().Be(112);
+			data.PlayfieldEntrySwitch.Should().Be("BallDrain");
+			data.PlayfieldExitKicker.Should().Be("BallRelease");
 		}
 	}
 }

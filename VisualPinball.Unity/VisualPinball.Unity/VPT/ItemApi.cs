@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 
 		private readonly Player _player;
 		private readonly SwitchHandler _switchHandler;
+		protected BallManager BallManager;
 
 		protected ItemApi(T item, Player player)
 		{
@@ -54,6 +55,16 @@ namespace VisualPinball.Unity
 			_player = player;
 			_switchHandler = new SwitchHandler(Name, player, (IGamelogicEngineWithSwitches)player.GameEngine);
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
+		}
+
+		protected void OnInit(BallManager ballManager)
+		{
+			BallManager = ballManager;
+		}
+
+		protected void DestroyBall(Entity ballEntity)
+		{
+			BallManager.DestroyEntity(ballEntity);
 		}
 
 		void IApi.OnDestroy()

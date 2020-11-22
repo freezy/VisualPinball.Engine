@@ -45,6 +45,7 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 

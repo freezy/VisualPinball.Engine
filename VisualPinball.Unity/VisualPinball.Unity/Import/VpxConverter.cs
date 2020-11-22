@@ -291,10 +291,10 @@ namespace VisualPinball.Unity
 		{
 			var troughData = new TroughData("Trough");
 			if (_table.Has<Kicker>("BallRelease")) {
-				troughData.ExitKicker = "BallRelease";
+				troughData.PlayfieldExitKicker = "BallRelease";
 			}
 			if (_table.Has<Kicker>("Drain")) {
-				troughData.EntryKicker = "Drain";
+				troughData.PlayfieldEntrySwitch = "Drain";
 			}
 			var item = new Trough(troughData);
 			_table.Add(item, true);

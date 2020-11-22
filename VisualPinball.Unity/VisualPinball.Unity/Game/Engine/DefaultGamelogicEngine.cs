@@ -21,6 +21,7 @@ using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Trough;
 using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
@@ -63,7 +64,6 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch { Id = SwTrough5, Description = "Trough 5", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "5"},
 			new GamelogicEngineSwitch { Id = SwTrough6, Description = "Trough 6 (entry)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "6"},
-			new GamelogicEngineSwitch { Id = SwTroughJam, Description = "Trough Jam", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "jam"},
 			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug }
 		};
 
@@ -73,6 +73,7 @@ namespace VisualPinball.Unity
 		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilAutoPlunger = "c_auto_plunger";
 		private const string CoilTroughEject = "c_trough_eject";
+		private const string CoilTroughDrain = "c_trough_drain";
 
 		public GamelogicEngineCoil[] AvailableCoils { get; } = {
 			new GamelogicEngineCoil { Id = CoilLeftFlipperMain, Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
@@ -80,7 +81,8 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil { Id = CoilRightFlipperMain, Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
 			new GamelogicEngineCoil { Id = CoilRightFlipperHold, MainCoilIdOfHoldCoil = CoilRightFlipperMain },
 			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" },
-			new GamelogicEngineCoil { Id = CoilTroughEject, Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "eject"}
+			new GamelogicEngineCoil { Id = CoilTroughEject, Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EjectCoilId},
+			new GamelogicEngineCoil { Id = CoilTroughDrain, Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId}
 		};
 
 		private TableApi _tableApi;

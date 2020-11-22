@@ -71,6 +71,8 @@ namespace VisualPinball.Unity
 		/// <param name="wireConfig">Configuration which game item to link to</param>
 		void AddWireDest(WireDestConfig wireConfig);
 
+		void DestroyBall(Entity ballEntity);
+
 		/// <summary>
 		/// Event emitted when the trigger is switched on or off.
 		/// </summary>

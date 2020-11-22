@@ -512,6 +512,15 @@ namespace VisualPinball.Unity
 									break;
 
 								case WireDestination.Device:
+									if (_wireDevices.ContainsKey(wireConfig.Device)) {
+										var device = _wireDevices[wireConfig.Device];
+										var wire = device.Wire(wireConfig.DeviceItem);
+										if (wire != null) {
+											wire.OnChange(change == InputActionChange.ActionStarted);
+										} else {
+											Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+										}
+									}
 									break;
 							}
 						}

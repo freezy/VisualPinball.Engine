@@ -164,7 +164,6 @@ namespace VisualPinball.Engine.VPT
 		public const int TwoCoilsNSwitches = 1;
 		public const int TwoCoilsOneSwitch = 2;
 		public const int ClassicSingleBall = 3;
-
 	}
 
 	public static class CoilDestination
