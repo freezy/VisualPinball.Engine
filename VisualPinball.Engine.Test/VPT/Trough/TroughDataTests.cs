@@ -44,7 +44,8 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		{
 			data.BallCount.Should().Be(3);
 			data.SwitchCount.Should().Be(4);
-			data.RollTime.Should().Be(112);
+			data.KickTime.Should().Be(112);
+			data.RollTime.Should().Be(113);
 			data.PlayfieldEntrySwitch.Should().Be("BallDrain");
 			data.PlayfieldExitKicker.Should().Be("BallRelease");
 		}
