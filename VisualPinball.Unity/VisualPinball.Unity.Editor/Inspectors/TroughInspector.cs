@@ -59,11 +59,15 @@ namespace VisualPinball.Unity.Editor
 					ItemDataSlider("Switch Position", ref Data.SwitchCount, 1, 10, false);
 					break;
 			}
-			ItemDataField("Kick Time (ms)", ref Data.RollTime, false);
+
+			if (Data.Type != TroughType.Modern && Data.Type != TroughType.TwoCoilsNSwitches) {
+				ItemDataField("Kick Time (ms)", ref Data.RollTime, false);
+			}
+
 			ItemDataField("Roll Time (ms)", ref Data.KickTime, false);
 
 			if (!Application.isPlaying) {
-				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Hooks")) {
+				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links")) {
 					EditorGUI.indentLevel++;
 					ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.PlayfieldEntrySwitch, n => Data.PlayfieldEntrySwitch = n);
 					ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.PlayfieldExitKicker, n => Data.PlayfieldExitKicker = n);
@@ -75,20 +79,18 @@ namespace VisualPinball.Unity.Editor
 			if (Application.isPlaying) {
 				EditorGUILayout.Separator();
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-
 				var troughApi = _table.GetComponent<Player>().TableApi.Trough(Item.Name);
 
-				EditorGUI.BeginDisabledGroup(true);
 				if (Data.Type != TroughType.Modern) {
-					EditorGUILayout.Toggle("Drain Switch", troughApi.EntrySwitch.IsClosed);
+					DrawSwitch("Drain Switch", troughApi.EntrySwitch);
 				}
 
 				if (Data.Type == TroughType.TwoCoilsOneSwitch) {
-					EditorGUILayout.Toggle("Stack Switch", troughApi.StackSwitch().IsClosed);
+					DrawSwitch("Stack Switch", troughApi.StackSwitch());
 
 				} else if (Data.Type != TroughType.ClassicSingleBall) {
 					for (var i = troughApi.NumBallSwitches - 1; i >= 0; i--) {
-						EditorGUILayout.Toggle(SwitchDescription(i), troughApi.StackSwitch(i).IsClosed);
+						DrawSwitch(SwitchDescription(i), troughApi.StackSwitch(i));
 					}
 				}
 
@@ -98,8 +100,16 @@ namespace VisualPinball.Unity.Editor
 				if (troughApi.UncountedStackBalls > 0) {
 					EditorGUILayout.LabelField("Unswitched balls:", troughApi.UncountedStackBalls.ToString());
 				}
-				EditorGUI.EndDisabledGroup();
 			}
+		}
+
+		private static void DrawSwitch(string label, DeviceSwitch sw)
+		{
+			var labelPos = EditorGUILayout.GetControlRect();
+			labelPos.height = 18;
+			var switchPos = new Rect((float) (labelPos.x + (double) EditorGUIUtility.labelWidth + 2.0), labelPos.y, labelPos.height, labelPos.height);
+			GUI.Label(labelPos, label);
+			GUI.DrawTexture(switchPos, Icons.Switch(sw.IsClosed, IconSize.Small, sw.IsClosed ? IconColor.Orange : IconColor.Gray));
 		}
 
 		protected override void FinishEdit(string label, bool dirtyMesh = true)
