@@ -6,21 +6,69 @@ VPE comes with a trough mechanism that simulates the behaviour of a real-world b
 
 ## Creating a Trough
 
-When importing a `.vpx` file that doesn't have any troughs (which is likely, because Visual Pinball doesn't currently handle them in the same way as VPE), VPE will automatically add a main trough to the root of the table. If you're creating a trough for a new game, click on the *Trough* button in the toolbox.
+When importing a `.vpx` file that doesn't have any troughs (which is likely, because Visual Pinball doesn't currently handle them in the same way as VPE) or creating a new table, VPE will automatically add a main trough to the root of the table. In order to create a trough manually, click on the *Trough* button in the toolbox.
 
 ## Linking to the Playfield
 
-<img src="trough-inspector.png" width="418" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="trough-inspector.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
 
-To interact with the game, you'll need to setup an entry kicker to drain the ball into the trough, and an exit kicker to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but from the the trough's perspective, that's where the ball *enters*.
+To interact with the game, you'll need to setup an **entry switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but from the the trough's perspective, that's where the ball *enters*.
 
-You can setup the kickers by selecting the trough in the hierarchy panel and linking them to the desired kickers using the inspector.
+You can setup these links under *Playfield Links* by selecting the trough in the hierarchy panel and linking them to the desired kickers using the inspector.
+
+The inspector also lets you configure other options:
+
+- **Ball Count** defines how many balls the trough initially contains.
+- **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count.
+- **Roll Time** sets how long it takes the ball to roll from one slot to the next.
+- **Kick Time** defines how long it takes the ball to get kicked from the drain into the ball stack.
+
+## Trough Types
+
+VPE supports the various troughs you would typically find on real machines. You can set the behavior of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
+
+In this section we'll link again to the MPF documentation that does a fantastic job in explaining the different types.
+
+### Modern (opto or mechanical)
+
+<img src="trough-modern.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
+
+Modern troughs with both [optical](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-1-modern-trough-with-opto-sensors) or [mechanical](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-2-modern-trough-with-mechanical-switches) switches are covered by this type.
+
+The ball drains from the playfield directly into the ball stack, and every ball slot has a switch attached to it.
+
+During gameplay, when you select the trough in the hierarchy, its displays the status of every switch for debug purposes in real time.
+
+### Two coils and multiple switches
+
+<img src="trough-2cns.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
+
+[Troughs of this type](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-3-older-style-with-two-coils-and-switches-for-each-ball) can be found in older machines from the 80s and early 90s. They consist of two parts:
+
+1. A drain, where the back roll into when leaving the playfield
+2. A ball stack, where the balls are kept.
+
+In terms of switches, that means we still get a switch per ball in the stack, but an additional drain switch that kicks the ball from the drain into the stack.
+
+### Two coils and one switch
+
+<img src="trough-2c1s.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
+
+A trough can also have [only one switch](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-4-older-style-with-two-coils-and-only-one-ball-switch) in the ball stack.
+
+Instead of a *Switch Count* like in the previous types, you select a *Switch Position*, which is the position in the ball stack at which the ball farest away from the eject coil sits.
+
+### Classic single ball
+
+<img src="trough-single-ball.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
+
+Single ball trough may be [with](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-5-classic-single-ball-single-coil) or [without shooter lane](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-6-classic-single-ball-single-coil-no-shooter-lane). The principle is simple: After draining, the ball is kept on the drain coil, which ejects the ball directly either into the plunger lane or the playfield directly.
 
 ## Switch Setup
 
-The number of simulated switches in the trough depends on the *Switch Count* property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.
+The number of simulated switches in the trough depends on the type of the trough and the *Switch Count* property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.
 
-Open the [switch manager](../../editor/switch-manager.md) and add the trough switches if they're not already there. As *Destination* select "Device", under *Element*, select the trough you've created and which switch to connect. For a five-ball trough, it will look something like this:
+Open the [switch manager](../../editor/switch-manager.md) and add the trough switches if they're not already there. As *Destination* select "Device", under *Element*, select the trough you've created and which switch to connect. For a modern five-ball trough, it will look something like this:
 
 ![Switch Manager](trough-switches.png)
 
