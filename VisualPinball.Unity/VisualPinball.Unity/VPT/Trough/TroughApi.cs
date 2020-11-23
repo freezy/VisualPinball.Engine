@@ -26,17 +26,26 @@ namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// A trough implements all known trough behaviors that exist in the real world. <p/>
+	/// </summary>
 	///
+	/// <remarks>
 	/// A trough consists of two parts:
 	///
 	/// - The **drain** where the ball lands after it exists the playfield. In [modern troughs](#) this part does not
 	///   exist, since the balls go directly into the trough.
 	/// - The **ball stack**, where balls are stored for games that hold more than one ball.
-	/// </summary>
+	/// </remarks>
 	[Api]
 	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
-		public int NumBallSwitches => Data.SwitchCount;
+		/// <summary>
+		/// How many stack switches there are available.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The drain switch is not considered a stack switch.
+		/// </remarks>
+		public int NumStackSwitches => Data.SwitchCount;
 
 		/// <summary>
 		/// The entry switch. <p/>
@@ -45,7 +54,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		///
 		/// <remarks>
-		/// Is null for <see cref="TroughType.Modern"/>, all of modern's switches are in <see cref="_stackSwitches"/>.
+		/// Is null for <see cref="TroughType.Modern"/>, all of modern's switches are in <see cref="StackSwitch(int)"/>.
 		/// </remarks>
 		public DeviceSwitch EntrySwitch { get; private set; }
 
@@ -193,7 +202,7 @@ namespace VisualPinball.Unity
 
 			// setup coils
 			_entryCoil = new DeviceCoil(OnEntryCoilEnabled);
-			_exitCoil = new DeviceCoil(EjectBall);
+			_exitCoil = new DeviceCoil(() => EjectBall());
 
 			// fill up the ball stack
 			for (var i = 0; i < Data.BallCount; i++) {
@@ -391,14 +400,19 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// If there are any balls in the ball stack, add one to play and
-		/// trigger any switches which the remaining balls would activate by rolling to the next position.
+		/// If there are any balls in the ball stack, eject one to the playfield.
 		/// </summary>
-		private void EjectBall()
+		///
+		/// <remarks>
+		/// This triggers any switches which the remaining balls would activate by rolling to the next position.
+		/// </remarks>
+		///
+		/// <returns>True if a ball was ejected, false if there were no balls in the stack to eject.</returns>
+		public bool EjectBall()
 		{
 			if (!_isSetup) {
 				Logger.Warn($"Trough {Data.Name} not set up, ignoring.");
-				return;
+				return false;
 			}
 			if (_countedStackBalls > 0) {
 				Logger.Info("Spawning new ball.");
@@ -422,10 +436,13 @@ namespace VisualPinball.Unity
 				}
 				RollOverStackBalls();
 				RollOverNextUncountedBall();
-			}
 #if UNITY_EDITOR
 			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>

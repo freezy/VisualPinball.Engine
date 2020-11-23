@@ -89,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 					DrawSwitch("Stack Switch", troughApi.StackSwitch());
 
 				} else if (Data.Type != TroughType.ClassicSingleBall) {
-					for (var i = troughApi.NumBallSwitches - 1; i >= 0; i--) {
+					for (var i = troughApi.NumStackSwitches - 1; i >= 0; i--) {
 						DrawSwitch(SwitchDescription(i), troughApi.StackSwitch(i));
 					}
 				}

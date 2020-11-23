@@ -20,26 +20,35 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Base class for all item APIs.
+	/// </summary>
+	/// <typeparam name="T">Item type</typeparam>
+	/// <typeparam name="TData">Item data type</typeparam>
+	[Api]
 	public abstract class ItemApi<T, TData> : IApi where T : Item<TData> where TData : ItemData
 	{
+		/// <summary>
+		/// Item name
+		/// </summary>
 		public string Name => Item.Name;
 
-		protected readonly T Item;
+		private protected readonly T Item;
 		internal readonly Entity Entity;
 
-		protected TData Data => Item.Data;
-		protected Table Table => _player.Table;
-		protected TableApi TableApi => _player.TableApi;
+		private protected TData Data => Item.Data;
+		private protected Table Table => _player.Table;
+		private protected TableApi TableApi => _player.TableApi;
 
-		protected EntityManager EntityManager;
+		private protected EntityManager EntityManager;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;
 		private readonly SwitchHandler _switchHandler;
-		protected BallManager BallManager;
+		private protected BallManager BallManager;
 
-		protected ItemApi(T item, Player player)
+		private protected ItemApi(T item, Player player)
 		{
 			Item = item;
 			Entity = Entity.Null;
@@ -47,7 +56,7 @@ namespace VisualPinball.Unity
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
-		protected ItemApi(T item, Entity entity, Player player)
+		private protected ItemApi(T item, Entity entity, Player player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			Item = item;
@@ -57,12 +66,12 @@ namespace VisualPinball.Unity
 			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
-		protected void OnInit(BallManager ballManager)
+		private protected void OnInit(BallManager ballManager)
 		{
 			BallManager = ballManager;
 		}
 
-		protected void DestroyBall(Entity ballEntity)
+		private protected void DestroyBall(Entity ballEntity)
 		{
 			BallManager.DestroyEntity(ballEntity);
 		}
@@ -75,13 +84,13 @@ namespace VisualPinball.Unity
 
 		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
 
-		protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _gamelogicEngineWithSwitches, _player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _gamelogicEngineWithSwitches, _player);
 
-		protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
+		private protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
 
 		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 
-		protected void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
+		private protected void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 
 		#endregion
 	}
