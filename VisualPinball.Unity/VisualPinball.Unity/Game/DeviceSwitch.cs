@@ -20,12 +20,19 @@ using Unity.Entities;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Devices switches are switches withing a device that are not directly
-	/// linked to any game item.
+	/// Devices switches are switches within a device that are not directly linked to any game item.
 	/// </summary>
+	[Api]
 	public class DeviceSwitch : IApiSwitch
 	{
+		/// <summary>
+		/// Event emitted when the switch opens or closes.
+		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
+
+		/// <summary>
+		/// Indicates whether the switch is currently opened or closed.
+		/// </summary>
 		public bool IsClosed => _switchHandler.IsClosed;
 
 		private readonly bool _isPulseSwitch;
