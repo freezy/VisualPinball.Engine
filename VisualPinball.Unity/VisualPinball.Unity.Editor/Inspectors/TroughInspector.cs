@@ -61,10 +61,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (Data.Type != TroughType.Modern && Data.Type != TroughType.TwoCoilsNSwitches) {
-				ItemDataField("Kick Time (ms)", ref Data.RollTime, false);
+				ItemDataField("Kick Time (ms)", ref Data.KickTime, false);
 			}
 
-			ItemDataField("Roll Time (ms)", ref Data.KickTime, false);
+			ItemDataField("Roll Time (ms)", ref Data.RollTime, false);
 
 			if (!Application.isPlaying) {
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links")) {
