@@ -145,7 +145,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Mappings.Data.Coils[0].Destination.Should().Be(CoilDestination.Device);
 			table.Mappings.Data.Coils[0].Id.Should().Be("eject_trough");
 			table.Mappings.Data.Coils[0].Device.Should().Be("my_trough");
-			table.Mappings.Data.Coils[0].DeviceItem.Should().Be("eject");
+			table.Mappings.Data.Coils[0].DeviceItem.Should().Be("eject_coil");
 		}
 
 		[Test]
