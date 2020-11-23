@@ -71,6 +71,12 @@ namespace VisualPinball.Unity.Editor
         /// </summary>
         public const string blueprintPath = "Tools/BlueprintProjector.prefab";
 
+		/// <summary>
+		/// Window Layouts directory 
+		/// </summary>
+		public const string layoutPath = root + "EditorResources/Settings/WindowLayouts"; 
+
+
 		#if USING_HDRP
 		public const string prefabPath = "EditorResources/Prefabs/HDRP/";
 		#endif
