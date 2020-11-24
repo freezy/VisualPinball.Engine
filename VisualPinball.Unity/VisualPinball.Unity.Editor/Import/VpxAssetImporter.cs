@@ -19,18 +19,18 @@
 using NLog;
 
 using UnityEngine;
-
+using UnityEditor.Experimental.AssetImporters;
 
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[UnityEditor.AssetImporters.ScriptedImporter(2, "vpx")]
-	public class VpxAssetImporter : UnityEditor.AssetImporters.ScriptedImporter
+	[ScriptedImporter(2, "vpx")]
+	public class VpxAssetImporter : ScriptedImporter
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
+		public override void OnImportAsset(AssetImportContext ctx)
 		{
 			Logger.Info("Importing VPX table at {0}...", ctx.assetPath);
 
