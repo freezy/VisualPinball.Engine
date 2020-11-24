@@ -133,7 +133,7 @@ namespace VisualPinball.Unity
 			if(directory != null && directory.Parent != null)
 				directory = directory.Parent;
 
-			File.WriteAllText(directory.FullName + "\\" + CS_FILENAME, Code);
+			File.WriteAllText(directory.FullName + Path.DirectorySeparatorChar + CS_FILENAME, Code);
 
 		}
 		private static string CSharpFileCode(bool defineHDRP, bool defineURP)
