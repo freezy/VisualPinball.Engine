@@ -54,6 +54,15 @@ namespace VisualPinball.Unity
 			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
 		}
 
-		public void ScheduleSwitch(bool closed, int delay) => _switchHandler.ScheduleSwitch(closed, delay);
+		public void ScheduleSwitch(bool closed, int delay)
+		{
+			if (delay == 0) {
+				SetSwitch(closed);
+			} else {
+				_switchHandler.ScheduleSwitch(closed, delay, c => {
+					Switch?.Invoke(this, new SwitchEventArgs(c, Entity.Null));
+				});
+			}
+		}
 	}
 }
