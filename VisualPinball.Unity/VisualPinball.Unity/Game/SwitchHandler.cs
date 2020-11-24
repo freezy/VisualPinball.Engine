@@ -19,7 +19,7 @@ namespace VisualPinball.Unity
 
 		private readonly string _name;
 		private readonly Player _player;
-		private readonly IGamelogicEngineWithSwitches _engine;
+		private IGamelogicEngineWithSwitches Engine => (IGamelogicEngineWithSwitches)_player.GameEngine;
 
 		/// <summary>
 		/// The list of switches that need to be triggered in the gamelogic engine.
@@ -34,11 +34,10 @@ namespace VisualPinball.Unity
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public SwitchHandler(string name, Player player, IGamelogicEngineWithSwitches engine)
+		public SwitchHandler(string name, Player player)
 		{
 			_name = name;
 			_player = player;
-			_engine = engine;
 		}
 
 		/// <summary>
@@ -73,16 +72,16 @@ namespace VisualPinball.Unity
 		public void OnSwitch(bool closed)
 		{
 			// handle switch -> gamelogic engine
-			if (_engine != null && _switchIds != null) {
+			if (Engine != null && _switchIds != null) {
 				foreach (var switchConfig in _switchIds) {
 
 					// set new status now
-					_engine.Switch(switchConfig.SwitchId, closed);
+					Engine.Switch(switchConfig.SwitchId, closed);
 
 					// if it's pulse, schedule to re-open
 					if (closed && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
-							() => _engine.Switch(switchConfig.SwitchId, false));
+							() => Engine.Switch(switchConfig.SwitchId, false));
 					}
 				}
 			}
@@ -127,10 +126,10 @@ namespace VisualPinball.Unity
 		public void ScheduleSwitch(bool closed, int delay)
 		{
 			// handle switch -> gamelogic engine
-			if (_engine != null && _switchIds != null) {
+			if (Engine != null && _switchIds != null) {
 				foreach (var switchConfig in _switchIds) {
 					SimulationSystemGroup.ScheduleSwitch(delay,
-						() => _engine.Switch(switchConfig.SwitchId, closed));
+						() => Engine.Switch(switchConfig.SwitchId, closed));
 				}
 			} else {
 				Logger.Warn("Cannot schedule device switch.");
