@@ -289,7 +289,11 @@ namespace VisualPinball.Unity
 
 		private void CreateTrough()
 		{
-			var troughData = new TroughData("Trough");
+			var troughData = new TroughData("Trough") {
+				BallCount = 4,
+				SwitchCount = 4,
+				Type = TroughType.TwoCoilsNSwitches
+			};
 			if (_table.Has<Kicker>("BallRelease")) {
 				troughData.PlayfieldExitKicker = "BallRelease";
 			}

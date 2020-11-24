@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
@@ -69,7 +70,7 @@ namespace VisualPinball.Unity
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>
 		/// <param name="closed">Switch status</param>
-		public void OnSwitch(bool closed)
+		internal void OnSwitch(bool closed)
 		{
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switchIds != null) {
@@ -123,7 +124,7 @@ namespace VisualPinball.Unity
 			IsClosed = closed;
 		}
 
-		public void ScheduleSwitch(bool closed, int delay)
+		internal void ScheduleSwitch(bool closed, int delay, Action<bool> onSwitched)
 		{
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switchIds != null) {
@@ -166,6 +167,7 @@ namespace VisualPinball.Unity
 			SimulationSystemGroup.ScheduleSwitch(delay, () => {
 				Debug.Log($"Setting scheduled switch {_name} to {closed}.");
 				IsClosed = closed;
+				onSwitched.Invoke(closed);
 #if UNITY_EDITOR
 				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif

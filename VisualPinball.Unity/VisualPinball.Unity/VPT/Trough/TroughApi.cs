@@ -198,6 +198,11 @@ namespace VisualPinball.Unity
 						Logger.Warn($"Unknown switch ID {sw.Id}");
 					}
 				}
+
+				// pull next ball on modern
+				if (Data.Type == TroughType.Modern) {
+					_stackSwitches[Data.SwitchCount - 1].Switch += OnLastStackSwitch;
+				}
 			}
 
 			// setup coils
@@ -357,7 +362,7 @@ namespace VisualPinball.Unity
 			}
 
 			// start at time it takes for the ball to get into the ball stack
-			var t = Data.KickTime;
+			var t = 0;
 			// pos 0 is the eject position, ball enter at the opposite end
 			var pos = Data.SwitchCount - 1;
 			var openSwitches = Data.SwitchCount - _countedStackBalls;
@@ -365,12 +370,18 @@ namespace VisualPinball.Unity
 			switch (Data.Type) {
 				case TroughType.Modern:
 				case TroughType.TwoCoilsNSwitches:
+					// if entry position is occupied by another ball that just went in, queue.
+					if (_stackSwitches[pos].IsClosed) {
+						UncountedStackBalls++;
+						return;
+					}
 					// these are switches where the balls rolls over, so close and re-open them.
 					for (var i = 0; i < openSwitches - 1; i++) {
 						_stackSwitches[pos].ScheduleSwitch(true, t);
+
 						t += Data.RollTime / 2;
 						_stackSwitches[pos].ScheduleSwitch(false, t);
-						t += Data.RollTime;
+						t += Data.RollTime / 2;
 						pos--;
 					}
 					// switch nearest to the eject comes last, but doesn't re-open.
@@ -435,7 +446,7 @@ namespace VisualPinball.Unity
 						throw new ArgumentOutOfRangeException();
 				}
 				RollOverStackBalls();
-				RollOverNextUncountedBall();
+				RollOverNextUncountedStackBall();
 #if UNITY_EDITOR
 			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
@@ -463,13 +474,13 @@ namespace VisualPinball.Unity
 					// all at the same time
 					for (var i = 0; i < _countedStackBalls - 2; i++) {
 						pos--;
-						_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime / 2);
-						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
+						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime / 2);
+						_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime);
 					}
 
 					// just close the switch for the last ball, since it has already been opened.
 					if (pos-- > 0) {
-						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
+						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime / 2);
 					}
 					break;
 
@@ -490,7 +501,18 @@ namespace VisualPinball.Unity
 			_countedStackBalls--;
 		}
 
-		private void RollOverNextUncountedBall()
+		private void OnLastStackSwitch(object sender, SwitchEventArgs switchEventArgs)
+		{
+			if (!switchEventArgs.IsClosed && UncountedStackBalls > 0) {
+				UncountedStackBalls--;
+				RollOverEntryBall();
+#if UNITY_EDITOR
+			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
+			}
+		}
+
+		private void RollOverNextUncountedStackBall()
 		{
 			if (UncountedStackBalls == 0) {
 				return;
@@ -503,7 +525,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case TroughType.TwoCoilsOneSwitch:
-					StackSwitch().ScheduleSwitch(true, Data.RollTime);
+					StackSwitch().ScheduleSwitch(true, Data.RollTime / 2);
 					break;
 
 				case TroughType.ClassicSingleBall:
@@ -555,6 +577,9 @@ namespace VisualPinball.Unity
 
 			if (_drainSwitch != null) {
 				_drainSwitch.Switch -= OnEntry;
+			}
+			if (Data.Type == TroughType.Modern) {
+				_stackSwitches[Data.SwitchCount - 1].Switch -= OnLastStackSwitch;
 			}
 		}
 
