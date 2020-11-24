@@ -53,7 +53,6 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = Entity.Null;
 			_player = player;
-			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
 		private protected ItemApi(T item, Entity entity, Player player)
@@ -62,8 +61,7 @@ namespace VisualPinball.Unity
 			Item = item;
 			Entity = entity;
 			_player = player;
-			_switchHandler = new SwitchHandler(Name, player, (IGamelogicEngineWithSwitches)player.GameEngine);
-			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
+			_switchHandler = new SwitchHandler(Name, player);
 		}
 
 		private protected void OnInit(BallManager ballManager)
@@ -82,9 +80,7 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private readonly IGamelogicEngineWithSwitches _gamelogicEngineWithSwitches;
-
-		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _gamelogicEngineWithSwitches, _player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _player);
 
 		private protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
 

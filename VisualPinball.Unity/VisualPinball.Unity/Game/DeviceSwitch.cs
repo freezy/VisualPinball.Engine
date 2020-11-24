@@ -38,14 +38,13 @@ namespace VisualPinball.Unity
 		private readonly bool _isPulseSwitch;
 		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(string name, bool isPulseSwitch, IGamelogicEngineWithSwitches engine, Player player)
+		public DeviceSwitch(string name, bool isPulseSwitch, Player player)
 		{
 			_isPulseSwitch = isPulseSwitch;
-			_switchHandler = new SwitchHandler(name, player, engine);
+			_switchHandler = new SwitchHandler(name, player);
 		}
 
 		public void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig.WithPulse(_isPulseSwitch));
-
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 		public void DestroyBall(Entity ballEntity) { } // device switches can't destroy balls
 
