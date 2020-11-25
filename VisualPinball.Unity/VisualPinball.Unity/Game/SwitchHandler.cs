@@ -167,10 +167,11 @@ namespace VisualPinball.Unity
 			SimulationSystemGroup.ScheduleSwitch(delay, () => {
 				Debug.Log($"Setting scheduled switch {_name} to {closed}.");
 				IsClosed = closed;
-				onSwitched.Invoke(closed);
+
 #if UNITY_EDITOR
 				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
+				onSwitched.Invoke(closed);
 			});
 		}
 	}

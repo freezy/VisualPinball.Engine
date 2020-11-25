@@ -277,7 +277,7 @@ namespace VisualPinball.Unity
 			switch (Data.Type) {
 				case TroughType.Modern:
 					// ball rolls directly into the trough
-					RollOverEntryBall();
+					RollOverEntryBall(0);
 					break;
 
 				case TroughType.TwoCoilsNSwitches:
@@ -296,9 +296,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-#if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
+
+			RefreshUI();
 		}
 
 		/// <summary>
@@ -320,7 +319,7 @@ namespace VisualPinball.Unity
 					// push the ball from the drain to the trough
 					if (EntrySwitch.IsClosed) {
 						EntrySwitch.SetSwitch(false);
-						RollOverEntryBall();
+						RollOverEntryBall(0);
 						DrainNextUncountedBall();
 					}
 					break;
@@ -337,9 +336,7 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-#if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
+			RefreshUI();
 		}
 
 		private void DrainNextUncountedBall()
@@ -353,7 +350,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Simulates rolling a new ball into the ball stack by enabling / disabling the switches it might hits.
 		/// </summary>
-		private void RollOverEntryBall()
+		private void RollOverEntryBall(int t)
 		{
 			// if more balls than switches, just count and exit
 			if (_countedStackBalls >= Data.SwitchCount) {
@@ -361,9 +358,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			// start at time it takes for the ball to get into the ball stack
-			var t = 0;
-			// pos 0 is the eject position, ball enter at the opposite end
+			// pos 0 is the eject position, ball enters at the opposite end
 			var pos = Data.SwitchCount - 1;
 			var openSwitches = Data.SwitchCount - _countedStackBalls;
 
@@ -447,9 +442,7 @@ namespace VisualPinball.Unity
 				}
 				RollOverStackBalls();
 				RollOverNextUncountedStackBall();
-#if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
+				RefreshUI();
 				return true;
 			}
 
@@ -504,11 +497,10 @@ namespace VisualPinball.Unity
 		private void OnLastStackSwitch(object sender, SwitchEventArgs switchEventArgs)
 		{
 			if (!switchEventArgs.IsClosed && UncountedStackBalls > 0) {
+				RefreshUI();
 				UncountedStackBalls--;
-				RollOverEntryBall();
-#if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
+				RollOverEntryBall(Data.RollTime / 2);
+				RefreshUI();
 			}
 		}
 
@@ -535,6 +527,13 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			UncountedStackBalls--;
+		}
+
+		private static void RefreshUI()
+		{
+#if UNITY_EDITOR
+			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
 		}
 
 		#region Wiring
