@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		///
 		/// <remarks>
-		/// Is null for <see cref="TroughType.Modern"/>, all of modern's switches are in <see cref="StackSwitch(int)"/>.
+		/// Is null for <see cref="TroughType.ModernOpto"/>, all of modern's switches are in <see cref="StackSwitch(int)"/>.
 		/// </remarks>
 		public DeviceSwitch EntrySwitch { get; private set; }
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 		public DeviceSwitch StackSwitch() => _stackSwitches[0];
 
 		/// <summary>
-		/// Returns the stack switch at a given position for <see cref="TroughType.Modern"/> and
+		/// Returns the stack switch at a given position for <see cref="TroughType.ModernOpto"/> and
 		/// <see cref="TroughType.TwoCoilsNSwitches"/> troughs.
 		/// </summary>
 		///
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		///
 		/// <remarks>
-		/// Is null for <see cref="TroughType.Modern"/>
+		/// Is null for <see cref="TroughType.ModernOpto"/>
 		/// </remarks>
 		private DeviceCoil _entryCoil;
 
@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			}
 
 			// setup switches
-			if (Data.Type != TroughType.Modern) {
+			if (Data.Type != TroughType.ModernOpto) {
 				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false);
 				_switchLookup[Trough.EntrySwitchId] = EntrySwitch;
 			}
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 				}
 
 				// pull next ball on modern
-				if (Data.Type == TroughType.Modern) {
+				if (Data.Type == TroughType.ModernOpto) {
 					_stackSwitches[Data.SwitchCount - 1].Switch += OnLastStackSwitch;
 				}
 			}
@@ -213,6 +213,8 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < Data.BallCount; i++) {
 				AddBall();
 			}
+			Debug.Log("Trough counted stack balls = " + _countedStackBalls);
+			Debug.Log("Trough uncounted stack balls = " + UncountedStackBalls);
 
 			// finally, emit the event for anyone else to chew on
 			Init?.Invoke(this, EventArgs.Empty);
@@ -224,7 +226,7 @@ namespace VisualPinball.Unity
 		private void AddBall()
 		{
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 				case TroughType.TwoCoilsNSwitches:
 					if (_countedStackBalls < Data.BallCount) {
 						_stackSwitches[_countedStackBalls].SetSwitch(true);
@@ -275,7 +277,7 @@ namespace VisualPinball.Unity
 		private void DrainBall()
 		{
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 					// ball rolls directly into the trough
 					RollOverEntryBall(0);
 					break;
@@ -310,7 +312,7 @@ namespace VisualPinball.Unity
 		private void OnEntryCoilEnabled()
 		{
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 					// modern troughs don't have an entry coil
 					break;
 
@@ -363,7 +365,7 @@ namespace VisualPinball.Unity
 			var openSwitches = Data.SwitchCount - _countedStackBalls;
 
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 				case TroughType.TwoCoilsNSwitches:
 					// if entry position is occupied by another ball that just went in, queue.
 					if (_stackSwitches[pos].IsClosed) {
@@ -421,14 +423,14 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			if (_countedStackBalls > 0) {
-				Logger.Info("Spawning new ball.");
+				Logger.Info("Trough: Spawning new ball.");
 
 				_ejectKicker.CreateBall();
 				_ejectKicker.Kick();
 
 				// open the switch of the ejected ball immediately
 				switch (Data.Type) {
-					case TroughType.Modern:
+					case TroughType.ModernOpto:
 					case TroughType.TwoCoilsNSwitches:
 						_stackSwitches[0].SetSwitch(false);
 						break;
@@ -457,7 +459,7 @@ namespace VisualPinball.Unity
 		{
 			var pos = _countedStackBalls - 1;
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 				case TroughType.TwoCoilsNSwitches:
 
 					// don't re-close the switch nearest to the entry
@@ -467,8 +469,8 @@ namespace VisualPinball.Unity
 					// all at the same time
 					for (var i = 0; i < _countedStackBalls - 2; i++) {
 						pos--;
-						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime / 2);
-						_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime);
+						_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime / 2);
+						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
 					}
 
 					// just close the switch for the last ball, since it has already been opened.
@@ -511,7 +513,7 @@ namespace VisualPinball.Unity
 			}
 			_countedStackBalls++;
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 				case TroughType.TwoCoilsNSwitches:
 					_stackSwitches[_countedStackBalls - 1].ScheduleSwitch(true, Data.RollTime);
 					break;
@@ -577,7 +579,7 @@ namespace VisualPinball.Unity
 			if (_drainSwitch != null) {
 				_drainSwitch.Switch -= OnEntry;
 			}
-			if (Data.Type == TroughType.Modern) {
+			if (Data.Type == TroughType.ModernOpto) {
 				_stackSwitches[Data.SwitchCount - 1].Switch -= OnLastStackSwitch;
 			}
 		}
