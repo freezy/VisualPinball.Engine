@@ -32,7 +32,6 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
-	[RequiresEntityConversion]
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
