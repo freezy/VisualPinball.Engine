@@ -19,6 +19,9 @@
     <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="UnityEngine">
+      <HintPath>..\Plugins\.unity\UnityEngine.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>..\Plugins\.unity\Unity.Mathematics.dll</HintPath>
     </Reference>
@@ -41,7 +44,10 @@
       <HintPath>..\Plugins\.unity\Unity.InputSystem.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
-        <HintPath>..\Plugins\.unity\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>..\Plugins\.unity\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities.Hybrid">
+      <HintPath>..\Plugins\.unity\Unity.Entities.Hybrid.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

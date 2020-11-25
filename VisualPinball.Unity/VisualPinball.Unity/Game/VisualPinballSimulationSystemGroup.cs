@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);
 		public uint TimeMsec;
 
-		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
+		public override IReadOnlyList<ComponentSystemBase> Systems => _systemsToUpdate;
 
 		private readonly Stopwatch _time = new Stopwatch();
 		private ulong _currentPhysicsTime;
