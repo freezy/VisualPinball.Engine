@@ -17,7 +17,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Unity.Patcher.Matcher; 
+//using VisualPinball.Unity.Patcher.Matcher; 
 
 //TODO:  This doesn't seem like a particularly elegant way of doing this. 
 //		 Please let me know if there is a smarter way.  -Pandeli 
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
         /// <summary>
         /// HDRI Environments folder path. 
         /// </summary>
-        public const string HDRIEnvs = assetRoot + "Art/Textures/HDR"; //Directory loading requires no trailing / 
+        public const string HDRIEnvs = assetRoot + "Art/Textures/Environment/HDR"; //Directory loading requires no trailing / 
         /// <summary>
         /// EditorGUI icons folder path. 
         /// </summary>
