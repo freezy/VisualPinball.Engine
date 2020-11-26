@@ -366,3 +366,5 @@ MigrationBackup/
 
 # Vi swap files
 *.swp
+VisualPinball.Unity/VisualPinball.Unity/VPEDefinedRenderPipeline.cs
+VisualPinball.Unity/VisualPinball.Unity/VPEDefinedRenderPipeline.cs.meta
