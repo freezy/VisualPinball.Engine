@@ -36,7 +36,8 @@ namespace VisualPinball.Engine.VPT.Trough
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches {
 			get {
 				switch (Data.Type) {
-					case TroughType.Modern:
+					case TroughType.ModernOpto:
+					case TroughType.ModernMech:
 						return Enumerable.Repeat(0, Data.SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch
 								{ Description = SwitchDescription(i), Id = $"{i + 1}" });
@@ -70,7 +71,8 @@ namespace VisualPinball.Engine.VPT.Trough
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils {
 			get {
 				switch (Data.Type) {
-					case TroughType.Modern:
+					case TroughType.ModernOpto:
+					case TroughType.ModernMech:
 						return new[] {
 							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
 						};
