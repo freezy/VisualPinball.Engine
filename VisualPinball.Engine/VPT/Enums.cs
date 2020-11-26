@@ -160,10 +160,11 @@ namespace VisualPinball.Engine.VPT
 
 	public static class TroughType
 	{
-		public const int Modern = 0;
-		public const int TwoCoilsNSwitches = 1;
-		public const int TwoCoilsOneSwitch = 2;
-		public const int ClassicSingleBall = 3;
+		public const int ModernOpto = 0;
+		public const int ModernMech = 1;
+		public const int TwoCoilsNSwitches = 2;
+		public const int TwoCoilsOneSwitch = 3;
+		public const int ClassicSingleBall = 4;
 	}
 
 	public static class CoilDestination

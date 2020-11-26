@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldReturnCorrectSwitchesForModern()
 		{
 			var data = new TroughData("Trough") {
-				Type = TroughType.Modern,
+				Type = TroughType.ModernOpto,
 				SwitchCount = 3
 			};
 			var trough = new Engine.VPT.Trough.Trough(data);
@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldReturnCorrectCoilsForModern()
 		{
 			var data = new TroughData("Trough") {
-				Type = TroughType.Modern,
+				Type = TroughType.ModernOpto,
 			};
 			var trough = new Engine.VPT.Trough.Trough(data);
 			var coils = trough.AvailableCoils.ToArray();

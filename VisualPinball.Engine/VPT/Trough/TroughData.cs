@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.VPT.Trough
 		public string Name;
 
 		[BiffInt("TYPE", Pos = 2)]
-		public int Type = TroughType.Modern;
+		public int Type = TroughType.ModernOpto;
 
 		[BiffString("ENTS", Pos = 3)]
 		public string PlayfieldEntrySwitch = string.Empty;

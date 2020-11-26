@@ -27,14 +27,16 @@ namespace VisualPinball.Unity.Editor
 	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
 	{
 		private static readonly string[] TypeLabels = {
-			"Modern (opto or mechanical)",
+			"Modern Opto",
+			"Modern Mechanical",
 			"Two coils multiple switches",
 			"Two coils one switch",
 			"Classic single ball",
 		};
 
 		private static readonly int[] TypeValues = {
-			TroughType.Modern,
+			TroughType.ModernOpto,
+			TroughType.ModernMech,
 			TroughType.TwoCoilsNSwitches,
 			TroughType.TwoCoilsOneSwitch,
 			TroughType.ClassicSingleBall
@@ -51,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			switch (Data.Type) {
-				case TroughType.Modern:
+				case TroughType.ModernOpto:
 				case TroughType.TwoCoilsNSwitches:
 					ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
 					break;
@@ -60,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 
-			if (Data.Type != TroughType.Modern && Data.Type != TroughType.TwoCoilsNSwitches) {
+			if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.TwoCoilsNSwitches) {
 				ItemDataField("Kick Time (ms)", ref Data.KickTime, false);
 			}
 
@@ -81,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 				var troughApi = _table.GetComponent<Player>().TableApi.Trough(Item.Name);
 
-				if (Data.Type != TroughType.Modern) {
+				if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech) {
 					DrawSwitch("Drain Switch", troughApi.EntrySwitch);
 				}
 
