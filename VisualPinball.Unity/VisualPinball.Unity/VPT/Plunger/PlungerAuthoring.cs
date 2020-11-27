@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
-		private static readonly int Amount = Shader.PropertyToID("_Amount");
+		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
 
 		private void Start()
 		{
@@ -197,16 +197,16 @@ namespace VisualPinball.Unity
 		{
 			switch (Data.Type) {
 				case PlungerType.PlungerTypeFlat: {
-					SetMaterialProperty<PlungerFlatMeshAuthoring>(Amount, pos);
+					SetMaterialProperty<PlungerFlatMeshAuthoring>(LerpPosition, pos);
 					break;
 				}
 				case PlungerType.PlungerTypeCustom: {
-					SetMaterialProperty<PlungerRodMeshAuthoring>(Amount, pos);
-					SetMaterialProperty<PlungerSpringMeshAuthoring>(Amount, pos);
+					SetMaterialProperty<PlungerRodMeshAuthoring>(LerpPosition, pos);
+					SetMaterialProperty<PlungerSpringMeshAuthoring>(LerpPosition, pos);
 					break;
 				}
 				case PlungerType.PlungerTypeModern: {
-					SetMaterialProperty<PlungerRodMeshAuthoring>(Amount, pos);
+					SetMaterialProperty<PlungerRodMeshAuthoring>(LerpPosition, pos);
 					break;
 				}
 			}
