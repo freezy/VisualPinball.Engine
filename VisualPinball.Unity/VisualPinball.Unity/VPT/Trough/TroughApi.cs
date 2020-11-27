@@ -368,6 +368,26 @@ namespace VisualPinball.Unity
 
 			switch (Data.Type) {
 				case TroughType.ModernOpto:
+					// if entry position is occupied by another ball that just went in, queue.
+					if (_stackSwitches[pos].IsClosed) {
+						UncountedStackBalls++;
+						return;
+					}
+					_countedStackBalls++;
+
+					// these are switches where the balls rolls over, so close and re-open them.
+					for (var i = 0; i < Data.SwitchCount - _countedStackBalls; i++) {
+						_stackSwitches[pos].ScheduleSwitch(true, t);
+
+						t += Data.RollTime;
+						_stackSwitches[pos].ScheduleSwitch(false, t);
+						pos--;
+					}
+					// switch nearest to the eject comes last, but doesn't re-open.
+					_stackSwitches[pos].ScheduleSwitch(true, t);
+
+					break;
+
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 					// if entry position is occupied by another ball that just went in, queue.
