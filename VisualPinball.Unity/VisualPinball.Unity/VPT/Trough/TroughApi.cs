@@ -375,8 +375,10 @@ namespace VisualPinball.Unity
 						UncountedStackBalls++;
 						return;
 					}
+					_countedStackBalls++;
+
 					// these are switches where the balls rolls over, so close and re-open them.
-					for (var i = 0; i < Data.SwitchCount - _countedStackBalls - 1; i++) {
+					for (var i = 0; i < Data.SwitchCount - _countedStackBalls; i++) {
 						_stackSwitches[pos].ScheduleSwitch(true, t);
 
 						t += Data.RollTime / 2;
@@ -386,19 +388,20 @@ namespace VisualPinball.Unity
 					}
 					// switch nearest to the eject comes last, but doesn't re-open.
 					_stackSwitches[pos].ScheduleSwitch(true, t);
-					_countedStackBalls++;
+
 					break;
 
 				case TroughType.TwoCoilsOneSwitch:
-					if (_countedStackBalls < Data.SwitchCount - 1) {
+					_countedStackBalls++;
+					if (_countedStackBalls < Data.SwitchCount) {
 						StackSwitch().ScheduleSwitch(true, t);
 						t += Data.RollTime / 2;
 						StackSwitch().ScheduleSwitch(false, t);
 
-					} else if (_countedStackBalls == Data.SwitchCount - 1) {
+					} else if (_countedStackBalls == Data.SwitchCount) {
 						StackSwitch().SetSwitch(true);
 					}
-					_countedStackBalls++;
+
 					break;
 
 				case TroughType.ClassicSingleBall:
