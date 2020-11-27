@@ -60,7 +60,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public static Plunger GetDefault(Table.Table table)
 		{
-			var plungerData = new PlungerData(table.GetNewName<Plunger>("Plunger"), table.Width / 2f, table.Height / 2f);
+			var plungerData = new PlungerData(table.GetNewName<Plunger>("Plunger"), table.Width / 2f, table.Height / 2f) {
+				Type = PlungerType.PlungerTypeCustom
+			};
 			return new Plunger(plungerData);
 		}
 

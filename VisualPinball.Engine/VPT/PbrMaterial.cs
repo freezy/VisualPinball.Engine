@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.VPT
 		public bool HasNormalMap => NormalMap != null;
 		public BlendMode MapBlendMode => GetBlendMode();
 
-		public bool VertexLerpWithUvEnabled;
+		public readonly bool VertexLerpWithUvEnabled;
 
 		public Color Color => _material?.BaseColor ?? new Color(0xffffff, ColorFormat.Bgr);
 		public bool IsMetal => _material?.IsMetal ?? false;

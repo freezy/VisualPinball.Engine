@@ -6,7 +6,7 @@ Shader "Visual Pinball/Built-In/LerpVertex"
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness("Smoothness", Range(0,1)) = 0.5
         _Metallic("Metallic", Range(0,1)) = 0.0
-        _Amount("Amount", Range(0, 1)) = 0.0
+        _PullAmount("PullAmount", Range(0, 1)) = 0.0
     }
     SubShader
     {
@@ -26,21 +26,21 @@ Shader "Visual Pinball/Built-In/LerpVertex"
         {
             float2 uv_MainTex;
             float4 texcoord1 : TEXCOORD1;
-            
+
 
             INTERNAL_DATA
         };
 
         half _Glossiness;
         half _Metallic;
-        float _Amount;
+        float _PullAmount;
 
 
         fixed4 _Color;
 
         void vert(inout appdata_full v)
         {
-            v.vertex.xyz += float3(0, v.texcoord2.y * _Amount, 0);
+            v.vertex.xyz += float3(0, v.texcoord2.y * _PullAmount, 0);
 
         }
 

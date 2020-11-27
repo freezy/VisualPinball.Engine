@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	internal class PlungerTransformationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
-		private static readonly int Amount = Shader.PropertyToID("_Amount");
+		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
 
 		protected override void OnUpdate()
 		{
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
-				renderMesh.material.SetFloat(Amount, weight);
+				renderMesh.material.SetFloat(LerpPosition, weight);
 
 				marker.End();
 
