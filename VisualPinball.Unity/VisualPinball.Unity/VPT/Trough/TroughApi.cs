@@ -368,26 +368,6 @@ namespace VisualPinball.Unity
 
 			switch (Data.Type) {
 				case TroughType.ModernOpto:
-					// if entry position is occupied by another ball that just went in, queue.
-					if (_stackSwitches[pos].IsEnabled) {
-						UncountedStackBalls++;
-						return;
-					}
-					_countedStackBalls++;
-
-					// these are switches where the balls rolls over, so close and re-open them.
-					for (var i = 0; i < Data.SwitchCount - _countedStackBalls; i++) {
-						_stackSwitches[pos].ScheduleSwitch(true, t);
-
-						t += Data.RollTime;
-						_stackSwitches[pos].ScheduleSwitch(false, t);
-						pos--;
-					}
-					// switch nearest to the eject comes last, but doesn't re-open.
-					_stackSwitches[pos].ScheduleSwitch(true, t);
-
-					break;
-
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 					// if entry position is occupied by another ball that just went in, queue.
@@ -401,9 +381,9 @@ namespace VisualPinball.Unity
 					for (var i = 0; i < Data.SwitchCount - _countedStackBalls; i++) {
 						_stackSwitches[pos].ScheduleSwitch(true, t);
 
-						t += Data.RollTime / 2;
+						t += Item.RollTimeDisabled;
 						_stackSwitches[pos].ScheduleSwitch(false, t);
-						t += Data.RollTime / 2;
+						t += Item.RollTimeEnabled;
 						pos--;
 					}
 					// switch nearest to the eject comes last, but doesn't re-open.
@@ -415,7 +395,7 @@ namespace VisualPinball.Unity
 					_countedStackBalls++;
 					if (_countedStackBalls < Data.SwitchCount) {
 						StackSwitch().ScheduleSwitch(true, t);
-						t += Data.RollTime / 2;
+						t += Item.RollTimeDisabled;
 						StackSwitch().ScheduleSwitch(false, t);
 
 					} else if (_countedStackBalls == Data.SwitchCount) {
@@ -488,40 +468,32 @@ namespace VisualPinball.Unity
 			switch (Data.Type) {
 
 				case TroughType.ModernOpto:
-
-					// open the switch nearest to the entry
-					_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime / 2);
-
-					// close the eject switch
-					_stackSwitches[0].ScheduleSwitch(true, Data.RollTime / 2);
-
-					// the other balls move down but don't trigger anything
-					break;
-
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 
 					// don't re-close the switch nearest to the entry
-					_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime / 2);
+					_stackSwitches[pos].ScheduleSwitch(false, Item.RollTimeDisabled);
 
 					// move remaining but last ball (which has been ejected) one position further,
 					// all at the same time
 					for (var i = 0; i < _countedStackBalls - 2; i++) {
 						pos--;
-						_stackSwitches[pos].ScheduleSwitch(false, Data.RollTime / 2);
-						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
+						if (Item.RollTimeEnabled != 0) {
+							_stackSwitches[pos].ScheduleSwitch(false, Item.RollTimeDisabled);
+							_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
+						}
 					}
 
 					// just close the switch for the last ball, since it has already been opened.
 					if (pos-- > 0) {
-						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime / 2);
+						_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
 					}
 					break;
 
 				case TroughType.TwoCoilsOneSwitch:
 					// there is only one switch in the trough, so if it's closed, open it.
 					if (StackSwitch().IsEnabled) {
-						StackSwitch().ScheduleSwitch(false, Data.RollTime / 2);
+						StackSwitch().ScheduleSwitch(false, Item.RollTimeDisabled);
 					}
 					break;
 

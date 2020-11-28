@@ -92,6 +92,50 @@ namespace VisualPinball.Engine.VPT.Trough
 			}
 		}
 
+		/// <summary>
+		/// Time in milliseconds it takes the switch to enable when the ball enters.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
+		public int RollTimeEnabled {
+			get {
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+						return Data.TransitionTime;
+
+					case TroughType.ModernMech:
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+					case TroughType.ClassicSingleBall:
+						return Data.RollTime / 2;
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Time in milliseconds it takes the switch to disable after ball starts rolling.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
+		public int RollTimeDisabled {
+			get {
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+						return Data.RollTime - Data.TransitionTime;
+
+					case TroughType.ModernMech:
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+					case TroughType.ClassicSingleBall:
+						return Data.RollTime / 2;
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
+
 		public Trough(TroughData data) : base(data)
 		{
 		}

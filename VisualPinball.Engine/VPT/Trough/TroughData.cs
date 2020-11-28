@@ -54,10 +54,13 @@ namespace VisualPinball.Engine.VPT.Trough
 		public int SwitchCount = 6;
 
 		[BiffInt("RTIM", Pos = 7)]
-		public int RollTime = 100;
+		public int RollTime = 300;
 
-		[BiffInt("KTIM", Pos = 8)]
-		public int KickTime = 200;
+		[BiffInt("TTIM", Pos = 8)]
+		public int TransitionTime = 50;
+
+		[BiffInt("KTIM", Pos = 9)]
+		public int KickTime = 100;
 
 		public TroughData(string name) : base(StoragePrefix.GameItem)
 		{

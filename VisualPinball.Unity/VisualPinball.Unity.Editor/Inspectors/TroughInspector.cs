@@ -68,6 +68,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			ItemDataField("Roll Time (ms)", ref Data.RollTime, false);
+			if (Data.Type == TroughType.ModernOpto) {
+				ItemDataField("Transition Time (ms)", ref Data.TransitionTime, false);
+			}
 
 			if (!Application.isPlaying) {
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links")) {
