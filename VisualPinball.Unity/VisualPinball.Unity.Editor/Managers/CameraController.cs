@@ -38,7 +38,8 @@ namespace VisualPinball.Unity
 		Transform _altitude;
 		Transform _azimuth;
 		Transform _offset;
-		GameObject _table; 
+		GameObject _table;
+		TableAuthoring _tableAuth; 
 
 		bool initialized = false;
 		#endregion
@@ -48,10 +49,16 @@ namespace VisualPinball.Unity
 		
 		public int CameraPreset = 0;
 		List<CameraPreset> cameraPresets;
-		public int presetCount = 0; 
+		public int presetCount = 0;
 
-		[Range(-1f, 1f)]
+		[Range(-0.2f, 0.2f)]
+		public float XOffset = 0f;
+		[Range(-0.2f, 0.2f)]
 		public float YOffset = 0f;
+		[Range(-0.2f, 0.2f)]
+		public float ZOffset = 0f;
+
+		public Vector3 Offset;
 
 		[Range(0f, 10f)]
 		public float Distance = 1.7f;
@@ -65,6 +72,7 @@ namespace VisualPinball.Unity
 		[Range(0, 360)]
 		public float Orbit = 0;
 
+		public int Preset = 0; 
 		#endregion
 
 
@@ -74,10 +82,10 @@ namespace VisualPinball.Unity
 			cameraPresets = new List<CameraPreset>();
 			SetupPresets(); 	
 
-			TableAuthoring ta = TableManager.GetActiveTable(true);
-			if(ta)
+			_tableAuth = TableManager.GetActiveTable(true);
+			if(_tableAuth)
 			{
-				_table = ta.gameObject.GetComponentInChildren<PlayfieldAuthoring>().gameObject;
+				_table = _tableAuth.gameObject.GetComponentInChildren<PlayfieldAuthoring>().gameObject;
 				_camera = this.gameObject.GetComponentInChildren<Camera>();
 				_transform = _camera.transform;
 				_altitude = _transform.transform.parent;
@@ -91,19 +99,20 @@ namespace VisualPinball.Unity
 		private void SetupPresets()
 		{
 			
-			AddPreset("Med-High", -0.25f, 9.9f, 4.25f, 51.2f, 0f);
-			AddPreset("High-Flat", -0.16f, 5f, 9f, 61.5f, 0f);
-			AddPreset("Low-Wide", -0.57f, 33.6f, 1.16f, 54.9f, 0f);
+			AddPreset("Med-High", new Vector3(0,0,-0.25f), 9.9f, 4.25f, 51.2f, 0f);
+			AddPreset("High-Flat", new Vector3(0, 0, -0.16f), 5f, 9f, 61.5f, 0f);
+			AddPreset("Low-Wide", new Vector3(0, 0, -0.57f), 33.6f, 1.16f, 54.9f, 0f);
 			
-			presetCount = cameraPresets.Count; 
+			presetCount = cameraPresets.Count;
+			Debug.Log("Setup Presets: " + presetCount);
 
 		}
 
-		private void AddPreset(string name, float yOffset, float fOV, float distance, float angle, float orbit)
+		private void AddPreset(string name, Vector3 offset, float fOV, float distance, float angle, float orbit)
 		{
 			CameraPreset camPres = new CameraPreset();
 			camPres.name = name; 
-			camPres.yOffset = yOffset;
+			camPres.offset = offset;
 			camPres.fov = fOV;
 			camPres.distance = distance;
 			camPres.angle = angle;
@@ -117,43 +126,47 @@ namespace VisualPinball.Unity
 			if(num < cameraPresets.Count)
 			{
 				CameraPreset c = cameraPresets[num];
-				SetProperties(c.name, c.yOffset, c.fov, c.distance, c.angle, c.orbit); 
+				SetProperties(c.name, c.offset, c.fov, c.distance, c.angle, c.orbit); 
 			}
 		}
 
-		private void SetProperties(string name, float yOffset, float fov, float distance, float angle, float orbit)
+		private void SetProperties(string name, Vector3 offset, float fov, float distance, float angle, float orbit)
 		{
-			YOffset = yOffset;
+			XOffset = offset.x;
+			YOffset = offset.y;
+			ZOffset = offset.z; 
 			FOV = fov;
 			Distance = distance;
 			Angle = angle;
 			Orbit = orbit;
 			ApplyProperties(); 
-
+			 
 		}
 
 		//TODO: Convert this to OnGUI
 		public void ApplyProperties()
 		{
 			
-			if(!initialized || !_table) Init(); 
+			if(!initialized || !_table || !_tableAuth) Init(); 
 
 
-			if(initialized && _table)
+			if(initialized && _table && _tableAuth)
 			{
 				_camera.transform.localPosition = new Vector3(0, 0, -Distance);
 				_altitude.localRotation = Quaternion.Euler(new Vector3(Angle, 0, 0));
 				_azimuth.localRotation = Quaternion.Euler(new Vector3(0, Orbit, 0));
-				_offset.localPosition = GetTableCenter() + new Vector3(0, 0, YOffset);
+				Offset = new Vector3(XOffset, YOffset, ZOffset);
+				_offset.localPosition = GetTableCenter() + Offset;
 				_camera.fieldOfView = FOV;
 
 				Vector3 p = _camera.transform.position;
-				Vector3 nearPoint = _table.GetComponent<MeshRenderer>().bounds.ClosestPoint(_camera.transform.position);
-				Vector3 deltaN = p - nearPoint;
-				Vector3 deltaF = p; 
+				Vector3 nearPoint = _tableAuth.TableBounds.ClosestPoint(_camera.transform.position);
+				float deltaN = Vector3.Magnitude(p - nearPoint);
+				float deltaF = Mathf.Max(Vector3.Distance(p, _tableAuth.TableBounds.max), Vector3.Distance(p, _tableAuth.TableBounds.min)); 
+
 				//TODO: Replace this with proper frustum distances.  
-				float nearplane = Mathf.Abs(deltaN.magnitude * 0.7f);
-				float farplane = Mathf.Abs(deltaF.magnitude * 1.5f); 
+				float nearplane = Mathf.Max(0.001f, Mathf.Abs(deltaN * 0.9f));
+				float farplane = Mathf.Max(1f, Mathf.Abs(deltaF*1.1f)); 
 
 				_camera.nearClipPlane = nearplane;
 				_camera.farClipPlane = farplane; 

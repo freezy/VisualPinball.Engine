@@ -11,16 +11,23 @@ namespace VisualPinball.Unity.Editor
 	{
 
 		SerializedProperty preset; 
-		SerializedProperty yoffset; 
+		SerializedProperty xoffset;
+		SerializedProperty yoffset;
+		SerializedProperty zoffset;
 		SerializedProperty fov;
 		SerializedProperty distance;
 		SerializedProperty angle;
-		SerializedProperty orbit; 
+		SerializedProperty orbit;
+		CameraController cameraController; 
+
 
 		private void OnEnable()
 		{
+			
 			preset = serializedObject.FindProperty("Preset"); 
+			xoffset = serializedObject.FindProperty("XOffset");
 			yoffset = serializedObject.FindProperty("YOffset");
+			zoffset = serializedObject.FindProperty("ZOffset");
 			fov = serializedObject.FindProperty("FOV");
 			distance = serializedObject.FindProperty("Distance");
 			angle = serializedObject.FindProperty("Angle");
@@ -32,17 +39,23 @@ namespace VisualPinball.Unity.Editor
 		{
 			//base.OnInspectorGUI(); 
 			//base.OnInspectorGUI(); 
+			cameraController = target as CameraController;
 			serializedObject.Update();
-			CameraController cc = target as CameraController;
-			//EditorGUILayout.Slider(preset, 0, cc.presetCount); 
+			EditorGUILayout.PropertyField(xoffset);
 			EditorGUILayout.PropertyField(yoffset);
+			EditorGUILayout.PropertyField(zoffset);
 			EditorGUILayout.PropertyField(fov);
 			EditorGUILayout.PropertyField(distance);
 			EditorGUILayout.PropertyField(angle);
 			EditorGUILayout.PropertyField(orbit);
 
+			
+			if(cameraController) EditorGUILayout.IntSlider(preset, 0, cameraController.presetCount);
+			
+
+
 			serializedObject.ApplyModifiedProperties();
-			cc.ApplyProperties(); 
+			cameraController.ApplyProperties(); 
 
 		}
 	}
