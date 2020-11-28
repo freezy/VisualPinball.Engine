@@ -77,10 +77,10 @@ namespace VisualPinball.Unity
 
 		public void ScheduleSwitch(bool value, int delay)
 		{
-			var closed = _invertValue ? !value : value;
 			if (delay == 0) {
-				SetSwitch(closed);
+				SetSwitch(value);
 			} else {
+				var closed = _invertValue ? !value : value;
 				_switchHandler.ScheduleSwitch(closed, delay, c => {
 					Switch?.Invoke(this, new SwitchEventArgs(c, Entity.Null));
 				});
