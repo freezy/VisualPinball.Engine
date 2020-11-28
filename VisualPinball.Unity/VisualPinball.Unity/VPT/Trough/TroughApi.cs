@@ -266,9 +266,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void OnEntry(object sender, SwitchEventArgs args)
 		{
-			Logger.Info("Draining ball into trough.");
-			_drainSwitch.DestroyBall(args.BallEntity);
-			DrainBall();
+			if (args.IsClosed) {
+				Logger.Info("Draining ball into trough.");
+				_drainSwitch.DestroyBall(args.BallEntity);
+				DrainBall();
+			}
 		}
 
 		/// <summary>
@@ -429,6 +431,26 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			if (_countedStackBalls > 0) {
+
+				// open the switch of the ejected ball immediately
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+					case TroughType.ModernMech:
+					case TroughType.TwoCoilsNSwitches:
+						if (!_stackSwitches[0].IsEnabled) {
+							Logger.Warn($"Ball not in eject position yet, ignoring.");
+							return false;
+						}
+						break;
+					case TroughType.TwoCoilsOneSwitch:
+					case TroughType.ClassicSingleBall:
+						// no switches at position 0 here.
+						break;
+
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
 				Logger.Info("Trough: Spawning new ball.");
 
 				_ejectKicker.CreateBall();
@@ -441,13 +463,7 @@ namespace VisualPinball.Unity
 					case TroughType.TwoCoilsNSwitches:
 						_stackSwitches[0].SetSwitch(false);
 						break;
-					case TroughType.TwoCoilsOneSwitch:
-					case TroughType.ClassicSingleBall:
-						// no switches at position 0 here.
-						break;
-
-					default:
-						throw new ArgumentOutOfRangeException();
+					// no switches at position 0 for other types.
 				}
 				RollOverStackBalls();
 				RollOverNextUncountedStackBall();
@@ -509,7 +525,8 @@ namespace VisualPinball.Unity
 
 		private void OnLastStackSwitch(object sender, SwitchEventArgs switchEventArgs)
 		{
-			if (!switchEventArgs.IsClosed && UncountedStackBalls > 0) {
+			var enabled = Data.Type == TroughType.ModernOpto ? !switchEventArgs.IsClosed : switchEventArgs.IsClosed;
+			if (!enabled && UncountedStackBalls > 0) {
 				RefreshUI();
 				UncountedStackBalls--;
 				RollOverEntryBall(Data.RollTime / 2);
