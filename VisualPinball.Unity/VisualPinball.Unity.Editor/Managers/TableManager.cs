@@ -94,10 +94,10 @@ namespace VisualPinball.Unity.Editor.Utils
 		/// Returns the currently active table if known, otherwise returns the first active table in the scene. 
 		/// </summary>
 		/// <returns>TableAuthoring Reference for the active table.</returns>
-		public static TableAuthoring GetActiveTable()
+		public static TableAuthoring GetActiveTable(bool force = false)
 		{
 			
-			if(activeTable == null)
+			if(activeTable == null || force)
 			{
 				FindFirstActiveTable();
 			}
