@@ -25,7 +25,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 	public class TroughTests
 	{
 		[Test]
-		public void ShouldReturnCorrectSwitchesForModern()
+		public void ShouldReturnCorrectSwitchesForModernOpto()
 		{
 			var data = new TroughData("Trough") {
 				Type = TroughType.ModernOpto,
@@ -41,10 +41,39 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		}
 
 		[Test]
-		public void ShouldReturnCorrectCoilsForModern()
+		public void ShouldReturnCorrectCoilsForModernOpto()
 		{
 			var data = new TroughData("Trough") {
 				Type = TroughType.ModernOpto,
+			};
+			var trough = new Engine.VPT.Trough.Trough(data);
+			var coils = trough.AvailableCoils.ToArray();
+
+			coils.Should().HaveCount(1);
+			coils[0].Id.Should().Be(Engine.VPT.Trough.Trough.EjectCoilId);
+		}
+
+		[Test]
+		public void ShouldReturnCorrectSwitchesForModernMechanical()
+		{
+			var data = new TroughData("Trough") {
+				Type = TroughType.ModernMech,
+				SwitchCount = 3
+			};
+			var trough = new Engine.VPT.Trough.Trough(data);
+			var switches = trough.AvailableSwitches.ToArray();
+
+			switches.Should().HaveCount(3);
+			switches[0].Id.Should().Be("1");
+			switches[1].Id.Should().Be("2");
+			switches[2].Id.Should().Be("3");
+		}
+
+		[Test]
+		public void ShouldReturnCorrectCoilsForModernMechanical()
+		{
+			var data = new TroughData("Trough") {
+				Type = TroughType.ModernMech,
 			};
 			var trough = new Engine.VPT.Trough.Trough(data);
 			var coils = trough.AvailableCoils.ToArray();
