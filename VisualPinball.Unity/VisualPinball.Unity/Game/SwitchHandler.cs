@@ -35,10 +35,11 @@ namespace VisualPinball.Unity
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public SwitchHandler(string name, Player player)
+		public SwitchHandler(string name, Player player, bool isClosed = false)
 		{
 			_name = name;
 			_player = player;
+			IsClosed = isClosed;
 		}
 
 		/// <summary>

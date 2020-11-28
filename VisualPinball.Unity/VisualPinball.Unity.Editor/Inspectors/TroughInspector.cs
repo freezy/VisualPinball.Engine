@@ -54,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 
 			switch (Data.Type) {
 				case TroughType.ModernOpto:
+				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 					ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
 					break;
