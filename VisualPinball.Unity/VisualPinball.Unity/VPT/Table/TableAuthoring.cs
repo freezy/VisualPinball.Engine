@@ -82,6 +82,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
+		[HideInInspector] [SerializeField] public Bounds TableBounds { get; set; }
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected virtual void Start()
@@ -253,8 +255,24 @@ namespace VisualPinball.Unity
 		{
 			var table = CreateTable(tableData);
 
+			TableBounds = GetTableBounds(); 
+			
 			Logger.Info("Table restored.");
 			return table;
+		}
+
+		private Bounds GetTableBounds()
+		{
+			Bounds tableBounds = new Bounds();
+			Renderer[] mrs = this.GetComponentsInChildren<Renderer>(); 
+			foreach(Renderer mr in mrs)
+			{
+				tableBounds.Encapsulate(mr.bounds.max);
+				tableBounds.Encapsulate(mr.bounds.min);
+				tableBounds.Encapsulate(mr.bounds.center); 
+			}
+
+			return tableBounds;
 		}
 
 		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData

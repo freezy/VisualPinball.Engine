@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	struct CameraPreset
 	{
 		public string name { get; set; }
-		public float yOffset { get; set; }
+		public Vector3 offset { get; set; }
 		public float fov { get; set; }
 		public float distance { get; set; }
 		public float angle { get; set; }
