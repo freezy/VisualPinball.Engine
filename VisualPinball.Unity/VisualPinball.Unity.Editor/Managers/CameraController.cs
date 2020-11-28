@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor; 
 using VisualPinball.Unity.Editor.Utils;
+using System;
 
 
 //TODO: Turn this into a proper editor authoring compoenent. 
@@ -31,7 +32,7 @@ namespace VisualPinball.Unity
 	{
 		#region Private Variables 
 		
-		//List<CameraPresetStruct> cameraPresets;
+		
 		Camera _camera;
 		Transform _transform;
 		Transform _altitude;
@@ -43,6 +44,11 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Public Variables
+
+		
+		public int CameraPreset = 0;
+		List<CameraPreset> cameraPresets;
+		public int presetCount = 0; 
 
 		[Range(-1f, 1f)]
 		public float YOffset = 0f;
@@ -65,7 +71,9 @@ namespace VisualPinball.Unity
 		
 		void Init()
 		{
-			
+			cameraPresets = new List<CameraPreset>();
+			SetupPresets(); 	
+
 			TableAuthoring ta = TableManager.GetActiveTable(true);
 			if(ta)
 			{
@@ -80,8 +88,52 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private void SetupPresets()
+		{
+			
+			AddPreset("Med-High", -0.25f, 9.9f, 4.25f, 51.2f, 0f);
+			AddPreset("High-Flat", -0.16f, 5f, 9f, 61.5f, 0f);
+			AddPreset("Low-Wide", -0.57f, 33.6f, 1.16f, 54.9f, 0f);
+			
+			presetCount = cameraPresets.Count; 
+
+		}
+
+		private void AddPreset(string name, float yOffset, float fOV, float distance, float angle, float orbit)
+		{
+			CameraPreset camPres = new CameraPreset();
+			camPres.name = name; 
+			camPres.yOffset = yOffset;
+			camPres.fov = fOV;
+			camPres.distance = distance;
+			camPres.angle = angle;
+			camPres.orbit = orbit;
+
+			cameraPresets.Add(camPres); 
+		}
+
+		private void ApplyPreset(int num)
+		{
+			if(num < cameraPresets.Count)
+			{
+				CameraPreset c = cameraPresets[num];
+				SetProperties(c.name, c.yOffset, c.fov, c.distance, c.angle, c.orbit); 
+			}
+		}
+
+		private void SetProperties(string name, float yOffset, float fov, float distance, float angle, float orbit)
+		{
+			YOffset = yOffset;
+			FOV = fov;
+			Distance = distance;
+			Angle = angle;
+			Orbit = orbit;
+			ApplyProperties(); 
+
+		}
+
 		//TODO: Convert this to OnGUI
-		private void Update()
+		public void ApplyProperties()
 		{
 			
 			if(!initialized || !_table) Init(); 
@@ -99,9 +151,9 @@ namespace VisualPinball.Unity
 				Vector3 nearPoint = _table.GetComponent<MeshRenderer>().bounds.ClosestPoint(_camera.transform.position);
 				Vector3 deltaN = p - nearPoint;
 				Vector3 deltaF = p; 
-
-				float nearplane = Mathf.Abs(deltaN.magnitude*0.9f);
-				float farplane = Mathf.Abs(deltaF.magnitude*1.5f); 
+				//TODO: Replace this with proper frustum distances.  
+				float nearplane = Mathf.Abs(deltaN.magnitude * 0.7f);
+				float farplane = Mathf.Abs(deltaF.magnitude * 1.5f); 
 
 				_camera.nearClipPlane = nearplane;
 				_camera.farClipPlane = farplane; 
