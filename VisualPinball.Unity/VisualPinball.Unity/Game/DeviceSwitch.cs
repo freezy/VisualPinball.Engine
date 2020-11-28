@@ -68,19 +68,28 @@ namespace VisualPinball.Unity
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 		public void DestroyBall(Entity ballEntity) { } // device switches can't destroy balls
 
-		public void SetSwitch(bool value)
+		/// <summary>
+		/// Enables or disables the switch.
+		/// </summary>
+		/// <param name="enabled">If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</param>
+		public void SetSwitch(bool enabled)
 		{
-			var closed = _invertValue ? !value : value;
+			var closed = _invertValue ? !enabled : enabled;
 			_switchHandler.OnSwitch(closed);
 			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
 		}
 
-		public void ScheduleSwitch(bool value, int delay)
+		/// <summary>
+		/// Schedules the switch to be enabled or disabled.
+		/// </summary>
+		/// <param name="enabled">If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</param>
+		/// <param name="delay">Delay in milliseconds</param>
+		public void ScheduleSwitch(bool enabled, int delay)
 		{
 			if (delay == 0) {
-				SetSwitch(value);
+				SetSwitch(enabled);
 			} else {
-				var closed = _invertValue ? !value : value;
+				var closed = _invertValue ? !enabled : enabled;
 				_switchHandler.ScheduleSwitch(closed, delay, c => {
 					Switch?.Invoke(this, new SwitchEventArgs(c, Entity.Null));
 				});
