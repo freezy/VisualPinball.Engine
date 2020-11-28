@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch) => new DeviceSwitch(name, isPulseSwitch, _player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, bool isOptoSwitch) => new DeviceSwitch(name, isPulseSwitch, isOptoSwitch, _player);
 
 		private protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
 

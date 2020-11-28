@@ -35,27 +35,49 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool IsClosed => _switchHandler.IsClosed;
 
+		/// <summary>
+		/// Indicates whether the switch is currently enabled.
+		/// </summary>
+		///
+		/// <remarks>
+		/// We sometimes need to check the status of a switch and don't care whether it's an opto switch (which returns
+		/// the inverted value) or not.
+		/// </remarks>
+		public bool IsEnabled => _invertValue ? !IsClosed : IsClosed;
+
+		/// <summary>
+		/// If true, *setting* the switch will inverse the given value.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This is important for opto switches since the work the other way around.
+		/// </remarks>
+		private readonly bool _invertValue;
+
 		private readonly bool _isPulseSwitch;
 		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(string name, bool isPulseSwitch, Player player)
+		public DeviceSwitch(string name, bool isPulseSwitch, bool isOptoSwitch, Player player)
 		{
 			_isPulseSwitch = isPulseSwitch;
-			_switchHandler = new SwitchHandler(name, player);
+			_invertValue = isOptoSwitch;
+			_switchHandler = new SwitchHandler(name, player, isOptoSwitch);
 		}
 
 		public void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig.WithPulse(_isPulseSwitch));
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 		public void DestroyBall(Entity ballEntity) { } // device switches can't destroy balls
 
-		public void SetSwitch(bool closed)
+		public void SetSwitch(bool value)
 		{
+			var closed = _invertValue ? !value : value;
 			_switchHandler.OnSwitch(closed);
 			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
 		}
 
-		public void ScheduleSwitch(bool closed, int delay)
+		public void ScheduleSwitch(bool value, int delay)
 		{
+			var closed = _invertValue ? !value : value;
 			if (delay == 0) {
 				SetSwitch(closed);
 			} else {

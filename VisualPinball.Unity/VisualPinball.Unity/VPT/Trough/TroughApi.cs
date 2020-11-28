@@ -177,13 +177,13 @@ namespace VisualPinball.Unity
 
 			// setup switches
 			if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech) {
-				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false);
+				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false, false);
 				_switchLookup[Trough.EntrySwitchId] = EntrySwitch;
 			}
 
 			if (Data.Type == TroughType.TwoCoilsOneSwitch) {
 				_stackSwitches = new[] {
-					CreateSwitch(Trough.TroughSwitchId, false)
+					CreateSwitch(Trough.TroughSwitchId, false, false)
 				};
 				_switchLookup[Trough.TroughSwitchId] = StackSwitch();
 
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 				_stackSwitches = new DeviceSwitch[Data.SwitchCount];
 				foreach (var sw in Item.AvailableSwitches) {
 					if (int.TryParse(sw.Id, out var id)) {
-						_stackSwitches[id - 1] = CreateSwitch(sw.Id, false);
+						_stackSwitches[id - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto);
 						_switchLookup[sw.Id] = _stackSwitches[id - 1];
 
 					} else {
@@ -251,7 +251,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case TroughType.ClassicSingleBall:
-					if (!EntrySwitch.IsClosed) {
+					if (!EntrySwitch.IsEnabled) {
 						EntrySwitch.SetSwitch(true);
 					}
 					break;
@@ -288,7 +288,7 @@ namespace VisualPinball.Unity
 				case TroughType.TwoCoilsOneSwitch:
 				case TroughType.ClassicSingleBall:
 
-					if (EntrySwitch.IsClosed) {   // if the drain slot is already occupied, queue it.
+					if (EntrySwitch.IsEnabled) {   // if the drain slot is already occupied, queue it.
 						UncountedDrainBalls++;
 
 					} else {                      // otherwise just close the entry switch
@@ -322,7 +322,7 @@ namespace VisualPinball.Unity
 				case TroughType.TwoCoilsNSwitches:
 				case TroughType.TwoCoilsOneSwitch:
 					// push the ball from the drain to the trough
-					if (EntrySwitch.IsClosed) {
+					if (EntrySwitch.IsEnabled) {
 						EntrySwitch.SetSwitch(false);
 						RollOverEntryBall(0);
 						DrainNextUncountedBall();
@@ -331,7 +331,7 @@ namespace VisualPinball.Unity
 
 				case TroughType.ClassicSingleBall:
 					// balls get ejected immediately
-					if (EntrySwitch.IsClosed) {
+					if (EntrySwitch.IsEnabled) {
 						EntrySwitch.SetSwitch(false);
 						EjectBall();
 						DrainNextUncountedBall();
@@ -369,7 +369,7 @@ namespace VisualPinball.Unity
 			switch (Data.Type) {
 				case TroughType.ModernOpto:
 					// if entry position is occupied by another ball that just went in, queue.
-					if (_stackSwitches[pos].IsClosed) {
+					if (_stackSwitches[pos].IsEnabled) {
 						UncountedStackBalls++;
 						return;
 					}
@@ -391,7 +391,7 @@ namespace VisualPinball.Unity
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 					// if entry position is occupied by another ball that just went in, queue.
-					if (_stackSwitches[pos].IsClosed) {
+					if (_stackSwitches[pos].IsEnabled) {
 						UncountedStackBalls++;
 						return;
 					}
@@ -520,7 +520,7 @@ namespace VisualPinball.Unity
 
 				case TroughType.TwoCoilsOneSwitch:
 					// there is only one switch in the trough, so if it's closed, open it.
-					if (StackSwitch().IsClosed) {
+					if (StackSwitch().IsEnabled) {
 						StackSwitch().ScheduleSwitch(false, Data.RollTime / 2);
 					}
 					break;
