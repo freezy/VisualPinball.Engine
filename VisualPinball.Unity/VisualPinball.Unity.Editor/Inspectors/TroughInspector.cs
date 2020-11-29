@@ -57,13 +57,15 @@ namespace VisualPinball.Unity.Editor
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
 					ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
+					ItemDataField("Has Jam Switch", ref Data.JamSwitch, false);
 					break;
 				case TroughType.TwoCoilsOneSwitch:
 					ItemDataSlider("Switch Position", ref Data.SwitchCount, 1, 10, false);
+					ItemDataField("Has Jam Switch", ref Data.JamSwitch, false);
 					break;
 			}
 
-			if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.TwoCoilsNSwitches) {
+			if (Data.JamSwitch || Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.TwoCoilsNSwitches) {
 				ItemDataField("Kick Time (ms)", ref Data.KickTime, false);
 			}
 
@@ -98,6 +100,10 @@ namespace VisualPinball.Unity.Editor
 					for (var i = troughApi.NumStackSwitches - 1; i >= 0; i--) {
 						DrawSwitch(SwitchDescription(i), troughApi.StackSwitch(i));
 					}
+				}
+
+				if (Data.JamSwitch) {
+					DrawSwitch("Jam Switch", troughApi.JamSwitch);
 				}
 
 				if (troughApi.UncountedDrainBalls > 0) {

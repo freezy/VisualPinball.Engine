@@ -73,7 +73,10 @@ namespace VisualPinball.Unity
 		///
 		/// <param name="pos">Position, where 0 is the switch of the ball being ejected next.</param>
 		/// <returns>Switch in the ball stack</returns>
+
 		public DeviceSwitch StackSwitch(int pos) => _stackSwitches[pos];
+
+		public DeviceSwitch JamSwitch;
 
 		/// <summary>
 		/// The stack of a trough can hold an unlimited number of balls. This counts the number of balls in the stack
@@ -203,6 +206,11 @@ namespace VisualPinball.Unity
 				if (Data.Type == TroughType.ModernOpto || Data.Type == TroughType.ModernMech) {
 					_stackSwitches[Data.SwitchCount - 1].Switch += OnLastStackSwitch;
 				}
+			}
+
+			if (Data.JamSwitch) {
+				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, Data.Type == TroughType.ModernOpto);
+				_switchLookup[Trough.JamSwitchId] = JamSwitch;
 			}
 
 			// setup coils
@@ -476,6 +484,8 @@ namespace VisualPinball.Unity
 
 					// no switches at position 0 for other types.
 				}
+
+				TriggerJamSwitch();
 				RollOverStackBalls();
 				RollOverNextUncountedStackBall();
 				RefreshUI();
@@ -483,6 +493,14 @@ namespace VisualPinball.Unity
 			}
 
 			return false;
+		}
+
+		private void TriggerJamSwitch()
+		{
+			if (Data.JamSwitch) {
+				JamSwitch.ScheduleSwitch(true, Data.KickTime / 2);
+				JamSwitch.ScheduleSwitch(false, Data.KickTime);
+			}
 		}
 
 		/// <summary>

@@ -30,17 +30,23 @@ namespace VisualPinball.Engine.VPT.Trough
 
 		public const string EntrySwitchId = "drain_switch";
 		public const string TroughSwitchId = "trough_switch";
+		public const string JamSwitchId = "jam_switch";
 		public const string EjectCoilId = "eject_coil";
 		public const string EntryCoilId = "entry_coil";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches {
 			get {
+
 				switch (Data.Type) {
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
 						return Enumerable.Repeat(0, Data.SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch
-								{ Description = SwitchDescription(i), Id = $"{i + 1}" });
+								{ Description = SwitchDescription(i), Id = $"{i + 1}" })
+							.Concat(Data.JamSwitch
+								? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+								: new GamelogicEngineSwitch[0]
+							);
 
 					case TroughType.TwoCoilsNSwitches:
 						return new[] {
@@ -48,13 +54,19 @@ namespace VisualPinball.Engine.VPT.Trough
 						}.Concat(Enumerable.Repeat(0, Data.SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch
 								{ Description = SwitchDescription(i), Id = $"{i + 1}"} )
+						).Concat(Data.JamSwitch
+							? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+							: new GamelogicEngineSwitch[0]
 						);
 
 					case TroughType.TwoCoilsOneSwitch:
 						return new[] {
 							new GamelogicEngineSwitch {Description = "Entry Switch", Id = EntrySwitchId},
 							new GamelogicEngineSwitch {Description = "Trough Switch", Id = TroughSwitchId},
-						};
+						}.Concat(Data.JamSwitch
+							? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+							: new GamelogicEngineSwitch[0]
+						);
 
 					case TroughType.ClassicSingleBall:
 						return new[] {
@@ -63,7 +75,6 @@ namespace VisualPinball.Engine.VPT.Trough
 
 					default:
 						throw new ArgumentException("Invalid trough type " + Data.Type);
-
 				}
 			}
 		}
