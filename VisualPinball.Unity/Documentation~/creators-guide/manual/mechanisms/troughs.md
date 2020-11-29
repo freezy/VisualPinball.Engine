@@ -2,7 +2,7 @@
 
 If you are unfamiliar with ball troughs, have a quick look at [MPF's documentation](https://mpf-docs.readthedocs.io/en/latest/mechs/troughs/), which does an excellent job explaining them.
 
-VPE comes with a trough mechanism that simulates the behaviour of a real-world ball trough. This is especially important when emulating existing games, since the [gamelogic engine](../gamelogic-engine.md) expects the trough's switches to be in a plausible state, or else it may have errors.
+VPE comes with a trough mechanism that simulates the behavior of a real-world ball trough. This is especially important when emulating existing games, since the [gamelogic engine](../gamelogic-engine.md) expects the trough's switches to be in a plausible state, or else it may have errors.
 
 ## Creating a Trough
 
@@ -12,14 +12,14 @@ When importing a `.vpx` file that doesn't have any troughs (which is likely, bec
 
 <img src="trough-inspector.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
 
-To interact with the game, you must set up an **input switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining. However, the link is labled in the Playfield Links inspector as shown above.
+To interact with the game, you must set up an **input switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but from the trough's perspective, that's where the ball *enters*. 
 
 You can setup these links under *Playfield Links* by selecting the trough in the hierarchy panel and linking them to the desired items using the inspector.
 
 > [!NOTE]
-> Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behaviour is not physically simulated. 
+> Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behavior is not physically simulated. 
 >
-> Many games *do* have an input switch (which we call *drain switch*) and an exit kicker (we that one *eject coil*), they are simulated by the trough itself and show up in the switch- and coil manager under the trough device.
+> Many games *do* have an input switch (which we call *drain switch*) and an exit kicker (we that one *eject coil*).  They are simulated by the trough itself and show up in the switch- and coil manager under the trough device.
 
 The inspector also lets you configure other options:
 
@@ -32,7 +32,7 @@ The inspector also lets you configure other options:
 
 ## Trough Types
 
-VPE supports several variants of troughs found on real machines. You can configure the behaviour of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
+VPE supports several variants of troughs found on real machines. You can configure the behavior of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
 
 In this section we'll again link to the excellent MPF documentation explaining each of the different types. We'll also provide an animation of the trough inspector during gameplay showing how the switches and coils behave in real time.
 
