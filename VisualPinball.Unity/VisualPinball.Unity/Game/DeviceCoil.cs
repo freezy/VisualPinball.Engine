@@ -20,6 +20,8 @@ namespace VisualPinball.Unity
 {
 	public class DeviceCoil: IApiCoil
 	{
+		public bool IsEnabled;
+
 		private readonly Action _onEnable;
 		private readonly Action _onDisable;
 
@@ -31,11 +33,15 @@ namespace VisualPinball.Unity
 
 		public void OnCoil(bool enabled, bool isHoldCoil)
 		{
+			IsEnabled = enabled;
 			if (enabled) {
 				_onEnable?.Invoke();
 			} else {
 				_onDisable?.Invoke();
 			}
+#if UNITY_EDITOR
+			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
 		}
 
 		public void OnChange(bool enabled) => OnCoil(enabled, false);
