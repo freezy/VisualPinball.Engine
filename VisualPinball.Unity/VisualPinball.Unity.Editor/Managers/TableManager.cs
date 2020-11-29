@@ -24,9 +24,9 @@ namespace VisualPinball.Unity.Editor.Utils
 {
 #if UNITY_EDITOR
 	[InitializeOnLoad]
-	#endif
+#endif
 	public static class TableManager
-    {
+	{
 		#region Variables
 		/// <summary>
 		/// Returns the most recently active table. 
@@ -49,13 +49,13 @@ namespace VisualPinball.Unity.Editor.Utils
 
 		#region Editor Initialization
 
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 		static TableManager()
 		{
 			//Automatic initialization on load. 
 			Initialize();
 		}
-		#endif
+#endif
 
 		/// <summary>
 		/// Initialization for the table manager.  Gets the first active table on initialization and setups callback for selection.  
@@ -63,11 +63,11 @@ namespace VisualPinball.Unity.Editor.Utils
 		static void Initialize()
 		{
 			Selection.selectionChanged += SetTableFromSelection;
-			
-			GetActiveTable(); 
-			
+
+			GetActiveTable();
+
 		}
-		
+
 		/// <summary>
 		/// Callback from selection change to set the active table and add it to the list if it doesn't already exist. 
 		/// </summary>
@@ -80,7 +80,7 @@ namespace VisualPinball.Unity.Editor.Utils
 			if(selectedTable != null)
 			{
 				//Add table to table list. 
-				if(!tables.Contains(selectedTable)) tables.Add(selectedTable); 
+				if(!tables.Contains(selectedTable)) tables.Add(selectedTable);
 				//Assign active table to selection.
 				SetActiveTable(selectedTable);
 			}
@@ -96,13 +96,13 @@ namespace VisualPinball.Unity.Editor.Utils
 		/// <returns>TableAuthoring Reference for the active table.</returns>
 		public static TableAuthoring GetActiveTable(bool force = false)
 		{
-			
+
 			if(activeTable == null || force)
 			{
 				FindFirstActiveTable();
 			}
 
-			return activeTable; 
+			return activeTable;
 
 		}
 
@@ -115,7 +115,21 @@ namespace VisualPinball.Unity.Editor.Utils
 			FindAllTables();
 			if(tables.Count == 0) FindAllTables(true);
 
-			return tables; 
+			return tables;
+		}
+
+		public static Bounds GetTableBounds()
+		{
+			Bounds tableBounds = new Bounds();
+			Renderer[] mrs = GetActiveTable().GetComponentsInChildren<Renderer>();
+			foreach(Renderer mr in mrs)
+			{
+				tableBounds.Encapsulate(mr.bounds.max);
+				tableBounds.Encapsulate(mr.bounds.min);
+				tableBounds.Encapsulate(mr.bounds.center);
+			}
+
+			return tableBounds;
 		}
 
 		#endregion
