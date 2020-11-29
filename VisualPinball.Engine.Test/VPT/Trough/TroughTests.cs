@@ -165,7 +165,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 			var coils = trough.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(1);
-			coils[0].Id.Should().Be(Engine.VPT.Trough.Trough.EntryCoilId);
+			coils[0].Id.Should().Be(Engine.VPT.Trough.Trough.EjectCoilId);
 		}
 	}
 }
