@@ -74,7 +74,13 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Window Layouts directory 
 		/// </summary>
-		public const string layoutPath = root + "EditorResources/Settings/WindowLayouts"; 
+		public const string layoutPath = root + "EditorResources/Settings/WindowLayouts";
+
+		/// <summary>
+		/// Path to the shared editor settings
+		/// </summary>
+		public const string settingsPath = root + "EditorResources/Settings/"; 
+
 
 
 		#if USING_HDRP

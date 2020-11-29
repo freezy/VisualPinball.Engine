@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 		SerializedProperty distance;
 		SerializedProperty angle;
 		SerializedProperty orbit;
-		CameraController cameraController; 
+		CameraController cameraController;
 
 
 		private void OnEnable()
@@ -49,12 +49,26 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(angle);
 			EditorGUILayout.PropertyField(orbit);
 
-			
-			if(cameraController) EditorGUILayout.IntSlider(preset, 0, cameraController.presetCount);
-			
 
+			if(cameraController == null) return; 
+			
+			EditorGUILayout.IntSlider(preset, 1, cameraController.presetCount);
 
 			serializedObject.ApplyModifiedProperties();
+
+			if(GUILayout.Button("Add New Preset"))
+			{
+				cameraController.CreatePreset();
+			}
+			if(GUILayout.Button("Delete Preset"))
+			{
+				cameraController.RemovePreset();
+			}
+			if(GUILayout.Button("Orbit"))
+			{
+				cameraController.AnimateOrbit(); 
+			}
+
 			cameraController.ApplyProperties(); 
 
 		}
