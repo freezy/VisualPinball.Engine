@@ -21,12 +21,47 @@ using UnityEngine;
 using UnityEditor; 
 using VisualPinball.Unity.Editor.Utils;
 using System;
+using System.IO;
+
 
 
 //TODO: Turn this into a proper editor authoring compoenent. 
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Struct to store the camera presets. 
+	/// </summary>
+	[Serializable]
+	public struct CameraPreset
+	{
+
+		public string name;// { get; set; }
+		public Vector3 offset;// { get; set; }
+		public float fov;// { get; set; }
+		public float distance;// { get; set; }
+		public float angle;// { get; set; }
+		public float orbit;// { get; set; }
+
+
+	}
+
+	[Serializable]
+	public class CameraSettings
+	{
+		//Preset Storage
+		public int StoredPresets;
+		//Current Var Storage
+		public int cPreset;
+		public string cName; 
+		public Vector3 cOffset;
+		public float cFOV;
+		public float cDistance;
+		public float cAngle;
+		public float cOrbit;
+
+	}
+
 	[ExecuteAlways]
 	public class CameraController : MonoBehaviour
 	{
@@ -54,7 +89,7 @@ namespace VisualPinball.Unity
 
 
 		public int CameraPreset = 0;
-		List<CameraPreset> cameraPresets;
+		public List<CameraPreset> cameraPresets;
 		public int presetCount = 0;
 
 		[Range(-0.2f, 0.2f)]
@@ -79,8 +114,9 @@ namespace VisualPinball.Unity
 		public float Orbit = 0;
 
 		public int Preset = 1;
+		public string PresetName = "Preset"; 
+
 		private int prevPreset = 1;
-		private bool isAnimating = false;
 		#endregion
 
 
@@ -90,10 +126,8 @@ namespace VisualPinball.Unity
 		{
 			
 			cameraPresets = new List<CameraPreset>();
-			//GetPrefereces(); 
-			
-			SetupPresets();
-
+			GetSavedSettings(); 
+		
 			if(EditorApplication.isPlaying)
 			{
 				initialized = true; 
@@ -119,46 +153,108 @@ namespace VisualPinball.Unity
 		private void GetPrefereces()
 		{
 			Preset = EditorPrefs.GetInt("ccPreset");
-			
 		}
 
-		private void Update()
+		public void LoadSettings()
 		{
-			if(isAnimating)
-			{
-				Orbit += Time.deltaTime * 15f;
-				//ApplyProperties(); 
-				_azimuth.localRotation = Quaternion.Euler(new Vector3(0, Orbit, 0));
+			GetSavedSettings(); 
+		}
 
-				if(Orbit >= 360)
-				{
-					Orbit = 0;
-					isAnimating = false; 
-				}
+		public void SaveSettings()
+		{
+			SaveSettingsToFile(); 
+		}
+
+		private void GetSavedSettings()
+		{
+			string settingsPath =  Path.Combine(new string[] { Application.persistentDataPath, "CameraSettings.json" });
+			string presetsPath = Path.Combine(new string[] { Application.persistentDataPath, "CameraPresets.json" });
+
+
+			if(!System.IO.File.Exists(settingsPath) || !System.IO.File.Exists(presetsPath))
+			{
+				SetupPresets();
+				return;
+			}
+			else
+			{
 				
+				string json = System.IO.File.ReadAllText(settingsPath);
+				CameraSettings readSettings = new CameraSettings();
+				EditorJsonUtility.FromJsonOverwrite(json, readSettings); 
+				if(readSettings.StoredPresets > 0)
+				{
+					
+					cameraPresets.Clear();
+					string campres = System.IO.File.ReadAllText(presetsPath);
+					CameraPreset[] pres = JsonHelper.FromJson<CameraPreset>(campres);
+					cameraPresets = new List<CameraPreset>(pres);
+					if(cameraPresets.Count <= 0)
+					{
+						SetupPresets();
+						return; 
+					}
+
+					Preset = 1;
+					prevPreset = 1; 
+				}
+
+				Offset = readSettings.cOffset;
+				XOffset = Offset.x;
+				YOffset = Offset.y;
+				ZOffset = Offset.z;
+				FOV = readSettings.cFOV;
+				Distance = readSettings.cDistance;
+				Angle = readSettings.cAngle;
+				Orbit = readSettings.cOrbit;
+				Preset = readSettings.cPreset;
+				prevPreset = Preset;
+				presetCount = cameraPresets.Count; 
+
+				Debug.Log("Loaded Camera Settings"); 
 			}
+
 		}
 
-		private void GetPresets()
+		private void SaveSettingsToFile()
 		{
-			presetCount = EditorPrefs.GetInt("ccPresetCount");
-			/*
-			for(int i = 0; i < presetCount; i++)
-			{
-				float offsetx = EditorPrefs.Get
-			}
-			*/
+			string settingsPath = Path.Combine(new string[] { Application.persistentDataPath, "CameraSettings.json" });
+			string presetsPath = Path.Combine(new string[] { Application.persistentDataPath, "CameraPresets.json" }); 
+
+			CameraSettings cs = new CameraSettings();
+			cs.cName = PresetName; 
+			cs.cOffset = Offset;
+			cs.cFOV = FOV;
+			cs.cDistance = Distance;
+			cs.cPreset = Preset;
+			cs.cAngle = Angle;
+			cs.cOrbit = Orbit;
+			cs.StoredPresets = cameraPresets.Count; 
+
+			
+			string jsSave = EditorJsonUtility.ToJson(cs);
+			File.WriteAllText(settingsPath, jsSave);
+			
+			CameraPreset[] camPres = cameraPresets.ToArray();
+			string cPresets = JsonHelper.ToJson(camPres);
+			File.WriteAllText(presetsPath, cPresets); 
+			
+
+			Debug.Log("Saved Camera Settings: " + settingsPath); 
+
 		}
 
 		private void SetupPresets()
 		{
 
-			AddPreset("Med-High", new Vector3(0, 0, -0.25f), 9.9f, 4.25f, 51.2f, 0f);
-			AddPreset("High-Flat", new Vector3(0, 0, -0.16f), 5f, 9f, 61.5f, 0f);
-			AddPreset("Low-Wide", new Vector3(0, 0, -0.57f), 33.6f, 1.16f, 54.9f, 0f);
+			AddPreset("Standard Flat", new Vector3(0, -0.17f, 0.07f), 9.4f, 3.9f, 49.6f, 0f);
+			AddPreset("Top Down", new Vector3(0, 0, -0.09f), 25.4f, 1.77f, 83.1f, 0f);
+			AddPreset("Wide", new Vector3(0, -0.26f, -0.12f), 31.6f, 1.88f, 40.3f, 0f);
 
 			presetCount = cameraPresets.Count;
-			Debug.Log("Setup Presets: " + presetCount);
+			Preset = 1;
+			prevPreset = 1; 
+
 
 		}
 
@@ -173,11 +269,13 @@ namespace VisualPinball.Unity
 			camPres.orbit = orbit;
 
 			cameraPresets.Add(camPres);
+			Preset = Preset + 1;
+			prevPreset = Preset; 
 		}
 
 		private void ApplyPreset(int num)
 		{
-			if(num < cameraPresets.Count)
+			if(num < cameraPresets.Count && num >= 0)
 			{
 				CameraPreset c = cameraPresets[num];
 				prevPreset = Preset;
@@ -195,14 +293,31 @@ namespace VisualPinball.Unity
 			Distance = distance;
 			Angle = angle;
 			Orbit = orbit;
+			PresetName = name; 
 
 			ApplyProperties();
 
 		}
+
+		public void SavePreset()
+		{
+			CameraPreset camPres = new CameraPreset();
+			camPres.name = PresetName;
+			camPres.offset = new Vector3(XOffset, YOffset, ZOffset);
+			camPres.fov = FOV;
+			camPres.distance = Distance;
+			camPres.angle = Angle;
+			camPres.orbit = Orbit;
+			int location = Mathf.Max(0, Preset - 1);
+			cameraPresets[location] = camPres;
+			SaveSettingsToFile(); 
+		}
+
 		public void CreatePreset()
 		{
-			AddPreset("Name", new Vector3(XOffset, YOffset, ZOffset), FOV, Distance, Angle, Orbit);
+			AddPreset(PresetName, new Vector3(XOffset, YOffset, ZOffset), FOV, Distance, Angle, Orbit);
 			presetCount = cameraPresets.Count;
+			SaveSettingsToFile();
 
 		}
 		public void RemovePreset()
@@ -210,7 +325,8 @@ namespace VisualPinball.Unity
 			cameraPresets.RemoveAt(Preset-1);
 			prevPreset = Mathf.Max(0, Preset - 1);
 			Preset = prevPreset; 
-			presetCount = cameraPresets.Count; 
+			presetCount = cameraPresets.Count;
+			SaveSettingsToFile();
 
 		}
 
@@ -246,16 +362,6 @@ namespace VisualPinball.Unity
 
 			}
 			
-		}
-
-		public void AnimateOrbit()
-		{
-			isAnimating = true;
-			_camera = this.gameObject.GetComponentInChildren<Camera>();
-			_transform = _camera.transform;
-			_altitude = _transform.transform.parent;
-			_azimuth = _altitude.parent;
-			_offset = _azimuth.parent;
 		}
 
 		private Vector3 GetTableCenter()

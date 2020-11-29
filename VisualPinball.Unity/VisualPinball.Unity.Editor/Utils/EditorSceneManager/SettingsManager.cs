@@ -22,6 +22,7 @@ namespace VisualPinball.Unity.Editor.Utils
 		[SerializeField]
 		private int m_cameraPreset; 
 
+
 		internal static SettingsManager GetOrCreateSettings()
 		{
 			var settings = AssetDatabase.LoadAssetAtPath<SettingsManager>(_SettingsPath); 
@@ -48,6 +49,7 @@ namespace VisualPinball.Unity.Editor.Utils
 		string Property;
 		string Keyword; 
 	}
+
 
 	//Register the SettingsProvider
 	static class SetttingsManagerRegister

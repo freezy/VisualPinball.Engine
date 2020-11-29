@@ -14,24 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-using System.Collections;
-using System.Collections.Generic;
+using System; 
 using UnityEngine;
-
-namespace VisualPinball.Unity
+using UnityEditor; 
+public static class JsonHelper
 {
-	struct CameraPreset
+	public static T[] FromJson<T>(string json)
 	{
-		public string name { get; set; }
-		public Vector3 offset { get; set; }
-		public float fov { get; set; }
-		public float distance { get; set; }
-		public float angle { get; set; }
-		public float orbit { get; set; }
-
-
+		Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+		return wrapper.Items;
 	}
 
-}
+	public static string ToJson<T>(T[] array)
+	{
+		Wrapper<T> wrapper = new Wrapper<T>();
+		wrapper.Items = array;
+		return JsonUtility.ToJson(wrapper);
+	}
 
+	public static string ToJson<T>(T[] array, bool prettyPrint)
+	{
+		Wrapper<T> wrapper = new Wrapper<T>();
+		wrapper.Items = array;
+		return JsonUtility.ToJson(wrapper, prettyPrint);
+	}
+
+	[Serializable]
+	private class Wrapper<T>
+	{
+		public T[] Items;
+	}
+}
