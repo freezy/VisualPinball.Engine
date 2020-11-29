@@ -84,7 +84,7 @@ namespace VisualPinball.Engine.VPT.Trough
 						};
 					case TroughType.ClassicSingleBall:
 						return new[] {
-							new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId}
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
 						};
 					default:
 						throw new ArgumentException("Invalid trough type " + Data.Type);
