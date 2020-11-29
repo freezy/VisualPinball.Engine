@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private const string BumperName = "bumper";
+		private const string BoltName = "bolt";
 		private const string CoilName = "coil";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
@@ -61,9 +62,9 @@ namespace VisualPinball.Unity.Editor
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName, PlungerName,
-			PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName, TableName,
-			TriggerName, TroughName, SwitchNcName, SwitchNoName
+			BumperName, BoltName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName,
+			PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName,
+			TableName, TriggerName, TroughName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -115,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
 		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
+		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class
