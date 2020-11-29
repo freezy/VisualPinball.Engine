@@ -12,19 +12,19 @@ When importing a `.vpx` file that doesn't have any troughs (which is likely, bec
 
 <img src="trough-inspector.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
 
-To interact with the game, you'll need to setup an **input switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but the links are labelled in relation to the trough.
+To interact with the game, you must set up an **input switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining. However, the link is labled in the Playfield Links inspector as shown above.
 
 You can setup these links under *Playfield Links* by selecting the trough in the hierarchy panel and linking them to the desired items using the inspector.
 
 > [!NOTE]
-> Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behavior is not physically simulated. 
+> Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behaviour is not physically simulated. 
 >
-> Since many games actually *do* have an input switch (which we call *drain switch*) and an exit kicker (we that one *eject coil*), they are simulated by the trough itself and show up in the switch- and coil manager under the trough device.
+> Many games *do* have an input switch (which we call *drain switch*) and an exit kicker (we that one *eject coil*), they are simulated by the trough itself and show up in the switch- and coil manager under the trough device.
 
 The inspector also lets you configure other options:
 
 - **Ball Count** defines how many balls the trough holds when the game starts.
-- **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count. The drain switch and the jam switch are not included in this.
+- **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count.  The drain switch and the jam switch are excluded from this count.
 - **Has Jam Switch** defines if the trough has a jam switch. This switch is often called *eject switch* as well.
 - **Roll Time** sets how long it takes the ball to roll from one switch to the next.
 - **Kick Time** defines how long it takes the ball to get kicked from the drain into the trough.
@@ -32,7 +32,7 @@ The inspector also lets you configure other options:
 
 ## Trough Types
 
-VPE supports several variants of troughs found on real machines. You can configure the behavior of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
+VPE supports several variants of troughs found on real machines. You can configure the behaviour of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
 
 In this section we'll again link to the excellent MPF documentation explaining each of the different types. We'll also provide an animation of the trough inspector during gameplay showing how the switches and coils behave in real time.
 
@@ -55,12 +55,12 @@ The ball drains from the playfield directly into the ball stack, and every ball 
 1. Opto switches have the inverse value of mechanical switches. That means per default, an opto switch is *closed*, and when a ball rolls through, it opens. It's kind of logical, because the ball *blocks* the beam of light thus *opening* the circuit, while a mechanical switch gets *closed* by the ball's weight.
 2. Timings are different. When a ball approaches an opto switch, the switch gets triggered as soon as the ball's *front* hits the beam, while a mechanical switch gets triggered when the ball's *center* is over it. This results in very short closing times when the ball stack moves to the next position after a ball eject.
 
-We call this closing time the *transition time* - it's the time during stack transition when all switches very briefly get closed.
+We call this closing time the *transition time* - it's the time during stack transition when all switches briefly close.
 
 *Like before, the animation shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball, rolling back onto the stack.*
 
 > [!NOTE]
-> If you set transition time to `0`, only the first and the last switch of the stack change value (as opposed to each position opening and closing immediately).
+> When a transition time is set to `0`, only the first and the last switch of the stack change value (as opposed to each position opening and closing immediately).
 
 ### Two coils and multiple switches
 
@@ -69,7 +69,7 @@ We call this closing time the *transition time* - it's the time during stack tra
 [Troughs of this type](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-3-older-style-with-two-coils-and-switches-for-each-ball) can be found in older machines from the 80s and early 90s. They consist of two parts:
 
 1. A drain, the ball rolls into when leaving the playfield
-2. A ball stack, where the out of play balls are kept.
+2. A ball stack, where the out of play balls are held.
 
 In terms of switches, they still include a switch per ball in the stack, but also an additional drain switch to trigger kicking the ball from the drain into the stack.
 
@@ -95,7 +95,7 @@ A single ball trough may work [with](https://docs.missionpinball.org/en/latest/m
 
 ## Switch Setup
 
-The number of simulated switches in the trough depends on the type of the trough and the *Switch Count* property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.
+The number of simulated switches in the trough depends on the type of trough and the *Switch Count* property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.
 
 To configure the switches, open the [switch manager](../../editor/switch-manager.md) and add the trough switches if they're not already there. For *Destination* select "Device", under *Element*, select the trough you've created and which switch to connect. For a modern five-ball trough, it will look something like this:
 
