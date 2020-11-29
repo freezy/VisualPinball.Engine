@@ -76,7 +76,24 @@ namespace VisualPinball.Unity
 
 		public DeviceSwitch StackSwitch(int pos) => _stackSwitches[pos];
 
+		/// <summary>
+		/// The jam switch sits right above ball 1 and shortly enables and disables after eject.
+		/// </summary>
 		public DeviceSwitch JamSwitch;
+
+		/// <summary>
+		/// Entry coil shoots the ball from the drain into the trough.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Is null for <see cref="TroughType.ModernOpto"/> and <see cref="TroughType.ModernMech"/>
+		/// </remarks>
+		public DeviceCoil EntryCoil;
+
+		/// <summary>
+		/// Triggers the kicker that ejects the ball.
+		/// </summary>
+		public DeviceCoil ExitCoil;
 
 		/// <summary>
 		/// The stack of a trough can hold an unlimited number of balls. This counts the number of balls in the stack
@@ -120,20 +137,6 @@ namespace VisualPinball.Unity
 		/// Note that for entry-coil troughs, the entry switch isn't part of this array.
 		/// </remarks>
 		private DeviceSwitch[] _stackSwitches;
-
-		/// <summary>
-		/// Entry coil shoots the ball from the drain into the trough.
-		/// </summary>
-		///
-		/// <remarks>
-		/// Is null for <see cref="TroughType.ModernOpto"/> and <see cref="TroughType.ModernMech"/>
-		/// </remarks>
-		private DeviceCoil _entryCoil;
-
-		/// <summary>
-		/// Triggers the kicker that ejects the ball.
-		/// </summary>
-		private DeviceCoil _exitCoil;
 
 		/// <summary>
 		/// Number of virtual balls on switches in the ball stack.
@@ -214,8 +217,8 @@ namespace VisualPinball.Unity
 			}
 
 			// setup coils
-			_entryCoil = new DeviceCoil(OnEntryCoilEnabled);
-			_exitCoil = new DeviceCoil(() => EjectBall());
+			EntryCoil = new DeviceCoil(OnEntryCoilEnabled);
+			ExitCoil = new DeviceCoil(() => EjectBall());
 
 			// fill up the ball stack
 			var ballCount = Data.Type == TroughType.ClassicSingleBall ? 1 : Data.BallCount;
@@ -618,10 +621,10 @@ namespace VisualPinball.Unity
 		{
 			switch (coilId) {
 				case Trough.EntryCoilId:
-					return _entryCoil;
+					return EntryCoil;
 
 				case Trough.EjectCoilId:
-					return _exitCoil;
+					return ExitCoil;
 
 				default:
 					return null;

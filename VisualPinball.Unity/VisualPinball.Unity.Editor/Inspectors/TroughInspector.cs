@@ -86,6 +86,11 @@ namespace VisualPinball.Unity.Editor
 
 			if (Application.isPlaying) {
 				EditorGUILayout.Separator();
+
+
+				GUILayout.BeginHorizontal();
+				GUILayout.BeginVertical();
+
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 				var troughApi = _table.GetComponent<Player>().TableApi.Trough(Item.Name);
 
@@ -112,6 +117,20 @@ namespace VisualPinball.Unity.Editor
 				if (troughApi.UncountedStackBalls > 0) {
 					EditorGUILayout.LabelField("Unswitched balls:", troughApi.UncountedStackBalls.ToString());
 				}
+
+				GUILayout.EndVertical();
+				GUILayout.BeginVertical();
+
+				EditorGUILayout.LabelField("Coil status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+
+				if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.ClassicSingleBall) {
+					DrawCoil("Entry Coil", troughApi.EntryCoil);
+				}
+
+				DrawCoil("Eject Coil", troughApi.ExitCoil);
+
+				GUILayout.EndVertical();
+				GUILayout.EndHorizontal();
 			}
 		}
 
@@ -122,6 +141,16 @@ namespace VisualPinball.Unity.Editor
 			var switchPos = new Rect((float) (labelPos.x + (double) EditorGUIUtility.labelWidth + 2.0), labelPos.y, labelPos.height, labelPos.height);
 			GUI.Label(labelPos, label);
 			GUI.DrawTexture(switchPos, Icons.Switch(sw.IsClosed, IconSize.Small, sw.IsClosed ? IconColor.Orange : IconColor.Gray));
+		}
+
+
+		private static void DrawCoil(string label, DeviceCoil coil)
+		{
+			var labelPos = EditorGUILayout.GetControlRect();
+			labelPos.height = 18;
+			var switchPos = new Rect((float) (labelPos.x + (double) EditorGUIUtility.labelWidth - 20.0), labelPos.y, labelPos.height, labelPos.height);
+			GUI.Label(labelPos, label);
+			GUI.DrawTexture(switchPos, Icons.Bolt(IconSize.Small, coil.IsEnabled ? IconColor.Orange : IconColor.Gray));
 		}
 
 		protected override void FinishEdit(string label, bool dirtyMesh = true)
