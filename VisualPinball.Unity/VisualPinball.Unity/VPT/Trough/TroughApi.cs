@@ -210,7 +210,8 @@ namespace VisualPinball.Unity
 			_exitCoil = new DeviceCoil(() => EjectBall());
 
 			// fill up the ball stack
-			for (var i = 0; i < Data.BallCount; i++) {
+			var ballCount = Data.Type == TroughType.ClassicSingleBall ? 1 : Data.BallCount;
+			for (var i = 0; i < ballCount; i++) {
 				AddBall();
 			}
 			Debug.Log("Trough counted stack balls = " + _countedStackBalls);
@@ -253,6 +254,10 @@ namespace VisualPinball.Unity
 				case TroughType.ClassicSingleBall:
 					if (!EntrySwitch.IsEnabled) {
 						EntrySwitch.SetSwitch(true);
+						_countedStackBalls++; // entry and stack is the same here
+
+					} else {
+						UncountedStackBalls++;
 					}
 					break;
 
@@ -406,10 +411,6 @@ namespace VisualPinball.Unity
 
 					break;
 
-				case TroughType.ClassicSingleBall:
-					// nothing going on here on stack side
-					break;
-
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -438,13 +439,20 @@ namespace VisualPinball.Unity
 					case TroughType.ModernMech:
 					case TroughType.TwoCoilsNSwitches:
 						if (!_stackSwitches[0].IsEnabled) {
-							Logger.Warn($"Ball not in eject position yet, ignoring.");
+							Logger.Warn("Ball not in eject position yet, ignoring.");
 							return false;
 						}
 						break;
+
 					case TroughType.TwoCoilsOneSwitch:
-					case TroughType.ClassicSingleBall:
 						// no switches at position 0 here.
+						break;
+
+					case TroughType.ClassicSingleBall:
+						if (!EntrySwitch.IsEnabled) {
+							Logger.Warn("No ball, ignoring.");
+							return false;
+						}
 						break;
 
 					default:
@@ -463,6 +471,11 @@ namespace VisualPinball.Unity
 					case TroughType.TwoCoilsNSwitches:
 						_stackSwitches[0].SetSwitch(false);
 						break;
+
+					case TroughType.ClassicSingleBall:
+						EntrySwitch.SetSwitch(false);
+						break;
+
 					// no switches at position 0 for other types.
 				}
 				RollOverStackBalls();
@@ -514,7 +527,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case TroughType.ClassicSingleBall:
-					// no switches in this trough at all.
+					// no switches in this trough.
 					break;
 
 				default:
