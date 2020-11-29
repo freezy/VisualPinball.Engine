@@ -12,23 +12,29 @@ When importing a `.vpx` file that doesn't have any troughs (which is likely, bec
 
 <img src="trough-inspector.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
 
-To interact with the game, you'll need to setup an **entry switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but the links are labelled in relation to the trough.
+To interact with the game, you'll need to setup an **input switch** to drain the ball into the trough, and an **exit kicker** to release a new ball from the trough. This terminology may seem weird, since the ball *exits* the playfield when draining, but the links are labelled in relation to the trough.
 
 You can setup these links under *Playfield Links* by selecting the trough in the hierarchy panel and linking them to the desired items using the inspector.
 
+> [!NOTE]
+> Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behavior is not physically simulated. 
+>
+> Since many games actually *do* have an input switch (which we call *drain switch*) and an exit kicker (we that one *eject coil*), they are simulated by the trough itself and show up in the switch- and coil manager under the trough device.
+
 The inspector also lets you configure other options:
 
-- **Ball Count** defines how many balls the trough can hold.
-- **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count.
-- **Has Jam Switch** defines if the trough has a jam switch. 
+- **Ball Count** defines how many balls the trough holds when the game starts.
+- **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count. The drain switch and the jam switch are not included in this.
+- **Has Jam Switch** defines if the trough has a jam switch. This switch is often called *eject switch* as well.
 - **Roll Time** sets how long it takes the ball to roll from one switch to the next.
 - **Kick Time** defines how long it takes the ball to get kicked from the drain into the trough.
+- **Transition Time** is only relevant for opto switches and defines how long the switch closes between balls.
 
 ## Trough Types
 
 VPE supports several variants of troughs found on real machines. You can configure the behavior of the trough by changing the *Type* in the inspector when the trough is selected in the hierarchy.
 
-In this section we'll again link to the excellent MPF documentation explaining each of the different types. We'll also provide a screenshot of the trough inspector during gameplay that allows you to check the switch status in real time.
+In this section we'll again link to the excellent MPF documentation explaining each of the different types. We'll also provide an animation of the trough inspector during gameplay showing how the switches and coils behave in real time.
 
 ### Modern Mechanical
 
@@ -36,7 +42,7 @@ In this section we'll again link to the excellent MPF documentation explaining e
 
 [Modern troughs with mechanical switches](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-2-modern-trough-with-mechanical-switches) are covered by this type.
 
-The ball drains from the playfield directly into the ball stack, and every ball slot has an associated switch. When a ball gets ejected, the remaining balls move down simultaneously to the next position. During that movement, their switches get first opened and then closed again when they reached the next position. The time of this movement is defined by *Roll Time*.
+The ball drains from the playfield directly into the ball stack, and every ball slot has an associated switch. When a ball gets ejected, the remaining balls move down simultaneously to the next position. During that movement, their switches get first opened and then closed again when they reach the next position. The time of this movement is defined by *Roll Time*.
 
 *The animation on the right shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball, rolling back onto the stack.*
 
@@ -67,7 +73,7 @@ We call this closing time the *transition time* - it's the time during stack tra
 
 In terms of switches, they still include a switch per ball in the stack, but also an additional drain switch to trigger kicking the ball from the drain into the stack.
 
-*The animation shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain.*
+*The animation shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain until the entry coil activates, which makes the ball roll over to the ball stack.*
 
 ### Two coils and one switch
 
@@ -77,7 +83,7 @@ A trough can also have [only one switch](https://docs.missionpinball.org/en/late
 
 Instead of a *Switch Count* like the previous types, you select a *Switch Position*, which is the position in the ball stack at which the ball farthest away from the eject coil sits.
 
-*The animation shows a 6-ball trough filled with six balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain.*
+*The animation shows a 6-ball trough filled with six balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain until the entry coil activates, which makes the ball roll over to the ball stack.*
 
 ### Classic single ball
 
@@ -97,6 +103,9 @@ To configure the switches, open the [switch manager](../../editor/switch-manager
 
 ## Coil Setup
 
-VPE's trough supports two coils, an entry coil which drains the ball from the outhole into the trough, and an eject coil which pushes a new ball into the plunger lane. To configure the coils, open the [coil manager](../../editor/coil-manager.md), find or add the coils, and link them to the trough like you did with the switches:
+VPE's trough supports up to two coils, an entry coil which drains the ball from the outhole into the trough, and an eject coil which pushes a new ball into the plunger lane. To configure the coils, open the [coil manager](../../editor/coil-manager.md), find or add the coils, and link them to the trough like you did with the switches:
 
 ![Coil Manager](trough-coils.png)
+
+> [!NOTE]
+> Depending on which trough type is set, different coils and switches show up under the trough device.
