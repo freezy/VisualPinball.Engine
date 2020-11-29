@@ -17,8 +17,6 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using System;
-using Unity.Entities;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.Math;
 

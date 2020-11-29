@@ -56,7 +56,6 @@ namespace VisualPinball.Unity
 			Entity = Entity.Null;
 			ParentEntity = Entity.Null;
 			_player = player;
-			_gamelogicEngineWithSwitches = (IGamelogicEngineWithSwitches)player.GameEngine;
 		}
 
 		protected ItemApi(TItem item, Entity entity, Entity parentEntity, Player player)

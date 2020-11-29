@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Transactions;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
