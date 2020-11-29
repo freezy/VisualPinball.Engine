@@ -214,8 +214,6 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < ballCount; i++) {
 				AddBall();
 			}
-			Debug.Log("Trough counted stack balls = " + _countedStackBalls);
-			Debug.Log("Trough uncounted stack balls = " + UncountedStackBalls);
 
 			// finally, emit the event for anyone else to chew on
 			Init?.Invoke(this, EventArgs.Empty);

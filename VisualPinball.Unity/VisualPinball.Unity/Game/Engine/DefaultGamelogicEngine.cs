@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			_switchStatus[SwCreateBall] = false;
 
 			// eject ball onto playfield
-			//OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
+			OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
 		}
 
 		public void OnUpdate()
@@ -172,11 +172,11 @@ namespace VisualPinball.Unity
 					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilAutoPlunger, isClosed));
 					break;
 
-				// case SwTrough4:
-				// 	if (isClosed) {
-				// 		OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
-				// 	}
-				// 	break;
+				case SwTrough4:
+					if (isClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
+					}
+					break;
 
 				case SwCreateBall: {
 					if (isClosed) {
