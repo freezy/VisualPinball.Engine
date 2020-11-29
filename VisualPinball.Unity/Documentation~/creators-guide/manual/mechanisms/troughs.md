@@ -20,6 +20,7 @@ The inspector also lets you configure other options:
 
 - **Ball Count** defines how many balls the trough can hold.
 - **Switch Count** sets how many ball switches are available. This is usually the same number as the ball count.
+- **Has Jam Switch** defines if the trough has a jam switch. 
 - **Roll Time** sets how long it takes the ball to roll from one switch to the next.
 - **Kick Time** defines how long it takes the ball to get kicked from the drain into the trough.
 
