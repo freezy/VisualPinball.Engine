@@ -28,11 +28,16 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldReturnCorrectSwitchesForModernOpto()
 		{
 			var data = new TroughData("Trough") {
+				TransitionTime = 100,
+				RollTime = 1000,
 				Type = TroughType.ModernOpto,
 				SwitchCount = 3
 			};
 			var trough = new Engine.VPT.Trough.Trough(data);
 			var switches = trough.AvailableSwitches.ToArray();
+
+			trough.RollTimeDisabled.Should().Be(900);
+			trough.RollTimeEnabled.Should().Be(100);
 
 			switches.Should().HaveCount(3);
 			switches[0].Id.Should().Be("1");
@@ -57,11 +62,16 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldReturnCorrectSwitchesForModernMechanical()
 		{
 			var data = new TroughData("Trough") {
+				TransitionTime = 100,
+				RollTime = 1000,
 				Type = TroughType.ModernMech,
 				SwitchCount = 3
 			};
 			var trough = new Engine.VPT.Trough.Trough(data);
 			var switches = trough.AvailableSwitches.ToArray();
+
+			trough.RollTimeDisabled.Should().Be(500);
+			trough.RollTimeEnabled.Should().Be(500);
 
 			switches.Should().HaveCount(3);
 			switches[0].Id.Should().Be("1");

@@ -17,6 +17,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.Test.VPT.Trough
@@ -42,10 +43,13 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 
 		private static void ValidateTroughData(TroughData data)
 		{
+			data.Type.Should().Be(TroughType.ModernOpto);
 			data.BallCount.Should().Be(3);
 			data.SwitchCount.Should().Be(4);
 			data.KickTime.Should().Be(112);
 			data.RollTime.Should().Be(113);
+			data.TransitionTime.Should().Be(114);
+			data.JamSwitch.Should().Be(true);
 			data.PlayfieldEntrySwitch.Should().Be("BallDrain");
 			data.PlayfieldExitKicker.Should().Be("BallRelease");
 		}

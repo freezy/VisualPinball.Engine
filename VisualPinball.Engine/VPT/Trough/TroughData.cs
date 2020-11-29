@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffInt("SCNT", Pos = 6)]
 		public int SwitchCount = 6;
 
-		[BiffInt("HJSW", Pos = 7)]
+		[BiffBool("HJSW", Pos = 7)]
 		public bool JamSwitch;
 
 		[BiffInt("RTIM", Pos = 8)]
