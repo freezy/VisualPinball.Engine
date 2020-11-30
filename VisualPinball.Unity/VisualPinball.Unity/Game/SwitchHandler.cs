@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -13,8 +16,11 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class SwitchHandler
 	{
+		public bool IsClosed;
+
+		private readonly string _name;
 		private readonly Player _player;
-		private readonly IGamelogicEngineWithSwitches _engine;
+		private IGamelogicEngineWithSwitches Engine => (IGamelogicEngineWithSwitches)_player.GameEngine;
 
 		/// <summary>
 		/// The list of switches that need to be triggered in the gamelogic engine.
@@ -29,10 +35,11 @@ namespace VisualPinball.Unity
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public SwitchHandler(Player player, IGamelogicEngineWithSwitches engine)
+		public SwitchHandler(string name, Player player, bool isClosed = false)
 		{
+			_name = name;
 			_player = player;
-			_engine = engine;
+			IsClosed = isClosed;
 		}
 
 		/// <summary>
@@ -64,22 +71,24 @@ namespace VisualPinball.Unity
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>
 		/// <param name="closed">Switch status</param>
-		public void OnSwitch(bool closed)
+		internal void OnSwitch(bool closed)
 		{
-			if (_engine != null && _switchIds != null) {
+			// handle switch -> gamelogic engine
+			if (Engine != null && _switchIds != null) {
 				foreach (var switchConfig in _switchIds) {
 
-					// close the switch now
-					_engine.Switch(switchConfig.SwitchId, closed);
+					// set new status now
+					Engine.Switch(switchConfig.SwitchId, closed);
 
 					// if it's pulse, schedule to re-open
 					if (closed && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
-							() => _engine.Switch(switchConfig.SwitchId, false));
+							() => Engine.Switch(switchConfig.SwitchId, false));
 					}
 				}
 			}
 
+			// handle switch -> wire
 			if (_wires != null) {
 				foreach (var wireConfig in _wires) {
 					IApiWireDest dest = null;
@@ -111,19 +120,24 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+
+			// handle own status
+			IsClosed = closed;
 		}
 
-		public void ScheduleSwitch(bool closed, int delay)
+		internal void ScheduleSwitch(bool closed, int delay, Action<bool> onSwitched)
 		{
-			if (_engine != null && _switchIds != null) {
+			// handle switch -> gamelogic engine
+			if (Engine != null && _switchIds != null) {
 				foreach (var switchConfig in _switchIds) {
 					SimulationSystemGroup.ScheduleSwitch(delay,
-						() => _engine.Switch(switchConfig.SwitchId, closed));
+						() => Engine.Switch(switchConfig.SwitchId, closed));
 				}
 			} else {
 				Logger.Warn("Cannot schedule device switch.");
 			}
 
+			// handle switch -> wire
 			if (_wires != null) {
 				foreach (var wireConfig in _wires) {
 					IApiWireDest dest = null;
@@ -144,11 +158,22 @@ namespace VisualPinball.Unity
 					}
 
 					if (dest != null) {
-						SimulationSystemGroup.ScheduleSwitch(wireConfig.PulseDelay,
+						SimulationSystemGroup.ScheduleSwitch(delay,
 							() => dest.OnChange(closed));
 					}
 				}
 			}
+
+			// handle own status
+			SimulationSystemGroup.ScheduleSwitch(delay, () => {
+				Debug.Log($"Setting scheduled switch {_name} to {closed}.");
+				IsClosed = closed;
+
+#if UNITY_EDITOR
+				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
+				onSwitched.Invoke(closed);
+			});
 		}
 	}
 }

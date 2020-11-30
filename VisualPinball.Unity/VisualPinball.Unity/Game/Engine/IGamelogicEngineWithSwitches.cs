@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		/// Enables or disables a switch.
 		/// </summary>
 		/// <param name="id">Name of the switch, as defined by <see cref="AvailableSwitches"/>.</param>
-		/// <param name="normallyClosed">True for normally closed (NC) i.e. contact, a.k.a. "on". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
-		void Switch(string id, bool normallyClosed);
+		/// <param name="isClosed">True for normally closed (NC) i.e. contact, a.k.a. "on". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
+		void Switch(string id, bool isClosed);
 	}
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,18 +28,124 @@ namespace VisualPinball.Engine.VPT.Trough
 		public override string ItemName { get; } = "Trough";
 		public override string ItemGroupName { get; } = null;
 
-		public const string JamSwitchId = "jam";
-		public const string EjectCoilId = "eject";
-		public const string EntryCoilId = "entry";
+		public const string EntrySwitchId = "drain_switch";
+		public const string TroughSwitchId = "trough_switch";
+		public const string JamSwitchId = "jam_switch";
+		public const string EjectCoilId = "eject_coil";
+		public const string EntryCoilId = "entry_coil";
 
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Enumerable.Repeat(0, Data.SwitchCount)
-			.Select((_, i) => new GamelogicEngineSwitch {Description = SwitchDescription(i), Id = $"{i + 1}"})
-			.Concat( new[]{ new GamelogicEngineSwitch{Description = "Jam Switch", Id = JamSwitchId} });
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches {
+			get {
 
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId},
-			new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
-		};
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+					case TroughType.ModernMech:
+						return Enumerable.Repeat(0, Data.SwitchCount)
+							.Select((_, i) => new GamelogicEngineSwitch
+								{ Description = SwitchDescription(i), Id = $"{i + 1}" })
+							.Concat(Data.JamSwitch
+								? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+								: new GamelogicEngineSwitch[0]
+							);
+
+					case TroughType.TwoCoilsNSwitches:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Entry Switch", Id = EntrySwitchId}
+						}.Concat(Enumerable.Repeat(0, Data.SwitchCount)
+							.Select((_, i) => new GamelogicEngineSwitch
+								{ Description = SwitchDescription(i), Id = $"{i + 1}"} )
+						).Concat(Data.JamSwitch
+							? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+							: new GamelogicEngineSwitch[0]
+						);
+
+					case TroughType.TwoCoilsOneSwitch:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Entry Switch", Id = EntrySwitchId},
+							new GamelogicEngineSwitch {Description = "Trough Switch", Id = TroughSwitchId},
+						}.Concat(Data.JamSwitch
+							? new [] { new GamelogicEngineSwitch {Description = "Jam Switch", Id = JamSwitchId }}
+							: new GamelogicEngineSwitch[0]
+						);
+
+					case TroughType.ClassicSingleBall:
+						return new[] {
+							new GamelogicEngineSwitch {Description = "Drain Switch", Id = EntrySwitchId},
+						};
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils {
+			get {
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+					case TroughType.ModernMech:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+						};
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Entry", Id = EntryCoilId},
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+						};
+					case TroughType.ClassicSingleBall:
+						return new[] {
+							new GamelogicEngineCoil {Description = "Eject", Id = EjectCoilId}
+						};
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Time in milliseconds it takes the switch to enable when the ball enters.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
+		public int RollTimeEnabled {
+			get {
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+						return Data.TransitionTime;
+
+					case TroughType.ModernMech:
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+					case TroughType.ClassicSingleBall:
+						return Data.RollTime / 2;
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Time in milliseconds it takes the switch to disable after ball starts rolling.
+		/// </summary>
+		/// <exception cref="ArgumentException"></exception>
+		public int RollTimeDisabled {
+			get {
+				switch (Data.Type) {
+					case TroughType.ModernOpto:
+						return Data.RollTime - Data.TransitionTime;
+
+					case TroughType.ModernMech:
+					case TroughType.TwoCoilsNSwitches:
+					case TroughType.TwoCoilsOneSwitch:
+					case TroughType.ClassicSingleBall:
+						return Data.RollTime / 2;
+
+					default:
+						throw new ArgumentException("Invalid trough type " + Data.Type);
+				}
+			}
+		}
 
 		public Trough(TroughData data) : base(data)
 		{

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball hits the rubber.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal RubberApi(Engine.VPT.Rubber.Rubber item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -39,12 +39,13 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 		}
 
 		#endregion

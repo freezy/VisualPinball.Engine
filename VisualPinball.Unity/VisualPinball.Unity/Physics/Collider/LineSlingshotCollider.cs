@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, in ball, dTime, true, true, true);
 		}
 
-		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 
 				// !! magic distance, must be a new place if only by a little
 				if (distLs > 0.25f) {
-					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ParentEntity, true));
+					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ParentEntity, ballEntity, true));
 
 					// todo slingshot animation
 					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;

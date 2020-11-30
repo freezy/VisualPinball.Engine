@@ -131,17 +131,7 @@ namespace VisualPinball.Unity
 				var lookupName = renderable.Name.ToLower();
 				renderableLookup[lookupName] = renderable;
 
-				// create group parent if not created (if null, attach it to the table directly).
-				if (!string.IsNullOrEmpty(renderable.ItemGroupName)) {
-					if (!_groupParents.ContainsKey(renderable.ItemGroupName)) {
-						var parent = new GameObject(renderable.ItemGroupName);
-						parent.transform.parent = gameObject.transform;
-						_groupParents[renderable.ItemGroupName] = parent;
-					}
-				}
-				var groupParent = !string.IsNullOrEmpty(renderable.ItemGroupName)
-					? _groupParents[renderable.ItemGroupName]
-					: gameObject;
+				var groupParent = GetGroupParent(renderable);
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
@@ -195,6 +185,31 @@ namespace VisualPinball.Unity
 					_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
 				}
 			}
+
+			// convert non-renderables
+			foreach (var item in _table.NonRenderables) {
+				var groupParent = GetGroupParent(item);
+
+				// create object(s)
+				CreateGameObjects(_table, item, groupParent);
+			}
+		}
+
+		private GameObject GetGroupParent(IItem item)
+		{
+			// create group parent if not created (if null, attach it to the table directly).
+			if (!string.IsNullOrEmpty(item.ItemGroupName)) {
+				if (!_groupParents.ContainsKey(item.ItemGroupName)) {
+					var parent = new GameObject(item.ItemGroupName);
+					parent.transform.parent = gameObject.transform;
+					_groupParents[item.ItemGroupName] = parent;
+				}
+			}
+			var groupParent = !string.IsNullOrEmpty(item.ItemGroupName)
+				? _groupParents[item.ItemGroupName]
+				: gameObject;
+
+			return groupParent;
 		}
 
 		public static ConvertedItem CreateGameObjects(Table table, IItem item, GameObject parent)
@@ -274,12 +289,16 @@ namespace VisualPinball.Unity
 
 		private void CreateTrough()
 		{
-			var troughData = new TroughData("Trough");
+			var troughData = new TroughData("Trough") {
+				BallCount = 4,
+				SwitchCount = 4,
+				Type = TroughType.ModernMech
+			};
 			if (_table.Has<Kicker>("BallRelease")) {
-				troughData.ExitKicker = "BallRelease";
+				troughData.PlayfieldExitKicker = "BallRelease";
 			}
 			if (_table.Has<Kicker>("Drain")) {
-				troughData.EntryKicker = "Drain";
+				troughData.PlayfieldEntrySwitch = "Drain";
 			}
 			var item = new Trough(troughData);
 			_table.Add(item, true);

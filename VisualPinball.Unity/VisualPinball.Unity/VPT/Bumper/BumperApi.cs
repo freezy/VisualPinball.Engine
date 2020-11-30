@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Transactions;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -30,7 +31,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball hits the bumper.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
+
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
 
 		public BumperApi(Bumper item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -38,6 +44,7 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
@@ -55,12 +62,14 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool isUnHit)
+		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballEntity));
 			OnSwitch(true);
 		}
 

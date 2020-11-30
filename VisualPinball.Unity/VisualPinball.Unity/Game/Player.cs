@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public TableApi TableApi { get; } = new TableApi();
+		public TableApi TableApi { get; }
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -86,11 +86,18 @@ namespace VisualPinball.Unity
 
 		public Player()
 		{
+			TableApi = new TableApi(this);
 			_initializables.Add(TableApi);
 		}
 
+		#region Access
+
+		internal IApiSwitch Switch(string n) => _switches.ContainsKey(n) ? _switches[n] : null;
 		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
 		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
+
+		#endregion
+
 
 		#region Lifecycle
 
@@ -114,27 +121,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void Update()
-		{
-			GameEngine?.OnUpdate();
-		}
-
-		private void OnDestroy()
-		{
-			if (_keySwitchAssignments.Count > 0) {
-				_inputManager.Disable(HandleKeyInput);
-			}
-			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
-				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
-			}
-
-			foreach (var i in _apis) {
-				i.OnDestroy();
-			}
-
-			GameEngine?.OnDestroy();
-		}
-
 		private void Start()
 		{
 
@@ -155,6 +141,27 @@ namespace VisualPinball.Unity
 			SetupWireMapping();
 
 			GameEngine?.OnInit(TableApi, BallManager);
+		}
+
+		private void Update()
+		{
+			GameEngine?.OnUpdate();
+		}
+
+		private void OnDestroy()
+		{
+			if (_keySwitchAssignments.Count > 0) {
+				_inputManager.Disable(HandleKeyInput);
+			}
+			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
+			}
+
+			foreach (var i in _apis) {
+				i.OnDestroy();
+			}
+
+			GameEngine?.OnDestroy();
 		}
 
 		#endregion
@@ -295,6 +302,7 @@ namespace VisualPinball.Unity
 		public void RegisterTrough(Trough trough, GameObject go)
 		{
 			var troughApi = new TroughApi(trough, this);
+			TableApi.Troughs[trough.Name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
 			_switchDevices[trough.Name] = troughApi;
@@ -504,6 +512,15 @@ namespace VisualPinball.Unity
 									break;
 
 								case WireDestination.Device:
+									if (_wireDevices.ContainsKey(wireConfig.Device)) {
+										var device = _wireDevices[wireConfig.Device];
+										var wire = device.Wire(wireConfig.DeviceItem);
+										if (wire != null) {
+											wire.OnChange(change == InputActionChange.ActionStarted);
+										} else {
+											Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+										}
+									}
 									break;
 							}
 						}
@@ -544,11 +561,11 @@ namespace VisualPinball.Unity
 					if (!_hittables.ContainsKey(eventData.ItemEntity)) {
 						Debug.LogError($"Cannot find entity {eventData.ItemEntity} in hittables.");
 					}
-					_hittables[eventData.ItemEntity].OnHit();
+					_hittables[eventData.ItemEntity].OnHit(eventData.BallEntity);
 					break;
 
 				case EventId.HitEventsUnhit:
-					_hittables[eventData.ItemEntity].OnHit(true);
+					_hittables[eventData.ItemEntity].OnHit(eventData.BallEntity, true);
 					break;
 
 				case EventId.LimitEventsBos:
@@ -564,11 +581,11 @@ namespace VisualPinball.Unity
 					break;
 
 				case EventId.FlipperEventsCollide:
-					_collidables[eventData.ItemEntity].OnCollide(eventData.FloatParam);
+					_collidables[eventData.ItemEntity].OnCollide(eventData.BallEntity, eventData.FloatParam);
 					break;
 
 				case EventId.SurfaceEventsSlingshot:
-					_slingshots[eventData.ItemEntity].OnSlingshot();
+					_slingshots[eventData.ItemEntity].OnSlingshot(eventData.BallEntity);
 					break;
 
 				default:

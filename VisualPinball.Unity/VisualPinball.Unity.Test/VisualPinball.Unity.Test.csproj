@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Title>VisualPinball.Unity.Test</Title>
     <Description>A bridge between VisualPinball.Engine and Unity</Description>
-    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke;ecurtz</Authors>
+    <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke;ecurtz;Pandeli</Authors>
     <Copyright>Copyright 2020 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
@@ -29,7 +29,7 @@
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine.CoreModule">

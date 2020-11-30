@@ -30,12 +30,17 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball glides on the trigger.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
 		/// Event emitted when the ball leaves the trigger.
 		/// </summary>
-		public event EventHandler UnHit;
+		public event EventHandler<HitEventArgs> UnHit;
+
+		/// <summary>
+		/// Event emitted when the trigger is switched on or off.
+		/// </summary>
+		public event EventHandler<SwitchEventArgs> Switch;
 
 		internal TriggerApi(Engine.VPT.Trigger.Trigger item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -43,22 +48,26 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool isUnHit)
+		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
 		{
 			if (isUnHit) {
-				UnHit?.Invoke(this, EventArgs.Empty);
+				UnHit?.Invoke(this, new HitEventArgs(ballEntity));
+				Switch?.Invoke(this, new SwitchEventArgs(false, ballEntity));
 				OnSwitch(false);
 
 			} else {
-				Hit?.Invoke(this, EventArgs.Empty);
+				Hit?.Invoke(this, new HitEventArgs(ballEntity));
+				Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 				OnSwitch(true);
 			}
 		}

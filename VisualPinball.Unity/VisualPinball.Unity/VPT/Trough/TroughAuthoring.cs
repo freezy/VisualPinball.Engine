@@ -27,6 +27,8 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
@@ -40,15 +42,24 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
-		private Vector3 EntryPickerPos(float height) => string.IsNullOrEmpty(Data.EntryKicker)
-			? Vector3.zero
-			: Table.Kicker(Data.EntryKicker).Data.Center.ToUnityVector3(height);
+		private Vector3 EntryPos(float height)
+		{
+			if (string.IsNullOrEmpty(Data.PlayfieldEntrySwitch)) {
+				return Vector3.zero;
+			}
+			if (Table.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
+				return Table.Trigger(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
+			}
+			return Table.Has<Kicker>(Data.PlayfieldEntrySwitch)
+				? Table.Kicker(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
+				: Vector3.zero;
+		}
 
-		private Vector3 ExitKickerPos(float height) => string.IsNullOrEmpty(Data.ExitKicker)
+		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: Table.Kicker(Data.ExitKicker).Data.Center.ToUnityVector3(height);
+			: Table.Kicker(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
 
-		private void Start()
+		private void Awake()
 		{
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
@@ -60,10 +71,10 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
-			if (!string.IsNullOrEmpty(Data.EntryKicker) && !string.IsNullOrEmpty(Data.ExitKicker)) {
+			if (!string.IsNullOrEmpty(Data.PlayfieldEntrySwitch) && !string.IsNullOrEmpty(Data.PlayfieldExitKicker)) {
 				var ltw = GetComponentInParent<TableAuthoring>().transform;
-				var entryPos = EntryPickerPos(0f);
-				var exitPos = ExitKickerPos(0f);
+				var entryPos = EntryPos(0f);
+				var exitPos = ExitPos(0f);
 				var entryWorldPos = ltw.TransformPoint(entryPos);
 				var exitWorldPos = ltw.TransformPoint(exitPos);
 				var localPos = transform.localPosition;
@@ -77,7 +88,7 @@ namespace VisualPinball.Unity
 		public void UpdatePosition()
 		{
 			// place trough between entry and exit kicker
-			var pos = (EntryPickerPos(75f) + ExitKickerPos(75f)) / 2;
+			var pos = (EntryPos(75f) + ExitPos(75f)) / 2;
 			transform.localPosition = pos;
 		}
 

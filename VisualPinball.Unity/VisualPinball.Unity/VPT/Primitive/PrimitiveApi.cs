@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball glides on the primitive.
 		/// </summary>
-		public event EventHandler Hit;
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal PrimitiveApi(Engine.VPT.Primitive.Primitive item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -40,12 +40,13 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
+			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(bool _)
+		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
-			Hit?.Invoke(this, EventArgs.Empty);
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 		}
 
 		#endregion

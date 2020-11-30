@@ -27,13 +27,33 @@ namespace VisualPinball.Unity
 	{
 		public readonly EventId eventId;
 		public readonly Entity ItemEntity;
+		public readonly Entity BallEntity;
 		public readonly float FloatParam;
 		public readonly bool GroupEvent;
+
+		public EventData(EventId eventId, Entity itemEntity, Entity ballEntity, bool groupEvent = false) : this()
+		{
+			this.eventId = eventId;
+			ItemEntity = itemEntity;
+			BallEntity = ballEntity;
+			GroupEvent = groupEvent;
+		}
+
+		public EventData(EventId eventId, Entity itemEntity, Entity ballEntity, float floatParam, bool groupEvent = false) : this()
+		{
+			this.eventId = eventId;
+			ItemEntity = itemEntity;
+			BallEntity = ballEntity;
+			FloatParam = floatParam;
+			GroupEvent = groupEvent;
+		}
+
 
 		public EventData(EventId eventId, Entity itemEntity, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
 			ItemEntity = itemEntity;
+			BallEntity = Entity.Null;
 			GroupEvent = groupEvent;
 		}
 
@@ -41,6 +61,7 @@ namespace VisualPinball.Unity
 		{
 			this.eventId = eventId;
 			ItemEntity = itemEntity;
+			BallEntity = Entity.Null;
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;
 		}

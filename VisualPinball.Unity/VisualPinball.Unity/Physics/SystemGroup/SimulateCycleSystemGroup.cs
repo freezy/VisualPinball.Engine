@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 
 		public DefaultPhysicsEngine PhysicsEngine;
 
-		public override IEnumerable<ComponentSystemBase> Systems => _systemsToUpdate;
+		public override IReadOnlyList<ComponentSystemBase> Systems => _systemsToUpdate;
 		public NativeList<ContactBufferElement> Contacts;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
