@@ -40,7 +40,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			var node = new AdvancedDropdownItem(_title);
 			var elements = _tableAuthoring.GetComponentsInChildren<T>();
-			node.AddChild(new ElementDropdownItem<T>(null));
 			foreach (var element in elements) {
 				node.AddChild(new ElementDropdownItem<T>(element));
 			}
@@ -57,12 +56,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			public readonly TItem Item;
 
-			public ElementDropdownItem(TItem element) : base(element == null ? "None" : element.Name)
+			public ElementDropdownItem(TItem element) : base(element.Name)
 			{
-				if (element != null) {
-					Item = element;
-					icon = Icons.ByComponent(element, color: IconColor.Gray, size: IconSize.Small);
-				}
+				Item = element;
+				icon = Icons.ByComponent(element, color: IconColor.Gray, size: IconSize.Small);
 			}
 		}
 	}

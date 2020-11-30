@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
 		/// </summary>
-		public event EventHandler<HitEventArgs> Hit;
+		public event EventHandler Hit;
 
 		/// <summary>
 		/// Event emitted when the flipper collided with the ball.
@@ -57,11 +57,6 @@ namespace VisualPinball.Unity
 		/// Event emitted when the flipper reaches its end position.
 		/// </summary>
 		public event EventHandler<RotationEventArgs> LimitEos;
-
-		/// <summary>
-		/// Event emitted when the trigger is switched on or off.
-		/// </summary>
-		public event EventHandler<SwitchEventArgs> Switch;
 
 		// todo
 		public event EventHandler Timer;
@@ -92,7 +87,6 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
 		{
@@ -105,7 +99,6 @@ namespace VisualPinball.Unity
 			} else {
 				if (_isEos && isHoldCoil) {
 					_isEos = false;
-					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 					OnSwitch(false);
 					RotateToStart();
 				}
@@ -121,29 +114,27 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, EventArgs.Empty);
 		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
 		{
 			if (direction) {
 				_isEos = true;
-				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
-				Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
 				OnSwitch(true);
+				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 
 			} else {
 				LimitBos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
 			}
 		}
 
-		void IApiCollidable.OnCollide(Entity ballEntity, float hit)
+		void IApiCollidable.OnCollide(float hit)
 		{
 			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = hit });
 		}

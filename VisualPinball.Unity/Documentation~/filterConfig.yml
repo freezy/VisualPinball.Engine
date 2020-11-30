@@ -5,6 +5,3 @@ apiRules:
   - exclude:
       uidRegex: '^VisualPinball\.Unity\..*'
       type: Type
-  - exclude:    
-      uidRegex: ^System\.Object
-      type: Type

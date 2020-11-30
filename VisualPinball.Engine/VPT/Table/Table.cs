@@ -149,12 +149,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values)
 			.Concat(_triggers.Values);
 
-		/// <summary>
-		/// Game items that need to be converted but aren't rendered.
-		/// </summary>
-		public IEnumerable<IItem> NonRenderables => new IItem[0]
-			.Concat(_troughs.Values);
-
 		public IEnumerable<IItem> GameItems => new IItem[] { }
 			.Concat(_bumpers.Values)
 			.Concat(_decals.Select(i => i))

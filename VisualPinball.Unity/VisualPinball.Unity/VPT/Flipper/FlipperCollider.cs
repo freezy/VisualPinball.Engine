@@ -626,7 +626,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
-			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in FlipperStaticData matData,
+			ref NativeQueue<EventData>.ParallelWriter events, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
@@ -762,11 +762,11 @@ namespace VisualPinball.Unity
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
-					events.Enqueue(new EventData(EventId.HitEventsHit, _header.ParentEntity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, _header.ParentEntity, true));
 
 				} else {
 					// collision velocity (normal to face)
-					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ParentEntity, ballEntity, flipperHit));
+					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ParentEntity, flipperHit));
 				}
 			}
 			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds

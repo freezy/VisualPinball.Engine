@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
 
@@ -25,7 +24,7 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
-			in Entity ballEntity, in Collider collider, in BumperStaticData data, ref Random random)
+			in Collider collider, in BumperStaticData data, ref Random random)
 		{
 			// todo
 			// if (!m_enabled) return;
@@ -42,7 +41,7 @@ namespace VisualPinball.Unity
 				skirtData.HitEvent = true;
 				skirtData.BallPosition = ball.Position;
 
-				events.Enqueue(new EventData(EventId.HitEventsHit, collider.ParentEntity, ballEntity, true));
+				events.Enqueue(new EventData(EventId.HitEventsHit, collider.ParentEntity, true));
 			}
 		}
 	}

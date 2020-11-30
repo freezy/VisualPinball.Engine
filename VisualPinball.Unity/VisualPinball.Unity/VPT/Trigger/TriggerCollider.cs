@@ -25,14 +25,14 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref TriggerAnimationData animationData, in Entity ballEntity, in Collider coll)
+			ref TriggerAnimationData animationData, in Collider coll)
 		{
-			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref animationData, in ballEntity, in coll, true);
+			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref animationData, in coll, true);
 		}
 
 		private static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref TriggerAnimationData animationData, in Entity ballEntity, in Collider coll, bool animate)
+			ref TriggerAnimationData animationData, in Collider coll, bool animate)
 		{
 			// todo?
 			// if (!ball.isRealBall()) {
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 						animationData.HitEvent = true;
 					}
 
-					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity,  ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 						animationData.UnHitEvent = true;
 					}
 
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, true));
 				}
 			}
 		}

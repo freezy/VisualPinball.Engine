@@ -97,8 +97,7 @@ namespace VisualPinball.Unity
 								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
 								var ringData = GetComponent<BumperRingAnimationData>(bumperStaticData.RingEntity);
 								var skirtData = GetComponent<BumperSkirtAnimationData>(bumperStaticData.SkirtEntity);
-								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
-									in ballEntity, in coll, bumperStaticData, ref random);
+								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData, in coll, bumperStaticData, ref random);
 								SetComponent(bumperStaticData.RingEntity, ringData);
 								SetComponent(bumperStaticData.SkirtEntity, skirtData);
 								break;
@@ -111,7 +110,7 @@ namespace VisualPinball.Unity
 
 								((FlipperCollider*) collider)->Collide(
 									ref ballData, ref collEvent, ref flipperMovementData, ref events,
-									in ballEntity, in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
+									in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
 								);
 								SetComponent(coll.Entity, flipperMovementData);
 								break;
@@ -121,7 +120,7 @@ namespace VisualPinball.Unity
 								var gateMovementData = GetComponent<GateMovementData>(gateStaticData.WireEntity);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
-									in ballEntity, in coll, in gateStaticData
+									in coll, in gateStaticData
 								);
 								SetComponent(gateStaticData.WireEntity, gateMovementData);
 								break;
@@ -129,8 +128,8 @@ namespace VisualPinball.Unity
 							case ColliderType.LineSlingShot:
 								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
 								((LineSlingshotCollider*) collider)->Collide(
-									ref ballData, ref events,
-									in ballEntity, in slingshotData, in collEvent, ref random);
+									ref ballData, ref events, in slingshotData,
+									in collEvent, ref random);
 								break;
 
 							case ColliderType.Plunger:
@@ -158,7 +157,7 @@ namespace VisualPinball.Unity
 								var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
 								TriggerCollider.Collide(
 									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-									in ballEntity, in coll
+									in coll
 								);
 								SetComponent(coll.Entity, triggerAnimationData);
 								break;
@@ -192,20 +191,19 @@ namespace VisualPinball.Unity
 										: collEvent.HitNormal;
 									var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
 									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
-										in normal, in ballEntity, in collEvent, in coll, ref random);
+										in normal, in collEvent, in coll, ref random);
 									SetComponent(coll.Entity, hitTargetAnimationData);
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
 									var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
 									TriggerCollider.Collide(
-										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-										in ballEntity, in coll
+										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData, in coll
 									);
 									SetComponent(coll.Entity, triggerAnimationData);
 
 								} else {
-									Collider.Collide(ref coll, ref ballData, ref events, in ballEntity, in collEvent, ref random);
+									Collider.Collide(ref coll, ref ballData, ref events, in collEvent, ref random);
 								}
 								break;
 

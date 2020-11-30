@@ -182,14 +182,14 @@ namespace VisualPinball.Unity.Editor
 			var table = _tableAuthoring.Table;
 			var item = create(table);
 			table.Add(item, true);
-			Selection.activeGameObject = CreateRenderable(item);
+			Selection.activeGameObject = CreateRenderable(item as IRenderable);
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
 		}
 
-		private GameObject CreateRenderable(IItem item)
+		private GameObject CreateRenderable(IRenderable renderable)
 		{
-			var convertedItem = VpxConverter.CreateGameObjects(_tableAuthoring.Table, item, GetOrCreateParent(_tableAuthoring, item));
+			var convertedItem = VpxConverter.CreateGameObjects(_tableAuthoring.Table, renderable, GetOrCreateParent(_tableAuthoring, renderable));
 			return convertedItem.MainAuthoring.gameObject;
 		}
 

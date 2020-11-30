@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-
 namespace VisualPinball.Unity
 {
 
@@ -29,27 +27,5 @@ namespace VisualPinball.Unity
 		/// Angle speed with which the new position was reached.
 		/// </summary>
 		public float AngleSpeed;
-	}
-
-	public struct HitEventArgs
-	{
-		public Entity BallEntity;
-
-		public HitEventArgs(Entity ballEntity)
-		{
-			BallEntity = ballEntity;
-		}
-	}
-
-	public readonly struct SwitchEventArgs
-	{
-		public readonly bool IsClosed;
-		public readonly Entity BallEntity;
-
-		public SwitchEventArgs(bool isClosed, Entity ballEntity)
-		{
-			IsClosed = isClosed;
-			BallEntity = ballEntity;
-		}
 	}
 }

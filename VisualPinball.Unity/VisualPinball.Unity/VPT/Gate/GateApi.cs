@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		///
 		/// Also note that the gate must be collidable.
 		/// </remarks>
-		public event EventHandler<HitEventArgs> Hit;
+		public event EventHandler Hit;
 
 		/// <summary>
 		/// Event emitted when the gate passes its parked position. Only
@@ -62,11 +62,6 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public event EventHandler<RotationEventArgs> LimitEos;
 
-		/// <summary>
-		/// Event emitted when the trigger is switched on or off.
-		/// </summary>
-		public event EventHandler<SwitchEventArgs> Switch;
-
 		// todo
 		public event EventHandler Timer;
 
@@ -76,20 +71,17 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
-			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
+			Hit?.Invoke(this, EventArgs.Empty);
 			OnSwitch(true);
 		}
 

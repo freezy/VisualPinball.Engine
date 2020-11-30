@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Entities;
-
 namespace VisualPinball.Unity
 {
 	public interface IApi
@@ -32,8 +29,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiHittable
 	{
-		void OnHit(Entity ballEntity, bool isUnHit = false);
-		event EventHandler<HitEventArgs> Hit;
+		void OnHit(bool isUnHit = false);
 	}
 
 	internal interface IApiRotatable
@@ -43,7 +39,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCollidable
 	{
-		void OnCollide(Entity ballEntity, float hit);
+		void OnCollide(float hit);
 	}
 
 	internal interface IApiSpinnable
@@ -53,35 +49,13 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSlingshot
 	{
-		void OnSlingshot(Entity ballEntity);
+		void OnSlingshot();
 	}
 
 	internal interface IApiSwitch
 	{
-		/// <summary>
-		/// Set up this switch to send its status to the gamelogic engine with the given ID.
-		/// </summary>
-		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
 		void AddSwitchId(SwitchConfig switchConfig);
-
-		/// <summary>
-		/// Set up this switch to directly trigger another game item (coil or lamp), or
-		/// a coil within a coil device.
-		/// </summary>
-		/// <param name="wireConfig">Configuration which game item to link to</param>
 		void AddWireDest(WireDestConfig wireConfig);
-
-		void DestroyBall(Entity ballEntity);
-
-		/// <summary>
-		/// Event emitted when the trigger is switched on or off.
-		/// </summary>
-		///
-		/// <remarks>
-		/// If the ball triggered the switch, you'll get the ball entity as well.
-		/// Note that for pulse switches, you currently only get the "closed" event.
-		/// </remarks>
-		event EventHandler<SwitchEventArgs> Switch;
 	}
 
 	internal interface IApiSwitchDevice

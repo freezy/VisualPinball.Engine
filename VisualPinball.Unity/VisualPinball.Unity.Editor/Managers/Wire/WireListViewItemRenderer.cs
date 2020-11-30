@@ -215,7 +215,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Switch Items",
 					item => {
-						wireListData.SourcePlayfieldItem = item != null ? item.Name : string.Empty;
+						wireListData.SourcePlayfieldItem = item.Name;
 						updateAction(wireListData);
 					}
 				);
@@ -248,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Switch Devices",
 					item => {
-						wireListData.SourceDevice = item != null ? item.Name : string.Empty;
+						wireListData.SourceDevice = item.Name;
 						updateAction(wireListData);
 					}
 				);
@@ -342,7 +342,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Coil Items",
 					item => {
-						wireListData.DestinationPlayfieldItem = item != null ? item.Name : string.Empty;
+						wireListData.DestinationPlayfieldItem = item.Name;
 						updateAction(wireListData);
 					}
 				);
@@ -364,7 +364,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Coil Devices",
 					item => {
-						wireListData.DestinationDevice = item != null ? item.Name : string.Empty;
+						wireListData.DestinationDevice = item.Name;
 						updateAction(wireListData);
 					}
 				);

@@ -57,11 +57,6 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public event EventHandler Spin;
 
-		/// <summary>
-		/// Event emitted when the trigger is switched on or off.
-		/// </summary>
-		public event EventHandler<SwitchEventArgs> Switch;
-
 		// todo
 		public event EventHandler Timer;
 
@@ -71,20 +66,17 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		#region Events
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
 		void IApiSpinnable.OnSpin()
 		{
 			Spin?.Invoke(this, EventArgs.Empty);
-			Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
 			OnSwitch(true);
 		}
 

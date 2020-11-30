@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
+		private BallManager _ballManager;
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -33,17 +35,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Event emitted when the ball moves into the kicker.
 		/// </summary>
-		public event EventHandler<HitEventArgs> Hit;
+		public event EventHandler Hit;
 
 		/// <summary>
 		/// Event emitted when the ball leaves the kicker.
 		/// </summary>
-		public event EventHandler<HitEventArgs> UnHit;
-
-		/// <summary>
-		/// Event emitted when the trigger is switched on or off.
-		/// </summary>
-		public event EventHandler<SwitchEventArgs> Switch;
+		public event EventHandler UnHit;
 
 		public KickerApi(Kicker item, Entity entity, Player player) : base(item, entity, player)
 		{
@@ -51,17 +48,17 @@ namespace VisualPinball.Unity
 
 		public void CreateBall()
 		{
-			BallManager.CreateBall(Item, 25f, 1f, Entity);
+			_ballManager.CreateBall(Item, 25f, 1f, Entity);
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			BallManager.CreateBall(Item, radius, mass, Entity);
+			_ballManager.CreateBall(Item, radius, mass, Entity);
 		}
 
 		public void CreateSizedBall(float radius)
 		{
-			BallManager.CreateBall(Item, radius, 1f, Entity);
+			_ballManager.CreateBall(Item, radius, 1f, Entity);
 		}
 
 		public void Kick()
@@ -87,15 +84,9 @@ namespace VisualPinball.Unity
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
 			var ballEntity = kickerCollisionData.BallEntity;
-			(this as IApiSwitch).DestroyBall(ballEntity);
-		}
-
-
-		void IApiSwitch.DestroyBall(Entity ballEntity)
-		{
 			if (ballEntity != Entity.Null) {
-				BallManager.DestroyEntity(ballEntity);
-				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
+				_ballManager.DestroyEntity(ballEntity);
+				SimulationSystemGroup.QueueAfterBallCreation(() => DestroyBall(Entity));
 			}
 		}
 
@@ -107,16 +98,16 @@ namespace VisualPinball.Unity
 		}
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
-		private void OnBallDestroyed()
+		private static void DestroyBall(Entity kickerEntity)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
 			var ballEntity = kickerCollisionData.BallEntity;
 			if (ballEntity != Entity.Null) {
 
 				// update kicker status
 				kickerCollisionData.BallEntity = Entity.Null;
-				entityManager.SetComponentData(Entity, kickerCollisionData);
+				entityManager.SetComponentData(kickerEntity, kickerCollisionData);
 			}
 		}
 
@@ -188,20 +179,18 @@ namespace VisualPinball.Unity
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
-			base.OnInit(ballManager);
+			_ballManager = ballManager;
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
+		void IApiHittable.OnHit(bool isUnHit)
 		{
 			if (isUnHit) {
-				UnHit?.Invoke(this, new HitEventArgs(ballEntity));
-				Switch?.Invoke(this, new SwitchEventArgs(false, ballEntity));
+				UnHit?.Invoke(this, EventArgs.Empty);
 				OnSwitch(false);
 
 			} else {
-				Hit?.Invoke(this, new HitEventArgs(ballEntity));
-				Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
+				Hit?.Invoke(this, EventArgs.Empty);
 				OnSwitch(true);
 			}
 		}

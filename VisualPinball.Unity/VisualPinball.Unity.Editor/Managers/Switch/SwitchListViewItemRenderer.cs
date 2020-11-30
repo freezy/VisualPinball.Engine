@@ -250,7 +250,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Switch Items",
 					item => {
-						switchListData.PlayfieldItem = item != null ? item.Name : string.Empty;
+						switchListData.PlayfieldItem = item.Name;
 						updateAction(switchListData);
 					}
 				);
@@ -282,7 +282,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Switch Devices",
 					item => {
-						switchListData.Device = item != null ? item.Name : string.Empty;
+						switchListData.Device = item.Name;
 						updateAction(switchListData);
 					}
 				);
