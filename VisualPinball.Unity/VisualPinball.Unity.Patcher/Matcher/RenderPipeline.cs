@@ -19,53 +19,53 @@ using VisualPinball.Unity.Patcher.RenderPipelinePatcher;
 
 namespace VisualPinball.Unity.Patcher.Matcher
 {
-	public enum RenderPipelineType
-	{
-		BuiltIn,
-		Hdrp,
-		Urp
-	}
-
-	public static class RenderPipeline
-	{
-		public static RenderPipelineType Current
-		{
-			get { if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset != null) {
-
-					if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
-						return RenderPipelineType.Urp;
-					}
-
-					if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
-						return RenderPipelineType.Hdrp;
-					}
-				}
-				return RenderPipelineType.BuiltIn;
-			}
-		}
-
-		/// <summary>
-		/// Patcher instance for the current graphics pipeline
-		/// </summary>
-		public static IRenderPipelinePatcher Patcher => CreateRenderPipelinePatcher();
-
-		/// <summary>
-		/// Create a render pipeline patcher depending on the graphics pipeline
-		/// </summary>
-		/// <returns></returns>
-		private static IRenderPipelinePatcher CreateRenderPipelinePatcher()
-		{
-			switch (RenderPipeline.Current)
-			{
-				case RenderPipelineType.BuiltIn:
-					return new BuiltInPatcher();
-				case RenderPipelineType.Hdrp:
-					return new HdrpPatcher();
-				case RenderPipelineType.Urp:
-					return new UrpPatcher();
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
-	}
+	// public enum RenderPipelineType2
+	// {
+	// 	BuiltIn,
+	// 	Hdrp,
+	// 	Urp
+	// }
+	//
+	// public static class RenderPipeline2
+	// {
+	// 	public static RenderPipelineType Current
+	// 	{
+	// 		get { if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset != null) {
+	//
+	// 				if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
+	// 					return RenderPipelineType.Urp;
+	// 				}
+	//
+	// 				if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
+	// 					return RenderPipelineType.Hdrp;
+	// 				}
+	// 			}
+	// 			return RenderPipelineType.BuiltIn;
+	// 		}
+	// 	}
+	//
+	// 	/// <summary>
+	// 	/// Patcher instance for the current graphics pipeline
+	// 	/// </summary>
+	// 	public static IRenderPipelinePatcher Patcher => CreateRenderPipelinePatcher();
+	//
+	// 	/// <summary>
+	// 	/// Create a render pipeline patcher depending on the graphics pipeline
+	// 	/// </summary>
+	// 	/// <returns></returns>
+	// 	private static IRenderPipelinePatcher CreateRenderPipelinePatcher()
+	// 	{
+	// 		switch (RenderPipeline.Current)
+	// 		{
+	// 			case RenderPipelineType.BuiltIn:
+	// 				return new BuiltInPatcher();
+	// 			case RenderPipelineType.Hdrp:
+	// 				return new HdrpPatcher();
+	// 			case RenderPipelineType.Urp:
+	// 				return new UrpPatcher();
+	// 			default:
+	// 				throw new ArgumentOutOfRangeException();
+	// 		}
+	// 	}
+	// }
 }

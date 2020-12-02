@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
+    <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
   </ItemGroup>
 </Project>

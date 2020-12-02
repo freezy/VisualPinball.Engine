@@ -23,11 +23,9 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
@@ -37,18 +35,21 @@ using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
-using SurfaceData = VisualPinball.Engine.VPT.Surface.SurfaceData;
+using Material = UnityEngine.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
@@ -67,7 +68,7 @@ namespace VisualPinball.Unity
 		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
 		public List<CollectionData> Collections => _sidecar?.collections;
 		public MappingsData Mappings => _sidecar?.mappings;
-		public Patcher.Patcher Patcher { get; internal set; }
+		//public PatcherManager.Patcher Patcher { get; internal set; }
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
@@ -75,7 +76,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
-		private readonly Dictionary<PbrMaterial, UnityEngine.Material> _unityMaterials = new Dictionary<PbrMaterial, UnityEngine.Material>();
+		private readonly Dictionary<PbrMaterial, Material> _unityMaterials = new Dictionary<PbrMaterial, Material>();
 		/// <summary>
 		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
@@ -176,9 +177,9 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		public void AddMaterial(PbrMaterial vpxMat, UnityEngine.Material material)
+		public void AddMaterial(PbrMaterial vpxMat, Material material)
 		{
-			UnityEngine.Material oldMaterial = null;
+			Material oldMaterial = null;
 			_unityMaterials.TryGetValue(vpxMat, out oldMaterial);
 
 			_unityMaterials[vpxMat] = material;
@@ -187,7 +188,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public UnityEngine.Material GetMaterial(PbrMaterial vpxMat)
+		public Material GetMaterial(PbrMaterial vpxMat)
 		{
 			if (_unityMaterials.ContainsKey(vpxMat)) {
 				return _unityMaterials[vpxMat];
@@ -236,13 +237,13 @@ namespace VisualPinball.Unity
 			Restore<GateAuthoring, Gate, GateData>(table);
 			Restore<HitTargetAuthoring, HitTarget, HitTargetData>(table);
 			Restore<KickerAuthoring, Kicker, KickerData>(table);
-			Restore<LightAuthoring, Engine.VPT.Light.Light, LightData>(table);
+			Restore<LightAuthoring, Light, LightData>(table);
 			Restore<PlungerAuthoring, Plunger, PlungerData>(table);
 			Restore<PrimitiveAuthoring, Primitive, PrimitiveData>(table);
 			Restore<RampAuthoring, Ramp, RampData>(table);
 			Restore<RubberAuthoring, Rubber, RubberData>(table);
 			Restore<SpinnerAuthoring, Spinner, SpinnerData>(table);
-			Restore<SurfaceAuthoring, Engine.VPT.Surface.Surface, SurfaceData>(table);
+			Restore<SurfaceAuthoring, Surface, SurfaceData>(table);
 			Restore<TriggerAuthoring, Trigger, TriggerData>(table);
 			Restore<TroughAuthoring, Trough, TroughData>(table);
 

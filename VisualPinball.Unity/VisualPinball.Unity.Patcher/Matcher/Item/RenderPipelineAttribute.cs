@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Patcher.Matcher.Item
 
 		public override bool Matches(Engine.VPT.Table.Table table, IRenderable item, GameObject obj)
 		{
-			return RenderPipeline.Current == _type;
+			return RenderPipeline.Current.Type == _type;
 		}
 	}
 }

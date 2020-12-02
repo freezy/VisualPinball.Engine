@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 		private Table _table;
 		private TableAuthoring _tableAuthoring;
 		private bool _applyPatch = true;
+		private IPatcher _patcher;
 
 		public void Convert(string fileName, Table table, bool applyPatch = true, string tableName = null)
 		{
@@ -86,7 +87,8 @@ namespace VisualPinball.Unity
 					.Replace("%INFONAME%", _table.InfoName);
 			}
 
-			_tableAuthoring.Patcher = new Patcher.Patcher(_table, fileName);
+			_patcher = PatcherManager.GetPatcher();
+			_patcher?.SetTable(_table, fileName);
 
 			// import
 			ConvertGameItems(go);
@@ -126,7 +128,7 @@ namespace VisualPinball.Unity
 
 			foreach (var renderable in renderables) {
 
-				_tableAuthoring.Patcher.ApplyPrePatches(renderable);
+				_patcher?.ApplyPrePatches(renderable);
 
 				var lookupName = renderable.Name.ToLower();
 				renderableLookup[lookupName] = renderable;
@@ -182,7 +184,7 @@ namespace VisualPinball.Unity
 			// now we have all renderables imported, patch them.
 			foreach (var lookupName in convertedItems.Keys) {
 				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
-					_tableAuthoring.Patcher.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
+					_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, tableGameObject);
 				}
 			}
 
