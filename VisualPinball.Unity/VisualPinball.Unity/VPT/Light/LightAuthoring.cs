@@ -83,34 +83,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected override void ItemDataChanged()
+		public override void ItemDataChanged()
 		{
 			base.ItemDataChanged();
 
 			if (_unityLight == null) {
 				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
 				if (_unityLight == null) {
-					var lightObj = new GameObject("Light (Unity)");
-					lightObj.layer = VpxConverter.ChildObjectsLayer;
+					var lightObj = new GameObject("Light (Unity)") {
+						layer = VpxConverter.ChildObjectsLayer
+					};
 					lightObj.transform.parent = transform;
 					lightObj.transform.localPosition = Vector3.zero;
 					_unityLight = lightObj.AddComponent<UnityEngine.Light>();
 				}
 			}
-
-			if (_unityLight != null) {
-				// Set color and position
-				_unityLight.color = Data.Color2.ToUnityColor();
-				_unityLight.intensity = Data.Intensity / 2f;
-				_unityLight.range = Data.Falloff * 0.001f;
-				// TODO: vpe specific data for height
-				_unityLight.transform.localPosition = new Vector3(0f, 0f, 25f);
-
-				// TODO: vpe specific shadow settings
-				_unityLight.shadows = LightShadows.Hard;
-				_unityLight.shadowBias = 0f;
-				_unityLight.shadowNearPlane = 0f;
-			}
+			RenderPipeline.Current.LightConverter.UpdateLight(_unityLight, Data);
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

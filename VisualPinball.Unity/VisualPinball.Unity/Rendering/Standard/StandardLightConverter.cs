@@ -15,19 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable UnusedType.Global
+// ReSharper disable CheckNamespace
+
+using UnityEngine;
+using VisualPinball.Engine.VPT.Light;
+using Light = UnityEngine.Light;
 
 namespace VisualPinball.Unity
 {
-	public class StandardRenderPipeline : IRenderPipeline
+	public class StandardLightConverter : ILightConverter
 	{
-		public string Name { get; } = "Built-in Render Pipeline";
-
-		public RenderPipelineType Type { get; } = RenderPipelineType.Standard;
-		public IMaterialConverter MaterialConverter { get; }
-
-		public StandardRenderPipeline()
+		public void UpdateLight(Light light, LightData data)
 		{
-			MaterialConverter = new StandardMaterialConverter();
+			// Set color and position
+			light.color = data.Color2.ToUnityColor();
+			light.intensity = data.Intensity / 2f;
+			light.range = data.Falloff * 0.001f;
+			// TODO: vpe specific data for height
+			light.transform.localPosition = new Vector3(0f, 0f, 25f);
+
+			// TODO: vpe specific shadow settings
+			light.shadows = LightShadows.Hard;
+			light.shadowBias = 0f;
+			light.shadowNearPlane = 0f;
 		}
 	}
 }

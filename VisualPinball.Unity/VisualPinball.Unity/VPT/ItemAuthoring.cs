@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -28,7 +27,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <typeparam name="TItem"></typeparam>
 	/// <typeparam name="TData"></typeparam>
-	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour
+	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour,
+		IItemAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>
 	{
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 
 		protected Table Table => _table ?? (_table = GetComponentInParent<TableAuthoring>()?.Item);
 
-		protected virtual void ItemDataChanged()
+		public virtual void ItemDataChanged()
 		{
 		}
 

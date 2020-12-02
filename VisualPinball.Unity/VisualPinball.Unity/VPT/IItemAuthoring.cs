@@ -12,5 +12,7 @@ namespace VisualPinball.Unity
 		IItem IItem { get; }
 
 		ItemData ItemData { get; }
+
+		void ItemDataChanged();
 	}
 }
