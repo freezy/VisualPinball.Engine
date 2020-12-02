@@ -31,29 +31,29 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		/// <summary>
-		/// Material Converter instance for the current graphics pipeline
-		/// </summary>
-		public static IMaterialConverter MaterialConverter => CreateMaterialConverter();
-
-		/// <summary>
-		/// Create a material converter depending on the graphics pipeline
-		/// </summary>
-		/// <returns></returns>
-		private static IMaterialConverter CreateMaterialConverter()
-		{
-			switch (RenderPipeline.Current)
-			{
-				case RenderPipelineType.BuiltIn:
-					return new StandardMaterialConverter();
-				case RenderPipelineType.Hdrp:
-					return new HdrpMaterialConverter();
-				case RenderPipelineType.Urp:
-					return new UrpMaterialConverter();
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
+		// /// <summary>
+		// /// Material Converter instance for the current graphics pipeline
+		// /// </summary>
+		// public static IMaterialConverter MaterialConverter => CreateMaterialConverter();
+		//
+		// /// <summary>
+		// /// Create a material converter depending on the graphics pipeline
+		// /// </summary>
+		// /// <returns></returns>
+		// private static IMaterialConverter CreateMaterialConverter()
+		// {
+		// 	switch (RenderPipeline.Current)
+		// 	{
+		// 		case RenderPipelineType.BuiltIn:
+		// 			return new StandardMaterialConverter();
+		// 		case RenderPipelineType.Hdrp:
+		// 			return new HdrpMaterialConverter();
+		// 		case RenderPipelineType.Urp:
+		// 			return new UrpMaterialConverter();
+		// 		default:
+		// 			throw new ArgumentOutOfRangeException();
+		// 	}
+		// }
 
 		public static Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null)
 		{
@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var unityMaterial = MaterialConverter.CreateMaterial(vpxMaterial, table, debug);
+			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpxMaterial, table, debug);
 
 			if (table != null)
 			{
