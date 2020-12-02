@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable UnusedType.Global
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,14 +29,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Patcher
 {
-	public class Patcher
+	public class Patcher : IPatcher
 	{
 		private readonly List<object> _patchers = new List<object>();
-		private readonly Table _table;
+		private Table _table;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public Patcher(Table table, string fileName)
+		public void SetTable(Table table, string fileName)
 		{
 			_table = table;
 			var types = typeof(Patcher).Assembly.GetTypes();

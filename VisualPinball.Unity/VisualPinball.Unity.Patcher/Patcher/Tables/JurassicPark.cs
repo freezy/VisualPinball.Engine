@@ -15,15 +15,38 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
 
 using UnityEngine;
-using VisualPinball.Unity.Patcher.Matcher;
+using UnityEngine.Rendering;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Jurassic Park (Data East)", AuthorName = "Dark & Friends")]
 	public class JurassicPark
 	{
+		#region Shader Properties
+
+		private static readonly int DistortionSrcBlend = Shader.PropertyToID("_DistortionSrcBlend");
+		private static readonly int DistortionDstBlend = Shader.PropertyToID("_DistortionDstBlend");
+		private static readonly int DistortionBlurSrcBlend = Shader.PropertyToID("_DistortionBlurSrcBlend");
+		private static readonly int DistortionBlurDstBlend = Shader.PropertyToID("_DistortionBlurDstBlend");
+		private static readonly int StencilWriteMask = Shader.PropertyToID("_StencilWriteMask");
+		private static readonly int StencilWriteMaskGBuffer = Shader.PropertyToID("_StencilWriteMaskGBuffer");
+		private static readonly int StencilWriteMaskMv = Shader.PropertyToID("_StencilWriteMaskMV");
+		private static readonly int AlphaCutoffEnable = Shader.PropertyToID("_AlphaCutoffEnable");
+		private static readonly int TransparentDepthPrepassEnable = Shader.PropertyToID("_TransparentDepthPrepassEnable");
+		private static readonly int SurfaceType = Shader.PropertyToID("_SurfaceType");
+		private static readonly int BlendMode = Shader.PropertyToID("_BlendMode");
+		private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
+		private static readonly int AlphaDstBlend = Shader.PropertyToID("_AlphaDstBlend");
+		private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
+		private static readonly int ZTestDepthEqualForOpaque = Shader.PropertyToID("_ZTestDepthEqualForOpaque");
+		private static readonly int ZTestGBuffer = Shader.PropertyToID("_ZTestGBuffer");
+
+		#endregion
+
 		/// <summary>
 		/// Removing the normal map.
 		/// The normal map of the TRex Head is bad and contains invalid data.
@@ -33,7 +56,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("TrexMain")]
 		public void FixBrokenNormalMap(GameObject gameObject)
 		{
-			RenderPipeline.Patcher.SetNormalMapDisabled(gameObject);
+			RenderPipeline.Current.MaterialAdapter.SetNormalMapDisabled(gameObject);
 		}
 
 
@@ -50,13 +73,13 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
-			RenderPipeline.Patcher.SetAlphaCutOffEnabled(gameObject);
+			RenderPipeline.Current.MaterialAdapter.SetAlphaCutOffEnabled(gameObject);
 		}
 
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			RenderPipeline.Patcher.SetOpaque(gameObject);
+			RenderPipeline.Current.MaterialAdapter.SetOpaque(gameObject);
 		}
 
 		[NameMatch("leftrail")]
@@ -65,7 +88,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sidewalls")]
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			RenderPipeline.Patcher.SetDoubleSided(gameObject);
+			RenderPipeline.Current.MaterialAdapter.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Primitive_SideWallReflect")]
@@ -95,29 +118,28 @@ namespace VisualPinball.Unity.Patcher
 			material.EnableKeyword("_DISABLE_SSR_TRANSPARENT");
 			material.DisableKeyword("_ALPHATEST_ON");
 
-			material.SetInt("_DistortionSrcBlend", 1);
-			material.SetInt("_DistortionDstBlend", 1);
-			material.SetInt("_DistortionBlurSrcBlend", 1);
-			material.SetInt("_DistortionBlurDstBlend", 1);
-			material.SetInt("_StencilWriteMask", 6);
-			material.SetInt("_StencilWriteMaskGBuffer", 14);
-			material.SetInt("_StencilWriteMaskMV", 40);
+			material.SetInt(DistortionSrcBlend, 1);
+			material.SetInt(DistortionDstBlend, 1);
+			material.SetInt(DistortionBlurSrcBlend, 1);
+			material.SetInt(DistortionBlurDstBlend, 1);
+			material.SetInt(StencilWriteMask, 6);
+			material.SetInt(StencilWriteMaskGBuffer, 14);
+			material.SetInt(StencilWriteMaskMv, 40);
 
-			material.SetInt("_AlphaCutoffEnable", 0);
-			material.SetInt("_TransparentDepthPrepassEnable", 1);
-			material.SetInt("_SurfaceType", 1);
-			material.SetInt("_BlendMode", 4);
-			material.SetInt("_DstBlend", 10);
-			material.SetInt("_AlphaDstBlend", 10);
-			material.SetInt("_ZWrite", 0);
-			material.SetInt("_ZTestDepthEqualForOpaque", 4);
-			material.SetInt("_ZTestGBuffer", 4);
+			material.SetInt(AlphaCutoffEnable, 0);
+			material.SetInt(TransparentDepthPrepassEnable, 1);
+			material.SetInt(SurfaceType, 1);
+			material.SetInt(BlendMode, 4);
+			material.SetInt(DstBlend, 10);
+			material.SetInt(AlphaDstBlend, 10);
+			material.SetInt(ZWrite, 0);
+			material.SetInt(ZTestDepthEqualForOpaque, 4);
+			material.SetInt(ZTestGBuffer, 4);
 
 			material.SetShaderPassEnabled("TransparentDepthPrepass", true);
 			material.SetShaderPassEnabled("RayTracingPrepass", false);
 
-			material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
-
+			material.renderQueue = (int) RenderQueue.Transparent;
 		}
 	}
 }

@@ -14,8 +14,7 @@
 		"Unity.Transforms",
 		"Unity.InputSystem",
 		"VisualPinball.Engine",
-		"VisualPinball.Resources",
-		"VisualPinball.Unity.Patcher"
+		"VisualPinball.Resources"
 	],
 	"includePlatforms": [],
 	"excludePlatforms": [],

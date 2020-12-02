@@ -17,7 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
-    <ProjectReference Include="..\VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

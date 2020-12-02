@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
 
 using UnityEngine;
-using VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity.Patcher
 		public void SetDoubleSided(GameObject gameObject, ref GameObject child)
 		{
 			if (gameObject == child)
-				RenderPipeline.Patcher.SetDoubleSided(gameObject);
+				RenderPipeline.Current.MaterialAdapter.SetDoubleSided(gameObject);
 		}
 
 		/// <summary>
@@ -50,7 +51,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			if (gameObject == child)
 			{
-				RenderPipeline.Patcher.SetTransparentDepthPrepassEnabled(gameObject);
+				RenderPipeline.Current.MaterialAdapter.SetTransparentDepthPrepassEnabled(gameObject);
 			}
 		}
 	}
