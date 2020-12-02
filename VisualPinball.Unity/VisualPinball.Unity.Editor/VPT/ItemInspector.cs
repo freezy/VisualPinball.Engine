@@ -411,6 +411,10 @@ namespace VisualPinball.Unity.Editor
 				EditorUtility.SetDirty(target);
 			}
 			Undo.RecordObject(UndoTarget, undoLabel);
+
+			if (target is IItemMainRenderableAuthoring item) {
+				item.ItemDataChanged();
+			}
 		}
 	}
 }

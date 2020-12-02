@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		/// and cached here.
 		/// </summary>
 		[NonSerialized]
-		protected TItem _item;
+		private TItem _item;
 
 		public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
 		{
