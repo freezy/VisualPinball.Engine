@@ -17,16 +17,13 @@ PluginImporter:
       enabled: 0
       settings:
         Exclude Editor: 0
+        Exclude Android: 1
         Exclude Linux64: 1
         Exclude OSXUniversal: 1
         Exclude Win: 1
         Exclude Win64: 0
         Exclude iOS: 1
-  - first:
-      Any: 
-    second:
-      enabled: 0
-      settings: {}
+        Exclude tvOS: 1
   - first:
       Editor: Editor
     second:
@@ -36,38 +33,11 @@ PluginImporter:
         DefaultValueInitialized: true
         OS: Windows
   - first:
-      Standalone: Linux64
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
-      Standalone: OSXUniversal
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
-      Standalone: Win
-    second:
-      enabled: 0
-      settings:
-        CPU: None
-  - first:
       Standalone: Win64
     second:
       enabled: 1
       settings:
         CPU: x86_64
-  - first:
-      iPhone: iOS
-    second:
-      enabled: 0
-      settings:
-        AddToEmbeddedBinaries: false
-        CPU: AnyCPU
-        CompileFlags: 
-        FrameworkDependencies: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 
