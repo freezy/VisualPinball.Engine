@@ -609,6 +609,9 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		IApiSwitch IApiSwitchDevice.Switch(string switchId)
 		{
+			if (switchId == null) {
+				throw new ArgumentException("Must provide a non-null switch ID!");
+			}
 			return _switchLookup.ContainsKey(switchId) ? _switchLookup[switchId] : null;
 		}
 
