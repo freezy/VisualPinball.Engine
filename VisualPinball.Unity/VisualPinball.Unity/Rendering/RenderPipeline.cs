@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		IMaterialConverter MaterialConverter { get; }
 		IMaterialAdapter MaterialAdapter { get; }
 		ILightConverter LightConverter { get; }
+		IBallConverter BallConverter { get; }
 	}
 
 	public enum RenderPipelineType

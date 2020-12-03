@@ -23,15 +23,9 @@ namespace VisualPinball.Unity
 		public string Name { get; } = "Built-in Render Pipeline";
 
 		public RenderPipelineType Type { get; } = RenderPipelineType.Standard;
-		public IMaterialConverter MaterialConverter { get; }
-		public IMaterialAdapter MaterialAdapter { get; }
-		public ILightConverter LightConverter { get; }
-
-		public StandardRenderPipeline()
-		{
-			MaterialConverter = new StandardMaterialConverter();
-			LightConverter = new StandardLightConverter();
-			MaterialAdapter = new StandardMaterialAdapter();
-		}
+		public IMaterialConverter MaterialConverter { get; } = new StandardMaterialConverter();
+		public IMaterialAdapter MaterialAdapter { get; } = new StandardMaterialAdapter();
+		public ILightConverter LightConverter { get; } = new StandardLightConverter();
+		public IBallConverter BallConverter { get; } = new StandardBallConverter();
 	}
 }

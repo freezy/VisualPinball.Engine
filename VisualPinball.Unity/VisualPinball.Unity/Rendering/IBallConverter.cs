@@ -14,28 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Text;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Common interface for ball material for the various render pipelines
+	/// Common interface creating (in the future different types of) balls.
 	/// </summary>
-	public interface IBallMaterial
+	public interface IBallConverter
 	{
 		/// <summary>
-		/// Get the shader for the currently detected graphics pipeline.
+		/// Create a material for the currently detected graphics pipeline.
 		/// </summary>
-		/// <returns></returns>
-		Shader GetShader();
-
-		/// <summary>
-		/// Create a ball material for the currently detected graphics pipeline.
-		/// </summary>
-		/// <param name="vpxMaterial"></param>
-		/// <param name="table"></param>
-		/// <param name="debug"></param>
-		/// <returns></returns>
-		Material CreateMaterial();
+		GameObject CreateDefaultBall();
 	}
 }

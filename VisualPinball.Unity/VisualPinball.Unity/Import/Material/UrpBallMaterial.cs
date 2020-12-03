@@ -19,7 +19,7 @@ using VisualPinball.Resources;
 
 namespace VisualPinball.Unity
 {
-	public class UrpBallMaterial : IBallMaterial
+	public class UrpBallMaterial
 	{
 		#region Shader Properties
 
