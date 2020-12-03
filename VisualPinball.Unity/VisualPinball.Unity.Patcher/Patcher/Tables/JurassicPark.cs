@@ -59,7 +59,6 @@ namespace VisualPinball.Unity.Patcher
 			RenderPipeline.Current.MaterialAdapter.SetNormalMapDisabled(gameObject);
 		}
 
-
 		[NameMatch("LFLogo", Ref="Flippers/LeftFlipper")]
 		[NameMatch("RFLogo", Ref="Flippers/RightFlipper")]
 		[NameMatch("RFLogo1", Ref="Flippers/UpperRightFlipper")]

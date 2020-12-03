@@ -17,10 +17,8 @@
 using System;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
@@ -68,56 +66,43 @@ namespace VisualPinball.Unity
 				_ltw.GetColumn(2).magnitude
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
-			var material = BallMaterial.CreateMaterial();
-			var mesh = GetSphereMesh();
 
 			// create ball entity
 			EngineProvider<IPhysicsEngine>
 				.Get()
-				.BallCreate(mesh, material, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
+				.BallCreate(worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public void CreateEntity(Mesh mesh, Material material, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
+		public void CreateEntity(in float3 worldPos, in float3 localPos, in float3 localVel, in float scale,
+			in float mass, in float radius, in Entity kickerEntity)
 		{
+			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
+
+			// Create entity prefab from the game object hierarchy once
+			var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
+			var prefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(ballPrefab, settings);
+
+			// Efficiently instantiate a bunch of entities from the already converted entity prefab
+			var entity = EntityManager.Instantiate(prefab);
+
 			var world = World.DefaultGameObjectInjectionWorld;
 			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			var ecb = ecbs.CreateCommandBuffer();
 
-			var archetype = EntityManager.CreateArchetype(
-				typeof(Translation),
-				typeof(Scale),
-				typeof(Rotation),
-				typeof(RenderMesh),
-				typeof(LocalToWorld),
-				typeof(RenderBounds),
-				typeof(BallData),
-				typeof(CollisionEventData),
-				typeof(OverlappingStaticColliderBufferElement),
-				typeof(OverlappingDynamicBufferElement),
-				typeof(BallInsideOfBufferElement),
-				typeof(BallLastPositionsBufferElement)
-			);
-			var entity = ecb.CreateEntity(archetype);
-
-			ecb.SetSharedComponent(entity, new RenderMesh {
-				mesh = mesh,
-				material = material
-			});
-
-			ecb.SetComponent(entity, new RenderBounds {
-				Value = mesh.bounds.ToAABB()
-			});
-
-			ecb.SetComponent(entity, new Translation {
+			ecb.AddComponent(entity, new Translation {
 				Value = worldPos
 			});
 
-			ecb.SetComponent(entity, new Scale {
+			ecb.AddComponent(entity, new Scale {
 				Value = scale
 			});
 
-			ecb.SetComponent(entity, new BallData {
+			ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
+			ecb.AddBuffer<OverlappingDynamicBufferElement>(entity);
+			ecb.AddBuffer<BallInsideOfBufferElement>(entity);
+			ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
+
+			ecb.AddComponent(entity, new BallData {
 				Id = NumBallsCreated++,
 				IsFrozen = false,
 				Position = localPos,
@@ -129,7 +114,7 @@ namespace VisualPinball.Unity
 				AngularMomentum = float3.zero
 			});
 
-			ecb.SetComponent(entity, new CollisionEventData {
+			ecb.AddComponent(entity, new CollisionEventData {
 				HitTime = -1,
 				HitDistance = 0,
 				HitFlag = false,
@@ -188,30 +173,6 @@ namespace VisualPinball.Unity
 		}
 
 		#region Material
-
-		/// <summary>
-		/// Ball material creator instance for the current graphics pipeline
-		/// </summary>
-		public static IBallMaterial BallMaterial => CreateBallMaterial();
-
-		/// <summary>
-		/// Create a material converter depending on the graphics pipeline
-		/// </summary>
-		/// <returns></returns>
-		private static IBallMaterial CreateBallMaterial()
-		{
-			if (GraphicsSettings.renderPipelineAsset != null) {
-				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("UniversalRenderPipelineAsset")) {
-					return new UrpBallMaterial();
-				}
-
-				if (GraphicsSettings.renderPipelineAsset.GetType().Name.Contains("HDRenderPipelineAsset")) {
-					return new HdrpBallMaterial();
-				}
-			}
-
-			return new StandardBallMaterial();
-		}
 
 		#endregion
 	}

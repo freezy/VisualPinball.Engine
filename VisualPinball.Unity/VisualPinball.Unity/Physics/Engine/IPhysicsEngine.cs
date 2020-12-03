@@ -40,8 +40,6 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Create a new ball and returns its entity.
 		/// </summary>
-		/// <param name="mesh">Ball mesh</param>
-		/// <param name="material">Material to use with the mesh</param>
 		/// <param name="worldPos">Position in world space</param>
 		/// <param name="localPos">Position in local space</param>
 		/// <param name="localVel">Velocity in local space</param>
@@ -49,7 +47,7 @@ namespace VisualPinball.Unity
 		/// <param name="mass">Physics mass</param>
 		/// <param name="radius">Radius in local space</param>
 		/// <param name="kickerRef">If created within a kicker, this is the kicker entity</param>
-		void BallCreate(Mesh mesh, Material material, in float3 worldPos, in float3 localPos, in float3 localVel,
+		void BallCreate(in float3 worldPos, in float3 localPos, in float3 localVel,
 			in float scale, in float mass, in float radius, in Entity kickerRef);
 
 		/// <summary>
