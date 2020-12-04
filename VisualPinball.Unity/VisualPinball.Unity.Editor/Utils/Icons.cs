@@ -6,7 +6,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Playfield;
 using Object = UnityEngine.Object;
 

@@ -17,7 +17,6 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;

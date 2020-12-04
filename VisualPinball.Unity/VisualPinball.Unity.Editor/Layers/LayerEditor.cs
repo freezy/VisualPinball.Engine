@@ -19,10 +19,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Utils.Dialogs;
-using VisualPinball.Unity.Editor.Utils;
 
 namespace VisualPinball.Unity.Editor
 {
