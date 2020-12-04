@@ -26,12 +26,6 @@ namespace VisualPinball.Unity
 	public interface IMaterialConverter
 	{
 		/// <summary>
-		/// Get the shader for the currently detected graphics pipeline.
-		/// </summary>
-		/// <returns></returns>
-		Shader GetShader();
-
-		/// <summary>
 		/// Create a material for the currently detected graphics pipeline.
 		/// </summary>
 		/// <param name="vpxMaterial"></param>
