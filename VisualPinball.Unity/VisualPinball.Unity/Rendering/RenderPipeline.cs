@@ -20,27 +20,77 @@ using NLog;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A common interface for all render pipelines that covers material
+	/// creation, lighting setup and ball creation.
+	/// </summary>
 	public interface IRenderPipeline
 	{
+		/// <summary>
+		/// Name of the render pipeline
+		/// </summary>
 		string Name { get; }
 
+		/// <summary>
+		/// Type of the render pipeline.
+		/// </summary>
 		RenderPipelineType Type { get; }
+
+
+		/// <summary>
+		/// Converts a material from Visual Pinball to the active renderer.
+		/// </summary>
 		IMaterialConverter MaterialConverter { get; }
+
+		/// <summary>
+		/// Provides a bunch of helper methods for setting common attributes
+		/// in materials.
+		/// </summary>
 		IMaterialAdapter MaterialAdapter { get; }
+
+		/// <summary>
+		/// Converts a light from Visual Pinball to the active renderer.
+		/// </summary>
 		ILightConverter LightConverter { get; }
+
+		/// <summary>
+		/// Creates a new ball.
+		/// </summary>
 		IBallConverter BallConverter { get; }
 	}
 
 	public enum RenderPipelineType
 	{
+		/// <summary>
+		/// The built-in renderer.
+		/// </summary>
 		Standard,
+
+		/// <summary>
+		/// The Universal Render Pipeline.
+		/// </summary>
 		Urp,
+
+		/// <summary>
+		/// The High Definition Render Pipeline.
+		/// </summary>
 		Hdrp,
 	}
 
+	/// <summary>
+	/// A global static class that checks which render pipeline implementations
+	/// are available and instantiates an SRP if available or the included
+	/// built-in instance otherwise.
+	/// </summary>
 	public static class RenderPipeline
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		private static IRenderPipeline _current;
+
+		/// <summary>
+		/// Returns the currently instantiated render pipeline.
+		/// </summary>
 		public static IRenderPipeline Current {
 			get {
 				if (_current == null) {
@@ -55,11 +105,11 @@ namespace VisualPinball.Unity
 					_current = pipelines.Length == 1
 						? pipelines.First()
 						: pipelines.First(p => p.Type != RenderPipelineType.Standard);
+
+					Logger.Info($"Instantiated ${_current.Name}.");
 				}
 				return _current;
 			}
 		}
-
-		private static IRenderPipeline _current;
 	}
 }
