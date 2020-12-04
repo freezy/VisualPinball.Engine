@@ -17,9 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using System.Text;
-using NLog;
 using VisualPinball.Engine.VPT;
-using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity

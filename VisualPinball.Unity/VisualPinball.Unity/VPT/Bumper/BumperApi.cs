@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Transactions;
 using Unity.Entities;
 using VisualPinball.Engine.VPT.Bumper;
 

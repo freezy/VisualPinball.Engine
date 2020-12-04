@@ -22,10 +22,7 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Networking.PlayerConnection;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Trigger;
