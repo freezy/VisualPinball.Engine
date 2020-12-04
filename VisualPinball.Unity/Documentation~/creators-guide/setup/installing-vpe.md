@@ -45,21 +45,21 @@ If you create an HDRP project, Unity provides you with a sample scene:
 
 ![HDRP Sample Scene](unity-hdrp-default-scene.png)
 
-It's best to start by removing the unneeded objects. In the hierarchy, select:
+The sample scene is awesome but huge, so we're going to discard it and create a new one. Click on *File -> New Scene* and select the *Basic Indoors (HDRP)* template. Save it in your *Assets/Scenes* folder as `TestTable.unity`.
 
-<img alt="Sky and Fog Volume, Light Probe Group, Example Assets" width="290" src="unity-hdrp-to-delete.png" />
+In this scene there's a plane that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the *Hierarchy* and move it down a little by setting the *Y Position* under *Transform* in the *Inspector* to `-0.1`. Your scene should now look like this:
 
-and press `delete`.
+![TestTable Scene](unity-hdrp-test-scene.png)
 
-Similarly, to clean up the project, get rid of the extra assets in the project view:
-
-<img alt="ExampleAssets, TutorialInfo" width="291" src="unity-hdrp-to-delete-assets.png" />
+Hit *Ctrl+S* to save your scene.
 
 ## VPE Source Code
 
-Now you have your project and scene set up, let's bring VPE into the project. Go to the GitHub page and [download the source code](https://github.com/freezy/VisualPinball.Engine). You can do that by clicking on the green *Code* button, and choosing *Downlaod ZIP*.
+Now you have your project and scene set up, let's bring VPE into the project. Go to the GitHub page and [download the source code](https://github.com/freezy/VisualPinball.Engine). You can do that by clicking on the green *Code* button, and choosing *Download ZIP*.
 
-As mentioned above, we recommend extracting this into the `%userprofile%\VPE\VisualPinball.Engine` folder:
+As mentioned above, we recommend extracting this into the `VPE\VisualPinball.Engine` folder. Now, since we're using the High Definition Render Pipeline, we need to download another package which contains the rendering code. This package is part of VPE but lives in a different repository. Like before, [download](https://github.com/freezy/VisualPinball.Unity.Hdrp) and extract it to your VPE folder.
+
+Your structure should now look something like this:
 
 ![File Structure](explorer-vpe-root.png)
 
@@ -69,6 +69,12 @@ In Unity, go to *Window -> Package Manager*. Click on the "plus" icon on the top
 
 This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
 
-![Unity Input System Warning](unity-input-system-warning.png)
+<img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" />
 
 Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the editor.
+
+Now do the same for the HDRP package. If everything went okay, you should now have these two packages showing up in the Package Manager:
+
+![Package Manager after installation](unity-packages-after-installation.png)
+
+So let's [import a table](running-vpe.md)!
