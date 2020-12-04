@@ -18,9 +18,9 @@ Now that we have the camera of the scene view somewhat aligned, we still can't s
 
 ![Imported blank table](unity-imported-table-ugly-gizmos.png)
 
-These orange artifacts is what Unity calls [Gizmos](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. In order to get rid of them, click on the *Gizmos* dropdown and de-select them by clicking on the icon next to the check box. Sorry, we're looking into a way of deactivating them automatically.
+These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. In order to get rid of them, click on the *Gizmos* dropdown and de-select them by clicking on the icon next to the check box. Sorry, we're looking into a way of deactivating them automatically.
 
-Since a pinball table is a relatively small object, the icons are huge when working on a table, so you the top slide to shrink them down a bit.
+Since a pinball table is a relatively small object, the icons are huge when working on a table, so use the top slider to shrink them down a bit.
 
 ![Scene view camera on table](unity-imported-table-aligned.png)
 
@@ -39,7 +39,7 @@ One last thing we need to do before playing is enable version 2 of the [Hybrid R
 
 ![Enable hybrid renderer](unity-settings-hybridv2.png)
 
-Now, click on the play button. This will run your scene. Test that the shift keys move the flippers. `ENTER` will launch a ball. If you expand *Table1* in the hierarchy and select the *Trough*, you can watch its status in the inspector in real time. Nice!
+Now, click on the play button. This will run your scene. Test that the shift keys move the flippers. `ENTER` will launch a ball. If you expand *Table1* in the hierarchy and select the *Trough*, you can watch its status in the inspector in real time. Cool!
 
 You can also right-click on the scene view tab and select *Maximize*.
 
