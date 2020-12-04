@@ -65,11 +65,11 @@ Your structure should now look something like this:
 
 In Unity, go to *Window -> Package Manager*. Click on the "plus" icon on the top left corner of the window, and choose *Add package from disk*. Choose `package.json` in the root folder of the extracted VPE source code.
 
-<img alt="Package Manager" width="294" src="unity-package-manager.png" />
+<p><img alt="Package Manager" width="294" src="unity-package-manager.png"/></p>
 
 This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
 
-<img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" />
+<p><img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" /></p>
 
 Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the editor.
 
