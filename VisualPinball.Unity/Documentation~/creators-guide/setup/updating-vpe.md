@@ -18,12 +18,15 @@ Following the recommended file structure, you would type:
 ```cmd
 cd %userprofile%\VPE
 git clone https://github.com/freezy/VisualPinball.Engine.git
+git clone https://github.com/freezy/VisualPinball.Unity.Hdrp.git
 ```
 
-This downloads the latest version of VPE into `%userprofile%\VPE\VisualPinball.Engine` and keeps a link to GitHub. In the future, if you want to update VPE, it's simply a matter of going into the folder and "pull" the changes:
+This downloads the latest version of VPE into `VisualPinball.Engine` and `VisualPinball.Unity.Hdrp` respectively and keeps a link to GitHub. In the future, if you want to update VPE, it's simply a matter of going into the folder and "pull" the changes:
 
 ```cmd
 cd %userprofile%\VPE\VisualPinball.Engine
+git pull
+cd ..\VisualPinball.Unity.Hdrp
 git pull
 ```
 
