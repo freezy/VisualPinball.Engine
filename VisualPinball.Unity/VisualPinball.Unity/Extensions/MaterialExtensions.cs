@@ -16,6 +16,7 @@
 
 // ReSharper disable StringLiteralTypo
 
+using System;
 using System.Text;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
@@ -24,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	public static class MaterialExtensions
 	{
-		public static Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null)
+		public static Material ToUnityMaterial(this PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null)
 		{
 			if (table != null)
 			{
@@ -35,7 +36,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpxMaterial, table, debug);
+			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpxMaterial, table, objectType, debug);
 
 			if (table != null)
 			{
