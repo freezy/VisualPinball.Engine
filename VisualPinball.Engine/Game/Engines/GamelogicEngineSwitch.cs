@@ -16,7 +16,7 @@
 
 namespace VisualPinball.Engine.Game.Engines
 {
-	public struct GamelogicEngineSwitch
+	public class GamelogicEngineSwitch
 	{
 		public string Id;
 		public string Description;

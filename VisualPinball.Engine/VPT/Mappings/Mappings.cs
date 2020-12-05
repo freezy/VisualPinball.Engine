@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					var source = GuessSwitchSource(engineSwitch);
 					var playfieldItem = source == SwitchSource.Playfield ? GuessPlayfieldSwitch(switches, engineSwitch) : null;
 					var device = source == SwitchSource.Device ? GuessDevice(switchDevices, engineSwitch) : null;
-					var deviceItem = source == SwitchSource.Device && device != null ? GuessDeviceSwitch(engineSwitch, device) : default;
+					var deviceItem = source == SwitchSource.Device && device != null ? GuessDeviceSwitch(engineSwitch, device) : null;
 					var inputActionMap = source == SwitchSource.InputSystem
 						? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
 						: string.Empty;
@@ -88,7 +88,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 						InputActionMap = inputActionMap,
 						InputAction = inputAction,
 						Device = device != null ? device.Name : string.Empty,
-						DeviceItem = deviceItem.Id
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty
 					});
 				}
 			}
@@ -175,7 +175,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					}
 				}
 			}
-			return default;
+			return null;
 		}
 
 		#endregion
@@ -215,7 +215,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
 					var playfieldItem = destination == CoilDestination.Playfield ? GuessPlayfieldCoil(coils, engineCoil) : null;
 					var device = destination == CoilDestination.Device ? GuessDevice(coilDevices, engineCoil) : null;
-					var deviceItem = destination == CoilDestination.Device && device != null ? GuessDeviceCoil(engineCoil, device) : default;
+					var deviceItem = destination == CoilDestination.Device && device != null ? GuessDeviceCoil(engineCoil, device) : null;
 
 					Data.AddCoil(new MappingsCoilData {
 						Id = engineCoil.Id,
@@ -223,7 +223,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 						Destination = destination,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 						Device = device != null ? device.Name : string.Empty,
-						DeviceItem = deviceItem.Id,
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 						Type = CoilType.SingleWound
 					});
 				}
@@ -277,7 +277,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					}
 				}
 			}
-			return default;
+			return null;
 		}
 
 		/// <summary>
