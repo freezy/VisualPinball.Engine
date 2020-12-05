@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Text;
-using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
+using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity
 {
@@ -30,9 +32,10 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="vpxMaterial"></param>
 		/// <param name="table"></param>
+		/// <param name="objectType">Type of the item to which the material is applied (e.g. <see cref="Flipper"/>)</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null);
+		Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null);
 
 	}
 }

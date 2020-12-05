@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 			return Shader.Find("Standard");
 		}
 
-		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, StringBuilder debug = null)
+		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null)
 		{
 			var unityMaterial = new UnityEngine.Material(GetShader())
 			{

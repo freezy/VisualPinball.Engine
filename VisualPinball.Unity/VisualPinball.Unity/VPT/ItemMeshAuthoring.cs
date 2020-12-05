@@ -110,12 +110,12 @@ namespace VisualPinball.Unity
 			// apply material
 			if (ro.Mesh.AnimationFrames.Count > 0) {
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;
 				smr.enabled = ro.IsVisible;
 			} else {
 				var mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				mr.enabled = ro.IsVisible;
 			}
 		}
@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 
 			if (mr != null) {
 				if (ta != null) {
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(ta);
+					mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
 				}
 				mr.enabled = true;
 			}
