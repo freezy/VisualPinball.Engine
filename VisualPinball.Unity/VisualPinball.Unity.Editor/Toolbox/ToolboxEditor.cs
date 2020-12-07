@@ -164,6 +164,13 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
+			if (CreateButton("DMD", Icons.Dmd(color: iconColor), iconSize, buttonStyle)) {
+				CreateDMD();
+			}
+
+			GUILayout.EndHorizontal();
 		}
 
 		private static bool CreateButton(string label, Texture icon, float iconSize, GUIStyle buttonStyle)
@@ -184,6 +191,27 @@ namespace VisualPinball.Unity.Editor
 			Selection.activeGameObject = CreateRenderable(item);
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
+		}
+
+		private void CreateDMD()
+		{
+			var table = _tableAuthoring.Table;
+
+			var dmdWidth = table.Width;
+			var dmdHeight = (table.Width / 32f * (table.Width / 128f));
+
+			GameObject dmd = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			dmd.name = "DMD";
+			dmd.transform.parent = _tableAuthoring.gameObject.transform;
+			dmd.transform.localPosition = new Vector3(table.Width / 2f, 0, table.GlassHeight + (dmdHeight / 2f) + 100);
+			dmd.transform.localRotation = Quaternion.Euler(90, 0, 0);
+			dmd.transform.localScale = new Vector3(dmdWidth, dmdHeight);
+
+			var path = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Materials/DmdMaterial.mat";
+			var material = AssetDatabase.LoadAssetAtPath<UnityEngine.Material>(path);
+
+			dmd.GetComponent<Renderer>().material = material;
+			dmd.AddComponent<WPCEmuDMDTextureReplacer>();
 		}
 
 		private GameObject CreateRenderable(IItem item)

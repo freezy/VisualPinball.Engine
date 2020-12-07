@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine.Game.Engines
+namespace VisualPinball.Engine.Game.Engine
 {
-	public class GamelogicEngineCoil
+	public class GamelogicEngineSwitch
 	{
 		public string Id;
 		public string Description;
+		public string InputActionHint;
+		public string InputMapHint;
 		public string PlayfieldItemHint;
-		public string MainCoilIdOfHoldCoil;
 		public string DeviceHint;
 		public string DeviceItemHint;
 	}

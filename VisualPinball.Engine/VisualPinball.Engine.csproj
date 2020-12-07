@@ -34,6 +34,7 @@
     <PackageReference Include="NetMiniZ.Native" Version="1.2.2" />
     <PackageReference Include="NetVips" Version="1.2.4" />
     <PackageReference Include="NetVips.Native" Version="8.10.5.1" />
+    <PackageReference Include="WPCEmuCS" Version="0.0.6" />
   </ItemGroup>
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-x64'">
     <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
@@ -60,6 +61,7 @@
     <ItemGroup>
       <Plugins Include="$(OutDir)NLog.dll" />
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
+      <Plugins Include="$(OutDir)WPCEmuCS.dll" />
 
       <NativePlugins Include="$(OutDir)NetMiniZ.dll" />
 

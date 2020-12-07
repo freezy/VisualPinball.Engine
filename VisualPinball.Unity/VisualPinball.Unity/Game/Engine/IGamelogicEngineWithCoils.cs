@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using VisualPinball.Engine.Game.Engines;
+using System.Collections.Generic;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Unity
 {
@@ -31,6 +32,8 @@ namespace VisualPinball.Unity
 		/// A list of available coils.
 		/// </summary>
 		GamelogicEngineCoil[] AvailableCoils { get; }
+
+		void SetDefinedCoils(Dictionary<string, GamelogicEngineCoil> gleCoils);
 
 		/// <summary>
 		/// Triggered when a coil is enabled or disabled.

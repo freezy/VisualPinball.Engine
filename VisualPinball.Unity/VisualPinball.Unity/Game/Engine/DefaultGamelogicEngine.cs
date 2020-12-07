@@ -19,8 +19,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Unity
 {
@@ -88,6 +88,14 @@ namespace VisualPinball.Unity
 		private Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public void SetDefinedSwitches(Dictionary<string, GamelogicEngineSwitch> gleSwitches)
+		{
+		}
+
+		public void SetDefinedCoils(Dictionary<string, GamelogicEngineCoil> gleCoils)
+		{
+		}
 
 		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
@@ -191,5 +199,6 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("Coil {0} set to {1}.", e.Id, e.IsEnabled);
 		}
+
 	}
 }

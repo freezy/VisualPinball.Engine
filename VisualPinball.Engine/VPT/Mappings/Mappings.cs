@@ -21,7 +21,7 @@ using System.Text.RegularExpressions;
 using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Engine.VPT.Mappings
 {

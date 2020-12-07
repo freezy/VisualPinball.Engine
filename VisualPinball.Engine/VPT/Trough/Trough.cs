@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Game.Engine;
 
 namespace VisualPinball.Engine.VPT.Trough
 {

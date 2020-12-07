@@ -23,6 +23,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Game.Engine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
@@ -316,9 +317,18 @@ namespace VisualPinball.Unity
 		private void SetupCoilMapping()
 		{
 			if (GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+				var definedCoils = new Dictionary<string, GamelogicEngineCoil>();
+
 				var config = Table.Mappings;
 				_coilAssignments.Clear();
+				
 				foreach (var coilData in config.Data.Coils) {
+					definedCoils.Add(coilData.Id, new GamelogicEngineCoil
+					{
+						Id = coilData.Id,
+						Description = coilData.Description
+					});
+
 					switch (coilData.Destination) {
 						case CoilDestination.Playfield:
 							if (!_coilAssignments.ContainsKey(coilData.Id)) {
@@ -351,6 +361,8 @@ namespace VisualPinball.Unity
 					}
 				}
 
+				((IGamelogicEngineWithCoils)GameEngine).SetDefinedCoils(definedCoils);
+
 				if (_coilAssignments.Count > 0) {
 					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
 				}
@@ -361,10 +373,18 @@ namespace VisualPinball.Unity
 		{
 			// hook-up game switches
 			if (GameEngine is IGamelogicEngineWithSwitches) {
+				var definedSwitches = new Dictionary<string, GamelogicEngineSwitch>();
 
 				var config = Table.Mappings;
 				_keySwitchAssignments.Clear();
+
 				foreach (var switchData in config.Data.Switches) {
+					definedSwitches.Add(switchData.Id, new GamelogicEngineSwitch
+					{
+						Id = switchData.Id,
+						Description = switchData.Description
+					});
+
 					switch (switchData.Source) {
 
 						case SwitchSource.Playfield
@@ -417,6 +437,8 @@ namespace VisualPinball.Unity
 							break;
 					}
 				}
+
+				((IGamelogicEngineWithSwitches)GameEngine).SetDefinedSwitches(definedSwitches);
 
 				if (_keySwitchAssignments.Count > 0) {
 					_inputManager.Enable(HandleKeyInput);
