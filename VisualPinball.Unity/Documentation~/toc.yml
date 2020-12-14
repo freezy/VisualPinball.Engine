@@ -3,3 +3,5 @@
 - name: API Documentation
   href: api/
   homepage: api/index.md
+- name: Changelog
+  href: /CHANGELOG.html
