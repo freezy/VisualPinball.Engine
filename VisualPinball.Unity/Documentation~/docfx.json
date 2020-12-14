@@ -30,6 +30,10 @@
           "toc.yml",
           "*.md"
         ]
+      },
+      {
+        "files": "CHANGELOG.md",
+        "src": "../.."
       }
     ],
     "resource": [
@@ -53,7 +57,6 @@
         "files": "static/*.css",
         "dest": "/styles"
       }
-
     ],
     "overwrite": [
       {
@@ -77,7 +80,7 @@
     "postProcessors": [ "ExtractSearchIndex" ],
     "globalMetadata": {
       "_appTitle": "VPE Documentation",
-      "_appFooter": "<span>Copyright © 2020 VPE Team",
+      "_appFooter": "<span>Copyright © 2020 VPE Team</span>",
       "_gitContribute": {
         "branch": "master"
       }
