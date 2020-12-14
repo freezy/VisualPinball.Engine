@@ -1,10 +1,10 @@
 {
   "name": "org.visualpinball.engine.unity",
-  "version": "0.0.1-preview.0",
+  "version": "0.1.0",
   "displayName": "Visual Pinball Engine",
-  "description": "Work In Progress!",
+  "description": "Main project of the Visual Pinball Engine.",
   "unity": "2020.2",
-  "unityRelease": "0b12",
+  "unityRelease": "0f1",
   "dependencies": {
     "com.unity.burst": "1.4.1",
     "com.unity.collections": "0.14.0-preview.16",
@@ -17,8 +17,7 @@
   },
   "keywords": [
     "Pinball",
-    "Visual",
-    "Editor"
+    "Unity"
   ],
   "author": "freezy <freezy@vpdb.io>",
   "contributors": [
@@ -34,5 +33,9 @@
   ],
   "publishConfig": {
     "registry": "https://registry.visualpinball.org"
+  },
+  "repository": {
+    "url": "https://github.com/freezy/VisualPinball.Engine",
+    "type": "git"
   }
 }
