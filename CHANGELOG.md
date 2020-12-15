@@ -7,6 +7,7 @@
 Built with [Unity 2020.2 beta](https://github.com/freezy/VisualPinball.Engine/pull/255).
 
 ### Added
+- VPE is now packaged and published on every merge!
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html))
 
 ### Changed
