@@ -82,7 +82,7 @@ jobs:
           fetch-depth: 0
       - name: Fetch next version
         id: nextVersion
-        uses: freezy/VisualPinball.NextVersionAction@v0.1.2
+        uses: freezy/VisualPinball.NextVersionAction@v0.1.4
         with:
           tagPrefix: 'v'
       - name: Add Meta Files
