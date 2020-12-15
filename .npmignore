@@ -1,0 +1,10 @@
+VisualPinball.Engine.Test
+VisualPinball.Resources 
+VisualPinball.Unity.Test
+VisualPinball.Unity.Test.meta
+*.sln
+*.sln.meta
+*.csproj
+*.csproj.meta
+Directory.Build.props
+nuget.config
