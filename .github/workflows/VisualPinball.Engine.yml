@@ -96,9 +96,11 @@ jobs:
           echo "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
       - name: Publish
         run: |
-          echo "//registry.visualpinball.org/:_authToken=${secrets.NPM_TOKEN}" > ~/.npmrc
+          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           npm version ${{ steps.nextVersion.output.nextVersion }} --no-git-tag-version
           npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Release
         uses: actions/create-release@v1
         with:
