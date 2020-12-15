@@ -101,6 +101,10 @@ jobs:
           npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Dump
+        run: |
+          echo "${{ steps.nextVersion.output.nextTag }}" 
+          echo "${{ steps.nextVersion.output.isPrerelease }}"
       - name: Create Release
         uses: actions/create-release@v1
         with:
