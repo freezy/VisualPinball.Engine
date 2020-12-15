@@ -103,7 +103,7 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.nextVersion.output.nextTag }}
-          release_name: ${{ format('{0} {1}', steps.nextVersion.output.isPrerelease ? 'Prerelease' : 'Release', steps.nextVersion.output.nextTag) }}
+          release_name: ${{ steps.nextVersion.output.nextTag }}
           prerelease: ${{ steps.nextVersion.output.isPrerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
