@@ -98,7 +98,7 @@ jobs:
         run: |
           echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
           npm version ${{ steps.nextVersion.output.nextVersion }} --no-git-tag-version
-          npm publish
+          npm publish --registry https://registry.visualpinball.org
       - name: Create Release
         uses: actions/create-release@v1
         with:
