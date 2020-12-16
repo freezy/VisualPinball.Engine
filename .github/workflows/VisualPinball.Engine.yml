@@ -97,20 +97,16 @@ jobs:
       - name: Publish
         run: |
           echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm version ${{ steps.nextVersion.output.nextVersion }} --no-git-tag-version
+          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version
           npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Dump
-        run: |
-          echo "${{ steps.nextVersion.output.nextTag }}" 
-          echo "${{ steps.nextVersion.output.isPrerelease }}"
       - name: Create Release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.nextVersion.output.nextTag }}
-          release_name: ${{ steps.nextVersion.output.nextTag }}
-          prerelease: ${{ steps.nextVersion.output.isPrerelease }}
+          tag_name: ${{ steps.nextVersion.outputs.nextTag }}
+          release_name: ${{ steps.nextVersion.outputs.nextTag }}
+          prerelease: ${{ steps.nextVersion.outputs.isPrerelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
