@@ -87,13 +87,13 @@ jobs:
           tagPrefix: 'v'
       - name: Add Meta Files
         run: |
-          echo "fileFormatVersion: 2\nguid: 766a31c3b9f34ab0885c9eb91f7b1fe4" > package.json.meta
-          echo "fileFormatVersion: 2\nguid: adae7347fead42e782a1276d30931a41" > LICENSE.meta
-          echo "fileFormatVersion: 2\nguid: 72a46a663e3b40d0b6e8ff25d554a779" > README.md.meta
-          echo "fileFormatVersion: 2\nguid: a2951ed31fba458ca06c535598194a28" > CHANGELOG.md.meta
-          echo "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
-          echo "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
-          echo "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
+          echo -e "fileFormatVersion: 2\nguid: 766a31c3b9f34ab0885c9eb91f7b1fe4" > package.json.meta
+          echo -e "fileFormatVersion: 2\nguid: adae7347fead42e782a1276d30931a41" > LICENSE.meta
+          echo -e "fileFormatVersion: 2\nguid: 72a46a663e3b40d0b6e8ff25d554a779" > README.md.meta
+          echo -e "fileFormatVersion: 2\nguid: a2951ed31fba458ca06c535598194a28" > CHANGELOG.md.meta
+          echo -e "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
+          echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
+          echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
       - name: Publish
         run: |
           echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
