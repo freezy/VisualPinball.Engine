@@ -7,4 +7,5 @@ VisualPinball.Unity.Test.meta
 *.csproj
 *.csproj.meta
 Directory.Build.props
+Directory.Build.props.meta
 nuget.config
