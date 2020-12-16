@@ -97,7 +97,7 @@ jobs:
       - name: Publish
         run: |
           echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version
+          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version --allow-same-version
           npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
