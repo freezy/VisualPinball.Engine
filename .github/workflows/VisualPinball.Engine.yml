@@ -82,7 +82,7 @@ jobs:
           fetch-depth: 0
       - name: Fetch next version
         id: nextVersion
-        uses: freezy/VisualPinball.NextVersionAction@v0.1.4
+        uses: freezy/VisualPinball.NextVersionAction@v0.1.5
         with:
           tagPrefix: 'v'
       - name: Add Meta Files
@@ -94,19 +94,36 @@ jobs:
           echo -e "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
           echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
           echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
+      - name: Bump
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }} 
+        run: |
+          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version    
       - name: Publish
         run: |
           echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version --allow-same-version
           npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Commit
+        id: commit
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }} 
+        run: |
+          git config user.name "github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(deps): Update to ${{ steps.nextVersion.outputs.nextTag }}."
+          git push
+          commitish=$(git rev-parse HEAD)
+          echo ::set-output name=commitish::${commitish}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Release
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.nextVersion.outputs.nextTag }}
           release_name: ${{ steps.nextVersion.outputs.nextTag }}
           prerelease: ${{ steps.nextVersion.outputs.isPrerelease }}
+          commitish: ${{ steps.commit.outputs.commitish }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
