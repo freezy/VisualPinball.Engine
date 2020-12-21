@@ -1,8 +1,9 @@
 name: Publish
 on:
-  workflow_run: ["Build"]
-  types:
-    - completed
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
 
 jobs:
   publish:
