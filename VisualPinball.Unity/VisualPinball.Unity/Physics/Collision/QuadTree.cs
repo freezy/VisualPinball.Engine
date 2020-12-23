@@ -161,25 +161,25 @@ namespace VisualPinball.Unity
 
 		}
 
-		public static void Create(Engine.Physics.QuadTree src, ref QuadTree dest, BlobBuilder builder)
-		{
-			var children = builder.Allocate(ref dest._children, 4);
-			for (var i = 0; i < 4; i++) {
-				if (src.Children[i] != null) {
-					ref var child = ref builder.Allocate(ref children[i]);
-					Create(src.Children[i], ref child, builder);
-				}
-			}
-
-			var boundsBlob = builder.Allocate(ref dest._bounds, src.HitObjects.Count);
-			for (var i = 0; i < src.HitObjects.Count; i++) {
-				ref var bounds = ref builder.Allocate(ref boundsBlob[i]);
-				src.HitObjects[i].HitBBox.ToAabb(ref bounds, src.HitObjects[i].Id);
-			}
-
-			dest._center = src.Center.ToUnityFloat3();
-			dest._isLeaf = src.IsLeaf;
-		}
+		// public static void Create(Engine.Physics.QuadTree src, ref QuadTree dest, BlobBuilder builder)
+		// {
+		// 	var children = builder.Allocate(ref dest._children, 4);
+		// 	for (var i = 0; i < 4; i++) {
+		// 		if (src.Children[i] != null) {
+		// 			ref var child = ref builder.Allocate(ref children[i]);
+		// 			Create(src.Children[i], ref child, builder);
+		// 		}
+		// 	}
+		//
+		// 	var boundsBlob = builder.Allocate(ref dest._bounds, src.HitObjects.Count);
+		// 	for (var i = 0; i < src.HitObjects.Count; i++) {
+		// 		ref var bounds = ref builder.Allocate(ref boundsBlob[i]);
+		// 		src.HitObjects[i].HitBBox.ToAabb(ref bounds, src.HitObjects[i].Id);
+		// 	}
+		//
+		// 	dest._center = src.Center.ToUnityFloat3();
+		// 	dest._isLeaf = src.IsLeaf;
+		// }
 
 		private static void CopyBounds(BlobBuilder builder, IReadOnlyList<Aabb> src, ref BlobArray<BlobPtr<Aabb>> dest)
 		{
