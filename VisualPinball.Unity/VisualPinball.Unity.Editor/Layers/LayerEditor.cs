@@ -112,7 +112,7 @@ namespace VisualPinball.Unity.Editor
 			Selection.selectionChanged += SelectionChanged;
 
 			// auto select a table to show data for
-			FindTable();
+			SetTable(TableSelector.Instance.SelectedTable);
 		}
 
 		private void ToolBoxItemCreated(GameObject obj)
@@ -300,7 +300,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private void OnUndoRedoPerformed()
 		{
-			FindTable();
+			SetTable(TableSelector.Instance.SelectedTable);
 		}
 
 		/// <summary>
