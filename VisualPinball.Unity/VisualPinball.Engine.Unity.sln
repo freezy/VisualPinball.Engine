@@ -27,8 +27,9 @@ EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{B9F198A5-1C98-4855-B423-8DF3880627A1}"
 ProjectSection(SolutionItems) = preProject
-	..\.github\workflows\VisualPinball.Engine.yml = ..\.github\workflows\VisualPinball.Engine.yml
-	..\.github\workflows\VisualPinball.Engine.Unity.Documentation.yml = ..\.github\workflows\VisualPinball.Engine.Unity.Documentation.yml
+	..\.github\workflows\build.yml = ..\.github\workflows\build.yml
+	..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
+	..\.github\workflows\documentation.yml = ..\.github\workflows\documentation.yml
 EndProjectSection
 EndProject
 Global
