@@ -147,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 			SliderField("Volume", ref _selectedItem.SoundData.Volume, -100, 100);
 			SliderField("Balance", ref _selectedItem.SoundData.Balance, -100, 100);
 			SliderField("Fade (Rear->Front)", ref _selectedItem.SoundData.Fade, -100, 100);
-			
+
 			EditorGUILayout.Space();
 			var wfx = _selectedItem.SoundData.Wfx;
 			GUILayout.Label($"Length : {_audioCLip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
@@ -169,11 +169,8 @@ namespace VisualPinball.Unity.Editor
 			AudioCurveRendering.EndCurveFrame();
 		}
 
-
-		protected override void OnFocus()
+		private void OnFocus()
 		{
-			base.OnFocus();
-
 			if (_tableAuthoring == null || _tableAuthoring.gameObject == null) return;
 
 			Selection.activeObject = _tableAuthoring.gameObject;
@@ -191,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		protected override void OnDataSelected() 
+		protected override void OnDataSelected()
 		{
 			base.OnDataSelected();
 			SceneView.RepaintAll();
@@ -209,11 +206,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private bool _shouldDisplaySoundPosition => (	_tableAuthoring != null && 
+		private bool _shouldDisplaySoundPosition => (	_tableAuthoring != null &&
 														Event.current.type == EventType.Repaint &&
-														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)) && 
-														_displaySoundPosition && 
-														_selectedItem != null && 
+														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)) &&
+														_displaySoundPosition &&
+														_selectedItem != null &&
 														_selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
 
 
@@ -229,7 +226,7 @@ namespace VisualPinball.Unity.Editor
 			//Disc size based on sound volume
 			var minSphereSize = 0.25f;
 			var maxSphereSize = _tableSize.magnitude * 0.5f;
-			
+
 			//Volume goes from -100 to 100 -> ratio
 			var sphereSizeRatio = (data.Volume + 100) * 0.005f;
 			var sphereSize = (sphereSizeRatio * (maxSphereSize - minSphereSize));
@@ -273,7 +270,7 @@ namespace VisualPinball.Unity.Editor
 
 			//Ask for framing after _tableCenter calculation
 			if (_needFraming) {
-				//Frame to Top View 
+				//Frame to Top View
 				SceneViewFramer.FrameObjects(Selection.objects);
 				var view = SceneView.lastActiveSceneView;
 				var quat = Quaternion.identity;

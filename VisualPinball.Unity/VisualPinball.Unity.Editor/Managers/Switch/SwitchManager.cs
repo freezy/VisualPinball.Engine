@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using NLog;
 using UnityEditor;
@@ -21,6 +22,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -69,13 +71,11 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
-		protected override void OnFocus()
+		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
 			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _switches, _switchDevices, _inputManager);
 			_needsAssetRefresh = true;
-
-			base.OnFocus();
 		}
 
 		protected override bool SetupCompleted()

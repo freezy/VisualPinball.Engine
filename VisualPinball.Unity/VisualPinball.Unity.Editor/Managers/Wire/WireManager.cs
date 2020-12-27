@@ -72,13 +72,11 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
-		protected override void OnFocus()
+		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
 			_listViewItemRenderer = new WireListViewItemRenderer(_switches, _switchDevices, _inputManager, _coils, _coilDevices);
 			_needsAssetRefresh = true;
-
-			base.OnFocus();
 		}
 
 		protected override bool SetupCompleted()

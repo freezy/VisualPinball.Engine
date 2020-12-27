@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -33,6 +36,7 @@ namespace VisualPinball.Unity.Editor
 		static TableSelectorHook()
 		{
 			Selection.selectionChanged += SetTableFromSelection;
+			EditorApplication.hierarchyChanged += SetTableFromHierarchy;
 		}
 
 		/// <summary>
@@ -45,11 +49,37 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			Debug.Log("[TableSelectorHook] Finding table from selection");
+
 			// find parent in hierarchy
 			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
 			if (selectedTable != null) {
 				TableSelector.Instance.SelectedTable = selectedTable;
 			}
+		}
+
+		private static void SetTableFromHierarchy()
+		{
+			Debug.Log("[TableSelectorHook] Finding table in hierarchy");
+			TableSelector.Instance.SelectedTable = FindTableInHierarchy();
+		}
+
+		public static TableAuthoring FindTableInHierarchy()
+		{
+			var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+
+			// try root objects first
+			foreach (var go in rootObjects) {
+				var ta = go.GetComponent<TableAuthoring>();
+				if (ta != null) {
+					return ta;
+				}
+			}
+
+			// do a deep search
+			return rootObjects
+				.Select(go => go.GetComponentInChildren<TableAuthoring>(true))
+				.FirstOrDefault(ta => ta != null);
 		}
 	}
 }

@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Linq;
-using UnityEngine.SceneManagement;
+using System;
 
 namespace VisualPinball.Unity
 {
@@ -25,14 +24,16 @@ namespace VisualPinball.Unity
 		/// Returns the most recently active table.
 		/// </summary>
 		public TableAuthoring SelectedTable {
-			get => _selectedTable ? _selectedTable : FindTableInScene();
-			set => _selectedTable = value;
+			get => _selectedTable;
+			set => SetSelectedTable(value);
 		}
 
 		/// <summary>
 		/// Returns true if there is an active table component.
 		/// </summary>
-		public bool HasSelectedTable => SelectedTable != null;
+		public bool HasSelectedTable => _selectedTable != null;
+
+		public event EventHandler OnTableSelected;
 
 		private static TableSelector _instance;
 
@@ -44,22 +45,12 @@ namespace VisualPinball.Unity
 
 		public static TableSelector Instance => _instance ?? (_instance = new TableSelector());
 
-		private static TableAuthoring FindTableInScene()
+		private void SetSelectedTable(TableAuthoring ta)
 		{
-			var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-
-			// try root objects first
-			foreach (var go in rootObjects) {
-				var ta = go.GetComponent<TableAuthoring>();
-				if (ta != null) {
-					return ta;
-				}
+			if (_selectedTable != ta) {
+				_selectedTable = ta;
+				OnTableSelected?.Invoke(this, EventArgs.Empty);
 			}
-
-			// do a deep search
-			return rootObjects
-				.Select(go => go.GetComponentInChildren<TableAuthoring>(true))
-				.FirstOrDefault(ta => ta != null);
 		}
 	}
 }

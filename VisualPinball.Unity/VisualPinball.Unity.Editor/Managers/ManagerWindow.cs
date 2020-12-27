@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.Editor
 				_treeViewState = new TreeViewState();
 			}
 
-			FindTable();
+			SetTable(TableSelector.Instance.SelectedTable);
 		}
 
 		protected virtual void OnGUI()
