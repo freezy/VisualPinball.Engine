@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void ShowButton(Rect position)
 		{
 			if (_lockButtonStyle == null) {
-				_lockButtonStyle = "IN LockButton"; // undocument ui style for the tab bar lock button
+				_lockButtonStyle = "IN LockButton"; // undocumented ui style for the tab bar lock button
 			}
 			bool wasLocked = _windowLocked;
 			_windowLocked = GUI.Toggle(position, _windowLocked, GUIContent.none, _lockButtonStyle);
