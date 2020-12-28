@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 			List<string> lst;
 			if (_dirtySerializables.TryGetValue(typeof(T), out lst)) {
 				if (lst.Contains(name)) {
-					bool remove = true;
+					var remove = true;
 					if (action != null) {
 						remove = action.Invoke();
 					}
@@ -256,6 +256,24 @@ namespace VisualPinball.Unity
 
 			Logger.Info("Table restored.");
 			return table;
+		}
+
+		public Vector3 GetTableCenter()
+		{
+			var playfield = GetComponentInChildren<PlayfieldAuthoring>().gameObject;
+			return playfield.GetComponent<MeshRenderer>().bounds.center;
+		}
+
+		public Bounds GetTableBounds()
+		{
+			var tableBounds = new Bounds();
+			var mrs = GetComponentsInChildren<Renderer>();
+			foreach(var mr in mrs) {
+				tableBounds.Encapsulate(mr.bounds.max);
+				tableBounds.Encapsulate(mr.bounds.min);
+				tableBounds.Encapsulate(mr.bounds.center);
+			}
+			return tableBounds;
 		}
 
 		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
