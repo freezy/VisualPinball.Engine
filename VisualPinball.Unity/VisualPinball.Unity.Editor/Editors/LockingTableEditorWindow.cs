@@ -56,51 +56,5 @@ namespace VisualPinball.Unity.Editor
 		{
 			menu.AddItem(new GUIContent("Lock"), _windowLocked, () => _windowLocked = !_windowLocked);
 		}
-
-/*
-		protected virtual void OnHierarchyChange()
-		{
-			// if we don't have a table, look for one when stuff in the scene changes
-			if (_tableAuthoring == null) {
-				FindTable();
-			}
-		}
-
-		protected virtual void OnFocus()
-		{
-			if (_windowLocked) { return; }
-			SetTableFromSelection();
-		}
-
-		protected virtual void OnSelectionChange()
-		{
-			if (_windowLocked) { return; }
-			SetTableFromSelection();
-			Repaint();
-		}
-
-
-		protected void FindTable()
-		{
-			SetTableFromSelection();
-			if (_tableAuthoring == null) {
-				// nothing was selected, just use the first found table
-				_tableAuthoring = FindObjectOfType<TableAuthoring>();
-				SetTable(_tableAuthoring);
-			}
-		}
-
-		protected void SetTableFromSelection()
-		{
-			if (Selection.activeGameObject == null) { return; }
-
-			// check to see if the selection's table is different from the current one being used by this manager
-			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
-			if (selectedTable != null) {
-				_tableAuthoring = selectedTable;
-				SetTable(selectedTable);
-			}
-		}
-		*/
 	}
 }

@@ -49,22 +49,22 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			Debug.Log("[TableSelectorHook] Finding table from selection");
-
 			// find parent in hierarchy
 			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
 			if (selectedTable != null) {
 				TableSelector.Instance.SelectedTable = selectedTable;
 			}
+
+			Debug.Log("[TableSelectorHook] Finding table from selection: " + selectedTable);
 		}
 
 		private static void SetTableFromHierarchy()
 		{
-			Debug.Log("[TableSelectorHook] Finding table in hierarchy");
 			TableSelector.Instance.SelectedTable = FindTableInHierarchy();
+			Debug.Log("[TableSelectorHook] Finding table in hierarchy: " + TableSelector.Instance.SelectedTable);
 		}
 
-		public static TableAuthoring FindTableInHierarchy()
+		private static TableAuthoring FindTableInHierarchy()
 		{
 			var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
 
