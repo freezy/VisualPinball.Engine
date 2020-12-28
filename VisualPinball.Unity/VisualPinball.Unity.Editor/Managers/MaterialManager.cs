@@ -37,6 +37,12 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<MaterialManager>("Material Manager");
 		}
 
+		public override void OnEnable()
+		{
+			titleContent = new GUIContent("Material Manager", EditorGUIUtility.IconContent("Material On Icon").image);
+			base.OnEnable();
+		}
+
 		protected override void OnDataDetailGUI()
 		{
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
