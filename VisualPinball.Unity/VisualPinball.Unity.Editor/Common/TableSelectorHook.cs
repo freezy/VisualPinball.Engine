@@ -54,14 +54,11 @@ namespace VisualPinball.Unity.Editor
 			if (selectedTable != null) {
 				TableSelector.Instance.SelectedTable = selectedTable;
 			}
-
-			Debug.Log("[TableSelectorHook] Finding table from selection: " + selectedTable);
 		}
 
 		private static void SetTableFromHierarchy()
 		{
 			TableSelector.Instance.SelectedTable = FindTableInHierarchy();
-			Debug.Log("[TableSelectorHook] Finding table in hierarchy: " + TableSelector.Instance.SelectedTable);
 		}
 
 		private static TableAuthoring FindTableInHierarchy()
