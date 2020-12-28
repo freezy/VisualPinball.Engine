@@ -47,10 +47,8 @@ namespace VisualPinball.Unity
 
 		private void SetSelectedTable(TableAuthoring ta)
 		{
-			if (_selectedTable != ta) {
-				_selectedTable = ta;
-				OnTableSelected?.Invoke(this, EventArgs.Empty);
-			}
+			_selectedTable = ta;
+			OnTableSelected?.Invoke(this, EventArgs.Empty);
 		}
 	}
 }

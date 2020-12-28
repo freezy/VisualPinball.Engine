@@ -16,7 +16,6 @@
 
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
