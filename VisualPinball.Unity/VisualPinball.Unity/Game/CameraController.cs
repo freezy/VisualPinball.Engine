@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			Camera = GetComponent<Camera>();
+			Camera = GetComponentInChildren<Camera>();
 		}
 
 		public void ApplyPreset()
