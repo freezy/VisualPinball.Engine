@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			if (!_cameraController.Camera) {
-				EditorGUILayout.HelpBox("Camera controller must sit on GameObject with a camera.", MessageType.Error);
+				EditorGUILayout.HelpBox("No camera found! Note that you shouldn't apply this Component manually, it's part of a prefab provided by VPE.", MessageType.Error);
 				return;
 			}
 
