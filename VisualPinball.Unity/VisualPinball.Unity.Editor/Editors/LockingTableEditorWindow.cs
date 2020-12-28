@@ -15,6 +15,7 @@ namespace VisualPinball.Unity.Editor
 		public override void OnEnable()
 		{
 			TableSelector.Instance.OnTableSelected += OnTableSelected;
+			base.OnEnable();
 		}
 
 		private void OnDestroy()
