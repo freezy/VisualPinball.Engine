@@ -40,6 +40,12 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<ImageManager>("Image Manager");
 		}
 
+		public override void OnEnable()
+		{
+			titleContent = new GUIContent("Image Manager", EditorGUIUtility.IconContent("RawImage Icon").image);
+			base.OnEnable();
+		}
+
 		protected override void OnButtonBarGUI() {
 			if (GUILayout.Button("Update All", GUILayout.ExpandWidth(false))) {
 				UpdateAllImages();

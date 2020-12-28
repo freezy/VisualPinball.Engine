@@ -333,7 +333,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[BiffMaterials("MATE", Pos = 105)]
 		[BiffMaterials("PHMA", IsPhysics = true, Pos = 106)]
-		public Material[] Materials;
+		public Material[] Materials = new Material[0];
 
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
