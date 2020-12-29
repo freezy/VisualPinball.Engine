@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -25,8 +26,7 @@ namespace VisualPinball.Unity
 	{
 		public CameraPreset activePreset;
 
-		public int presetIndex = -1;
-		public CameraPreset[] cameraPresets;
+		public List<CameraPreset> cameraPresets;
 
 		[NonSerialized]
 		public Camera Camera;

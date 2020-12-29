@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -32,6 +31,7 @@ namespace VisualPinball.Unity
 
 		public CameraPreset ApplyFrom(CameraPreset preset)
 		{
+			name = preset.name;
 			offset = preset.offset;
 			fov = preset.fov;
 			distance = preset.distance;
