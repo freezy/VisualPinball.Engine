@@ -31,6 +31,9 @@ namespace VisualPinball.Unity
 
 		public CameraPreset ApplyFrom(CameraPreset preset)
 		{
+			if (!preset) {
+				return this;
+			}
 			name = preset.name;
 			offset = preset.offset;
 			fov = preset.fov;
