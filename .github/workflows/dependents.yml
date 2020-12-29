@@ -7,20 +7,25 @@ on:
       - completed
 
 jobs:
-  VisualPinball.Unity.Hdrp:
+  VisualPinball-Unity-Hdrp:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' }}
     steps:
       - uses: actions/checkout@v2
         with:
            path: VisualPinball.Engine
-      - uses: actions/checkout@v2
+      - name: Checkout VisualPinball.Unity.Hdrp
+        uses: actions/checkout@v2
         with:
            repository: VisualPinball/VisualPinball.Unity.Hdrp
            path: VisualPinball.Unity.Hdrp
            token: ${{ secrets.GH_PAT }}
-      - uses: VisualPinball/update-dependent-action@v0.1.0
+      - name: Update dependent
         id: updateDependent
+        uses: VisualPinball/update-dependent-action@v0.1.0
+        with:
+          source: VisualPinball.Engine
+          dependent: VisualPinball.Unity.Hdrp
       - name: Commit 
         if: ${{ steps.updateDependent.outputs.isBump == 'true' }} 
         run: |
@@ -31,20 +36,25 @@ jobs:
           git commit -m "chore(deps): Update ${{ steps.updateDependent.outputs.sourceName }} to ${{ steps.updateDependent.outputs.sourceVersion }}."
           git push
 
-  VisualPinball.Unity.Urp:
+  VisualPinball-Unity-Urp:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' }}
     steps:
       - uses: actions/checkout@v2
         with:
            path: VisualPinball.Engine
-      - uses: actions/checkout@v2
+      - name: Checkout VisualPinball.Unity.Urp
+        uses: actions/checkout@v2
         with:
            repository: VisualPinball/VisualPinball.Unity.Urp
            path: VisualPinball.Unity.Urp
            token: ${{ secrets.GH_PAT }}
-      - uses: VisualPinball/update-dependent-action@v0.1.0
+      - name: Update dependent
         id: updateDependent
+        uses: VisualPinball/update-dependent-action@v0.1.0
+        with:
+          source: VisualPinball.Engine
+          dependent: VisualPinball.Unity.Urp
       - name: Commit
         if: ${{ steps.updateDependent.outputs.isBump == 'true' }}
         run: |
@@ -54,4 +64,3 @@ jobs:
           git add package.json
           git commit -m "chore(deps): Update ${{ steps.updateDependent.outputs.sourceName }} to ${{ steps.updateDependent.outputs.sourceVersion }}."
           git push
-
