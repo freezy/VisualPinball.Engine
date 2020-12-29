@@ -1,0 +1,57 @@
+name: Dependents
+on:
+  workflow_run:
+    workflows: [ "Publish" ]
+    branches: [ master ]
+    types:
+      - completed
+
+jobs:
+  VisualPinball.Unity.Hdrp:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+           path: VisualPinball.Engine
+      - uses: actions/checkout@v2
+        with:
+           repository: VisualPinball/VisualPinball.Unity.Hdrp
+           path: VisualPinball.Unity.Hdrp
+           token: ${{ secrets.GH_PAT }}
+      - uses: VisualPinball/update-dependent-action@v0.1.0
+        id: updateDependent
+      - name: Commit 
+        if: ${{ steps.updateDependent.outputs.isBump == 'true' }} 
+        run: |
+          cd dependent
+          git config user.name "github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(deps): Update ${{ steps.updateDependent.outputs.sourceName }} to ${{ steps.updateDependent.outputs.sourceVersion }}."
+          git push
+
+  VisualPinball.Unity.Urp:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+           path: VisualPinball.Engine
+      - uses: actions/checkout@v2
+        with:
+           repository: VisualPinball/VisualPinball.Unity.Urp
+           path: VisualPinball.Unity.Urp
+           token: ${{ secrets.GH_PAT }}
+      - uses: VisualPinball/update-dependent-action@v0.1.0
+        id: updateDependent
+      - name: Commit
+        if: ${{ steps.updateDependent.outputs.isBump == 'true' }}
+        run: |
+          cd dependent
+          git config user.name "github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(deps): Update ${{ steps.updateDependent.outputs.sourceName }} to ${{ steps.updateDependent.outputs.sourceVersion }}."
+          git push
+
