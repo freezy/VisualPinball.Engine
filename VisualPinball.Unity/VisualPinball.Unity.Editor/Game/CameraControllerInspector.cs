@@ -137,6 +137,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void ApplyPreset()
 		{
+			if (_presetIndex < 0 || _cameraController.cameraPresets.Count == 0) {
+				return;
+			}
 			_cameraController.activePreset.ApplyFrom(_cameraController.cameraPresets[_presetIndex]);
 			_cameraController.ApplyPreset();
 			_activeDirty = false;
