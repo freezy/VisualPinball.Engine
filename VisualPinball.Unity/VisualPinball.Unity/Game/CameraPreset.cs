@@ -28,10 +28,16 @@ namespace VisualPinball.Unity
 		public float angle = 10f;
 		public float orbit;
 
-		public event EventHandler OnPresetUpdated;
+		public CameraPreset Clone() => CreateInstance<CameraPreset>().ApplyFrom(this);
 
-		public void Updated() {
-			OnPresetUpdated?.Invoke(this, EventArgs.Empty);
+		public CameraPreset ApplyFrom(CameraPreset preset)
+		{
+			offset = preset.offset;
+			fov = preset.fov;
+			distance = preset.distance;
+			angle = preset.angle;
+			orbit = preset.orbit;
+			return this;
 		}
 	}
 }
