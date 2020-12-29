@@ -30,7 +30,7 @@
     </PackageReference>
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" ExcludeAssets="Compile" />
     <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
   </ItemGroup>

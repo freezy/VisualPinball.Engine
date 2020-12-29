@@ -29,49 +29,40 @@
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
     <PackageReference Include="NetMiniZ" Version="1.1.2" />
     <PackageReference Include="NetVips" Version="1.2.4" />
-    <PackageReference Include="NetVips.Native" Version="8.10.1" />
-    <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13" />
+    <PackageReference Include="NetVips.Native" Version="8.10.5.1" />
   </ItemGroup>
   <Import Project="$(NuGetPackageRoot)\netminiz\1.1.2\build\net472\NetMiniZ.targets" Condition="Exists('$(NuGetPackageRoot)\netminiz\1.1.2\build\net472\NetMiniZ.targets')" />
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
+    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
   </ImportGroup>
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.1\build\net461\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.1\build\net461\NetVips.Native.$(RuntimeIdentifier).targets')" />
+    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net461\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net461\NetVips.Native.$(RuntimeIdentifier).targets')" />
   </ImportGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
-  <!-- TODO: This target is no longer necessary once Unity.Collections 0.11.0 is released, see:
-       https://forum.unity.com/threads/please-update-com-unity-collections-reference-of-system-runtime-compilerservices-unsafe.732056/#post-5972735
-   -->
-  <Target Name="ILRepack" AfterTargets="Build">
-    <ItemGroup>
-      <InputAssemblies Include="System.Buffers.dll" />
-      <InputAssemblies Include="System.Memory.dll" />
-      <InputAssemblies Include="System.Numerics.Vectors.dll" />
-      <InputAssemblies Include="System.Runtime.CompilerServices.Unsafe.dll" />
-    </ItemGroup>
-    <ILRepack OutputType="$(OutputType)" MainAssembly="NetVips.dll" InputAssemblies="@(InputAssemblies)" OutputAssembly="NetVips.dll" WorkingDirectory="$(OutDir)" />
-  </Target>
   <ItemGroup>
     <Compile Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="obj\**" />
   </ItemGroup>
-  <Target Name="PluginsDeploy" AfterTargets="ILRepack">
+  <Target Name="PluginsDeploy" AfterTargets="AfterBuild">
     <ItemGroup>
       <Plugins Include="$(OutDir)NLog.dll" />
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
 
       <NativePlugins Include="$(OutDir)NetMiniZ.dll" />
+
       <NativePlugins Include="$(OutDir)NetVips.dll" />
+      <NativePlugins Include="$(OutDir)System.Buffers.dll" />
+      <NativePlugins Include="$(OutDir)System.Memory.dll" />
+      <NativePlugins Include="$(OutDir)System.Runtime.CompilerServices.Unsafe.dll" />
 
       <NativePlugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\$(RuntimeIdentifier)\native\*" />
-      <NativePlugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.1\runtimes\$(RuntimeIdentifier)\native\*" />
+      <NativePlugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
-    <Message Text="PluginsDeploy: @(Plugins)" />
+    <Message Text="PluginsDeploy: @(Plugins) @(NativePlugins)" />
     <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NativePlugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
   </Target>
