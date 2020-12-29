@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEditor;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -24,6 +24,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		private CameraController _cameraController;
 		private SerializedProperty _cameraPresetsProp;
+
+		private bool _subscribed;
 
 		private void OnEnable()
 		{
@@ -43,23 +45,20 @@ namespace VisualPinball.Unity.Editor
 				_cameraController.presetIndex = EditorGUILayout.IntSlider("Active Preset", _cameraController.presetIndex, 0, _cameraController.cameraPresets.Length - 1);
 				if (currentIndex != _cameraController.presetIndex) {
 					_cameraController.ApplyPreset();
+					if (_subscribed) {
+						_cameraController.cameraPresets[currentIndex].OnPresetUpdated -= ApplyPreset;
+					}
+					_cameraController.cameraPresets[_cameraController.presetIndex].OnPresetUpdated += ApplyPreset;
+					_subscribed = true;
 				}
 			}
 
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 			EditorGUILayout.PropertyField(_cameraPresetsProp);
-
-
-			//_cameraController.cameraPreset = (CameraPreset)EditorGUILayout.ObjectField("Camera Preset", _cameraController.cameraPreset, typeof(CameraPreset), false);
-
-			//
-			// EditorGUI.BeginDisabledGroup(!TableSelector.Instance.HasSelectedTable || _cameraController.cameraPreset == null);
-			// if (GUILayout.Button("Apply Preset")) {
-			// 	_cameraController.ApplyPreset();
-			// }
-			// EditorGUI.EndDisabledGroup();
 		}
+
+		private void ApplyPreset(object sender, EventArgs e) => _cameraController.ApplyPreset();
 	}
 
 }
