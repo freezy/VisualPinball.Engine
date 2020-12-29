@@ -23,10 +23,12 @@ namespace VisualPinball.Unity.Editor
 	public class CameraControllerInspector : UnityEditor.Editor
 	{
 		private CameraController _cameraController;
+		private SerializedProperty _cameraPresetsProp;
 
 		private void OnEnable()
 		{
 			_cameraController = target as CameraController;
+			_cameraPresetsProp = serializedObject.FindProperty("cameraPresets");
 		}
 
 		public override void OnInspectorGUI()
@@ -36,15 +38,27 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			_cameraController.cameraPreset = (CameraPreset)EditorGUILayout.ObjectField("Camera Preset", _cameraController.cameraPreset, typeof(CameraPreset), false);
+			if (_cameraController.cameraPresets.Length > 0) {
+				var currentIndex = _cameraController.presetIndex;
+				_cameraController.presetIndex = EditorGUILayout.IntSlider("Active Preset", _cameraController.presetIndex, 0, _cameraController.cameraPresets.Length - 1);
+				if (currentIndex != _cameraController.presetIndex) {
+					_cameraController.ApplyPreset();
+				}
+			}
+
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
+			EditorGUILayout.PropertyField(_cameraPresetsProp);
 
-			EditorGUI.BeginDisabledGroup(!TableSelector.Instance.HasSelectedTable || _cameraController.cameraPreset == null);
-			if (GUILayout.Button("Apply Preset")) {
-				_cameraController.ApplyPreset();
-			}
-			EditorGUI.EndDisabledGroup();
+
+			//_cameraController.cameraPreset = (CameraPreset)EditorGUILayout.ObjectField("Camera Preset", _cameraController.cameraPreset, typeof(CameraPreset), false);
+
+			//
+			// EditorGUI.BeginDisabledGroup(!TableSelector.Instance.HasSelectedTable || _cameraController.cameraPreset == null);
+			// if (GUILayout.Button("Apply Preset")) {
+			// 	_cameraController.ApplyPreset();
+			// }
+			// EditorGUI.EndDisabledGroup();
 		}
 	}
 
