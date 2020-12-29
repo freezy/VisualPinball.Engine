@@ -31,32 +31,37 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			Gui(_preset);
+		}
 
+		public static void Gui(CameraPreset preset)
+		{
 			EditorGUI.BeginChangeCheck();
 
 			EditorGUILayout.LabelField("Pivot Location", EditorStyles.boldLabel);
-			_preset.offset.x = EditorGUILayout.Slider("Offset X", _preset.offset.x, -0.2f, 0.2f);
-			_preset.offset.y = EditorGUILayout.Slider("Offset Y", _preset.offset.y, -1f, 1f);
-			_preset.offset.z = EditorGUILayout.Slider("Offset Z", _preset.offset.z, -1f, 1f);
+			preset.offset.x = EditorGUILayout.Slider("Offset X", preset.offset.x, -0.2f, 0.2f);
+			preset.offset.y = EditorGUILayout.Slider("Offset Y", preset.offset.y, -1f, 1f);
+			preset.offset.z = EditorGUILayout.Slider("Offset Z", preset.offset.z, -1f, 1f);
 
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
 			EditorGUILayout.LabelField("View", EditorStyles.boldLabel);
-			_preset.fov = EditorGUILayout.Slider("FOV", _preset.fov, 2f, 80f);
-			_preset.distance = EditorGUILayout.Slider("Distance", _preset.distance, 0f, 10f);
+			preset.fov = EditorGUILayout.Slider("FOV", preset.fov, 2f, 80f);
+			preset.distance = EditorGUILayout.Slider("Distance", preset.distance, 0f, 10f);
 
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
 			EditorGUILayout.LabelField("Orientation", EditorStyles.boldLabel);
-			_preset.angle = EditorGUILayout.Slider("Angle", _preset.angle, 0f, 180f);
-			_preset.orbit = EditorGUILayout.Slider("Orbit", _preset.orbit, 0f, 360f);
+			preset.angle = EditorGUILayout.Slider("Angle", preset.angle, 0f, 180f);
+			preset.orbit = EditorGUILayout.Slider("Orbit", preset.orbit, 0f, 360f);
 
 			if (EditorGUI.EndChangeCheck()) {
-				EditorUtility.SetDirty(_preset);
-				_preset.Updated();
+				EditorUtility.SetDirty(preset);
 			}
 		}
+
+
 	}
 }
