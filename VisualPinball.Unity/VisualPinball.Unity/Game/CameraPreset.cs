@@ -21,6 +21,9 @@ namespace VisualPinball.Unity
 	[CreateAssetMenu(fileName = "CameraPreset", menuName = "Visual Pinball/Camera Preset", order = 1)]
 	public class CameraPreset : ScriptableObject
 	{
+		public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
+
+		public string displayName;
 		public Vector3 offset = Vector3.zero;
 		public float fov = 25f;
 		public float distance = 1.7f;
@@ -34,7 +37,7 @@ namespace VisualPinball.Unity
 			if (!preset) {
 				return this;
 			}
-			name = preset.name;
+			displayName = preset.DisplayName;
 			offset = preset.offset;
 			fov = preset.fov;
 			distance = preset.distance;
