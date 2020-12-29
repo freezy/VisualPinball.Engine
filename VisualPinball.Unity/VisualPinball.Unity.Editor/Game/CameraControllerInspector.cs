@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 				var currentIndex = _presetIndex;
 
 				var dirtySuffix = _activeDirty ? "*" : "";
-				EditorGUILayout.LabelField(_cameraController.activePreset.name + dirtySuffix, EditorStyles.boldLabel);
+				EditorGUILayout.LabelField(_cameraController.activePreset.DisplayName + dirtySuffix, EditorStyles.boldLabel);
 				_presetIndex = EditorGUILayout.IntSlider("Active Preset", _presetIndex, 0, _cameraController.cameraPresets.Count - 1);
 				if (currentIndex != _presetIndex) {
 					ApplyPreset();
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.BeginDisabledGroup(selectedNullPreset);
 			if (GUILayout.Button("Clone")) {
 				var path = EditorUtility.SaveFilePanelInProject("Save camera preset",
-					$"{_cameraController.activePreset.name}.asset", "asset", "Save new camera preset", dir);
+					$"{_cameraController.activePreset.DisplayName}.asset", "asset", "Save new camera preset", dir);
 				ClonePreset(path);
 			}
 			EditorGUI.EndDisabledGroup();
@@ -150,6 +150,7 @@ namespace VisualPinball.Unity.Editor
 
 			// set name and clone
 			_cameraController.activePreset.name = Path.GetFileNameWithoutExtension(path);
+			_cameraController.activePreset.displayName = _cameraController.activePreset.name;
 			var preset = _cameraController.activePreset.Clone();
 
 			// save
