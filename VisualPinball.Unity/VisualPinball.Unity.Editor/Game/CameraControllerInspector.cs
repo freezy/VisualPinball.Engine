@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -25,34 +27,29 @@ namespace VisualPinball.Unity.Editor
 		private CameraController _cameraController;
 
 		private SerializedProperty _cameraPresetsProp;
-		private SerializedProperty _cameraActivePresetProp;
 
 		private const string ActiveAssetPath = "Assets/EditorResources/Camera/_activeCameraPreset.asset";
-		private bool _subscribed;
+		private int _presetIndex;
+		private bool _activeDirty;
 
 		private void OnEnable()
 		{
 			_cameraController = target as CameraController;
+			_cameraPresetsProp = serializedObject.FindProperty("cameraPresets");
 
 			Initialize();
-
-			_cameraActivePresetProp = serializedObject.FindProperty("activePreset");
-			_cameraPresetsProp = serializedObject.FindProperty("cameraPresets");
 		}
 
 		private void Initialize()
 		{
 			// 1. load default presets
-			if (_cameraController.cameraPresets == null || _cameraController.cameraPresets.Length == 0) {
-
-
+			if (_cameraController.cameraPresets == null || _cameraController.cameraPresets.Count == 0) {
 				const string presetAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/EditorResources/Camera";
-				_cameraController.cameraPresets = new[] {
+				_cameraController.cameraPresets = new List<CameraPreset> {
 					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{presetAssetPath}/Standard Flat.asset"),
 					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{presetAssetPath}/Top Down.asset"),
 					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{presetAssetPath}/Wide.asset")
 				};
-
 			}
 
 			// 2. set active preset
@@ -76,33 +73,72 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			EditorGUI.BeginChangeCheck();
+			// preset slider
+			if (_cameraController.cameraPresets.Count > 0) {
+				var currentIndex = _presetIndex;
 
-			// sliders for the active preset
-			CameraPresetInspector.Gui(_cameraController.activePreset);
-
-			if (_cameraController.cameraPresets.Length > 0) {
-				var currentIndex = _cameraController.presetIndex;
-
-				EditorGUILayout.LabelField(_cameraController.activePreset.name, EditorStyles.boldLabel);
-				_cameraController.presetIndex = EditorGUILayout.IntSlider("Active Preset", _cameraController.presetIndex, 0, _cameraController.cameraPresets.Length - 1);
-				if (currentIndex != _cameraController.presetIndex) {
-					_cameraController.activePreset.ApplyFrom(_cameraController.cameraPresets[_cameraController.presetIndex]);
+				var dirtySuffix = _activeDirty ? "*" : "";
+				EditorGUILayout.LabelField(_cameraController.activePreset.name + dirtySuffix, EditorStyles.boldLabel);
+				_presetIndex = EditorGUILayout.IntSlider("Active Preset", _presetIndex, 0, _cameraController.cameraPresets.Count - 1);
+				if (currentIndex != _presetIndex) {
+					_cameraController.activePreset.ApplyFrom(_cameraController.cameraPresets[_presetIndex]);
 					_cameraController.ApplyPreset();
+					_activeDirty = false;
 				}
 			}
 
+			// sliders for the active preset
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+			EditorGUI.BeginChangeCheck();
+			CameraPresetInspector.Gui(_cameraController.activePreset);
 			if (EditorGUI.EndChangeCheck()) {
+				_activeDirty = true;
 				_cameraController.ApplyPreset();
 			}
 
+			// buttons
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+			EditorGUILayout.BeginHorizontal();
+			var dir = Path.GetDirectoryName(ActiveAssetPath);
+			if (GUILayout.Button("Clone")) {
+				var path = EditorUtility.SaveFilePanelInProject("Save camera preset",
+					$"{_cameraController.activePreset.name}.asset", "asset", "Save new camera preset", dir);
+				ClonePreset(path);
+			}
+			EditorGUILayout.EndHorizontal();
+
+			// saved presets
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 			EditorGUILayout.PropertyField(_cameraPresetsProp);
 		}
 
+		private void ClonePreset(string path)
+		{
+			if (string.IsNullOrEmpty(path)) {
+				return;
+			}
+
+			// set name and clone
+			_cameraController.activePreset.name = Path.GetFileNameWithoutExtension(path);
+			var preset = _cameraController.activePreset.Clone();
+
+			// save
+			AssetDatabase.CreateAsset(preset, path);
+			AssetDatabase.SaveAssets();
+
+			// add to list
+			_cameraController.cameraPresets.Add(preset);
+		}
+
 		private void SaveActivePreset()
 		{
+			var dir = Path.GetDirectoryName(ActiveAssetPath);
+			if (!Directory.Exists(dir)) {
+				Directory.CreateDirectory(dir);
+			}
 			AssetDatabase.CreateAsset(_cameraController.activePreset, ActiveAssetPath);
 			AssetDatabase.SaveAssets();
 		}
