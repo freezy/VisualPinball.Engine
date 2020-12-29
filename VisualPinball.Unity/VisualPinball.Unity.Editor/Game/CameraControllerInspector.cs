@@ -177,7 +177,7 @@ namespace VisualPinball.Unity.Editor
 
 			// delete asset
 			var preset = _cameraController.cameraPresets[_presetIndex];
-			File.Delete(AssetDatabase.GetAssetPath(preset));
+			AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(preset));
 
 			// remove from list
 			_cameraController.cameraPresets.RemoveAt(_presetIndex);
