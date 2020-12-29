@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -26,5 +27,11 @@ namespace VisualPinball.Unity
 		public float distance = 1.7f;
 		public float angle = 10f;
 		public float orbit;
+
+		public event EventHandler OnPresetUpdated;
+
+		public void Updated() {
+			OnPresetUpdated?.Invoke(this, EventArgs.Empty);
+		}
 	}
 }

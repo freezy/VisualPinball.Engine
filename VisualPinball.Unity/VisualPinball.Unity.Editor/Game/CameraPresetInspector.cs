@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -30,6 +31,9 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+
+			EditorGUI.BeginChangeCheck();
+
 			EditorGUILayout.LabelField("Pivot Location", EditorStyles.boldLabel);
 			_preset.offset.x = EditorGUILayout.Slider("Offset X", _preset.offset.x, -0.2f, 0.2f);
 			_preset.offset.y = EditorGUILayout.Slider("Offset Y", _preset.offset.y, -1f, 1f);
@@ -49,7 +53,10 @@ namespace VisualPinball.Unity.Editor
 			_preset.angle = EditorGUILayout.Slider("Angle", _preset.angle, 0f, 180f);
 			_preset.orbit = EditorGUILayout.Slider("Orbit", _preset.orbit, 0f, 360f);
 
-			EditorUtility.SetDirty(_preset);
+			if (EditorGUI.EndChangeCheck()) {
+				EditorUtility.SetDirty(_preset);
+				_preset.Updated();
+			}
 		}
 	}
 }
