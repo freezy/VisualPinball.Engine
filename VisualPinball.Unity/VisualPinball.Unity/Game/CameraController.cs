@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	public class CameraController : MonoBehaviour
 	{
-		public CameraPreset activePreset;
+		public CameraSetting activeSetting;
 
-		public List<CameraPreset> cameraPresets;
+		public List<CameraSetting> cameraPresets;
 
 		[NonSerialized]
 		public Camera Camera;
@@ -36,9 +36,9 @@ namespace VisualPinball.Unity
 			Camera = GetComponentInChildren<Camera>();
 		}
 
-		public void ApplyPreset()
+		public void ApplySetting()
 		{
-			if (!activePreset) {
+			if (!activeSetting) {
 				return;
 			}
 
@@ -52,11 +52,11 @@ namespace VisualPinball.Unity
 			var azimuth = altitude.parent;
 			var offset = azimuth.parent;
 
-			trans.localPosition = new Vector3(0, 0, -activePreset.distance);
-			altitude.localRotation = Quaternion.Euler(new Vector3(activePreset.angle, 0, 0));
-			azimuth.localRotation = Quaternion.Euler(new Vector3(0, activePreset.orbit, 0));
-			offset.localPosition = table.GetTableCenter() + activePreset.offset;
-			Camera.fieldOfView = activePreset.fov;
+			trans.localPosition = new Vector3(0, 0, -activeSetting.distance);
+			altitude.localRotation = Quaternion.Euler(new Vector3(activeSetting.angle, 0, 0));
+			azimuth.localRotation = Quaternion.Euler(new Vector3(0, activeSetting.orbit, 0));
+			offset.localPosition = table.GetTableCenter() + activeSetting.offset;
+			Camera.fieldOfView = activeSetting.fov;
 
 			var tb = table.GetTableBounds();
 			var p = trans.position;

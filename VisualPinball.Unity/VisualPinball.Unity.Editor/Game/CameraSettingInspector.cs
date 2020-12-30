@@ -19,46 +19,46 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(CameraPreset)), CanEditMultipleObjects]
-	public class CameraPresetInspector : UnityEditor.Editor
+	[CustomEditor(typeof(CameraSetting)), CanEditMultipleObjects]
+	public class CameraSettingInspector : UnityEditor.Editor
 	{
-		private CameraPreset _preset;
+		private CameraSetting _setting;
 
 		private void OnEnable()
 		{
-			_preset = target as CameraPreset;
+			_setting = target as CameraSetting;
 		}
 
 		public override void OnInspectorGUI()
 		{
-			Gui(_preset);
+			Gui(_setting);
 		}
 
-		public static void Gui(CameraPreset preset)
+		public static void Gui(CameraSetting setting)
 		{
 			EditorGUI.BeginChangeCheck();
 
 			EditorGUILayout.LabelField("Pivot Location", EditorStyles.boldLabel);
-			preset.offset.x = EditorGUILayout.Slider("Offset X", preset.offset.x, -0.2f, 0.2f);
-			preset.offset.y = EditorGUILayout.Slider("Offset Y", preset.offset.y, -1f, 1f);
-			preset.offset.z = EditorGUILayout.Slider("Offset Z", preset.offset.z, -1f, 1f);
+			setting.offset.x = EditorGUILayout.Slider("Offset X", setting.offset.x, -0.2f, 0.2f);
+			setting.offset.y = EditorGUILayout.Slider("Offset Y", setting.offset.y, -1f, 1f);
+			setting.offset.z = EditorGUILayout.Slider("Offset Z", setting.offset.z, -1f, 1f);
 
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
 			EditorGUILayout.LabelField("View", EditorStyles.boldLabel);
-			preset.fov = EditorGUILayout.Slider("FOV", preset.fov, 2f, 80f);
-			preset.distance = EditorGUILayout.Slider("Distance", preset.distance, 0f, 10f);
+			setting.fov = EditorGUILayout.Slider("FOV", setting.fov, 2f, 80f);
+			setting.distance = EditorGUILayout.Slider("Distance", setting.distance, 0f, 10f);
 
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
 			EditorGUILayout.LabelField("Orientation", EditorStyles.boldLabel);
-			preset.angle = EditorGUILayout.Slider("Angle", preset.angle, 0f, 180f);
-			preset.orbit = EditorGUILayout.Slider("Orbit", preset.orbit, 0f, 360f);
+			setting.angle = EditorGUILayout.Slider("Angle", setting.angle, 0f, 180f);
+			setting.orbit = EditorGUILayout.Slider("Orbit", setting.orbit, 0f, 360f);
 
 			if (EditorGUI.EndChangeCheck()) {
-				EditorUtility.SetDirty(preset);
+				EditorUtility.SetDirty(setting);
 			}
 		}
 

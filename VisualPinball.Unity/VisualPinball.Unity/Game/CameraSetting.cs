@@ -19,7 +19,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[CreateAssetMenu(fileName = "CameraPreset", menuName = "Visual Pinball/Camera Preset", order = 1)]
-	public class CameraPreset : ScriptableObject
+	public class CameraSetting : ScriptableObject
 	{
 		public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
 
@@ -30,19 +30,19 @@ namespace VisualPinball.Unity
 		public float angle = 10f;
 		public float orbit;
 
-		public CameraPreset Clone() => CreateInstance<CameraPreset>().ApplyFrom(this);
+		public CameraSetting Clone() => CreateInstance<CameraSetting>().ApplyFrom(this);
 
-		public CameraPreset ApplyFrom(CameraPreset preset)
+		public CameraSetting ApplyFrom(CameraSetting setting)
 		{
-			if (!preset) {
+			if (!setting) {
 				return this;
 			}
-			displayName = preset.DisplayName;
-			offset = preset.offset;
-			fov = preset.fov;
-			distance = preset.distance;
-			angle = preset.angle;
-			orbit = preset.orbit;
+			displayName = setting.DisplayName;
+			offset = setting.offset;
+			fov = setting.fov;
+			distance = setting.distance;
+			angle = setting.angle;
+			orbit = setting.orbit;
 			return this;
 		}
 	}
