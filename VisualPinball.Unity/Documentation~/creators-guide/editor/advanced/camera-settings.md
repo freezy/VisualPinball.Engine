@@ -1,3 +1,6 @@
+---
+description: VPE allows to quickly cycle through different camera settings while editing the table.
+---
 # Camera Settings
 
 The editor camera controller is a tool designed to set different camera views during the editing and testing process. It allows the camera to be easily adjusted with a few sliders as well as allowing for the saving and loading of presets.
