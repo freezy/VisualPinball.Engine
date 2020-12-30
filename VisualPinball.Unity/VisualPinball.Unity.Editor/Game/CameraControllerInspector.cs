@@ -23,7 +23,7 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(CameraController)), CanEditMultipleObjects]
-	public class CameraControllerInspector : UnityEditor.Editor
+	public class CameraControllerInspector : BaseEditor<CameraController>
 	{
 		private const string ActiveAssetPath = "Assets/EditorResources/Camera/_activeCameraPreset.asset";
 		private const string PresetAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/EditorResources/Camera";
@@ -36,7 +36,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_cameraController = target as CameraController;
-			_cameraPresetsProp = serializedObject.FindProperty("cameraPresets");
+			_cameraPresetsProp = this.FindProperty( x => x.cameraPresets);
+
 			Initialize();
 		}
 		private void Initialize()
