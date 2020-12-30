@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(CameraController)), CanEditMultipleObjects]
 	public class CameraControllerInspector : BaseEditor<CameraController>
 	{
-		private const string ActiveAssetPath = "Assets/EditorResources/Camera/_activeCameraPreset.asset";
+		private const string ActiveAssetPath = "Assets/EditorResources/Camera/_activeCameraSetting.asset";
 		private const string PresetAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/EditorResources/Camera";
 
 		private CameraController _cameraController;
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_cameraController = target as CameraController;
-			_cameraPresetsProp = this.FindProperty( x => x.cameraPresets);
+			_cameraPresetsProp = FindProperty( x => x.cameraPresets);
 
 			Initialize();
 		}
@@ -45,22 +45,22 @@ namespace VisualPinball.Unity.Editor
 			// 1. load default presets
 			if (_cameraController.cameraPresets == null || _cameraController.cameraPresets.Count == 0) {
 
-				_cameraController.cameraPresets = new List<CameraPreset> {
-					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{PresetAssetPath}/Standard Flat.asset"),
-					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{PresetAssetPath}/Top Down.asset"),
-					AssetDatabase.LoadAssetAtPath<CameraPreset>($"{PresetAssetPath}/Wide.asset")
+				_cameraController.cameraPresets = new List<CameraSetting> {
+					AssetDatabase.LoadAssetAtPath<CameraSetting>($"{PresetAssetPath}/Standard Flat.asset"),
+					AssetDatabase.LoadAssetAtPath<CameraSetting>($"{PresetAssetPath}/Top Down.asset"),
+					AssetDatabase.LoadAssetAtPath<CameraSetting>($"{PresetAssetPath}/Wide.asset")
 				};
 			}
 
-			// 2. set active preset
-			if (_cameraController.activePreset == null) {
+			// 2. set active setting
+			if (_cameraController.activeSetting == null) {
 
 				if (File.Exists(ActiveAssetPath)) {
-					_cameraController.activePreset = AssetDatabase.LoadAssetAtPath<CameraPreset>(ActiveAssetPath);
+					_cameraController.activeSetting = AssetDatabase.LoadAssetAtPath<CameraSetting>(ActiveAssetPath);
 
 				} else {
-					_cameraController.activePreset = _cameraController.cameraPresets[0].Clone();
-					SaveActivePreset();
+					_cameraController.activeSetting = _cameraController.cameraPresets[0].Clone();
+					SaveActiveSetting();
 				}
 			}
 		}
@@ -78,21 +78,21 @@ namespace VisualPinball.Unity.Editor
 				var currentIndex = _presetIndex;
 
 				var dirtySuffix = _activeDirty ? "*" : "";
-				EditorGUILayout.LabelField(_cameraController.activePreset.DisplayName + dirtySuffix, EditorStyles.boldLabel);
+				EditorGUILayout.LabelField(_cameraController.activeSetting.DisplayName + dirtySuffix, EditorStyles.boldLabel);
 				_presetIndex = EditorGUILayout.IntSlider("Active Preset", _presetIndex, 0, _cameraController.cameraPresets.Count - 1);
 				if (currentIndex != _presetIndex) {
-					ApplyPreset();
+					ApplySetting();
 				}
 			}
 
-			// sliders for the active preset
+			// sliders for the active setting
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 			EditorGUI.BeginChangeCheck();
-			CameraPresetInspector.Gui(_cameraController.activePreset);
+			CameraSettingInspector.Gui(_cameraController.activeSetting);
 			if (EditorGUI.EndChangeCheck()) {
 				_activeDirty = true;
-				_cameraController.ApplyPreset();
+				_cameraController.ApplySetting();
 			}
 
 			var noPresets = _cameraController.cameraPresets.Count == 0;
@@ -105,26 +105,26 @@ namespace VisualPinball.Unity.Editor
 			var dir = Path.GetDirectoryName(ActiveAssetPath);
 			EditorGUI.BeginDisabledGroup(selectedNullPreset);
 			if (GUILayout.Button("Clone")) {
-				var path = EditorUtility.SaveFilePanelInProject("Save camera preset",
-					$"{_cameraController.activePreset.DisplayName}.asset", "asset", "Save new camera preset", dir);
-				ClonePreset(path);
+				var path = EditorUtility.SaveFilePanelInProject("Save camera setting as preset",
+					$"{_cameraController.activeSetting.DisplayName}.asset", "asset", "Save new camera setting as preset", dir);
+				CloneSetting(path);
 			}
 			EditorGUI.EndDisabledGroup();
 
 			EditorGUI.BeginDisabledGroup(selectedNullPreset || noPresets || IsPackageAsset(_cameraController.cameraPresets[_presetIndex]));
 			if (GUILayout.Button("Save")) {
-				SavePreset();
+				SaveSetting();
 			}
 
 			if (GUILayout.Button("Delete")) {
-				DeletePreset();
+				DeleteSetting();
 			}
 
 			EditorGUI.EndDisabledGroup();
 
 			EditorGUI.BeginDisabledGroup(!_activeDirty || selectedNullPreset || noPresets);
 			if (GUILayout.Button("Reset")) {
-				ApplyPreset();
+				ApplySetting();
 			}
 			EditorGUI.EndDisabledGroup();
 
@@ -136,76 +136,74 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_cameraPresetsProp);
 		}
 
-		private void ApplyPreset()
+		private void ApplySetting()
 		{
 			if (_presetIndex < 0 || _cameraController.cameraPresets.Count == 0) {
 				return;
 			}
-			_cameraController.activePreset.ApplyFrom(_cameraController.cameraPresets[_presetIndex]);
-			_cameraController.ApplyPreset();
+			_cameraController.activeSetting.ApplyFrom(_cameraController.cameraPresets[_presetIndex]);
+			_cameraController.ApplySetting();
 			_activeDirty = false;
 		}
 
-		private void ClonePreset(string path)
+		private void CloneSetting(string path)
 		{
 			if (string.IsNullOrEmpty(path)) {
 				return;
 			}
 
 			// set name and clone
-			_cameraController.activePreset.name = Path.GetFileNameWithoutExtension(path);
-			_cameraController.activePreset.displayName = _cameraController.activePreset.name;
-			var preset = _cameraController.activePreset.Clone();
+			_cameraController.activeSetting.name = Path.GetFileNameWithoutExtension(path);
+			_cameraController.activeSetting.displayName = _cameraController.activeSetting.name;
+			var setting = _cameraController.activeSetting.Clone();
 
 			// save
-			AssetDatabase.CreateAsset(preset, path);
+			AssetDatabase.CreateAsset(setting, path);
 			AssetDatabase.SaveAssets();
 
 			// add to list and select
-			_cameraController.cameraPresets.Add(preset);
+			_cameraController.cameraPresets.Add(setting);
 			_presetIndex = _cameraController.cameraPresets.Count - 1;
 			_activeDirty = false;
 		}
 
-		private void SavePreset()
+		private void SaveSetting()
 		{
-			_cameraController.cameraPresets[_presetIndex].ApplyFrom(_cameraController.activePreset);
+			_cameraController.cameraPresets[_presetIndex].ApplyFrom(_cameraController.activeSetting);
 			_activeDirty = false;
 		}
 
-		private void DeletePreset()
+		private void DeleteSetting()
 		{
 			if (_cameraController.cameraPresets.Count == 0) {
 				return;
 			}
 
 			// delete asset
-			var preset = _cameraController.cameraPresets[_presetIndex];
-			AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(preset));
+			var setting = _cameraController.cameraPresets[_presetIndex];
+			AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(setting));
 
 			// remove from list
 			_cameraController.cameraPresets.RemoveAt(_presetIndex);
 			_presetIndex = math.clamp(_presetIndex, 0, _cameraController.cameraPresets.Count - 1);
 
 			// apply next preset
-			ApplyPreset();
+			ApplySetting();
 		}
 
-		private void SaveActivePreset()
+		private void SaveActiveSetting()
 		{
 			var dir = Path.GetDirectoryName(ActiveAssetPath);
 			if (!Directory.Exists(dir)) {
 				Directory.CreateDirectory(dir);
 			}
-			AssetDatabase.CreateAsset(_cameraController.activePreset, ActiveAssetPath);
+			AssetDatabase.CreateAsset(_cameraController.activeSetting, ActiveAssetPath);
 			AssetDatabase.SaveAssets();
 		}
 
-		private bool IsPackageAsset(Object preset)
+		private static bool IsPackageAsset(Object preset)
 		{
 			return AssetDatabase.GetAssetPath(preset).StartsWith(PresetAssetPath);
 		}
-
 	}
-
 }

@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="expression"></param>
 		/// <returns></returns>
-		public UnityEditor.SerializedProperty FindProperty<TValue>(Expression<Func<T, TValue>> expression)
+		protected UnityEditor.SerializedProperty FindProperty<TValue>(Expression<Func<T, TValue>> expression)
 		{
 			return serializedObject.FindProperty(GetFieldPath(expression));
 		}
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="expression"></param>
 		/// <returns></returns>
-		public static string GetFieldPath<TType, TValue>(Expression<Func<TType, TValue>> expression)
+		private static string GetFieldPath<TType, TValue>(Expression<Func<TType, TValue>> expression)
 		{
 			MemberExpression memberExpression;
 			switch (expression.Body.NodeType)
