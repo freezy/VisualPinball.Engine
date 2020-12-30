@@ -12,11 +12,11 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	/// <typeparam name="T">The editor target</typeparam>
 	public class BaseEditor<T> : UnityEditor.Editor where T : MonoBehaviour
-    {
-        protected T Target
-        {
-            get { return (T)target; }
-        }
+	{
+		protected T Target
+		{
+			get { return (T)target; }
+		}
 
 		/// <summary>
 		/// Get a property using reflection and in that way avoiding having to hardcode members as strings.
@@ -24,10 +24,10 @@ namespace VisualPinball.Unity.Editor
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="expression"></param>
 		/// <returns></returns>
-        public UnityEditor.SerializedProperty FindProperty<TValue>(Expression<Func<T, TValue>> expression)
-        {
-            return serializedObject.FindProperty(GetFieldPath(expression));
-        }
+		public UnityEditor.SerializedProperty FindProperty<TValue>(Expression<Func<T, TValue>> expression)
+		{
+			return serializedObject.FindProperty(GetFieldPath(expression));
+		}
 
 		/// <summary>
 		/// Get the field path as string from an expression.
@@ -38,11 +38,15 @@ namespace VisualPinball.Unity.Editor
 		/// <returns></returns>
 		public static string GetFieldPath<TType, TValue>(Expression<Func<TType, TValue>> expression)
 		{
-			MemberExpression memberExpression = expression.Body.NodeType switch
+			MemberExpression memberExpression;
+			switch (expression.Body.NodeType)
 			{
-				ExpressionType.MemberAccess => expression.Body as MemberExpression,
-				_ => throw new InvalidOperationException(),
-			};
+				case ExpressionType.MemberAccess:
+					memberExpression = expression.Body as MemberExpression;
+					break;
+				default:
+					throw new InvalidOperationException();
+			}
 
 			var members = new List<string>();
 			while (memberExpression != null)
