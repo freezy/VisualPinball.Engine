@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          lfs: true 
+          lfs: true
       - name: Add Meta Files
         run: |
           echo -e "fileFormatVersion: 2\nguid: 766a31c3b9f34ab0885c9eb91f7b1fe4" > package.json.meta
@@ -30,18 +30,12 @@ jobs:
         with:
           tagPrefix: 'v'
       - name: Bump
-        if: ${{ steps.nextVersion.outputs.isBump == 'true' }} 
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }}
         run: |
-          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version    
-      - name: Publish
-        run: |
-          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version
       - name: Commit
         id: commit
-        if: ${{ steps.nextVersion.outputs.isBump == 'true' }} 
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }}
         run: |
           git config user.name "github-actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -61,4 +55,10 @@ jobs:
           commitish: ${{ steps.commit.outputs.commitish }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        run: |
+          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
