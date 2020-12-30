@@ -26,7 +26,10 @@
       href: editor/wire-manager.md
     - name: Multiple Tables
       href: editor/multiple-tables.md
-
+    - name: Advanced Topics  
+      items:
+       - name: Camera Settings
+         href: editor/advanced/camera-settings.md
 - name: Manual
   href: manual/manual.md
   items:
