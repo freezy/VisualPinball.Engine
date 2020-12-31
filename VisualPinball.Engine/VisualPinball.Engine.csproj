@@ -25,13 +25,13 @@
     <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.5" />
+    <PackageReference Include="NLog" Version="4.7.6" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
-    <PackageReference Include="NetMiniZ" Version="1.1.2" />
+    <PackageReference Include="NetMiniZ" Version="1.2.2" />
+    <PackageReference Include="NetMiniZ.Native" Version="1.2.2" />
     <PackageReference Include="NetVips" Version="1.2.4" />
     <PackageReference Include="NetVips.Native" Version="8.10.5.1" />
   </ItemGroup>
-  <Import Project="$(NuGetPackageRoot)\netminiz\1.1.2\build\net472\NetMiniZ.targets" Condition="Exists('$(NuGetPackageRoot)\netminiz\1.1.2\build\net472\NetMiniZ.targets')" />
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-x64'">
     <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
   </ImportGroup>
@@ -59,7 +59,7 @@
       <NativePlugins Include="$(OutDir)System.Memory.dll" />
       <NativePlugins Include="$(OutDir)System.Runtime.CompilerServices.Unsafe.dll" />
 
-      <NativePlugins Include="$(NuGetPackageRoot)\netminiz\1.1.2\runtimes\$(RuntimeIdentifier)\native\*" />
+      <NativePlugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.2.2\runtimes\$(RuntimeIdentifier)\native\*" />
       <NativePlugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.10.5.1\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins) @(NativePlugins)" />
