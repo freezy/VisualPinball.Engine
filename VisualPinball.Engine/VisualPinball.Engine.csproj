@@ -12,6 +12,8 @@
     <InformationalVersion>0.1.0.0</InformationalVersion>
     <LangVersion>7.3</LangVersion>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <!-- Give an initial value based on the operating system where it's currently running on -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
@@ -46,6 +48,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="obj\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
   </ItemGroup>
   <Target Name="PluginsDeploy" AfterTargets="AfterBuild">
     <ItemGroup>
