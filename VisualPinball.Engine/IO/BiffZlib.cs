@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using NetMiniZ;
 
 namespace VisualPinball.Engine.IO
 {
@@ -24,18 +23,11 @@ namespace VisualPinball.Engine.IO
 	/// </summary>
 	public static class BiffZlib
 	{
-		private static NetMiniZUtils utils = null;
-
-		static BiffZlib()
-		{
-			utils = new NetMiniZUtils();
-		}
-
 		public static byte[] Decompress(byte[] bytes)
 		{
 			using (var outStream = new MemoryStream())
 			using (var inStream = new MemoryStream(bytes)) {
-				utils.Decompress(inStream, outStream);
+				NetMiniZ.NetMiniZ.Decompress(inStream, outStream);
 				return outStream.ToArray();
 			}
 		}
@@ -44,7 +36,7 @@ namespace VisualPinball.Engine.IO
 		{
 			using (var outStream = new MemoryStream())
 			using (var inStream = new MemoryStream(inData)) {
-				utils.Compress(inStream, outStream, 9);
+				NetMiniZ.NetMiniZ.Compress(inStream, outStream, 9);
 				return outStream.ToArray();
 			}
 		}
