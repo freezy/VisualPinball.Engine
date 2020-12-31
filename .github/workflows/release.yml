@@ -1,0 +1,47 @@
+name: Release
+on:
+  workflow_run:
+    workflows: [ "Build" ]
+    branches: [ master ]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Fetch next version
+        id: nextVersion
+        uses: VisualPinball/next-version-action@v0.1.6
+        with:
+          tagPrefix: 'v'
+      - name: Bump
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }}
+        run: |
+          npm version ${{ steps.nextVersion.outputs.nextVersion }} --no-git-tag-version
+      - name: Commit
+        id: commit
+        if: ${{ steps.nextVersion.outputs.isBump == 'true' }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "release: ${{ steps.nextVersion.outputs.nextTag }}."
+          git push
+          commitish=$(git rev-parse HEAD)
+          echo ::set-output name=commitish::${commitish}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.nextVersion.outputs.nextTag }}
+          release_name: ${{ steps.nextVersion.outputs.nextTag }}
+          prerelease: ${{ steps.nextVersion.outputs.isPrerelease }}
+          commitish: ${{ steps.commit.outputs.commitish }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
