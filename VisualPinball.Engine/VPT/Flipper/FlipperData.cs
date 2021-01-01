@@ -142,12 +142,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffInt("TMIN", Pos = 11)]
 		public int TimerInterval;
 
-
 		// -----------------
 		// new fields by VPE
 		// -----------------
 
-		[BiffBool("DWND", Pos = 100)]
+		[BiffBool("DWND", Pos = 100, SkipHash = true)]
 		public bool IsDualWound;
 
 		public float OverrideMass;

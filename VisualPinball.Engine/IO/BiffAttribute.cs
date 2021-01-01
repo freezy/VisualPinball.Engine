@@ -83,6 +83,14 @@ namespace VisualPinball.Engine.IO
 		public bool SkipWrite = false;
 
 		/// <summary>
+		/// If true, ignore this value when calculating the checksum.
+		///
+		/// Necessary for attributes that aren't supported in Visual Pinball, since including them
+		/// in the hash when writing will make Visual Pinball fail with a corrupted error message.
+		/// </summary>
+		public bool SkipHash = false;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
@@ -94,7 +102,7 @@ namespace VisualPinball.Engine.IO
 
 		protected Type Type => Field != null ? Field.FieldType : Property.PropertyType;
 
-		protected bool WriteHash(BiffData data) => true; //!SkipHash;
+		protected bool WriteHash(BiffData data) => !SkipHash;
 
 		protected BiffAttribute(string name)
 		{
