@@ -35,7 +35,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
 
-
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
 		public string Name = string.Empty;
 

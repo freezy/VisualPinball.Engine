@@ -87,10 +87,10 @@ namespace VisualPinball.Engine.VPT.Kicker
 		// new fields by VPE
 		// -----------------
 
-		[BiffFloat("ANGL", Pos = 16)]
+		[BiffFloat("ANGL", Pos = 16, SkipHash = true)]
 		public float Angle = 90f;
 
-		[BiffFloat("SPED", Pos = 17)]
+		[BiffFloat("SPED", Pos = 17, SkipHash = true)]
 		public float Speed = 3f;
 
 		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
