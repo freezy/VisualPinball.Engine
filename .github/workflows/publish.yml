@@ -43,4 +43,5 @@ jobs:
           dotnet pack VisualPinball.Engine/VisualPinball.Engine.csproj -c Release /p:PackageVersion=$VERSION -o nupkg
       - name: Publish
         run: |
-          dotnet nuget push nupkg/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push nupkg/VisualPinball.Resources.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push nupkg/VisualPinball.Engine.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
