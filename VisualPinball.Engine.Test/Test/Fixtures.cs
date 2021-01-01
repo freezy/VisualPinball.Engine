@@ -92,6 +92,11 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string Hdr = PathHelper.GetFixturePath("test_pattern_hdr.hdr");
 	}
 
+	public static class MaterialPath
+	{
+		public static readonly string Mat = PathHelper.GetFixturePath("materials.mat");
+	}
+
 	public static class PathHelper
 	{
 		public static string GetFixturePath(string filename)
