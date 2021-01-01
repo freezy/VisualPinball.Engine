@@ -30,6 +30,8 @@ ProjectSection(SolutionItems) = preProject
 	..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 	..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
 	..\.github\workflows\documentation.yml = ..\.github\workflows\documentation.yml
+	..\.github\workflows\dependents.yml = ..\.github\workflows\dependents.yml
+	..\.github\workflows\release.yml = ..\.github\workflows\release.yml
 EndProjectSection
 EndProject
 Global
