@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		public void BallCreate(in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
 		{
-			_ballManager.CreateEntity(in worldPos, in localPos, in localVel,scale * radius * 2, 
+			_ballManager.CreateEntity(in worldPos, in localPos, in localVel,scale * radius * 2,
 				in mass, in radius, in kickerRef);
 		}
 

@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ namespace VisualPinball.Unity.Editor.Utils.Dialogs
 {
 
 	/// <summary>
-	/// 
+	///
 	/// </summary>
 	class TextInputDialog : EditorWindow
 	{
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor.Utils.Dialogs
 		/// The text edited by this dialog
 		/// </summary>
 		/// <remarks>
-		/// Could be initialized at a default value 
+		/// Could be initialized at a default value
 		/// </remarks>
 		public string Text = string.Empty;
 		/// <summary>
@@ -77,9 +77,9 @@ namespace VisualPinball.Unity.Editor.Utils.Dialogs
 		/// <returns>the dialog created and configured</returns>
 		public static TextInputDialog Create(GUIContent titleContent,
 											Rect position,
-											string text = "", 
-											string message = "", 
-											string inputLabel = "", 
+											string text = "",
+											string message = "",
+											string inputLabel = "",
 											GUIContent validButton = null,
 											GUIContent cancelButton = null,
 											ValidateText validationDelegate = null)
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor.Utils.Dialogs
 			GUILayout.Space(10);
 
 			GUILayout.BeginHorizontal();
-			
+
 			if (GUILayout.Button(ValidationButton) || Event.current.keyCode == KeyCode.Return) {
 				TextValidated = true;
 				if (ValidationDelegate != null) {

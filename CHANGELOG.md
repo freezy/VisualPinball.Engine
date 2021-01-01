@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-Built with [Unity 2020.2 beta](https://github.com/freezy/VisualPinball.Engine/pull/255).
+Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/255).
 
 ### Added
 - VPE is now packaged and published on every merge!

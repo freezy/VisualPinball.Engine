@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 			}
 			var ltw = _baseTransform;
 			Entities.WithName("SimulateBuildJob").ForEach((ref Translation translation, ref BallData ball) => {
-				// ball.Position = math.transform(math.inverse(ltw), math.transform(ltw, float3.zero));
+				ball.Position = math.transform(math.inverse(ltw), math.transform(ltw, float3.zero));
 			}).Run();
 		}
 	}

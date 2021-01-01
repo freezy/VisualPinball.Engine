@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 			var itemNames = _selectedItem.CollectionData.ItemNames?.Select(n => n) ?? new string[0];
 			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
 
-			//Keep the available items 
+			//Keep the available items
 			var items = _tableAuthoring.Item.GameItems
 							.Where(i => !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
 							.OrderBy(i => i.Name);

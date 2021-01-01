@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public static class TreeElementUtility
 	{
-		#region TreeElement Helpers       
+		#region TreeElement Helpers
 		public delegate bool ChildFilter<T>(T child) where T : TreeElement;
 
 		/// <summary>
@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 		public static T Find<T>(this T rootElement, int id) where T : TreeElement => Find<T>(rootElement, d => d.Id == id);
 
 		/// <summary>
-		/// Find helper to search an element within provided TreeElement hierarchy 
+		/// Find helper to search an element within provided TreeElement hierarchy
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
 		/// <param name="rootElement">the root element for the search</param>
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Will gather all children from this TreeElement 
+		/// Will gather all children from this TreeElement
 		/// </summary>
 		/// <typeparam name="T">a generic TreeElement child class</typeparam>
 		/// <param name="rootElement">the root element for the parsing</param>
