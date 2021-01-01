@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>VisualPinball.Resources</Title>
-    <Description>A .NET port of Visual Pinball in C#</Description>
+    <Description>Meshes and Textures shipped with Visual Pinball</Description>
     <Authors>freezy;ravarcade;shaderbytes;rbxnk;jsm174;Vroonsh;Rowlan;kleisauke;ecurtz;Pandeli</Authors>
     <Copyright>Copyright 2021 freezy - &lt;freezy@vpdb.io&gt;</Copyright>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
@@ -10,6 +10,7 @@
     <InformationalVersion>0.1.0.0</InformationalVersion>
     <LangVersion>7.3</LangVersion>
     <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
+    <PackageIconUrl>https://user-images.githubusercontent.com/70426/101756172-0965a200-3ad6-11eb-8c71-edb751f0f5d5.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
