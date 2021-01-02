@@ -237,7 +237,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Color ColorBackdrop = new Color(35, 35, 35, 255);
 
 		[BiffColor("CCUS", Count = 16, Pos = 113)]
-		public Color[] CustomColors = new Color[16];
+		public Color[] CustomColors = { Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black, Colors.Black };
 
 		[BiffFloat("TDFT", Pos = 74)]
 		public float GlobalDifficulty = 0.2f;

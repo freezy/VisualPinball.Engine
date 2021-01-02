@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
@@ -47,6 +48,16 @@ namespace VisualPinball.Engine.VPT.Table
 			};
 
 			_table.Add(new Bumper.Bumper(data));
+			return this;
+		}
+
+		public TableBuilder AddMaterial(Material material)
+		{
+			var mats = _table.Data.Materials.ToList();
+			mats.Add(material);
+			_table.Data.Materials = mats.ToArray();
+			_table.Data.NumMaterials = mats.Count;
+
 			return this;
 		}
 
