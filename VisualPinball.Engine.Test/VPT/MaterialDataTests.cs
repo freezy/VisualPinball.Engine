@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT
 {
@@ -39,6 +40,27 @@ namespace VisualPinball.Engine.Test.VPT
 			table.Save(tmpFileName);
 			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
 			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
+		}
+
+		[Test]
+		public void ShouldCreateMaterialFromScratch()
+		{
+			var tb = new TableBuilder();
+
+			tb.AddMaterial(new Material {
+				Name = "test_mat",
+				BaseColor = new Color(255, 0, 0, 255),
+				Elasticity = 0.666f
+			});
+
+			const string tmpFileName = "ShouldCreateMaterialData.vpx";
+			new TableWriter(tb.Build()).WriteTable(tmpFileName);
+
+			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			writtenTable.GetMaterial("test_mat").BaseColor.Red.Should().Be(255);
+			writtenTable.GetMaterial("test_mat").BaseColor.Green.Should().Be(0);
+			writtenTable.GetMaterial("test_mat").BaseColor.Blue.Should().Be(0);
+			writtenTable.GetMaterial("test_mat").Elasticity.Should().Be(0.666f);
 		}
 
 		[Test]
