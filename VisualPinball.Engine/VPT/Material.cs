@@ -79,17 +79,17 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// Can be overridden by texture on object itself
 		/// </summary>
-		public Color BaseColor;
+		public Color BaseColor = Colors.White;
 
 		/// <summary>
 		/// Specular of glossy layer
 		/// </summary>
-		public Color Glossiness;
+		public Color Glossiness = Colors.White;
 
 		/// <summary>
 		/// Specular of clearcoat layer
 		/// </summary>
-		public Color ClearCoat;
+		public Color ClearCoat = Colors.Black;
 
 		/// <summary>
 		/// Is a metal material or not

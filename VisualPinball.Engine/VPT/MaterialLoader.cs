@@ -22,7 +22,7 @@ namespace VisualPinball.Engine.VPT
 {
 	public static class MaterialReader
 	{
-		public static IEnumerable<Material> Load(string filename)
+		public static Material[] Load(string filename)
 		{
 			if (!File.Exists(filename)) {
 				throw new ArgumentException($"File \"{filename}\" does not exist");
