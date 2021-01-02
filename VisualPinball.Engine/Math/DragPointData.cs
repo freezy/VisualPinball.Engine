@@ -31,6 +31,9 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
+	[BiffIgnore("LANR")]
+	[BiffIgnore("LAYR")]
+	[BiffIgnore("LVIS")]
 	public class DragPointData : BiffData
 	{
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
