@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -32,27 +31,18 @@ namespace VisualPinball.Unity.Editor
 			var layouts = CollectCustomLayouts();
 			var unityPrefs = InternalEditorUtility.unityPreferencesFolder;
 
-			// clean up existing VPE layouts
-			var existingLayouts = Directory.GetFiles($"{unityPrefs}/Layouts/default", "?) VPE *.wlt");
-			foreach (var layoutPath in existingLayouts) {
-				File.Delete(layoutPath);
-			}
-
 			var i = 1;
 			foreach (var (name, path) in layouts) {
 
 				// Rename default unity views that interrupt the VPE layout naming.
 				var theAnnoyingOne = unityPrefs + "/Layouts/default/2 by 3.wlt";
 				var taoCorrected = unityPrefs + "/Layouts/default/Unity 2 by 3.wlt";
-				var theAnnoyingOne2 = unityPrefs + "/Layouts/default/4 Split.wlt";
-				var tao2Corrected = unityPrefs + "/Layouts/default/Unity 4 Split.wlt";
-
-				// Rename
 				if (File.Exists(theAnnoyingOne)) {
 					File.Copy(theAnnoyingOne, taoCorrected);
 					File.Delete(theAnnoyingOne);
 				}
-
+				var theAnnoyingOne2 = unityPrefs + "/Layouts/default/4 Split.wlt";
+				var tao2Corrected = unityPrefs + "/Layouts/default/Unity 4 Split.wlt";
 				if (File.Exists(theAnnoyingOne2)) {
 					File.Copy(theAnnoyingOne2, tao2Corrected);
 					File.Delete(theAnnoyingOne2);
@@ -61,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 				// Copy the VPE preferences.  Overwrite the originals in case we change them.
 				// TODO: Provide a modal dialog prompt to for overwriting.
 				File.Copy(path, $"{unityPrefs}/Layouts/default/{i}) {name}.wlt", true);
-				Debug.Log("Setting up new layout at " + $"{unityPrefs}/Layouts/default/{i}) {name}.wlt");
+				//Debug.Log("Setting up new layout at " + $"{unityPrefs}/Layouts/default/{i}) {name}.wlt");
 
 				i++;
 			}
