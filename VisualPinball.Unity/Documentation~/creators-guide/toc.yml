@@ -26,6 +26,8 @@
       href: editor/wire-manager.md
     - name: Multiple Tables
       href: editor/multiple-tables.md
+    - name: Unity Layouts
+      href: editor/unity-layouts.md
     - name: Advanced Topics  
       items:
        - name: Camera Settings
