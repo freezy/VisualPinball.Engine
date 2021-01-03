@@ -12,7 +12,7 @@ In order to start creating or tweaking tables with VPE, the first thing you'll n
 
 Unity uses an application called *Unity Hub* to update itself and provide quick access to your projects. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
-When installing Unity, use the latest **2020.2 beta** version. You can leave all the other options unchecked.
+When installing Unity, use the latest **2020.2** version. You can leave all the other options unchecked.
 
 Once Unity is downloaded and installed, you'll need to create a new project. Unity has multiple render pipelines, and you'll be asked which render pipeline to use in your project:
 
