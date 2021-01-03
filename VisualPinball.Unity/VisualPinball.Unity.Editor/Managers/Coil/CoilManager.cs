@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedMappings _recordMappings;
 
-		[MenuItem("Visual Pinball/Coil Manager", false, 107)]
+		[MenuItem("Visual Pinball/Coil Manager", false, 302)]
 		public static void ShowWindow()
 		{
 			GetWindow<CoilManager>();

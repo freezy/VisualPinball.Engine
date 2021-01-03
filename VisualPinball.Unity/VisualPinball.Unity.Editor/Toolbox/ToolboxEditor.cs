@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		public static event Action<GameObject> ItemCreated;
 
-		[MenuItem("Visual Pinball/Toolbox", false, 100)]
+		[MenuItem("Visual Pinball/Toolbox", false, 201)]
 		public static void ShowWindow()
 		{
 			GetWindow<ToolboxEditor>("Toolbox");

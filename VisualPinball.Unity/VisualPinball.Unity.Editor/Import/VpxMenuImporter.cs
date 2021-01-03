@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	public static class VpxMenuImporter
 	{
 
-		[MenuItem("Visual Pinball/Import VPX", false, 10)]
+		[MenuItem("Visual Pinball/Import VPX", false, 1)]
 		public static void ImportVpxEditorMemory(MenuCommand menuCommand)
 		{
 			ImportVpxEditor(menuCommand);
