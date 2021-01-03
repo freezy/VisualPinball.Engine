@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedMappings _recordMappings;
 
-		[MenuItem("Visual Pinball/Switch Manager", false, 106)]
+		[MenuItem("Visual Pinball/Switch Manager", false, 301)]
 		public static void ShowWindow()
 		{
 			GetWindow<SwitchManager>();

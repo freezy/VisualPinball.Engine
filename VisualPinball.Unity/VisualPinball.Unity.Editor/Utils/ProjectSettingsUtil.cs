@@ -23,14 +23,14 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class ProjectSettingsUtil
     {
-		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Forward Rendering)", false, 15)]
+		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Forward Rendering)", false, 501)]
 		public static void RestoreRenderingDefaultsForward()
 		{
 			EnableForwardRenderingPath();
 			SetShadowMaskDefaults();
 		}
 
-		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Deferred Rendering)", false, 16)]
+		[MenuItem("Visual Pinball/Rendering/Restore Defaults (Deferred Rendering)", false, 502)]
 		public static void RestoreRenderingDefaultsDeferred()
 		{
 			EnableDeferredRenderingPath();

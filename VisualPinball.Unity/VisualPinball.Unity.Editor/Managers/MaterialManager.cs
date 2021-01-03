@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutVisual = true;
 		private bool _foldoutPhysics = true;
 
-		[MenuItem("Visual Pinball/Material Manager", false, 103)]
+		[MenuItem("Visual Pinball/Material Manager", false, 403)]
 		public static void ShowWindow()
 		{
 			GetWindow<MaterialManager>("Material Manager");

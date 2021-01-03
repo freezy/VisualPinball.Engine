@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 
 
 
-		[MenuItem("Visual Pinball/Sound Manager", false, 104)]
+		[MenuItem("Visual Pinball/Sound Manager", false, 404)]
 		public static void ShowWindow()
 		{
 			GetWindow<SoundManager>();

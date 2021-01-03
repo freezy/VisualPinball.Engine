@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedMappings _recordMappings;
 
-		[MenuItem("Visual Pinball/Wire Manager", false, 108)]
+		[MenuItem("Visual Pinball/Wire Manager", false, 303)]
 		public static void ShowWindow()
 		{
 			GetWindow<WireManager>();

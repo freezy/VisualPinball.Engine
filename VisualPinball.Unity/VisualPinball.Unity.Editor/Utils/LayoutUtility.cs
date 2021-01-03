@@ -21,12 +21,12 @@ using UnityEditorInternal;
 
 namespace VisualPinball.Unity.Editor
 {
-	[InitializeOnLoad]
-	public static class PopulateEditorLayout
+	public static class LayoutUtility
 	{
 		private const string LayoutsAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/EditorResources/WindowLayouts";
 
-		static PopulateEditorLayout()
+		[MenuItem("Visual Pinball/Editor/Setup Layouts", false, 511)]
+		public static void PopulateEditorLayout()
 		{
 			var layouts = CollectCustomLayouts();
 			var unityPrefs = InternalEditorUtility.unityPreferencesFolder;
@@ -58,6 +58,11 @@ namespace VisualPinball.Unity.Editor
 
 			// Refresh the menu.
 			InternalEditorUtility.ReloadWindowLayoutMenu();
+
+			EditorUtility.DisplayDialog(
+				"Visual Pinball Layouts",
+				"Layouts added. You can switch between them using the drop down in the top right corner of the editor.",
+				"Got it!");
 		}
 
 		/// <summary>

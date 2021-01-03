@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private bool _synchronizeSelection;
 
-		[MenuItem("Visual Pinball/Layer Manager", false, 101)]
+		[MenuItem("Visual Pinball/Layer Manager", false, 401)]
 		public static void ShowWindow()
 		{
 			GetWindow<LayerEditor>();
