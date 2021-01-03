@@ -140,8 +140,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[DidReloadScripts]
-		public static void OnScriptsReloaded()
+		[MenuItem("Visual Pinball/Editor/Disable Gizmo Icons", false, 510)]
+		public static void DisableGizmoIcons()
 		{
 			DisableGizmo<BumperAuthoring>();
 			DisableGizmo<BumperBaseMeshAuthoring>();
