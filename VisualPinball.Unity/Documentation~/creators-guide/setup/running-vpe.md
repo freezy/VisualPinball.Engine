@@ -20,7 +20,7 @@ Now that we have the camera of the scene view somewhat aligned, we still can't s
 
 These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. In order to hide them, click on *Visual Pinball -> Editor -> Disable Gizmo Icons*. 
 
-Since a pinball table is a relatively small object, the icons are huge when working on a table, so click on the *Gizmos* dropdown in the scene view and use the top slider to shrink them down a bit.
+Since a pinball table is a relatively small object, the remaining icons are huge when working on a table, so click on the *Gizmos* dropdown in the scene view and use the top slider to shrink them down a bit.
 
 And while we're at it, choose *Visual Pinball -> Editor -> Setup Layouts* to populate a bunch of pre-made editor layouts that give you easy access to the tooling we've added to the editor.
 
