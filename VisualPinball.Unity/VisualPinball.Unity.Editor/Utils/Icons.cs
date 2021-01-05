@@ -78,10 +78,9 @@ namespace VisualPinball.Unity.Editor
 		private static Icons _instance;
 		private static Icons Instance => _instance ?? (_instance = new Icons());
 
-
 		private Icons()
 		{
-			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Resources/Icons";
+			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Editor/Icons";
 			foreach (var name in Names) {
 				foreach (var size in Enum.GetValues(typeof(IconSize)).Cast<IconSize>()) {
 					foreach (var color in Enum.GetValues(typeof(IconColor)).Cast<IconColor>()) {
