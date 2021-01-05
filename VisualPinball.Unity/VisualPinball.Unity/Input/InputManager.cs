@@ -27,9 +27,7 @@ namespace VisualPinball.Unity
 {
 	public class InputManager
 	{
-
-
-		private static readonly string RESOURCE_NAME = "VPE";
+		private static readonly string RESOURCE_NAME = "InputBindings";
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

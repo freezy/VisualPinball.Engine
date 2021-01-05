@@ -99,8 +99,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndVertical();
             #endregion Top Toolbar
 
-            #region Settings
-            EditorGUILayout.BeginVertical(boxStyle);
+			#region Settings
+			EditorGUILayout.BeginVertical(boxStyle);
 			{
 				EditorGUILayout.BeginHorizontal();
 				VpxImportWizardSettings.VpxPath = EditorGUILayout.TextField("VPX File", VpxImportWizardSettings.VpxPath);
@@ -143,10 +143,10 @@ namespace VisualPinball.Unity.Editor
 				GUILayout.FlexibleSpace();
 			}
 			EditorGUILayout.EndVertical();
-            #endregion Settings
+			#endregion Settings
 
-            #region Bottom Toolbar
-            EditorGUILayout.BeginVertical(boxStyle);
+			#region Bottom Toolbar
+			EditorGUILayout.BeginVertical(boxStyle);
 			{
 				EditorGUILayout.BeginHorizontal();
 
