@@ -31,6 +31,9 @@
     "Eli Curtz <eli@nuprometheus.com>",
     "Pandeli"
   ],
+  "documentationUrl": "https://docs.visualpinball.org/",
+  "changelogUrl": "https://docs.visualpinball.org/CHANGELOG.html",
+  "licensesUrl": "https://github.com/freezy/VisualPinball.Engine/blob/master/LICENSE",
   "publishConfig": {
     "registry": "https://registry.visualpinball.org"
   },
