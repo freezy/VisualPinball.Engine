@@ -27,6 +27,12 @@ engine has been ported to [DOTS](https://unity.com/dots), and we're focusing
 on Unity's [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/index.html)
 for the visuals.
 
+## Dependency Graph
+
+This repository is part of a number of packages. It is what we're referring to as the **main package**.
+
+![image](https://user-images.githubusercontent.com/70426/103706031-64db6080-4fac-11eb-837e-5e7cddd86d7b.png)
+
 ## Current Status
 
 VPE is still work in progress. You can check the current features list [here](https://docs.visualpinball.org/creators-guide/introduction/features.html)
