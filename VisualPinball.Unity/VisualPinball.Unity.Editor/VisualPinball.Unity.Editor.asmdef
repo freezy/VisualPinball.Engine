@@ -9,25 +9,8 @@
 		"VisualPinball.Engine",
 		"VisualPinball.Unity",
 		"VisualPinball.Unity.Patcher"
-
 	],
-	"includePlatforms": [],
-	"excludePlatforms": [
-		"Android",
-		"iOS",
-		"LinuxStandalone64",
-		"Lumin",
-		"macOSStandalone",
-		"PS4",
-		"Stadia",
-		"Switch",
-		"tvOS",
-		"WSA",
-		"WebGL",
-		"WindowsStandalone32",
-		"WindowsStandalone64",
-		"XboxOne"
-	],
+	"includePlatforms": [ "Editor" ],
 	"allowUnsafeCode": true,
 	"overrideReferences": false,
 	"precompiledReferences": [],
