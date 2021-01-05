@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[CreateAssetMenu(fileName = "CameraPreset", menuName = "Visual Pinball/Camera Preset", order = 1)]
+	[CreateAssetMenu(fileName = "CameraPreset", menuName = "Visual Pinball/Camera Setting", order = 100)]
 	public class CameraSetting : ScriptableObject
 	{
 		public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
