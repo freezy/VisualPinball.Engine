@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class LayoutUtility
 	{
-		private const string LayoutsAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/EditorResources/WindowLayouts";
+		private const string LayoutsAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Editor/WindowLayouts";
 
 		[MenuItem("Visual Pinball/Editor/Setup Layouts", false, 511)]
 		public static void PopulateEditorLayout()
