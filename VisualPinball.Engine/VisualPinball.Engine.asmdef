@@ -1,8 +1,8 @@
 {
-  "name": "VisualPinball.Engine",
-  "references": [
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": true
+	"name": "VisualPinball.Engine",
+	"references": [
+	],
+	"includePlatforms": [],
+	"excludePlatforms": [],
+	"allowUnsafeCode": true
 }

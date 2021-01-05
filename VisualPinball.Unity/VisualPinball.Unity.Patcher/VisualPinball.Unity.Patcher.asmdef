@@ -1,10 +1,19 @@
 {
-	"name": "VisualPinball.Unity.Patcher",
-	"references": [
-		"VisualPinball.Engine",
-		"VisualPinball.Unity"
-	],
-	"includePlatforms": [],
-	"excludePlatforms": [],
-	"allowUnsafeCode": false
+    "name": "VisualPinball.Unity.Patcher",
+    "rootNamespace": "",
+    "references": [
+        "VisualPinball.Engine",
+        "VisualPinball.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

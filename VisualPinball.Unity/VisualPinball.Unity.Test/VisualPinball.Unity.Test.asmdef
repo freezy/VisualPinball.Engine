@@ -1,27 +1,25 @@
 {
-    "name": "VisualPinball.Unity.Test",
-    "references": [
-        "UnityEngine.TestRunner",
-        "Unity.Collections",
-        "Unity.Entities",
-        "Unity.Entities.Hybrid",
-        "Unity.Mathematics",
-        "Unity.Transforms",
-        "VisualPinball.Engine",
-        "VisualPinball.Engine.Test",
-        "VisualPinball.Unity"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true,
-    "overrideReferences": true,
-    "precompiledReferences": [
-       "nunit.framework.dll"
-    ],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+	"name": "VisualPinball.Unity.Test",
+	"references": [
+		"UnityEngine.TestRunner",
+		"Unity.Collections",
+		"Unity.Entities",
+		"Unity.Entities.Hybrid",
+		"Unity.Mathematics",
+		"Unity.Transforms",
+		"VisualPinball.Engine",
+		"VisualPinball.Engine.Test",
+		"VisualPinball.Unity"
+	],
+	"includePlatforms": [ "Editor" ],
+	"excludePlatforms": [],
+	"allowUnsafeCode": true,
+	"overrideReferences": true,
+	"precompiledReferences": [
+		"nunit.framework.dll"
+	],
+	"autoReferenced": true,
+	"defineConstraints": [],
+	"versionDefines": [],
+	"noEngineReferences": false
 }

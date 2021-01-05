@@ -1,18 +1,16 @@
 {
-    "name": "VisualPinball.Engine.Test",
-    "references": [
-        "UnityEngine.TestRunner",
-        "VisualPinball.Engine"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+	"name": "VisualPinball.Engine.Test",
+	"references": [
+		"UnityEngine.TestRunner",
+		"VisualPinball.Engine"
+	],
+	"includePlatforms": [ "Editor" ],
+	"excludePlatforms": [],
+	"allowUnsafeCode": true,
+	"overrideReferences": false,
+	"precompiledReferences": [],
+	"autoReferenced": true,
+	"defineConstraints": [],
+	"versionDefines": [],
+	"noEngineReferences": false
 }
