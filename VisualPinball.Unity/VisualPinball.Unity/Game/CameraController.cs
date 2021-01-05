@@ -34,6 +34,23 @@ namespace VisualPinball.Unity
 		private void OnEnable()
 		{
 			Camera = GetComponentInChildren<Camera>();
+
+			// validate structure
+			var trans = Camera.transform;
+			var altitude = trans.transform.parent;
+			if (altitude == null) {
+				Camera = null;
+				return;
+			}
+			var azimuth = altitude.parent;
+			if (azimuth == null) {
+				Camera = null;
+				return;
+			}
+			var offset = azimuth.parent;
+			if (offset == null) {
+				Camera = null;
+			}
 		}
 
 		public void ApplySetting()
