@@ -516,7 +516,7 @@ namespace VisualPinball.Unity
 
 		#region Contact
 
-		public void Contact(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
+		public void Contact(ref BallData ball, ref FlipperMovementData movementData, in CollisionEventData collEvent,
 			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
 			var normal = collEvent.HitNormal;
@@ -526,7 +526,7 @@ namespace VisualPinball.Unity
 				ball.Velocity += 0.1f * normal;
 			}
 
-			GetRelativeVelocity(normal, ball, movementData, out var vRel, out var rB, out var rF);
+			GetRelativeVelocity(normal, ball, in movementData, out var vRel, out var rB, out var rF);
 
 			// this should be zero, but only up to +/- C_CONTACTVEL
 			var normVel = math.dot(vRel, normal);

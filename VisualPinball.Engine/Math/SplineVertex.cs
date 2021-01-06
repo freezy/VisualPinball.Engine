@@ -39,8 +39,7 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex2D[] RgvLocal;
 
-		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel,
-			int accuracy, bool staticRendering = true)
+		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel, float accuracy, bool staticRendering = true)
 		{
 			var vertices = GetCentralCurve(dragPoints, tableDetailLevel, accuracy, staticRendering);
 			var numVertices = vertices.Length;
@@ -131,17 +130,16 @@ namespace VisualPinball.Engine.Math
 			VertexCount = numVertices + 1;
 		}
 
-		private static RenderVertex2D[] GetCentralCurve(DragPointData[] dragPoints, int tableDetailLevel, int acc,
-			bool staticRendering = true)
+		private static RenderVertex2D[] GetCentralCurve(DragPointData[] dragPoints, int tableDetailLevel, float acc, bool staticRendering = true)
 		{
 			float accuracy;
 
 			// as solid rubbers are rendered into the static buffer, always use maximum precision
-			if (acc != -1.0) {
+			if (acc != -1.0f) {
 				accuracy = acc; // used for hit shape calculation, always!
 
 			} else {
-				accuracy = staticRendering ? 10 : tableDetailLevel;
+				accuracy = staticRendering ? 10.0f : tableDetailLevel;
 
 				// min = 4 (highest accuracy/detail level), max = 4 * 10^(10/1.5) = ~18.000.000 (lowest accuracy/detail level)
 				accuracy = 4.0f * MathF.Pow(10.0f, (10.0f - accuracy) * (float) (1.0 / 1.5));
