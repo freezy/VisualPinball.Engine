@@ -93,10 +93,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 		internal Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
 			var mesh = new Mesh(_data.Name);
-			const int accuracy = (int)(10.0f * 1.2f); // see also above
+			var accuracy = (int)(10.0f * 1.3f);
+			if (acc != -1) { // hit shapes and UI display have the same, static, precision
+				accuracy = acc;
+			}
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float) (1.0 / 1.5)) : -1.0f;
-			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, table.GetDetailLevel(), (int)splineAccuracy);
+			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, table.GetDetailLevel(), splineAccuracy);
 
 			var numRings = sv.VertexCount - 1;
 			var numSegments = accuracy;
