@@ -98,7 +98,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-
 		#region Lifecycle
 
 		private void Awake()

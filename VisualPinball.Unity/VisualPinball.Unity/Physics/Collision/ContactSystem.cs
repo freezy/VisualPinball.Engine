@@ -56,14 +56,15 @@ namespace VisualPinball.Unity
 			// retrieve reference to static collider data
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
-			var contacts = _simulateCycleSystemGroup.Contacts.AsDeferredJobArray();
+			var contacts = _simulateCycleSystemGroup.Contacts;
 			var ballsLookup = GetComponentDataFromEntity<BallData>();
 
 			var marker = PerfMarker;
 
 			Job
 				.WithName("ContactJob")
-				.WithReadOnly(ballsLookup)
+//				.WithReadOnly(contacts)
+//				.WithReadOnly(ballsLookup)
 				.WithCode(() =>
 			{
 
@@ -90,7 +91,7 @@ namespace VisualPinball.Unity
 									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
 									((FlipperCollider*) collider)->Contact(
-										ref ball, ref collEvent, ref flipperMovementData,
+										ref ball, ref flipperMovementData, in collEvent,
 										in flipperMaterialData, in flipperVelocityData, hitTime, in gravity);
 									SetComponent(coll.Entity, flipperMovementData);
 
@@ -102,8 +103,10 @@ namespace VisualPinball.Unity
 
 					} else if (collEvent.ColliderEntity != Entity.Null) { // collide with ball
 						// todo move ball friction into some data component
-						BallCollider.HandleStaticContact(ref ball, collEvent, 0.3f, hitTime, gravity);
+						BallCollider.HandleStaticContact(ref ball, in collEvent, 0.3f, hitTime, in gravity);
 					}
+
+					ballsLookup[contact.BallEntity] = ball;
 				}
 
 				marker.End();
