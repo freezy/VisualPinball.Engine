@@ -93,7 +93,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		internal Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
 			var mesh = new Mesh(_data.Name);
-			var accuracy = (int)(10.0f * 1.3f);
+			var accuracy = (int)(10.0f * 1.2f);
 			if (acc != -1) { // hit shapes and UI display have the same, static, precision
 				accuracy = acc;
 			}
