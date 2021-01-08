@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 			var marker = PerfMarker;
 
 			Entities
-				.WithName("DynamicNarrowPhaseJob")
+				.WithName("StaticNarrowPhaseJob")
 				.ForEach((Entity ballEntity, ref CollisionEventData collEvent,
 					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 					in DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) =>
