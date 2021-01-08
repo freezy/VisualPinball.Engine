@@ -150,6 +150,12 @@ namespace VisualPinball.Unity
 				CreateNextLevel(builder, ref child1, ref childBounds1, GetBounds(1, in _center, in bounds), level, levelEmpty);
 				CreateNextLevel(builder, ref child2, ref childBounds2, GetBounds(2, in _center, in bounds), level, levelEmpty);
 				CreateNextLevel(builder, ref child3, ref childBounds3, GetBounds(3, in _center, in bounds), level, levelEmpty);
+
+			} else {
+				child0._isLeaf = true;
+				child1._isLeaf = true;
+				child2._isLeaf = true;
+				child3._isLeaf = true;
 			}
 		}
 
