@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	internal class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
-		private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
-		private DynamicNarrowPhaseSystem _dynamicNarrowPhaseSystem;
 
 		private EntityQuery _collDataEntityQuery;
 		private float3 _gravity;
@@ -38,8 +36,6 @@ namespace VisualPinball.Unity
 		protected override void OnCreate()
 		{
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
-			_dynamicNarrowPhaseSystem = World.GetOrCreateSystem<DynamicNarrowPhaseSystem>();
-			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 
@@ -63,8 +59,6 @@ namespace VisualPinball.Unity
 
 			Job
 				.WithName("ContactJob")
-//				.WithReadOnly(contacts)
-//				.WithReadOnly(ballsLookup)
 				.WithCode(() =>
 			{
 
