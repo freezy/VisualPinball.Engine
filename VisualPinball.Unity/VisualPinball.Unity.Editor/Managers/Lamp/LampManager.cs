@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedMappings _recordMappings;
 
-		[MenuItem("Visual Pinball/Lamp Manager", false, 107)]
+		[MenuItem("Visual Pinball/Lamp Manager", false, 304)]
 		public static void ShowWindow()
 		{
 			GetWindow<LampManager>();

@@ -45,6 +45,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, ICoilAuthoring> _coils = new Dictionary<string, ICoilAuthoring>();
 		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices = new Dictionary<string, ICoilDeviceAuthoring>();
 
+		private readonly Dictionary<string, ILampAuthoring> _lamps = new Dictionary<string, ILampAuthoring>();
+
 		private InputManager _inputManager;
 		private bool _needsAssetRefresh;
 
@@ -75,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new WireListViewItemRenderer(_switches, _switchDevices, _inputManager, _coils, _coilDevices);
+			_listViewItemRenderer = new WireListViewItemRenderer(_switches, _switchDevices, _coils, _coilDevices, _lamps, _inputManager);
 			_needsAssetRefresh = true;
 		}
 
@@ -137,6 +139,7 @@ namespace VisualPinball.Unity.Editor
 
 			RefreshSwitches();
 			RefreshCoils();
+			RefreshLamps();
 
 			return data;
 		}
@@ -212,6 +215,16 @@ namespace VisualPinball.Unity.Editor
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>())
 				{
 					_coilDevices.Add(item.Name.ToLower(), item);
+				}
+			}
+		}
+
+		private void RefreshLamps()
+		{
+			_lamps.Clear();
+			if (_tableAuthoring != null) {
+				foreach (var item in _tableAuthoring.GetComponentsInChildren<ILampAuthoring>()) {
+					_lamps.Add(item.Name.ToLower(), item);
 				}
 			}
 		}

@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
 		internal readonly Dictionary<string, HitTargetApi> HitTargets = new Dictionary<string, HitTargetApi>();
 		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
+		internal readonly Dictionary<string, LightApi> Lights = new Dictionary<string, LightApi>();
 		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
 		internal readonly Dictionary<string, RampApi> Ramps = new Dictionary<string, RampApi>();
 		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
@@ -83,6 +84,13 @@ namespace VisualPinball.Unity
 		/// <param name="name">Name of the kicker</param>
 		/// <returns>Kicker or `null` if no kicker with that name exists.</returns>
 		public KickerApi Kicker(string name) => Kickers.ContainsKey(name) ? Kickers[name] : null;
+
+		/// <summary>
+		/// Returns a light by name.
+		/// </summary>
+		/// <param name="name">Name of the light</param>
+		/// <returns>Light or `null` if no light with that name exists.</returns>
+		public LightApi Light(string name) => Lights.ContainsKey(name) ? Lights[name] : null;
 
 		/// <summary>
 		/// Returns a plunger by name.

@@ -38,6 +38,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -70,6 +71,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
 		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
 		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
+		private readonly Dictionary<string, IApiLamp> _lamps = new Dictionary<string, IApiLamp>();
 		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
 		private readonly Dictionary<string, IApiWireDest> _wires = new Dictionary<string, IApiWireDest>();
 		private readonly Dictionary<string, IApiWireDeviceDest> _wireDevices = new Dictionary<string, IApiWireDeviceDest>();
@@ -81,8 +83,12 @@ namespace VisualPinball.Unity
 
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _keySwitchAssignments = new Dictionary<string, List<string>>();
+		[NonSerialized]
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
+		[NonSerialized] // tuple: itemName, isHoldCoil, deviceName
 		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
+		[NonSerialized]
+		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
 
 		public Player()
 		{
@@ -137,6 +143,7 @@ namespace VisualPinball.Unity
 			// hook up mapping configuration
 			SetupSwitchMapping();
 			SetupCoilMapping();
+			SetupLampMapping();
 			SetupWireMapping();
 
 			GameEngine?.OnInit(TableApi, BallManager);
@@ -154,6 +161,9 @@ namespace VisualPinball.Unity
 			}
 			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
 				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
+			}
+			if (_lampAssignments.Count > 0 && GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
+				gamelogicEngineWithLamps.OnLampChanged -= HandleLampEvent;
 			}
 
 			foreach (var i in _apis) {
@@ -228,6 +238,16 @@ namespace VisualPinball.Unity
 			_switches[kicker.Name] = kickerApi;
 			_coils[kicker.Name] = kickerApi;
 			_wires[kicker.Name] = kickerApi;
+		}
+
+		public void RegisterLamp(Light lamp, GameObject go)
+		{
+			var lightApi = new LightApi(lamp, go, this);
+			TableApi.Lights[lamp.Name] = lightApi;
+			_apis.Add(lightApi);
+			_initializables.Add(lightApi);
+			_lamps[lamp.Name] = lightApi;
+			_wires[lamp.Name] = lightApi;
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -424,6 +444,28 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private void SetupLampMapping()
+		{
+			if (GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
+				var config = Table.Mappings;
+				_lampAssignments.Clear();
+				foreach (var lampData in config.Data.Lamps) {
+					switch (lampData.Destination) {
+						case LampDestination.Playfield:
+							if (!_lampAssignments.ContainsKey(lampData.Id)) {
+								_lampAssignments[lampData.Id] = new List<string>();
+							}
+							_lampAssignments[lampData.Id].Add(lampData.PlayfieldItem);
+							break;
+					}
+				}
+
+				if (_lampAssignments.Count > 0) {
+					gamelogicEngineWithLamps.OnLampChanged += HandleLampEvent;
+				}
+			}
+		}
+
 		private void SetupWireMapping()
 		{
 			var config = Table.Mappings;
@@ -546,6 +588,24 @@ namespace VisualPinball.Unity
 			} else {
 				var what = coilEvent.IsEnabled ? "turn on" : "turn off";
 				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
+			}
+		}
+
+		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
+		{
+			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
+				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
+					if (_lamps.ContainsKey(itemName)) {
+						_lamps[itemName].OnLamp(lampEvent.IsOn);
+
+					} else {
+						Logger.Warn($"Cannot trigger unknown lamp {itemName}.");
+					}
+				}
+
+			} else {
+				var what = lampEvent.IsOn ? "turn on" : "turn off";
+				Logger.Warn($"Should {what} unassigned coil {lampEvent.Id}.");
 			}
 		}
 

@@ -31,6 +31,7 @@ using VisualPinball.Engine.VPT.Trough;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Trough")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring, ICoilDeviceAuthoring
 	{
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Item.AvailableSwitches;
