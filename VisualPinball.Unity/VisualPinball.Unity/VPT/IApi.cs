@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Entities;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
@@ -97,6 +98,12 @@ namespace VisualPinball.Unity
 	internal interface IApiCoil : IApiWireDest
 	{
 		void OnCoil(bool enabled, bool isHoldCoil);
+	}
+
+	internal interface IApiLamp : IApiWireDest
+	{
+		void OnLamp(bool enabled);
+		void OnLamp(bool enabled, Color color);
 	}
 
 	internal interface IApiWireDest

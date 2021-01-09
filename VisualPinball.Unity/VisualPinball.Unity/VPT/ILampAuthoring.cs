@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2020 freezy and VPE Team
+// Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+using VisualPinball.Engine.Game;
+
 namespace VisualPinball.Unity
 {
-	public interface ILampAuthoring : IIdentifiableItemAuthoring
+	public interface ILampAuthoring : IWireableAuthoring
 	{
+		ILightable Lightable { get; }
 	}
 }

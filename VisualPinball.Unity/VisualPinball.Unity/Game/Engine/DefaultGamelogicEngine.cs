@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 		private const string SwTrough4 = "s_trough4";
 		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
+		private const string SwRedBumper = "s_red_bumper";
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch { Id = SwLeftFlipper, Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
@@ -61,7 +62,8 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch { Id = SwTrough3, Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
 			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
-			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug }
+			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug },
+			new GamelogicEngineSwitch { Id = SwRedBumper, Description = "Red Bumper", PlayfieldItemHint = "^Bumper1$" }
 		};
 
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";
@@ -82,9 +84,45 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil { Id = CoilTroughEntry, Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId},
 		};
 
+		private const string GiSlingshotRightLower = "gi_1";
+		private const string GiSlingshotRightUpper = "gi_2";
+		private const string GiSlingshotLeftLower = "gi_3";
+		private const string GiSlingshotLeftUpper = "gi_4";
+		private const string GiDropTargetsRightLower = "gi_5";
+		private const string GiDropTargetsLeftLower = "gi_6";
+		private const string GiDropTargetsLeftUpper = "gi_7";
+		private const string GiDropTargetsRightUpper = "gi_8";
+		private const string GiTop3 = "gi_9";
+		private const string GiTop2 = "gi_10";
+		private const string GiTop4 = "gi_11";
+		private const string GiTop5 = "gi_12";
+		private const string GiTop1 = "gi_13";
+		private const string GiLowerRamp = "gi_14";
+		private const string GiUpperRamp = "gi_15";
+		private const string GiTopLeftPlastic = "gi_16";
+
+		private const string LampRedBumper = "l_bumper";
+
+
 		public GamelogicEngineLamp[] AvailableLamps { get; } =
 		{
-			new GamelogicEngineLamp { Id = "l_11", Description = "Matrix Lamp 11" }
+			new GamelogicEngineLamp { Id = GiSlingshotRightLower, Description = "Right Slingshot (lower)", PlayfieldItemHint = "gi1$" },
+			new GamelogicEngineLamp { Id = GiSlingshotRightUpper, Description = "Right Slingshot (upper)", PlayfieldItemHint = "gi2$" },
+			new GamelogicEngineLamp { Id = GiSlingshotLeftLower, Description = "Left Slingshot (lower)", PlayfieldItemHint = "gi3$" },
+			new GamelogicEngineLamp { Id = GiSlingshotLeftUpper, Description = "Left Slingshot (upper)", PlayfieldItemHint = "gi4$" },
+			new GamelogicEngineLamp { Id = GiDropTargetsRightLower, Description = "Right Drop Targets (lower)", PlayfieldItemHint = "gi5$" },
+			new GamelogicEngineLamp { Id = GiDropTargetsRightUpper, Description = "Right Drop Targets (upper)", PlayfieldItemHint = "gi8$" },
+			new GamelogicEngineLamp { Id = GiDropTargetsLeftLower, Description = "Left Drop Targets (lower)", PlayfieldItemHint = "gi6$" },
+			new GamelogicEngineLamp { Id = GiDropTargetsLeftUpper, Description = "Left Drop Targets (upper)", PlayfieldItemHint = "gi7$" },
+			new GamelogicEngineLamp { Id = GiTop1, Description = "Top 1 (left)", PlayfieldItemHint = "gi13$" },
+			new GamelogicEngineLamp { Id = GiTop2, Description = "Top 2", PlayfieldItemHint = "gi10$" },
+			new GamelogicEngineLamp { Id = GiTop3, Description = "Top 3", PlayfieldItemHint = "gi9$" },
+			new GamelogicEngineLamp { Id = GiTop4, Description = "Top 4", PlayfieldItemHint = "gi11$" },
+			new GamelogicEngineLamp { Id = GiTop5, Description = "Top 5 (right)", PlayfieldItemHint = "gi12$" },
+			new GamelogicEngineLamp { Id = GiLowerRamp, Description = "Ramp (lower)", PlayfieldItemHint = "gi14$" },
+			new GamelogicEngineLamp { Id = GiUpperRamp, Description = "Ramp (upper)", PlayfieldItemHint = "gi15$" },
+			new GamelogicEngineLamp { Id = GiTopLeftPlastic, Description = "Top Left Plastics", PlayfieldItemHint = "gi16$" },
+			new GamelogicEngineLamp { Id = LampRedBumper, Description = "Red Bumper", PlayfieldItemHint = "^b1l2$" }
 		};
 
 		private TableApi _tableApi;
@@ -182,6 +220,10 @@ namespace VisualPinball.Unity
 					if (isClosed) {
 						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
 					}
+					break;
+
+				case SwRedBumper:
+					OnLampChanged?.Invoke(this, new  LampEventArgs(LampRedBumper, isClosed));
 					break;
 
 				case SwCreateBall: {

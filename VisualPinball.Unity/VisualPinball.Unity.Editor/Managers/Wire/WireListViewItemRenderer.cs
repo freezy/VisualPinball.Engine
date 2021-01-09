@@ -54,9 +54,16 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly Dictionary<string, ICoilAuthoring> _coils;
 		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices;
+
+		private readonly Dictionary<string, ILampAuthoring> _lamps;
 		private AdvancedDropdownState _destinationElementDeviceDropdownState;
 
-		public WireListViewItemRenderer(Dictionary<string, ISwitchAuthoring> switches, Dictionary<string, ISwitchDeviceAuthoring> switchDevices, InputManager inputManager, Dictionary<string, ICoilAuthoring> coils, Dictionary<string, ICoilDeviceAuthoring> coilDevices)
+		public WireListViewItemRenderer(Dictionary<string, ISwitchAuthoring> switches,
+			Dictionary<string, ISwitchDeviceAuthoring> switchDevices,
+			Dictionary<string, ICoilAuthoring> coils,
+			Dictionary<string, ICoilDeviceAuthoring> coilDevices,
+			Dictionary<string, ILampAuthoring> lamps,
+			InputManager inputManager)
 		{
 			_switches = switches;
 			_switchDevices = switchDevices;
@@ -64,6 +71,8 @@ namespace VisualPinball.Unity.Editor
 
 			_coils = coils;
 			_coilDevices = coilDevices;
+
+			_lamps = lamps;
 		}
 
 		public void Render(TableAuthoring tableAuthoring, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
@@ -337,10 +346,10 @@ namespace VisualPinball.Unity.Editor
 					_destinationElementDeviceDropdownState = new AdvancedDropdownState();
 				}
 
-				var dropdown = new ItemSearchableDropdown<ICoilAuthoring>(
+				var dropdown = new ItemSearchableDropdown<IWireableAuthoring>(
 					_destinationElementDeviceDropdownState,
 					tableAuthoring,
-					"Coil Items",
+					"Wireable Items",
 					item => {
 						wireListData.DestinationPlayfieldItem = item != null ? item.Name : string.Empty;
 						updateAction(wireListData);
@@ -466,7 +475,11 @@ namespace VisualPinball.Unity.Editor
 			{
 				case CoilDestination.Playfield:
 					if (_coils.ContainsKey(wireListData.DestinationPlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_coils[wireListData.DestinationPlayfieldItem.ToLower()], size: IconSize.Small);
+						icon = Icons.ByComponent(_coils[wireListData.DestinationPlayfieldItem.ToLower()], IconSize.Small);
+					}
+
+					if (_lamps.ContainsKey(wireListData.DestinationPlayfieldItem.ToLower())) {
+						icon = Icons.ByComponent(_lamps[wireListData.DestinationPlayfieldItem.ToLower()], IconSize.Small);
 					}
 					break;
 

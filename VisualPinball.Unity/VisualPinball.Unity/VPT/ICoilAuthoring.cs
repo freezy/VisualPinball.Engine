@@ -17,7 +17,7 @@
 
 namespace VisualPinball.Unity
 {
-	public interface ICoilAuthoring : IIdentifiableItemAuthoring
+	public interface ICoilAuthoring : IWireableAuthoring
 	{
 	}
 }

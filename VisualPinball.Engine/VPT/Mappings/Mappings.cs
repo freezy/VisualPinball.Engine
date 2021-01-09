@@ -329,7 +329,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		#endregion
 
-
 		#region Lamp Population
 
 		/// <summary>
@@ -337,7 +336,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		/// lamps on the playfield.
 		/// </summary>
 		/// <param name="engineLamps">List of lamps provided by the gamelogic engine</param>
-		/// <param name="tablelamps">List of lamps on the playfield</param>
+		/// <param name="tableLamps">List of lamps on the playfield</param>
 		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, IEnumerable<ILightable> tableLamps)
 		{
 			var lamps = tableLamps
@@ -352,8 +351,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
 					var playfieldItem = GuessPlayfieldLamp(lamps, engineLamp);
 
-					Data.AddLamp(new MappingsLampData
-					{
+					Data.AddLamp(new MappingsLampData {
 						Id = engineLamp.Id,
 						Description = description,
 						Destination = LampDestination.Playfield,
@@ -382,11 +380,9 @@ namespace VisualPinball.Engine.VPT.Mappings
 			// then add lamp ids that were added manually
 			foreach (var mappingsLampData in Data.Lamps) {
 				if (!lamps.Exists(entry => entry.Id == mappingsLampData.Id)) {
-					lamps.Add(new GamelogicEngineLamp
-					{
+					lamps.Add(new GamelogicEngineLamp {
 						Id = mappingsLampData.Id
 					});
-
 				}
 			}
 
@@ -394,20 +390,24 @@ namespace VisualPinball.Engine.VPT.Mappings
 			return lamps;
 		}
 
-		private static ILightable GuessPlayfieldLamp(Dictionary<string, ILightable> lamps, GamelogicEngineLamp lamp)
+		private static ILightable GuessPlayfieldLamp(Dictionary<string, ILightable> lamps, GamelogicEngineLamp engineLamp)
 		{
 			// first, match by regex if hint provided
-			if (!string.IsNullOrEmpty(lamp.PlayfieldItemHint)) {
+			if (!string.IsNullOrEmpty(engineLamp.PlayfieldItemHint)) {
 				foreach (var lampName in lamps.Keys) {
-					var regex = new Regex(lamp.PlayfieldItemHint.ToLower());
+					var regex = new Regex(engineLamp.PlayfieldItemHint.ToLower());
 					if (regex.Match(lampName).Success) {
 						return lamps[lampName];
 					}
 				}
 			}
 
-			// second, match by id
-			return lamps.ContainsKey(lamp.Id) ? lamps[lamp.Id] : null;
+			// second, match by "lXX" or name
+			var matchKey = int.TryParse(engineLamp.Id, out var numericLampId)
+				? $"l{numericLampId}"
+				: engineLamp.Id;
+
+			return lamps.ContainsKey(matchKey) ? lamps[matchKey] : null;
 		}
 
 		#endregion
