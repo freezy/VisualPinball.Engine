@@ -238,11 +238,12 @@ namespace VisualPinball.Engine.VPT.Mappings
 				} else {
 					var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
 					Data.AddCoil(new MappingsCoilData {
-						Id = holdCoil.Id,
+						Id = holdCoil.MainCoilIdOfHoldCoil,
 						Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
 						Destination = CoilDestination.Playfield,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
-						Type = CoilType.SingleWound
+						Type = CoilType.DualWound,
+						HoldCoilId = holdCoil.Id
 					});
 				}
 			}
@@ -343,10 +344,17 @@ namespace VisualPinball.Engine.VPT.Mappings
 				.GroupBy(x => x.Name.ToLower())
 				.ToDictionary(x => x.Key, x => x.First());
 
+			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
 				var lampMapping = Data.Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id);
 				if (lampMapping == null) {
+
+					// we'll handle those in a second loop when all the R lamps are added
+					if (!string.IsNullOrEmpty(engineLamp.MainLampIdOfGreen) || !string.IsNullOrEmpty(engineLamp.MainLampIdOfBlue)) {
+						gbLamps.Add(engineLamp);
+						continue;
+					}
 
 					var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
 					var playfieldItem = GuessPlayfieldLamp(lamps, engineLamp);
@@ -357,6 +365,29 @@ namespace VisualPinball.Engine.VPT.Mappings
 						Destination = LampDestination.Playfield,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 					});
+				}
+			}
+
+			foreach (var gbLamp in gbLamps) {
+				var rLampId = !string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen) ? gbLamp.MainLampIdOfGreen : gbLamp.MainLampIdOfBlue;
+				var rLamp = Data.Lamps.FirstOrDefault(c => c.Id == rLampId);
+				if (rLamp == null) {
+					var playfieldItem = GuessPlayfieldLamp(lamps, gbLamp);
+					rLamp = new MappingsLampData {
+						Id = gbLamp.Id,
+						Description = string.IsNullOrEmpty(gbLamp.Description) ? string.Empty : gbLamp.Description,
+						Destination = LampDestination.Playfield,
+						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+					};
+					Data.AddLamp(rLamp);
+				}
+
+				rLamp.Type = LampType.Rgb;
+				if (!string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen)) {
+					rLamp.Green = gbLamp.Id;
+
+				} else {
+					rLamp.Blue = gbLamp.Id;
 				}
 			}
 		}

@@ -15,18 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #region ReSharper
+
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
 // ReSharper disable CompareOfFloatsByEqualityOperator
+
 #endregion
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Mappings
@@ -51,6 +52,15 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		[BiffString("DITM", IsWideString = true, Pos = 6)]
 		public string DeviceItem = string.Empty;
+
+		[BiffInt("LTYP", Pos = 7)]
+		public int Type = LampType.SingleOnOff;
+
+		[BiffString("RGBG", IsWideString = true, Pos = 8)]
+		public string Green = string.Empty;
+
+		[BiffString("RGBB", IsWideString = true, Pos = 9)]
+		public string Blue = string.Empty;
 
 		#region BIFF
 

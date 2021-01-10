@@ -159,6 +159,9 @@ namespace VisualPinball.Unity.Editor
 				PlayfieldItem = data.PlayfieldItem,
 				Device = data.Device,
 				DeviceItem = data.DeviceItem,
+				Type = data.Type,
+				Blue = data.Blue,
+				Green = data.Green,
 			});
 		}
 		#endregion

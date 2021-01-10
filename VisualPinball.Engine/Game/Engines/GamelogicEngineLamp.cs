@@ -21,5 +21,8 @@ namespace VisualPinball.Engine.Game.Engines
 		public string Id;
 		public string Description;
 		public string PlayfieldItemHint;
+		public int TypeHint;
+		public string MainLampIdOfGreen;
+		public string MainLampIdOfBlue;
 	}
 }

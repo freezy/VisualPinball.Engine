@@ -196,4 +196,11 @@ namespace VisualPinball.Engine.VPT
 		public const int Playfield = 0;
 		public const int Device = 1;
 	}
+
+	public static class LampType
+	{
+		public const int SingleOnOff = 0;
+		public const int SingleFading = 1;
+		public const int Rgb = 2;
+	}
 }
