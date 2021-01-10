@@ -32,6 +32,13 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
 		public string Element;
 
+		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
+		public int Type;
+
+		[ManagerListColumn(Order = 5, HeaderName = "R G B", Width = 135)]
+		public string Green;
+		public string Blue;
+
 		public string Id;
 		public string PlayfieldItem;
 		public string Device;
@@ -46,6 +53,9 @@ namespace VisualPinball.Unity.Editor
 			PlayfieldItem = mappingsLampData.PlayfieldItem;
 			Device = mappingsLampData.Device;
 			DeviceItem = mappingsLampData.DeviceItem;
+			Type = mappingsLampData.Type;
+			Green = mappingsLampData.Green;
+			Blue = mappingsLampData.Blue;
 
 			MappingsLampData = mappingsLampData;
 		}
@@ -57,6 +67,9 @@ namespace VisualPinball.Unity.Editor
 			MappingsLampData.PlayfieldItem = PlayfieldItem;
 			MappingsLampData.Device = Device;
 			MappingsLampData.DeviceItem = DeviceItem;
+			MappingsLampData.Type = Type;
+			MappingsLampData.Green = Green;
+			MappingsLampData.Blue = Blue;
 		}
 	}
 }

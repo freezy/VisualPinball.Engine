@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 	public class LampListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_LAMP_DESTINATION = { "Playfield" };
+		private readonly string[] OPTIONS_LAMP_TYPE = { "Single On|Off", "Single Fading", "RGB" };
 
 		private enum LampListColumn
 		{
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity.Editor
 			Description = 1,
 			Destination = 2,
 			Element = 3,
+			Type = 4,
+			Color = 5,
 		}
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
@@ -62,6 +65,14 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LampListColumn.Element:
 					RenderElement(tableAuthoring, data, cellRect, updateAction);
+					break;
+				case LampListColumn.Type:
+					RenderType(data, cellRect, updateAction);
+					break;
+				case LampListColumn.Color:
+					if (data.Type == LampType.Rgb) {
+						RenderRgb(data, cellRect, updateAction);
+					}
 					break;
 			}
 		}
@@ -167,6 +178,29 @@ namespace VisualPinball.Unity.Editor
 				);
 				dropdown.Show(cellRect);
 			}
+		}
+
+		private void RenderType(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
+		{
+			EditorGUI.BeginChangeCheck();
+			var index = EditorGUI.Popup(cellRect, (int)lampListData.Type, OPTIONS_LAMP_TYPE);
+			if (EditorGUI.EndChangeCheck()) {
+				lampListData.Type = index;
+				updateAction(lampListData);
+			}
+		}
+
+		private void RenderRgb(LampListData data, Rect cellRect, Action<LampListData> updateAction)
+		{
+			var pad = 2;
+			var width = cellRect.width / 3;
+			var c = cellRect;
+			c.width = width - pad;
+			RenderId(ref data.Id, id => data.Id = id, data, c, updateAction);
+			c.x += width + pad;
+			RenderId(ref data.Green, id => data.Green = id, data, c, updateAction);
+			c.x += width + pad;
+			RenderId(ref data.Blue, id => data.Blue = id, data, c, updateAction);
 		}
 
 		private UnityEngine.Texture GetIcon(LampListData lampListData)
