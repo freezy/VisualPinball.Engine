@@ -37,6 +37,10 @@ namespace VisualPinball.Unity
 
 		void IApiWireDest.OnChange(bool enabled) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff);
 		void IApiLamp.OnLamp(bool enabled) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff);
+		void IApiLamp.OnLamp(float value)
+		{
+			throw new NotImplementedException();
+		}
 		void IApiLamp.OnLamp(bool enabled, Color color) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff, color);
 
 		internal LightApi(Light item, GameObject go, Player player) : base(item, player)
@@ -45,12 +49,12 @@ namespace VisualPinball.Unity
 			_state = item.Data.State;
 		}
 
-		private void Set(int lightStatus)
+		private void Set(int lightStatus, float value = 1f)
 		{
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
 					if (Data.FadeSpeedDown > 0) {
-						_lightAuthoring.FadeOut(Data.FadeSpeedDown);
+						_lightAuthoring.FadeTo(Data.FadeSpeedDown, 0f);
 
 					} else {
 						_lightAuthoring.Enabled = false;
@@ -60,7 +64,7 @@ namespace VisualPinball.Unity
 
 				case LightStatus.LightStateOn: {
 					if (Data.FadeSpeedUp > 0) {
-						_lightAuthoring.FadeIn(Data.FadeSpeedUp);
+						_lightAuthoring.FadeTo(Data.FadeSpeedUp, value);
 
 					} else {
 						_lightAuthoring.Enabled = true;
@@ -69,7 +73,8 @@ namespace VisualPinball.Unity
 				}
 
 				case LightStatus.LightStateBlinking: {
-					throw new NotImplementedException("Blinking lights not implemented yet.");
+					_lightAuthoring.StartBlinking();
+					break;
 				}
 
 				default:

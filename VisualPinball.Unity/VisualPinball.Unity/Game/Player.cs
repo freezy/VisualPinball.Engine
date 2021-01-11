@@ -29,6 +29,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -89,6 +90,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
+		private readonly Dictionary<string, MappingsLampData> _lampMappings = new Dictionary<string, MappingsLampData>();
 
 		public Player()
 		{
@@ -449,6 +451,7 @@ namespace VisualPinball.Unity
 			if (GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
 				var config = Table.Mappings;
 				_lampAssignments.Clear();
+				_lampMappings.Clear();
 				foreach (var lampData in config.Data.Lamps) {
 					switch (lampData.Destination) {
 						case LampDestination.Playfield:
@@ -456,6 +459,7 @@ namespace VisualPinball.Unity
 								_lampAssignments[lampData.Id] = new List<string>();
 							}
 							_lampAssignments[lampData.Id].Add(lampData.PlayfieldItem);
+							_lampMappings[lampData.Id] = lampData;
 							break;
 					}
 				}
@@ -594,9 +598,40 @@ namespace VisualPinball.Unity
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
+				var mapping = _lampMappings[lampEvent.Id];
 				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
 					if (_lamps.ContainsKey(itemName)) {
-						_lamps[itemName].OnLamp(lampEvent.IsOn);
+						switch (mapping.Type) {
+							case LampType.SingleOnOff:
+								switch (lampEvent.Type) {
+									case LampEventArgs.ValueType.Bool:
+										_lamps[itemName].OnLamp(lampEvent.BoolValue);
+										break;
+									case LampEventArgs.ValueType.Int:
+										_lamps[itemName].OnLamp(lampEvent.IntValue == 1);
+										break;
+									default:
+										throw new ArgumentOutOfRangeException();
+								}
+								break;
+
+							case LampType.SingleFading:
+								switch (lampEvent.Type) {
+									case LampEventArgs.ValueType.Bool:
+										_lamps[itemName].OnLamp(lampEvent.BoolValue ? 1f : 0f);
+										break;
+									case LampEventArgs.ValueType.Int:
+										_lamps[itemName].OnLamp(lampEvent.IntValue / 255f);
+										break;
+									default:
+										throw new ArgumentOutOfRangeException();
+								}
+								break;
+
+							case LampType.Rgb:
+
+								break;
+						}
 
 					} else {
 						Logger.Warn($"Cannot trigger unknown lamp {itemName}.");
@@ -604,8 +639,7 @@ namespace VisualPinball.Unity
 				}
 
 			} else {
-				var what = lampEvent.IsOn ? "turn on" : "turn off";
-				Logger.Warn($"Should {what} unassigned coil {lampEvent.Id}.");
+				Logger.Warn($"Should update unassigned lamp {lampEvent.Id}.");
 			}
 		}
 

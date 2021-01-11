@@ -103,6 +103,7 @@ namespace VisualPinball.Unity
 	internal interface IApiLamp : IApiWireDest
 	{
 		void OnLamp(bool enabled);
+		void OnLamp(float value);
 		void OnLamp(bool enabled, Color color);
 	}
 

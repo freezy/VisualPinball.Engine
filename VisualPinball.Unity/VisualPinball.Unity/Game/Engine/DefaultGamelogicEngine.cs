@@ -223,7 +223,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case SwRedBumper:
-					OnLampChanged?.Invoke(this, new  LampEventArgs(LampRedBumper, isClosed));
+					OnLampChanged?.Invoke(this, new LampEventArgs(LampRedBumper, isClosed));
 					break;
 
 				case SwCreateBall: {

@@ -79,18 +79,12 @@ namespace VisualPinball.Unity
 			_fullIntensity = _unityLight.intensity;
 		}
 
-
-		public void FadeIn(float seconds)
+		public void FadeTo(float seconds, float value)
 		{
 			StopAllCoroutines();
-			StartCoroutine(nameof(Fade), true);
+			StartCoroutine(nameof(Fade), value);
 		}
 
-		public void FadeOut(float seconds)
-		{
-			StopAllCoroutines();
-			StartCoroutine(nameof(Fade), false);
-		}
 
 		public void StartBlinking()
 		{
@@ -108,7 +102,7 @@ namespace VisualPinball.Unity
 
 			while (true) {
 				foreach (var on in sequence) {
-					yield return Fade(on);
+					yield return Fade(on ? 1 : 0);
 					var timeFading = on ? Data.FadeSpeedUp : Data.FadeSpeedDown;
 					if (timeFading < stepTime) {
 						yield return new WaitForSeconds(stepTime - timeFading);
@@ -117,21 +111,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private IEnumerator Fade(bool fadeIn)
+		private IEnumerator Fade(float value)
 		{
 			var counter = 0f;
 
-			float a, b, duration;
-
-			if (fadeIn) {
-				a = _unityLight.intensity;
-				b = _fullIntensity;
-				duration = _data.FadeSpeedUp * (_fullIntensity - a) / _fullIntensity;
-			} else {
-				a = _unityLight.intensity;
-				b = 0f;
-				duration = _data.FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
-			}
+			var a = _unityLight.intensity;
+			var b = value;
+			var duration = a < b
+				? _data.FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
+				: _data.FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
 
 			while (counter < duration) {
 				counter += Time.deltaTime;
