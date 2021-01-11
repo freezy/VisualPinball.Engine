@@ -40,6 +40,11 @@ namespace VisualPinball.Unity
 
 	public readonly struct LampEventArgs
 	{
+		public enum ValueType
+		{
+			Bool, Int
+		}
+
 		/// <summary>
 		/// Id of the lamp, as defined by <see cref="IGamelogicEngineWithLamps.AvailableLamps"/>.
 		/// </summary>
@@ -48,12 +53,30 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// State of the lamp, true if the lamp is illuminated, false if not.
 		/// </summary>
-		public readonly bool IsOn;
+		public readonly bool BoolValue;
+
+		/// <summary>
+		/// Value of the lamp. Depending on its type, it can be 0/1 for on/off, or 0-255 for
+		/// a fading light.
+		/// </summary>
+		public readonly int IntValue;
+
+		public readonly ValueType Type;
 
 		public LampEventArgs(string id, bool isOn)
 		{
 			Id = id;
-			IsOn = isOn;
+			BoolValue = isOn;
+			IntValue = 0;
+			Type = ValueType.Bool;
+		}
+
+		public LampEventArgs(string id, int value)
+		{
+			Id = id;
+			BoolValue = false;
+			IntValue = value;
+			Type = ValueType.Int;
 		}
 	}
 }
