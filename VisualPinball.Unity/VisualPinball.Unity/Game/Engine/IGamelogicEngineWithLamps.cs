@@ -36,47 +36,45 @@ namespace VisualPinball.Unity
 		/// Triggered when a lamp is turned on or off.
 		/// </summary>
 		event EventHandler<LampEventArgs> OnLampChanged;
+
+		/// <summary>
+		/// Triggered when multiple lamps are turned on or off at once.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This also allows to to group RGB updates, i.e. updating the color
+		/// at once instead of each channel individually.
+		/// </remarks>
+		event EventHandler<LampsEventArgs> OnLampsChanged;
 	}
 
 	public readonly struct LampEventArgs
 	{
-		public enum ValueType
-		{
-			Bool, Int
-		}
-
 		/// <summary>
 		/// Id of the lamp, as defined by <see cref="IGamelogicEngineWithLamps.AvailableLamps"/>.
 		/// </summary>
 		public readonly string Id;
 
 		/// <summary>
-		/// State of the lamp, true if the lamp is illuminated, false if not.
-		/// </summary>
-		public readonly bool BoolValue;
-
-		/// <summary>
 		/// Value of the lamp. Depending on its type, it can be 0/1 for on/off, or 0-255 for
 		/// a fading light.
 		/// </summary>
-		public readonly int IntValue;
-
-		public readonly ValueType Type;
-
-		public LampEventArgs(string id, bool isOn)
-		{
-			Id = id;
-			BoolValue = isOn;
-			IntValue = 0;
-			Type = ValueType.Bool;
-		}
+		public readonly int Value;
 
 		public LampEventArgs(string id, int value)
 		{
 			Id = id;
-			BoolValue = false;
-			IntValue = value;
-			Type = ValueType.Int;
+			Value = value;
+		}
+	}
+
+	public readonly struct LampsEventArgs
+	{
+		public readonly LampEventArgs[] LampsChanged;
+
+		public LampsEventArgs(LampEventArgs[] lampsChanged)
+		{
+			LampsChanged = lampsChanged;
 		}
 	}
 }

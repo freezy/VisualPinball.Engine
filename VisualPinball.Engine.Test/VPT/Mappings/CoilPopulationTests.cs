@@ -104,7 +104,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		}
 
 		[Test]
-		public void ShouldMapAHoldCoilAsMainCoilIfHintedMainCoilNotFound()
+		public void ShouldCreateMainCoilIfNotFoundByHoldCoil()
 		{
 			var table = new TableBuilder()
 				.AddFlipper("left_flipper")
@@ -123,9 +123,9 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Mappings.Data.Coils[0].PlayfieldItem.Should().Be("left_flipper");
 			table.Mappings.Data.Coils[0].HoldCoilId.Should().BeEmpty();
 
-			table.Mappings.Data.Coils[1].Id.Should().Be("left_flipper_hold");
+			table.Mappings.Data.Coils[1].Id.Should().Be("foobar");
 			table.Mappings.Data.Coils[1].PlayfieldItem.Should().BeEmpty();
-			table.Mappings.Data.Coils[1].HoldCoilId.Should().BeEmpty();
+			table.Mappings.Data.Coils[1].HoldCoilId.Should().Be("left_flipper_hold");
 		}
 
 		[Test]

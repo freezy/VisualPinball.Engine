@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
 		public event EventHandler<LampEventArgs> OnLampChanged;
+		public event EventHandler<LampsEventArgs> OnLampsChanged;
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
@@ -223,7 +224,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case SwRedBumper:
-					OnLampChanged?.Invoke(this, new LampEventArgs(LampRedBumper, isClosed));
+					OnLampChanged?.Invoke(this, new LampEventArgs(LampRedBumper, isClosed ? 1 : 0));
 					break;
 
 				case SwCreateBall: {

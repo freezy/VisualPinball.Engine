@@ -17,12 +17,14 @@
 using System;
 using System.Collections.Generic;
 using NLog;
+using NLog.Fluent;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
@@ -39,6 +41,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using Color = UnityEngine.Color;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
@@ -166,6 +169,7 @@ namespace VisualPinball.Unity
 			}
 			if (_lampAssignments.Count > 0 && GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
 				gamelogicEngineWithLamps.OnLampChanged -= HandleLampEvent;
+				gamelogicEngineWithLamps.OnLampsChanged -= HandleLampsEvent;
 			}
 
 			foreach (var i in _apis) {
@@ -343,15 +347,9 @@ namespace VisualPinball.Unity
 				foreach (var coilData in config.Data.Coils) {
 					switch (coilData.Destination) {
 						case CoilDestination.Playfield:
-							if (!_coilAssignments.ContainsKey(coilData.Id)) {
-								_coilAssignments[coilData.Id] = new List<Tuple<string, bool, string>>();
-							}
-							_coilAssignments[coilData.Id].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, false, null));
+							AssignCoilMapping(coilData.Id, coilData);
 							if (coilData.Type == CoilType.DualWound) {
-								if (!_coilAssignments.ContainsKey(coilData.HoldCoilId)) {
-									_coilAssignments[coilData.HoldCoilId] = new List<Tuple<string, bool, string>>();
-								}
-								_coilAssignments[coilData.HoldCoilId].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, true, null));
+								AssignCoilMapping(coilData.HoldCoilId, coilData, true);
 							}
 							break;
 
@@ -360,10 +358,7 @@ namespace VisualPinball.Unity
 								var device = _coilDevices[coilData.Device];
 								var coil = device.Coil(coilData.DeviceItem);
 								if (coil != null) {
-									if (!_coilAssignments.ContainsKey(coilData.Id)) {
-										_coilAssignments[coilData.Id] = new List<Tuple<string, bool, string>>();
-									}
-									_coilAssignments[coilData.Id].Add(new Tuple<string, bool, string>(coilData.DeviceItem, false, coilData.Device));
+									AssignCoilMapping(coilData.Id, coilData, false, coilData.Device);
 
 								} else {
 									Logger.Warn($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
@@ -377,6 +372,14 @@ namespace VisualPinball.Unity
 					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
 				}
 			}
+		}
+
+		private void AssignCoilMapping(string id, MappingsCoilData coilData, bool isHoldCoil = false, string deviceName = null)
+		{
+			if (!_coilAssignments.ContainsKey(id)) {
+				_coilAssignments[id] = new List<Tuple<string, bool, string>>();
+			}
+			_coilAssignments[id].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, isHoldCoil, deviceName));
 		}
 
 		private void SetupSwitchMapping()
@@ -455,19 +458,31 @@ namespace VisualPinball.Unity
 				foreach (var lampData in config.Data.Lamps) {
 					switch (lampData.Destination) {
 						case LampDestination.Playfield:
-							if (!_lampAssignments.ContainsKey(lampData.Id)) {
-								_lampAssignments[lampData.Id] = new List<string>();
+							AssignLampMapping(lampData.Id, lampData);
+							if (!string.IsNullOrEmpty(lampData.Green)) {
+								AssignLampMapping(lampData.Green, lampData);
 							}
-							_lampAssignments[lampData.Id].Add(lampData.PlayfieldItem);
-							_lampMappings[lampData.Id] = lampData;
+							if (!string.IsNullOrEmpty(lampData.Blue)) {
+								AssignLampMapping(lampData.Blue, lampData);
+							}
 							break;
 					}
 				}
 
 				if (_lampAssignments.Count > 0) {
 					gamelogicEngineWithLamps.OnLampChanged += HandleLampEvent;
+					gamelogicEngineWithLamps.OnLampsChanged += HandleLampsEvent;
 				}
 			}
+		}
+
+		private void AssignLampMapping(string id, MappingsLampData lampData)
+		{
+			if (!_lampAssignments.ContainsKey(id)) {
+				_lampAssignments[id] = new List<string>();
+			}
+			_lampAssignments[id].Add(lampData.PlayfieldItem);
+			_lampMappings[id] = lampData;
 		}
 
 		private void SetupWireMapping()
@@ -595,51 +610,75 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
+		{
+			foreach (var lampEvent in lampsEvent.LampsChanged) {
+				HandleLampEvent(lampEvent, (lamp, data, itemName) => {
+
+				});
+			}
+		}
+
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
+		{
+			var colors = new Dictionary<string, Color>();
+			var lamps = new Dictionary<string, IApiLamp>();
+
+			HandleLampEvent(lampEvent, (lamp, mapping, itemName) => {
+				var color = colors.ContainsKey(mapping.Id) ? colors[mapping.Id] : lamp.Color;
+				if (lampEvent.Id == mapping.Id) {
+					color.r = lampEvent.Value / 255f;
+
+				} else if (lampEvent.Id == mapping.Green) {
+					color.g = lampEvent.Value / 255f;
+
+				} else if (lampEvent.Id == mapping.Blue) {
+					color.b = lampEvent.Value / 255f;
+
+				} else {
+					Logger.Error($"Cannot assign lamp {lampEvent.Id} to an RGB value of light {itemName}");
+				}
+				colors[mapping.Id] = color;
+				lamps[mapping.Id] = lamp;
+			});
+
+			foreach (var mappingId in colors.Keys) {
+				lamps[mappingId].Color = colors[mappingId];
+			}
+		}
+
+		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, MappingsLampData, string> handleRgb)
 		{
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
 				var mapping = _lampMappings[lampEvent.Id];
 				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
 					if (_lamps.ContainsKey(itemName)) {
+						var lamp = _lamps[itemName];
 						switch (mapping.Type) {
 							case LampType.SingleOnOff:
-								switch (lampEvent.Type) {
-									case LampEventArgs.ValueType.Bool:
-										_lamps[itemName].OnLamp(lampEvent.BoolValue);
-										break;
-									case LampEventArgs.ValueType.Int:
-										_lamps[itemName].OnLamp(lampEvent.IntValue == 1);
-										break;
-									default:
-										throw new ArgumentOutOfRangeException();
-								}
+								lamp.OnLamp(lampEvent.Value > 0 ? 1f : 0f, ColorChannel.Alpha);
 								break;
 
 							case LampType.SingleFading:
-								switch (lampEvent.Type) {
-									case LampEventArgs.ValueType.Bool:
-										_lamps[itemName].OnLamp(lampEvent.BoolValue ? 1f : 0f);
-										break;
-									case LampEventArgs.ValueType.Int:
-										_lamps[itemName].OnLamp(lampEvent.IntValue / 255f);
-										break;
-									default:
-										throw new ArgumentOutOfRangeException();
-								}
+								lamp.OnLamp(lampEvent.Value / 255f, ColorChannel.Alpha);
 								break;
 
 							case LampType.Rgb:
+								handleRgb(lamp, mapping, itemName);
+								break;
 
+							default:
+								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {itemName}.");
 								break;
 						}
 
 					} else {
-						Logger.Warn($"Cannot trigger unknown lamp {itemName}.");
+						Logger.Error($"Cannot trigger unknown lamp {itemName}.");
 					}
 				}
 
 			} else {
-				Logger.Warn($"Should update unassigned lamp {lampEvent.Id}.");
+				Logger.Error($"Should update unassigned lamp {lampEvent.Id}.");
 			}
 		}
 

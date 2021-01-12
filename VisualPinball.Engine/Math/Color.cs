@@ -90,6 +90,11 @@ namespace VisualPinball.Engine.Math
 		Bgr, Argb
 	}
 
+	public enum ColorChannel
+	{
+		Red, Green, Blue, Alpha
+	}
+
 	public static class Colors
 	{
 		public static readonly Color Black = new Color(0, 0, 0, 255);
