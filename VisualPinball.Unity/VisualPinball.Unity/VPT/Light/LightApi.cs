@@ -16,9 +16,10 @@
 
 using System;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
-using Color = VisualPinball.Engine.Math.Color;
+using Color = UnityEngine.Color;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
@@ -30,18 +31,49 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Init;
 
-		public int State { get => _state; set => Set(value); }
+		public int State {
+			get => _state;
+			set => Set(value, value == LightStatus.LightStateOn ? 1.0f : 0f);
+		}
 
 		private int _state;
 		private readonly LightAuthoring _lightAuthoring;
 
-		void IApiWireDest.OnChange(bool enabled) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff);
-		void IApiLamp.OnLamp(bool enabled) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff);
-		void IApiLamp.OnLamp(float value)
+		void IApiWireDest.OnChange(bool enabled) => Set(
+			enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff,
+			enabled ? 1.0f : 0f);
+
+		public Color Color { get => _lightAuthoring.Color; set => _lightAuthoring.Color = value; }
+
+		void IApiLamp.OnLamp(float value, ColorChannel channel)
 		{
-			throw new NotImplementedException();
+			switch (channel) {
+				case ColorChannel.Alpha: {
+					Set(value == 0 ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
+					break;
+				}
+				case ColorChannel.Red: {
+					var color = _lightAuthoring.Color;
+					color.r = value;
+					_lightAuthoring.Color = color;
+					break;
+				}
+				case ColorChannel.Green: {
+					var color = _lightAuthoring.Color;
+					color.g = value;
+					_lightAuthoring.Color = color;
+					break;
+				}
+				case ColorChannel.Blue: {
+					var color = _lightAuthoring.Color;
+					color.b = value;
+					_lightAuthoring.Color = color;
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
+			}
 		}
-		void IApiLamp.OnLamp(bool enabled, Color color) => Set(enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff, color);
 
 		internal LightApi(Light item, GameObject go, Player player) : base(item, player)
 		{
@@ -49,12 +81,12 @@ namespace VisualPinball.Unity
 			_state = item.Data.State;
 		}
 
-		private void Set(int lightStatus, float value = 1f)
+		private void Set(int lightStatus, float value)
 		{
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
 					if (Data.FadeSpeedDown > 0) {
-						_lightAuthoring.FadeTo(Data.FadeSpeedDown, 0f);
+						_lightAuthoring.FadeTo(Data.FadeSpeedDown, 0);
 
 					} else {
 						_lightAuthoring.Enabled = false;
@@ -81,12 +113,6 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 			_state = lightStatus;
-		}
-
-		private void Set(int lightStatus, Color color)
-		{
-			_lightAuthoring.Color = color;
-			Set(lightStatus);
 		}
 
 		#region Events

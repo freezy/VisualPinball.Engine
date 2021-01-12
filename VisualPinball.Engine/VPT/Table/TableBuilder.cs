@@ -18,6 +18,7 @@ using System.Linq;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -78,6 +79,12 @@ namespace VisualPinball.Engine.VPT.Table
 			};
 
 			_table.Add(new Trough.Trough(data));
+			return this;
+		}
+
+		public TableBuilder AddLight(string name)
+		{
+			_table.Add(new Light.Light(new LightData(name, 500, 500)));
 			return this;
 		}
 

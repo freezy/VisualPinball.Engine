@@ -374,8 +374,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 				if (rLamp == null) {
 					var playfieldItem = GuessPlayfieldLamp(lamps, gbLamp);
 					rLamp = new MappingsLampData {
-						Id = gbLamp.Id,
-						Description = string.IsNullOrEmpty(gbLamp.Description) ? string.Empty : gbLamp.Description,
+						Id = rLampId,
 						Destination = LampDestination.Playfield,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 					};

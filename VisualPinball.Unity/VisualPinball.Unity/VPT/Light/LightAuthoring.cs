@@ -28,7 +28,6 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Light;
-using Color = VisualPinball.Engine.Math.Color;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
@@ -45,11 +44,10 @@ namespace VisualPinball.Unity
 				_unityLight.enabled = value;
 			}
 		}
+
 		public Color Color {
-			set {
-				StopAllCoroutines();
-				_unityLight.color = value.ToUnityColor();
-			}
+			get => _unityLight.color;
+			set => _unityLight.color = value;
 		}
 
 		private UnityEngine.Light _unityLight;
