@@ -1,5 +1,5 @@
 - name: Visual Pinball Engine
-  items: 
+  items:
   - name: Overview
     href: introduction/overview.md
   - name: Features
@@ -22,11 +22,13 @@
       href: editor/switch-manager.md
     - name: Coil Manager
       href: editor/coil-manager.md
+    - name: Lamp Manager
+      href: editor/lamp-manager.md
     - name: Wire Manager
       href: editor/wire-manager.md
     - name: Multiple Tables
       href: editor/multiple-tables.md
-    - name: Advanced Topics  
+    - name: Advanced Topics
       items:
        - name: Camera Settings
          href: editor/advanced/camera-settings.md

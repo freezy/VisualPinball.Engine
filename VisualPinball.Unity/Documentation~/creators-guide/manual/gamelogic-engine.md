@@ -16,6 +16,12 @@ Classic examples of gamelogic engines are [MPF](https://missionpinball.org/) and
 
 In Visual Pinball, the gamelogic engine is part of the table script, which in most cases uses VPM to drive the game. So a part of the table script is about piping data into VPM and handling its outputs (lamp changes, coil changes, and so on).
 
-Since VPE defines a clear API (like a contract) between the table and the gamelogic engine, we will provide tools to make this easy for you. Currently there is a [Switch Manager](~/creators-guide/editor/switch-manager.md) which manages switches. Soon there will be additional managers for lamps and coils, where you can connect your playfield elements to the gamelogic engine using a UI. 
+Since VPE defines a clear API (like a contract) between the table and the gamelogic engine, we can provide tools to make this easy for you. Currently, VPE provides:
+
+- A [Switch Manager](~/creators-guide/editor/switch-manager.md)
+- A [Lamp Manager](~/creators-guide/editor/lamp-manager.md)
+- A [Coil Manager](~/creators-guide/editor/coil-manager.md)
+
+These tools provide a graphical user interface where you can link playfield elements to the gamelogic engine and configure them. 
 
 Ultimately, that means if your table uses an existing gamelogic engine like MPF or PinMAME, and the table doesn't contain any exotic game mechanics, that's all you need to do. You can set up your table without a single line of code!
