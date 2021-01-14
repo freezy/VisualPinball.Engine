@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 			switch ((CoilListColumn)column)
 			{
 				case CoilListColumn.Id:
-					RenderId(ref data.Id, id => data.Id = id, data, cellRect, updateAction);
+					RenderId(ref data.Id, id => UpdateId(data, id), data, cellRect, updateAction);
 					break;
 				case CoilListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -83,6 +83,18 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void UpdateId(CoilListData data, string id)
+		{
+			if (data.Destination == CoilDestination.Lamp) {
+				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+				if (lampEntry != null) {
+					lampEntry.Id = id;
+					EditorWindow.GetWindow<LampManager>().Reload();
+				}
+			}
+			data.Id = id;
+		}
+
 		private void RenderId(ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			// add some padding
@@ -102,10 +114,8 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
 					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (_gleCoils.Exists(entry => entry.Id == newId))
-						{
-							_gleCoils.Add(new GamelogicEngineCoil
-							{
+						if (_gleCoils.Exists(entry => entry.Id == newId)) {
+							_gleCoils.Add(new GamelogicEngineCoil {
 								Id = newId
 							});
 						}
