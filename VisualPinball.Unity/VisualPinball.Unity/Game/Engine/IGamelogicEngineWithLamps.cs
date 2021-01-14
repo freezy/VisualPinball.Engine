@@ -16,6 +16,7 @@
 
 using System;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -61,10 +62,23 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly int Value;
 
+		/// <summary>
+		/// Source which triggered the lamp.
+		/// </summary>
+		public readonly int Source;
+
 		public LampEventArgs(string id, int value)
 		{
 			Id = id;
 			Value = value;
+			Source = LampSource.Lamps;
+		}
+
+		public LampEventArgs(string id, int value, int source)
+		{
+			Id = id;
+			Value = value;
+			Source = source;
 		}
 	}
 

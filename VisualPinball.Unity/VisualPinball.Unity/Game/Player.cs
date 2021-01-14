@@ -88,9 +88,8 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<string>> _keySwitchAssignments = new Dictionary<string, List<string>>();
 		[NonSerialized]
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
-		[NonSerialized] // tuple: itemName, isHoldCoil, deviceName
-		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
-		private readonly Dictionary<string, MappingsCoilData> _coilMappings = new Dictionary<string, MappingsCoilData>();
+		[NonSerialized]
+		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
 		private readonly Dictionary<string, MappingsLampData> _lampMappings = new Dictionary<string, MappingsLampData>();
@@ -358,12 +357,16 @@ namespace VisualPinball.Unity
 								var device = _coilDevices[coilData.Device];
 								var coil = device.Coil(coilData.DeviceItem);
 								if (coil != null) {
-									AssignCoilMapping(coilData.Id, coilData, false, coilData.Device);
+									AssignCoilMapping(coilData.Id, coilData, deviceName: coilData.Device);
 
 								} else {
 									Logger.Warn($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
 								}
 							}
+							break;
+
+						case CoilDestination.Lamp:
+							AssignCoilMapping(coilData.Id, coilData, isLampCoil: true);
 							break;
 					}
 				}
@@ -374,13 +377,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, MappingsCoilData coilData, bool isHoldCoil = false, string deviceName = null)
+		private void AssignCoilMapping(string id, MappingsCoilData coilData, bool isHoldCoil = false, bool isLampCoil = false, string deviceName = null)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
-				_coilAssignments[id] = new List<Tuple<string, bool, string>>();
+				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
-			_coilAssignments[id].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, isHoldCoil, deviceName));
-			_coilMappings[id] = coilData;
+			_coilAssignments[id].Add(new CoilDestConfig(coilData.PlayfieldItem, isHoldCoil, isLampCoil, deviceName));
 		}
 
 		private void SetupSwitchMapping()
@@ -593,15 +595,20 @@ namespace VisualPinball.Unity
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
-				foreach (var (itemName, isHoldCoil, deviceName) in _coilAssignments[coilEvent.Id]) {
-					if (deviceName != null && _coilDevices.ContainsKey(deviceName)) {
-						_coilDevices[deviceName].Coil(itemName).OnCoil(coilEvent.IsEnabled, isHoldCoil);
+				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
+					if (destConfig.DeviceName != null && _coilDevices.ContainsKey(destConfig.DeviceName)) {
+						_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName).OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
 
-					} else if (_coils.ContainsKey(itemName)) {
-						_coils[itemName].OnCoil(coilEvent.IsEnabled, isHoldCoil);
+					} else if (_coils.ContainsKey(destConfig.ItemName)) {
+						if (destConfig.IsLampCoil) {
+							HandleLampEvent(null, new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
+
+						} else {
+							_coils[destConfig.ItemName].OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
+						}
 
 					} else {
-						Logger.Warn($"Cannot trigger unknown coil item {itemName}.");
+						Logger.Warn($"Cannot trigger unknown coil item {destConfig.ItemName}.");
 					}
 				}
 
@@ -615,7 +622,7 @@ namespace VisualPinball.Unity
 		{
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
 				HandleLampEvent(lampEvent, (lamp, data, itemName) => {
-
+					// todo
 				});
 			}
 		}
@@ -653,6 +660,11 @@ namespace VisualPinball.Unity
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
 				var mapping = _lampMappings[lampEvent.Id];
 				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
+					if (mapping.Source != lampEvent.Source) {
+						// so, if we have a coil here that happens to have the same name as a lamp,
+						// skip if the source isn't the same.
+						continue;
+					}
 					if (_lamps.ContainsKey(itemName)) {
 						var lamp = _lamps[itemName];
 						switch (mapping.Type) {
@@ -733,6 +745,22 @@ namespace VisualPinball.Unity
 			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
 			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
 			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
+		}
+	}
+
+	internal struct CoilDestConfig
+	{
+		public readonly string ItemName;
+		public readonly bool IsHoldCoil;
+		public readonly bool IsLampCoil;
+		public readonly string DeviceName;
+
+		public CoilDestConfig(string itemName, bool isHoldCoil, bool isLampCoil, string deviceName)
+		{
+			ItemName = itemName;
+			IsHoldCoil = isHoldCoil;
+			IsLampCoil = isLampCoil;
+			DeviceName = deviceName;
 		}
 	}
 }
