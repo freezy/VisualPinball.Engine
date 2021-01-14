@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_listViewItemRenderer = new CoilListViewItemRenderer(_gleCoils, _coils, _coilDevices);
+			_listViewItemRenderer = new CoilListViewItemRenderer(_tableAuthoring, _gleCoils, _coils, _coilDevices);
 		}
 
 		protected override bool SetupCompleted()

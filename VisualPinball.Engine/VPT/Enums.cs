@@ -171,6 +171,7 @@ namespace VisualPinball.Engine.VPT
 	{
 		public const int Playfield = 0;
 		public const int Device = 1;
+		public const int Lamp = 2;
 	}
 
 	public static class CoilType
@@ -195,6 +196,12 @@ namespace VisualPinball.Engine.VPT
 	{
 		public const int Playfield = 0;
 		public const int Device = 1;
+	}
+
+	public static class LampSource
+	{
+		public const int Lamps = 0;
+		public const int Coils = 1;
 	}
 
 	public static class LampType

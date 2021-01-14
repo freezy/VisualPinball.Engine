@@ -79,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplRenameExistingItem;
 		private Vector2 _scrollPos = Vector2.zero;
 
-		protected void Reload()
+		public void Reload()
 		{
 			if (_tableAuthoring != null) {
 				_data = CollectData();
