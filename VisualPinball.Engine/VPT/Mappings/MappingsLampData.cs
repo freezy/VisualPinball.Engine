@@ -38,28 +38,31 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffString("MCID", IsWideString = true, Pos = 1)]
 		public string Id = string.Empty;
 
-		[BiffString("DESC", IsWideString = true, Pos = 2)]
+		[BiffInt("LSRC", Pos = 2)]
+		public int Source = LampSource.Lamps;
+
+		[BiffString("DESC", IsWideString = true, Pos = 3)]
 		public string Description = string.Empty;
 
-		[BiffInt("DEST", Pos = 3)]
+		[BiffInt("DEST", Pos = 4)]
 		public int Destination = LampDestination.Playfield;
 
-		[BiffString("PITM", IsWideString = true, Pos = 4)]
+		[BiffString("PITM", IsWideString = true, Pos = 5)]
 		public string PlayfieldItem = string.Empty;
 
-		[BiffString("DEVC", IsWideString = true, Pos = 5)]
+		[BiffString("DEVC", IsWideString = true, Pos = 6)]
 		public string Device = string.Empty;
 
-		[BiffString("DITM", IsWideString = true, Pos = 6)]
+		[BiffString("DITM", IsWideString = true, Pos = 7)]
 		public string DeviceItem = string.Empty;
 
-		[BiffInt("LTYP", Pos = 7)]
+		[BiffInt("LTYP", Pos = 8)]
 		public int Type = LampType.SingleOnOff;
 
-		[BiffString("RGBG", IsWideString = true, Pos = 8)]
+		[BiffString("RGBG", IsWideString = true, Pos = 9)]
 		public string Green = string.Empty;
 
-		[BiffString("RGBB", IsWideString = true, Pos = 9)]
+		[BiffString("RGBB", IsWideString = true, Pos = 10)]
 		public string Blue = string.Empty;
 
 		#region BIFF

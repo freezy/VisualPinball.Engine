@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using NLog;
-using NLog.Fluent;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -91,6 +90,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 		[NonSerialized] // tuple: itemName, isHoldCoil, deviceName
 		private readonly Dictionary<string, List<Tuple<string, bool, string>>> _coilAssignments = new Dictionary<string, List<Tuple<string, bool, string>>>();
+		private readonly Dictionary<string, MappingsCoilData> _coilMappings = new Dictionary<string, MappingsCoilData>();
 		[NonSerialized]
 		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
 		private readonly Dictionary<string, MappingsLampData> _lampMappings = new Dictionary<string, MappingsLampData>();
@@ -380,6 +380,7 @@ namespace VisualPinball.Unity
 				_coilAssignments[id] = new List<Tuple<string, bool, string>>();
 			}
 			_coilAssignments[id].Add(new Tuple<string, bool, string>(coilData.PlayfieldItem, isHoldCoil, deviceName));
+			_coilMappings[id] = coilData;
 		}
 
 		private void SetupSwitchMapping()

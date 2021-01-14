@@ -136,14 +136,12 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			RecordUndo(undoName);
-
 			_tableAuthoring.Mappings.AddLamp(new MappingsLampData());
 		}
 
 		protected override void RemoveData(string undoName, LampListData data)
 		{
 			RecordUndo(undoName);
-
 			_tableAuthoring.Mappings.RemoveLamp(data.MappingsLampData);
 		}
 

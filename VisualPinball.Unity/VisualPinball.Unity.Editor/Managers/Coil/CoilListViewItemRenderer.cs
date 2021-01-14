@@ -22,12 +22,13 @@ using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
 using System.Linq;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Mappings;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class CoilListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield", "Device" };
+		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield", "Device", "Lamp" };
 		private readonly string[] OPTIONS_COIL_TYPE = { "Single-Wound", "Dual-Wound" };
 
 		private enum CoilListColumn
@@ -40,14 +41,16 @@ namespace VisualPinball.Unity.Editor
 			HoldCoilId = 5,
 		}
 
+		private readonly TableAuthoring _tableAuthoring;
 		private readonly List<GamelogicEngineCoil> _gleCoils;
 		private readonly Dictionary<string, ICoilAuthoring> _coils;
 		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
-		public CoilListViewItemRenderer(List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils, Dictionary<string, ICoilDeviceAuthoring> coilDevices)
+		public CoilListViewItemRenderer(TableAuthoring tableAuthoring, List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils, Dictionary<string, ICoilDeviceAuthoring> coilDevices)
 		{
+			_tableAuthoring = tableAuthoring;
 			_gleCoils = gleCoils;
 			_coils = coils;
 			_coilDevices = coilDevices;
@@ -137,6 +140,22 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (coilListData.Destination != index)
 				{
+					if (coilListData.Destination == CoilDestination.Lamp) {
+
+						var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
+						if (lampEntry != null) {
+							_tableAuthoring.Mappings.RemoveLamp(lampEntry);
+							EditorWindow.GetWindow<LampManager>().Reload();
+						}
+
+					} else if (index == CoilDestination.Lamp) {
+						_tableAuthoring.Mappings.AddLamp(new MappingsLampData {
+							Id = coilListData.Id,
+							Source = LampSource.Coils,
+							Description = coilListData.Description
+						});
+						EditorWindow.GetWindow<LampManager>().Reload();
+					}
 					coilListData.Destination = index;
 					updateAction(coilListData);
 				}
@@ -171,6 +190,12 @@ namespace VisualPinball.Unity.Editor
 					RenderDeviceElement(tableAuthoring, coilListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;
 					RenderDeviceItemElement(coilListData, cellRect, updateAction);
+					break;
+
+				case CoilDestination.Lamp:
+					cellRect.x -= 25;
+					cellRect.width += 25;
+					EditorGUI.LabelField(cellRect, "Configure in Lamp Manager", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic });
 					break;
 			}
 		}

@@ -43,12 +43,14 @@ namespace VisualPinball.Unity.Editor
 		public string PlayfieldItem;
 		public string Device;
 		public string DeviceItem;
+		public int Source;
 
 		public MappingsLampData MappingsLampData;
 
 		public LampListData(MappingsLampData mappingsLampData)
 		{
 			Id = mappingsLampData.Id;
+			Source = mappingsLampData.Source;
 			Description = mappingsLampData.Description;
 			PlayfieldItem = mappingsLampData.PlayfieldItem;
 			Device = mappingsLampData.Device;
@@ -63,6 +65,7 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			MappingsLampData.Id = Id;
+			MappingsLampData.Source = Source;
 			MappingsLampData.Description = Description;
 			MappingsLampData.PlayfieldItem = PlayfieldItem;
 			MappingsLampData.Device = Device;

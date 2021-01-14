@@ -55,7 +55,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch ((LampListColumn)column) {
 				case LampListColumn.Id:
-					RenderId(ref data.Id, id => data.Id = id, data, cellRect, updateAction);
+					if (data.Source == LampSource.Coils) {
+						RenderCoilId(data, cellRect);
+					} else {
+						RenderId(ref data.Id, id => data.Id = id, data, cellRect, updateAction);
+					}
 					break;
 				case LampListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -77,6 +81,27 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void RenderCoilId(LampListData lampListData, Rect cellRect)
+		{
+			// add some padding
+			cellRect.x += 2;
+			cellRect.width -= 4;
+
+			var icon = Icons.Coil(IconSize.Small);
+			if (icon != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				var guiColor = GUI.color;
+				GUI.color = Color.clear;
+				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+				GUI.color = guiColor;
+			}
+			cellRect.x += 20;
+			cellRect.width -= 20;
+
+			EditorGUI.LabelField(cellRect, lampListData.Id);
+		}
+
 		private void RenderId(ref string id, Action<string> setId, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			// add some padding
@@ -88,7 +113,6 @@ namespace VisualPinball.Unity.Editor
 			if (options.Count > 0) {
 				options.Add("");
 			}
-
 			options.Add("Add...");
 
 			EditorGUI.BeginChangeCheck();
@@ -140,7 +164,6 @@ namespace VisualPinball.Unity.Editor
 		private void RenderElement(TableAuthoring tableAuthoring, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			var icon = GetIcon(lampListData);
-
 			if (icon != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
