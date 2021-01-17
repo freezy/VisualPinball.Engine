@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 
 			// add the player script and default game engine
 			go.AddComponent<Player>();
-			var dga = go.AddComponent<DefaultGameEngineAuthoring>();
+			var dga = go.AddComponent<DefaultGamelogicEngine>();
 
 			// add trough if none available
 			if (!_table.HasTrough) {
@@ -110,8 +110,8 @@ namespace VisualPinball.Unity
 
 			// populate mappings
 			if (_table.Mappings.IsEmpty()) {
-				_table.Mappings.PopulateSwitches((dga.GameEngine as IGamelogicEngineWithSwitches).AvailableSwitches, table.Switchables, table.SwitchableDevices);
-				_table.Mappings.PopulateCoils((dga.GameEngine as IGamelogicEngineWithCoils).AvailableCoils, table.Coilables, table.CoilableDevices);
+				_table.Mappings.PopulateSwitches(((IGamelogicEngineWithSwitches)dga).AvailableSwitches, table.Switchables, table.SwitchableDevices);
+				_table.Mappings.PopulateCoils(((IGamelogicEngineWithCoils)dga).AvailableCoils, table.Coilables, table.CoilableDevices);
 			}
 
 			// don't need that anymore.

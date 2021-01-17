@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null)
 			{
@@ -216,8 +216,8 @@ namespace VisualPinball.Unity.Editor
 
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()
 		{
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			return gle == null ? new GamelogicEngineSwitch[0] : ((IGamelogicEngineWithSwitches) gle.GameEngine).AvailableSwitches;
+			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			return gle == null ? new GamelogicEngineSwitch[0] : ((IGamelogicEngineWithSwitches) gle).AvailableSwitches;
 		}
 
 		#endregion

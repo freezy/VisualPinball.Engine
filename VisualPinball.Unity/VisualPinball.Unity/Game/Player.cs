@@ -90,14 +90,14 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
-			var engineComponent = GetComponent<IGameEngineAuthoring>();
+			var engineComponent = GetComponent<IGamelogicEngine>();
 
 			Table = tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 
 			if (engineComponent != null) {
-				GameEngine = engineComponent.GameEngine;
+				GameEngine = engineComponent;
 				_lampPlayer.Awake(Table, GameEngine);
 				_coilPlayer.Awake(Table, GameEngine, _lampPlayer);
 				_switchPlayer.Awake(Table, GameEngine, _inputManager);
