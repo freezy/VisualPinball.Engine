@@ -111,29 +111,40 @@ namespace VisualPinball.Unity
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
-					if (destConfig.DeviceName != null && _coilDevices.ContainsKey(destConfig.DeviceName)) {
-						if (_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName) != null) {
-							_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName).OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
 
-						} else {
-							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.ItemName}\" in coil device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+					if (destConfig.IsLampCoil) {
+						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
+						continue;
+					}
+
+					// device coil?
+					if (destConfig.DeviceName != null) {
+
+						// check device
+						if (!_coilDevices.ContainsKey(destConfig.DeviceName)) {
+							Logger.Error($"Cannot trigger coil on non-existing device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+							continue;
 						}
+
+						// check coil in device
+						var coil = _coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName);
+						if (coil == null) {
+							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.ItemName}\" in coil device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+							continue;
+						}
+
+						coil.OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
 
 					} else if (_coils.ContainsKey(destConfig.ItemName)) {
-						if (destConfig.IsLampCoil) {
-							_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
-
-						} else {
-							_coils[destConfig.ItemName].OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
-						}
+						_coils[destConfig.ItemName].OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
 
 					} else {
-						Logger.Error($"Cannot trigger unknown coil item {destConfig.ItemName}.");
+						Logger.Error($"Cannot trigger unknown coil item \"{destConfig.ItemName}\" for {coilEvent.Id}.");
 					}
 				}
 
 			} else {
-				Logger.Info($"Ignoring unassigned coil {coilEvent.Id}.");
+				Logger.Info($"Ignoring unassigned coil \"{coilEvent.Id}\".");
 			}
 		}
 

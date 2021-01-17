@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void ItemSelected(AdvancedDropdownItem item)
 		{
 			var elementItem = (ElementDropdownItem<T>) item;
-			_onElementSelected?.Invoke(elementItem.Item);
+			_onElementSelected?.Invoke(elementItem?.Item);
 		}
 
 		private class ElementDropdownItem<TItem> : AdvancedDropdownItem where TItem : class, IIdentifiableItemAuthoring
