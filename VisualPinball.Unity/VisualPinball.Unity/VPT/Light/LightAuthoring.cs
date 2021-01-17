@@ -75,7 +75,6 @@ namespace VisualPinball.Unity
 			player.RegisterLamp(Item, gameObject);
 			_unityLight = GetComponentInChildren<UnityEngine.Light>();
 			_fullIntensity = _unityLight.intensity;
-			Debug.Log($"Full intensity of {name} is {_fullIntensity}.");
 		}
 
 		public void FadeTo(float seconds, float value)
