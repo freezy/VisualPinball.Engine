@@ -66,10 +66,10 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
 		private InputManager _inputManager;
-		[NonSerialized] private CoilPlayer _coilPlayer;
-		[NonSerialized] private SwitchPlayer _switchPlayer;
-		[NonSerialized] private LampPlayer _lampPlayer;
-		[NonSerialized] private WirePlayer _wirePlayer;
+		[NonSerialized] private readonly LampPlayer _lampPlayer = new LampPlayer();
+		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
+		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
+		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
 
 		public Player()
 		{
@@ -79,9 +79,9 @@ namespace VisualPinball.Unity
 
 		#region Access
 
-		internal IApiSwitch Switch(string n) => _switchPlayer?.Switch(n);
-		internal IApiWireDest Wire(string n) => _wirePlayer?.Wire(n);
-		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer?.WireDevice(n);
+		internal IApiSwitch Switch(string n) => _switchPlayer.Switch(n);
+		internal IApiWireDest Wire(string n) => _wirePlayer.Wire(n);
+		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer.WireDevice(n);
 
 		#endregion
 
@@ -98,10 +98,10 @@ namespace VisualPinball.Unity
 
 			if (engineComponent != null) {
 				GameEngine = engineComponent.GameEngine;
-				_lampPlayer = new LampPlayer(Table, GameEngine);
-				_coilPlayer = new CoilPlayer(Table, GameEngine, _lampPlayer);
-				_switchPlayer = new SwitchPlayer(Table, GameEngine, _inputManager);
-				_wirePlayer = new WirePlayer(Table, _inputManager, _switchPlayer);
+				_lampPlayer.Awake(Table, GameEngine);
+				_coilPlayer.Awake(Table, GameEngine, _lampPlayer);
+				_switchPlayer.Awake(Table, GameEngine, _inputManager);
+				_wirePlayer.Awake(Table, _inputManager, _switchPlayer);
 			}
 
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
@@ -118,10 +118,10 @@ namespace VisualPinball.Unity
 				i.OnInit(BallManager);
 			}
 
-			_coilPlayer?.OnStart();
-			_switchPlayer?.OnStart();
-			_lampPlayer?.OnStart();
-			_wirePlayer?.OnStart();
+			_coilPlayer.OnStart();
+			_switchPlayer.OnStart();
+			_lampPlayer.OnStart();
+			_wirePlayer.OnStart();
 
 			GameEngine?.OnInit(TableApi, BallManager);
 		}
@@ -137,10 +137,10 @@ namespace VisualPinball.Unity
 				i.OnDestroy();
 			}
 
-			_coilPlayer?.OnDestroy();
-			_switchPlayer?.OnDestroy();
-			_lampPlayer?.OnDestroy();
-			_wirePlayer?.OnDestroy();
+			_coilPlayer.OnDestroy();
+			_switchPlayer.OnDestroy();
+			_lampPlayer.OnDestroy();
+			_wirePlayer.OnDestroy();
 			GameEngine?.OnDestroy();
 		}
 
@@ -155,9 +155,9 @@ namespace VisualPinball.Unity
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
-			_switchPlayer?.RegisterSwitch(bumper, bumperApi);
-			_coilPlayer?.RegisterCoil(bumper, bumperApi);
-			_wirePlayer?.RegisterWire(bumper, bumperApi);
+			_switchPlayer.RegisterSwitch(bumper, bumperApi);
+			_coilPlayer.RegisterCoil(bumper, bumperApi);
+			_wirePlayer.RegisterWire(bumper, bumperApi);
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -169,9 +169,9 @@ namespace VisualPinball.Unity
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;
-			_switchPlayer?.RegisterSwitch(flipper, flipperApi);
-			_coilPlayer?.RegisterCoil(flipper, flipperApi);
-			_wirePlayer?.RegisterWire(flipper, flipperApi);
+			_switchPlayer.RegisterSwitch(flipper, flipperApi);
+			_coilPlayer.RegisterCoil(flipper, flipperApi);
+			_wirePlayer.RegisterWire(flipper, flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
-			_switchPlayer?.RegisterSwitch(gate, gateApi);
+			_switchPlayer.RegisterSwitch(gate, gateApi);
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
-			_switchPlayer?.RegisterSwitch(hitTarget, hitTargetApi);
+			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -206,9 +206,9 @@ namespace VisualPinball.Unity
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
-			_switchPlayer?.RegisterSwitch(kicker, kickerApi);
-			_coilPlayer?.RegisterCoil(kicker, kickerApi);
-			_wirePlayer?.RegisterWire(kicker, kickerApi);
+			_switchPlayer.RegisterSwitch(kicker, kickerApi);
+			_coilPlayer.RegisterCoil(kicker, kickerApi);
+			_wirePlayer.RegisterWire(kicker, kickerApi);
 		}
 
 		public void RegisterLamp(Light lamp, GameObject go)
@@ -217,8 +217,8 @@ namespace VisualPinball.Unity
 			TableApi.Lights[lamp.Name] = lightApi;
 			_apis.Add(lightApi);
 			_initializables.Add(lightApi);
-			_lampPlayer?.RegisterLamp(lamp, lightApi);
-			_wirePlayer?.RegisterWire(lamp, lightApi);
+			_lampPlayer.RegisterLamp(lamp, lightApi);
+			_wirePlayer.RegisterWire(lamp, lightApi);
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -228,8 +228,8 @@ namespace VisualPinball.Unity
 			_apis.Add(plungerApi);
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
-			_coilPlayer?.RegisterCoil(plunger, plungerApi);
-			_wirePlayer?.RegisterWire(plunger, plungerApi);
+			_coilPlayer.RegisterCoil(plunger, plungerApi);
+			_wirePlayer.RegisterWire(plunger, plungerApi);
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
@@ -276,7 +276,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
-			_switchPlayer?.RegisterSwitch(spinner, spinnerApi);
+			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
-			_switchPlayer?.RegisterSwitch(trigger, triggerApi);
+			_switchPlayer.RegisterSwitch(trigger, triggerApi);
 		}
 
 		public void RegisterTrough(Trough trough, GameObject go)
@@ -295,9 +295,8 @@ namespace VisualPinball.Unity
 			TableApi.Troughs[trough.Name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
-			_switchPlayer?.RegisterSwitchDevice(trough, troughApi);
-			_coilPlayer?.RegisterCoilDevice(trough, troughApi);
-			_wirePlayer?.RegisterWireDevice(trough, troughApi);
+			_switchPlayer.RegisterSwitchDevice(trough, troughApi);
+			_coilPlayer.RegisterCoilDevice(trough, troughApi);
 		}
 
 		#endregion
