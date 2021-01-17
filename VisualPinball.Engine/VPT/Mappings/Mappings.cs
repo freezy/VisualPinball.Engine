@@ -381,7 +381,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					Data.AddLamp(rLamp);
 				}
 
-				rLamp.Type = LampType.Rgb;
+				rLamp.Type = LampType.RgbMulti;
 				if (!string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen)) {
 					rLamp.Green = gbLamp.Id;
 

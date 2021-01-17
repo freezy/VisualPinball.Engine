@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 
@@ -47,6 +48,11 @@ namespace VisualPinball.Unity
 		/// at once instead of each channel individually.
 		/// </remarks>
 		event EventHandler<LampsEventArgs> OnLampsChanged;
+
+		/// <summary>
+		/// Triggered when the an RGB lamp changes color.
+		/// </summary>
+		event EventHandler<LampColorEventArgs> OnLampColorChanged;
 	}
 
 	public readonly struct LampEventArgs
@@ -79,6 +85,25 @@ namespace VisualPinball.Unity
 			Id = id;
 			Value = value;
 			Source = source;
+		}
+	}
+
+	public readonly struct LampColorEventArgs
+	{
+		/// <summary>
+		/// Id of the lamp, as defined by <see cref="IGamelogicEngineWithLamps.AvailableLamps"/>.
+		/// </summary>
+		public readonly string Id;
+
+		/// <summary>
+		/// New color
+		/// </summary>
+		public readonly Color Color;
+
+		public LampColorEventArgs(string id, Color color)
+		{
+			Id = id;
+			Color = color;
 		}
 	}
 

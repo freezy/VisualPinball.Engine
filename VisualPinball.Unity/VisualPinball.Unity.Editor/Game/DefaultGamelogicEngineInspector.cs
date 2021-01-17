@@ -29,6 +29,8 @@ namespace VisualPinball.Unity.Editor
 		private int _value2;
 		private int _value3;
 
+		private Color _color;
+
 		private void OnEnable()
 		{
 			_gamelogicEngine = target as DefaultGamelogicEngine;
@@ -52,6 +54,11 @@ namespace VisualPinball.Unity.Editor
 					new LampEventArgs("gi_2", _value2),
 					new LampEventArgs("gi_3", _value3),
 				});
+			}
+
+			_color = EditorGUILayout.ColorField(_color);
+			if (GUILayout.Button("Apply Color")) {
+				_gamelogicEngine.SetLampColor("gi_4", _color);
 			}
 		}
 	}
