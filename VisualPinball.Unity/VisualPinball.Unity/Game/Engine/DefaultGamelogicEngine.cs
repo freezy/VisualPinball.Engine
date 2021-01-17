@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
 		public event EventHandler<LampEventArgs> OnLampChanged;
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
+		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
@@ -253,6 +254,11 @@ namespace VisualPinball.Unity
 		public void SetLamp(string n, int value)
 		{
 			OnLampChanged?.Invoke(this, new LampEventArgs(n, value));
+		}
+
+		public void SetLampColor(string n, Color color)
+		{
+			OnLampColorChanged?.Invoke(this, new LampColorEventArgs(n, color));
 		}
 
 		public void SetLamps(LampEventArgs[] values)

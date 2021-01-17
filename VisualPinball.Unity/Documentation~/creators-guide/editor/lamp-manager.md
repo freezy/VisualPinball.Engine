@@ -5,7 +5,7 @@ description: The lamp manager lets you connect and configure lights, flashers an
 
 There are many types of lamps a real pinball machine might use, and there are different ways a gamelogic engine might be addressing them. VPE uses the Unity game engine to accurately simulate lights on the playfield. Those lights have a standardized set of parameters, which you can tweak in the editor. However, lights in a game are dynamic, so the gamelogic engine will toggle them, fade them, or even change their color.
 
-In order to link each the playfield light to the gamelogic engine and configure how they react during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
+In order to link each of the playfield lights to the gamelogic engine and configure how they react during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
 
 [TODO: Screenshot]
 
@@ -20,9 +20,9 @@ Physical machines have a bunch of different concepts when it comes to lighting. 
 
 Later machines used single colored **LEDs** that were each directly connected to the controller board (see also: [Lights vs LEDs](https://docs.missionpinball.org/en/latest/mechs/lights/lights_versus_leds.html)). Contrarily to matrix lamps, the intensity here could be set more fine grained by the game software.
 
-More recently, games started using **RGB-LEDs** that are also able to change the color during gameplay. In VPE, they can be handled in two different ways:
-- As three single inputs from the gamelogic engine (e.g. that's what PinMAME provides)
-- With a single RGB input, where the gamelogic engine always provides the full color (e.g. MPF, or custom table logic)
+More recently, games started using **RGB-LEDs** that are additionally able to change the color during gameplay. In VPE, these can be handled in two different ways:
+- As three single connections from the gamelogic engine (e.g. that's what PinMAME provides)
+- With a single RGB connection, where the gamelogic engine always provides the full color (e.g. MPF, or custom table logic)
 
 Additionally, most pinball machines come with **GI strips**, which are a set of bulbs used for global illumination of the playfield. All lights from a strip are addressed at once, so one gamelogic GI strip maps to multiple lamps on the playfield.
 

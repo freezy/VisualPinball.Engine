@@ -74,6 +74,7 @@ namespace VisualPinball.Unity
 				if (_lampAssignments.Count > 0) {
 					gamelogicEngineWithLamps.OnLampChanged += HandleLampEvent;
 					gamelogicEngineWithLamps.OnLampsChanged += HandleLampsEvent;
+					gamelogicEngineWithLamps.OnLampColorChanged += HandleLampColorEvent;
 				}
 			}
 		}
@@ -90,6 +91,33 @@ namespace VisualPinball.Unity
 			}
 			_lampAssignments[id].Add(lampData.PlayfieldItem);
 			_lampMappings[id] = lampData;
+		}
+
+		private void HandleLampColorEvent(object sender, LampColorEventArgs lampEvent)
+		{
+			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
+				var mapping = _lampMappings[lampEvent.Id];
+				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
+					if (_lamps.ContainsKey(itemName)) {
+						var lamp = _lamps[itemName];
+						switch (mapping.Type) {
+							case LampType.Rgb:
+								lamp.OnLampColor(lampEvent.Color);
+								break;
+
+							default:
+								Logger.Error($"Received an RGB event for lamp {itemName} but lamp mapping type is {mapping.Type} ({mapping.Id})");
+								break;
+						}
+
+					} else {
+						Logger.Error($"Cannot trigger unknown lamp {itemName}.");
+					}
+				}
+
+			} else {
+				Logger.Error($"Should update unassigned lamp {lampEvent.Id}.");
+			}
 		}
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
@@ -156,11 +184,12 @@ namespace VisualPinball.Unity
 								lamp.OnLamp(lampEvent.Value > 0 ? 1f : 0f, ColorChannel.Alpha);
 								break;
 
+							case LampType.Rgb:
 							case LampType.SingleFading:
 								lamp.OnLamp(lampEvent.Value / 255f, ColorChannel.Alpha);
 								break;
 
-							case LampType.Rgb:
+							case LampType.RgbMulti:
 								handleRgb(lamp, mapping, itemName);
 								break;
 
@@ -179,10 +208,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-
 		public void OnDestroy()
 		{
 			if (_lampAssignments.Count > 0 && _gamelogicEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
+				gamelogicEngineWithLamps.OnLampColorChanged -= HandleLampColorEvent;
 				gamelogicEngineWithLamps.OnLampChanged -= HandleLampEvent;
 				gamelogicEngineWithLamps.OnLampsChanged -= HandleLampsEvent;
 			}

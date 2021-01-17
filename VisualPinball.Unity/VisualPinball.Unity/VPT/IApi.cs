@@ -113,6 +113,12 @@ namespace VisualPinball.Unity
 		/// <param name="value">0.0 = off, 1.0 = full intensity</param>
 		/// <param name="channel">If channel is <see cref="ColorChannel.Alpha"/>, change intensity, otherwise update color.</param>
 		void OnLamp(float value, ColorChannel channel);
+
+		/// <summary>
+		/// Sets the light color of the lamp.
+		/// </summary>
+		/// <param name="color">New color to set</param>
+		void OnLampColor(UnityEngine.Color color);
 	}
 
 	internal interface IApiWireDest

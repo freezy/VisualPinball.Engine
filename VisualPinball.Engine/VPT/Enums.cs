@@ -208,6 +208,7 @@ namespace VisualPinball.Engine.VPT
 	{
 		public const int SingleOnOff = 0;
 		public const int SingleFading = 1;
-		public const int Rgb = 2;
+		public const int RgbMulti = 2;
+		public const int Rgb = 3;
 	}
 }

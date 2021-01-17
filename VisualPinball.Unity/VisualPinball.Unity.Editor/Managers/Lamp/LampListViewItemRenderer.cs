@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 	public class LampListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_LAMP_DESTINATION = { "Playfield" };
-		private readonly string[] OPTIONS_LAMP_TYPE = { "Single On|Off", "Single Fading", "RGB" };
+		private readonly string[] OPTIONS_LAMP_TYPE = { "Single On|Off", "Single Fading", "RGB Multi", "RGB" };
 
 		private enum LampListColumn
 		{
@@ -74,8 +74,10 @@ namespace VisualPinball.Unity.Editor
 					RenderType(data, cellRect, updateAction);
 					break;
 				case LampListColumn.Color:
-					if (data.Type == LampType.Rgb) {
-						RenderRgb(data, cellRect, updateAction);
+					switch (data.Type) {
+						case LampType.RgbMulti:
+							RenderRgb(data, cellRect, updateAction);
+							break;
 					}
 					break;
 			}
