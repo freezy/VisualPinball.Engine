@@ -89,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null)
 			{

@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trough;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -29,8 +31,9 @@ namespace VisualPinball.Unity
 	/// gamelogic engine. For now it just tries to find the flippers and hook
 	/// them up to the switches.
 	/// </summary>
-	[Serializable]
-	public class DefaultGamelogicEngine : IGamelogicEngine, IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils, IGamelogicEngineWithLamps
+	[AddComponentMenu("Visual Pinball/Game Logic Engine/Default Game Logic")]
+	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine,
+		IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils, IGamelogicEngineWithLamps
 	{
 		public string Name { get; } = "Default Game Engine";
 

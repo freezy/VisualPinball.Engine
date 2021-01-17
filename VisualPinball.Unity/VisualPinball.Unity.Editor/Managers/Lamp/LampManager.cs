@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
+			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null) {
 				DisplayMessage("No gamelogic engine set.");
@@ -196,8 +196,8 @@ namespace VisualPinball.Unity.Editor
 
 		private GamelogicEngineLamp[] GetAvailableEngineLamps()
 		{
-			var gle = _tableAuthoring.gameObject.GetComponent<IGameEngineAuthoring>();
-			return gle == null ? new GamelogicEngineLamp[0] : ((IGamelogicEngineWithLamps)gle.GameEngine).AvailableLamps;
+			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			return gle == null ? new GamelogicEngineLamp[0] : ((IGamelogicEngineWithLamps)gle).AvailableLamps;
 		}
 
 		#endregion
