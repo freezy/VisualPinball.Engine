@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using NLog;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -52,27 +51,44 @@ namespace VisualPinball.Unity
 				foreach (var coilData in config.Data.Coils) {
 					switch (coilData.Destination) {
 						case CoilDestination.Playfield:
-							AssignCoilMapping(coilData.Id, coilData);
+
+							if (string.IsNullOrEmpty(coilData.PlayfieldItem)) {
+								Logger.Warn($"Ignoring unassigned coil \"{coilData.Id}\".");
+								break;
+							}
+
+							AssignCoilMapping(coilData.Id, coilData.PlayfieldItem);
 							if (coilData.Type == CoilType.DualWound) {
-								AssignCoilMapping(coilData.HoldCoilId, coilData, true);
+								AssignCoilMapping(coilData.HoldCoilId, coilData.PlayfieldItem, true);
 							}
 							break;
 
 						case CoilDestination.Device:
-							if (_coilDevices.ContainsKey(coilData.Device)) {
-								var device = _coilDevices[coilData.Device];
-								var coil = device.Coil(coilData.DeviceItem);
-								if (coil != null) {
-									AssignCoilMapping(coilData.Id, coilData, deviceName: coilData.Device);
 
-								} else {
-									Logger.Warn($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
-								}
+							// mapping values must be set
+							if (string.IsNullOrEmpty(coilData.Device) || string.IsNullOrEmpty(coilData.DeviceItem)) {
+								Logger.Warn($"Ignoring unassigned device coil \"{coilData.Id}\".");
+								break;
+							}
+
+							// check if device exists
+							if (!_coilDevices.ContainsKey(coilData.Device)) {
+								Logger.Error($"Unknown coil device \"{coilData.Device}\".");
+								break;
+							}
+
+							var device = _coilDevices[coilData.Device];
+							var coil = device.Coil(coilData.DeviceItem);
+							if (coil != null) {
+								AssignCoilMapping(coilData.Id, coilData.DeviceItem, deviceName: coilData.Device);
+
+							} else {
+								Logger.Error($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
 							}
 							break;
 
 						case CoilDestination.Lamp:
-							AssignCoilMapping(coilData.Id, coilData, isLampCoil: true);
+							AssignCoilMapping(coilData.Id, coilData.PlayfieldItem, isLampCoil: true);
 							break;
 					}
 				}
@@ -83,12 +99,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, MappingsCoilData coilData, bool isHoldCoil = false, bool isLampCoil = false, string deviceName = null)
+		private void AssignCoilMapping(string id, string playfieldItem, bool isHoldCoil = false, bool isLampCoil = false, string deviceName = null)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
 				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
-			_coilAssignments[id].Add(new CoilDestConfig(coilData.PlayfieldItem, isHoldCoil, isLampCoil, deviceName));
+			_coilAssignments[id].Add(new CoilDestConfig(playfieldItem, isHoldCoil, isLampCoil, deviceName));
 		}
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
@@ -96,7 +112,12 @@ namespace VisualPinball.Unity
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 					if (destConfig.DeviceName != null && _coilDevices.ContainsKey(destConfig.DeviceName)) {
-						_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName).OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
+						if (_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName) != null) {
+							_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName).OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
+
+						} else {
+							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.ItemName}\" in coil device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+						}
 
 					} else if (_coils.ContainsKey(destConfig.ItemName)) {
 						if (destConfig.IsLampCoil) {
@@ -107,13 +128,12 @@ namespace VisualPinball.Unity
 						}
 
 					} else {
-						Logger.Warn($"Cannot trigger unknown coil item {destConfig.ItemName}.");
+						Logger.Error($"Cannot trigger unknown coil item {destConfig.ItemName}.");
 					}
 				}
 
 			} else {
-				var what = coilEvent.IsEnabled ? "turn on" : "turn off";
-				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
+				Logger.Info($"Ignoring unassigned coil {coilEvent.Id}.");
 			}
 		}
 
@@ -127,6 +147,9 @@ namespace VisualPinball.Unity
 
 	internal readonly struct CoilDestConfig
 	{
+		/// <summary>
+		/// Playfield item if <see cref="DeviceName"/> is null or device item otherwise.
+		/// </summary>
 		public readonly string ItemName;
 		public readonly bool IsHoldCoil;
 		public readonly bool IsLampCoil;

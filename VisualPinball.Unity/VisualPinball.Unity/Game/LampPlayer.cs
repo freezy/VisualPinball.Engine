@@ -54,6 +54,12 @@ namespace VisualPinball.Unity
 				foreach (var lampData in config.Data.Lamps) {
 					switch (lampData.Destination) {
 						case LampDestination.Playfield:
+
+							if (string.IsNullOrEmpty(lampData.PlayfieldItem)) {
+								Logger.Warn($"Ignoring unassigned lamp \"{lampData.Id}\".");
+								break;
+							}
+
 							AssignLampMapping(lampData.Id, lampData);
 							if (!string.IsNullOrEmpty(lampData.Green)) {
 								AssignLampMapping(lampData.Green, lampData);
