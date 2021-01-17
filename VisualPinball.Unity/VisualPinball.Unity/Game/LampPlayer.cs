@@ -33,13 +33,13 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, MappingsLampData> _lampMappings = new Dictionary<string, MappingsLampData>();
 
 		private Table _table;
-		private readonly IGamelogicEngine _gamelogicEngine;
+		private IGamelogicEngine _gamelogicEngine;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal void RegisterLamp(IItem item, IApiLamp lampApi) => _lamps[item.Name] = lampApi;
 
-		public LampPlayer(Table table, IGamelogicEngine gamelogicEngine)
+		public void Awake(Table table, IGamelogicEngine gamelogicEngine)
 		{
 			_table = table;
 			_gamelogicEngine = gamelogicEngine;

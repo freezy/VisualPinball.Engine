@@ -28,16 +28,16 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 
-		private readonly Table _table;
-		private readonly IGamelogicEngine _gamelogicEngine;
-		private readonly LampPlayer _lampPlayer;
+		private Table _table;
+		private IGamelogicEngine _gamelogicEngine;
+		private LampPlayer _lampPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal void RegisterCoil(IItem item, IApiCoil coilApi) => _coils[item.Name] = coilApi;
 		internal void RegisterCoilDevice(IItem item, IApiCoilDevice coilDeviceApi) => _coilDevices[item.Name] = coilDeviceApi;
 
-		public CoilPlayer(Table table, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(Table table, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
 			_table = table;
 			_gamelogicEngine = gamelogicEngine;
