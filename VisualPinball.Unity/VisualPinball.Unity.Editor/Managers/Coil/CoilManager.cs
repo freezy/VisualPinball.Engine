@@ -16,10 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
@@ -148,6 +150,15 @@ namespace VisualPinball.Unity.Editor
 			RecordUndo(undoName);
 
 			_tableAuthoring.Mappings.RemoveCoil(data.MappingsCoilData);
+
+			// if it's a lamp, also delete the lamp entry.
+			if (data.MappingsCoilData.Destination == CoilDestination.Lamp) {
+				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+				if (lampEntry != null) {
+					_tableAuthoring.Mappings.RemoveLamp(lampEntry);
+					GetWindow<LampManager>().Reload();
+				}
+			}
 		}
 
 		protected override void CloneData(string undoName, string newName, CoilListData data)
