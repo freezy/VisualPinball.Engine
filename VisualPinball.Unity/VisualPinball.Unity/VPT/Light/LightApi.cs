@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		{
 			switch (channel) {
 				case ColorChannel.Alpha: {
-					Set(value == 0 ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
+					Set(value == 0.0f ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
 					break;
 				}
 				case ColorChannel.Red: {

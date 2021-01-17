@@ -78,6 +78,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void HandleLampEvent(LampEventArgs lampEvent)
+		{
+			HandleLampEvent(null, lampEvent);
+		}
+
 		private void AssignLampMapping(string id, MappingsLampData lampData)
 		{
 			if (!_lampAssignments.ContainsKey(id)) {
@@ -86,8 +91,6 @@ namespace VisualPinball.Unity
 			_lampAssignments[id].Add(lampData.PlayfieldItem);
 			_lampMappings[id] = lampData;
 		}
-
-
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
@@ -116,11 +119,6 @@ namespace VisualPinball.Unity
 			foreach (var mappingId in colors.Keys) {
 				lamps[mappingId].Color = colors[mappingId];
 			}
-		}
-
-		public void HandleLampEvent(LampEventArgs lampEvent)
-		{
-			HandleLampEvent(null, lampEvent);
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
