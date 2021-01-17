@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 	/// gamelogic engine. For now it just tries to find the flippers and hook
 	/// them up to the switches.
 	/// </summary>
+	[DisallowMultipleComponent]
 	[AddComponentMenu("Visual Pinball/Game Logic Engine/Default Game Logic")]
 	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine,
 		IGamelogicEngineWithSwitches, IGamelogicEngineWithCoils, IGamelogicEngineWithLamps
@@ -137,6 +138,11 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		public DefaultGamelogicEngine()
+		{
+			Logger.Info("New Gamelogic engine instantiated.");
+		}
+
 		public void OnInit(TableApi tableApi, BallManager ballManager)
 		{
 			_tableApi = tableApi;
@@ -237,6 +243,21 @@ namespace VisualPinball.Unity
 					break;
 				}
 			}
+		}
+
+		public void SetCoil(string n, bool value)
+		{
+			OnCoilChanged?.Invoke(this, new CoilEventArgs(n, value));
+		}
+
+		public void SetLamp(string n, int value)
+		{
+			OnLampChanged?.Invoke(this, new LampEventArgs(n, value));
+		}
+
+		public void SetLamps(LampEventArgs[] values)
+		{
+			OnLampsChanged?.Invoke(this, new LampsEventArgs(values));
 		}
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
