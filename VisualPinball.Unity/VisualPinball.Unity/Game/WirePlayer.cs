@@ -55,11 +55,18 @@ namespace VisualPinball.Unity
 			foreach (var wireData in config.Data.Wires) {
 				switch (wireData.Source) {
 
-					case SwitchSource.Playfield
-						when !string.IsNullOrEmpty(wireData.SourcePlayfieldItem)
-						     && _switchPlayer.SwitchExists(wireData.SourcePlayfieldItem): {
-						_switchPlayer.RegisterWire(wireData);
+					case SwitchSource.Playfield: {
 
+						if (string.IsNullOrEmpty(wireData.SourcePlayfieldItem)) {
+							break;
+						}
+
+						if (!_switchPlayer.SwitchExists(wireData.SourcePlayfieldItem)) {
+							Logger.Error($"Cannot find item \"{wireData.SourcePlayfieldItem}\" for wire source.");
+							break;
+						}
+
+						_switchPlayer.RegisterWire(wireData);
 						break;
 					}
 
@@ -70,13 +77,19 @@ namespace VisualPinball.Unity
 						_keyWireAssignments[wireData.SourceInputAction].Add(new WireDestConfig(wireData));
 						break;
 
-					case SwitchSource.Playfield:
-						Logger.Warn($"Cannot find wire switch \"{wireData.Src}\" on playfield!");
-						break;
+					case SwitchSource.Device: {
 
-					case SwitchSource.Device
-						when !string.IsNullOrEmpty(wireData.SourceDevice)
-						     && _switchPlayer.SwitchDeviceExists(wireData.SourceDevice): {
+						// mapping values must be set
+						if (string.IsNullOrEmpty(wireData.SourceDevice) || string.IsNullOrEmpty(wireData.SourceDeviceItem)) {
+							break;
+						}
+
+						// check if device exists
+						if (!_switchPlayer.SwitchDeviceExists(wireData.SourceDevice)) {
+							Logger.Error($"Unknown wire switch device \"{wireData.SourceDevice}\".");
+							break;
+						}
+
 						var deviceSwitch = _switchPlayer.Switch(wireData.SourceDevice, wireData.SourceDeviceItem);
 						if (deviceSwitch != null) {
 							deviceSwitch.AddWireDest(new WireDestConfig(wireData));
@@ -87,13 +100,6 @@ namespace VisualPinball.Unity
 						}
 						break;
 					}
-					case SwitchSource.Device when string.IsNullOrEmpty(wireData.SourceDevice):
-						Logger.Warn($"Switch device not set for switch \"{wireData.Src}\".");
-						break;
-
-					case SwitchSource.Device when !_switchPlayer.SwitchDeviceExists(wireData.SourceDevice):
-						Logger.Warn($"Unknown switch device \"{wireData.SourceDevice}\" to wire to \"{wireData.Dst}\".");
-						break;
 
 					case SwitchSource.Constant:
 						break;

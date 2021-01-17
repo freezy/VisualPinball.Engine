@@ -61,9 +61,18 @@ namespace VisualPinball.Unity
 				foreach (var switchData in config.Data.Switches) {
 					switch (switchData.Source) {
 
-						case SwitchSource.Playfield
-							when !string.IsNullOrEmpty(switchData.PlayfieldItem)
-							     && _switches.ContainsKey(switchData.PlayfieldItem): {
+						case SwitchSource.Playfield: {
+
+							if (string.IsNullOrEmpty(switchData.PlayfieldItem)) {
+								Logger.Warn($"Ignoring unassigned switch \"{switchData.Id}\".");
+								break;
+							}
+
+							if (!_switches.ContainsKey(switchData.PlayfieldItem)) {
+								Logger.Error($"Cannot find item \"{switchData.PlayfieldItem}\" for switch \"{switchData.Id}\".");
+								break;
+							}
+
 							var element = _switches[switchData.PlayfieldItem];
 							element.AddSwitchId(new SwitchConfig(switchData));
 							break;
@@ -76,36 +85,37 @@ namespace VisualPinball.Unity
 							_keySwitchAssignments[switchData.InputAction].Add(switchData.Id);
 							break;
 
-						case SwitchSource.Playfield:
-							Logger.Warn($"Cannot find switch \"{switchData.PlayfieldItem}\" on playfield!");
-							break;
+						case SwitchSource.Device: {
 
-						case SwitchSource.Device
-							when !string.IsNullOrEmpty(switchData.Device)
-							     && _switchDevices.ContainsKey(switchData.Device): {
+							// mapping values must be set
+							if (string.IsNullOrEmpty(switchData.Device) || string.IsNullOrEmpty(switchData.DeviceItem)) {
+								Logger.Warn($"Ignoring unassigned device switch \"{switchData.Id}\".");
+								break;
+							}
+
+							// check if device exists
+							if (!_switchDevices.ContainsKey(switchData.Device)) {
+								Logger.Error($"Unknown switch device \"{switchData.Device}\".");
+								break;
+							}
+
 							var device = _switchDevices[switchData.Device];
 							var deviceSwitch = device.Switch(switchData.DeviceItem);
 							if (deviceSwitch != null) {
 								deviceSwitch.AddSwitchId(new SwitchConfig(switchData));
 
 							} else {
-								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
+								Logger.Error($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
 							}
+
 							break;
 						}
-						case SwitchSource.Device when string.IsNullOrEmpty(switchData.Device):
-							Logger.Warn($"Switch device not set for switch \"{switchData.Id}\".");
-							break;
-
-						case SwitchSource.Device when !_switchDevices.ContainsKey(switchData.Device):
-							Logger.Warn($"Unknown switch device \"{switchData.Device}\" for switch \"{switchData.Id}\".");
-							break;
 
 						case SwitchSource.Constant:
 							break;
 
 						default:
-							Logger.Warn($"Unknown switch source \"{switchData.Source}\".");
+							Logger.Error($"Unknown switch source \"{switchData.Source}\".");
 							break;
 					}
 				}
