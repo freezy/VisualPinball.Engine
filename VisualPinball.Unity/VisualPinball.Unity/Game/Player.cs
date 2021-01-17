@@ -16,21 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -40,9 +35,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
-using Color = UnityEngine.Color;
 using Light = VisualPinball.Engine.VPT.Light.Light;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -71,28 +64,12 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
-		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
-		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
-		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
-		private readonly Dictionary<string, IApiLamp> _lamps = new Dictionary<string, IApiLamp>();
-		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
-		private readonly Dictionary<string, IApiWireDest> _wires = new Dictionary<string, IApiWireDest>();
-		private readonly Dictionary<string, IApiWireDeviceDest> _wireDevices = new Dictionary<string, IApiWireDeviceDest>();
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		// input related
 		private InputManager _inputManager;
-
-		[NonSerialized]
-		private readonly Dictionary<string, List<string>> _keySwitchAssignments = new Dictionary<string, List<string>>();
-		[NonSerialized]
-		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
-		[NonSerialized]
-		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
-		[NonSerialized]
-		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
-		private readonly Dictionary<string, MappingsLampData> _lampMappings = new Dictionary<string, MappingsLampData>();
+		[NonSerialized] private CoilPlayer _coilPlayer;
+		[NonSerialized] private SwitchPlayer _switchPlayer;
+		[NonSerialized] private LampPlayer _lampPlayer;
+		[NonSerialized] private WirePlayer _wirePlayer;
 
 		public Player()
 		{
@@ -102,9 +79,9 @@ namespace VisualPinball.Unity
 
 		#region Access
 
-		internal IApiSwitch Switch(string n) => _switches.ContainsKey(n) ? _switches[n] : null;
-		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
-		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
+		internal IApiSwitch Switch(string n) => _switchPlayer?.Switch(n);
+		internal IApiWireDest Wire(string n) => _wirePlayer?.Wire(n);
+		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer?.WireDevice(n);
 
 		#endregion
 
@@ -121,6 +98,10 @@ namespace VisualPinball.Unity
 
 			if (engineComponent != null) {
 				GameEngine = engineComponent.GameEngine;
+				_lampPlayer = new LampPlayer(Table, GameEngine);
+				_coilPlayer = new CoilPlayer(Table, GameEngine, _lampPlayer);
+				_switchPlayer = new SwitchPlayer(Table, GameEngine, _inputManager);
+				_wirePlayer = new WirePlayer(Table, _inputManager, _switchPlayer);
 			}
 
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
@@ -132,23 +113,15 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-
-			// bootstrap table script(s)
-			var tableScripts = GetComponents<VisualPinballScript>();
-			foreach (var tableScript in tableScripts) {
-				tableScript.OnAwake(TableApi, BallManager);
-			}
-
 			// trigger init events now
 			foreach (var i in _initializables) {
 				i.OnInit(BallManager);
 			}
 
-			// hook up mapping configuration
-			SetupSwitchMapping();
-			SetupCoilMapping();
-			SetupLampMapping();
-			SetupWireMapping();
+			_coilPlayer?.OnStart();
+			_switchPlayer?.OnStart();
+			_lampPlayer?.OnStart();
+			_wirePlayer?.OnStart();
 
 			GameEngine?.OnInit(TableApi, BallManager);
 		}
@@ -160,21 +133,14 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
-			if (_keySwitchAssignments.Count > 0) {
-				_inputManager.Disable(HandleKeyInput);
-			}
-			if (_coilAssignments.Count > 0 && GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
-				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
-			}
-			if (_lampAssignments.Count > 0 && GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
-				gamelogicEngineWithLamps.OnLampChanged -= HandleLampEvent;
-				gamelogicEngineWithLamps.OnLampsChanged -= HandleLampsEvent;
-			}
-
 			foreach (var i in _apis) {
 				i.OnDestroy();
 			}
 
+			_coilPlayer?.OnDestroy();
+			_switchPlayer?.OnDestroy();
+			_lampPlayer?.OnDestroy();
+			_wirePlayer?.OnDestroy();
 			GameEngine?.OnDestroy();
 		}
 
@@ -189,9 +155,9 @@ namespace VisualPinball.Unity
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
 			_hittables[entity] = bumperApi;
-			_switches[bumper.Name] = bumperApi;
-			_coils[bumper.Name] = bumperApi;
-			_wires[bumper.Name] = bumperApi;
+			_switchPlayer?.RegisterSwitch(bumper, bumperApi);
+			_coilPlayer?.RegisterCoil(bumper, bumperApi);
+			_wirePlayer?.RegisterWire(bumper, bumperApi);
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, GameObject go)
@@ -203,9 +169,9 @@ namespace VisualPinball.Unity
 			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
 			_collidables[entity] = flipperApi;
-			_switches[flipper.Name] = flipperApi;
-			_coils[flipper.Name] = flipperApi;
-			_wires[flipper.Name] = flipperApi;
+			_switchPlayer?.RegisterSwitch(flipper, flipperApi);
+			_coilPlayer?.RegisterCoil(flipper, flipperApi);
+			_wirePlayer?.RegisterWire(flipper, flipperApi);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
@@ -220,7 +186,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(gateApi);
 			_hittables[entity] = gateApi;
 			_rotatables[entity] = gateApi;
-			_switches[gate.Name] = gateApi;
+			_switchPlayer?.RegisterSwitch(gate, gateApi);
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, GameObject go)
@@ -230,7 +196,7 @@ namespace VisualPinball.Unity
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
 			_hittables[entity] = hitTargetApi;
-			_switches[hitTarget.Name] = hitTargetApi;
+			_switchPlayer?.RegisterSwitch(hitTarget, hitTargetApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, GameObject go)
@@ -240,9 +206,9 @@ namespace VisualPinball.Unity
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
 			_hittables[entity] = kickerApi;
-			_switches[kicker.Name] = kickerApi;
-			_coils[kicker.Name] = kickerApi;
-			_wires[kicker.Name] = kickerApi;
+			_switchPlayer?.RegisterSwitch(kicker, kickerApi);
+			_coilPlayer?.RegisterCoil(kicker, kickerApi);
+			_wirePlayer?.RegisterWire(kicker, kickerApi);
 		}
 
 		public void RegisterLamp(Light lamp, GameObject go)
@@ -251,8 +217,8 @@ namespace VisualPinball.Unity
 			TableApi.Lights[lamp.Name] = lightApi;
 			_apis.Add(lightApi);
 			_initializables.Add(lightApi);
-			_lamps[lamp.Name] = lightApi;
-			_wires[lamp.Name] = lightApi;
+			_lampPlayer?.RegisterLamp(lamp, lightApi);
+			_wirePlayer?.RegisterWire(lamp, lightApi);
 		}
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
@@ -262,8 +228,8 @@ namespace VisualPinball.Unity
 			_apis.Add(plungerApi);
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
-			_coils[plunger.Name] = plungerApi;
-			_wires[plunger.Name] = plungerApi;
+			_coilPlayer?.RegisterCoil(plunger, plungerApi);
+			_wirePlayer?.RegisterWire(plunger, plungerApi);
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
@@ -310,7 +276,7 @@ namespace VisualPinball.Unity
 			_initializables.Add(spinnerApi);
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
-			_switches[spinner.Name] = spinnerApi;
+			_switchPlayer?.RegisterSwitch(spinner, spinnerApi);
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go)
@@ -320,7 +286,7 @@ namespace VisualPinball.Unity
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
 			_hittables[entity] = triggerApi;
-			_switches[trigger.Name] = triggerApi;
+			_switchPlayer?.RegisterSwitch(trigger, triggerApi);
 		}
 
 		public void RegisterTrough(Trough trough, GameObject go)
@@ -329,370 +295,9 @@ namespace VisualPinball.Unity
 			TableApi.Troughs[trough.Name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
-			_switchDevices[trough.Name] = troughApi;
-			_coilDevices[trough.Name] = troughApi;
-			_wireDevices[trough.Name] = troughApi;
-		}
-
-		#endregion
-
-		#region Mappings
-
-		private void SetupCoilMapping()
-		{
-			if (GameEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
-				var config = Table.Mappings;
-				_coilAssignments.Clear();
-				foreach (var coilData in config.Data.Coils) {
-					switch (coilData.Destination) {
-						case CoilDestination.Playfield:
-							AssignCoilMapping(coilData.Id, coilData);
-							if (coilData.Type == CoilType.DualWound) {
-								AssignCoilMapping(coilData.HoldCoilId, coilData, true);
-							}
-							break;
-
-						case CoilDestination.Device:
-							if (_coilDevices.ContainsKey(coilData.Device)) {
-								var device = _coilDevices[coilData.Device];
-								var coil = device.Coil(coilData.DeviceItem);
-								if (coil != null) {
-									AssignCoilMapping(coilData.Id, coilData, deviceName: coilData.Device);
-
-								} else {
-									Logger.Warn($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
-								}
-							}
-							break;
-
-						case CoilDestination.Lamp:
-							AssignCoilMapping(coilData.Id, coilData, isLampCoil: true);
-							break;
-					}
-				}
-
-				if (_coilAssignments.Count > 0) {
-					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
-				}
-			}
-		}
-
-		private void AssignCoilMapping(string id, MappingsCoilData coilData, bool isHoldCoil = false, bool isLampCoil = false, string deviceName = null)
-		{
-			if (!_coilAssignments.ContainsKey(id)) {
-				_coilAssignments[id] = new List<CoilDestConfig>();
-			}
-			_coilAssignments[id].Add(new CoilDestConfig(coilData.PlayfieldItem, isHoldCoil, isLampCoil, deviceName));
-		}
-
-		private void SetupSwitchMapping()
-		{
-			// hook-up game switches
-			if (GameEngine is IGamelogicEngineWithSwitches) {
-
-				var config = Table.Mappings;
-				_keySwitchAssignments.Clear();
-				foreach (var switchData in config.Data.Switches) {
-					switch (switchData.Source) {
-
-						case SwitchSource.Playfield
-							when !string.IsNullOrEmpty(switchData.PlayfieldItem)
-							     && _switches.ContainsKey(switchData.PlayfieldItem):
-						{
-							var element = _switches[switchData.PlayfieldItem];
-							element.AddSwitchId(new SwitchConfig(switchData));
-							break;
-						}
-
-						case SwitchSource.InputSystem:
-							if (!_keySwitchAssignments.ContainsKey(switchData.InputAction)) {
-								_keySwitchAssignments[switchData.InputAction] = new List<string>();
-							}
-							_keySwitchAssignments[switchData.InputAction].Add(switchData.Id);
-							break;
-
-						case SwitchSource.Playfield:
-							Logger.Warn($"Cannot find switch \"{switchData.PlayfieldItem}\" on playfield!");
-							break;
-
-						case SwitchSource.Device
-							when !string.IsNullOrEmpty(switchData.Device)
-							     && _switchDevices.ContainsKey(switchData.Device):
-						{
-							var device = _switchDevices[switchData.Device];
-							var deviceSwitch = device.Switch(switchData.DeviceItem);
-							if (deviceSwitch != null) {
-								deviceSwitch.AddSwitchId(new SwitchConfig(switchData));
-
-							} else {
-								Logger.Warn($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
-							}
-							break;
-						}
-						case SwitchSource.Device when string.IsNullOrEmpty(switchData.Device):
-							Logger.Warn($"Switch device not set for switch \"{switchData.Id}\".");
-							break;
-
-						case SwitchSource.Device when !_switchDevices.ContainsKey(switchData.Device):
-							Logger.Warn($"Unknown switch device \"{switchData.Device}\" for switch \"{switchData.Id}\".");
-							break;
-
-						case SwitchSource.Constant:
-							break;
-
-						default:
-							Logger.Warn($"Unknown switch source \"{switchData.Source}\".");
-							break;
-					}
-				}
-
-				if (_keySwitchAssignments.Count > 0) {
-					_inputManager.Enable(HandleKeyInput);
-				}
-			}
-		}
-
-		private void SetupLampMapping()
-		{
-			if (GameEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
-				var config = Table.Mappings;
-				_lampAssignments.Clear();
-				_lampMappings.Clear();
-				foreach (var lampData in config.Data.Lamps) {
-					switch (lampData.Destination) {
-						case LampDestination.Playfield:
-							AssignLampMapping(lampData.Id, lampData);
-							if (!string.IsNullOrEmpty(lampData.Green)) {
-								AssignLampMapping(lampData.Green, lampData);
-							}
-							if (!string.IsNullOrEmpty(lampData.Blue)) {
-								AssignLampMapping(lampData.Blue, lampData);
-							}
-							break;
-					}
-				}
-
-				if (_lampAssignments.Count > 0) {
-					gamelogicEngineWithLamps.OnLampChanged += HandleLampEvent;
-					gamelogicEngineWithLamps.OnLampsChanged += HandleLampsEvent;
-				}
-			}
-		}
-
-		private void AssignLampMapping(string id, MappingsLampData lampData)
-		{
-			if (!_lampAssignments.ContainsKey(id)) {
-				_lampAssignments[id] = new List<string>();
-			}
-			_lampAssignments[id].Add(lampData.PlayfieldItem);
-			_lampMappings[id] = lampData;
-		}
-
-		private void SetupWireMapping()
-		{
-			var config = Table.Mappings;
-			_keyWireAssignments.Clear();
-			foreach (var wireData in config.Data.Wires) {
-				switch (wireData.Source) {
-
-					case SwitchSource.Playfield
-						when !string.IsNullOrEmpty(wireData.SourcePlayfieldItem)
-						     && _switches.ContainsKey(wireData.SourcePlayfieldItem):
-					{
-						_switches[wireData.SourcePlayfieldItem].AddWireDest(new WireDestConfig(wireData));
-						break;
-					}
-
-					case SwitchSource.InputSystem:
-						if (!_keyWireAssignments.ContainsKey(wireData.SourceInputAction)) {
-							_keyWireAssignments[wireData.SourceInputAction] = new List<WireDestConfig>();
-						}
-						_keyWireAssignments[wireData.SourceInputAction].Add(new WireDestConfig(wireData));
-						break;
-
-					case SwitchSource.Playfield:
-						Logger.Warn($"Cannot find wire switch \"{wireData.Src}\" on playfield!");
-						break;
-
-					case SwitchSource.Device
-						when !string.IsNullOrEmpty(wireData.SourceDevice)
-						     && _switchDevices.ContainsKey(wireData.SourceDevice):
-					{
-						var device = _switchDevices[wireData.SourceDevice];
-						var deviceSwitch = device.Switch(wireData.SourceDeviceItem);
-						if (deviceSwitch != null) {
-							deviceSwitch.AddWireDest(new WireDestConfig(wireData));
-							Logger.Info($"Wiring device switch \"{wireData.Src}\" to \"{wireData.Dst}\"");
-
-						} else {
-							Logger.Warn($"Unknown switch \"{wireData.Src}\" to wire to \"{wireData.Dst}\".");
-						}
-						break;
-					}
-					case SwitchSource.Device when string.IsNullOrEmpty(wireData.SourceDevice):
-						Logger.Warn($"Switch device not set for switch \"{wireData.Src}\".");
-						break;
-
-					case SwitchSource.Device when !_switchDevices.ContainsKey(wireData.SourceDevice):
-						Logger.Warn($"Unknown switch device \"{wireData.SourceDevice}\" to wire to \"{wireData.Dst}\".");
-						break;
-
-					case SwitchSource.Constant:
-						break;
-
-					default:
-						Logger.Warn($"Unknown wire switch source \"{wireData.Source}\".");
-						break;
-				}
-			}
-
-			if (_keySwitchAssignments.Count > 0) {
-				_inputManager.Enable(HandleKeyInput);
-			}
-		}
-
-		private void HandleKeyInput(object obj, InputActionChange change)
-		{
-			switch (change) {
-				case InputActionChange.ActionStarted:
-				case InputActionChange.ActionCanceled:
-					var action = (InputAction) obj;
-					if (_keySwitchAssignments.ContainsKey(action.name)) {
-						if (GameEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
-							foreach (var switchId in _keySwitchAssignments[action.name]) {
-								engineWithSwitches.Switch(switchId, change == InputActionChange.ActionStarted);
-							}
-						}
-					} else {
-						Logger.Info($"Unmapped input command \"{action.name}\".");
-					}
-
-					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
-						foreach (var wireConfig in _keyWireAssignments[action.name]) {
-							switch (wireConfig.Destination) {
-								case WireDestination.Playfield:
-									Wire(wireConfig.PlayfieldItem)?.OnChange(change == InputActionChange.ActionStarted);
-									break;
-
-								case WireDestination.Device:
-									if (_wireDevices.ContainsKey(wireConfig.Device)) {
-										var device = _wireDevices[wireConfig.Device];
-										var wire = device.Wire(wireConfig.DeviceItem);
-										if (wire != null) {
-											wire.OnChange(change == InputActionChange.ActionStarted);
-										} else {
-											Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
-										}
-									}
-									break;
-							}
-						}
-					}
-					break;
-			}
-		}
-
-		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
-		{
-			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
-				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
-					if (destConfig.DeviceName != null && _coilDevices.ContainsKey(destConfig.DeviceName)) {
-						_coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName).OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
-
-					} else if (_coils.ContainsKey(destConfig.ItemName)) {
-						if (destConfig.IsLampCoil) {
-							HandleLampEvent(null, new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
-
-						} else {
-							_coils[destConfig.ItemName].OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
-						}
-
-					} else {
-						Logger.Warn($"Cannot trigger unknown coil item {destConfig.ItemName}.");
-					}
-				}
-
-			} else {
-				var what = coilEvent.IsEnabled ? "turn on" : "turn off";
-				Logger.Warn($"Should {what} unassigned coil {coilEvent.Id}.");
-			}
-		}
-
-		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
-		{
-			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				HandleLampEvent(lampEvent, (lamp, data, itemName) => {
-					// todo
-				});
-			}
-		}
-
-		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
-		{
-			var colors = new Dictionary<string, Color>();
-			var lamps = new Dictionary<string, IApiLamp>();
-
-			HandleLampEvent(lampEvent, (lamp, mapping, itemName) => {
-				var color = colors.ContainsKey(mapping.Id) ? colors[mapping.Id] : lamp.Color;
-				if (lampEvent.Id == mapping.Id) {
-					color.r = lampEvent.Value / 255f;
-
-				} else if (lampEvent.Id == mapping.Green) {
-					color.g = lampEvent.Value / 255f;
-
-				} else if (lampEvent.Id == mapping.Blue) {
-					color.b = lampEvent.Value / 255f;
-
-				} else {
-					Logger.Error($"Cannot assign lamp {lampEvent.Id} to an RGB value of light {itemName}");
-				}
-				colors[mapping.Id] = color;
-				lamps[mapping.Id] = lamp;
-			});
-
-			foreach (var mappingId in colors.Keys) {
-				lamps[mappingId].Color = colors[mappingId];
-			}
-		}
-
-		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, MappingsLampData, string> handleRgb)
-		{
-			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
-				var mapping = _lampMappings[lampEvent.Id];
-				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
-					if (mapping.Source != lampEvent.Source) {
-						// so, if we have a coil here that happens to have the same name as a lamp,
-						// skip if the source isn't the same.
-						continue;
-					}
-					if (_lamps.ContainsKey(itemName)) {
-						var lamp = _lamps[itemName];
-						switch (mapping.Type) {
-							case LampType.SingleOnOff:
-								lamp.OnLamp(lampEvent.Value > 0 ? 1f : 0f, ColorChannel.Alpha);
-								break;
-
-							case LampType.SingleFading:
-								lamp.OnLamp(lampEvent.Value / 255f, ColorChannel.Alpha);
-								break;
-
-							case LampType.Rgb:
-								handleRgb(lamp, mapping, itemName);
-								break;
-
-							default:
-								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {itemName}.");
-								break;
-						}
-
-					} else {
-						Logger.Error($"Cannot trigger unknown lamp {itemName}.");
-					}
-				}
-
-			} else {
-				Logger.Error($"Should update unassigned lamp {lampEvent.Id}.");
-			}
+			_switchPlayer?.RegisterSwitchDevice(trough, troughApi);
+			_coilPlayer?.RegisterCoilDevice(trough, troughApi);
+			_wirePlayer?.RegisterWireDevice(trough, troughApi);
 		}
 
 		#endregion
@@ -744,23 +349,7 @@ namespace VisualPinball.Unity
 		{
 			var slope = Table.Data.AngleTiltMin + (Table.Data.AngleTiltMax - Table.Data.AngleTiltMin) * Table.Data.GlobalDifficulty;
 			var strength = Table.Data.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : Table.Data.Gravity;
-			return new float3(0,  math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
-		}
-	}
-
-	internal struct CoilDestConfig
-	{
-		public readonly string ItemName;
-		public readonly bool IsHoldCoil;
-		public readonly bool IsLampCoil;
-		public readonly string DeviceName;
-
-		public CoilDestConfig(string itemName, bool isHoldCoil, bool isLampCoil, string deviceName)
-		{
-			ItemName = itemName;
-			IsHoldCoil = isHoldCoil;
-			IsLampCoil = isLampCoil;
-			DeviceName = deviceName;
+			return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 		}
 	}
 }
