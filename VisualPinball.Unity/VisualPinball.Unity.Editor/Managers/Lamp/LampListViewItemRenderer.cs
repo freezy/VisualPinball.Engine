@@ -53,12 +53,17 @@ namespace VisualPinball.Unity.Editor
 
 		public void Render(TableAuthoring tableAuthoring, LampListData data, Rect cellRect, int column, Action<LampListData> updateAction)
 		{
+			EditorGUI.BeginDisabledGroup(Application.isPlaying);
+			var lampStatuses = Application.isPlaying
+				? tableAuthoring.gameObject.GetComponent<Player>()?.LampStatuses
+				: null;
+
 			switch ((LampListColumn)column) {
 				case LampListColumn.Id:
 					if (data.Source == LampSource.Coils) {
-						RenderCoilId(data, cellRect);
+						RenderCoilId(lampStatuses, data, cellRect);
 					} else {
-						RenderId(ref data.Id, id => data.Id = id, data, cellRect, updateAction);
+						RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, cellRect, updateAction);
 					}
 					break;
 				case LampListColumn.Description:
@@ -76,20 +81,23 @@ namespace VisualPinball.Unity.Editor
 				case LampListColumn.Color:
 					switch (data.Type) {
 						case LampType.RgbMulti:
-							RenderRgb(data, cellRect, updateAction);
+							RenderRgb(lampStatuses, data, cellRect, updateAction);
 							break;
 					}
 					break;
 			}
+			EditorGUI.EndDisabledGroup();
 		}
 
-		private void RenderCoilId(LampListData lampListData, Rect cellRect)
+		private void RenderCoilId(Dictionary<string, float> lampStatuses, LampListData lampListData, Rect cellRect)
 		{
 			// add some padding
 			cellRect.x += 2;
 			cellRect.width -= 4;
 
-			var icon = Icons.Coil(IconSize.Small);
+
+			var statusAvail = Application.isPlaying && lampStatuses != null && lampStatuses.ContainsKey(lampListData.Id);
+			var icon = Icons.Coil(IconSize.Small, statusAvail && lampStatuses[lampListData.Id] > 0 ? IconColor.Orange : IconColor.Gray);
 			if (icon != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
@@ -104,7 +112,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.LabelField(cellRect, lampListData.Id);
 		}
 
-		private void RenderId(ref string id, Action<string> setId, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
+		private void RenderId(IReadOnlyDictionary<string, float> lampStatuses, ref string id, Action<string> setId, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			// add some padding
 			cellRect.x += 2;
@@ -116,6 +124,21 @@ namespace VisualPinball.Unity.Editor
 				options.Add("");
 			}
 			options.Add("Add...");
+
+			if (Application.isPlaying && lampStatuses != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				cellRect.x += 25;
+				cellRect.width -= 25;
+				if (lampStatuses.ContainsKey(id)) {
+					var lampStatus = lampStatuses[id];
+					var icon = Icons.Light(IconSize.Small, lampStatus > 0 ? IconColor.Orange : IconColor.Gray);
+					var guiColor = GUI.color;
+					GUI.color = Color.clear;
+					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+					GUI.color = guiColor;
+				}
+			}
 
 			EditorGUI.BeginChangeCheck();
 			var index = EditorGUI.Popup(cellRect, options.IndexOf(id), options.ToArray());
@@ -215,17 +238,17 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderRgb(LampListData data, Rect cellRect, Action<LampListData> updateAction)
+		private void RenderRgb(IReadOnlyDictionary<string, float> lampStatuses, LampListData data, Rect cellRect, Action<LampListData> updateAction)
 		{
 			var pad = 2;
 			var width = cellRect.width / 3;
 			var c = cellRect;
 			c.width = width - pad;
-			RenderId(ref data.Id, id => data.Id = id, data, c, updateAction);
+			RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, c, updateAction);
 			c.x += width + pad;
-			RenderId(ref data.Green, id => data.Green = id, data, c, updateAction);
+			RenderId(lampStatuses, ref data.Green, id => data.Green = id, data, c, updateAction);
 			c.x += width + pad;
-			RenderId(ref data.Blue, id => data.Blue = id, data, c, updateAction);
+			RenderId(lampStatuses, ref data.Blue, id => data.Blue = id, data, c, updateAction);
 		}
 
 		private UnityEngine.Texture GetIcon(LampListData lampListData)

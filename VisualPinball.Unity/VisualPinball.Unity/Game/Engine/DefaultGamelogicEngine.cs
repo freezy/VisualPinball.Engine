@@ -131,11 +131,10 @@ namespace VisualPinball.Unity
 			new GamelogicEngineLamp { Id = LampRedBumper, Description = "Red Bumper", PlayfieldItemHint = "^b1l2$" }
 		};
 
-		private TableApi _tableApi;
+		private Player _player;
 		private BallManager _ballManager;
 
-		private Dictionary<string, bool> _switchStatus = new Dictionary<string, bool>();
-		private Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
+		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -144,23 +143,17 @@ namespace VisualPinball.Unity
 			Logger.Info("New Gamelogic engine instantiated.");
 		}
 
-		public void OnInit(TableApi tableApi, BallManager ballManager)
+		public void OnInit(Player player, TableApi tableApi, BallManager ballManager)
 		{
-			_tableApi = tableApi;
+			_player = player;
 			_ballManager = ballManager;
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
 
-			_switchStatus[SwLeftFlipper] = false;
-			_switchStatus[SwLeftFlipperEos] = false;
-			_switchStatus[SwRightFlipper] = false;
-			_switchStatus[SwRightFlipperEos] = false;
-			_switchStatus[SwPlunger] = false;
-			_switchStatus[SwCreateBall] = false;
-
 			// eject ball onto playfield
 			OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
+			_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
 		}
 
 		public void OnUpdate()
@@ -174,7 +167,6 @@ namespace VisualPinball.Unity
 
 		public void Switch(string id, bool isClosed)
 		{
-			_switchStatus[id] = isClosed;
 			if (!_switchTime.ContainsKey(id)) {
 				_switchTime[id] = new Stopwatch();
 			}
@@ -194,7 +186,7 @@ namespace VisualPinball.Unity
 
 					} else {
 						OnCoilChanged?.Invoke(this,
-							_switchStatus[SwLeftFlipperEos]
+							_player.SwitchStatuses[SwLeftFlipperEos]
 								? new CoilEventArgs(CoilLeftFlipperHold, false)
 								: new CoilEventArgs(CoilLeftFlipperMain, false)
 						);
@@ -202,8 +194,10 @@ namespace VisualPinball.Unity
 					break;
 
 				case SwLeftFlipperEos:
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
+					if (isClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
+					}
 					break;
 
 				case SwRightFlipper:
@@ -211,7 +205,7 @@ namespace VisualPinball.Unity
 						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
 					} else {
 						OnCoilChanged?.Invoke(this,
-							_switchStatus[SwRightFlipperEos]
+							_player.SwitchStatuses[SwRightFlipperEos]
 								? new CoilEventArgs(CoilRightFlipperHold, false)
 								: new CoilEventArgs(CoilRightFlipperMain, false)
 						);
@@ -219,8 +213,10 @@ namespace VisualPinball.Unity
 					break;
 
 				case SwRightFlipperEos:
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
+					if (isClosed) {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
+					}
 					break;
 
 				case SwPlunger:
@@ -230,6 +226,7 @@ namespace VisualPinball.Unity
 				case SwTrough4:
 					if (isClosed) {
 						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
+						_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
 					}
 					break;
 

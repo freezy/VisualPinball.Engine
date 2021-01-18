@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		/// Indicates whether the switch is currently opened or closed.
 		/// </summary>
 		public bool IsClosed => _switchHandler.IsClosed;
+		public bool IsSwitchClosed => _switchHandler.IsClosed;
 
 		/// <summary>
 		/// Indicates whether the switch is currently enabled.

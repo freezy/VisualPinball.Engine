@@ -82,8 +82,14 @@ namespace VisualPinball.Unity
 
 					// if it's pulse, schedule to re-open
 					if (closed && switchConfig.IsPulseSwitch) {
-						SimulationSystemGroup.ScheduleSwitch(switchConfig.PulseDelay,
-							() => Engine.Switch(switchConfig.SwitchId, false));
+						SimulationSystemGroup.ScheduleAction(switchConfig.PulseDelay,
+							() => {
+								Engine.Switch(switchConfig.SwitchId, false);
+								IsClosed = false;
+#if UNITY_EDITOR
+								UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
+							});
 					}
 				}
 			}
@@ -114,7 +120,7 @@ namespace VisualPinball.Unity
 					// if it's pulse, schedule to re-open
 					if (closed && wireConfig.IsPulseSource) {
 						if (dest != null) {
-							SimulationSystemGroup.ScheduleSwitch(wireConfig.PulseDelay,
+							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay,
 								() => dest.OnChange(false));
 						}
 					}
@@ -123,6 +129,10 @@ namespace VisualPinball.Unity
 
 			// handle own status
 			IsClosed = closed;
+
+#if UNITY_EDITOR
+			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
 		}
 
 		internal void ScheduleSwitch(bool closed, int delay, Action<bool> onSwitched)
@@ -130,7 +140,7 @@ namespace VisualPinball.Unity
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switchIds != null) {
 				foreach (var switchConfig in _switchIds) {
-					SimulationSystemGroup.ScheduleSwitch(delay,
+					SimulationSystemGroup.ScheduleAction(delay,
 						() => Engine.Switch(switchConfig.SwitchId, closed));
 				}
 			} else {
@@ -158,14 +168,13 @@ namespace VisualPinball.Unity
 					}
 
 					if (dest != null) {
-						SimulationSystemGroup.ScheduleSwitch(delay,
-							() => dest.OnChange(closed));
+						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(closed));
 					}
 				}
 			}
 
 			// handle own status
-			SimulationSystemGroup.ScheduleSwitch(delay, () => {
+			SimulationSystemGroup.ScheduleAction(delay, () => {
 				Debug.Log($"Setting scheduled switch {_name} to {closed}.");
 				IsClosed = closed;
 

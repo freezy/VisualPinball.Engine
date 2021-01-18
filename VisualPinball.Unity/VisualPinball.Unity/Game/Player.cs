@@ -66,6 +66,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
 		private InputManager _inputManager;
+		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 		[NonSerialized] private readonly LampPlayer _lampPlayer = new LampPlayer();
 		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
 		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
@@ -82,6 +83,9 @@ namespace VisualPinball.Unity
 		internal IApiSwitch Switch(string n) => _switchPlayer.Switch(n);
 		internal IApiWireDest Wire(string n) => _wirePlayer.Wire(n);
 		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer.WireDevice(n);
+		public Dictionary<string, bool> SwitchStatuses => _switchPlayer.SwitchStatuses;
+		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
+		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
 
 		#endregion
 
@@ -109,6 +113,7 @@ namespace VisualPinball.Unity
 			if (!string.IsNullOrEmpty(debugUiId)) {
 				EngineProvider<IDebugUI>.Set(debugUiId);
 			}
+			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		}
 
 		private void Start()
@@ -123,7 +128,7 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
 
-			GameEngine?.OnInit(TableApi, BallManager);
+			GameEngine?.OnInit(this, TableApi, BallManager);
 		}
 
 		private void Update()
@@ -302,6 +307,8 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Events
+
+		public void ScheduleAction(int timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
 
 		public void OnEvent(in EventData eventData)
 		{
