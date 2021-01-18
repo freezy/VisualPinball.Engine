@@ -28,11 +28,37 @@ Additionally, most pinball machines come with **GI strips**, which are a set of 
 
 Finally, high-powered lamps such as flashers might appear under the gamelogic engine's **coil outputs**, since those lamps operate with the same voltage and have the same properties as coils.  
 
-[TBD how to handle solenoids]
-
 ## Setup
 
-[TODO]
+Every row in the lamp manager corresponds to a logical connection between the gamelogic engine and the lamp on the playfield. A lamp can be linked to multiple outputs, and an output can be linked to multiple lamps.
+
+### IDs
+
+The first column, **ID** shows the name that the gamelogic engine exports for each lamp.
+
+> [!note]
+> As we cannot be 100% sure that the gamelogic engine has accurate data about the lamp names, you can also add lamp IDs manually, but that should be the exception.
+
+### Description
+
+The **Description** column is optional. If you're setting up a re-creation, you would typically use this for the lamp name from the game manual. It's purely for your own benefit, and you can keep this empty if you want.
+
+### Destination
+
+The **Destination** defines where the lamp is located. Currently, *Playfield* is the only option.
+
+### Element
+
+Under the **Element** column, you choose which lamp among the game items on the playfield should be controlled.
+
+### Type
+
+The **Type** column defines how the signal is interpreted by the lamp. This is important, because the gamelogic engine typically sends integer values to the lamp. There are four types:
+
+- *Single On|Off* - Typically lamps from the lamp matrix. They can only be on or off. Receiving `0` will turn the lamp off, any other value will tell it on.
+- *Single Fading* - Individually connected lamps that can be dimmed by the gamelogic engine. Received values can be `0` to `255`, where `0` turns the lamp off, and `255` sets it to full intensity.
+- *RGB Multi* - An RGB lamp that can change its color during gameplay. Lamps of this type received three inputs from red, green and blue, which can be set in the next column.
+- *RGB* - An RGB lamp that receives its data from a single channel. This is the only mode where the lamp doesn't receive an integer, but an entire color.
 
 ## Inserts
 

@@ -22,6 +22,8 @@ using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
 using System.Linq;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -62,10 +64,14 @@ namespace VisualPinball.Unity.Editor
 
 		public void Render(TableAuthoring tableAuthoring, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
 		{
+			EditorGUI.BeginDisabledGroup(Application.isPlaying);
+			var switchStatuses = Application.isPlaying
+				? tableAuthoring.gameObject.GetComponent<Player>()?.SwitchStatuses
+				: null;
 			switch ((SwitchListColumn)column)
 			{
 				case SwitchListColumn.Id:
-					RenderId(data, cellRect, updateAction);
+					RenderId(switchStatuses, data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -80,22 +86,35 @@ namespace VisualPinball.Unity.Editor
 					RenderPulseDelay(data, cellRect, updateAction);
 					break;
 			}
+			EditorGUI.EndDisabledGroup();
 		}
 
-		private void RenderId(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderId(Dictionary<string, bool> switchStatuses, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			// add some padding
 			cellRect.x += 2;
 			cellRect.width -= 4;
 
 			var options = new List<string>(_gleSwitches.Select(entry => entry.Id).ToArray());
-
-			if (options.Count > 0)
-			{
+			if (options.Count > 0) {
 				options.Add("");
 			}
-
 			options.Add("Add...");
+
+			if (Application.isPlaying && switchStatuses != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				cellRect.x += 25;
+				cellRect.width -= 25;
+				if (switchStatuses.ContainsKey(switchListData.Id)) {
+					var switchStatus = switchStatuses[switchListData.Id];
+					var icon = Icons.Switch(switchStatus, IconSize.Small, switchStatus ? IconColor.Orange : IconColor.Gray);
+					var guiColor = GUI.color;
+					GUI.color = Color.clear;
+					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+					GUI.color = guiColor;
+				}
+			}
 
 			EditorGUI.BeginChangeCheck();
 			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Id), options.ToArray());
@@ -114,14 +133,12 @@ namespace VisualPinball.Unity.Editor
 						}
 
 						switchListData.Id = newId;
-
 						updateAction(switchListData);
 					}));
 				}
 				else
 				{
 					switchListData.Id = _gleSwitches[index].Id;
-
 					updateAction(switchListData);
 				}
 			}

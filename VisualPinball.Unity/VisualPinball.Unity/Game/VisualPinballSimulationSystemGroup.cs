@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
 		private readonly List<Action> _afterBallQueues = new List<Action>();
-		private readonly List<SwitchAction> _switchQueues = new List<SwitchAction>();
+		private readonly List<ScheduledAction> _scheduledActions = new List<ScheduledAction>();
 
 		private const TimingMode Timing = TimingMode.UnityTime;
 
@@ -113,11 +113,11 @@ namespace VisualPinball.Unity
 				// advance physics position
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 
-				// close switches
-				for (var i = _switchQueues.Count - 1; i >= 0; i--) {
-					if (_currentPhysicsFrameTime > _switchQueues[i].SwitchAt) {
-						_switchQueues[i].Close();
-						_switchQueues.RemoveAt(i);
+				// run scheduled actions
+				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
+					if (_currentPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+						_scheduledActions[i].Action();
+						_scheduledActions.RemoveAt(i);
 					}
 				}
 			}
@@ -164,9 +164,9 @@ namespace VisualPinball.Unity
 			_afterBallQueues.Add(action);
 		}
 
-		public void ScheduleSwitch(int timeoutMs, Action action)
+		public void ScheduleAction(int timeoutMs, Action action)
 		{
-			_switchQueues.Add(new SwitchAction(_currentPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+			_scheduledActions.Add(new ScheduledAction(_currentPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
 		}
 
 
@@ -178,15 +178,15 @@ namespace VisualPinball.Unity
 			Locked60
 		}
 
-		private class SwitchAction
+		private class ScheduledAction
 		{
-			public readonly ulong SwitchAt;
-			public readonly Action Close;
+			public readonly ulong ScheduleAt;
+			public readonly Action Action;
 
-			public SwitchAction(ulong switchAt, Action close)
+			public ScheduledAction(ulong scheduleAt, Action action)
 			{
-				SwitchAt = switchAt;
-				Close = close;
+				ScheduleAt = scheduleAt;
+				Action = action;
 			}
 		}
 	}

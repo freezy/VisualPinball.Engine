@@ -16,8 +16,10 @@
 
 using System.Collections.Generic;
 using NLog;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -33,6 +35,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
 		internal void RegisterCoil(IItem item, IApiCoil coilApi) => _coils[item.Name] = coilApi;
 		internal void RegisterCoilDevice(IItem item, IApiCoilDevice coilDeviceApi) => _coilDevices[item.Name] = coilDeviceApi;
 
@@ -105,11 +108,15 @@ namespace VisualPinball.Unity
 				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
 			_coilAssignments[id].Add(new CoilDestConfig(playfieldItem, isHoldCoil, isLampCoil, deviceName));
+			CoilStatuses[id] = false;
 		}
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
+				CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
+				Debug.LogWarning($"Setting coil {coilEvent.Id} to {coilEvent.IsEnabled}.");
+
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
 					if (destConfig.IsLampCoil) {
@@ -142,6 +149,10 @@ namespace VisualPinball.Unity
 						Logger.Error($"Cannot trigger unknown coil item \"{destConfig.ItemName}\" for {coilEvent.Id}.");
 					}
 				}
+
+#if UNITY_EDITOR
+				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
 
 			} else {
 				Logger.Info($"Ignoring unassigned coil \"{coilEvent.Id}\".");

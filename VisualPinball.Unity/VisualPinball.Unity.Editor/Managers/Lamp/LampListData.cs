@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
 		public int Type;
 
-		[ManagerListColumn(Order = 5, HeaderName = "R G B", Width = 135)]
+		[ManagerListColumn(Order = 5, HeaderName = "R G B", Width = 300)]
 		public string Green;
 		public string Blue;
 

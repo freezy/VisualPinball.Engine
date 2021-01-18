@@ -82,6 +82,7 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, data);
 		}
 
+		bool IApiSwitchStatus.IsSwitchClosed => SwitchClosed;
 		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);

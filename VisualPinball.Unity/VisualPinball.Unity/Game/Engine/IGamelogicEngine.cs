@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	{
 		string Name { get; }
 
-		void OnInit(TableApi tableApi, BallManager ballManager);
+		void OnInit(Player player, TableApi tableApi, BallManager ballManager);
 
 		void OnUpdate();
 

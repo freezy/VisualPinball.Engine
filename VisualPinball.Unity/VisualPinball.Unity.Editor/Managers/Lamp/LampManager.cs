@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	/// Editor UI for VPE lamps
 	/// </summary>
 	///
-	class LampManager : ManagerWindow<LampListData>
+	internal class LampManager : ManagerWindow<LampListData>
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

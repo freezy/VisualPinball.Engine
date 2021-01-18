@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 
 		private protected EntityManager EntityManager;
 
+		private protected bool SwitchClosed => _switchHandler.IsClosed;
+
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;

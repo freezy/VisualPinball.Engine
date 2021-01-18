@@ -58,10 +58,15 @@ namespace VisualPinball.Unity.Editor
 
 		public void Render(TableAuthoring tableAuthoring, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
 		{
+			EditorGUI.BeginDisabledGroup(Application.isPlaying);
+			var coilStatuses = Application.isPlaying
+				? tableAuthoring.gameObject.GetComponent<Player>()?.CoilStatuses
+				: null;
+
 			switch ((CoilListColumn)column)
 			{
 				case CoilListColumn.Id:
-					RenderId(ref data.Id, id => UpdateId(data, id), data, cellRect, updateAction);
+					RenderId(coilStatuses, ref data.Id, id => UpdateId(data, id), data, cellRect, updateAction);
 					break;
 				case CoilListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -77,10 +82,11 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case CoilListColumn.HoldCoilId:
 					if (data.Type == CoilType.DualWound) {
-						RenderId(ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
+						RenderId(coilStatuses, ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
 					}
 					break;
 			}
+			EditorGUI.EndDisabledGroup();
 		}
 
 		private void UpdateId(CoilListData data, string id)
@@ -95,19 +101,32 @@ namespace VisualPinball.Unity.Editor
 			data.Id = id;
 		}
 
-		private void RenderId(ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		private void RenderId(Dictionary<string, bool> coilStatuses, ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			// add some padding
 			cellRect.x += 2;
 			cellRect.width -= 4;
 
 			var options = new List<string>(_gleCoils.Select(entry => entry.Id).ToArray());
-
 			if (options.Count > 0) {
 				options.Add("");
 			}
-
 			options.Add("Add...");
+
+			if (Application.isPlaying && coilStatuses != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				cellRect.x += 25;
+				cellRect.width -= 25;
+				if (coilStatuses.ContainsKey(id)) {
+					var coilStatus = coilStatuses[id];
+					var icon = Icons.Bolt(IconSize.Small, coilStatus ? IconColor.Orange : IconColor.Gray);
+					var guiColor = GUI.color;
+					GUI.color = Color.clear;
+					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+					GUI.color = guiColor;
+				}
+			}
 
 			EditorGUI.BeginChangeCheck();
 			var index = EditorGUI.Popup(cellRect, options.IndexOf(id), options.ToArray());

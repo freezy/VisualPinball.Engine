@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		void OnSlingshot(Entity ballEntity);
 	}
 
-	internal interface IApiSwitch
+	internal interface IApiSwitch : IApiSwitchStatus
 	{
 		/// <summary>
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
@@ -83,6 +83,11 @@ namespace VisualPinball.Unity
 		/// Note that for pulse switches, you currently only get the "closed" event.
 		/// </remarks>
 		event EventHandler<SwitchEventArgs> Switch;
+	}
+
+	internal interface IApiSwitchStatus
+	{
+		bool IsSwitchClosed { get; }
 	}
 
 	internal interface IApiSwitchDevice
