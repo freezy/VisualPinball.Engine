@@ -7,7 +7,7 @@ There are many types of lamps a real pinball machine might use, and there are di
 
 In order to link each of the playfield lights to the gamelogic engine and configure how they react during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
 
-[TODO: Screenshot]
+![Lamp Manager](lamp-manager.png)
 
 > [!note]
 > We use the terms *lights* and *lamps* as follows:
@@ -57,17 +57,33 @@ The **Type** column defines how the signal is interpreted by the lamp. This is i
 
 - *Single On|Off* - Typically lamps from the lamp matrix. They can only be on or off. Receiving `0` will turn the lamp off, any other value will tell it on.
 - *Single Fading* - Individually connected lamps that can be dimmed by the gamelogic engine. Received values can be `0` to `255`, where `0` turns the lamp off, and `255` sets it to full intensity.
-- *RGB Multi* - An RGB lamp that can change its color during gameplay. Lamps of this type received three inputs from red, green and blue, which can be set in the next column.
-- *RGB* - An RGB lamp that receives its data from a single channel. This is the only mode where the lamp doesn't receive an integer, but an entire color.
-
-## Inserts
-
-[TODO]
+- *RGB Multi* - An RGB lamp that can change its color during gameplay. Lamps of this type receive three connections, one from each red, green and blue.
+- *RGB* - An RGB lamp that receives its data from a single connection. This is the only mode where the lamp doesn't receive an integer, but an entire color.
 
 ## Flashers
 
-[TODO]
+When using a gamelogic engine that behaves like real hardware like PinMAME, high-powered lamps such as flashers show usually up as connected driver board. 
+
+VPE allows routing coil outputs to lamps. For that, go to the [Coil Manager](coil-manager.md) and select *Lamp* as **Destination**:
+
+![Coil as lamp](coil-manager-lamp.png)
+
+This will make the coil show up in the lamp manager where you can configure it:
+
+![Lamp from coil](lamp-manager-coil.png)
+
+You note that you cannot change the *ID* of the lamp, because it's still linked to the coil. Also, removing or changing the coil destination will remove the entry from the lamp manager. Changing the ID in the coil manager will also update it in the lamp manager.
+
+## GI Strips
+
+There is currently no special support for GI strips. In Visual Pinball, you can put GI lamps into a collection and address the whole collection at once via script. VPE doesn't have this feature yet. In order to hook up GI lamps, you can can add an entry per lamp and link all of them to the same ID.
+
+We want to make this easier in the future, so we're thinking of integrating this into the editor directly.
 
 ## Editor vs Runtime
 
-While editing the table in the Unity editor, you can and probably should disable lights you're not editing. During runtime, VPE first turns all lights off, then turns on the constant lights, and then waits for the gamelogic engine for further instructions.  
+While editing the table in the Unity editor, you can and probably should disable lights you're not editing. During runtime, VPE first turns all lights off, then turns on the constant lights, and then waits for the gamelogic engine for further instructions.
+
+If you run the game in the editor, the lamp manager shows the lamp statuses in real-time:
+
+![Lamps runtime](lamp-manager-gameplay.gif)
