@@ -60,6 +60,10 @@ The **Type** column defines how the signal is interpreted by the lamp. This is i
 - *RGB Multi* - An RGB lamp that can change its color during gameplay. Lamps of this type receive three connections, one from each red, green and blue.
 - *RGB* - An RGB lamp that receives its data from a single connection. This is the only mode where the lamp doesn't receive an integer, but an entire color.
 
+### R G B
+
+If the type of the previous column has been set to *RGB Multi*, here is where you link each wire to a color. Note that *red* is always the one shown under the *ID* column, so changing the red link will also change the ID (and vice versa).
+
 ## Flashers
 
 When using a gamelogic engine that behaves like real hardware like PinMAME, high-powered lamps such as flashers show usually up as connected driver board. 
