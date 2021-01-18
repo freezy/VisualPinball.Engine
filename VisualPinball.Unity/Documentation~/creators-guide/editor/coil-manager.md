@@ -26,10 +26,11 @@ The **Description** column is optional. If you're setting up a re-creation, you 
 
 ### Destination
 
-The **Destination** column defines where the element in the following column is located. There are two options:
+The **Destination** column defines where the element in the following column is located. There are three options:
 
 - *Playfield* lets you select a game element on the playfield that features the coil
 - *Device* lets you choose a *coil device*, a mechanism which may include multiple coils, such as a [trough](../manual/mechanisms/troughs.md).
+- *Lamp* sets the coil to be configured in the lamp manager (see [flashers in the lamp manager](lamp-manager.html#flashers) for more details).
 
 ### Element
 
