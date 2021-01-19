@@ -3,9 +3,9 @@ description: The lamp manager lets you connect and configure lights, flashers an
 ---
 # Lamp Manager
 
-There are many types of lamps a real pinball machine might use, and there are different ways a gamelogic engine might be addressing them. VPE uses the Unity game engine to accurately simulate lights on the playfield. Those lights have a standardized set of parameters, which you can tweak in the editor. However, lights in a game are dynamic, so the gamelogic engine will toggle them, fade them, or even change their color.
+There are many types of lamps a real pinball machine might use, and there are different ways a gamelogic engine might address them. VPE uses the Unity game engine to accurately simulate lamps on the playfield. Lamps have a standardized set of parameters, which can be tweaked in the editor. Lamps in a game are also dynamic, so the gamelogic engine will toggle them, fade them, or even change their color.
 
-In order to link each of the playfield lights to the gamelogic engine and configure how they react during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
+In order to link each of the playfield lamps to the gamelogic engine and configure how they react during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
 
 ![Lamp Manager](lamp-manager.png)
 
@@ -86,7 +86,7 @@ We want to make this easier in the future, so we're thinking of integrating this
 
 ## Editor vs Runtime
 
-While editing the table in the Unity editor, you can and probably should disable lights you're not editing. During runtime, VPE first turns all lights off, then turns on the constant lights, and then waits for the gamelogic engine for further instructions.
+While editing the table in the Unity editor, you can and probably should disable lamps you're not editing. During runtime, VPE first turns all lamps off, then turns on the constant lamps, and then waits for the gamelogic engine for further instructions.
 
 If you run the game in the editor, the lamp manager shows the lamp statuses in real-time:
 
