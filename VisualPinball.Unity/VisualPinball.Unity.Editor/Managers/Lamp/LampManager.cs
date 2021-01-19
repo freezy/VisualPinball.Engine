@@ -197,7 +197,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineLamp[] GetAvailableEngineLamps()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? new GamelogicEngineLamp[0] : ((IGamelogicEngineWithLamps)gle).AvailableLamps;
+			return gle == null ? new GamelogicEngineLamp[0] : gle.AvailableLamps;
 		}
 
 		#endregion

@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 
 		public void OnStart()
 		{
-			if (_gamelogicEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
+			if (_gamelogicEngine != null) {
 				var config = _table.Mappings;
 				_coilAssignments.Clear();
 				foreach (var coilData in config.Data.Coils) {
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (_coilAssignments.Count > 0) {
-					gamelogicEngineWithCoils.OnCoilChanged += HandleCoilEvent;
+					_gamelogicEngine.OnCoilChanged += HandleCoilEvent;
 				}
 			}
 		}
@@ -161,8 +161,8 @@ namespace VisualPinball.Unity
 
 		public void OnDestroy()
 		{
-			if (_coilAssignments.Count > 0 && _gamelogicEngine is IGamelogicEngineWithCoils gamelogicEngineWithCoils) {
-				gamelogicEngineWithCoils.OnCoilChanged -= HandleCoilEvent;
+			if (_coilAssignments.Count > 0 && _gamelogicEngine != null) {
+				_gamelogicEngine.OnCoilChanged -= HandleCoilEvent;
 			}
 		}
 	}

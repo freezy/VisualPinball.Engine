@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using NLog;
 using UnityEditor;
@@ -217,7 +216,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? new GamelogicEngineSwitch[0] : ((IGamelogicEngineWithSwitches) gle).AvailableSwitches;
+			return gle == null ? new GamelogicEngineSwitch[0] : gle.AvailableSwitches;
 		}
 
 		#endregion

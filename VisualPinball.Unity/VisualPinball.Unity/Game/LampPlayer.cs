@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 
 		public void OnStart()
 		{
-			if (_gamelogicEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
+			if (_gamelogicEngine != null) {
 				var config = _table.Mappings;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
@@ -77,9 +77,9 @@ namespace VisualPinball.Unity
 				}
 
 				if (_lampAssignments.Count > 0) {
-					gamelogicEngineWithLamps.OnLampChanged += HandleLampEvent;
-					gamelogicEngineWithLamps.OnLampsChanged += HandleLampsEvent;
-					gamelogicEngineWithLamps.OnLampColorChanged += HandleLampColorEvent;
+					_gamelogicEngine.OnLampChanged += HandleLampEvent;
+					_gamelogicEngine.OnLampsChanged += HandleLampsEvent;
+					_gamelogicEngine.OnLampColorChanged += HandleLampColorEvent;
 				}
 			}
 		}
@@ -225,10 +225,10 @@ namespace VisualPinball.Unity
 
 		public void OnDestroy()
 		{
-			if (_lampAssignments.Count > 0 && _gamelogicEngine is IGamelogicEngineWithLamps gamelogicEngineWithLamps) {
-				gamelogicEngineWithLamps.OnLampColorChanged -= HandleLampColorEvent;
-				gamelogicEngineWithLamps.OnLampChanged -= HandleLampEvent;
-				gamelogicEngineWithLamps.OnLampsChanged -= HandleLampsEvent;
+			if (_lampAssignments.Count > 0 && _gamelogicEngine != null) {
+				_gamelogicEngine.OnLampColorChanged -= HandleLampColorEvent;
+				_gamelogicEngine.OnLampChanged -= HandleLampEvent;
+				_gamelogicEngine.OnLampsChanged -= HandleLampsEvent;
 			}
 		}
 	}

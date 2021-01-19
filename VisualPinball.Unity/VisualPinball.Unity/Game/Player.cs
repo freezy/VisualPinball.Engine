@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
 
 		[NonSerialized]
-		public IGamelogicEngine GameEngine;
+		public IGamelogicEngine GamelogicEngine;
 
 		[NonSerialized]
 		public BallManager BallManager;
@@ -101,10 +101,10 @@ namespace VisualPinball.Unity
 			_inputManager = new InputManager();
 
 			if (engineComponent != null) {
-				GameEngine = engineComponent;
-				_lampPlayer.Awake(Table, GameEngine);
-				_coilPlayer.Awake(Table, GameEngine, _lampPlayer);
-				_switchPlayer.Awake(Table, GameEngine, _inputManager);
+				GamelogicEngine = engineComponent;
+				_lampPlayer.Awake(Table, GamelogicEngine);
+				_coilPlayer.Awake(Table, GamelogicEngine, _lampPlayer);
+				_switchPlayer.Awake(Table, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(Table, _inputManager, _switchPlayer);
 			}
 
@@ -128,12 +128,7 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
 
-			GameEngine?.OnInit(this, TableApi, BallManager);
-		}
-
-		private void Update()
-		{
-			GameEngine?.OnUpdate();
+			GamelogicEngine?.OnInit(this, TableApi, BallManager);
 		}
 
 		private void OnDestroy()
@@ -146,7 +141,6 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnDestroy();
 			_lampPlayer.OnDestroy();
 			_wirePlayer.OnDestroy();
-			GameEngine?.OnDestroy();
 		}
 
 		#endregion
