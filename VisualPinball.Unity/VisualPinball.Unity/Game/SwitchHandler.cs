@@ -20,7 +20,7 @@ namespace VisualPinball.Unity
 
 		private readonly string _name;
 		private readonly Player _player;
-		private IGamelogicEngineWithSwitches Engine => (IGamelogicEngineWithSwitches)_player.GameEngine;
+		private IGamelogicEngine Engine => _player.GamelogicEngine;
 
 		/// <summary>
 		/// The list of switches that need to be triggered in the gamelogic engine.

@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 		public void OnStart()
 		{
 			// hook-up game switches
-			if (_gamelogicEngine is IGamelogicEngineWithSwitches) {
+			if (_gamelogicEngine != null) {
 
 				var config = _table.Mappings;
 				_keySwitchAssignments.Clear();
@@ -140,10 +140,10 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					if (_keySwitchAssignments.ContainsKey(action.name)) {
-						if (_gamelogicEngine is IGamelogicEngineWithSwitches engineWithSwitches) {
+						if (_gamelogicEngine != null) {
 							foreach (var sw in _keySwitchAssignments[action.name]) {
 								sw.IsSwitchClosed = change == InputActionChange.ActionStarted;
-								engineWithSwitches.Switch(sw.SwitchId, sw.IsSwitchClosed);
+								_gamelogicEngine.Switch(sw.SwitchId, sw.IsSwitchClosed);
 							}
 						}
 					} else {

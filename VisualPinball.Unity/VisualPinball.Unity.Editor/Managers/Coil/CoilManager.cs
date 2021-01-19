@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
@@ -218,7 +217,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? new GamelogicEngineCoil[0] : ((IGamelogicEngineWithCoils) gle).AvailableCoils;
+			return gle == null ? new GamelogicEngineCoil[0] : gle.AvailableCoils;
 		}
 
 		#endregion

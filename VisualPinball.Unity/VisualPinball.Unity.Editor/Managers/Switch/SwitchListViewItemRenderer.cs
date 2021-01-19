@@ -22,7 +22,6 @@ using UnityEditor.IMGUI.Controls;
 using VisualPinball.Engine.VPT;
 using System.Linq;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Editor
