@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable BuiltInTypeReferenceStyle
+
+using System;
+
 namespace VisualPinball.Engine.Game.Engines
 {
 	public class GamelogicEngineSwitch
@@ -25,5 +29,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public string PlayfieldItemHint;
 		public string DeviceHint;
 		public string DeviceItemHint;
+		public Boolean ConstantHint;
 	}
 }

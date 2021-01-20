@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 			.Concat(LightSocketMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		private void Start()
+		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
