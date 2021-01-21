@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using RedBlackTree;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 
@@ -36,34 +37,40 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffString("MSID", IsWideString = true, Pos = 1)]
 		public string Id = string.Empty;
 
-		[BiffString("DESC", IsWideString = true, Pos = 2)]
+		[BiffInt("MSII", Pos = 2)]
+		public int InternalId;
+
+		[BiffBool("MSNC", Pos = 3)]
+		public bool IsNormallyClosed = false;
+
+		[BiffString("DESC", IsWideString = true, Pos = 4)]
 		public string Description = string.Empty;
 
-		[BiffInt("SRCE", Pos = 3)]
+		[BiffInt("SRCE", Pos = 5)]
 		public int Source = SwitchSource.Playfield;
 
-		[BiffString("INPM", IsWideString = true, Pos = 4)]
+		[BiffString("INPM", IsWideString = true, Pos = 6)]
 		public string InputActionMap = string.Empty;
 
-		[BiffString("INPA", IsWideString = true, Pos = 5)]
+		[BiffString("INPA", IsWideString = true, Pos = 7)]
 		public string InputAction = string.Empty;
 
-		[BiffString("PITM", IsWideString = true, Pos = 6)]
+		[BiffString("PITM", IsWideString = true, Pos = 8)]
 		public string PlayfieldItem = string.Empty;
 
-		[BiffInt("CNST", Pos = 7)]
+		[BiffInt("CNST", Pos = 9)]
 		public int Constant;
 
-		[BiffString("DEVC", IsWideString = true, Pos = 8)]
+		[BiffString("DEVC", IsWideString = true, Pos = 10)]
 		public string Device = string.Empty;
 
-		[BiffString("DITM", IsWideString = true, Pos = 9)]
+		[BiffString("DITM", IsWideString = true, Pos = 11)]
 		public string DeviceItem = string.Empty;
 
-		[BiffInt("STYP", Pos = 10)]
+		[BiffInt("STYP", Pos = 12)]
 		public int Type = SwitchType.OnOff;
 
-		[BiffInt("PLSE", Pos = 11)]
+		[BiffInt("PLSE", Pos = 13)]
 		public int PulseDelay = 250;
 
 		#region BIFF

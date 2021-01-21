@@ -449,7 +449,7 @@ namespace VisualPinball.Unity.Editor
 						break;
 					}
 				case SwitchSource.Constant:
-					icon = Icons.Switch(wireListData.SourceConstant == SwitchConstant.NormallyClosed, IconSize.Small);
+					icon = Icons.Switch(wireListData.SourceConstant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:

@@ -23,17 +23,28 @@ namespace VisualPinball.Unity
 		public readonly string SwitchId;
 		public readonly int PulseDelay;
 		public bool IsPulseSwitch;
+		public bool IsNormallyClosed;
 
 		public SwitchConfig(MappingsSwitchData switchData)
 		{
 			SwitchId = switchData.Id;
 			IsPulseSwitch = false;
+			IsNormallyClosed = switchData.IsNormallyClosed;
 			PulseDelay = switchData.PulseDelay;
 		}
 
 		public SwitchConfig WithPulse(bool isPulseSwitch)
 		{
 			IsPulseSwitch = isPulseSwitch;
+			return this;
+		}
+		
+		public SwitchConfig WithDefault(SwitchDefault switchDefault)
+		{
+			if (switchDefault == SwitchDefault.Configurable) {
+				return this;
+			}
+			IsNormallyClosed = switchDefault == SwitchDefault.NormallyClosed;
 			return this;
 		}
 	}

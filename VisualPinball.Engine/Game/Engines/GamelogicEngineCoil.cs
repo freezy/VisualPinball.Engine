@@ -29,11 +29,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public GamelogicEngineCoil(string id)
 		{
 			Id = id;
-			if (int.TryParse(id, out var internalId)) {
-				InternalId = internalId;
-			} else {
-				InternalId = -1;
-			}
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 		}
 
 		public GamelogicEngineCoil(string id, int internalId)

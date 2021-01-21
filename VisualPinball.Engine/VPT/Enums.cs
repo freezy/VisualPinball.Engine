@@ -148,8 +148,8 @@ namespace VisualPinball.Engine.VPT
 
 	public static class SwitchConstant
 	{
-		public const int NormallyClosed = 0;
-		public const int NormallyOpen = 1;
+		public const int Closed = 0;
+		public const int Open = 1;
 	}
 
 	public static class SwitchType

@@ -43,12 +43,12 @@ namespace VisualPinball.Unity
 
 	public readonly struct SwitchEventArgs
 	{
-		public readonly bool IsClosed;
+		public readonly bool IsEnabled;
 		public readonly Entity BallEntity;
 
-		public SwitchEventArgs(bool isClosed, Entity ballEntity)
+		public SwitchEventArgs(bool isEnabled, Entity ballEntity)
 		{
-			IsClosed = isClosed;
+			IsEnabled = isEnabled;
 			BallEntity = ballEntity;
 		}
 	}

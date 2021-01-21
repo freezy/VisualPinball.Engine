@@ -57,13 +57,13 @@ namespace VisualPinball.Unity
 		void OnSlingshot(Entity ballEntity);
 	}
 
-	internal interface IApiSwitch : IApiSwitchStatus
+	internal interface IApiSwitch
 	{
 		/// <summary>
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
 		/// </summary>
 		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
-		void AddSwitchId(SwitchConfig switchConfig);
+		IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig);
 
 		/// <summary>
 		/// Set up this switch to directly trigger another game item (coil or lamp), or
@@ -87,6 +87,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitchStatus
 	{
+		bool IsSwitchEnabled { get; }
 		bool IsSwitchClosed { get; }
 	}
 

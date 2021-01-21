@@ -16,7 +16,12 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class SwitchHandler
 	{
-		public bool IsClosed;
+		/// <summary>
+		/// Whether the switch is enabled (or triggered, or "on"). Whether is the switch is
+		/// "closed" - the value sent to the gamelogic engine - depends on each of the linked
+		/// switch configuration's <see cref="SwitchConfig.IsNormallyClosed"/>.
+		/// </summary>
+		public bool IsEnabled;
 
 		private readonly string _name;
 		private readonly Player _player;
@@ -25,33 +30,39 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The list of switches that need to be triggered in the gamelogic engine.
 		/// </summary>
-		private List<SwitchConfig> _switchIds;
+		private List<SwitchConfig> _switches;
 
 		/// <summary>
 		/// The list of game items that are wired directly to this switch.
 		/// </summary>
 		private List<WireDestConfig> _wires;
 
+		private readonly Dictionary<string, ItemSwitchStatus> _switchStatuses = new Dictionary<string, ItemSwitchStatus>();
+
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public SwitchHandler(string name, Player player, bool isClosed = false)
+		public SwitchHandler(string name, Player player, bool isEnabled = false)
 		{
 			_name = name;
 			_player = player;
-			IsClosed = isClosed;
+			IsEnabled = isEnabled;
 		}
 
 		/// <summary>
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
 		/// </summary>
 		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
-		public void AddSwitchId(SwitchConfig switchConfig)
+		internal IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig)
 		{
-			if (_switchIds == null) {
-				_switchIds = new List<SwitchConfig>();
+			if (_switches == null) {
+				_switches = new List<SwitchConfig>();
 			}
-			_switchIds.Add(switchConfig);
+			var swStatus = new ItemSwitchStatus(switchConfig.IsNormallyClosed) { IsSwitchEnabled = IsEnabled };
+			_switches.Add(switchConfig);
+			_switchStatuses[switchConfig.SwitchId] = swStatus;
+
+			return swStatus;
 		}
 
 		/// <summary>
@@ -70,22 +81,24 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>
-		/// <param name="closed">Switch status</param>
-		internal void OnSwitch(bool closed)
+		/// <param name="enabled">Switch status</param>
+		internal void OnSwitch(bool enabled)
 		{
 			// handle switch -> gamelogic engine
-			if (Engine != null && _switchIds != null) {
-				foreach (var switchConfig in _switchIds) {
+			if (Engine != null && _switches != null) {
+				foreach (var switchConfig in _switches) {
 
 					// set new status now
-					Engine.Switch(switchConfig.SwitchId, closed);
+					Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled);
+					_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = enabled;
 
 					// if it's pulse, schedule to re-open
-					if (closed && switchConfig.IsPulseSwitch) {
+					if (enabled && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleAction(switchConfig.PulseDelay,
 							() => {
-								Engine.Switch(switchConfig.SwitchId, false);
-								IsClosed = false;
+								Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
+								IsEnabled = false;
+								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 #if UNITY_EDITOR
 								UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
@@ -106,7 +119,7 @@ namespace VisualPinball.Unity
 						case WireDestination.Device:
 							var device = _player.WireDevice(wireConfig.Device);
 							if (device != null) {
-								device.Wire(wireConfig.DeviceItem)?.OnChange(closed);
+								device.Wire(wireConfig.DeviceItem)?.OnChange(enabled);
 
 							} else {
 								Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
@@ -115,10 +128,10 @@ namespace VisualPinball.Unity
 					}
 
 					// close the switch now
-					dest?.OnChange(closed);
+					dest?.OnChange(enabled);
 
 					// if it's pulse, schedule to re-open
-					if (closed && wireConfig.IsPulseSource) {
+					if (enabled && wireConfig.IsPulseSource) {
 						if (dest != null) {
 							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay,
 								() => dest.OnChange(false));
@@ -128,20 +141,20 @@ namespace VisualPinball.Unity
 			}
 
 			// handle own status
-			IsClosed = closed;
+			IsEnabled = enabled;
 
 #if UNITY_EDITOR
 			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
 		}
 
-		internal void ScheduleSwitch(bool closed, int delay, Action<bool> onSwitched)
+		internal void ScheduleSwitch(bool enabled, int delay, Action<bool> onSwitched)
 		{
 			// handle switch -> gamelogic engine
-			if (Engine != null && _switchIds != null) {
-				foreach (var switchConfig in _switchIds) {
+			if (Engine != null && _switches != null) {
+				foreach (var switchConfig in _switches) {
 					SimulationSystemGroup.ScheduleAction(delay,
-						() => Engine.Switch(switchConfig.SwitchId, closed));
+						() => Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled));
 				}
 			} else {
 				Logger.Warn("Cannot schedule device switch.");
@@ -168,21 +181,34 @@ namespace VisualPinball.Unity
 					}
 
 					if (dest != null) {
-						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(closed));
+						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(enabled));
 					}
 				}
 			}
 
 			// handle own status
 			SimulationSystemGroup.ScheduleAction(delay, () => {
-				Debug.Log($"Setting scheduled switch {_name} to {closed}.");
-				IsClosed = closed;
+				Debug.Log($"Setting scheduled switch {_name} to {enabled}.");
+				IsEnabled = enabled;
 
 #if UNITY_EDITOR
 				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
-				onSwitched.Invoke(closed);
+				onSwitched.Invoke(enabled);
 			});
+		}
+	}
+
+	internal class ItemSwitchStatus : IApiSwitchStatus
+	{
+		private readonly bool _isNormallyClosed;
+
+		public bool IsSwitchEnabled { get; set; }
+		public bool IsSwitchClosed => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+
+		public ItemSwitchStatus(bool normallyClosed)
+		{
+			_isNormallyClosed = normallyClosed;
 		}
 	}
 }

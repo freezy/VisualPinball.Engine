@@ -82,6 +82,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 					Data.AddSwitch(new MappingsSwitchData {
 						Id = engineSwitch.Id,
+						InternalId = engineSwitch.InternalId,
+						IsNormallyClosed = engineSwitch.NormallyClosed,
 						Description = description,
 						Source = source,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
@@ -216,6 +218,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 					Data.AddCoil(new MappingsCoilData {
 						Id = engineCoil.Id,
+						InternalId = engineCoil.InternalId,
 						Description = description,
 						Destination = destination,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
@@ -236,6 +239,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 					var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
 					Data.AddCoil(new MappingsCoilData {
 						Id = holdCoil.MainCoilIdOfHoldCoil,
+						InternalId = holdCoil.InternalId,
 						Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
 						Destination = CoilDestination.Playfield,
 						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,

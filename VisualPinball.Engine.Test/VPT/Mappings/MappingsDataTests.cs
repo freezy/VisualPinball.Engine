@@ -90,12 +90,12 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Switches[3].Id.Should().Be("s_right_flipper");
 			data.Switches[3].Description.Should().Be("Right Flipper");
 			data.Switches[3].Source.Should().Be(SwitchSource.Constant);
-			data.Switches[3].Constant.Should().Be(SwitchConstant.NormallyClosed);
+			data.Switches[3].Constant.Should().Be(SwitchConstant.Closed);
 
 			data.Switches[3].Id.Should().Be("s_right_flipper");
 			data.Switches[3].Description.Should().Be("Right Flipper");
 			data.Switches[3].Source.Should().Be(SwitchSource.Constant);
-			data.Switches[3].Constant.Should().Be(SwitchConstant.NormallyClosed);
+			data.Switches[3].Constant.Should().Be(SwitchConstant.Closed);
 
 			data.Switches[7].Id.Should().Be("s_trough1");
 			data.Switches[7].Description.Should().Be("Trough 1 (eject)");

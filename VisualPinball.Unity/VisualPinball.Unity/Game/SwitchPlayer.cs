@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		private InputManager _inputManager;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		internal Dictionary<string, bool> SwitchStatuses => _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
+		internal Dictionary<string, bool> SwitchStatusesClosed => _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
 
 		internal IApiSwitch Switch(string itemName) => _switches.ContainsKey(itemName) ? _switches[itemName] : null;
 		internal IApiSwitch Switch(string device, string itemName) => _switchDevices.ContainsKey(device) ? _switchDevices[device].Switch(itemName) : null;
@@ -76,8 +76,8 @@ namespace VisualPinball.Unity
 							}
 
 							var element = _switches[switchData.PlayfieldItem];
-							element.AddSwitchId(new SwitchConfig(switchData));
-							_switchStatuses[switchData.Id] = element;
+							var switchStatus = element.AddSwitchDest(new SwitchConfig(switchData));
+							_switchStatuses[switchData.Id] = switchStatus;
 							break;
 						}
 
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 							if (!_keySwitchAssignments.ContainsKey(switchData.InputAction)) {
 								_keySwitchAssignments[switchData.InputAction] = new List<KeyboardSwitch>();
 							}
-							var keyboardSwitch = new KeyboardSwitch(switchData.Id);
+							var keyboardSwitch = new KeyboardSwitch(switchData.Id, switchData.IsNormallyClosed);
 							_keySwitchAssignments[switchData.InputAction].Add(keyboardSwitch);
 							_switchStatuses[switchData.Id] = keyboardSwitch;
 							break;
@@ -107,8 +107,8 @@ namespace VisualPinball.Unity
 							var device = _switchDevices[switchData.Device];
 							var deviceSwitch = device.Switch(switchData.DeviceItem);
 							if (deviceSwitch != null) {
-								deviceSwitch.AddSwitchId(new SwitchConfig(switchData));
-								_switchStatuses[switchData.Id] = deviceSwitch;
+								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchData));
+								_switchStatuses[switchData.Id] = switchStatus;
 
 							} else {
 								Logger.Error($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity
 						}
 
 						case SwitchSource.Constant:
-							_switchStatuses[switchData.Id] = new ConstantSwitch(switchData.Constant == SwitchConstant.NormallyClosed);
+							_switchStatuses[switchData.Id] = new ConstantSwitch(switchData.Constant == SwitchConstant.Closed);
 							break;
 
 						default:
@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 					if (_keySwitchAssignments.ContainsKey(action.name)) {
 						if (_gamelogicEngine != null) {
 							foreach (var sw in _keySwitchAssignments[action.name]) {
-								sw.IsSwitchClosed = change == InputActionChange.ActionStarted;
+								sw.IsSwitchEnabled = change == InputActionChange.ActionStarted;
 								_gamelogicEngine.Switch(sw.SwitchId, sw.IsSwitchClosed);
 							}
 						}
@@ -164,21 +164,26 @@ namespace VisualPinball.Unity
 	internal class KeyboardSwitch : IApiSwitchStatus
 	{
 		public readonly string SwitchId;
-		public bool IsSwitchClosed { get; set; }
+		public readonly bool IsNormallyClosed;
 
-		public KeyboardSwitch(string switchId)
+		public bool IsSwitchEnabled { get; set; }
+		public bool IsSwitchClosed => IsNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+
+		public KeyboardSwitch(string switchId, bool normallyClosed)
 		{
 			SwitchId = switchId;
+			IsNormallyClosed = normallyClosed;
 		}
 	}
 
 	internal class ConstantSwitch : IApiSwitchStatus
 	{
-		public bool IsSwitchClosed { get; }
+		public bool IsSwitchEnabled { get; }
+		public bool IsSwitchClosed => IsSwitchEnabled;
 
 		public ConstantSwitch(bool isSwitchClosed)
 		{
-			IsSwitchClosed = isSwitchClosed;
+			IsSwitchEnabled = isSwitchClosed;
 		}
 	}
 }

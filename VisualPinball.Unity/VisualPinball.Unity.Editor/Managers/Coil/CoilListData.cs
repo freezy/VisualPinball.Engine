@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		public string HoldCoilId;
 
 		public string Id;
+		public int InternalId;
 		public string PlayfieldItem;
 		public string Device;
 		public string DeviceItem;
@@ -47,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 
 		public CoilListData(MappingsCoilData mappingsCoilData) {
 			Id = mappingsCoilData.Id;
+			InternalId = mappingsCoilData.InternalId;
 			Description = mappingsCoilData.Description;
 			Destination = mappingsCoilData.Destination;
 			PlayfieldItem = mappingsCoilData.PlayfieldItem;
@@ -61,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			MappingsCoilData.Id = Id;
+			MappingsCoilData.InternalId = InternalId;
 			MappingsCoilData.Description = Description;
 			MappingsCoilData.Destination = Destination;
 			MappingsCoilData.PlayfieldItem = PlayfieldItem;

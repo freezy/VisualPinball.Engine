@@ -29,21 +29,22 @@ namespace VisualPinball.Unity.Editor
 	public class SwitchListViewItemRenderer
 	{
 		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant", "Device" };
-		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "NC - Normally Closed", "NO - Normally Open" };
+		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "Closed", "Open" };
 
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
 			public string ActionName;
-		};
+		}
 
 		private enum SwitchListColumn
 		{
 			Id = 0,
-			Description = 1,
-			Source = 2,
-			Element = 3,
-			PulseDelay = 4,
+			Nc = 1,
+			Description = 2,
+			Source = 3,
+			Element = 4,
+			PulseDelay = 5,
 		}
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches;
@@ -65,12 +66,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorGUI.BeginDisabledGroup(Application.isPlaying);
 			var switchStatuses = Application.isPlaying
-				? tableAuthoring.gameObject.GetComponent<Player>()?.SwitchStatuses
+				? tableAuthoring.gameObject.GetComponent<Player>()?.SwitchStatusesClosed
 				: null;
 			switch ((SwitchListColumn)column)
 			{
 				case SwitchListColumn.Id:
 					RenderId(switchStatuses, data, cellRect, updateAction);
+					break;
+				case SwitchListColumn.Nc:
+					RenderNc(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
@@ -90,9 +94,19 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderId(Dictionary<string, bool> switchStatuses, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
+			const float idWidth = 25f;
+			const float padding = 2f;
+
 			// add some padding
-			cellRect.x += 2;
-			cellRect.width -= 4;
+			cellRect.x += padding;
+			cellRect.width -= 2 * padding;
+
+			var dropdownRect = cellRect;
+			dropdownRect.width -= idWidth + 2 * padding;
+
+			var idRect = cellRect;
+			idRect.width = idWidth;
+			idRect.x += cellRect.width - idWidth;
 
 			var options = new List<string>(_gleSwitches.Select(entry => entry.Id).ToArray());
 			if (options.Count > 0) {
@@ -103,8 +117,8 @@ namespace VisualPinball.Unity.Editor
 			if (Application.isPlaying && switchStatuses != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
-				cellRect.x += 25;
-				cellRect.width -= 25;
+				dropdownRect.x += 25;
+				dropdownRect.width -= 25;
 				if (switchStatuses.ContainsKey(switchListData.Id)) {
 					var switchStatus = switchStatuses[switchListData.Id];
 					var icon = Icons.Switch(switchStatus, IconSize.Small, switchStatus ? IconColor.Orange : IconColor.Gray);
@@ -116,28 +130,41 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(switchListData.Id), options.ToArray());
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (index == options.Count - 1)
-				{
-					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", (newId) =>
-					{
-						if (_gleSwitches.Exists(entry => entry.Id == newId))
-						{
+			var index = EditorGUI.Popup(dropdownRect, options.IndexOf(switchListData.Id), options.ToArray());
+			if (EditorGUI.EndChangeCheck()) {
+				if (index == options.Count - 1) {
+					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", (newId) => {
+						if (_gleSwitches.Exists(entry => entry.Id == newId)) {
 							_gleSwitches.Add(new GamelogicEngineSwitch(newId));
 						}
-
 						switchListData.Id = newId;
 						updateAction(switchListData);
 					}));
-				}
-				else
-				{
+
+				} else {
 					switchListData.Id = _gleSwitches[index].Id;
 					updateAction(switchListData);
 				}
 			}
+
+			EditorGUI.BeginChangeCheck();
+			var value = EditorGUI.IntField(idRect, switchListData.InternalId);
+			if (EditorGUI.EndChangeCheck()) {
+				switchListData.InternalId = value;
+				updateAction(switchListData);
+			}
+		}
+
+		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			EditorGUI.BeginDisabledGroup(switchListData.Source == SwitchSource.Constant);
+			EditorGUI.BeginChangeCheck();
+			var value = EditorGUI.Toggle(cellRect, switchListData.NormallyClosed);
+			if (EditorGUI.EndChangeCheck()) {
+				switchListData.NormallyClosed = value;
+				updateAction(switchListData);
+			}
+			EditorGUI.EndDisabledGroup();
 		}
 
 		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
@@ -363,7 +390,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				}
 				case SwitchSource.Constant:
-					icon = Icons.Switch(switchListData.Constant == SwitchConstant.NormallyClosed, IconSize.Small);
+					icon = Icons.Switch(switchListData.Constant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:

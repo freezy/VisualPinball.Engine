@@ -29,11 +29,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public GamelogicEngineLamp(string id)
 		{
 			Id = id;
-			if (int.TryParse(id, out var internalId)) {
-				InternalId = internalId;
-			} else {
-				InternalId = -1;
-			}
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 		}
 
 		public GamelogicEngineLamp(string id, int internalId)

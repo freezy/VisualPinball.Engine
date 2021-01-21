@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 		/// Enables or disables a switch.
 		/// </summary>
 		/// <param name="id">Name of the switch, as defined by <see cref="AvailableSwitches"/>.</param>
-		/// <param name="isClosed">True for normally closed (NC) i.e. contact, a.k.a. "on". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
+		/// <param name="isClosed">True for normally closed (NC) i.e. contact, a.k.a. "enabled". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
 		void Switch(string id, bool isClosed);
 
 		#endregion
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 	public readonly struct CoilEventArgs
 	{
 		/// <summary>
-		/// Id of the coil, as defined by <see cref="IGamelogicEngineWithCoils.AvailableCoils"/>.
+		/// Id of the coil, as defined by <see cref="IGamelogicEngine.AvailableCoils"/>.
 		/// </summary>
 		public readonly string Id;
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 	public readonly struct LampEventArgs
 	{
 		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngineWithLamps.AvailableLamps"/>.
+		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.AvailableLamps"/>.
 		/// </summary>
 		public readonly string Id;
 
@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 	public readonly struct LampColorEventArgs
 	{
 		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngineWithLamps.AvailableLamps"/>.
+		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.AvailableLamps"/>.
 		/// </summary>
 		public readonly string Id;
 

@@ -20,22 +20,26 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListData : IManagerListData
 	{
-		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 120)]
+		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 150)]
 		public string Name => Id;
 
-		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
+		[ManagerListColumn(Order = 1, HeaderName = "NC", Width = 30)]
+		public bool NormallyClosed;
+
+		[ManagerListColumn(Order = 2, HeaderName = "Description", Width = 150)]
 		public string Description;
 
-		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 150)]
+		[ManagerListColumn(Order = 3, HeaderName = "Source", Width = 150)]
 		public int Source;
 
-		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
+		[ManagerListColumn(Order = 4, HeaderName = "Element", Width = 270)]
 		public string Element;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Pulse Delay", Width = 100)]
+		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
 		public int PulseDelay;
 
 		public string Id;
+		public int InternalId;
 		public string InputActionMap;
 		public string InputAction;
 		public string PlayfieldItem;
@@ -47,6 +51,8 @@ namespace VisualPinball.Unity.Editor
 
 		public SwitchListData(MappingsSwitchData mappingsSwitchData) {
 			Id = mappingsSwitchData.Id;
+			InternalId = mappingsSwitchData.InternalId;
+			NormallyClosed = mappingsSwitchData.IsNormallyClosed;
 			Description = mappingsSwitchData.Description;
 			Source = mappingsSwitchData.Source;
 			InputActionMap = mappingsSwitchData.InputActionMap;
@@ -63,6 +69,8 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			MappingsSwitchData.Id = Id;
+			MappingsSwitchData.InternalId = InternalId;
+			MappingsSwitchData.IsNormallyClosed = NormallyClosed;
 			MappingsSwitchData.Description = Description;
 			MappingsSwitchData.Source = Source;
 			MappingsSwitchData.InputActionMap = InputActionMap;

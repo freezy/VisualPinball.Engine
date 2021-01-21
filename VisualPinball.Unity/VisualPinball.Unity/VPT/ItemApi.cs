@@ -42,8 +42,6 @@ namespace VisualPinball.Unity
 
 		private protected EntityManager EntityManager;
 
-		private protected bool SwitchClosed => _switchHandler.IsClosed;
-
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;
@@ -82,9 +80,9 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, bool isOptoSwitch) => new DeviceSwitch(name, isPulseSwitch, isOptoSwitch, _player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, _player);
 
-		private protected void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig);
+		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig) => _switchHandler.AddSwitchDest(switchConfig);
 
 		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 

@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Editor
 			labelPos.height = 18;
 			var switchPos = new Rect((float) (labelPos.x + (double) EditorGUIUtility.labelWidth + 2.0), labelPos.y, labelPos.height, labelPos.height);
 			GUI.Label(labelPos, label);
-			GUI.DrawTexture(switchPos, Icons.Switch(sw.IsClosed, IconSize.Small, sw.IsClosed ? IconColor.Orange : IconColor.Gray));
+			GUI.DrawTexture(switchPos, Icons.Switch(sw.IsSwitchClosed, IconSize.Small, sw.IsSwitchClosed ? IconColor.Orange : IconColor.Gray));
 		}
 
 

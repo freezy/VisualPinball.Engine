@@ -90,8 +90,7 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		bool IApiSwitchStatus.IsSwitchClosed => SwitchClosed;
-		void IApiSwitch.AddSwitchId(SwitchConfig switchConfig) => AddSwitchId(switchConfig.WithPulse(Item.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 

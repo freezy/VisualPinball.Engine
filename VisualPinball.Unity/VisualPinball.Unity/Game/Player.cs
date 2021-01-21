@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 		internal IApiSwitch Switch(string n) => _switchPlayer.Switch(n);
 		internal IApiWireDest Wire(string n) => _wirePlayer.Wire(n);
 		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer.WireDevice(n);
-		public Dictionary<string, bool> SwitchStatuses => _switchPlayer.SwitchStatuses;
+		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
 

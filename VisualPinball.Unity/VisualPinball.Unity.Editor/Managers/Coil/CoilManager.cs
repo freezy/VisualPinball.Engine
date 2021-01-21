@@ -167,6 +167,7 @@ namespace VisualPinball.Unity.Editor
 			_tableAuthoring.Mappings.AddCoil(new MappingsCoilData
 			{
 				Id = data.Id,
+				InternalId = data.InternalId,
 				Description = data.Description,
 				Destination = data.Destination,
 				PlayfieldItem = data.PlayfieldItem,
