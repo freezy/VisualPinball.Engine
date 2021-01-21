@@ -28,7 +28,7 @@
     <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.6" />
+    <PackageReference Include="NLog" Version="4.7.7" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
     <PackageReference Include="NetMiniZ" Version="1.2.2" />
     <PackageReference Include="NetMiniZ.Native" Version="1.2.2" />
