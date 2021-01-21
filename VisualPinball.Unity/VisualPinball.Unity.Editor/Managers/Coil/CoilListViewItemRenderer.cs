@@ -103,9 +103,19 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderId(Dictionary<string, bool> coilStatuses, ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
+			const float idWidth = 25f;
+			const float padding = 2f;
+
 			// add some padding
-			cellRect.x += 2;
-			cellRect.width -= 4;
+			cellRect.x += padding;
+			cellRect.width -= 2 * padding;
+
+			var dropdownRect = cellRect;
+			dropdownRect.width -= idWidth + 2 * padding;
+
+			var idRect = cellRect;
+			idRect.width = idWidth;
+			idRect.x += cellRect.width - idWidth;
 
 			var options = new List<string>(_gleCoils.Select(entry => entry.Id).ToArray());
 			if (options.Count > 0) {
@@ -116,8 +126,8 @@ namespace VisualPinball.Unity.Editor
 			if (Application.isPlaying && coilStatuses != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
-				cellRect.x += 25;
-				cellRect.width -= 25;
+				dropdownRect.x += 25;
+				dropdownRect.width -= 25;
 				if (coilStatuses.ContainsKey(id)) {
 					var coilStatus = coilStatuses[id];
 					var icon = Icons.Bolt(IconSize.Small, coilStatus ? IconColor.Orange : IconColor.Gray);
@@ -129,10 +139,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(id), options.ToArray());
+			var index = EditorGUI.Popup(dropdownRect, options.IndexOf(id), options.ToArray());
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
-					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
+					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", newId => {
 						if (_gleCoils.Exists(entry => entry.Id == newId)) {
 							_gleCoils.Add(new GamelogicEngineCoil(newId));
 						}
@@ -145,6 +155,13 @@ namespace VisualPinball.Unity.Editor
 					setId(_gleCoils[index].Id);
 					updateAction(coilListData);
 				}
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var value = EditorGUI.IntField(idRect, coilListData.InternalId);
+			if (EditorGUI.EndChangeCheck()) {
+				coilListData.InternalId = value;
+				updateAction(coilListData);
 			}
 		}
 

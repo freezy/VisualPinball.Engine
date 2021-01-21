@@ -36,25 +36,28 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffString("MCID", IsWideString = true, Pos = 1)]
 		public string Id = string.Empty;
 
-		[BiffString("DESC", IsWideString = true, Pos = 2)]
+		[BiffInt("MCII", Pos = 2)]
+		public int InternalId;
+
+		[BiffString("DESC", IsWideString = true, Pos = 3)]
 		public string Description = string.Empty;
 
-		[BiffInt("DEST", Pos = 3)]
+		[BiffInt("DEST", Pos = 4)]
 		public int Destination = CoilDestination.Playfield;
 
-		[BiffString("PITM", IsWideString = true, Pos = 4)]
+		[BiffString("PITM", IsWideString = true, Pos = 5)]
 		public string PlayfieldItem = string.Empty;
 
-		[BiffString("DEVC", IsWideString = true, Pos = 5)]
+		[BiffString("DEVC", IsWideString = true, Pos = 6)]
 		public string Device = string.Empty;
 
-		[BiffString("DITM", IsWideString = true, Pos = 6)]
+		[BiffString("DITM", IsWideString = true, Pos = 7)]
 		public string DeviceItem = string.Empty;
 
-		[BiffInt("CTYP", Pos = 7)]
+		[BiffInt("CTYP", Pos = 8)]
 		public int Type = CoilType.SingleWound;
 
-		[BiffString("HCID", IsWideString = true, Pos = 8)]
+		[BiffString("HCID", IsWideString = true, Pos = 9)]
 		public string HoldCoilId = string.Empty;
 
 		#region BIFF

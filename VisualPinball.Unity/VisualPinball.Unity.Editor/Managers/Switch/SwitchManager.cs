@@ -167,6 +167,8 @@ namespace VisualPinball.Unity.Editor
 			_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData
 			{
 				Id = data.Id,
+				InternalId = data.InternalId,
+				IsNormallyClosed = data.NormallyClosed,
 				Description = data.Description,
 				Source = data.Source,
 				InputActionMap = data.InputActionMap,
@@ -209,7 +211,6 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitchIds()
 		{
 			_gleSwitches.Clear();
-
 			_gleSwitches.AddRange(_tableAuthoring.Table.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
 		}
 

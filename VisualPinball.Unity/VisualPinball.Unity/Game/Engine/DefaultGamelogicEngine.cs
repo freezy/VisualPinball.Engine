@@ -185,7 +185,7 @@ namespace VisualPinball.Unity
 
 					} else {
 						OnCoilChanged?.Invoke(this,
-							_player.SwitchStatuses[SwLeftFlipperEos]
+							_player.SwitchStatusesClosed[SwLeftFlipperEos]
 								? new CoilEventArgs(CoilLeftFlipperHold, false)
 								: new CoilEventArgs(CoilLeftFlipperMain, false)
 						);
@@ -204,7 +204,7 @@ namespace VisualPinball.Unity
 						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
 					} else {
 						OnCoilChanged?.Invoke(this,
-							_player.SwitchStatuses[SwRightFlipperEos]
+							_player.SwitchStatusesClosed[SwRightFlipperEos]
 								? new CoilEventArgs(CoilRightFlipperHold, false)
 								: new CoilEventArgs(CoilRightFlipperMain, false)
 						);

@@ -33,40 +33,34 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Indicates whether the switch is currently opened or closed.
 		/// </summary>
-		public bool IsClosed => _switchHandler.IsClosed;
-		public bool IsSwitchClosed => _switchHandler.IsClosed;
+		public bool IsEnabled => _switchHandler.IsEnabled;
 
 		/// <summary>
-		/// Indicates whether the switch is currently enabled.
+		/// Guesses whether the switch is closed or not.
 		/// </summary>
 		///
 		/// <remarks>
-		/// We sometimes need to check the status of a switch and don't care whether it's an opto switch (which returns
-		/// the inverted value) or not.
+		/// This is used in the trough inspector to render the switch states. We "guess", because
+		/// in case the switch default is configurable, we don't actually know, because then it depends
+		/// on each individual mapping.
 		/// </remarks>
-		public bool IsEnabled => _invertValue ? !IsClosed : IsClosed;
-
-		/// <summary>
-		/// If true, *setting* the switch will inverse the given value.
-		/// </summary>
-		///
-		/// <remarks>
-		/// This is important for opto switches since the work the other way around.
-		/// </remarks>
-		private readonly bool _invertValue;
+		public bool IsSwitchClosed => _switchDefault == SwitchDefault.NormallyClosed ? !IsEnabled : IsEnabled;
 
 		private readonly bool _isPulseSwitch;
+		private readonly SwitchDefault _switchDefault;
 		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(string name, bool isPulseSwitch, bool isOptoSwitch, Player player)
+		public DeviceSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault, Player player)
 		{
 			_isPulseSwitch = isPulseSwitch;
-			_invertValue = isOptoSwitch;
-			_switchHandler = new SwitchHandler(name, player, isOptoSwitch);
+			_switchDefault = switchDefault;
+			_switchHandler = new SwitchHandler(name, player);
 		}
 
-		public void AddSwitchId(SwitchConfig switchConfig) => _switchHandler.AddSwitchId(switchConfig.WithPulse(_isPulseSwitch));
-		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) =>
+			_switchHandler.AddSwitchDest(switchConfig.WithPulse(_isPulseSwitch).WithDefault(_switchDefault));
+		public void AddWireDest(WireDestConfig wireConfig) =>
+			_switchHandler.AddWireDest(wireConfig);
 		public void DestroyBall(Entity ballEntity) { } // device switches can't destroy balls
 
 		/// <summary>
@@ -75,9 +69,8 @@ namespace VisualPinball.Unity
 		/// <param name="enabled">If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</param>
 		public void SetSwitch(bool enabled)
 		{
-			var closed = _invertValue ? !enabled : enabled;
-			_switchHandler.OnSwitch(closed);
-			Switch?.Invoke(this, new SwitchEventArgs(closed, Entity.Null));
+			_switchHandler.OnSwitch(enabled);
+			Switch?.Invoke(this, new SwitchEventArgs(enabled, Entity.Null));
 		}
 
 		/// <summary>
@@ -90,11 +83,15 @@ namespace VisualPinball.Unity
 			if (delay == 0) {
 				SetSwitch(enabled);
 			} else {
-				var closed = _invertValue ? !enabled : enabled;
-				_switchHandler.ScheduleSwitch(closed, delay, c => {
-					Switch?.Invoke(this, new SwitchEventArgs(c, Entity.Null));
+				_switchHandler.ScheduleSwitch(enabled, delay, isEnabled => {
+					Switch?.Invoke(this, new SwitchEventArgs(isEnabled, Entity.Null));
 				});
 			}
 		}
+	}
+
+	public enum SwitchDefault
+	{
+		Configurable, NormallyClosed, NormallyOpen
 	}
 }

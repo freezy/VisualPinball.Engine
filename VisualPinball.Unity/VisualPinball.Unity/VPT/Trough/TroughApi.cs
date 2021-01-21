@@ -183,13 +183,13 @@ namespace VisualPinball.Unity
 
 			// setup switches
 			if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech) {
-				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false, false);
+				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false, SwitchDefault.NormallyOpen);
 				_switchLookup[Trough.EntrySwitchId] = EntrySwitch;
 			}
 
 			if (Data.Type == TroughType.TwoCoilsOneSwitch) {
 				_stackSwitches = new[] {
-					CreateSwitch(Trough.TroughSwitchId, false, false)
+					CreateSwitch(Trough.TroughSwitchId, false, SwitchDefault.NormallyOpen)
 				};
 				_switchLookup[Trough.TroughSwitchId] = StackSwitch();
 
@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 				_stackSwitches = new DeviceSwitch[Data.SwitchCount];
 				foreach (var sw in Item.AvailableSwitches) {
 					if (int.TryParse(sw.Id, out var id)) {
-						_stackSwitches[id - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto);
+						_stackSwitches[id - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
 						_switchLookup[sw.Id] = _stackSwitches[id - 1];
 
 					} else {
@@ -212,7 +212,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (Data.JamSwitch) {
-				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, Data.Type == TroughType.ModernOpto);
+				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
 				_switchLookup[Trough.JamSwitchId] = JamSwitch;
 			}
 
@@ -280,7 +280,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void OnEntry(object sender, SwitchEventArgs args)
 		{
-			if (args.IsClosed) {
+			if (args.IsEnabled) {
 				Logger.Info("Draining ball into trough.");
 				_drainSwitch.DestroyBall(args.BallEntity);
 				DrainBall();
@@ -557,8 +557,7 @@ namespace VisualPinball.Unity
 
 		private void OnLastStackSwitch(object sender, SwitchEventArgs switchEventArgs)
 		{
-			var enabled = Data.Type == TroughType.ModernOpto ? !switchEventArgs.IsClosed : switchEventArgs.IsClosed;
-			if (!enabled && UncountedStackBalls > 0) {
+			if (!switchEventArgs.IsEnabled && UncountedStackBalls > 0) {
 				RefreshUI();
 				UncountedStackBalls--;
 				RollOverEntryBall(Data.RollTime / 2);
