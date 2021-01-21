@@ -23,6 +23,7 @@ namespace VisualPinball.Engine.Game.Engines
 	public class GamelogicEngineSwitch
 	{
 		public string Id;
+		public int InternalId;
 		public string Description;
 		public string InputActionHint;
 		public string InputMapHint;
@@ -30,5 +31,21 @@ namespace VisualPinball.Engine.Game.Engines
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public Boolean ConstantHint;
+
+		public GamelogicEngineSwitch(string id)
+		{
+			Id = id;
+			if (int.TryParse(id, out var internalId)) {
+				InternalId = internalId;
+			} else {
+				InternalId = -1;
+			}
+		}
+
+		public GamelogicEngineSwitch(string id, int internalId)
+		{
+			Id = id;
+			InternalId = internalId;
+		}
 	}
 }

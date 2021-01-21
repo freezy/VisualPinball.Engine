@@ -56,19 +56,19 @@ namespace VisualPinball.Unity
 		private const string SwRedBumper = "s_red_bumper";
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
-			new GamelogicEngineSwitch { Id = SwLeftFlipper, Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
-			new GamelogicEngineSwitch { Id = SwRightFlipper, Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
-			new GamelogicEngineSwitch { Id = SwLeftFlipperEos, Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
-			new GamelogicEngineSwitch { Id = SwRightFlipperEos, Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
-			new GamelogicEngineSwitch { Id = SwPlunger, Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
-			new GamelogicEngineSwitch { Id = SwTroughDrain, Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntrySwitchId },
-			new GamelogicEngineSwitch { Id = SwTrough1, Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
-			new GamelogicEngineSwitch { Id = SwTrough2, Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
-			new GamelogicEngineSwitch { Id = SwTrough3, Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
-			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
-			new GamelogicEngineSwitch { Id = SwTrough4, Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
-			new GamelogicEngineSwitch { Id = SwCreateBall, Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug },
-			new GamelogicEngineSwitch { Id = SwRedBumper, Description = "Red Bumper", PlayfieldItemHint = "^Bumper1$" }
+			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
+			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
+			new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
+			new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+			new GamelogicEngineSwitch(SwPlunger) { Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
+			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntrySwitchId },
+			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
+			new GamelogicEngineSwitch(SwTrough2) { Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
+			new GamelogicEngineSwitch(SwTrough3) { Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
+			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
+			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
+			new GamelogicEngineSwitch(SwCreateBall) { Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug },
+			new GamelogicEngineSwitch(SwRedBumper) { Description = "Red Bumper", PlayfieldItemHint = "^Bumper1$" }
 		};
 
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";
@@ -80,13 +80,13 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEject = "c_trough_eject";
 
 		public GamelogicEngineCoil[] AvailableCoils { get; } = {
-			new GamelogicEngineCoil { Id = CoilLeftFlipperMain, Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
-			new GamelogicEngineCoil { Id = CoilLeftFlipperHold, MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
-			new GamelogicEngineCoil { Id = CoilRightFlipperMain, Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
-			new GamelogicEngineCoil { Id = CoilRightFlipperHold, MainCoilIdOfHoldCoil = CoilRightFlipperMain },
-			new GamelogicEngineCoil { Id = CoilAutoPlunger, Description = "Plunger", PlayfieldItemHint = "Plunger" },
-			new GamelogicEngineCoil { Id = CoilTroughEject, Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EjectCoilId},
-			new GamelogicEngineCoil { Id = CoilTroughEntry, Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId},
+			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
+			new GamelogicEngineCoil(CoilLeftFlipperHold) { MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
+			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
+			new GamelogicEngineCoil(CoilRightFlipperHold) { MainCoilIdOfHoldCoil = CoilRightFlipperMain },
+			new GamelogicEngineCoil(CoilAutoPlunger) { Description = "Plunger", PlayfieldItemHint = "Plunger" },
+			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EjectCoilId},
+			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId},
 		};
 
 		private const string GiSlingshotRightLower = "gi_1";
@@ -111,23 +111,23 @@ namespace VisualPinball.Unity
 
 		public GamelogicEngineLamp[] AvailableLamps { get; } =
 		{
-			new GamelogicEngineLamp { Id = GiSlingshotRightLower, Description = "Right Slingshot (lower)", PlayfieldItemHint = "gi1$" },
-			new GamelogicEngineLamp { Id = GiSlingshotRightUpper, Description = "Right Slingshot (upper)", PlayfieldItemHint = "gi2$" },
-			new GamelogicEngineLamp { Id = GiSlingshotLeftLower, Description = "Left Slingshot (lower)", PlayfieldItemHint = "gi3$" },
-			new GamelogicEngineLamp { Id = GiSlingshotLeftUpper, Description = "Left Slingshot (upper)", PlayfieldItemHint = "gi4$" },
-			new GamelogicEngineLamp { Id = GiDropTargetsRightLower, Description = "Right Drop Targets (lower)", PlayfieldItemHint = "gi5$" },
-			new GamelogicEngineLamp { Id = GiDropTargetsRightUpper, Description = "Right Drop Targets (upper)", PlayfieldItemHint = "gi8$" },
-			new GamelogicEngineLamp { Id = GiDropTargetsLeftLower, Description = "Left Drop Targets (lower)", PlayfieldItemHint = "gi6$" },
-			new GamelogicEngineLamp { Id = GiDropTargetsLeftUpper, Description = "Left Drop Targets (upper)", PlayfieldItemHint = "gi7$" },
-			new GamelogicEngineLamp { Id = GiTop1, Description = "Top 1 (left)", PlayfieldItemHint = "gi13$" },
-			new GamelogicEngineLamp { Id = GiTop2, Description = "Top 2", PlayfieldItemHint = "gi10$" },
-			new GamelogicEngineLamp { Id = GiTop3, Description = "Top 3", PlayfieldItemHint = "gi9$" },
-			new GamelogicEngineLamp { Id = GiTop4, Description = "Top 4", PlayfieldItemHint = "gi11$" },
-			new GamelogicEngineLamp { Id = GiTop5, Description = "Top 5 (right)", PlayfieldItemHint = "gi12$" },
-			new GamelogicEngineLamp { Id = GiLowerRamp, Description = "Ramp (lower)", PlayfieldItemHint = "gi14$" },
-			new GamelogicEngineLamp { Id = GiUpperRamp, Description = "Ramp (upper)", PlayfieldItemHint = "gi15$" },
-			new GamelogicEngineLamp { Id = GiTopLeftPlastic, Description = "Top Left Plastics", PlayfieldItemHint = "gi16$" },
-			new GamelogicEngineLamp { Id = LampRedBumper, Description = "Red Bumper", PlayfieldItemHint = "^b1l2$" }
+			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", PlayfieldItemHint = "gi1$" },
+			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", PlayfieldItemHint = "gi2$" },
+			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", PlayfieldItemHint = "gi3$" },
+			new GamelogicEngineLamp(GiSlingshotLeftUpper) { Description = "Left Slingshot (upper)", PlayfieldItemHint = "gi4$" },
+			new GamelogicEngineLamp(GiDropTargetsRightLower) { Description = "Right Drop Targets (lower)", PlayfieldItemHint = "gi5$" },
+			new GamelogicEngineLamp(GiDropTargetsRightUpper) { Description = "Right Drop Targets (upper)", PlayfieldItemHint = "gi8$" },
+			new GamelogicEngineLamp(GiDropTargetsLeftLower) { Description = "Left Drop Targets (lower)", PlayfieldItemHint = "gi6$" },
+			new GamelogicEngineLamp(GiDropTargetsLeftUpper) { Description = "Left Drop Targets (upper)", PlayfieldItemHint = "gi7$" },
+			new GamelogicEngineLamp(GiTop1) { Description = "Top 1 (left)", PlayfieldItemHint = "gi13$" },
+			new GamelogicEngineLamp(GiTop2) { Description = "Top 2", PlayfieldItemHint = "gi10$" },
+			new GamelogicEngineLamp(GiTop3) { Description = "Top 3", PlayfieldItemHint = "gi9$" },
+			new GamelogicEngineLamp(GiTop4) { Description = "Top 4", PlayfieldItemHint = "gi11$" },
+			new GamelogicEngineLamp(GiTop5) { Description = "Top 5 (right)", PlayfieldItemHint = "gi12$" },
+			new GamelogicEngineLamp(GiLowerRamp) { Description = "Ramp (lower)", PlayfieldItemHint = "gi14$" },
+			new GamelogicEngineLamp(GiUpperRamp) { Description = "Ramp (upper)", PlayfieldItemHint = "gi15$" },
+			new GamelogicEngineLamp(GiTopLeftPlastic) { Description = "Top Left Plastics", PlayfieldItemHint = "gi16$" },
+			new GamelogicEngineLamp(LampRedBumper) { Description = "Red Bumper", PlayfieldItemHint = "^b1l2$" }
 		};
 
 		private Player _player;

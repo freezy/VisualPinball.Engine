@@ -111,10 +111,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 			foreach (var mappingsSwitchData in Data.Switches) {
 				if (!ids.Exists(entry => entry.Id == mappingsSwitchData.Id))
 				{
-					ids.Add(new GamelogicEngineSwitch
-					{
-						Id = mappingsSwitchData.Id
-					});
+					ids.Add(new GamelogicEngineSwitch(mappingsSwitchData.Id));
 				}
 			}
 
@@ -300,11 +297,11 @@ namespace VisualPinball.Engine.VPT.Mappings
 			// then add coil ids that were added manually
 			foreach (var mappingsCoilData in Data.Coils) {
 				if (!coils.Exists(entry => entry.Id == mappingsCoilData.Id)) {
-					coils.Add(new GamelogicEngineCoil { Id = mappingsCoilData.Id });
+					coils.Add(new GamelogicEngineCoil(mappingsCoilData.Id));
 				}
 
 				if (!string.IsNullOrEmpty(mappingsCoilData.HoldCoilId) && !coils.Exists(entry => entry.Id == mappingsCoilData.HoldCoilId)) {
-					coils.Add(new GamelogicEngineCoil { Id = mappingsCoilData.HoldCoilId });
+					coils.Add(new GamelogicEngineCoil(mappingsCoilData.HoldCoilId));
 				}
 			}
 
@@ -410,9 +407,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 			// then add lamp ids that were added manually
 			foreach (var mappingsLampData in Data.Lamps) {
 				if (!lamps.Exists(entry => entry.Id == mappingsLampData.Id)) {
-					lamps.Add(new GamelogicEngineLamp {
-						Id = mappingsLampData.Id
-					});
+					lamps.Add(new GamelogicEngineLamp(mappingsLampData.Id));
 				}
 			}
 

@@ -16,13 +16,30 @@
 
 namespace VisualPinball.Engine.Game.Engines
 {
-	public struct GamelogicEngineLamp
+	public class GamelogicEngineLamp
 	{
 		public string Id;
+		public int InternalId;
 		public string Description;
 		public string PlayfieldItemHint;
 		public int TypeHint;
 		public string MainLampIdOfGreen;
 		public string MainLampIdOfBlue;
+
+		public GamelogicEngineLamp(string id)
+		{
+			Id = id;
+			if (int.TryParse(id, out var internalId)) {
+				InternalId = internalId;
+			} else {
+				InternalId = -1;
+			}
+		}
+
+		public GamelogicEngineLamp(string id, int internalId)
+		{
+			Id = id;
+			InternalId = internalId;
+		}
 	}
 }
