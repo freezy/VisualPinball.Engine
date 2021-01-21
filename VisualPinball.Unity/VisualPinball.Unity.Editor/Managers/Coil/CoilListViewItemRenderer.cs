@@ -134,9 +134,7 @@ namespace VisualPinball.Unity.Editor
 				if (index == options.Count - 1) {
 					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
 						if (_gleCoils.Exists(entry => entry.Id == newId)) {
-							_gleCoils.Add(new GamelogicEngineCoil {
-								Id = newId
-							});
+							_gleCoils.Add(new GamelogicEngineCoil(newId));
 						}
 
 						setId(newId);

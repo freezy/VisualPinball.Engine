@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "some_light", Description = "Some Light"}
+				new GamelogicEngineLamp("some_light") { Description = "Some Light"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "42", Description = "Light 42"}
+				new GamelogicEngineLamp("42") { Description = "Light 42"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -74,7 +74,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "11", Description = "Foobar", PlayfieldItemHint = "_foobar_"}
+				new GamelogicEngineLamp("11") { Description = "Foobar", PlayfieldItemHint = "_foobar_"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -94,7 +94,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "12", Description = "Foobar", PlayfieldItemHint = "^_foobar_$"}
+				new GamelogicEngineLamp("12") { Description = "Foobar", PlayfieldItemHint = "^_foobar_$"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -114,9 +114,9 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "rgb", Description = "RGB", PlayfieldItemHint = "rgb"},
-				new GamelogicEngineLamp {Id = "g", MainLampIdOfGreen = "rgb"},
-				new GamelogicEngineLamp {Id = "b", MainLampIdOfBlue = "rgb"}
+				new GamelogicEngineLamp("rgb") { Description = "RGB", PlayfieldItemHint = "rgb"},
+				new GamelogicEngineLamp("g") { MainLampIdOfGreen = "rgb"},
+				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -138,8 +138,8 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "g", Description = "RGB", MainLampIdOfGreen = "rgb"},
-				new GamelogicEngineLamp {Id = "b", MainLampIdOfBlue = "rgb"}
+				new GamelogicEngineLamp("g") { Description = "RGB", MainLampIdOfGreen = "rgb"},
+				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);
@@ -162,7 +162,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp {Id = "11" },
+				new GamelogicEngineLamp("11")
 			};
 
 			table.Mappings.PopulateLamps(gameEngineLamps, table.Lightables);

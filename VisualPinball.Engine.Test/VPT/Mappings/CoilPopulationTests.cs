@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "left_flipper", Description = "Left Flipper"}
+				new GamelogicEngineCoil("left_flipper") { Description = "Left Flipper"}
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "left_flipper_"}
+				new GamelogicEngineCoil("left_flipper_")
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "foobar", PlayfieldItemHint = "left_flipper"}
+				new GamelogicEngineCoil("foobar") { PlayfieldItemHint = "left_flipper"}
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -90,8 +90,8 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "left_flipper_power", PlayfieldItemHint = "left_flipper"},
-				new GamelogicEngineCoil {Id = "left_flipper_hold",  MainCoilIdOfHoldCoil = "left_flipper_power"},
+				new GamelogicEngineCoil("left_flipper_power") { PlayfieldItemHint = "left_flipper"},
+				new GamelogicEngineCoil("left_flipper_hold") {  MainCoilIdOfHoldCoil = "left_flipper_power"},
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -111,8 +111,8 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "left_flipper_power", PlayfieldItemHint = "left_flipper"},
-				new GamelogicEngineCoil {Id = "left_flipper_hold", MainCoilIdOfHoldCoil = "foobar"},
+				new GamelogicEngineCoil("left_flipper_power") { PlayfieldItemHint = "left_flipper"},
+				new GamelogicEngineCoil("left_flipper_hold") { MainCoilIdOfHoldCoil = "foobar"},
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -136,7 +136,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "eject_trough", DeviceHint = "my_trough", DeviceItemHint = "eject"}
+				new GamelogicEngineCoil("eject_trough") { DeviceHint = "my_trough", DeviceItemHint = "eject"}
 			};
 
 			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
@@ -154,7 +154,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			var table = new TableBuilder().Build();
 			table.Mappings.Data.AddCoil(new MappingsCoilData {Id = "zzz"});
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil {Id = "yyy" }
+				new GamelogicEngineCoil("yyy")
 			};
 			var coils = table.Mappings.GetCoils(gameEngineCoils).ToArray();
 			coils[0].Id.Should().Be("yyy");

@@ -125,10 +125,7 @@ namespace VisualPinball.Unity.Editor
 					{
 						if (_gleSwitches.Exists(entry => entry.Id == newId))
 						{
-							_gleSwitches.Add(new GamelogicEngineSwitch
-							{
-								Id = newId
-							});
+							_gleSwitches.Add(new GamelogicEngineSwitch(newId));
 						}
 
 						switchListData.Id = newId;

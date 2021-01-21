@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "bumper_1"}
+				new GamelogicEngineSwitch("bumper_1")
 			};
 
 			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "23"}
+				new GamelogicEngineSwitch("23")
 			};
 
 			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "bumper_"}
+				new GamelogicEngineSwitch("bumper_")
 			};
 
 			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
@@ -90,7 +90,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "23", PlayfieldItemHint = "foobar_bumper"}
+				new GamelogicEngineSwitch("23") {PlayfieldItemHint = "foobar_bumper"}
 			};
 
 			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
@@ -109,7 +109,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 				.Build();
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "88", DeviceHint = "some_trough", DeviceItemHint = "1"}
+				new GamelogicEngineSwitch("88") { DeviceHint = "some_trough", DeviceItemHint = "1"}
 			};
 
 			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
@@ -128,7 +128,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Mappings.Data.AddSwitch(new MappingsSwitchData {Id = "bbb"});
 
 			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch {Id = "aaa", DeviceHint = "some_trough", DeviceItemHint = "1"}
+				new GamelogicEngineSwitch("aaa") {DeviceHint = "some_trough", DeviceItemHint = "1"}
 			};
 			var switches = table.Mappings.GetSwitchIds(gameEngineSwitches).ToArray();
 

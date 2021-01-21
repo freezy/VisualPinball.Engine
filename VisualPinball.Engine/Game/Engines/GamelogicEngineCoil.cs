@@ -19,10 +19,27 @@ namespace VisualPinball.Engine.Game.Engines
 	public class GamelogicEngineCoil
 	{
 		public string Id;
+		public int InternalId;
 		public string Description;
 		public string PlayfieldItemHint;
 		public string MainCoilIdOfHoldCoil;
 		public string DeviceHint;
 		public string DeviceItemHint;
+
+		public GamelogicEngineCoil(string id)
+		{
+			Id = id;
+			if (int.TryParse(id, out var internalId)) {
+				InternalId = internalId;
+			} else {
+				InternalId = -1;
+			}
+		}
+
+		public GamelogicEngineCoil(string id, int internalId)
+		{
+			Id = id;
+			InternalId = internalId;
+		}
 	}
 }
