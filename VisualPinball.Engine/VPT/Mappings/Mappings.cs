@@ -90,7 +90,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 						InputActionMap = inputActionMap,
 						InputAction = inputAction,
 						Device = device != null ? device.Name : string.Empty,
-						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
 					});
 				}
 			}
@@ -125,6 +126,10 @@ namespace VisualPinball.Engine.VPT.Mappings
 		{
 			if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
 				return SwitchSource.Device;
+			}
+
+			if (engineSwitch.ConstantHint != SwitchConstantHint.None) {
+				return SwitchSource.Constant;
 			}
 
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;

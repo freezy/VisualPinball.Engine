@@ -20,18 +20,43 @@ using System;
 
 namespace VisualPinball.Engine.Game.Engines
 {
+	/// <summary>
+	/// A switch declaration.<p/>
+	///
+	/// Gamelogic engines and switch devices use this to announce which inputs
+	/// they expect.
+	/// </summary>
+	///
+	/// <remarks>
+	/// This class isn't used during gameplay, but serves to declare the properties
+	/// that will then used in the mapping.
+	/// </remarks>
 	public class GamelogicEngineSwitch
 	{
+		/// <summary>
+		/// A unique identifier. This is what VPE uses to identify a switch.
+		/// </summary>
 		public readonly string Id;
+
+		/// <summary>
+		/// A numerical identifier that can be used in gamelogic engines that
+		/// are tied to numerical identifiers.
+		/// </summary>
 		public readonly int InternalId;
+
+		/// <summary>
+		/// If true, inverts the signal, i.e. disabled switches return "closed" (true),
+		/// while enabled switched return "open" (false).
+		/// </summary>
 		public bool NormallyClosed;
+
 		public string Description;
 		public string InputActionHint;
 		public string InputMapHint;
 		public string PlayfieldItemHint;
 		public string DeviceHint;
 		public string DeviceItemHint;
-		public Boolean ConstantHint;
+		public SwitchConstantHint ConstantHint = SwitchConstantHint.None;
 
 		public GamelogicEngineSwitch(string id)
 		{
@@ -44,5 +69,10 @@ namespace VisualPinball.Engine.Game.Engines
 			Id = id;
 			InternalId = internalId;
 		}
+	}
+
+	public enum SwitchConstantHint
+	{
+		None, AlwaysOpen, AlwaysClosed
 	}
 }
