@@ -255,8 +255,16 @@ namespace VisualPinball.Engine.VPT.Mappings
 			}
 		}
 
-		private static int GuessCoilDestination(GamelogicEngineCoil engineCoil)
+		private int GuessCoilDestination(GamelogicEngineCoil engineCoil)
 		{
+			if (engineCoil.IsLamp) {
+				Data.AddLamp(new MappingsLampData {
+					Id = engineCoil.Id,
+					Description = engineCoil.Description,
+					Destination = LampDestination.Playfield
+				});
+				return CoilDestination.Lamp;
+			}
 			return !string.IsNullOrEmpty(engineCoil.DeviceHint) ? CoilDestination.Device : CoilDestination.Playfield;
 		}
 

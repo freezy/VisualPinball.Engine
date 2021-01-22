@@ -96,8 +96,26 @@ namespace VisualPinball.Unity
 
 		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
 		{
-			if (enabled) {
+			if (Data.IsDualWound) {
+				OnDualWoundCoil(enabled, isHoldCoil);
+			} else {
+				OnSingleWoundCoil(enabled);
+			}
+		}
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
+		private void OnSingleWoundCoil(bool enabled)
+		{
+			if (enabled) {
+				RotateToEnd();
+			} else {
+				RotateToStart();
+			}
+		}
+
+		private void OnDualWoundCoil(bool enabled, bool isHoldCoil)
+		{
+			if (enabled) {
 				if (!isHoldCoil) {
 					RotateToEnd();
 				}
@@ -115,7 +133,6 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
 		#region Events
 

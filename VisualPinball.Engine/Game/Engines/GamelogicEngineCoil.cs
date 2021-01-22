@@ -25,6 +25,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public string MainCoilIdOfHoldCoil;
 		public string DeviceHint;
 		public string DeviceItemHint;
+		public bool IsLamp;
 
 		public GamelogicEngineCoil(string id)
 		{
