@@ -60,6 +60,11 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffString("HCID", IsWideString = true, Pos = 9)]
 		public string HoldCoilId = string.Empty;
 
+		public override string ToString()
+		{
+			return $"coil {Id} ({InternalId}) {Description}";
+		}
+
 		#region BIFF
 
 		static MappingsCoilData()

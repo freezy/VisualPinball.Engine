@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 						case CoilDestination.Playfield:
 
 							if (string.IsNullOrEmpty(coilData.PlayfieldItem)) {
-								Logger.Warn($"Ignoring unassigned coil \"{coilData.Id}\".");
+								Logger.Warn($"Ignoring unassigned coil {coilData}");
 								break;
 							}
 
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 							// mapping values must be set
 							if (string.IsNullOrEmpty(coilData.Device) || string.IsNullOrEmpty(coilData.DeviceItem)) {
-								Logger.Warn($"Ignoring unassigned device coil \"{coilData.Id}\".");
+								Logger.Warn($"Ignoring unassigned device coil {coilData}");
 								break;
 							}
 
