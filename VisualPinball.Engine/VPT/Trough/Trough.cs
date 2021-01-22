@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.VPT.Trough
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
 						return Enumerable.Repeat(0, Data.SwitchCount)
-							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}")
+							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) })
 							.Concat(Data.JamSwitch
 								? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}
@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT.Trough
 						return new[] {
 							new GamelogicEngineSwitch(EntrySwitchId) { Description = "Entry Switch" }
 						}.Concat(Enumerable.Repeat(0, Data.SwitchCount)
-							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}")
+							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) } )
 						).Concat(Data.JamSwitch
 							? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}

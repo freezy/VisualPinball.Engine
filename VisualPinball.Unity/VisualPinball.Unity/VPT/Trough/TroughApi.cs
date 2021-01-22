@@ -196,12 +196,9 @@ namespace VisualPinball.Unity
 			} else {
 				_stackSwitches = new DeviceSwitch[Data.SwitchCount];
 				foreach (var sw in Item.AvailableSwitches) {
-					if (int.TryParse(sw.Id, out var id)) {
-						_stackSwitches[id - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
-						_switchLookup[sw.Id] = _stackSwitches[id - 1];
-
-					} else {
-						Logger.Warn($"Unknown switch ID {sw.Id}");
+					if (sw.InternalId > 0) {
+						_stackSwitches[sw.InternalId - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+						_switchLookup[sw.Id] = _stackSwitches[sw.InternalId - 1];
 					}
 				}
 
