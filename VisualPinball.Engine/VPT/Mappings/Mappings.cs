@@ -261,7 +261,8 @@ namespace VisualPinball.Engine.VPT.Mappings
 				Data.AddLamp(new MappingsLampData {
 					Id = engineCoil.Id,
 					Description = engineCoil.Description,
-					Destination = LampDestination.Playfield
+					Destination = LampDestination.Playfield,
+					Source = LampSource.Coils
 				});
 				return CoilDestination.Lamp;
 			}

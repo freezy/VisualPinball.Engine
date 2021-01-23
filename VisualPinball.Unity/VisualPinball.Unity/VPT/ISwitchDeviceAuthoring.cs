@@ -29,5 +29,7 @@ namespace VisualPinball.Unity
 		/// A list of available switches supported by the switch device
 		/// </summary>
 		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
+		
+		SwitchDefault SwitchDefault { get; }
 	}
 }

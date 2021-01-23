@@ -157,14 +157,32 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(switchListData.Source == SwitchSource.Constant);
-			EditorGUI.BeginChangeCheck();
+			// don't render for constants
+			if (switchListData.Source == SwitchSource.Constant) {
+				return;
+			}
+
+			// check if it's linked to a switch device, and whether the switch device handles no/nc itself
+			var switchDefault = switchListData.Source == SwitchSource.Device
+				? _switchDevices.ContainsKey(switchListData.Device.ToLower())
+					? _switchDevices[switchListData.Device.ToLower()].SwitchDefault
+					: SwitchDefault.Configurable
+				: SwitchDefault.Configurable;
+
+			// if it handles it itself, just render the checkbox
+			if (switchDefault != SwitchDefault.Configurable) {
+				EditorGUI.BeginDisabledGroup(true);
+				EditorGUI.Toggle(cellRect, switchDefault == SwitchDefault.NormallyClosed);
+				EditorGUI.EndDisabledGroup();
+				return;
+			}
+
+			// otherwise, let the user toggle
 			var value = EditorGUI.Toggle(cellRect, switchListData.NormallyClosed);
 			if (EditorGUI.EndChangeCheck()) {
 				switchListData.NormallyClosed = value;
 				updateAction(switchListData);
 			}
-			EditorGUI.EndDisabledGroup();
 		}
 
 		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
