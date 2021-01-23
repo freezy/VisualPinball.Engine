@@ -22,8 +22,10 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
@@ -36,6 +38,7 @@ namespace VisualPinball.Unity
 	{
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Item.AvailableSwitches;
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
+		public SwitchDefault SwitchDefault => Item.Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
 
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
