@@ -112,6 +112,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public void RemoveAllCoils()
 		{
 			Coils = Array.Empty<MappingsCoilData>();
+			Lamps = Lamps.Where(l => l.Source != LampSource.Coils).ToArray();
 		}
 
 		#endregion
@@ -149,7 +150,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		public void RemoveAllLamps()
 		{
-			Lamps = Array.Empty<MappingsLampData>();
+			Lamps = Lamps.Where(l => l.Source == LampSource.Coils).ToArray();
 		}
 
 		#endregion

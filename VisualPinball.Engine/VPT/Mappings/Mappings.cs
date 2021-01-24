@@ -362,7 +362,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
-				var lampMapping = Data.Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id);
+				var lampMapping = Data.Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Source != LampSource.Coils);
 				if (lampMapping == null) {
 
 					// we'll handle those in a second loop when all the R lamps are added
