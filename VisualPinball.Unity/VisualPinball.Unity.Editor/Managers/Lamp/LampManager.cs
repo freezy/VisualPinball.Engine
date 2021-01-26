@@ -43,6 +43,15 @@ namespace VisualPinball.Unity.Editor
 
 		private LampListViewItemRenderer _listViewItemRenderer;
 
+		public static void Refresh()
+		{
+			if (HasOpenInstances<LampManager>()) {
+				var f = EditorWindow.focusedWindow;
+				GetWindow<LampManager>().Reload();
+				FocusWindowIfItsOpen(f.GetType());
+			}
+		}
+
 		private class SerializedMappings : ScriptableObject
 		{
 			public TableAuthoring Table;
