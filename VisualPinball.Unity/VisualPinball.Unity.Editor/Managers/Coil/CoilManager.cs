@@ -100,7 +100,7 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo("Populate all coil mappings");
 				_tableAuthoring.Table.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.Table.Coilables, _tableAuthoring.Table.CoilableDevices);
 				Reload();
-				GetWindow<LampManager>().Reload();
+				LampManager.Refresh();
 			}
 
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 					_tableAuthoring.Mappings.RemoveAllCoils();
 				}
 				Reload();
-				GetWindow<LampManager>().Reload();
+				LampManager.Refresh();
 			}
 		}
 
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity.Editor
 				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
 					_tableAuthoring.Mappings.RemoveLamp(lampEntry);
-					GetWindow<LampManager>().Reload();
+					LampManager.Refresh();
 				}
 			}
 		}

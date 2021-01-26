@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
 					lampEntry.Id = id;
-					EditorWindow.GetWindow<LampManager>().Reload();
+					LampManager.Refresh();
 				}
 			}
 			data.Id = id;
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity.Editor
 						var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
 						if (lampEntry != null) {
 							_tableAuthoring.Mappings.RemoveLamp(lampEntry);
-							EditorWindow.GetWindow<LampManager>().Reload();
+							LampManager.Refresh();
 						}
 
 					} else if (index == CoilDestination.Lamp) {
@@ -198,7 +198,7 @@ namespace VisualPinball.Unity.Editor
 							Source = LampSource.Coils,
 							Description = coilListData.Description
 						});
-						EditorWindow.GetWindow<LampManager>().Reload();
+						LampManager.Refresh();
 					}
 					coilListData.Destination = index;
 					updateAction(coilListData);
