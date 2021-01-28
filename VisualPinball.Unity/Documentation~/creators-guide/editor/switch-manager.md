@@ -10,6 +10,7 @@ Wiring these switches up to the gamelogic engine with code can be a tedious proc
 You can open the switch manager under *Visual Pinball -> Switch Manager*.
 
 ![Switch Manager](switch-manager.png)
+<small>Switch matrix from *Medieval Madness*.</small>
 
 ## Setup
 
@@ -17,10 +18,27 @@ Imagine every row as a wire connecting the physical switch to the gamelogic engi
 
 ### IDs
 
-The first column **ID** shows the names of each switch that the gamelogic engine is aware of.
+The first column **ID** shows the names of each switch that the gamelogic engine is aware of. There are two values to fill out here:
+
+1. The first, the dropdown value, is the ID that *VPE* will use to identify the switch. 
+2. The second, an integer value, is the ID the *gamelogic engine* is using.
+
+This allows the gamelogic engine to make certain switches more explicit. For example, PinMAME has the same switch mapping all ROMs of a given game. These switches have a readable ID, which then translates into the numeric "magic value" that PinMAME uses internally.
+
+![Switch Manager](switch-manager-ids.png)
+<small>Global PinMAME switches of WPC games.</small>
 
 > [!note]
 > As we cannot be 100% sure that the gamelogic engine has accurate data about the switch names, you can also add switch IDs yourself, but those should be the exception.
+
+### NC
+
+The "NC" stands for **Normally Closed**. Internally, VPE treats a switch as *enabled* or *disabled*. Enabled means the ball is currently on it, or a button is pressed. However, the gamelogic engine doesn't care about enabled or disabled, what it cares about is whether the switch is *closed* or *open*.
+
+So if "NC" is set to true, VPE will keep the switch closed when it's disabled, and open it when it gets enabled. If false, it's the other way around. An example of such a switch would be opto-switches, where a light beam closes the circuit per default, and a ball rolling through the beam opens it.
+
+> [!note]
+> In the very first screenshot, you'll notice that trough switches are all normally closed. This is because MM uses a modern trough with opto-switches. There is also the coin door we'd like to have closed per default and open the switch when the coin door is open.
 
 ### Description
 
