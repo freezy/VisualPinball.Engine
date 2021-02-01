@@ -33,12 +33,14 @@ This allows the gamelogic engine to make certain switches more explicit. For exa
 
 ### NC
 
-The "NC" stands for **Normally Closed**. Internally, VPE treats a switch as *enabled* or *disabled*. Enabled means the ball is currently on it, or a button is pressed. However, the gamelogic engine doesn't care about enabled or disabled, what it cares about is whether the switch is *closed* or *open*.
+The "NC" stands for **Normally Closed**. In short, enabling this inverts the value sent to the gamelogic engine.
 
-So if "NC" is set to true, VPE will keep the switch closed when it's disabled, and open it when it gets enabled. If false, it's the other way around. An example of such a switch would be opto-switches, where a light beam closes the circuit by default, and a ball rolling through the beam opens it.
+As for the long explanation, think about how switches work. Mechanical switches are usually *normally open (NO)*, meaning they are open by default and close when the ball rolls over them (or, if it's a button, when the button is pressed). 
+
+But some switches behave differently. In opto-switches for instance, the light beam closes the circuit by default, and a ball rolling through it (and thus blocking the light) opens the switch. These type of switches are *normally closed (NC)*.
 
 > [!note]
-> In the very first screenshot, you'll notice that trough switches are all normally closed. This is because MM uses a modern trough with opto-switches. There is also the coin door we'd like to have closed per default and open the switch when the coin door is open.
+> In the very first screenshot, you'll notice that the trough switches are normally closed. This is because MM uses a modern trough with opto-switches. There is also the coin door we'd like to have closed by default and open the switch when the coin door is open.
 
 ### Description
 
