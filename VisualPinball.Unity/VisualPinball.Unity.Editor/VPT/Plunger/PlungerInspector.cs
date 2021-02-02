@@ -58,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Z Adjustment", ref Data.ZAdjust);
 				ItemDataSlider("Park Position (0..1)", ref Data.ParkPosition, 0, 1, false, (before, after) => {
 					ItemAuthoring.UpdateParkPosition(1 - after);
+					SceneView.RepaintAll();
 				});
 
 				EditorGUILayout.LabelField("Custom Settings");

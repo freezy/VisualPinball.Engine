@@ -77,7 +77,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					return new RenderObject(
 						id,
 						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
-						new PbrMaterial(id: $"__plunger_flat {_data.Name}", material: mat, map: tex, vertexLerp: true),
+						new PbrMaterial(id: $"__plunger_flat_{_data.Name}", material: mat, map: tex, vertexLerp: true),
 						true
 					);
 				case Rod:
@@ -86,7 +86,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					return new RenderObject(
 						id,
 						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-						new PbrMaterial(id: $"__plunger_rod {_data.Name}", material: mat, map: tex, vertexLerp: true),
+						new PbrMaterial(id: $"__plunger_rod_{_data.Name}", material: mat, map: tex, vertexLerp: true),
 						true
 					);
 				case Spring:
@@ -95,7 +95,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					return new RenderObject(
 						id,
 						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
-						new PbrMaterial(id: $"__plunger_spring {_data.Name}", material: mat, map: tex, vertexLerp: true),
+						new PbrMaterial(id: $"__plunger_spring_{_data.Name}", material: mat, map: tex, vertexLerp: true),
 						true
 					);
 				default:
