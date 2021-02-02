@@ -37,9 +37,7 @@ namespace VisualPinball.Unity
 				// maximum retracted position)
 				var pos = (movementData.Position - staticData.FrameEnd) / staticData.FrameLen;
 
-				// todo | If "mech plunger" is enabled, read the mechanical plunger
-				// todo | position; otherwise treat it as fixed at 0.
-				const float mech = 0f; //staticData.IsMechPlunger ? MechPlunger() : 0.0f;
+				var mech = staticData.IsMechPlunger ? movementData.AnalogPosition : 0.0f;
 
 				// calculate the delta from the last reading
 				var dMech = velocityData.Mech0 - mech;

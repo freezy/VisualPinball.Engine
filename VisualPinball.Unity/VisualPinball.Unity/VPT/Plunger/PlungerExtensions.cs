@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using Logger = NLog.Logger;
@@ -31,7 +32,10 @@ namespace VisualPinball.Unity
 
 		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj)
 		{
-			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
+			var mainAuthoring = obj.AddComponent<PlungerAuthoring>();
+			var inputManager = new InputManager("Assets/Resources");
+			mainAuthoring.analogPlungerAction = inputManager.GetActionReference(InputConstants.MapCabinetSwitches, InputConstants.ActionPlungerAnalog);
+			mainAuthoring.SetItem(plunger);
 			var meshAuthoring = new List<IItemMeshAuthoring>();
 			PlungerColliderAuthoring colliderAuthoring = null;
 
