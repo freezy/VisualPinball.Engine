@@ -13,6 +13,7 @@ Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/25
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html))
 
 ### Changed
+- Plunger is now a coil device, meaning it can both be pulled back and fired through different inputs.
 - Move render pipelines into separate repos ([#259](https://github.com/freezy/VisualPinball.Engine/pull/259))
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)) 
 
