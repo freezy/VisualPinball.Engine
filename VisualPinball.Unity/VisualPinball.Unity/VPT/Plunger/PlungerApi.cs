@@ -94,12 +94,12 @@ namespace VisualPinball.Unity
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			// todo distinguish between manual pull and auto-plunge
-			// if (enabled) {
-			// 	PullBack();
-			// } else {
-			// 	Fire();
-			// }
-			Fire();
+			if (enabled) {
+				PullBack();
+			} else {
+				Fire();
+			}
+			//Fire();
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);

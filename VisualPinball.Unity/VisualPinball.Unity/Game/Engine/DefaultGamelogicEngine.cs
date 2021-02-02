@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
 
+		private const bool DualWoundFlippers = false;
+
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
 		private const string SwRightFlipper = "s_right_flipper";
@@ -180,42 +182,10 @@ namespace VisualPinball.Unity
 			switch (id) {
 
 				case SwLeftFlipper:
-					if (isClosed) {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, true));
-
-					} else {
-						OnCoilChanged?.Invoke(this,
-							_player.SwitchStatusesClosed[SwLeftFlipperEos]
-								? new CoilEventArgs(CoilLeftFlipperHold, false)
-								: new CoilEventArgs(CoilLeftFlipperMain, false)
-						);
-					}
-					break;
-
 				case SwLeftFlipperEos:
-					if (isClosed) {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
-					}
-					break;
-
 				case SwRightFlipper:
-					if (isClosed) {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
-					} else {
-						OnCoilChanged?.Invoke(this,
-							_player.SwitchStatusesClosed[SwRightFlipperEos]
-								? new CoilEventArgs(CoilRightFlipperHold, false)
-								: new CoilEventArgs(CoilRightFlipperMain, false)
-						);
-					}
-					break;
-
 				case SwRightFlipperEos:
-					if (isClosed) {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
-					}
+					Flip(id, isClosed);
 					break;
 
 				case SwPlunger:
@@ -265,6 +235,64 @@ namespace VisualPinball.Unity
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
 			Logger.Info("Coil {0} set to {1}.", e.Id, e.IsEnabled);
+		}
+
+		private void Flip(string id, bool isClosed)
+		{
+			switch (id) {
+
+				case SwLeftFlipper:
+					if (DualWoundFlippers) {
+						if (isClosed) {
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, true));
+
+						} else {
+							OnCoilChanged?.Invoke(this,
+								_player.SwitchStatusesClosed[SwLeftFlipperEos]
+									? new CoilEventArgs(CoilLeftFlipperHold, false)
+									: new CoilEventArgs(CoilLeftFlipperMain, false)
+							);
+						}
+					} else {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, isClosed));
+					}
+
+					break;
+
+				case SwLeftFlipperEos:
+					if (DualWoundFlippers) {
+						if (isClosed) {
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
+						}
+					}
+					break;
+
+				case SwRightFlipper:
+					if (DualWoundFlippers) {
+						if (isClosed) {
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
+						} else {
+							OnCoilChanged?.Invoke(this,
+								_player.SwitchStatusesClosed[SwRightFlipperEos]
+									? new CoilEventArgs(CoilRightFlipperHold, false)
+									: new CoilEventArgs(CoilRightFlipperMain, false)
+							);
+						}
+					} else {
+						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, isClosed));
+					}
+					break;
+
+				case SwRightFlipperEos:
+					if (DualWoundFlippers) {
+						if (isClosed) {
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
+							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
+						}
+					}
+					break;
+			}
 		}
 	}
 }
