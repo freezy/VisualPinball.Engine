@@ -107,6 +107,9 @@ namespace VisualPinball.Engine.VPT.Mappings
 		public void RemoveCoil(MappingsCoilData data)
 		{
 			Coils = Coils.Except(new[] { data }).ToArray();
+			if (data.Destination == CoilDestination.Lamp) {
+				Lamps = Lamps.Where(l => l.Id == data.Id && l.Source == LampSource.Coils).ToArray();
+			}
 		}
 
 		public void RemoveAllCoils()
