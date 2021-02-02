@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Linq;
 using System.Text;
 using VisualPinball.Engine.Common;
@@ -47,6 +46,7 @@ namespace VisualPinball.Engine.VPT
 		private const string NameNoMap = "__no_map";
 		private const string NameNoNormalMap = "__no_normal_map";
 		private const string NameNoEnvMap = "__no_env_map";
+		private const string NameNoLerp = "__no_lerp";
 
 		/// <summary>
 		/// A unique ID based on the material and its maps.
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.VPT
 					Map?.Name.ToNormalizedName() ?? NameNoMap,
 					NormalMap?.Name.ToNormalizedName() ?? NameNoNormalMap,
 					EnvMap?.Name.ToNormalizedName() ?? NameNoEnvMap,
-					vertexLerp ? "skinned" : string.Empty
+					vertexLerp ? "skinned" : NameNoLerp
 				}
 				.Reverse()
 				.SkipWhile(s => s.StartsWith("__no_"))
@@ -127,6 +127,7 @@ namespace VisualPinball.Engine.VPT
 			sb.AppendLine($"Map             {Map?.ToString() ?? "none"}".Trim());
 			sb.AppendLine($"MapBlendMode    {MapBlendMode}");
 			sb.AppendLine($"NormalMap       {NormalMap?.ToString() ?? "none"}".Trim());
+			sb.AppendLine($"Skinned?        {VertexLerpWithUvEnabled}");
 
 			return sb.ToString();
 		}

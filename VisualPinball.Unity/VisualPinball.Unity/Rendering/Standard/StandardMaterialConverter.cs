@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 		{
 			UnityEngine.Material defaultMaterial = GetDefaultMaterial(vpxMaterial.MapBlendMode);
 
-			var unityMaterial = new UnityEngine.Material(GetShader());
+			var unityMaterial = new UnityEngine.Material(GetShader(vpxMaterial));
 			unityMaterial.CopyPropertiesFromMaterial(defaultMaterial);
 			unityMaterial.name = vpxMaterial.Id;
 
