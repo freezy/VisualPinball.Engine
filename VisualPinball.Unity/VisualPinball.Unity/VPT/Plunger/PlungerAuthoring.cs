@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -34,6 +35,8 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 
+		public InputActionReference analogPlungerAction;
+
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
@@ -47,7 +50,7 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, analogPlungerAction);
 
 			Item.Init(table);
 			var hit = Item.PlungerHit;
@@ -61,6 +64,7 @@ namespace VisualPinball.Unity
 				FrameLen = hit.FrameLen,
 				RestPosition = hit.RestPos,
 				IsAutoPlunger = Data.AutoPlunger,
+				IsMechPlunger = Data.IsMechPlunger,
 				SpeedFire = Data.SpeedFire,
 				NumFrames = Item.MeshGenerator.NumFrames
 			});

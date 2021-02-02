@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Bumper;
@@ -71,6 +72,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
 		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
 		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
+		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
 
 		public Player()
 		{
@@ -141,6 +143,10 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnDestroy();
 			_lampPlayer.OnDestroy();
 			_wirePlayer.OnDestroy();
+
+			foreach (var (action, callback) in _actions) {
+				action.performed -= callback;
+			}
 		}
 
 		#endregion
@@ -220,7 +226,7 @@ namespace VisualPinball.Unity
 			_wirePlayer.RegisterWire(lamp, lightApi);
 		}
 
-		public void RegisterPlunger(Plunger plunger, Entity entity, GameObject go)
+		public void RegisterPlunger(Plunger plunger, Entity entity, InputActionReference actionRef)
 		{
 			var plungerApi = new PlungerApi(plunger, entity, this);
 			TableApi.Plungers[plunger.Name] = plungerApi;
@@ -229,6 +235,11 @@ namespace VisualPinball.Unity
 			_rotatables[entity] = plungerApi;
 			_coilPlayer.RegisterCoilDevice(plunger, plungerApi);
 			_wirePlayer.RegisterWireDevice(plunger, plungerApi);
+
+			if (actionRef != null) {
+				actionRef.action.performed += plungerApi.OnAnalogPlunge;
+				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
+			}
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)

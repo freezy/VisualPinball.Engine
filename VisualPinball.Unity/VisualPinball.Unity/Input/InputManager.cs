@@ -118,15 +118,23 @@ namespace VisualPinball.Unity
 			return list;
 		}
 
+		public InputActionReference GetActionReference(string mapName, string actionName)
+		{
+			var map = _asset.FindActionMap(mapName);
+			var action = map.FindAction(actionName);
+			var iar = InputActionReference.Create(action);
+			iar.Set(_asset, mapName, actionName);
+			return iar;
+		}
+
 		public static InputActionAsset GetDefaultInputActionAsset()
 		{
 			var asset = ScriptableObject.CreateInstance<InputActionAsset>();
-
 			var map = new InputActionMap(InputConstants.MapCabinetSwitches);
 			map.AddAction(InputConstants.ActionUpperLeftFlipper, InputActionType.Button, "<Keyboard>/a");
 			map.AddAction(InputConstants.ActionUpperRightFlipper, InputActionType.Button, "<Keyboard>/quote");
-			map.AddAction(InputConstants.ActionLeftFlipper, InputActionType.Button, "<Keyboard>/leftShift");
-			map.AddAction(InputConstants.ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift");
+			map.AddAction(InputConstants.ActionLeftFlipper, InputActionType.Button, "<Keyboard>/leftShift").AddBinding("<Gamepad>/leftShoulder");
+			map.AddAction(InputConstants.ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift").AddBinding("<Gamepad>/rightShoulder");;
 			map.AddAction(InputConstants.ActionRightMagnasave, InputActionType.Button, "<Keyboard>/rightCtrl");
 			map.AddAction(InputConstants.ActionLeftMagnasave, InputActionType.Button, "<Keyboard>/leftCtrl");
 			map.AddAction(InputConstants.ActionFire1, InputActionType.Button, "<Keyboard>/leftCtrl");
@@ -134,6 +142,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionFrontBuyIn, InputActionType.Button, "<Keyboard>/2");
 			map.AddAction(InputConstants.ActionStartGame, InputActionType.Button, "<Keyboard>/1");
 			map.AddAction(InputConstants.ActionPlunger, InputActionType.Button, "<Keyboard>/enter");
+			map.AddAction(InputConstants.ActionPlungerAnalog, InputActionType.Button, "<Gamepad>/rightStick/down");
 			map.AddAction(InputConstants.ActionInsertCoin1, InputActionType.Button, "<Keyboard>/3");
 			map.AddAction(InputConstants.ActionInsertCoin2, InputActionType.Button, "<Keyboard>/4");
 			map.AddAction(InputConstants.ActionInsertCoin3, InputActionType.Button, "<Keyboard>/5");

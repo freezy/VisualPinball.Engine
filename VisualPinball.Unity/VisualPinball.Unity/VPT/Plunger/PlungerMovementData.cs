@@ -152,5 +152,12 @@ namespace VisualPinball.Unity
 		/// if we stop at one of the ends for a while.
 		/// </summary>
 		public bool StrokeEventsArmed;
+
+		/// <summary>
+		/// The analog position read from the gamepad or plunger.
+		///
+		/// Between 0 (rest position) and 1f (fully retracted).
+		/// </summary>
+		public float AnalogPosition;
 	}
 }

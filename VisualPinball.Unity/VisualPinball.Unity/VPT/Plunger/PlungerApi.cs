@@ -16,6 +16,8 @@
 
 using System;
 using Unity.Entities;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
@@ -59,6 +61,14 @@ namespace VisualPinball.Unity
 
 		internal PlungerApi(Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
+		}
+
+		internal void OnAnalogPlunge(InputAction.CallbackContext ctx)
+		{
+			var pos = ctx.ReadValue<float>(); // 0 = resting pos, 1 = pulled back
+			var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
+			movementData.AnalogPosition = pos;
+			EntityManager.SetComponentData(Entity, movementData);
 		}
 
 		void IApiInitializable.OnInit(BallManager ballManager)

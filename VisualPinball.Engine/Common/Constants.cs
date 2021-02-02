@@ -136,6 +136,7 @@ namespace VisualPinball.Engine.Common
 		public const string ActionFrontBuyIn = "Front (buy-in)";
 		public const string ActionStartGame = "Start Game";
 		public const string ActionPlunger = "Plunger";
+		public const string ActionPlungerAnalog = "Plunger (analog)";
 		public const string ActionInsertCoin1 = "Insert Coin Slot 1";
 		public const string ActionInsertCoin2 = "Insert Coin Slot 2";
 		public const string ActionInsertCoin3 = "Insert Coin Slot 3";

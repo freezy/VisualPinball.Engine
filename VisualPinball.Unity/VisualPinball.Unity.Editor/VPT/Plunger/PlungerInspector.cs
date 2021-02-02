@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -42,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 			SurfaceField("Surface", ref Data.Surface);
 
 			OnPreInspectorGUI();
+
+			ItemAuthoring.analogPlungerAction = (InputActionReference)EditorGUILayout.ObjectField("Analog Key", ItemAuthoring.analogPlungerAction, typeof(InputActionReference), false);
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.Type, PlungerTypeLabels, PlungerTypeValues, onChanged: ItemAuthoring.OnTypeChanged);
