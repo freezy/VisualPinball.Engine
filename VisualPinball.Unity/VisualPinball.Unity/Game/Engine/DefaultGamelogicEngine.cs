@@ -53,7 +53,6 @@ namespace VisualPinball.Unity
 		private const string SwTrough2 = "s_trough2";
 		private const string SwTrough3 = "s_trough3";
 		private const string SwTrough4 = "s_trough4";
-		private const string SwPlunger = "s_plunger";
 		private const string SwCreateBall = "s_create_ball";
 		private const string SwRedBumper = "s_red_bumper";
 
@@ -62,7 +61,6 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
 			new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
 			new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
-			new GamelogicEngineSwitch(SwPlunger) { Description = "Plunger", InputActionHint = InputConstants.ActionPlunger },
 			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntrySwitchId },
 			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
 			new GamelogicEngineSwitch(SwTrough2) { Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
@@ -77,7 +75,6 @@ namespace VisualPinball.Unity
 		private const string CoilLeftFlipperHold = "c_flipper_left_hold";
 		private const string CoilRightFlipperMain = "c_flipper_right_main";
 		private const string CoilRightFlipperHold = "c_flipper_right_hold";
-		private const string CoilAutoPlunger = "c_auto_plunger";
 		private const string CoilTroughEntry = "c_trough_entry";
 		private const string CoilTroughEject = "c_trough_eject";
 
@@ -86,7 +83,6 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil(CoilLeftFlipperHold) { MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
 			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
 			new GamelogicEngineCoil(CoilRightFlipperHold) { MainCoilIdOfHoldCoil = CoilRightFlipperMain },
-			new GamelogicEngineCoil(CoilAutoPlunger) { Description = "Plunger", PlayfieldItemHint = "Plunger" },
 			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EjectCoilId},
 			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = Trough.EntryCoilId},
 		};
@@ -186,10 +182,6 @@ namespace VisualPinball.Unity
 				case SwRightFlipper:
 				case SwRightFlipperEos:
 					Flip(id, isClosed);
-					break;
-
-				case SwPlunger:
-					OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilAutoPlunger, isClosed));
 					break;
 
 				case SwTrough4:

@@ -227,8 +227,8 @@ namespace VisualPinball.Unity
 			_apis.Add(plungerApi);
 			_initializables.Add(plungerApi);
 			_rotatables[entity] = plungerApi;
-			_coilPlayer.RegisterCoil(plunger, plungerApi);
-			_wirePlayer.RegisterWire(plunger, plungerApi);
+			_coilPlayer.RegisterCoilDevice(plunger, plungerApi);
+			_wirePlayer.RegisterWireDevice(plunger, plungerApi);
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, GameObject go)
