@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Game.Engines;
@@ -170,6 +171,64 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			var coils = table.Mappings.GetCoils(gameEngineCoils).ToArray();
 			coils[0].Id.Should().Be("yyy");
 			coils[1].Id.Should().Be("zzz");
+		}
+
+		[Test]
+		public void ShouldAddLamps()
+		{
+			var table = new TableBuilder().Build();
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil("yyy") { IsLamp = true }
+			};
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+
+			table.Mappings.Data.Coils.Length.Should().Be(1);
+			table.Mappings.Data.Lamps.Length.Should().Be(1);
+			table.Mappings.Data.Lamps[0].Id.Should().Be("yyy");
+			table.Mappings.Data.Lamps[0].Source.Should().Be(LampSource.Coils);
+		}
+
+		[Test]
+		public void ShouldDeleteLamp()
+		{
+			var table = new TableBuilder().Build();
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil("yyy") { IsLamp = true }
+			};
+			table.Mappings.Data.AddLamp(new MappingsLampData { Id = "yyy" });
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+			table.Mappings.Data.RemoveCoil(table.Mappings.Data.Coils[0]);
+			table.Mappings.Data.Coils.Length.Should().Be(0);
+			table.Mappings.Data.Lamps.Length.Should().Be(1);
+		}
+
+		[Test]
+		public void ShouldDeleteCoilLamps()
+		{
+			var table = new TableBuilder().Build();
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil("yyy") { IsLamp = true },
+				new GamelogicEngineCoil("zzz") { IsLamp = true }
+			};
+			table.Mappings.Data.AddLamp(new MappingsLampData { Id = "yyy" });
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+			table.Mappings.Data.RemoveAllCoils();
+			table.Mappings.Data.Coils.Length.Should().Be(0);
+			table.Mappings.Data.Lamps.Length.Should().Be(1);
+		}
+
+		[Test]
+		public void ShouldNotDeleteCoilLamps()
+		{
+			var table = new TableBuilder().Build();
+			var gameEngineCoils = new[] {
+				new GamelogicEngineCoil("yyy") { IsLamp = true },
+				new GamelogicEngineCoil("zzz") { IsLamp = true }
+			};
+			table.Mappings.Data.AddLamp(new MappingsLampData { Id = "yyy" });
+			table.Mappings.PopulateCoils(gameEngineCoils, table.Coilables, table.CoilableDevices);
+			table.Mappings.Data.RemoveAllLamps();
+			table.Mappings.Data.Lamps.Length.Should().Be(2);
 		}
 	}
 }
