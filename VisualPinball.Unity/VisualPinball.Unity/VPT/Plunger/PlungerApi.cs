@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoil
+	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -37,6 +37,21 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<StrokeEventArgs> LimitEos;
 
+		/// <summary>
+		/// This starts moving the plunger back, until the coil is turned off, which
+		/// will then fire the coil.
+		/// </summary>
+		///
+		/// <remarks>
+		/// It's only technically a coil, in the real world it's the player's hand. ;)
+		/// </remarks>
+		public DeviceCoil PullCoil;
+
+		/// <summary>
+		/// Auto-fires the plunger.
+		/// </summary>
+		public DeviceCoil FireCoil;
+
 		// todo
 		public event EventHandler Timer;
 
@@ -44,6 +59,15 @@ namespace VisualPinball.Unity
 
 		internal PlungerApi(Plunger item, Entity entity, Player player) : base(item, entity, player)
 		{
+		}
+
+		void IApiInitializable.OnInit(BallManager ballManager)
+		{
+			base.OnInit(ballManager);
+			Init?.Invoke(this, EventArgs.Empty);
+
+			PullCoil = new DeviceCoil(PullBack, Fire);
+			FireCoil = new DeviceCoil(Fire);
 		}
 
 		public void PullBack()
@@ -91,26 +115,23 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
 
-		void IApiCoil.OnCoil(bool enabled, bool _)
+		IApiCoil IApiCoilDevice.Coil(string coilId)
 		{
-			// todo distinguish between manual pull and auto-plunge
-			if (enabled) {
-				PullBack();
-			} else {
-				Fire();
+			switch (coilId) {
+				case Plunger.FireCoil:
+					return FireCoil;
+
+				case Plunger.PullCoil:
+					return PullCoil;
+
+				default:
+					return null;
 			}
-			//Fire();
 		}
 
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
 
 		#region Events
-
-		void IApiInitializable.OnInit(BallManager ballManager)
-		{
-			base.OnInit(ballManager);
-			Init?.Invoke(this, EventArgs.Empty);
-		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
 		{

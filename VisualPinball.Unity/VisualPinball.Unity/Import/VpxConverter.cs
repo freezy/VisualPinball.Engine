@@ -23,6 +23,8 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -34,6 +36,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -112,6 +115,20 @@ namespace VisualPinball.Unity
 			if (_table.Mappings.IsEmpty()) {
 				_table.Mappings.PopulateSwitches(dga.AvailableSwitches, table.Switchables, table.SwitchableDevices);
 				_table.Mappings.PopulateCoils(dga.AvailableCoils, table.Coilables, table.CoilableDevices);
+
+				// wire up plunger
+				var plunger = _table.Plunger();
+				if (plunger != null) {
+					_table.Mappings.Data.AddWire(new MappingsWireData {
+						Description = "Plunger",
+						Source = SwitchSource.InputSystem,
+						SourceInputActionMap = InputConstants.MapCabinetSwitches,
+						SourceInputAction = InputConstants.ActionPlunger,
+						Destination = WireDestination.Device,
+						DestinationDevice = plunger.Name,
+						DestinationDeviceItem = Plunger.PullCoil
+					});
+				}
 			}
 
 			// don't need that anymore.

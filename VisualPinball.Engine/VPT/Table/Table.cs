@@ -122,7 +122,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Kicker.Kicker Kicker(string name) => _kickers[name];
 		public Light.Light Light(string name) => _lights[name];
 		public LightSeq.LightSeq LightSeq(string name) => _lightSeqs[name];
-		public Plunger.Plunger Plunger(string name) => _plungers[name];
+		public Plunger.Plunger Plunger(string name = null) => name == null ? _plungers.Values.First() : _plungers[name];
 		public Flasher.Flasher Flasher(string name) => _flashers[name];
 		public Primitive.Primitive Primitive(string name) => _primitives[name];
 		public Ramp.Ramp Ramp(string name) => _ramps[name];
@@ -243,11 +243,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public IEnumerable<ICoilable> Coilables => new ICoilable[0]
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
-			.Concat(_kickers.Values)
-			.Concat(_plungers.Values);
+			.Concat(_kickers.Values);
 
 		public IEnumerable<ICoilableDevice> CoilableDevices => new ICoilableDevice[0]
-			.Concat(_troughs.Values);
+			.Concat(_troughs.Values)
+			.Concat(_plungers.Values);
 
 		public IEnumerable<ILightable> Lightables => new ILightable[0]
 			.Concat(_lights.Values)

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -27,9 +28,11 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
-		ICoilAuthoring, IConvertGameObjectToEntity
+		ICoilDeviceAuthoring, IConvertGameObjectToEntity
 	{
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
