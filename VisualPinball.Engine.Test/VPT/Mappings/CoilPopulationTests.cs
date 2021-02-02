@@ -47,6 +47,17 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		}
 
 		[Test]
+		public void ShouldCorrectlyPrintCoilInfo()
+		{
+			var coil = new MappingsCoilData {
+				Id = "c_left_flipper",
+				InternalId = 12,
+				Description = "Left Flipper"
+			};
+			coil.ToString().Should().Be("coil c_left_flipper (12) Left Flipper");
+		}
+
+		[Test]
 		public void ShouldNotMapACoilWithADifferentName()
 		{
 			var table = new TableBuilder()
