@@ -28,12 +28,12 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public override string ItemName { get; } = "Plunger";
 		public override string ItemGroupName { get; } = "Plungers";
 
-		public const string PullCoil = "c_pull";
-		public const string FireCoil = "c_autofire";
+		public const string PullCoilId = "c_pull";
+		public const string FireCoilId = "c_autofire";
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils { get; } = new[] {
-			new GamelogicEngineCoil(PullCoil) {Description = "Pull back"},
-			new GamelogicEngineCoil(FireCoil) {Description = "Auto-fire"},
+			new GamelogicEngineCoil(PullCoilId) {Description = "Pull back"},
+			new GamelogicEngineCoil(FireCoilId) {Description = "Auto-fire"},
 		};
 
 		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
