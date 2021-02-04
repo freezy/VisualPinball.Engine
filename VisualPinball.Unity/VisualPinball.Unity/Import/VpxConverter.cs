@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 						SourceInputAction = InputConstants.ActionPlunger,
 						Destination = WireDestination.Device,
 						DestinationDevice = plunger.Name,
-						DestinationDeviceItem = Plunger.PullCoil
+						DestinationDeviceItem = Plunger.PullCoilId
 					});
 				}
 			}

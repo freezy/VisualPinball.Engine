@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
 		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
+		private static readonly int UVChannelVertices = Shader.PropertyToID("_UVChannelVertices");
+		private static readonly int UVChannelNormals = Shader.PropertyToID("_UVChannelNormals");
 
 		protected override void OnUpdate()
 		{
@@ -43,7 +45,8 @@ namespace VisualPinball.Unity
 
 				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
 				renderMesh.material.SetFloat(LerpPosition, weight);
-
+				renderMesh.material.SetFloat(UVChannelVertices, Engine.VPT.Mesh.AnimationUVChannelVertices);
+				renderMesh.material.SetFloat(UVChannelNormals, Engine.VPT.Mesh.AnimationUVChannelNormals);
 				marker.End();
 
 			}).Run();

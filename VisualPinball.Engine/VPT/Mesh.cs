@@ -41,7 +41,10 @@ namespace VisualPinball.Engine.VPT
 		public bool IsSet => Vertices != null && Indices != null;
 
 		public List<VertData[]> AnimationFrames = new List<VertData[]>();
-		public float AnimationDefaultPosition = 0f;
+		public float AnimationDefaultPosition;
+
+		public const int AnimationUVChannelVertices = 2;
+		public const int AnimationUVChannelNormals = 3;
 
 		public Mesh() { }
 

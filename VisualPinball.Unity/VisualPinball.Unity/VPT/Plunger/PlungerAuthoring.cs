@@ -41,6 +41,8 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
 		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
+		private static readonly int UVChannelVertices = Shader.PropertyToID("_UVChannelVertices");
+		private static readonly int UVChannelNormals = Shader.PropertyToID("_UVChannelNormals");
 
 		private void Start()
 		{
@@ -195,6 +197,8 @@ namespace VisualPinball.Unity
 
 		public void UpdateParkPosition(float pos)
 		{
+			SetMaterialProperty<PlungerFlatMeshAuthoring>(UVChannelVertices, Engine.VPT.Mesh.AnimationUVChannelVertices);
+			SetMaterialProperty<PlungerFlatMeshAuthoring>(UVChannelNormals, Engine.VPT.Mesh.AnimationUVChannelNormals);
 			switch (Data.Type) {
 				case PlungerType.PlungerTypeFlat: {
 					SetMaterialProperty<PlungerFlatMeshAuthoring>(LerpPosition, pos);

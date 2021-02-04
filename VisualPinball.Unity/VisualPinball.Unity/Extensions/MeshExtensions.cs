@@ -119,10 +119,9 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < vpMesh.Vertices.Length; i++) {
 					deltaVertices[i] = blendVertices[i].ToUnityVector3() - vertices[i];
 					deltaNormals[i] = blendVertices[i].ToUnityNormalVector3() - normals[i];
-					deltaNormals[i].Normalize();
 				}
-				mesh.SetUVs(2, deltaVertices);
-				mesh.SetUVs(3, deltaNormals);
+				mesh.SetUVs(Engine.VPT.Mesh.AnimationUVChannelVertices, deltaVertices);
+				mesh.SetUVs(Engine.VPT.Mesh.AnimationUVChannelNormals, deltaNormals);
 
 			} else if (vpMesh.AnimationFrames.Count > 0) {
 
