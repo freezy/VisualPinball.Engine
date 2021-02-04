@@ -32,10 +32,7 @@ namespace VisualPinball.Unity
 
 		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj)
 		{
-			var mainAuthoring = obj.AddComponent<PlungerAuthoring>();
-			var inputManager = new InputManager("Assets/Resources");
-			mainAuthoring.analogPlungerAction = inputManager.GetActionReference(InputConstants.MapCabinetSwitches, InputConstants.ActionPlungerAnalog);
-			mainAuthoring.SetItem(plunger);
+			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
 			var meshAuthoring = new List<IItemMeshAuthoring>();
 			PlungerColliderAuthoring colliderAuthoring = null;
 

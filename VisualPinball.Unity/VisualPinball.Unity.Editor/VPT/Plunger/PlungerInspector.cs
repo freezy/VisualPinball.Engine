@@ -44,7 +44,10 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
+			ItemDataField("Mechanical Plunger", ref Data.IsMechPlunger, false);
+			EditorGUI.BeginDisabledGroup(!Data.IsMechPlunger);
 			ItemAuthoring.analogPlungerAction = (InputActionReference)EditorGUILayout.ObjectField("Analog Key", ItemAuthoring.analogPlungerAction, typeof(InputActionReference), false);
+			EditorGUI.EndDisabledGroup();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.Type, PlungerTypeLabels, PlungerTypeValues, onChanged: ItemAuthoring.OnTypeChanged);

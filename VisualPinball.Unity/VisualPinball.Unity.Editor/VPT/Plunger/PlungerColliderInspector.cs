@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Release Speed", ref Data.SpeedFire, false);
 			ItemDataField("Stroke Length", ref Data.Stroke, false);
 			ItemDataField("Scatter Velocity", ref Data.ScatterVelocity, false);
-			ItemDataField("Enable Mechanical Plunger", ref Data.IsMechPlunger, false);
 			ItemDataField("Auto Plunger", ref Data.AutoPlunger, false);
 			ItemDataField("Visible", ref Data.IsVisible);
 			ItemDataField("Mech Strength", ref Data.MechStrength, false);

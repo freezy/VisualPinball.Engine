@@ -118,15 +118,6 @@ namespace VisualPinball.Unity
 			return list;
 		}
 
-		public InputActionReference GetActionReference(string mapName, string actionName)
-		{
-			var map = _asset.FindActionMap(mapName);
-			var action = map.FindAction(actionName);
-			var iar = InputActionReference.Create(action);
-			iar.Set(_asset, mapName, actionName);
-			return iar;
-		}
-
 		public static InputActionAsset GetDefaultInputActionAsset()
 		{
 			var asset = ScriptableObject.CreateInstance<InputActionAsset>();
@@ -134,7 +125,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionUpperLeftFlipper, InputActionType.Button, "<Keyboard>/a");
 			map.AddAction(InputConstants.ActionUpperRightFlipper, InputActionType.Button, "<Keyboard>/quote");
 			map.AddAction(InputConstants.ActionLeftFlipper, InputActionType.Button, "<Keyboard>/leftShift").AddBinding("<Gamepad>/leftShoulder");
-			map.AddAction(InputConstants.ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift").AddBinding("<Gamepad>/rightShoulder");;
+			map.AddAction(InputConstants.ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift").AddBinding("<Gamepad>/rightShoulder");
 			map.AddAction(InputConstants.ActionRightMagnasave, InputActionType.Button, "<Keyboard>/rightCtrl");
 			map.AddAction(InputConstants.ActionLeftMagnasave, InputActionType.Button, "<Keyboard>/leftCtrl");
 			map.AddAction(InputConstants.ActionFire1, InputActionType.Button, "<Keyboard>/leftCtrl");
