@@ -29,5 +29,5 @@ are a few rules though:
 
 ## Talk to us!
 
-We have a [Discord server](https://discord.gg/mDFDrCy3ME) where you can reach us. There is also [VPF](https://www.vpforums.org/index.php?showtopic=43651) 
-if you have a non-technical question. 
+Have a look at the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651) if you have any question. We also have a Discord
+server for internal discussion.
