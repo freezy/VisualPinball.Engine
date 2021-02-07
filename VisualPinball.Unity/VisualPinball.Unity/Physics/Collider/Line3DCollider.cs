@@ -23,6 +23,8 @@ namespace VisualPinball.Unity
 {
 	internal struct Line3DCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private ColliderHeader _header;
 
 		// these are all used when casting this to LineZCollider,

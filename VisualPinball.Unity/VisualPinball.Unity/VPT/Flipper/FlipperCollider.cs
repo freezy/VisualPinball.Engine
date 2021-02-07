@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 {
 	internal struct FlipperCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private readonly ColliderHeader _header;
 
 		private readonly CircleCollider _hitCircleBase;

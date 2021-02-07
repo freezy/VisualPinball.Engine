@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 {
 	internal struct SpinnerCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private readonly ColliderHeader _header;
 
 		private readonly LineCollider _lineSeg0;

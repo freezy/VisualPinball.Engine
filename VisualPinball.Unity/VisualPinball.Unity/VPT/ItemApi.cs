@@ -118,18 +118,6 @@ namespace VisualPinball.Unity
 			return GetColliderInfo(table, id);
 		}
 
-		/// <summary>
-		/// Returns collider info.
-		///
-		/// Use this for colliders that are part of another collider and are
-		/// not in the quad tree.
-		/// </summary>
-		/// <param name="table"></param>
-		internal ColliderInfo GetColliderInfo(Table table)
-		{
-			return GetColliderInfo(table, -1);
-		}
-
 		private ColliderInfo GetColliderInfo(Table table, int id)
 		{
 			return new ColliderInfo {

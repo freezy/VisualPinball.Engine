@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Entities;
 
 namespace VisualPinball.Unity
@@ -26,6 +27,14 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds(Entity colliderEntity, int colliderId, Aabb aabb)
 		{
+			if (colliderId < 0) {
+				throw new ArgumentException("Collider ID must be >= 0.");
+			}
+
+			if (colliderEntity == Entity.Null) {
+				throw new ArgumentException("Entity must not be null.");
+			}
+
 			ColliderEntity = colliderEntity;
 			ColliderId = colliderId;
 			Aabb = aabb;

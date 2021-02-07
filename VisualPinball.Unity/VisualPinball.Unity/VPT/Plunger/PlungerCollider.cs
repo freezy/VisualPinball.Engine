@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 {
 	internal struct PlungerCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private ColliderHeader _header;
 
 		private LineCollider _lineSegBase;

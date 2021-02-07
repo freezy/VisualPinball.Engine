@@ -198,9 +198,10 @@ namespace VisualPinball.Unity
 				baseRadius,
 				height,
 				height + Data.Height,
-				GetColliderInfo(table)
+				GetNextColliderInfo(table, ref nextColliderId)
 			);
 
+			colliders.Add(hitCircleBase);
 			colliders.Add(new FlipperCollider(hitCircleBase, GetNextColliderInfo(table, ref nextColliderId)));
 		}
 
