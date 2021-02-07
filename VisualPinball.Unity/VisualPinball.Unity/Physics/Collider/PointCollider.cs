@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 {
 	internal struct PointCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private readonly ColliderHeader _header;
 
 		private readonly float3 _p;

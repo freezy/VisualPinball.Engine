@@ -23,6 +23,8 @@ namespace VisualPinball.Unity
 {
 	internal struct GateCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private readonly ColliderHeader _header;
 
 		private readonly LineCollider _lineSeg0;

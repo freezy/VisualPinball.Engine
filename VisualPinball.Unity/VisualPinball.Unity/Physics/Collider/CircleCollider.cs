@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
 	internal struct CircleCollider : ICollider
 	{
+		public int Id => _header.Id;
+
 		private readonly ColliderHeader _header;
 
 		public readonly float2 Center;
@@ -43,6 +47,9 @@ namespace VisualPinball.Unity
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
+			if (info.Id < 0) {
+				throw new ArgumentException("ID must be >= 0.");
+			}
 			_header.Init(info, type);
 			Center = center;
 			Radius = radius;
