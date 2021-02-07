@@ -17,6 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 
@@ -31,11 +32,15 @@ namespace VisualPinball.Unity
 
 		public ColliderType Type => _header.Type;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlaneCollider.Create");
+
 		public static void Create(BlobBuilder builder, HitPlane src, ref BlobPtr<Collider> dest)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src);
+			PerfMarker.End();
 		}
 
 		private void Init(HitPlane src)

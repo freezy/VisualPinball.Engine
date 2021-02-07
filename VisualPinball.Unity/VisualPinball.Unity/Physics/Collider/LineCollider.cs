@@ -18,6 +18,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
@@ -42,11 +43,15 @@ namespace VisualPinball.Unity
 		public float V1y { set => _v1.y = value; }
 		public float V2y { set => _v2.y = value; }
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineCollider.Create");
+
 		public static void Create(BlobBuilder builder, LineSeg src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Line)
 		{
+			PerfMarker.Begin();
 			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(src, type);
+			PerfMarker.End();
 		}
 
 		public static LineCollider Create(LineSeg src, ColliderType type = ColliderType.Line)

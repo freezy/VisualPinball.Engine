@@ -18,6 +18,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Physics;
 
@@ -37,11 +38,15 @@ namespace VisualPinball.Unity
 
 		public ColliderType Type => _header.Type;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineSlingshotCollider.Create");
+
 		public static void Create(BlobBuilder builder, LineSegSlingshot src, ref BlobPtr<Collider> dest)
 		{
+			PerfMarker.Begin();
 			ref var linePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref linePtr);
 			collider.Init(src);
+			PerfMarker.End();
 		}
 
 		private void Init(LineSegSlingshot src)

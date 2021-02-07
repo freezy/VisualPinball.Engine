@@ -17,6 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
@@ -36,11 +37,15 @@ namespace VisualPinball.Unity
 		public ColliderType Type => _header.Type;
 		public Entity Entity => _header.Entity;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("CircleCollider.Create");
+
 		public static void Create(BlobBuilder builder, HitCircle src, ref BlobPtr<Collider> dest, ColliderType type = ColliderType.Circle)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src, type);
+			PerfMarker.End();
 		}
 
 		public static CircleCollider Create(HitCircle src, ColliderType type = ColliderType.Circle)
