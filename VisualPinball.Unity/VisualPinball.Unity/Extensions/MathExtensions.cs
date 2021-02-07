@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 
 		internal static Aabb ToAabb(this Rect3D rect)
 		{
-			return new Aabb(0, rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
+			return new Aabb(rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
 
 		public static float PercentageToRatio(this float percent)
@@ -144,17 +144,6 @@ namespace VisualPinball.Unity
 		public static float RatioToPercentage(this float ratio)
 		{
 			return ratio * 100.0f;
-		}
-
-		internal static void ToAabb(this ref Rect3D rect, ref Aabb aabb, int colliderId)
-		{
-			aabb.ColliderId = colliderId;
-			aabb.Left = rect.Left;
-			aabb.Right = rect.Right;
-			aabb.Top = rect.Top;
-			aabb.Bottom = rect.Bottom;
-			aabb.ZLow = rect.ZLow;
-			aabb.ZHigh = rect.ZHigh;
 		}
 
 		public static float3x3 ToUnityFloat3x3(this Matrix2D matrix)

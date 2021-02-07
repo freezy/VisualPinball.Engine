@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float3x3 _matrix;
 
-		public readonly Aabb Aabb;
+		public readonly ColliderBounds Bounds;
 
 		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{
@@ -71,14 +71,14 @@ namespace VisualPinball.Unity
 			_zLow = math.min(trans1.z, trans2Z);
 			_zHigh = math.max(trans1.z, trans2Z);
 
-			Aabb.Left = math.min(v1.x, v2.x);
-			Aabb.Right = math.max(v1.x, v2.x);
-			Aabb.Top = math.min(v1.y, v2.y);
-			Aabb.Bottom = math.max(v1.y, v2.y);
-			Aabb.ZLow = math.min(v1.z, v2.z);
-			Aabb.ZHigh = math.max(v1.z, v2.z);
-			Aabb.ColliderId = _header.Id;
-			Aabb.ColliderEntity = _header.Entity;
+			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+				math.min(v1.x, v2.x),
+				math.max(v1.x, v2.x),
+				math.min(v1.y, v2.y),
+				math.max(v1.y, v2.y),
+				math.min(v1.z, v2.z),
+				math.max(v1.z, v2.z)
+			));
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)

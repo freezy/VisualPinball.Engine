@@ -32,27 +32,25 @@ namespace VisualPinball.Unity
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
-		public Aabb Aabb(Player player)
+		public ColliderBounds Bounds(Player player)
 		{
 			var flipper = player.Flippers[_header.Entity];
-			return new Aabb {
-				Left = _hitCircleBase.Center.x - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
-				Right = _hitCircleBase.Center.x + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
-				Top = _hitCircleBase.Center.y - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
-				Bottom = _hitCircleBase.Center.y + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
-				ZLow = _hitCircleBase.Aabb.ZLow,
-				ZHigh = _hitCircleBase.Aabb.ZHigh,
-				ColliderEntity = _header.Entity,
-				ColliderId = _header.Id
-			};
+			return new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+				_hitCircleBase.Center.x - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
+				_hitCircleBase.Center.x + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
+				_hitCircleBase.Center.y - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
+				_hitCircleBase.Center.y + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
+				_hitCircleBase.Bounds.Aabb.ZLow,
+				_hitCircleBase.Bounds.Aabb.ZHigh
+			));
 		}
 
 		public FlipperCollider(CircleCollider hitCircleBase, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Flipper);
 			_hitCircleBase = hitCircleBase;
-			_zLow = hitCircleBase.Aabb.ZLow;
-			_zHigh = hitCircleBase.Aabb.ZHigh;
+			_zLow = hitCircleBase.Bounds.Aabb.ZLow;
+			_zHigh = hitCircleBase.Bounds.Aabb.ZHigh;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)

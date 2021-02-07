@@ -29,16 +29,14 @@ namespace VisualPinball.Unity
 
 		private readonly float3 _p;
 
-		public Aabb Aabb => new Aabb {
-			Left = _p.x,
-			Right = _p.x,
-			Top = _p.y,
-			Bottom = _p.y,
-			ZLow = _p.z,
-			ZHigh = _p.z,
-			ColliderEntity = _header.Entity,
-			ColliderId = _header.Id,
-		};
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			_p.x,
+			_p.x,
+			_p.y,
+			_p.y,
+			_p.z,
+			_p.z
+		));
 
 		public PointCollider(float3 p, ColliderInfo info) : this()
 		{

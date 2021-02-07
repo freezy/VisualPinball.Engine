@@ -35,16 +35,14 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float _force;
 
-		public Aabb Aabb => new Aabb {
-			Left = math.min(_v1.x, _v2.x),
-			Right = math.max(_v1.x, _v2.x),
-			Top = math.min(_v1.y, _v2.y),
-			Bottom = math.max(_v1.y, _v2.y),
-			ZLow = _zLow,
-			ZHigh = _zHigh,
-			ColliderId = _header.Id,
-			ColliderEntity = _header.Entity
-		};
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			math.min(_v1.x, _v2.x),
+			math.max(_v1.x, _v2.x),
+			math.min(_v1.y, _v2.y),
+			math.max(_v1.y, _v2.y),
+			_zLow,
+			_zHigh
+		));
 
 		public LineSlingshotCollider(float force, float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{

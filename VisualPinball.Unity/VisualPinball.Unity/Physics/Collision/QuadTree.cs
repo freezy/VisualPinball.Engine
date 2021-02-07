@@ -25,28 +25,28 @@ namespace VisualPinball.Unity
 	internal struct QuadTree
 	{
 		private BlobArray<BlobPtr<QuadTree>> _children;
-		private BlobArray<BlobPtr<Aabb>> _bounds;
+		private BlobArray<BlobPtr<ColliderBounds>> _bounds;
 		private float3 _center;
 		private bool _isLeaf;
 
 		public static void Create(Player player, BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
 		{
 			var children = builder.Allocate(ref dest._children, 4);
-			var aabbs = new List<Aabb>();
+			var aabbs = new List<ColliderBounds>();
 			var cs = new List<Collider>();
 			for (var i = 0; i < colliders.Length; i++) {
 				if (colliders[i].Value.Type != ColliderType.Plane) {
 					var c = colliders[i].Value;
-					var aabb = colliders[i].Value.Aabb(player);
+					var bounds = colliders[i].Value.Bounds(player);
 					//Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
-					if (aabb.ColliderEntity == Entity.Null) {
-						throw new InvalidOperationException($"Entity of {aabb} must be set ({colliders[i].Value.ItemType}).");
+					if (bounds.ColliderEntity == Entity.Null) {
+						throw new InvalidOperationException($"Entity of {bounds} must be set ({colliders[i].Value.ItemType}).");
 					}
-					if (aabb.ColliderId == 0) {
-						throw new InvalidOperationException($"ColliderId of {aabb} must be set ({colliders[i].Value.ItemType}).");
+					if (bounds.ColliderId == 0) {
+						throw new InvalidOperationException($"ColliderId of {bounds} must be set ({colliders[i].Value.ItemType}).");
 					}
 
-					aabbs.Add(aabb);
+					aabbs.Add(bounds);
 					cs.Add(c);
 				}
 			}
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 		}
 
 		private void CreateNextLevel(BlobBuilder builder, Aabb bounds, int level, int levelEmpty,
-			IReadOnlyCollection<Aabb> remainingBounds, ref BlobBuilderArray<BlobPtr<QuadTree>> children)
+			IReadOnlyCollection<ColliderBounds> remainingBounds, ref BlobBuilderArray<BlobPtr<QuadTree>> children)
 		{
 			_center.x = (bounds.Left + bounds.Right) * 0.5f;
 			_center.y = (bounds.Top + bounds.Bottom) * 0.5f;
@@ -74,17 +74,17 @@ namespace VisualPinball.Unity
 			ref var child2 = ref builder.Allocate(ref children[2]);
 			ref var child3 = ref builder.Allocate(ref children[3]);
 
-			var childBounds0 = new List<Aabb>();
-			var childBounds1 = new List<Aabb>();
-			var childBounds2 = new List<Aabb>();
-			var childBounds3 = new List<Aabb>();
+			var childBounds0 = new List<ColliderBounds>();
+			var childBounds1 = new List<ColliderBounds>();
+			var childBounds2 = new List<ColliderBounds>();
+			var childBounds3 = new List<ColliderBounds>();
 
-			var vRemain = new List<Aabb>(); // hit objects which did not go to a quadrant
+			var vRemain = new List<ColliderBounds>(); // hit objects which did not go to a quadrant
 
 			//_unique = HitObjects[0].E ? HitObjects[0].Item as Primitive : null;
 
 			// sort items into appropriate child nodes
-			foreach (var aabb in remainingBounds) {
+			foreach (var b in remainingBounds) {
 				int oct;
 
 				// if ((hitObject.E ? hitObject.Item : null) != _unique) {
@@ -92,20 +92,20 @@ namespace VisualPinball.Unity
 				// 	_unique = null;
 				// }
 
-				if (aabb.Right < _center.x) {
+				if (b.Aabb.Right < _center.x) {
 					oct = 0;
 
-				} else if (aabb.Left > _center.x) {
+				} else if (b.Aabb.Left > _center.x) {
 					oct = 1;
 
 				} else {
 					oct = 128;
 				}
 
-				if (aabb.Bottom < _center.y) {
+				if (b.Aabb.Bottom < _center.y) {
 					oct |= 0;
 
-				} else if (aabb.Top > _center.y) {
+				} else if (b.Aabb.Top > _center.y) {
 					oct |= 2;
 
 				} else {
@@ -114,14 +114,14 @@ namespace VisualPinball.Unity
 
 				if ((oct & 128) == 0) {
 					switch (oct) {
-						case 0: childBounds0.Add(aabb); break;
-						case 1: childBounds1.Add(aabb); break;
-						case 2: childBounds2.Add(aabb); break;
-						case 3: childBounds3.Add(aabb); break;
+						case 0: childBounds0.Add(b); break;
+						case 1: childBounds1.Add(b); break;
+						case 2: childBounds2.Add(b); break;
+						case 3: childBounds3.Add(b); break;
 					}
 
 				} else {
-					vRemain.Add(aabb);
+					vRemain.Add(b);
 				}
 			}
 
@@ -159,7 +159,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void CreateNextLevel(BlobBuilder builder, ref QuadTree child, ref List<Aabb> childBounds,
+		private static void CreateNextLevel(BlobBuilder builder, ref QuadTree child, ref List<ColliderBounds> childBounds,
 			in Aabb bounds, int level, int levelEmpty)
 		{
 			var children = builder.Allocate(ref child._children, 4);
@@ -187,19 +187,14 @@ namespace VisualPinball.Unity
 		// 	dest._isLeaf = src.IsLeaf;
 		// }
 
-		private static void CopyBounds(BlobBuilder builder, IReadOnlyList<Aabb> src, ref BlobArray<BlobPtr<Aabb>> dest)
+		private static void CopyBounds(BlobBuilder builder, IReadOnlyList<ColliderBounds> src, ref BlobArray<BlobPtr<ColliderBounds>> dest)
 		{
 			var boundsBlob = builder.Allocate(ref dest, src.Count);
 			for (var i = 0; i < src.Count; i++) {
-				ref var aabb = ref builder.Allocate(ref boundsBlob[i]);
-				aabb.Top = src[i].Top;
-				aabb.Bottom = src[i].Bottom;
-				aabb.Left = src[i].Left;
-				aabb.Right = src[i].Right;
-				aabb.ZLow = src[i].ZLow;
-				aabb.ZHigh = src[i].ZHigh;
-				aabb.ColliderEntity = src[i].ColliderEntity;
-				aabb.ColliderId = src[i].ColliderId;
+				ref var bounds = ref builder.Allocate(ref boundsBlob[i]);
+				bounds.Aabb = src[i].Aabb;
+				bounds.ColliderEntity = src[i].ColliderEntity;
+				bounds.ColliderId = src[i].ColliderId;
 			}
 		}
 
@@ -221,9 +216,9 @@ namespace VisualPinball.Unity
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = 0; i < _bounds.Length; i++) {
-				ref var aabb = ref _bounds[i].Value;
-				if (aabb.IntersectRect(ballAabb) && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = aabb.ColliderId });
+				ref var bounds = ref _bounds[i].Value;
+				if (bounds.Aabb.IntersectRect(ballAabb) && bounds.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
 				}
 			}
 

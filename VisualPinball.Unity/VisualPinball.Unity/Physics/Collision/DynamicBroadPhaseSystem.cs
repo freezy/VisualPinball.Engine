@@ -36,9 +36,9 @@ namespace VisualPinball.Unity
 			// create kdtree
 			PerfMarker1.Begin();
 
-			var ballBounds = new NativeArray<Aabb>(_ballQuery.CalculateEntityCount(), Allocator.TempJob);
+			var ballBounds = new NativeArray<BallColliderBounds>(_ballQuery.CalculateEntityCount(), Allocator.TempJob);
 			Entities.ForEach((Entity ballEntity, int entityInQueryIndex, in BallData ballData) => {
-				ballBounds[entityInQueryIndex] = ballData.GetAabb(ballEntity);
+				ballBounds[entityInQueryIndex] = ballData.Bounds(ballEntity);
 			}).Run();
 
 			var kdRoot = new KdRoot();

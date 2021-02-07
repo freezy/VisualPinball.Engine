@@ -40,7 +40,6 @@ namespace VisualPinball.Unity
 			get {
 				var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
 				return new Aabb(
-					-1,
 					Position.x - vl,
 					Position.x + vl,
 					Position.y - vl,
@@ -51,17 +50,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public Aabb GetAabb(Entity entity) {
+		public BallColliderBounds Bounds(Entity entity) {
 			var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
-			return new Aabb(
-				entity,
+			return new BallColliderBounds(entity, new Aabb(
 				Position.x - vl,
 				Position.x + vl,
 				Position.y - vl,
 				Position.y + vl,
 				Position.z - vl,
 				Position.z + vl
-			);
+			));
 		}
 
 		public float CollisionRadiusSqr {

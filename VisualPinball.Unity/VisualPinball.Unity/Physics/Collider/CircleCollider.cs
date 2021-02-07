@@ -32,16 +32,14 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float _zLow;
 
-		public Aabb Aabb => new Aabb {
-			Left = Center.x - Radius,
-			Right = Center.x + Radius,
-			Top = Center.y - Radius,
-			Bottom = Center.y + Radius,
-			ZLow = _zLow,
-			ZHigh = _zHigh,
-			ColliderEntity = _header.Entity,
-			ColliderId = _header.Id
-		};
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			Center.x - Radius,
+			Center.x + Radius,
+			Center.y - Radius,
+			Center.y + Radius,
+			_zLow,
+			_zHigh
+		));
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{

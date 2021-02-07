@@ -26,13 +26,13 @@ namespace VisualPinball.Unity
 		public NativeArray<int> OrgIdx;                                        // m_org_idx
 		public NativeArray<int> Indices;                                       // tmp
 
-		private KdNode _rootNode;                                              // m_rootNode
-		private NativeArray<Aabb> _bounds;                                     // m_org_vho
-		private NativeArray<KdNode> _nodes;                                    // m_nodes
+		private KdNode _rootNode;                        // m_rootNode
+		private NativeArray<BallColliderBounds> _bounds; // m_org_vho
+		private NativeArray<KdNode> _nodes;              // m_nodes
 
 		private int _numItems;                                                 // m_num_items
 
-		public void Init(NativeArray<Aabb> bounds, Allocator allocator)
+		public void Init(NativeArray<BallColliderBounds> bounds, Allocator allocator)
 		{
 			_bounds = bounds;
 			_numItems = bounds.Length;
@@ -48,14 +48,14 @@ namespace VisualPinball.Unity
 			FillFromVector(bounds);
 		}
 
-		private void FillFromVector(NativeArray<Aabb> bounds)
+		private void FillFromVector(NativeArray<BallColliderBounds> bounds)
 		{
 			_rootNode.Bounds.Clear();
 			_rootNode.Start = 0;
 			_rootNode.Items = _numItems;
 
 			for (var i = 0; i < _numItems; ++i) {
-				_rootNode.Bounds.Extend(bounds[i]);
+				_rootNode.Bounds.Extend(bounds[i].Aabb);
 				OrgIdx[i] = i;
 			}
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			_rootNode.GetAabbOverlaps(ref this, in entity, in ball, ref overlappingEntities);
 		}
 
-		public Aabb GetItemAt(int i)
+		public BallColliderBounds GetItemAt(int i)
 		{
 			return _bounds[OrgIdx[i]];
 		}

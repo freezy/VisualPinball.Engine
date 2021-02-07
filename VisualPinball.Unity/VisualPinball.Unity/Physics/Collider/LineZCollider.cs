@@ -34,16 +34,14 @@ namespace VisualPinball.Unity
 
 		public float XyY { set => _xy.y = value; }
 
-		public Aabb Aabb => new Aabb {
-			Left = _xy.x,
-			Right = _xy.x,
-			Top = _xy.y,
-			Bottom = _xy.y,
-			ZLow = _zLow,
-			ZHigh = _zHigh,
-			ColliderEntity = _header.Entity,
-			ColliderId = _header.Id
-		};
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb (
+			_xy.x,
+			_xy.x,
+			_xy.y,
+			_xy.y,
+			_zLow,
+			_zHigh
+		));
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{

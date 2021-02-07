@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		private readonly LineCollider _lineSeg0;
 		private readonly LineCollider _lineSeg1;
 
-		public Aabb Aabb => _lineSeg0.Aabb;
+		public ColliderBounds Bounds => _lineSeg0.Bounds;
 
 		public SpinnerCollider(SpinnerData data, float height, ColliderInfo info) : this()
 		{

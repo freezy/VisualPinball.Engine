@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		private LineZCollider _jointBase0;
 		private LineZCollider _jointBase1;
 
-		public Aabb Aabb;
+		public readonly ColliderBounds Bounds;
 
 		public PlungerCollider(PlungerData data, float zHeight, ColliderInfo info) : this()
 		{
@@ -47,16 +47,14 @@ namespace VisualPinball.Unity
 			_jointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
 			var frameEnd = data.Center.Y - data.Stroke;
-			Aabb = new Aabb {
-				Left = x - 0.1f,
-				Right = x2 + 0.1f,
-				Top = frameEnd - 0.1f,
-				Bottom = y + 0.1f,
-				ZLow = zHeight,
-				ZHigh = zHeight + Plunger.PlungerHeight,
-				ColliderEntity = _header.Entity,
-				ColliderId = _header.Id
-			};
+			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+				x - 0.1f,
+				x2 + 0.1f,
+				frameEnd - 0.1f,
+				y + 0.1f,
+				zHeight,
+				zHeight + Plunger.PlungerHeight
+			));
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)

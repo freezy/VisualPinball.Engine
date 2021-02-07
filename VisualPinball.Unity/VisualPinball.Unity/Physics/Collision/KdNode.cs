@@ -128,10 +128,10 @@ namespace VisualPinball.Unity
 				for (var i = Start; i < Start + orgItems; ++i) {
 					var bounds = hitOct.GetItemAt(i);
 
-					if (bounds.Right < vCenter.x) {
+					if (bounds.Aabb.Right < vCenter.x) {
 						childA.Items++;
 
-					} else if (bounds.Left > vCenter.x) {
+					} else if (bounds.Aabb.Left > vCenter.x) {
 						childB.Items++;
 					}
 				}
@@ -140,10 +140,10 @@ namespace VisualPinball.Unity
 				for (var i = Start; i < Start + orgItems; ++i) {
 					var bounds = hitOct.GetItemAt(i);
 
-					if (bounds.Bottom < vCenter.y) {
+					if (bounds.Aabb.Bottom < vCenter.y) {
 						childA.Items++;
 
-					} else if (bounds.Top > vCenter.y) {
+					} else if (bounds.Aabb.Top > vCenter.y) {
 						childB.Items++;
 					}
 				}
@@ -153,10 +153,10 @@ namespace VisualPinball.Unity
 				for (var i = Start; i < Start + orgItems; ++i) {
 					var bounds = hitOct.GetItemAt(i);
 
-					if (bounds.ZHigh < vCenter.z) {
+					if (bounds.Aabb.ZHigh < vCenter.z) {
 						childA.Items++;
 
-					} else if (bounds.ZLow > vCenter.z) {
+					} else if (bounds.Aabb.ZLow > vCenter.z) {
 						childB.Items++;
 					}
 				}
@@ -205,10 +205,10 @@ namespace VisualPinball.Unity
 					for (var i = Start; i < Start + orgItems; ++i) {
 						var bounds = hitOct.GetItemAt(i);
 
-						if (bounds.Right < vCenter.x) {
+						if (bounds.Aabb.Right < vCenter.x) {
 							hitOct.Indices[childA.Start + childA.Items++] = hitOct.OrgIdx[i];
 
-						} else if (bounds.Left > vCenter.x) {
+						} else if (bounds.Aabb.Left > vCenter.x) {
 							hitOct.Indices[childB.Start + childB.Items++] = hitOct.OrgIdx[i];
 
 						} else {
@@ -222,10 +222,10 @@ namespace VisualPinball.Unity
 					for (var i = Start; i < Start + orgItems; ++i) {
 						var bounds = hitOct.GetItemAt(i);
 
-						if (bounds.Bottom < vCenter.y) {
+						if (bounds.Aabb.Bottom < vCenter.y) {
 							hitOct.Indices[childA.Start + childA.Items++] = hitOct.OrgIdx[i];
 
-						} else if (bounds.Top > vCenter.y) {
+						} else if (bounds.Aabb.Top > vCenter.y) {
 							hitOct.Indices[childB.Start + childB.Items++] = hitOct.OrgIdx[i];
 
 						} else {
@@ -240,10 +240,10 @@ namespace VisualPinball.Unity
 					for (var i = Start; i < Start + orgItems; ++i) {
 						var bounds = hitOct.GetItemAt(i);
 
-						if (bounds.ZHigh < vCenter.z) {
+						if (bounds.Aabb.ZHigh < vCenter.z) {
 							hitOct.Indices[childA.Start + childA.Items++] = hitOct.OrgIdx[i];
 
-						} else if (bounds.ZLow > vCenter.z) {
+						} else if (bounds.Aabb.ZLow > vCenter.z) {
 							hitOct.Indices[childB.Start + childB.Items++] = hitOct.OrgIdx[i];
 
 						} else {
@@ -284,9 +284,9 @@ namespace VisualPinball.Unity
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = Start; i < Start + orgItems; i++) {
-				var aabb = hitOct.GetItemAt(i);
-				if (entity != aabb.ColliderEntity && aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					overlappingEntities.Add(aabb.ColliderEntity);
+				var b = hitOct.GetItemAt(i);
+				if (entity != b.BallEntity && b.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+					overlappingEntities.Add(b.BallEntity);
 				}
 			}
 

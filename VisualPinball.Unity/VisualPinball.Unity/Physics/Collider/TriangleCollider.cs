@@ -35,16 +35,14 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 
-		public Aabb Aabb => new Aabb {
-			Left = math.min(_rgv0.x, math.min(_rgv1.x, _rgv2.x)),
-			Right = math.max(_rgv0.x, math.max(_rgv1.x, _rgv2.x)),
-			Top = math.min(_rgv0.y, math.min(_rgv1.y, _rgv2.y)),
-			Bottom = math.max(_rgv0.y, math.max(_rgv1.y, _rgv2.y)),
-			ZLow = math.min(_rgv0.z, math.min(_rgv1.z, _rgv2.z)),
-			ZHigh = math.max(_rgv0.z, math.max(_rgv1.z, _rgv2.z)),
-			ColliderEntity = _header.Entity,
-			ColliderId = _header.Id
-		};
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			math.min(_rgv0.x, math.min(_rgv1.x, _rgv2.x)),
+			math.max(_rgv0.x, math.max(_rgv1.x, _rgv2.x)),
+			math.min(_rgv0.y, math.min(_rgv1.y, _rgv2.y)),
+			math.max(_rgv0.y, math.max(_rgv1.y, _rgv2.y)),
+			math.min(_rgv0.z, math.min(_rgv1.z, _rgv2.z)),
+			math.max(_rgv0.z, math.max(_rgv1.z, _rgv2.z))
+		));
 
 		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{

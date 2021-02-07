@@ -21,8 +21,6 @@ namespace VisualPinball.Unity
 {
 	internal struct Aabb
 	{
-		public int ColliderId;
-		public Entity ColliderEntity;
 		public float Left;
 		public float Top;
 		public float Right;
@@ -34,23 +32,8 @@ namespace VisualPinball.Unity
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
 
-		public Aabb(int colliderId, float left, float right, float top, float bottom, float zLow, float zHigh)
+		public Aabb(float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
-			ColliderId = colliderId;
-			ColliderEntity = Entity.Null;
-			Left = left;
-			Right = right;
-			Top = top;
-			Bottom = bottom;
-			ZLow = 0;
-			ZLow = zLow;
-			ZHigh = zHigh;
-		}
-
-		public Aabb(Entity entity, float left, float right, float top, float bottom, float zLow, float zHigh)
-		{
-			ColliderId = -1;
-			ColliderEntity = entity;
 			Left = left;
 			Right = right;
 			Top = top;
@@ -105,7 +88,7 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh} ({ColliderId}:{ColliderEntity})";
+			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";
 		}
 	}
 }
