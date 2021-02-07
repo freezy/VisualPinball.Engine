@@ -50,9 +50,6 @@ namespace VisualPinball.Unity
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
-			if (info.Id < 0) {
-				throw new ArgumentException("ID must be >= 0.");
-			}
 			_header.Init(info, type);
 			Center = center;
 			Radius = radius;

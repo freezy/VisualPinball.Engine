@@ -118,6 +118,16 @@ namespace VisualPinball.Unity
 			return GetColliderInfo(table, id);
 		}
 
+		/// <summary>
+		/// Only use this for colliders that are part of another collider.
+		/// </summary>
+		/// <param name="table"></param>
+		/// <returns></returns>
+		internal ColliderInfo GetChildColliderInfo(Table table)
+		{
+			return GetColliderInfo(table, -1);
+		}
+
 		private ColliderInfo GetColliderInfo(Table table, int id)
 		{
 			return new ColliderInfo {

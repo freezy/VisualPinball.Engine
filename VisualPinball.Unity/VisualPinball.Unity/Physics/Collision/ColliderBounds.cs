@@ -27,10 +27,6 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds(Entity colliderEntity, int colliderId, Aabb aabb)
 		{
-			if (colliderId < 0) {
-				throw new ArgumentException("Collider ID must be >= 0.");
-			}
-
 			if (colliderEntity == Entity.Null) {
 				throw new ArgumentException("Entity must not be null.");
 			}

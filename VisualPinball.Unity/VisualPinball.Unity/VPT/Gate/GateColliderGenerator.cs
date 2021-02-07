@@ -59,11 +59,9 @@ namespace VisualPinball.Unity
 				_data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)
 			);
 
-			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetNextColliderInfo(table, ref nextColliderId));
-			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetNextColliderInfo(table, ref nextColliderId));
+			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetChildColliderInfo(table));
+			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetChildColliderInfo(table));
 
-			colliders.Add(lineSeg0);
-			colliders.Add(lineSeg1);
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetNextColliderInfo(table, ref nextColliderId)));
 		}
 

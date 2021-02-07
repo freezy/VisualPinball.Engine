@@ -39,22 +39,24 @@ namespace VisualPinball.Unity
 		public ColliderBounds Bounds(Player player)
 		{
 			var flipper = player.Flippers[_header.Entity];
+			var bounds = _hitCircleBase.Bounds;
 			return new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 				_hitCircleBase.Center.x - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
 				_hitCircleBase.Center.x + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
 				_hitCircleBase.Center.y - flipper.Data.FlipperRadius - flipper.Data.EndRadius - 0.1f,
 				_hitCircleBase.Center.y + flipper.Data.FlipperRadius + flipper.Data.EndRadius + 0.1f,
-				_hitCircleBase.Bounds.Aabb.ZLow,
-				_hitCircleBase.Bounds.Aabb.ZHigh
+				bounds.Aabb.ZLow,
+				bounds.Aabb.ZHigh
 			));
 		}
 
 		public FlipperCollider(CircleCollider hitCircleBase, ColliderInfo info) : this()
 		{
+			var bounds = hitCircleBase.Bounds;
 			_header.Init(info, ColliderType.Flipper);
 			_hitCircleBase = hitCircleBase;
-			_zLow = hitCircleBase.Bounds.Aabb.ZLow;
-			_zHigh = hitCircleBase.Bounds.Aabb.ZHigh;
+			_zLow = bounds.Aabb.ZLow;
+			_zHigh = bounds.Aabb.ZHigh;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
