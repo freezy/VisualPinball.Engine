@@ -48,35 +48,35 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public unsafe Aabb Aabb(Player player) {
+		public unsafe ColliderBounds Bounds(Player player) {
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {
 					case ColliderType.Bumper:
 					case ColliderType.Circle:
 					case ColliderType.KickerCircle:
 					case ColliderType.TriggerCircle:
-						return ((CircleCollider*) collider)->Aabb;
+						return ((CircleCollider*) collider)->Bounds;
 					case ColliderType.Flipper:
-						return ((FlipperCollider*) collider)->Aabb(player);
+						return ((FlipperCollider*) collider)->Bounds(player);
 					case ColliderType.Gate:
-						return ((GateCollider*) collider)->Aabb;
+						return ((GateCollider*) collider)->Bounds;
 					case ColliderType.TriggerLine:
 					case ColliderType.Line:
-						return ((LineCollider*) collider)->Aabb;
+						return ((LineCollider*) collider)->Bounds;
 					case ColliderType.Line3D:
-						return ((Line3DCollider*) collider)->Aabb;
+						return ((Line3DCollider*) collider)->Bounds;
 					case ColliderType.LineSlingShot:
-						return ((LineSlingshotCollider*) collider)->Aabb;
+						return ((LineSlingshotCollider*) collider)->Bounds;
 					case ColliderType.LineZ:
-						return ((LineZCollider*) collider)->Aabb;
+						return ((LineZCollider*) collider)->Bounds;
 					case ColliderType.Point:
-						return ((PointCollider*) collider)->Aabb;
+						return ((PointCollider*) collider)->Bounds;
 					case ColliderType.Plunger:
-						return ((PlungerCollider*) collider)->Aabb;
+						return ((PlungerCollider*) collider)->Bounds;
 					case ColliderType.Spinner:
-						return ((SpinnerCollider*) collider)->Aabb;
+						return ((SpinnerCollider*) collider)->Bounds;
 					case ColliderType.Triangle:
-						return ((TriangleCollider*) collider)->Aabb;
+						return ((TriangleCollider*) collider)->Bounds;
 					default:
 						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
 				}
