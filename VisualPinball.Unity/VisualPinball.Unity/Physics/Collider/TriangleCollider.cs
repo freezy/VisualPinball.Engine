@@ -18,6 +18,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
@@ -37,11 +38,15 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriangleCollider.Create");
+
 		public static void Create(BlobBuilder builder, HitTriangle src, ref BlobPtr<Collider> dest)
 		{
+			PerfMarker.Begin();
 			ref var trianglePtr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref trianglePtr);
 			collider.Init(src);
+			PerfMarker.End();
 		}
 
 		private void Init(HitTriangle src)

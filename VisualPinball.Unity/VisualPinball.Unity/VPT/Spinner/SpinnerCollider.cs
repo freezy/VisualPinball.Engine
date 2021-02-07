@@ -17,6 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
@@ -30,11 +31,15 @@ namespace VisualPinball.Unity
 
 		public ColliderType Type => _header.Type;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerCollider.Create");
+
 		public static void Create(BlobBuilder builder, SpinnerHit src, ref BlobPtr<Collider> dest)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src);
+			PerfMarker.End();
 		}
 
 		private void Init(SpinnerHit src)

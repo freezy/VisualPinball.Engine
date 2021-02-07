@@ -17,6 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -32,11 +33,15 @@ namespace VisualPinball.Unity
 
 		public ColliderType Type => ColliderType.Plunger;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerCollider.Create");
+
 		public static void Create(BlobBuilder builder, PlungerHit src, ref BlobPtr<Collider> dest)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref dest);
 			ref var collider = ref builder.Allocate(ref ptr);
 			collider.Init(src);
+			PerfMarker.End();
 		}
 
 		private void Init(PlungerHit src)

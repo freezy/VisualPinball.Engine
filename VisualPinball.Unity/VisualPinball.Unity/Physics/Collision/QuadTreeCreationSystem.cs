@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Linq;
 using NLog;
 using Unity.Entities;
+using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Physics;
 using Logger = NLog.Logger;
@@ -29,17 +30,28 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		private static readonly ProfilerMarker PerfMarkerTotal = new ProfilerMarker("QuadTreeCreationSystem");
+		private static readonly ProfilerMarker PerfMarkerInitItems = new ProfilerMarker("QuadTreeCreationSystem (1 - init items)");
+		private static readonly ProfilerMarker PerfMarkerGenerateColliders = new ProfilerMarker("QuadTreeCreationSystem (2 - generate colliders)");
+		private static readonly ProfilerMarker PerfMarkerCreateQuadTree = new ProfilerMarker("QuadTreeCreationSystem (3 - create quad tree)");
+		private static readonly ProfilerMarker PerfMarkerAllocate = new ProfilerMarker("QuadTreeCreationSystem (4 - allocate)");
+		private static readonly ProfilerMarker PerfMarkerSaveToEntity = new ProfilerMarker("QuadTreeCreationSystem (5 - save to entity)");
+
 		public static void Create(EntityManager entityManager)
 		{
+			PerfMarkerTotal.Begin();
 			var table = Object.FindObjectOfType<TableAuthoring>().Table;
 			var stopWatch = new Stopwatch();
 
 			stopWatch.Start();
+			PerfMarkerInitItems.Begin();
 			foreach (var playable in table.Playables) {
 				playable.Init(table);
 			}
+			PerfMarkerInitItems.End();
 
 			// index hittables
+			PerfMarkerGenerateColliders.Begin();
 			var hittables = table.Hittables.Where(hittable => hittable.IsCollidable).ToArray();
 			var hitObjects = new List<HitObject>();
 			var id = 0;
@@ -59,16 +71,20 @@ namespace VisualPinball.Unity
 			}
 			stopWatch.Stop();
 			Logger.Info("Collider Count:\n" + log + "\nTotal: " + c + " colliders in " + stopWatch.ElapsedMilliseconds + "ms");
+			PerfMarkerGenerateColliders.End();
 
 			// construct quad tree
+			PerfMarkerCreateQuadTree.Begin();
 			var quadTree = new Engine.Physics.QuadTree(hitObjects, table.BoundingBox);
 			var quadTreeBlobAssetRef = QuadTreeBlob.CreateBlobAssetReference(
 				quadTree,
 				table.GeneratePlayfieldHit(), // todo use `null` if separate playfield mesh exists
 				table.GenerateGlassHit()
 			);
+			PerfMarkerCreateQuadTree.End();
 
 			// playfield and glass need special treatment, since not part of the quad tree
+			PerfMarkerAllocate.Begin();
 			var playfieldHitObject = table.GeneratePlayfieldHit();
 			var glassHitObject = table.GenerateGlassHit();
 			playfieldHitObject.Id = id++;
@@ -78,14 +94,18 @@ namespace VisualPinball.Unity
 
 			// construct collider blob
 			var colliderBlob = ColliderBlob.CreateBlobAssetReference(hitObjects, playfieldHitObject.Id, glassHitObject.Id);
+			PerfMarkerAllocate.End();
 
 			// save it to entity
+			PerfMarkerSaveToEntity.Begin();
 			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
 			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
 			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
 			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlob });
+			PerfMarkerSaveToEntity.End();
 
 			Logger.Info("Static QuadTree initialized.");
+			PerfMarkerTotal.End();
 		}
 	}
 }
