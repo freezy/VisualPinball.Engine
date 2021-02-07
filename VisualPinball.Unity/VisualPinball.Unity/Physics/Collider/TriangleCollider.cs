@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriangleCollider.Allocate");
+
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 			math.min(_rgv0.x, math.min(_rgv1.x, _rgv2.x)),
 			math.max(_rgv0.x, math.max(_rgv1.x, _rgv2.x)),
@@ -60,6 +62,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -67,6 +70,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(TriangleCollider)
 			);
+			PerfMarker.End();
 		}
 
 		public static bool IsDegenerate(float3 rg0, float3 rg1, float3 rg2)

@@ -18,6 +18,7 @@ using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using Random = Unity.Mathematics.Random;
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity
 
 		private readonly float _zHigh;
 		private readonly float _zLow;
+
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("CircleCollider.Allocate");
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 			Center.x - Radius,
@@ -59,6 +62,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -66,6 +70,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(CircleCollider)
 			);
+			PerfMarker.End();
 		}
 
 		#region Narrowphase

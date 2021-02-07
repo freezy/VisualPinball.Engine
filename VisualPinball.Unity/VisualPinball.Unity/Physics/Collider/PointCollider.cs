@@ -40,6 +40,8 @@ namespace VisualPinball.Unity
 			_p.z
 		));
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PointCollider.Allocate");
+
 		public PointCollider(float3 p, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Point);
@@ -48,6 +50,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PointCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -55,6 +58,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(PointCollider)
 			);
+			PerfMarker.End();
 		}
 
 		#region Narrowphase
