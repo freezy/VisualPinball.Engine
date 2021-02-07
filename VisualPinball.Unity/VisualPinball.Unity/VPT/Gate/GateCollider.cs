@@ -18,6 +18,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
@@ -32,6 +33,8 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds => _lineSeg0.Bounds;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateCollider.Allocate");
+
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Gate);
@@ -41,6 +44,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -48,6 +52,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(GateCollider)
 			);
+			PerfMarker.End();
 		}
 
 		#region Narrowphase

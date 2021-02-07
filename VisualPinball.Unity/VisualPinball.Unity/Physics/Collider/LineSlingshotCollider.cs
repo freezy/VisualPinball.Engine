@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float _force;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineSlingshotCollider.Allocate");
+
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 			math.min(_v1.x, _v2.x),
 			math.max(_v1.x, _v2.x),
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -66,6 +69,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(LineSlingshotCollider)
 			);
+			PerfMarker.End();
 		}
 
 		private void CalcNormal()

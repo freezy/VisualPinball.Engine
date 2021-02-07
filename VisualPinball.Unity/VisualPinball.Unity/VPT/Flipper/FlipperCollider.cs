@@ -34,6 +34,8 @@ namespace VisualPinball.Unity
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperCollider.Allocate");
+
 		public ColliderBounds Bounds(Player player)
 		{
 			var flipper = player.Flippers[_header.Entity];
@@ -57,6 +59,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -64,6 +67,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(FlipperCollider)
 			);
+			PerfMarker.End();
 		}
 
 		#region Narrowphase

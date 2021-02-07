@@ -17,6 +17,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
 
@@ -32,6 +33,8 @@ namespace VisualPinball.Unity
 		private readonly LineCollider _lineSeg1;
 
 		public ColliderBounds Bounds => _lineSeg0.Bounds;
+
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerCollider.Allocate");
 
 		public SpinnerCollider(SpinnerData data, float height, ColliderInfo info) : this()
 		{
@@ -58,6 +61,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
+			PerfMarker.Begin();
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -65,6 +69,7 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(SpinnerCollider)
 			);
+			PerfMarker.End();
 		}
 
 		#region Narrowphase
