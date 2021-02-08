@@ -59,7 +59,6 @@ namespace VisualPinball.Unity
 				PerfMarkerCreateColliders.Begin();
 				itemApi.CreateColliders(player.Table, colliderList);
 				PerfMarkerCreateColliders.End();
-				Debug.Log($"{(itemApi as IApi).Name}: {colliderList.Count - cnt} colliders");
 			}
 			PerfMarkerGenerateColliders.End();
 
