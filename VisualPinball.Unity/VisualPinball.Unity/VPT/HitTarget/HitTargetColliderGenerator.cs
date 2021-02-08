@@ -47,14 +47,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
+		private void GenerateHitTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
 			var addedEdges = EdgeSetBetter.Get();
 			GenerateCollidables(hitMesh, addedEdges, true, table, colliders);
 		}
 
-		private void GenerateHitTargetColliders(Table table, ICollection<ICollider> colliders)
+		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
 			var addedEdges = EdgeSetBetter.Get();
