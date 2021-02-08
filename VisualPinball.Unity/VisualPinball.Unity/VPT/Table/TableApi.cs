@@ -165,7 +165,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		internal (PlaneCollider, PlaneCollider) CreateColliders(Table table, ref int nextColliderId)
+		internal (PlaneCollider, PlaneCollider) CreateColliders(Table table)
 		{
 			var info = new ColliderInfo {
 				ItemType = ItemType.Table,
@@ -181,17 +181,9 @@ namespace VisualPinball.Unity
 				HitThreshold = 0
 			};
 
-			var playfieldColliderId = nextColliderId++;
-			var playfieldInfo = info;
-			playfieldInfo.Id = playfieldColliderId;
-
-			var glassColliderId = nextColliderId++;
-			var glassInfo = info;
-			glassInfo.Id = glassColliderId;
-
 			return (
-				new PlaneCollider(new float3(0, 0, 1), table.TableHeight, playfieldInfo),
-				new PlaneCollider(new float3(0, 0, -1), table.GlassHeight, glassInfo)
+				new PlaneCollider(new float3(0, 0, 1), table.TableHeight, info),
+				new PlaneCollider(new float3(0, 0, -1), table.GlassHeight, info)
 			);
 		}
 	}

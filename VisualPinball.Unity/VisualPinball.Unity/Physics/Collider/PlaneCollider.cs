@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	{
 		public int Id => _header.Id;
 
-		private readonly ColliderHeader _header;
+		private ColliderHeader _header;
 
 		private readonly float3 _normal;
 		private readonly float _distance;
@@ -40,9 +40,10 @@ namespace VisualPinball.Unity
 			_distance = distance;
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			PerfMarker.Begin();
+			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(

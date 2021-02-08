@@ -172,21 +172,21 @@ namespace VisualPinball.Engine.Math
 		// 	return CrossVectors(this, v);
 		// }
 
-		// public static Vertex3D CrossVectors(Vertex3D a, Vertex3D b)
-		// {
-		// 	var ax = a.X;
-		// 	var ay = a.Y;
-		// 	var az = a.Z;
-		// 	var bx = b.X;
-		// 	var by = b.Y;
-		// 	var bz = b.Z;
-		//
-		// 	return new Vertex3D(
-		// 		ay * bz - az * by,
-		// 		az * bx - ax * bz,
-		// 		ax * by - ay * bx
-		// 	);
-		// }
+		public static Vertex3D CrossVectors(Vertex3D a, Vertex3D b)
+		{
+			var ax = a.X;
+			var ay = a.Y;
+			var az = a.Z;
+			var bx = b.X;
+			var by = b.Y;
+			var bz = b.Z;
+
+			return new Vertex3D(
+				ay * bz - az * by,
+				az * bx - ax * bz,
+				ax * by - ay * bx
+			);
+		}
 
 		public Vertex2D xy()
 		{

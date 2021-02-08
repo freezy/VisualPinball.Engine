@@ -145,8 +145,7 @@ namespace VisualPinball.Engine.VPT
 		public static void ComputeNormals(Vertex3DNoTex2[] vertices, int numVertices, int[] indices, int numIndices) {
 
 			for (var i = 0; i < numVertices; i++) {
-				var v = vertices[i];
-				v.Nx = v.Ny = v.Nz = 0.0f;
+				vertices[i].Nx = vertices[i].Ny = vertices[i].Nz = 0.0f;
 			}
 
 			for (var i = 0; i < numIndices; i += 3) {
@@ -162,6 +161,10 @@ namespace VisualPinball.Engine.VPT
 				a.Nx += normal.X; a.Ny += normal.Y; a.Nz += normal.Z;
 				b.Nx += normal.X; b.Ny += normal.Y; b.Nz += normal.Z;
 				c.Nx += normal.X; c.Ny += normal.Y; c.Nz += normal.Z;
+
+				vertices[indices[i]] = a;
+				vertices[indices[i + 1]] = b;
+				vertices[indices[i + 2]] = c;
 			}
 
 			for (var i = 0; i < numVertices; i++) {
@@ -171,6 +174,8 @@ namespace VisualPinball.Engine.VPT
 				v.Nx *= invL;
 				v.Ny *= invL;
 				v.Nz *= invL;
+
+				vertices[i] = v;
 			}
 		}
 

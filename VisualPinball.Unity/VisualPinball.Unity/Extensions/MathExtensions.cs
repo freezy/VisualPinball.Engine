@@ -36,6 +36,13 @@ namespace VisualPinball.Unity
 			       math.abs(v.z) < Constants.FloatMin;
 		}
 
+		public static void NormalizeSafe(this ref float3 v)
+		{
+			if (!v.IsZero()) {
+				math.normalize(v);
+			}
+		}
+
 		public static void RotationAroundAxis(this float3x3 m, float3 axis, float rSin, float rCos)
 		{
 			m.c0.x = axis.x * axis.x + rCos * (1.0f - axis.x * axis.x);

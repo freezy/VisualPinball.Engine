@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		private LineZCollider _jointBase0;
 		private LineZCollider _jointBase1;
 
-		public readonly ColliderBounds Bounds;
+		public ColliderBounds Bounds;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerCollider.Allocate");
 
@@ -61,9 +61,11 @@ namespace VisualPinball.Unity
 			));
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			PerfMarker.Begin();
+			Bounds.ColliderId = colliderId;
+			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(

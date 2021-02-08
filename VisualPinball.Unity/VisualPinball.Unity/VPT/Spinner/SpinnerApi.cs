@@ -79,14 +79,13 @@ namespace VisualPinball.Unity
 
 		internal override bool FireHitEvents { get; } = true;
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new SpinnerColliderGenerator(this);
-			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

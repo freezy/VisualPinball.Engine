@@ -145,14 +145,13 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			colliders.Add(new PlungerCollider(Data, zHeight, GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new PlungerCollider(Data, zHeight, GetColliderInfo(table)));
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

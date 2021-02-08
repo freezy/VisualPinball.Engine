@@ -110,14 +110,10 @@ namespace VisualPinball.Engine.Math
 
 				var widthCur = thickness;
 
-				MiddlePoints[i] = middle;
+				MiddlePoints[i] = new Vertex2D(middle.X, middle.Y);
 
-				// vmiddle + (widthcur * 0.5) * vnormal;
-				RgvLocal[i] = middle + normal * (widthCur * 0.5f);
-
-				// vmiddle - (widthcur*0.5f) * vnormal;
-				RgvLocal[(numVertices + 1) * 2 - i - 1] =
-					middle - normal * (widthCur * 0.5f);
+				RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + widthCur * 0.5f * normal;
+				RgvLocal[(numVertices + 1) * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - widthCur * 0.5f * normal;
 
 				if (i == 0) {
 					RgvLocal[numVertices] = RgvLocal[0];

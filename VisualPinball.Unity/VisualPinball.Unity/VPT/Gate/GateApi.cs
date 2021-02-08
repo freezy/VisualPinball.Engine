@@ -91,14 +91,13 @@ namespace VisualPinball.Unity
 			ScatterAngleRad = 0
 		};
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new GateColliderGenerator(this);
-			colliderGenerator.GenerateColliders(table, colliders, ref nextColliderId);
+			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 
 		internal override bool IsColliderEnabled => Data.IsEnabled;
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ();
 
@@ -198,11 +198,10 @@ namespace VisualPinball.Unity
 			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
 
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), radius, height,
-				height + Data.HitHeight, GetNextColliderInfo(table, ref nextColliderId), ColliderType.KickerCircle));
+				height + Data.HitHeight, GetColliderInfo(table), ColliderType.KickerCircle));
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

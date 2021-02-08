@@ -488,7 +488,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 					initialHeights[i2] - initialHeights[i]
 				);
 				if (i == numRings - 1) {
-					// for the last spline point use the previous tangent again, otherwise we won"t see the complete wire (it stops one control point too early)
+					// for the last spline point use the previous tangent again, otherwise we won't see the complete wire (it stops one control point too early)
 					tangent.X = midPoints[i].X - midPoints[i - 1].X;
 					tangent.Y = midPoints[i].Y - midPoints[i - 1].Y;
 				}
@@ -666,8 +666,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 				result.MiddlePoints[i] = new Vertex2D(middle.X, middle.Y) + normal;
-				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + normal * (currentWidth * 0.5f);
-				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - normal * (currentWidth * 0.5f);
+				result.RgvLocal[i] = new Vertex2D(middle.X, middle.Y) + currentWidth * 0.5f * normal;
+				result.RgvLocal[numVertices * 2 - i - 1] = new Vertex2D(middle.X, middle.Y) - currentWidth * 0.5f * normal;
 			}
 
 			return result;

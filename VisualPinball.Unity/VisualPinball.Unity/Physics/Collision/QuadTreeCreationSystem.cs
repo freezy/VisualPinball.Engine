@@ -52,26 +52,28 @@ namespace VisualPinball.Unity
 
 			// 1. generate colliders
 			PerfMarkerGenerateColliders.Begin();
-			var colliderId = 0;
 			var colliderList = new List<ICollider>();
-			var (playfieldCollider, glassCollider) = player.TableApi.CreateColliders(player.Table, ref colliderId);
+			var (playfieldCollider, glassCollider) = player.TableApi.CreateColliders(player.Table);
 			foreach (var itemApi in itemApis) {
+				var cnt = colliderList.Count;
 				PerfMarkerCreateColliders.Begin();
-				itemApi.CreateColliders(player.Table, colliderList, ref colliderId);
+				itemApi.CreateColliders(player.Table, colliderList);
 				PerfMarkerCreateColliders.End();
+				Debug.Log($"{(itemApi as IApi).Name}: {colliderList.Count - cnt} colliders");
 			}
 			PerfMarkerGenerateColliders.End();
 
 			// 2. now we know how many there are, create a blob asset reference
 			PerfMarkerCreateBlobAsset.Begin();
+			var colliderId = 0;
 			BlobAssetReference<ColliderBlob> colliderBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.TempJob)) {
 				ref var root = ref builder.ConstructRoot<ColliderBlob>();
-				var colliders = builder.Allocate(ref root.Colliders, colliderId);
+				var colliders = builder.Allocate(ref root.Colliders, colliderList.Count + 2);
 
 				PerfMarkerAllocate.Begin();
-				playfieldCollider.Allocate(builder, ref colliders);
-				glassCollider.Allocate(builder, ref colliders);
+				playfieldCollider.Allocate(builder, ref colliders, colliderId++);
+				glassCollider.Allocate(builder, ref colliders, colliderId++);
 				PerfMarkerAllocate.End();
 
 				root.PlayfieldColliderId = playfieldCollider.Id;
@@ -80,9 +82,10 @@ namespace VisualPinball.Unity
 				// copy generated colliders into blob array
 				foreach (var collider in colliderList) {
 					PerfMarkerAllocate.Begin();
-					collider.Allocate(builder, ref colliders);
+					collider.Allocate(builder, ref colliders, colliderId++);
 					PerfMarkerAllocate.End();
 				}
+
 				colliderBlobAssetRef = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
 			}
 			PerfMarkerCreateBlobAsset.End();

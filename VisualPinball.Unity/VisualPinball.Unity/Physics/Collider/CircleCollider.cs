@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	{
 		public int Id => _header.Id;
 
-		private readonly ColliderHeader _header;
+		private ColliderHeader _header;
 
 		public readonly float2 Center;
 		public readonly float Radius;
@@ -57,10 +57,11 @@ namespace VisualPinball.Unity
 			_zLow = zLow;
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[_header.Id]);
+			_header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[colliderId]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),

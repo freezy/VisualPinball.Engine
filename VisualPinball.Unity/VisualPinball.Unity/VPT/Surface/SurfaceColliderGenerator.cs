@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 			_data = surfaceApi.Data;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
 
@@ -57,54 +57,51 @@ namespace VisualPinball.Unity
 
 				var pv2 = vVertex[(i + 1) % count];
 				var pv3 = vVertex[(i + 2) % count];
-				GenerateLinePolys(pv2, pv3, table, colliders, ref nextColliderId);
+				GenerateLinePolys(pv2, pv3, table, colliders);
 			}
 
-			GenerateTriangles(in rgv3Dt, table, colliders, ref nextColliderId);
+			GenerateTriangles(in rgv3Dt, table, colliders);
 
 			if (rgv3Db != null) {
-				GenerateTriangles(in rgv3Db, table, colliders, ref nextColliderId);
+				GenerateTriangles(in rgv3Db, table, colliders);
 			}
 		}
 
 		/// <summary>
 		/// Returns the hit line polygons for the surface.
 		/// </summary>
-		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, Table table, ICollection<ICollider> colliders)
 		{
 			var bottom = _data.HeightBottom + table.TableHeight;
 			var top = _data.HeightTop + table.TableHeight;
 
 			if (!pv1.IsSlingshot) {
-				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(table)));
 
 			} else {
-				colliders.Add(new LineSlingshotCollider(_data.SlingshotForce, pv1.ToUnityFloat2(),
-					pv2.ToUnityFloat2(), bottom, top, _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new LineSlingshotCollider(_data.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(table)));
 			}
 
 			if (_data.HeightBottom != 0) {
 				// add lower edge as a line
-				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom),
-					_api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo(table)));
 			}
 
 			// add upper edge as a line
-			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top),
-				_api.GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo(table)));
 
 			// create vertical joint between the two line segments
-			colliders.Add(new LineZCollider(pv1.ToUnityFloat2(), bottom, top, _api.GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new LineZCollider(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(table)));
 
 			// add upper and lower end points of line
 			if (_data.HeightBottom != 0) {
-				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo(table)));
 			}
 
-			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo(table)));
 		}
 
-		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -122,7 +119,7 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			PrimitiveColliderGenerator.GenerateCollidersFromMesh(table, mesh, _api, colliders, ref nextColliderId);
+			PrimitiveColliderGenerator.GenerateCollidersFromMesh(table, mesh, _api, colliders, true);
 		}
 	}
 }

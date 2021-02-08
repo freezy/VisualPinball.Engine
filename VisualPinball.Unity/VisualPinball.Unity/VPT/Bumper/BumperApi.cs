@@ -65,15 +65,14 @@ namespace VisualPinball.Unity
 		internal override bool FireHitEvents => Data.HitEvent;
 		internal override float HitThreshold => Data.Threshold;
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
-				height + Data.HeightScale, GetNextColliderInfo(table, ref nextColliderId), ColliderType.Bumper));
+				height + Data.HeightScale, GetColliderInfo(table), ColliderType.Bumper));
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

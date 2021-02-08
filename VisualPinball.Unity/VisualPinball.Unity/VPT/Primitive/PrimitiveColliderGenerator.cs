@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			_meshGenerator = primitiveApi.Item.MeshGenerator;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			if (_data.Name == "playfield_mesh") {
 				_data.IsVisible = false;
@@ -68,12 +68,13 @@ namespace VisualPinball.Unity
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			GenerateCollidersFromMesh(table, mesh, _api, colliders, ref nextColliderId);
+			GenerateCollidersFromMesh(table, mesh, _api, colliders);
 		}
 
-		internal static void GenerateCollidersFromMesh(Table table, Mesh mesh, IColliderGenerator api, ICollection<ICollider> colliders, ref int nextColliderId, bool onlyTriangles = false)
+		internal static void GenerateCollidersFromMesh(Table table, Mesh mesh, IColliderGenerator api, ICollection<ICollider> colliders, bool onlyTriangles = false)
 		{
-			var addedEdges = EdgeSetBetter.Get(mesh.Vertices.Length);
+			var addedEdges = EdgeSetBetter.Get();
+			var collCount = colliders.Count;
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -87,20 +88,20 @@ namespace VisualPinball.Unity
 				var rgv1 = mesh.Vertices[i1].GetVertex().ToUnityFloat3();
 				var rgv2 = mesh.Vertices[i2].GetVertex().ToUnityFloat3();
 
-				// todo handle playfield mehs
+				// todo handle playfield mesh
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, api.GetColliderInfo(table)));
 
 				if (!onlyTriangles) {
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, api.GetColliderInfo(table)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, api.GetColliderInfo(table)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, api.GetNextColliderInfo(table, ref nextColliderId)));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, api.GetColliderInfo(table)));
 					}
 				}
 			}
@@ -108,7 +109,7 @@ namespace VisualPinball.Unity
 			// add collision vertices
 			if (!onlyTriangles) {
 				foreach (var vertex in mesh.Vertices) {
-					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), api.GetNextColliderInfo(table, ref nextColliderId)));
+					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), api.GetColliderInfo(table)));
 				}
 			}
 		}
@@ -151,23 +152,5 @@ namespace VisualPinball.Unity
 				reducedIndices.ToArray()
 			);
 		}
-
-		// private HitObject SetupHitObject(HitObject obj, Table table)
-		// {
-		// 	if (!_primitive.UseAsPlayfield) {
-		// 		obj.ApplyPhysics(_data, table);
-		//
-		// 	} else {
-		// 		obj.SetElasticity(table.Data.Elasticity, table.Data.ElasticityFalloff);
-		// 		obj.SetFriction(table.Data.Friction);
-		// 		obj.SetScatter(MathF.DegToRad(table.Data.Scatter));
-		// 		obj.SetEnabled(true);
-		// 	}
-		//
-		// 	obj.Threshold = _data.Threshold;
-		// 	obj.E = true;
-		// 	obj.FireEvents = _data.HitEvent;
-		// 	return obj;
-		// }
 	}
 }

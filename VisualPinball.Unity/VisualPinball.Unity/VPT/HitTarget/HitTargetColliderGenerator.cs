@@ -37,28 +37,28 @@ namespace VisualPinball.Unity
 			_meshGenerator = hitTargetApi.Item.MeshGenerator;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			if (_data.IsDropTarget) {
-				GenerateDropTargetHits(table, colliders, ref nextColliderId);
-			}
-			else {
-				GenerateHitTargetHits(table, colliders, ref nextColliderId);
+				GenerateDropTargetColliders(table, colliders);
+
+			} else {
+				GenerateHitTargetColliders(table, colliders);
 			}
 		}
 
-		private void GenerateDropTargetHits(Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
-			var addedEdges = EdgeSetBetter.Get(hitMesh.Vertices.Length);
-			GenerateCollidables(hitMesh, addedEdges, true, table, colliders, ref nextColliderId);
+			var addedEdges = EdgeSetBetter.Get();
+			GenerateCollidables(hitMesh, addedEdges, true, table, colliders);
 		}
 
-		private void GenerateHitTargetHits(Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateHitTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
 			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
-			var addedEdges = EdgeSetBetter.Get(hitMesh.Vertices.Length);
-			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, colliders, ref nextColliderId);
+			var addedEdges = EdgeSetBetter.Get();
+			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, colliders);
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(math.radians(_data.RotZ));
 			var fullMatrix = new Matrix3D().Multiply(tempMatrix);
@@ -104,27 +104,27 @@ namespace VisualPinball.Unity
 					var rgv1 = rgv3D[i1].ToUnityFloat3();
 					var rgv2 = rgv3D[i2].ToUnityFloat3();
 
-					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetNextColliderInfo(table, ref nextColliderId, true)));
+					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(table, true)));
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, GetNextColliderInfo(table, ref nextColliderId, true)));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(table, true)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, GetNextColliderInfo(table, ref nextColliderId, true)));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(table, true)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, GetNextColliderInfo(table, ref nextColliderId, true)));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(table, true)));
 					}
 				}
 
 				// add collision vertices
 				for (var i = 0; i < DropTargetHitPlaneVertices.Length; ++i) {
-					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetNextColliderInfo(table, ref nextColliderId, true)));
+					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(table, true)));
 				}
 			}
 		}
 
-		private void GenerateCollidables(Mesh hitMesh, EdgeSetBetter addedEdges, bool setHitObject, Table table, ICollection<ICollider> colliders, ref int nextColliderId)  {
+		private void GenerateCollidables(Mesh hitMesh, EdgeSetBetter addedEdges, bool setHitObject, Table table, ICollection<ICollider> colliders)  {
 
 			// add the normal drop target as collidable but without hit event
 			for (var i = 0; i < hitMesh.Indices.Length; i += 3) {
@@ -137,28 +137,28 @@ namespace VisualPinball.Unity
 				var rgv1 = hitMesh.Vertices[i1].ToUnityFloat3();
 				var rgv2 = hitMesh.Vertices[i2].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetNextColliderInfo(table, ref nextColliderId, setHitObject)));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(table, setHitObject)));
 
 				if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-					colliders.Add(new Line3DCollider(rgv0, rgv2, GetNextColliderInfo(table, ref nextColliderId, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(table, setHitObject)));
 				}
 				if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-					colliders.Add(new Line3DCollider(rgv2, rgv1, GetNextColliderInfo(table, ref nextColliderId, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(table, setHitObject)));
 				}
 				if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-					colliders.Add(new Line3DCollider(rgv1, rgv0, GetNextColliderInfo(table, ref nextColliderId, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(table, setHitObject)));
 				}
 			}
 
 			// add collision vertices
 			foreach (var vertex in hitMesh.Vertices) {
-				colliders.Add(new PointCollider(vertex.ToUnityFloat3(), GetNextColliderInfo(table, ref nextColliderId, setHitObject)));
+				colliders.Add(new PointCollider(vertex.ToUnityFloat3(), GetColliderInfo(table, setHitObject)));
 			}
 		}
 
-		private ColliderInfo GetNextColliderInfo(Table table, ref int nextColliderId, bool setHitObject)
+		private ColliderInfo GetColliderInfo(Table table, bool setHitObject)
 		{
-			var info = _api.GetNextColliderInfo(table, ref nextColliderId);
+			var info = _api.GetColliderInfo(table);
 			info.FireEvents = setHitObject && info.FireEvents;
 			return info;
 		}
