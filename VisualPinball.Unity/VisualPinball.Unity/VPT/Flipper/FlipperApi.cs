@@ -188,24 +188,22 @@ namespace VisualPinball.Unity
 			)
 		};
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var baseRadius = math.max(Data.BaseRadius, 0.01f);
-
 			var hitCircleBase = new CircleCollider(
 				Data.Center.ToUnityFloat2(),
 				baseRadius,
 				height,
 				height + Data.Height,
-				GetChildColliderInfo(table)
+				GetColliderInfo(table)
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new FlipperCollider(hitCircleBase, GetColliderInfo(table)));
 		}
 
-		ColliderInfo IColliderGenerator.GetNextColliderInfo(Table table, ref int nextColliderId) =>
-			GetNextColliderInfo(table, ref nextColliderId);
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

@@ -37,24 +37,24 @@ namespace VisualPinball.Unity
 			_data = triggerApi.Data;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			if (IsRound) {
-				GenerateRoundHitObjects(table, colliders, ref nextColliderId);
+				GenerateRoundHitObjects(table, colliders);
 
 			} else {
-				GenerateCurvedHitObjects(table, colliders, ref nextColliderId);
+				GenerateCurvedHitObjects(table, colliders);
 			}
 		}
 
-		private void GenerateRoundHitObjects(Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateRoundHitObjects(Table table, ICollection<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			colliders.Add(new CircleCollider(_data.Center.ToUnityFloat2(), _data.Radius, height, height + _data.HitHeight,
-				_api.GetNextColliderInfo(table, ref nextColliderId), ColliderType.TriggerCircle));
+				_api.GetColliderInfo(table), ColliderType.TriggerCircle));
 		}
 
-		private void GenerateCurvedHitObjects(Table table, List<ICollider> colliders, ref int nextColliderId)
+		private void GenerateCurvedHitObjects(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
@@ -71,18 +71,18 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
-				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, table, colliders, ref nextColliderId);
+				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, table, colliders);
 			}
 
-			GenerateTriangles(rgv3D, table, colliders, ref nextColliderId);
+			GenerateTriangles(rgv3D, table, colliders);
 		}
 
-		private void AddLineSeg(float2 pv1, float2 pv2, float height, Table table, ICollection<ICollider> colliders, ref int nextColliderId) {
+		private void AddLineSeg(float2 pv1, float2 pv2, float height, Table table, ICollection<ICollider> colliders) {
 			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_data.HitHeight - 8.0f, 0f),
-				_api.GetNextColliderInfo(table, ref nextColliderId), ColliderType.TriggerLine));
+				_api.GetColliderInfo(table), ColliderType.TriggerLine));
 		}
 
-		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			PrimitiveColliderGenerator.GenerateCollidersFromMesh(table, mesh, _api, colliders, ref nextColliderId);
+			PrimitiveColliderGenerator.GenerateCollidersFromMesh(table, mesh, _api, colliders, true);
 		}
 	}
 }

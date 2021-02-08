@@ -111,27 +111,10 @@ namespace VisualPinball.Unity
 		/// Use this for colliders that are part of the quad tree.
 		/// </summary>
 		/// <param name="table"></param>
-		/// <param name="nextColliderId">Reference to collider index</param>
-		internal ColliderInfo GetNextColliderInfo(Table table, ref int nextColliderId)
-		{
-			var id = nextColliderId++;
-			return GetColliderInfo(table, id);
-		}
-
-		/// <summary>
-		/// Only use this for colliders that are part of another collider.
-		/// </summary>
-		/// <param name="table"></param>
-		/// <returns></returns>
-		internal ColliderInfo GetChildColliderInfo(Table table)
-		{
-			return GetColliderInfo(table, -1);
-		}
-
-		private ColliderInfo GetColliderInfo(Table table, int id)
+		internal ColliderInfo GetColliderInfo(Table table)
 		{
 			return new ColliderInfo {
-				Id = id,
+				Id = -1,
 				ItemType = Item.ItemType,
 				Entity = Entity,
 				ParentEntity = ParentEntity,

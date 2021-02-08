@@ -26,12 +26,12 @@ namespace VisualPinball.Unity
 	{
 		public int Id => _header.Id;
 
-		private readonly ColliderHeader _header;
+		private ColliderHeader _header;
 
 		private readonly LineCollider _lineSeg0;
 		private readonly LineCollider _lineSeg1;
 
-		public ColliderBounds Bounds => _lineSeg0.Bounds;
+		public ColliderBounds Bounds;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateCollider.Allocate");
 
@@ -40,11 +40,15 @@ namespace VisualPinball.Unity
 			_header.Init(info, ColliderType.Gate);
 			_lineSeg0 = lineSeg0;
 			_lineSeg1 = lineSeg1;
+
+			Bounds = _lineSeg0.Bounds;
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			PerfMarker.Begin();
+			_header.Id = colliderId;
+			Bounds.ColliderId = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(

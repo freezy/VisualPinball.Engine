@@ -32,16 +32,16 @@ namespace VisualPinball.Unity
 			_data = spinnerApi.Data;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			colliders.Add(new SpinnerCollider(_data, height, _api.GetNextColliderInfo(table, ref nextColliderId)));
+			colliders.Add(new SpinnerCollider(_data, height, _api.GetColliderInfo(table)));
 			if (_data.ShowBracket) {
-				GenerateBracketColliders(table, colliders, ref nextColliderId);
+				GenerateBracketColliders(table, colliders);
 			}
 		}
 
-		private void GenerateBracketColliders(Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+		private void GenerateBracketColliders(Table table, ICollection<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var h = _data.Height + 30.0f;
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 				_data.Length * 0.075f,
 				height + _data.Height,
 				height + h,
-				_api.GetNextColliderInfo(table, ref nextColliderId)
+				_api.GetColliderInfo(table)
 			));
 
 			colliders.Add(new CircleCollider(
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 				_data.Length * 0.075f,
 				height + _data.Height,
 				height + h,
-				_api.GetNextColliderInfo(table, ref nextColliderId)
+				_api.GetColliderInfo(table)
 			));
 		}
 	}

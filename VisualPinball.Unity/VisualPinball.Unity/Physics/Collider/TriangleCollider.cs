@@ -60,9 +60,10 @@ namespace VisualPinball.Unity
 			_normal = math.normalizesafe(math.cross(e0, e1));
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			PerfMarker.Begin();
+			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -77,7 +78,8 @@ namespace VisualPinball.Unity
 		{
 			var e0 = rg2 - rg0;
 			var e1 = rg1 - rg0;
-			var normal = math.normalizesafe(math.cross(e0, e1));
+			var normal = math.cross(e0, e1);
+			normal.NormalizeSafe();
 			return normal.IsZero();
 		}
 

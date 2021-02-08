@@ -32,10 +32,10 @@ namespace VisualPinball.Unity
 			_meshGenerator = rubberApi.Item.MeshGenerator;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders, ref int nextColliderId)
+		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			var mesh = _meshGenerator.GetMesh(table, 6, true); //!! adapt hacky code in the function if changing the "6" here
-			var addedEdges = EdgeSetBetter.Get(mesh.Vertices.Length);
+			var addedEdges = EdgeSetBetter.Get();
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -44,27 +44,26 @@ namespace VisualPinball.Unity
 				var rg1 = mesh.Vertices[mesh.Indices[i + 2]].ToUnityFloat3();
 				var rg2 = mesh.Vertices[mesh.Indices[i + 1]].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table)));
 
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], table, colliders, ref nextColliderId);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], table, colliders, ref nextColliderId);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 1], mesh.Indices[i], table, colliders, ref nextColliderId);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], table, colliders);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], table, colliders);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 1], mesh.Indices[i], table, colliders);
 			}
 
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
-				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetNextColliderInfo(table, ref nextColliderId)));
+				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo(table)));
 			}
 		}
 
 		private void GenerateHitEdge(Mesh mesh, EdgeSetBetter addedEdges, int i, int j,
-			Table table, ICollection<ICollider> colliders, ref int nextColliderId)
+			Table table, ICollection<ICollider> colliders)
 		{
-			var v1 = mesh.Vertices[i].ToUnityFloat3();
-			var v2 = mesh.Vertices[j].ToUnityFloat3();
-
 			if (addedEdges.ShouldAddHitEdge(i, j)) {
-				colliders.Add(new Line3DCollider(v1, v2, _api.GetNextColliderInfo(table, ref nextColliderId)));
+				var v1 = mesh.Vertices[i].ToUnityFloat3();
+				var v2 = mesh.Vertices[j].ToUnityFloat3();
+				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo(table)));
 			}
 		}
 	}
