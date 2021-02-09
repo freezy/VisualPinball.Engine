@@ -62,64 +62,13 @@ namespace VisualPinball.Unity
 			}
 			PerfMarkerGenerateColliders.End();
 
-
 			// 2. allocate created colliders
-			PerfMarkerCreateBlobAsset.Begin();
-
-			// create native containers for allocation job
-			var circleColliders = new NativeList<CircleCollider>(Allocator.TempJob);
-			var flipperColliders = new NativeList<FlipperCollider>(Allocator.TempJob);
-			var gateColliders = new NativeList<GateCollider>(Allocator.TempJob);
-			var line3dColliders = new NativeList<Line3DCollider>(Allocator.TempJob);
-			var lineColliders = new NativeList<LineCollider>(Allocator.TempJob);
-			var lineSlingshotColliders = new NativeList<LineSlingshotCollider>(Allocator.TempJob);
-			var lineZColliders = new NativeList<LineZCollider>(Allocator.TempJob);
-			var plungerColliders = new NativeList<PlungerCollider>(Allocator.TempJob);
-			var pointColliders = new NativeList<PointCollider>(Allocator.TempJob);
-			var spinnerColliders = new NativeList<SpinnerCollider>(Allocator.TempJob);
-			var triangleColliders = new NativeList<TriangleCollider>(Allocator.TempJob);
-
-			// separate created colliders per type
-			foreach (var collider in colliderList) {
-				switch (collider) {
-					case CircleCollider circleCollider: circleColliders.Add(circleCollider); break;
-					case FlipperCollider flipperCollider: flipperColliders.Add(flipperCollider); break;
-					case GateCollider gateCollider: gateColliders.Add(gateCollider); break;
-					case Line3DCollider line3DCollider: line3dColliders.Add(line3DCollider); break;
-					case LineCollider lineCollider: lineColliders.Add(lineCollider); break;
-					case LineSlingshotCollider lineSlingshotCollider: lineSlingshotColliders.Add(lineSlingshotCollider); break;
-					case LineZCollider lineZCollider: lineZColliders.Add(lineZCollider); break;
-					case PlungerCollider plungerCollider: plungerColliders.Add(plungerCollider); break;
-					case PointCollider pointCollider: pointColliders.Add(pointCollider); break;
-					case SpinnerCollider spinnerCollider: spinnerColliders.Add(spinnerCollider); break;
-					case TriangleCollider triangleCollider: triangleColliders.Add(triangleCollider); break;
-				}
-			}
-			var planeColliders = new NativeArray<PlaneCollider>(2, Allocator.TempJob) {
-				[0] = playfieldCollider,
-				[1] = glassCollider
-			};
-
-			// create and run job
-			var allocateColliderJob = new ColliderAllocationJob(circleColliders, flipperColliders, gateColliders, line3dColliders,
-				lineSlingshotColliders, lineColliders, lineZColliders, plungerColliders, pointColliders, spinnerColliders,
-				triangleColliders, planeColliders);
+			var allocateColliderJob = new ColliderAllocationJob(colliderList, playfieldCollider, glassCollider);
 			allocateColliderJob.Run();
 
 			// retrieve result and dispose
 			var colliderBlobAssetRef = allocateColliderJob.BlobAsset[0];
-			allocateColliderJob.BlobAsset.Dispose();
-			circleColliders.Dispose();
-			flipperColliders.Dispose();
-			gateColliders.Dispose();
-			line3dColliders.Dispose();
-			lineColliders.Dispose();
-			lineSlingshotColliders.Dispose();
-			lineZColliders.Dispose();
-			plungerColliders.Dispose();
-			pointColliders.Dispose();
-			spinnerColliders.Dispose();
-			triangleColliders.Dispose();
+			allocateColliderJob.Dispose();
 			PerfMarkerCreateBlobAsset.End();
 
 			// 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
