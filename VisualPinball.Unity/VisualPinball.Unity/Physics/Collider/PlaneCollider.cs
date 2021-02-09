@@ -17,7 +17,6 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -31,8 +30,6 @@ namespace VisualPinball.Unity
 		private readonly float3 _normal;
 		private readonly float _distance;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlaneCollider.Allocate");
-
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Plane);
@@ -42,7 +39,6 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			PerfMarker.Begin();
 			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
@@ -51,7 +47,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(PlaneCollider)
 			);
-			PerfMarker.End();
 		}
 
 		public override string ToString()
