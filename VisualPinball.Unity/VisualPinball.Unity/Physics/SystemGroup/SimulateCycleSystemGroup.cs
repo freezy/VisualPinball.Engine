@@ -63,6 +63,12 @@ namespace VisualPinball.Unity
 		private readonly Stopwatch _simulationTime = new Stopwatch();
 		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			QuadTreeCreationSystem.Create(EntityManager);
+		}
+
 		protected override void OnCreate()
 		{
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());

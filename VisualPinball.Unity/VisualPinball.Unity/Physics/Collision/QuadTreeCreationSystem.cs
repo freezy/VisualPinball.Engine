@@ -19,6 +19,7 @@ using System.Linq;
 using NLog;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Profiling;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -34,7 +35,6 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerCreateQuadTree = new ProfilerMarker("QuadTreeCreationSystem (3 - create quad tree)");
 		private static readonly ProfilerMarker PerfMarkerSaveToEntity = new ProfilerMarker("QuadTreeCreationSystem (4 - save to entity)");
 		private static readonly ProfilerMarker PerfMarkerCreateColliders = new ProfilerMarker("IColliderGenerator.CreateColliders");
-		private static readonly ProfilerMarker PerfMarkerAllocate = new ProfilerMarker("ICollider.Allocate");
 
 		private static readonly ProfilerMarker PerfMarkerTotal = new ProfilerMarker("QuadTreeCreationSystem");
 		private static readonly ProfilerMarker PerfMarkerInitItems = new ProfilerMarker("QuadTreeCreationSystem (1 - init items)");
@@ -62,31 +62,60 @@ namespace VisualPinball.Unity
 			}
 			PerfMarkerGenerateColliders.End();
 
+			var circleColliders = new NativeList<CircleCollider>(Allocator.TempJob);
+			var flipperColliders = new NativeList<FlipperCollider>(Allocator.TempJob);
+			var gateColliders = new NativeList<GateCollider>(Allocator.TempJob);
+			var line3dColliders = new NativeList<Line3DCollider>(Allocator.TempJob);
+			var lineColliders = new NativeList<LineCollider>(Allocator.TempJob);
+			var lineSlingshotColliders = new NativeList<LineSlingshotCollider>(Allocator.TempJob);
+			var lineZColliders = new NativeList<LineZCollider>(Allocator.TempJob);
+			var plungerColliders = new NativeList<PlungerCollider>(Allocator.TempJob);
+			var pointColliders = new NativeList<PointCollider>(Allocator.TempJob);
+			var spinnerColliders = new NativeList<SpinnerCollider>(Allocator.TempJob);
+			var triangleColliders = new NativeList<TriangleCollider>(Allocator.TempJob);
+
+			foreach (var collider in colliderList) {
+				switch (collider) {
+					case CircleCollider circleCollider: circleColliders.Add(circleCollider); break;
+					case FlipperCollider flipperCollider: flipperColliders.Add(flipperCollider); break;
+					case GateCollider gateCollider: gateColliders.Add(gateCollider); break;
+					case Line3DCollider line3DCollider: line3dColliders.Add(line3DCollider); break;
+					case LineCollider lineCollider: lineColliders.Add(lineCollider); break;
+					case LineSlingshotCollider lineSlingshotCollider: lineSlingshotColliders.Add(lineSlingshotCollider); break;
+					case LineZCollider lineZCollider: lineZColliders.Add(lineZCollider); break;
+					case PlungerCollider plungerCollider: plungerColliders.Add(plungerCollider); break;
+					case PointCollider pointCollider: pointColliders.Add(pointCollider); break;
+					case SpinnerCollider spinnerCollider: spinnerColliders.Add(spinnerCollider); break;
+					case TriangleCollider triangleCollider: triangleColliders.Add(triangleCollider); break;
+				}
+			}
+
 			// 2. now we know how many there are, create a blob asset reference
 			PerfMarkerCreateBlobAsset.Begin();
-			var colliderId = 0;
-			BlobAssetReference<ColliderBlob> colliderBlobAssetRef;
-			using (var builder = new BlobBuilder(Allocator.TempJob)) {
-				ref var root = ref builder.ConstructRoot<ColliderBlob>();
-				var colliders = builder.Allocate(ref root.Colliders, colliderList.Count + 2);
+			var planeColliders = new NativeArray<PlaneCollider>(2, Allocator.TempJob) {
+				[0] = playfieldCollider,
+				[1] = glassCollider
+			};
+			var allocateColliderJob = new ColliderAllocationJob(circleColliders, flipperColliders, gateColliders, line3dColliders,
+				lineSlingshotColliders, lineColliders, lineZColliders, plungerColliders, pointColliders, spinnerColliders,
+				triangleColliders, planeColliders);
+			allocateColliderJob.Run();
 
-				PerfMarkerAllocate.Begin();
-				playfieldCollider.Allocate(builder, ref colliders, colliderId++);
-				glassCollider.Allocate(builder, ref colliders, colliderId++);
-				PerfMarkerAllocate.End();
+			var colliderBlobAssetRef = allocateColliderJob.BlobAsset[0];
+			allocateColliderJob.BlobAsset.Dispose();
 
-				root.PlayfieldColliderId = playfieldCollider.Id;
-				root.GlassColliderId = glassCollider.Id;
+			circleColliders.Dispose();
+			flipperColliders.Dispose();
+			gateColliders.Dispose();
+			line3dColliders.Dispose();
+			lineColliders.Dispose();
+			lineSlingshotColliders.Dispose();
+			lineZColliders.Dispose();
+			plungerColliders.Dispose();
+			pointColliders.Dispose();
+			spinnerColliders.Dispose();
+			triangleColliders.Dispose();
 
-				// copy generated colliders into blob array
-				foreach (var collider in colliderList) {
-					PerfMarkerAllocate.Begin();
-					collider.Allocate(builder, ref colliders, colliderId++);
-					PerfMarkerAllocate.End();
-				}
-
-				colliderBlobAssetRef = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
-			}
 			PerfMarkerCreateBlobAsset.End();
 
 			// 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
@@ -104,7 +133,6 @@ namespace VisualPinball.Unity
 			// save it to entity
 			PerfMarkerSaveToEntity.Begin();
 			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
-			//DstEntityManager.SetName(collEntity, "Collision Data Holder");
 			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
 			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
 			PerfMarkerSaveToEntity.End();
