@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 		protected override void OnStartRunning()
 		{
 			base.OnStartRunning();
-			QuadTreeCreationSystem.Create(EntityManager);
+			QuadTreeCreator.Create(EntityManager);
 		}
 
 		protected override void OnCreate()
