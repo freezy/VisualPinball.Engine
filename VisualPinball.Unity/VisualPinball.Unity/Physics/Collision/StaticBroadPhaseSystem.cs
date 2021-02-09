@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 			var allocateColliderJob = new ColliderAllocationJob(circleColliders, flipperColliders, gateColliders, line3dColliders,
 				lineSlingshotColliders, lineColliders, lineZColliders, plungerColliders, pointColliders, spinnerColliders,
 				triangleColliders, planeColliders);
-			allocateColliderJob.Schedule().Complete();
+			allocateColliderJob.Run();
 
 			var colliderBlobAssetRef = allocateColliderJob.BlobAsset[0];
 			allocateColliderJob.BlobAsset.Dispose();
