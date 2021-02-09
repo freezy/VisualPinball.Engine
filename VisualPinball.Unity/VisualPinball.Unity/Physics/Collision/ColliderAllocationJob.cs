@@ -14,17 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using System.Linq;
-using NLog;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.CodeGeneratedJobForEach;
 using Unity.Jobs;
-using Unity.Profiling;
-using UnityEngine;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
