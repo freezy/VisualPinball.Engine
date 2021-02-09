@@ -65,10 +65,12 @@ namespace VisualPinball.Unity
 			SpinnerColliders = spinnerColliders;
 			TriangleColliders = triangleColliders;
 			PlaneColliders = planeColliders;
+
+			BlobAsset = new NativeArray<BlobAssetReference<ColliderBlob>>(1, Allocator.TempJob);
 		}
 		public void Execute()
 		{
-			var builder = new BlobBuilder(Allocator.TempJob);
+			var builder = new BlobBuilder(Allocator.Temp);
 			var colliderId = 0;
 			ref var root = ref builder.ConstructRoot<ColliderBlob>();
 			var count = CircleColliders.Length + FlipperColliders.Length + GateColliders.Length + Line3DColliders.Length
@@ -84,41 +86,38 @@ namespace VisualPinball.Unity
 			root.GlassColliderId = PlaneColliders[1].Id;
 
 			// copy generated colliders into blob array
-			foreach (var collider in CircleColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < CircleColliders.Length; i++) {
+				CircleColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in FlipperColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < FlipperColliders.Length; i++) {
+				FlipperColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in GateColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < GateColliders.Length; i++) {
+				GateColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in Line3DColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < Line3DColliders.Length; i++) {
+				Line3DColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in LineSlingshotColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < LineSlingshotColliders.Length; i++) {
+				LineSlingshotColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in LineColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < LineColliders.Length; i++) {
+				LineColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in LineZColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < LineZColliders.Length; i++) {
+				LineZColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in PlungerColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < PlungerColliders.Length; i++) {
+				PlungerColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in PointColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < PointColliders.Length; i++) {
+				PointColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in SpinnerColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < SpinnerColliders.Length; i++) {
+				SpinnerColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
-			foreach (var collider in TriangleColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
-			}
-			foreach (var collider in PlaneColliders) {
-				collider.Allocate(builder, ref colliders, colliderId++);
+			for (var i = 0; i < TriangleColliders.Length; i++) {
+				TriangleColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
 
 			BlobAsset[0] = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
