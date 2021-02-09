@@ -20,6 +20,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 
 namespace VisualPinball.Unity
@@ -44,7 +45,8 @@ namespace VisualPinball.Unity
 
 		public ColliderAllocationJob(IEnumerable<ICollider> colliderList,  PlaneCollider playfieldCollider,  PlaneCollider glassCollider) : this()
 		{
-			Profiler.BeginSample("ColliderAllocationJob: Split Colliders");
+			var perfMarker = new ProfilerMarker("ColliderAllocationJob.ctr");
+			perfMarker.Begin();
 
 			_circleColliders = new NativeList<CircleCollider>(Allocator.TempJob);
 			_flipperColliders = new NativeList<FlipperCollider>(Allocator.TempJob);
@@ -81,7 +83,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			Profiler.EndSample();
+			perfMarker.End();
 		}
 		public void Execute()
 		{
