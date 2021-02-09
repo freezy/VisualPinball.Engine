@@ -44,8 +44,6 @@ namespace VisualPinball.Unity
 		public float V1y { set => _v1.y = value; }
 		public float V2y { set => _v2.y = value; }
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("LineCollider.Allocate");
-
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 			math.min(_v1.x, _v2.x),
 			math.max(_v1.x, _v2.x),
@@ -77,7 +75,6 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			PerfMarker.Begin();
 			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
@@ -86,7 +83,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(LineCollider)
 			);
-			PerfMarker.End();
 		}
 
 		public static LineCollider Create(LineSeg src, ColliderType type = ColliderType.Line)

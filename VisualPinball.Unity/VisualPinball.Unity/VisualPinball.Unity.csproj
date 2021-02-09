@@ -19,6 +19,9 @@
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\Plugins\.unity\Unity.Burst.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\Plugins\.unity\UnityEngine.dll</HintPath>
     </Reference>

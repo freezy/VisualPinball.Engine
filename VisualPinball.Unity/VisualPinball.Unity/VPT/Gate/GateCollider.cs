@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateCollider.Allocate");
-
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Gate);
@@ -46,7 +44,6 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			PerfMarker.Begin();
 			_header.Id = colliderId;
 			Bounds.ColliderId = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
@@ -56,7 +53,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(GateCollider)
 			);
-			PerfMarker.End();
 		}
 
 		#region Narrowphase

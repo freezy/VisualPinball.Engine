@@ -91,11 +91,6 @@ namespace VisualPinball.Unity
 			Contacts = new NativeList<ContactBufferElement>(Allocator.Persistent);
 		}
 
-		protected override void OnStartRunning()
-		{
-			QuadTreeCreationSystem.Create(EntityManager);
-		}
-
 		protected override void OnDestroy()
 		{
 			Contacts.Dispose();
