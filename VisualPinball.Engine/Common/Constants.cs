@@ -124,6 +124,8 @@ namespace VisualPinball.Engine.Common
 
 		public const string ActionCreateBall = "Create Ball";
 		public const string ActionKicker = "Kicker";
+		public const string ActionSlowMotion = "Slow Motion";
+		public const string ActionTimeLapse = "Time Lapse";
 
 		public const string ActionUpperLeftFlipper = "Upper Left Flipper";
 		public const string ActionUpperRightFlipper = "Upper Right Flipper";

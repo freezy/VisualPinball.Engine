@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -37,6 +38,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 using Light = VisualPinball.Engine.VPT.Light.Light;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -74,6 +76,11 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
 
+		private const float SlowMotionMax = 0.1f;
+		private const float TimeLapseMax = 2.5f;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public Player()
 		{
 			TableApi = new TableApi(this);
@@ -101,6 +108,7 @@ namespace VisualPinball.Unity
 			Table = tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
+			_inputManager.Enable(HandleInput);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
@@ -139,6 +147,7 @@ namespace VisualPinball.Unity
 				i.OnDestroy();
 			}
 
+			_inputManager.Disable(HandleInput);
 			_coilPlayer.OnDestroy();
 			_switchPlayer.OnDestroy();
 			_lampPlayer.OnDestroy();
@@ -355,6 +364,44 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		private static void HandleInput(object obj, InputActionChange change)
+		{
+			if (obj is InputAction action && action.actionMap.name == InputConstants.MapDebug) {
+				var value = action.ReadValue<float>();
+				switch (action.name) {
+					case InputConstants.ActionSlowMotion: {
+						switch (change) {
+							case InputActionChange.ActionPerformed when value > 0.1:
+								Time.timeScale = math.lerp(1f, SlowMotionMax, value);
+								break;
+							case InputActionChange.ActionPerformed:
+								Time.timeScale = 1;
+								break;
+							case InputActionChange.ActionStarted:
+								Time.timeScale = SlowMotionMax;
+								break;
+							case InputActionChange.ActionCanceled:
+								Time.timeScale = 1;
+								break;
+						}
+						Logger.Info("Timescale = " + Time.timeScale);
+						break;
+					}
+					case InputConstants.ActionTimeLapse: {
+						if (change == InputActionChange.ActionPerformed) {
+							if (value > 0.1) {
+								Time.timeScale = math.lerp(1f, TimeLapseMax, value);
+							} else {
+								Time.timeScale = 1;
+							}
+						}
+						Logger.Info("Timescale = " + Time.timeScale);
+						break;
+					}
+				}
+			}
+		}
 
 		public float3 GetGravity()
 		{

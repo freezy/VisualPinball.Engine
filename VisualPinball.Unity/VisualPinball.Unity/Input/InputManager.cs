@@ -152,6 +152,8 @@ namespace VisualPinball.Unity
 			map = new InputActionMap(InputConstants.MapDebug);
 			map.AddAction(InputConstants.ActionCreateBall, InputActionType.Button, "<Keyboard>/b");
 			map.AddAction(InputConstants.ActionKicker, InputActionType.Button, "<Keyboard>/n");
+			map.AddAction(InputConstants.ActionSlowMotion, InputActionType.Button, "<Keyboard>/s").AddBinding("<Gamepad>/leftStick/down");
+			map.AddAction(InputConstants.ActionTimeLapse, InputActionType.Button, "<Gamepad>/leftStick/up");
 
 			asset.AddActionMap(map);
 
