@@ -71,8 +71,6 @@ namespace VisualPinball.Unity
 
 		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		internal IEnumerable<IColliderGenerator> ColliderGenerators => _colliderGenerators;
 
 		// input related
@@ -116,6 +114,7 @@ namespace VisualPinball.Unity
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
+			_inputManager.Enable(HandleInput);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
