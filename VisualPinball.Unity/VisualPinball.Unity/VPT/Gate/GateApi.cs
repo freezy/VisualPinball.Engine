@@ -72,7 +72,6 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-
 		public GateApi(Engine.VPT.Gate.Gate item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
 		{
 		}
@@ -82,14 +81,6 @@ namespace VisualPinball.Unity
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		#region Collider Generation
-
-		internal override bool IsColliderEnabled => Data.IsCollidable;
-		internal override PhysicsMaterialData GetPhysicsMaterial(Table table)=> new PhysicsMaterialData {
-			Elasticity = Data.Elasticity,
-			ElasticityFalloff = 0,
-			Friction = Data.Friction,
-			ScatterAngleRad = 0
-		};
 
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

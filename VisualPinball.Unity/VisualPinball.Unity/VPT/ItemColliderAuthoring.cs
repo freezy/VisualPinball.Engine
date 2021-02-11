@@ -125,13 +125,14 @@ namespace VisualPinball.Unity
 
 				case LineCollider lineCol: {
 					const int num = 10;
-					var aabb = lineCol.Bounds.Aabb;
-					var d = (aabb.ZHigh - aabb.ZLow) / num;
+					var d = (lineCol.ZHigh - lineCol.ZLow) / num;
 					for (var i = 0; i < num; i++) {
 						Gizmos.DrawLine(
-							ltw.MultiplyPoint(lineCol.V1.ToFloat3(aabb.ZLow + i * d)),
-							ltw.MultiplyPoint(lineCol.V2.ToFloat3(aabb.ZLow + i * d))
+							ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow + i * d)),
+							ltw.MultiplyPoint(lineCol.V2.ToFloat3(lineCol.ZLow + i * d))
 						);
+						var position = ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow));
+						DrawArrow(position, position - ltw.MultiplyPoint(lineCol.Normal.ToFloat3(lineCol.ZLow)));
 					}
 					break;
 				}

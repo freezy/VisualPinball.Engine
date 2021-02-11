@@ -16,6 +16,7 @@
 
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -41,7 +42,7 @@ namespace VisualPinball.Unity
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var contacts = _simulateCycleSystemGroup.Contacts;
 			var hitTime = _simulateCycleSystemGroup.HitTime;
-
+			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			var marker = PerfMarker;
 
 			Entities
@@ -64,14 +65,18 @@ namespace VisualPinball.Unity
 				ref var glassCollider = ref colliders[collData.Value.Value.GlassColliderId].Value;
 
 				// init contacts and event
-				collEvent.ClearCollider(hitTime); // search upto current hittime
+				collEvent.ClearCollider(hitTime); // search upto current hit time
 
 				// check playfield and glass first
 				HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
 				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
 
-				// statics first (todo: randomly switch order)
-				for (var i = 0; i < colliderIds.Length; i++) {
+				var traversalOrder = false; //random.NextBool();
+				var start = traversalOrder ? 0 : colliderIds.Length - 1;
+				var end = traversalOrder ? colliderIds.Length : -1;
+				var dt = traversalOrder ? 1 : -1;
+
+				for (var i  = start; i != end; i += dt) {
 					ref var coll = ref colliders[colliderIds[i].Value].Value;
 
 					var newCollEvent = new CollisionEventData();

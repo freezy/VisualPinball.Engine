@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public TableApi TableApi { get; }
+		public TableApi TableApi { get; private set; }
 
 		// shortcuts
 		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
@@ -85,13 +85,9 @@ namespace VisualPinball.Unity
 		private const float SlowMotionMax = 0.1f;
 		private const float TimeLapseMax = 2.5f;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		internal static readonly Entity TableEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
 
-		public Player()
-		{
-			TableApi = new TableApi(this);
-			_initializables.Add(TableApi);
-		}
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#region Access
 
@@ -110,6 +106,10 @@ namespace VisualPinball.Unity
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
+
+			TableApi = new TableApi(this, tableComponent.Data);
+			_initializables.Add(TableApi);
+			_colliderGenerators.Add(TableApi);
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
 			BallManager = new BallManager(Table, TableToWorld);

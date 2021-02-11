@@ -48,7 +48,6 @@ namespace VisualPinball.Unity
 			var colliderList = new List<ICollider>();
 			var (playfieldCollider, glassCollider) = player.TableApi.CreateColliders(player.Table);
 			foreach (var itemApi in itemApis) {
-				var cnt = colliderList.Count;
 				PerfMarkerCreateColliders.Begin();
 				itemApi.CreateColliders(player.Table, colliderList);
 				PerfMarkerCreateColliders.End();
@@ -70,7 +69,7 @@ namespace VisualPinball.Unity
 			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
 			using (var builder = new BlobBuilder(Allocator.Temp)) {
 				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
-				QuadTree.Create(player, builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
+				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
 					player.Table.BoundingBox.ToAabb());
 
 				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
@@ -79,6 +78,7 @@ namespace VisualPinball.Unity
 
 			// save it to entity
 			PerfMarkerSaveToEntity.Begin();
+			//Debug.Log(quadTreeBlobAssetRef.Value.QuadTree.ToString(0));
 			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
 			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
 			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });

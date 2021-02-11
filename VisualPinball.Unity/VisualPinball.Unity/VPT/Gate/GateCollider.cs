@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 
 			// linear speed = ball speed
 			// angular speed = linear/radius (height of hit)
-			var speed = math.abs(dot);
+			var speed = -math.abs(dot);
 			// h is the height of the gate axis.
 			if (math.abs(h) > 1.0) {                           // avoid divide by zero
 				speed /= h;
@@ -101,12 +101,16 @@ namespace VisualPinball.Unity
 
 			movementData.AngleSpeed = speed;
 			if (!collEvent.HitFlag && !data.TwoWay) {
+				movementData.HitDirection = dot > 0;
 				movementData.AngleSpeed *= (float)(1.0 / 8.0); // Give a little bounce-back.
 				return;                                        // hit from back doesn't count if not two-way
 			}
 
+			movementData.HitDirection = false;
+
 			// We encoded which side of the spinner the ball hit
 			if (collEvent.HitFlag && data.TwoWay) {
+
 				movementData.AngleSpeed = -movementData.AngleSpeed;
 			}
 

@@ -23,9 +23,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class TableApi : IApiInitializable
+	public class TableApi : IApiInitializable, IColliderGenerator
 	{
 		private readonly Player _player;
+		private readonly TableData _data;
 
 		internal readonly Dictionary<string, BumperApi> Bumpers = new Dictionary<string, BumperApi>();
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
@@ -42,9 +43,10 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, TroughApi> Troughs = new Dictionary<string, TroughApi>();
 		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
 
-		public TableApi(Player player)
+		public TableApi(Player player, TableData data)
 		{
 			_player = player;
+			_data = data;
 		}
 
 		internal IApiSwitch Switch(string name) => _player.Switch(name);
@@ -185,6 +187,66 @@ namespace VisualPinball.Unity
 				new PlaneCollider(new float3(0, 0, 1), table.TableHeight, info),
 				new PlaneCollider(new float3(0, 0, -1), table.GlassHeight, info)
 			);
+		}
+		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		{
+			var info = ((IColliderGenerator)this).GetColliderInfo(table);
+
+			// simple outer borders:
+			colliders.Add(new LineCollider(
+				new float2(table.Data.Right, table.Data.Top),
+				new float2(table.Data.Right, table.Data.Bottom),
+				table.Data.TableHeight,
+				table.Data.GlassHeight,
+				info
+			));
+
+			colliders.Add(new LineCollider(
+				new float2(table.Data.Left, table.Data.Bottom),
+				new float2(table.Data.Left, table.Data.Top),
+				table.Data.TableHeight,
+				table.Data.GlassHeight,
+				info
+			));
+
+			colliders.Add(new LineCollider(
+				new float2(table.Data.Right, table.Data.Bottom),
+				new float2(table.Data.Left, table.Data.Bottom),
+				table.Data.TableHeight,
+				table.Data.GlassHeight,
+				info
+			));
+
+			colliders.Add(new LineCollider(
+				new float2(table.Data.Left, table.Data.Top),
+				new float2(table.Data.Right, table.Data.Top),
+				table.Data.TableHeight,
+				table.Data.GlassHeight,
+				info
+			));
+
+			// glass:
+			var rgv3D = new[] {
+				new float3(_data.Left, _data.Top, table.Data.GlassHeight),
+				new float3(_data.Right, _data.Top, table.Data.GlassHeight),
+				new float3(_data.Right, _data.Bottom, table.Data.GlassHeight),
+				new float3(_data.Left, _data.Bottom, table.Data.GlassHeight)
+			};
+			ColliderUtils.Generate3DPolyColliders(rgv3D, table, info, colliders);
+		}
+
+		ColliderInfo IColliderGenerator.GetColliderInfo(Table table)
+		{
+			return new ColliderInfo {
+				Id = -1,
+				ItemType = ItemType.Table,
+				Entity = Player.TableEntity,
+				ParentEntity = Entity.Null,
+				FireEvents = false,
+				IsEnabled = true,
+				Material = default,
+				HitThreshold = 0,
+			};
 		}
 	}
 }

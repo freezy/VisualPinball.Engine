@@ -68,50 +68,7 @@ namespace VisualPinball.Unity
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			GenerateCollidersFromMesh(table, mesh, _api, colliders);
-		}
-
-		internal static void GenerateCollidersFromMesh(Table table, Mesh mesh, IColliderGenerator api, ICollection<ICollider> colliders, bool onlyTriangles = false)
-		{
-			var addedEdges = EdgeSetBetter.Get();
-			var collCount = colliders.Count;
-
-			// add collision triangles and edges
-			for (var i = 0; i < mesh.Indices.Length; i += 3) {
-				var i0 = mesh.Indices[i];
-				var i1 = mesh.Indices[i + 1];
-				var i2 = mesh.Indices[i + 2];
-
-
-				// NB: HitTriangle wants CCW vertices, but for rendering we have them in CW order
-				var rgv0 = mesh.Vertices[i0].GetVertex().ToUnityFloat3();
-				var rgv1 = mesh.Vertices[i1].GetVertex().ToUnityFloat3();
-				var rgv2 = mesh.Vertices[i2].GetVertex().ToUnityFloat3();
-
-				// todo handle playfield mesh
-
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, api.GetColliderInfo(table)));
-
-				if (!onlyTriangles) {
-
-					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, api.GetColliderInfo(table)));
-					}
-					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, api.GetColliderInfo(table)));
-					}
-					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, api.GetColliderInfo(table)));
-					}
-				}
-			}
-
-			// add collision vertices
-			if (!onlyTriangles) {
-				foreach (var vertex in mesh.Vertices) {
-					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), api.GetColliderInfo(table)));
-				}
-			}
+			ColliderUtils.GenerateCollidersFromMesh(table, mesh, _api.GetColliderInfo(table), colliders);
 		}
 
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)

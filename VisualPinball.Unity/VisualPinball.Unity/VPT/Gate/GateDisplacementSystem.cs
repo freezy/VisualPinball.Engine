@@ -90,8 +90,9 @@ namespace VisualPinball.Unity
 						}
 					}
 				} else {
-					if (movementData.Angle > data.AngleMax) {
-						movementData.Angle = data.AngleMax;
+					var direction = movementData.HitDirection ? -1f : 1f;
+					if (direction * movementData.Angle > data.AngleMax) {
+						movementData.Angle = direction * data.AngleMax;
 
 						// send EOS event
 						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
@@ -103,8 +104,8 @@ namespace VisualPinball.Unity
 							movementData.AngleSpeed = 0.0f;
 						}
 					}
-					if (movementData.Angle < data.AngleMin) {
-						movementData.Angle = data.AngleMin;
+					if (direction * movementData.Angle < data.AngleMin) {
+						movementData.Angle = direction * data.AngleMin;
 
 						// send Park event
 						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, movementData.AngleSpeed));

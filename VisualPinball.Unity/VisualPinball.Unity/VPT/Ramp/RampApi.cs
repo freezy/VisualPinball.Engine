@@ -44,8 +44,8 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		internal override bool FireHitEvents => Data.HitEvent;
-		internal override float HitThreshold => Data.Threshold;
+		protected override bool FireHitEvents => Data.HitEvent;
+		protected override float HitThreshold => Data.Threshold;
 
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

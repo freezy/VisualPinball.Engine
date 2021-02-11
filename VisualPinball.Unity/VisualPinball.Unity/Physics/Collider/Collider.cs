@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public unsafe ColliderBounds Bounds(Player player) {
+		public unsafe ColliderBounds Bounds() {
 			fixed (Collider* collider = &this) {
 				switch (collider->Type) {
 					case ColliderType.Bumper:

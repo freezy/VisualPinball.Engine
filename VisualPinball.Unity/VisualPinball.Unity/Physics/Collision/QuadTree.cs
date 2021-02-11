@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		private float3 _center;
 		private bool _isLeaf;
 
-		public static void Create(Player player, BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
+		public static void Create(BlobBuilder builder, ref BlobArray<BlobPtr<Collider>> colliders, ref QuadTree dest, Aabb rootBounds)
 		{
 			var children = builder.Allocate(ref dest._children, 4);
 			var aabbs = new List<ColliderBounds>();
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < colliders.Length; i++) {
 				if (colliders[i].Value.Type != ColliderType.Plane) {
 					var c = colliders[i].Value;
-					var bounds = colliders[i].Value.Bounds(player);
+					var bounds = colliders[i].Value.Bounds();
 					//Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
 					if (bounds.ColliderEntity == Entity.Null) {
 						throw new InvalidOperationException($"Entity of {bounds} must be set ({colliders[i].Value.ItemType}).");
@@ -228,6 +228,27 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+
+		public override string ToString()
+		{
+			var bounds = new ColliderBounds[_bounds.Length];
+			for (var i = 0; i <  _bounds.Length; i++) {
+				bounds[i] = _bounds[i].Value;
+			}
+			return $"[({bounds.Length}){string.Join(" - ", bounds)}]";
+		}
+
+		public string ToString(int level)
+		{
+			var ident = new string(' ', level * 3);
+			var str = ident + ToString() + "\n";
+			if (!_isLeaf) {
+				for (var i = 0; i < _children.Length; i++) {
+					str += _children[i].Value.ToString(level + 1);
+				}
+			}
+			return str;
 		}
 	}
 }

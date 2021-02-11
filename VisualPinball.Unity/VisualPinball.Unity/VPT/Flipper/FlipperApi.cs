@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 
 		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
-		internal override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
+		protected override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
 			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
 				? Data.OverrideElasticityFalloff
 				: Data.ElasticityFalloff,

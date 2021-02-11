@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		internal override bool IsColliderEnabled => Data.IsEnabled;
+		protected override bool IsColliderEnabled => Data.IsEnabled;
 
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

@@ -24,5 +24,6 @@ namespace VisualPinball.Unity
 		public float AngleSpeed;
 		public bool ForcedMove;
 		public bool IsOpen;
+		public bool HitDirection;
 	}
 }
