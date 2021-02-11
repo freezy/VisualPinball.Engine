@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
-	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, IHittable, ISwitchable, ICoilable
+	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, ISwitchable, ICoilable
 	{
 		public override string ItemName { get; } = "Kicker";
 		public override string ItemGroupName { get; } = "Kickers";
@@ -32,11 +31,9 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		public bool IsPulseSwitch => false;
 
-		public KickerHit KickerHit => _hit;
 		public string[] UsedMaterials => new[] { Data.Material };
 
 		private readonly KickerMeshGenerator _meshGenerator;
-		private KickerHit _hit;
 
 		public Kicker(KickerData data) : base(data)
 		{
@@ -56,11 +53,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 
 		public void Init(Table.Table table)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ();
-
-			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
-			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
-			_hit = new KickerHit(Data, radius, height, table, this); // height of kicker hit cylinder
 		}
 
 		#region IRenderable
@@ -78,8 +70,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 		}
 
 		#endregion
-
-		public HitObject[] GetHitShapes() => new HitObject[] {_hit};
 
 		public bool IsCollidable => Data.IsEnabled;
 

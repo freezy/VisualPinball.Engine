@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Surface
 {
-	public class Surface : Item<SurfaceData>, IRenderable, IHittable
+	public class Surface : Item<SurfaceData>, IRenderable
 	{
 		public override string ItemName { get; } = "Wall";
 		public override string ItemGroupName { get; } = "Walls";
@@ -30,17 +29,13 @@ namespace VisualPinball.Engine.VPT.Surface
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsCollidable;
 
 		private readonly SurfaceMeshGenerator _meshGenerator;
-		private readonly SurfaceHitGenerator _hitGenerator;
-		private HitObject[] _hits;
 
 		public Surface(SurfaceData data) : base(data)
 		{
 			_meshGenerator = new SurfaceMeshGenerator(Data);
-			_hitGenerator = new SurfaceHitGenerator(Data);
 		}
 
 		public Surface(BinaryReader reader, string itemName) : this(new SurfaceData(reader, itemName))
@@ -63,7 +58,6 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
 		#region IRenderable

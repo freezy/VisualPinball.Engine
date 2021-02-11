@@ -21,8 +21,6 @@ using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -32,7 +30,7 @@ namespace VisualPinball.Engine.VPT.Table
 	/// A table contains all the playfield elements, as well as a set of
 	/// global data.
 	/// </summary>
-	public class Table : Item<TableData>, IRenderable, IHittable
+	public class Table : Item<TableData>, IRenderable
 	{
 		public override string ItemName { get; } = "Table";
 		public override string ItemGroupName { get; } = "Playfield";
@@ -60,36 +58,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();
 		public Mappings.Mappings Mappings = new Mappings.Mappings();
-
-		#region Overrides
-
-		private readonly Dictionary<IItem, List<IHittable>> _colliderOverrides = new Dictionary<IItem, List<IHittable>>();
-
-		public void AddColliderOverride(IItem item, IHittable childItem)
-		{
-			if (!_colliderOverrides.ContainsKey(item)) {
-				_colliderOverrides.Add(item, new List<IHittable>());
-			}
-			_colliderOverrides[item].Add(childItem);
-		}
-
-		private IEnumerable<IHittable> ApplyColliderOverrides(IHittable hittable)
-		{
-			if (hittable == null) {
-				throw new ArgumentNullException();
-			}
-
-			if (!(hittable is IItem item)) {
-				return new []{hittable};
-			}
-
-			if (_colliderOverrides.ContainsKey(item)) {
-				return _colliderOverrides[item];
-			}
-			return new []{hittable};
-		}
-
-		#endregion
 
 		#region GameItems
 
@@ -200,35 +168,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_triggers.Values.Select(i => i.Data))
 			.Concat(_troughs.Values.Select(i => i.Data));
 
-		public IEnumerable<IHittable> Hittables => new IHittable[] {this}
-			.Concat(_bumpers.Values)
-			.Concat(_flippers.Values)
-			.Concat(_gates.Values)
-			.Concat(_hitTargets.Values)
-			.Concat(_kickers.Values)
-			.Concat(_plungers.Values)
-			.Concat(_primitives.Values)
-			.Concat(_ramps.Values)
-			.Concat(_rubbers.Values)
-			.Concat(_spinners.Values)
-			.Concat(_surfaces.Values)
-			.Concat(_triggers.Values)
-			.SelectMany(ApplyColliderOverrides);
-
-		public IEnumerable<IPlayable> Playables => new IPlayable[0]
-			.Concat(_bumpers.Values)
-			.Concat(_flippers.Values)
-			.Concat(_gates.Values)
-			.Concat(_hitTargets.Values)
-			.Concat(_kickers.Values)
-			.Concat(_plungers.Values)
-			.Concat(_primitives.Values)
-			.Concat(_ramps.Values)
-			.Concat(_rubbers.Values)
-			.Concat(_spinners.Values)
-			.Concat(_surfaces.Values)
-			.Concat(_triggers.Values);
-
 		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
@@ -273,78 +212,78 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
-			if (typeof(T) == typeof(VPT.Bumper.Bumper)) {
+			if (typeof(T) == typeof(Bumper.Bumper)) {
 				return _bumpers as Dictionary<string, T>;
 			}
-			if (typeof(T) == typeof(VPT.DispReel.DispReel)) {
+			if (typeof(T) == typeof(DispReel.DispReel)) {
 				return _dispReels as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Flipper.Flipper)) {
+			if (typeof(T) == typeof(Flipper.Flipper)) {
 				return _flippers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Gate.Gate)) {
+			if (typeof(T) == typeof(Gate.Gate)) {
 				return _gates as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.HitTarget.HitTarget)) {
+			if (typeof(T) == typeof(HitTarget.HitTarget)) {
 				return _hitTargets as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Kicker.Kicker)) {
+			if (typeof(T) == typeof(Kicker.Kicker)) {
 				return _kickers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Light.Light)) {
+			if (typeof(T) == typeof(Light.Light)) {
 				return _lights as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.LightSeq.LightSeq)) {
+			if (typeof(T) == typeof(LightSeq.LightSeq)) {
 				return _lightSeqs as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Plunger.Plunger)) {
+			if (typeof(T) == typeof(Plunger.Plunger)) {
 				return _plungers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Flasher.Flasher)) {
+			if (typeof(T) == typeof(Flasher.Flasher)) {
 				return _flashers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Primitive.Primitive)) {
+			if (typeof(T) == typeof(Primitive.Primitive)) {
 				return _primitives as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Ramp.Ramp)) {
+			if (typeof(T) == typeof(Ramp.Ramp)) {
 				return _ramps as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Rubber.Rubber)) {
+			if (typeof(T) == typeof(Rubber.Rubber)) {
 				return _rubbers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Spinner.Spinner)) {
+			if (typeof(T) == typeof(Spinner.Spinner)) {
 				return _spinners as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Surface.Surface)) {
+			if (typeof(T) == typeof(Surface.Surface)) {
 				return _surfaces as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.TextBox.TextBox)) {
+			if (typeof(T) == typeof(TextBox.TextBox)) {
 				return _textBoxes as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Timer.Timer)) {
+			if (typeof(T) == typeof(Timer.Timer)) {
 				return _timers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Trigger.Trigger)) {
+			if (typeof(T) == typeof(Trigger.Trigger)) {
 				return _triggers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(VPT.Trough.Trough)) {
+			if (typeof(T) == typeof(Trough.Trough)) {
 				return _troughs as Dictionary<string, T>;
 			}
 
@@ -352,7 +291,7 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		private List<T> GetItemList<T>() {
-			if (typeof(T) == typeof(VPT.Decal.Decal)) {
+			if (typeof(T) == typeof(Decal.Decal)) {
 				return _decals as List<T>;
 			}
 
@@ -505,7 +444,6 @@ namespace VisualPinball.Engine.VPT.Table
 		#endregion
 
 		private readonly TableMeshGenerator _meshGenerator;
-		private readonly TableHitGenerator _hitGenerator;
 
 		/// <summary>
 		/// The API to load the table from a file.
@@ -521,7 +459,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public Table(TableData data) : base(data)
 		{
 			_meshGenerator = new TableMeshGenerator(this);
-			_hitGenerator = new TableHitGenerator(this);
 		}
 
 		public Table(BinaryReader reader) : this(new TableData(reader)) { }
@@ -542,12 +479,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#endregion
 
-		public HitObject[] GetHitShapes() => _hitGenerator.GenerateHitObjects(this).ToArray();
 		public bool IsCollidable => true;
 		public bool HasTrough => _troughs.Count > 0;
-
-		public HitPlane GeneratePlayfieldHit() => _hitGenerator.GeneratePlayfieldHit(this);
-		public HitPlane GenerateGlassHit() => _hitGenerator.GenerateGlassHit(this);
 
 		public void Save(string fileName)
 		{

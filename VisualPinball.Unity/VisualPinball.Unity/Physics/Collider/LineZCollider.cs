@@ -18,9 +18,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Unity
 {
@@ -31,8 +29,8 @@ namespace VisualPinball.Unity
 		private ColliderHeader _header;
 
 		public float2 XY;
-		private float _zLow;
-		private float _zHigh;
+		private readonly float _zLow;
+		private readonly float _zHigh;
 
 		public float XyY { set => XY.y = value; }
 
@@ -63,22 +61,6 @@ namespace VisualPinball.Unity
 			XY = xy;
 			_zLow = zLow;
 			_zHigh = zHigh;
-		}
-
-		public static LineZCollider Create(HitLineZ src)
-		{
-			var collider = default(LineZCollider);
-			collider.Init(src);
-			return collider;
-		}
-
-		private void Init(HitLineZ src)
-		{
-			_header.Init(ColliderType.LineZ, src);
-
-			XY = src.Xy.ToUnityFloat2();
-			_zLow = src.HitBBox.ZLow;
-			_zHigh = src.HitBBox.ZHigh;
 		}
 
 		#region Narrowphase
@@ -180,6 +162,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Collision
+
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
 		{
@@ -190,5 +174,7 @@ namespace VisualPinball.Unity
 				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in _header);
 			}
 		}
+
+		#endregion
 	}
 }

@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Trigger
 {
-	public class Trigger : Item<TriggerData>, IRenderable, IHittable, ISwitchable
+	public class Trigger : Item<TriggerData>, IRenderable, ISwitchable
 	{
 		public override string ItemName { get; } = "Trigger";
 		public override string ItemGroupName { get; } = "Triggers";
@@ -32,17 +31,13 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public bool IsPulseSwitch => false;
 
-		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsEnabled;
 
 		private readonly TriggerMeshGenerator _meshGenerator;
-		private readonly TriggerHitGenerator _hitGenerator;
-		private HitObject[] _hits;
 
 		public Trigger(TriggerData data) : base(data)
 		{
 			_meshGenerator = new TriggerMeshGenerator(Data);
-			_hitGenerator = new TriggerHitGenerator(Data);
 		}
 
 		public Trigger(BinaryReader reader, string itemName) : this(new TriggerData(reader, itemName))
@@ -65,7 +60,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
 		#region IRenderable

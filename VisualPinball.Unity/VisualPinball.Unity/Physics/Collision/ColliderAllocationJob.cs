@@ -21,7 +21,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Profiling;
-using UnityEngine.Profiling;
 
 namespace VisualPinball.Unity
 {

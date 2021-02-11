@@ -56,6 +56,8 @@ namespace VisualPinball.Unity
 			return $"PlaneCollider[{_header.Entity}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 		}
 
+		#region Narrowphase
+
 		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			// speed in normal direction
@@ -108,6 +110,10 @@ namespace VisualPinball.Unity
 			return hitTime;
 		}
 
+		#endregion
+
+		#region Collision
+
 		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
@@ -119,5 +125,7 @@ namespace VisualPinball.Unity
 				ball.Position += _normal * bnd;
 			}
 		}
+
+		#endregion
 	}
 }

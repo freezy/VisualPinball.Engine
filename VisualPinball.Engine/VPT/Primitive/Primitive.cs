@@ -17,7 +17,6 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -27,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// </summary>
 	///
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
-	public class Primitive : Item<PrimitiveData>, IRenderable, IHittable
+	public class Primitive : Item<PrimitiveData>, IRenderable
 	{
 		public override string ItemName { get; } = "Primitive";
 		public override string ItemGroupName { get; } = "Primitives";
@@ -36,15 +35,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public bool UseAsPlayfield;
 
 		public readonly PrimitiveMeshGenerator MeshGenerator;
-		private readonly PrimitiveHitGenerator _hitGenerator;
-		private HitObject[] _hits;
 		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
 		public float RotationY { get => Data.RotAndTra[1]; set => Data.RotAndTra[1] = value; }
 
 		public Primitive(PrimitiveData data) : base(data)
 		{
 			MeshGenerator = new PrimitiveMeshGenerator(Data);
-			_hitGenerator = new PrimitiveHitGenerator(this);
 		}
 
 		public Primitive(BinaryReader reader, string itemName) : this(new PrimitiveData(reader, itemName))
@@ -53,7 +49,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, MeshGenerator, this);
 		}
 
 		public static Primitive GetDefault(Table.Table table)
@@ -79,7 +74,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		#endregion
 
-		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;
 
 		public Mesh GetMesh() => MeshGenerator.GetMesh();
