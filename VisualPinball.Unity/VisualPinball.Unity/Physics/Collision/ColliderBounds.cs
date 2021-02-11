@@ -19,7 +19,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	internal struct ColliderBounds
+	public struct ColliderBounds
 	{
 		public Entity ColliderEntity;
 		public int ColliderId;

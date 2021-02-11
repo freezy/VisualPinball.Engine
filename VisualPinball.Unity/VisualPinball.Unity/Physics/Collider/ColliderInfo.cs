@@ -19,7 +19,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	internal struct ColliderInfo
+	public struct ColliderInfo
 	{
 		public int Id;
 		public ItemType ItemType;

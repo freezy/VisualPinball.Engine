@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
@@ -31,5 +32,7 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		protected override IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
+			=> new PrimitiveApi(Item, entity, parentEntity, player);
 	}
 }

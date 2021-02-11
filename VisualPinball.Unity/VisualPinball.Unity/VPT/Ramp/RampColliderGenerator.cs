@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 			}
 			// By convention of the calling function, points 1 [0] and 2 [1] of the second polygon will
 			// be the common-edge points
-			colliders.Add(new Line3DCollider(ph3d2._rgv0, ph3d2._rgv1, _api.GetColliderInfo(table)));
+			colliders.Add(new Line3DCollider(ph3d2.Rgv0, ph3d2.Rgv1, _api.GetColliderInfo(table)));
 		}
 	}
 }

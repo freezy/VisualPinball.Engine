@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -27,5 +28,7 @@ namespace VisualPinball.Unity
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		protected override IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
+			=> new BumperApi(Item, entity, parentEntity, player);
 	}
 }

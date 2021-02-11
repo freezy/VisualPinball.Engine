@@ -30,6 +30,8 @@ namespace VisualPinball.Unity
 		private readonly float3 _normal;
 		private readonly float _distance;
 
+		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, default);
+
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Plane);

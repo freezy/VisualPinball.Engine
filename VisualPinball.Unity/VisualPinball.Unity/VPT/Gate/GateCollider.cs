@@ -28,24 +28,26 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private readonly LineCollider _lineSeg0;
-		private readonly LineCollider _lineSeg1;
+		public readonly LineCollider LineSeg0;
+		public readonly LineCollider LineSeg1;
 
-		public ColliderBounds Bounds;
+		public ColliderBounds Bounds { get; private set; }
 
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Gate);
-			_lineSeg0 = lineSeg0;
-			_lineSeg1 = lineSeg1;
+			LineSeg0 = lineSeg0;
+			LineSeg1 = lineSeg1;
 
-			Bounds = _lineSeg0.Bounds;
+			Bounds = LineSeg0.Bounds;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			_header.Id = colliderId;
-			Bounds.ColliderId = colliderId;
+			var bounds = Bounds;
+			bounds.ColliderId = colliderId;
+			Bounds = bounds;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -64,14 +66,14 @@ namespace VisualPinball.Unity
 			// 	return -1.0;
 			// }
 
-			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = false;
 				return hitTime;
 			}
 
-			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				collEvent.HitFlag = true;
 				return hitTime;

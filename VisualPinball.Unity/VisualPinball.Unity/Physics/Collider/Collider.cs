@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	internal struct Collider : IComponentData
+	public struct Collider : IComponentData
 	{
 		public ColliderHeader Header;
 
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 					case ColliderType.TriggerCircle:
 						return ((CircleCollider*) collider)->Bounds;
 					case ColliderType.Flipper:
-						return ((FlipperCollider*) collider)->Bounds(player);
+						return ((FlipperCollider*) collider)->Bounds;
 					case ColliderType.Gate:
 						return ((GateCollider*) collider)->Bounds;
 					case ColliderType.TriggerLine:
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
+		internal static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallData ball, float dTime)
 		{
 			fixed (Collider* collider = &coll)
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 		/// Most colliders use the standard Collide3DWall routine, only overrides
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
-		public static unsafe void Collide(ref Collider coll, ref BallData ballData,
+		internal static unsafe void Collide(ref Collider coll, ref BallData ballData,
 			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity,
 			in CollisionEventData collEvent, ref Random random)
 		{
@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in ColliderHeader collHeader)
+		internal static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
+		internal static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, in collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
 		}

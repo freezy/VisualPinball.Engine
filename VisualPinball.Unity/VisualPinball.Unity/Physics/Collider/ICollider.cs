@@ -18,9 +18,10 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	internal interface ICollider
+	public interface ICollider
 	{
 		int Id { get; }
 		void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int index);
+		ColliderBounds Bounds { get; }
 	}
 }

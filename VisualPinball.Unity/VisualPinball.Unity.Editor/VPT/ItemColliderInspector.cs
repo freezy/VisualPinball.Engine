@@ -16,11 +16,11 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
@@ -82,10 +82,10 @@ namespace VisualPinball.Unity.Editor
 			// individual collider list
 			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
 
-				var hitObjects = ColliderAuthoring.HitObjects ?? new HitObject[0];
+				var hitObjects = ColliderAuthoring.Colliders ?? new List<ICollider>(0);
 				_currentColliders = hitObjects
 					.Where(h => h != null)
-					.Select((h, i) => $"[{i}] {h.GetType().Name} ({h.ObjType})")
+					.Select((h, i) => $"[{i}] {h.GetType().Name}")
 					.ToArray();
 
 				if (_currentColliders.Length == 0) {
