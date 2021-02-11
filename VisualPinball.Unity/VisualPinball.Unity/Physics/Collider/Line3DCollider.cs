@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float3x3 _matrix;
 
-		public ColliderBounds Bounds;
+		public ColliderBounds Bounds { get; set; }
 
 		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{
@@ -87,7 +87,9 @@ namespace VisualPinball.Unity
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			_header.Id = colliderId;
-			Bounds.ColliderId = colliderId;
+			var bounds = Bounds;
+			bounds.ColliderId = colliderId;
+			Bounds = bounds;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(

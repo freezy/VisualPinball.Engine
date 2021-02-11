@@ -29,11 +29,11 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private LineCollider _lineSegBase;
-		private LineZCollider _jointBase0;
-		private LineZCollider _jointBase1;
+		public LineCollider LineSegBase;
+		public LineZCollider JointBase0;
+		public LineZCollider JointBase1;
 
-		public ColliderBounds Bounds;
+		public ColliderBounds Bounds { get; private set; }
 
 		public PlungerCollider(PlungerData data, float zHeight, ColliderInfo info) : this()
 		{
@@ -44,9 +44,9 @@ namespace VisualPinball.Unity
 			var x2 = data.Center.X + data.Width;
 
 			// static
-			_lineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
-			_jointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
-			_jointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
+			LineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
+			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
+			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
 			var frameEnd = data.Center.Y - data.Stroke;
 			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
@@ -61,7 +61,9 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			Bounds.ColliderId = colliderId;
+			var bounds = Bounds;
+			bounds.ColliderId = colliderId;
+			Bounds = bounds;
 			_header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
@@ -96,9 +98,9 @@ namespace VisualPinball.Unity
 				ScatterAngleRad = src.Scatter,
 			};
 
-			_lineSegBase = LineCollider.Create(src.LineSegBase);
-			_jointBase0 = LineZCollider.Create(src.JointBase[0]);
-			_jointBase1 = LineZCollider.Create(src.JointBase[1]);
+			LineSegBase = LineCollider.Create(src.LineSegBase);
+			JointBase0 = LineZCollider.Create(src.JointBase[0]);
+			JointBase1 = LineZCollider.Create(src.JointBase[1]);
 		}
 
 		#region Narrowphase
@@ -121,19 +123,19 @@ namespace VisualPinball.Unity
 			// Check for hits on the non-moving parts, like the side of back
 			// of the plunger.  These are just like hitting a wall.
 			// Check all and find the nearest collision.
-			var newTime = _lineSegBase.HitTest(ref newCollEvent, ref insideOfs, in ball, dTime);
+			var newTime = LineSegBase.HitTest(ref newCollEvent, ref insideOfs, in ball, dTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide0, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = _jointBase0.HitTest(ref newCollEvent, in ball, hitTime);
+			newTime = JointBase0.HitTest(ref newCollEvent, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide1, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = _jointBase1.HitTest(ref newCollEvent, in ball, hitTime);
+			newTime = JointBase1.HitTest(ref newCollEvent, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			// Now check for hits on the business end, which might be moving.

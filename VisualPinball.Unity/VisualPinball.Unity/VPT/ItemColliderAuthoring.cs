@@ -15,15 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Spinner;
 using Color = UnityEngine.Color;
 using Mesh = UnityEngine.Mesh;
 
@@ -47,9 +45,13 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public int SelectedCollider = -1;
 
-		public HitObject[] HitObjects { get; private set; }
+		public List<ICollider> Colliders { get; private set; }
 
 		public new IItemMainRenderableAuthoring MainAuthoring => base.MainAuthoring;
+
+		private readonly Entity _colliderEntity = new Entity {Index = -2, Version = 0};
+
+		protected abstract IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
 
 		private void OnDrawGizmosSelected()
 		{
@@ -57,31 +59,32 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var item = Item;
-			if (item == null) {
+			var player = GetComponentInParent<Player>();
+			if (player == null) {
 				return;
 			}
+			var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
+			Colliders = new List<ICollider>();
+			api.CreateColliders(Table, Colliders);
+
 
 			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
-			item.Init(Table);
-			HitObjects = item.GetHitShapes();
 
 			// draw aabbs and colliders
-			for (var i = 0; i < HitObjects.Length; i++) {
-				var hit = HitObjects[i];
+			for (var i = 0; i < Colliders.Count; i++) {
+				var col = Colliders[i];
 				if (ShowAabbs) {
-					hit.CalcHitBBox();
-					DrawAabb(ltw, hit.HitBBox, i == SelectedCollider);
+					DrawAabb(ltw, col.Bounds.Aabb, i == SelectedCollider);
 				}
 				if (ShowColliderMesh) {
-					DrawCollider(ltw, hit, i == SelectedCollider);
+					DrawCollider(ltw, col, i == SelectedCollider);
 				}
 			}
 		}
 
 		#region Collider Gizmos
 
-		private static void DrawAabb(Matrix4x4 ltw, Rect3D aabb, bool isSelected)
+		private static void DrawAabb(Matrix4x4 ltw, Aabb aabb, bool isSelected)
 		{
 			var p00 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZHigh));
 			var p01 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZHigh));
@@ -110,82 +113,86 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(p03, p13);
 		}
 
-		private void DrawCollider(Matrix4x4 ltw, HitObject hitObject, bool isSelected)
+		private void DrawCollider(Matrix4x4 ltw, ICollider hitObject, bool isSelected)
 		{
 			Gizmos.color = isSelected ? ColliderColor.SelectedCollider : ColliderColor.Collider;
 			switch (hitObject) {
 
-				case HitPoint hitPoint: {
-					Gizmos.DrawSphere(ltw.MultiplyPoint(hitPoint.P.ToUnityVector3()), 0.001f);
+				case PointCollider pointCol: {
+					Gizmos.DrawSphere(ltw.MultiplyPoint(pointCol.P), 0.001f);
 					break;
 				}
 
-				case LineSeg lineSeg: {
+				case LineCollider lineCol: {
 					const int num = 10;
-					var d = (lineSeg.HitBBox.ZHigh - lineSeg.HitBBox.ZLow) / num;
+					var aabb = lineCol.Bounds.Aabb;
+					var d = (aabb.ZHigh - aabb.ZLow) / num;
 					for (var i = 0; i < num; i++) {
 						Gizmos.DrawLine(
-							ltw.MultiplyPoint(lineSeg.V1.ToUnityVector3(lineSeg.HitBBox.ZLow + i * d)),
-							ltw.MultiplyPoint(lineSeg.V2.ToUnityVector3(lineSeg.HitBBox.ZLow + i * d))
+							ltw.MultiplyPoint(lineCol.V1.ToFloat3(aabb.ZLow + i * d)),
+							ltw.MultiplyPoint(lineCol.V2.ToFloat3(aabb.ZLow + i * d))
 						);
 					}
 					break;
 				}
 
-				case HitLine3D hitLine3D: {
+				// todo
+				// case Line3DCollider line3DCol: {
+				// 	Gizmos.DrawLine(
+				// 		ltw.MultiplyPoint(line3DCol.V1.ToUnityVector3()),
+				// 		ltw.MultiplyPoint(line3DCol.V2.ToUnityVector3())
+				// 	);
+				// 	break;
+				// }
+
+				case LineZCollider lineZCol: {
+					var aabb = lineZCol.Bounds.Aabb;
 					Gizmos.DrawLine(
-						ltw.MultiplyPoint(hitLine3D.V1.ToUnityVector3()),
-						ltw.MultiplyPoint(hitLine3D.V2.ToUnityVector3())
+						ltw.MultiplyPoint(lineZCol.XY.ToFloat3(aabb.ZLow)),
+						ltw.MultiplyPoint(lineZCol.XY.ToFloat3(aabb.ZHigh))
 					);
 					break;
 				}
 
-				case HitLineZ hitLineZ: {
+				case TriangleCollider triangleCol: {
 					Gizmos.DrawLine(
-						ltw.MultiplyPoint(hitLineZ.Xy.ToUnityVector3(hitLineZ.HitBBox.ZLow)),
-						ltw.MultiplyPoint(hitLineZ.Xy.ToUnityVector3(hitLineZ.HitBBox.ZHigh))
+						ltw.MultiplyPoint(triangleCol.Rgv0),
+						ltw.MultiplyPoint(triangleCol.Rgv1)
+					);
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(triangleCol.Rgv1),
+						ltw.MultiplyPoint(triangleCol.Rgv2)
+					);
+					Gizmos.DrawLine(
+						ltw.MultiplyPoint(triangleCol.Rgv2),
+						ltw.MultiplyPoint(triangleCol.Rgv0)
 					);
 					break;
 				}
 
-				case HitTriangle hitTriangle: {
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(hitTriangle.Rgv[0].ToUnityVector3()),
-						ltw.MultiplyPoint(hitTriangle.Rgv[1].ToUnityVector3())
-					);
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(hitTriangle.Rgv[1].ToUnityVector3()),
-						ltw.MultiplyPoint(hitTriangle.Rgv[2].ToUnityVector3())
-					);
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(hitTriangle.Rgv[2].ToUnityVector3()),
-						ltw.MultiplyPoint(hitTriangle.Rgv[0].ToUnityVector3())
-					);
-					break;
-				}
-
-				case HitCircle hitCircle: {
+				case CircleCollider circleCol: {
 					const int num = 20;
-					var d = (hitCircle.HitBBox.ZHigh - hitCircle.HitBBox.ZLow) / num;
+					var aabb = circleCol.Bounds.Aabb;
+					var d = (aabb.ZHigh - aabb.ZLow) / num;
 					for (var i = 0; i < num; i++) {
-						GizmoDrawCircle(ltw, hitCircle.Center.ToUnityVector3(hitCircle.HitBBox.ZLow + i * d), hitCircle.Radius);
+						GizmoDrawCircle(ltw, circleCol.Center.ToFloat3(aabb.ZLow + i * d), circleCol.Radius);
 					}
 					break;
 				}
 
-				case GateHit gateHit: {
-					DrawCollider(ltw, gateHit.LineSeg0, isSelected);
-					DrawCollider(ltw, gateHit.LineSeg1, isSelected);
+				case GateCollider gateCol: {
+					DrawCollider(ltw, gateCol.LineSeg0, isSelected);
+					DrawCollider(ltw, gateCol.LineSeg1, isSelected);
 					break;
 				}
 
-				case SpinnerHit spinnerHit: {
-					DrawCollider(ltw, spinnerHit.LineSeg0, isSelected);
-					DrawCollider(ltw, spinnerHit.LineSeg1, isSelected);
+				case SpinnerCollider spinnerCol: {
+					DrawCollider(ltw, spinnerCol.LineSeg0, isSelected);
+					DrawCollider(ltw, spinnerCol.LineSeg1, isSelected);
 					break;
 				}
 
-				case FlipperHit _: {
+				case FlipperCollider _: {
 
 					Mesh mesh = null;
 
@@ -208,15 +215,10 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case PlungerHit plungerHit: {
-					DrawCollider(ltw, plungerHit.LineSegBase, isSelected);
-					DrawCollider(ltw, plungerHit.LineSegEnd, isSelected);
-					DrawCollider(ltw, plungerHit.LineSegSide[0], isSelected);
-					DrawCollider(ltw, plungerHit.LineSegSide[1], isSelected);
-					DrawCollider(ltw, plungerHit.JointBase[0], isSelected);
-					DrawCollider(ltw, plungerHit.JointBase[1], isSelected);
-					DrawCollider(ltw, plungerHit.JointEnd[0], isSelected);
-					DrawCollider(ltw, plungerHit.JointEnd[1], isSelected);
+				case PlungerCollider plungerCol: {
+					DrawCollider(ltw, plungerCol.LineSegBase, isSelected);
+					DrawCollider(ltw, plungerCol.JointBase0, isSelected);
+					DrawCollider(ltw, plungerCol.JointBase1, isSelected);
 					break;
 				}
 			}

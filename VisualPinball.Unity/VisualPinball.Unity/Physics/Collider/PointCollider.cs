@@ -29,21 +29,21 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private readonly float3 _p;
+		public readonly float3 P;
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
-			_p.x,
-			_p.x,
-			_p.y,
-			_p.y,
-			_p.z,
-			_p.z
+			P.x,
+			P.x,
+			P.y,
+			P.y,
+			P.z,
+			P.z
 		));
 
 		public PointCollider(float3 p, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Point);
-			_p = p;
+			P = p;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 			// }
 
 			// relative ball position
-			var dist = ball.Position - _p;
+			var dist = ball.Position - P;
 
 			var bcddsq = math.lengthsq(dist);                                  // ball center to line distance squared
 			var bcdd = math.sqrt(bcddsq);                                      // distance ball to line
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 			}
 
 			var hitPos = ball.Position + hitTime * ball.Velocity;
-			collEvent.HitNormal = math.normalize(hitPos - _p);
+			collEvent.HitNormal = math.normalize(hitPos - P);
 
 			collEvent.IsContact = isContact;
 			if (isContact) {

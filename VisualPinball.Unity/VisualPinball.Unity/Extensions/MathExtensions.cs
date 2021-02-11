@@ -88,6 +88,12 @@ namespace VisualPinball.Unity
 			return new float3(vertex.X, vertex.Y, vertex.Z);
 		}
 
+		public static float3 ToFloat3(this float2 vertex, float z)
+		{
+			return new Vector3(vertex.x, vertex.y, z);
+		}
+
+
 		public static float2 ToUnityFloat2(this RenderVertex2D vertex)
 		{
 			return new float2(vertex.X, vertex.Y);

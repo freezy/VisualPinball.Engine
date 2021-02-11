@@ -16,7 +16,7 @@
 
 namespace VisualPinball.Unity
 {
-	internal enum ColliderType
+	public enum ColliderType
 	{
 		None,
 		Bumper,

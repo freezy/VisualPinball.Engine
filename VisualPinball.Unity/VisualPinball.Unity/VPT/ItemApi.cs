@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 
 		protected ItemApi(TItem item, Entity entity, Entity parentEntity, Player player)
 		{
-			EntityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Item = item;
 			Entity = entity;
 			ParentEntity = parentEntity;

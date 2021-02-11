@@ -19,7 +19,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal struct Aabb
+	public struct Aabb
 	{
 		public float Left;
 		public float Top;

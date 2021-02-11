@@ -30,17 +30,17 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private float2 _xy;
+		public float2 XY;
 		private float _zLow;
 		private float _zHigh;
 
-		public float XyY { set => _xy.y = value; }
+		public float XyY { set => XY.y = value; }
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb (
-			_xy.x,
-			_xy.x,
-			_xy.y,
-			_xy.y,
+			XY.x,
+			XY.x,
+			XY.y,
+			XY.y,
 			_zLow,
 			_zHigh
 		));
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		public LineZCollider(float2 xy, float zLow, float zHigh, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.LineZ);
-			_xy = xy;
+			XY = xy;
 			_zLow = zLow;
 			_zHigh = zHigh;
 		}
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 		{
 			_header.Init(ColliderType.LineZ, src);
 
-			_xy = src.Xy.ToUnityFloat2();
+			XY = src.Xy.ToUnityFloat2();
 			_zLow = src.HitBBox.ZLow;
 			_zHigh = src.HitBBox.ZHigh;
 		}
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			// }
 
 			var bp2d = new float2(ball.Position.x, ball.Position.y);
-			var dist = bp2d - coll._xy;                                       // relative ball position
+			var dist = bp2d - coll.XY;                                       // relative ball position
 			var dv = new float2(ball.Velocity.x, ball.Velocity.y);
 
 			var bcddsq = math.lengthsq(dist);                             // ball center to line distance squared
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 			var hitX = ball.Position.x + hitTime * ball.Velocity.x;            // ball x position at hit time
 			var hitY = ball.Position.y + hitTime * ball.Velocity.y;            // ball y position at hit time
 
-			var norm = math.normalize(new float2(hitX - coll._xy.x, hitY - coll._xy.y));
+			var norm = math.normalize(new float2(hitX - coll.XY.x, hitY - coll.XY.y));
 			collEvent.HitNormal.x = norm.x;
 			collEvent.HitNormal.y = norm.y;
 			collEvent.HitNormal.z = 0f;

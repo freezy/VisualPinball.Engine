@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Surface;
 
@@ -30,5 +31,7 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		protected override IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
+			=> new SurfaceApi(Item, entity, parentEntity, player);
 	}
 }

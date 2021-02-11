@@ -18,7 +18,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
@@ -31,8 +30,9 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private float2 _v1;
-		private float2 _v2;
+		public float2 V1;
+		public float2 V2;
+
 		private float2 _normal;
 		private float _zLow;
 		private float _zHigh;
@@ -41,14 +41,14 @@ namespace VisualPinball.Unity
 		private ItemType ItemType => _header.ItemType;
 		private Entity Entity => _header.Entity;
 
-		public float V1y { set => _v1.y = value; }
-		public float V2y { set => _v2.y = value; }
+		public float V1y { set => V1.y = value; }
+		public float V2y { set => V2.y = value; }
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
-			math.min(_v1.x, _v2.x),
-			math.max(_v1.x, _v2.x),
-			math.min(_v1.y, _v2.y),
-			math.max(_v1.y, _v2.y),
+			math.min(V1.x, V2.x),
+			math.max(V1.x, V2.x),
+			math.min(V1.y, V2.y),
+			math.max(V1.y, V2.y),
 			_zLow,
 			_zHigh
 		));
@@ -56,8 +56,8 @@ namespace VisualPinball.Unity
 		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Line) : this()
 		{
 			_header.Init(info, type);
-			_v1 = v1;
-			_v2 = v2;
+			V1 = v1;
+			V2 = v2;
 			_zLow = zLow;
 			_zHigh = zHigh;
 			CalcNormal();
@@ -96,8 +96,8 @@ namespace VisualPinball.Unity
 		{
 			_header.Init(type, src);
 
-			_v1 = src.V1.ToUnityFloat2();
-			_v2 = src.V2.ToUnityFloat2();
+			V1 = src.V1.ToUnityFloat2();
+			V2 = src.V2.ToUnityFloat2();
 			_normal = src.Normal.ToUnityFloat2();
 			_length = src.Length;
 			_zLow = src.HitBBox.ZLow;
@@ -148,7 +148,7 @@ namespace VisualPinball.Unity
 
 			// ball normal contact distance distance normal to segment. lateral contact subtract the ball radius
 			var rollingRadius = lateral ? ball.Radius : PhysicsConstants.ToleranceRadius; // lateral or rolling point
-			var bcpd = (ballX - coll._v1.x) * coll._normal.x + (ballY - coll._v1.y) * coll._normal.y; // ball center to plane distance
+			var bcpd = (ballX - coll.V1.x) * coll._normal.x + (ballY - coll.V1.y) * coll._normal.y; // ball center to plane distance
 			var bnd = bcpd - rollingRadius;
 
 			if (coll.ItemType == ItemType.Spinner || coll.ItemType == ItemType.Gate) {
@@ -207,8 +207,8 @@ namespace VisualPinball.Unity
 			}
 
 			var btv = ballVx * coll._normal.y - ballVy * coll._normal.x; // ball velocity tangent to segment with respect to direction from _v1 to _v2
-			var btd = (ballX - coll._v1.x) * coll._normal.y
-			             - (ballY - coll._v1.y) * coll._normal.x    // ball tangent distance
+			var btd = (ballX - coll.V1.x) * coll._normal.y
+			             - (ballY - coll.V1.y) * coll._normal.x    // ball tangent distance
 			             + btv * hitTime;                 // ball tangent distance (projection) (initial position + velocity * hitime)
 
 			if (btd < -PhysicsConstants.ToleranceEndPoints || btd > coll._length + PhysicsConstants.ToleranceEndPoints) {
@@ -258,7 +258,7 @@ namespace VisualPinball.Unity
 
 		public void CalcNormal()
 		{
-			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
+			var vT = new float2(V1.x - V2.x, V1.y - V2.y);
 			_length = math.length(vT);
 
 			// Set up line normal

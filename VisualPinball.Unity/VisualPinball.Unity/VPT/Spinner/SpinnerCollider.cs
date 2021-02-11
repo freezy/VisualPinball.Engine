@@ -29,10 +29,10 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private readonly LineCollider _lineSeg0;
-		private readonly LineCollider _lineSeg1;
+		public readonly LineCollider LineSeg0;
+		public readonly LineCollider LineSeg1;
 
-		public ColliderBounds Bounds;
+		public ColliderBounds Bounds { get; private set; }
 
 		public SpinnerCollider(SpinnerData data, float height, ColliderInfo info) : this()
 		{
@@ -53,16 +53,18 @@ namespace VisualPinball.Unity
 				data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
 			);
 
-			_lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
-			_lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
+			LineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
+			LineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
 
-			Bounds = _lineSeg0.Bounds;
+			Bounds = LineSeg0.Bounds;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			_header.Id = colliderId;
-			Bounds.ColliderId = colliderId;
+			var bounds = Bounds;
+			bounds.ColliderId = colliderId;
+			Bounds = bounds;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -79,14 +81,14 @@ namespace VisualPinball.Unity
 			// todo
 			// if (!m_enabled) return -1.0f;
 
-			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = true;
 				return hitTime;
 			}
 
-			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in _lineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = false;

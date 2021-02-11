@@ -116,5 +116,12 @@ namespace VisualPinball.Engine.Math
 		{
 			return $"Vertex3DNoTex2({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz}, {Tu}/{Tv})";
 		}
+		public void MultiplyMatrix(Matrix3D m)
+		{
+			var v = new Vertex3D(X, Y, Z).MultiplyMatrix(m);
+			X = v.X;
+			Y = v.Y;
+			Z = v.Z;
+		}
 	}
 }

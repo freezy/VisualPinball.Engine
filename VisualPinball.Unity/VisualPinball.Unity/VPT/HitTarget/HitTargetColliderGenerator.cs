@@ -49,18 +49,28 @@ namespace VisualPinball.Unity
 
 		private void GenerateHitTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
-			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
+			var rog = _meshGenerator.GetRenderObjects(table, Origin.Original, false);
+			var ro = rog.RenderObjects[0];
+			var hitMesh = ro.Mesh;
+			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
+				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
+			}
 			var addedEdges = EdgeSetBetter.Get();
 			GenerateCollidables(hitMesh, addedEdges, true, table, colliders);
 		}
 
 		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
-			var hitMesh = _meshGenerator.GetRenderObjects(table, Origin.Original, false).RenderObjects[0].Mesh;
+			var rog = _meshGenerator.GetRenderObjects(table, Origin.Original, false);
+			var ro = rog.RenderObjects[0];
+			var hitMesh = ro.Mesh;
+			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
+				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
+			}
 			var addedEdges = EdgeSetBetter.Get();
 			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, colliders);
 
-			var tempMatrix = new Matrix3D().RotateZMatrix(math.radians(_data.RotZ));
+			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.RotZ));
 			var fullMatrix = new Matrix3D().Multiply(tempMatrix);
 
 			if (!_data.IsLegacy) {
@@ -86,7 +96,7 @@ namespace VisualPinball.Unity
 					vert.X *= _data.Size.X;
 					vert.Y *= _data.Size.Y;
 					vert.Z *= _data.Size.Z;
-					vert.MultiplyMatrix(fullMatrix);
+					vert = vert.MultiplyMatrix(fullMatrix);
 					rgv3D[i] = new Vertex3D(
 						vert.X + _data.Position.X,
 						vert.Y + _data.Position.Y,

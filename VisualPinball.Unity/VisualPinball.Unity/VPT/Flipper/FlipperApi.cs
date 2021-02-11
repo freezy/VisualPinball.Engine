@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 				GetColliderInfo(table)
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, GetColliderInfo(table)));
+			colliders.Add(new FlipperCollider(hitCircleBase, Data.FlipperRadius, Data.EndRadius, GetColliderInfo(table)));
 		}
 
 		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);

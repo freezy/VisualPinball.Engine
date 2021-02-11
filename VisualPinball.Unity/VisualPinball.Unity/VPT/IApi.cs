@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		void OnInit(BallManager ballManager);
 	}
 
-	internal interface IColliderGenerator
+	public interface IColliderGenerator
 	{
 		void CreateColliders(Table table, List<ICollider> colliders);
 		ColliderInfo GetColliderInfo(Table table);

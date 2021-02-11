@@ -30,28 +30,28 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		public readonly float3 _rgv0;
-		public readonly float3 _rgv1;
-		private readonly float3 _rgv2;
+		public readonly float3 Rgv0;
+		public readonly float3 Rgv1;
+		public readonly float3 Rgv2;
 		private readonly float3 _normal;
 
 		public float3 Normal() => _normal;
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
-			math.min(_rgv0.x, math.min(_rgv1.x, _rgv2.x)),
-			math.max(_rgv0.x, math.max(_rgv1.x, _rgv2.x)),
-			math.min(_rgv0.y, math.min(_rgv1.y, _rgv2.y)),
-			math.max(_rgv0.y, math.max(_rgv1.y, _rgv2.y)),
-			math.min(_rgv0.z, math.min(_rgv1.z, _rgv2.z)),
-			math.max(_rgv0.z, math.max(_rgv1.z, _rgv2.z))
+			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
+			math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
+			math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
+			math.max(Rgv0.y, math.max(Rgv1.y, Rgv2.y)),
+			math.min(Rgv0.z, math.min(Rgv1.z, Rgv2.z)),
+			math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
 		));
 
 		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Triangle);
-			_rgv0 = rgv0;
-			_rgv1 = rgv1;
-			_rgv2 = rgv2;
+			Rgv0 = rgv0;
+			Rgv1 = rgv1;
+			Rgv2 = rgv2;
 
 			var e0 = rgv2 - rgv0;
 			var e1 = rgv1 - rgv0;
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 			// Point on the ball that will hit the polygon, if it hits at all
 			var normRadius = ball.Radius * _normal;
 			var hitPos = ball.Position - normRadius;     // nearest point on ball ... projected radius along norm
-			var hpSubRgv0 = hitPos - _rgv0;
+			var hpSubRgv0 = hitPos - Rgv0;
 			var bnd = math.dot(_normal, hpSubRgv0);                                // distance from plane to ball
 
 			if (bnd < -ball.Radius) {
@@ -135,9 +135,9 @@ namespace VisualPinball.Unity
 
 			// Check if hitPos is within the triangle
 			// 1. Compute vectors
-			var v0 = _rgv2 - _rgv0;
-			var v1 = _rgv1 - _rgv0;
-			var v2 = hitPos - _rgv0;
+			var v0 = Rgv2 - Rgv0;
+			var v1 = Rgv1 - Rgv0;
+			var v2 = hitPos - Rgv0;
 
 			// 2. Compute dot products
 			var dot00 = math.dot(v0, v0);
