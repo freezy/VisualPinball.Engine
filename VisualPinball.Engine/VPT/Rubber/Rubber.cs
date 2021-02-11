@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Rubber
 {
-	public class Rubber : Item<RubberData>, IRenderable, IHittable
+	public class Rubber : Item<RubberData>, IRenderable
 	{
 		public override string ItemName { get; } = "Rubber";
 		public override string ItemGroupName { get; } = "Rubbers";
@@ -30,16 +29,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		public HitObject[] GetHitShapes() => _hits;
-
 		public readonly RubberMeshGenerator MeshGenerator;
-		private readonly RubberHitGenerator _hitGenerator;
-		private HitObject[] _hits;
 
 		public Rubber(RubberData data) : base(data)
 		{
 			MeshGenerator = new RubberMeshGenerator(Data);
-			_hitGenerator = new RubberHitGenerator(Data, MeshGenerator);
 		}
 
 		public Rubber(BinaryReader reader, string itemName) : this(new RubberData(reader, itemName))
@@ -85,7 +79,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 	}
 }

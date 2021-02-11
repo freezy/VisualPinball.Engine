@@ -19,11 +19,10 @@ using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
-	public class Plunger : Item<PlungerData>, IRenderable, IHittable, ICoilableDevice
+	public class Plunger : Item<PlungerData>, IRenderable, ICoilableDevice
 	{
 		public override string ItemName { get; } = "Plunger";
 		public override string ItemGroupName { get; } = "Plungers";
@@ -40,15 +39,11 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
 		public float RotationY { get => 0; set { } }
 
-		public PlungerHit PlungerHit { get; private set; }
-
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;
 		public const int PlungerNormalize = 100;
 
 		public readonly PlungerMeshGenerator MeshGenerator;
-
-		private HitObject[] _hitObjects;
 
 		public Plunger(PlungerData data) : base(data)
 		{
@@ -69,9 +64,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public void Init(Table.Table table)
 		{
-			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			PlungerHit = new PlungerHit(Data, zHeight, this);
-			_hitObjects = new HitObject[] { PlungerHit };
 		}
 
 		#region IRenderable
@@ -90,7 +82,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		#endregion
 
-		public HitObject[] GetHitShapes() => _hitObjects;
 		public bool IsCollidable => true;
 
 		public bool IsDualWound { get; set; }

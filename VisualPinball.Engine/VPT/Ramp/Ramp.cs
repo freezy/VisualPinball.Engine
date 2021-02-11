@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Ramp
 {
-	public class Ramp : Item<RampData>, IRenderable, IHittable
+	public class Ramp : Item<RampData>, IRenderable
 	{
 		public override string ItemName { get; } = "Ramp";
 		public override string ItemGroupName { get; } = "Ramps";
@@ -30,8 +29,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		public HitObject[] GetHitShapes() => _hits;
-
 		public bool IsHabitrail => Data.RampType == RampType.RampType4Wire
 		|| Data.RampType == RampType.RampType1Wire
 		|| Data.RampType == RampType.RampType2Wire
@@ -39,13 +36,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 		|| Data.RampType == RampType.RampType3WireRight;
 
 		public readonly RampMeshGenerator MeshGenerator;
-		private readonly RampHitGenerator _hitGenerator;
-		private HitObject[] _hits;
 
 		public Ramp(RampData data) : base(data)
 		{
 			MeshGenerator = new RampMeshGenerator(Data);
-			_hitGenerator = new RampHitGenerator(Data, MeshGenerator);
 		}
 
 		public Ramp(BinaryReader reader, string itemName) : this(new RampData(reader, itemName))
@@ -68,7 +62,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public void Init(Table.Table table)
 		{
-			_hits = _hitGenerator.GenerateHitObjects(table, this);
 		}
 
 		#region IRenderable

@@ -18,7 +18,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 
@@ -176,6 +175,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Collision
+
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
 		{
@@ -187,5 +188,7 @@ namespace VisualPinball.Unity
 				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in _header);
 			}
 		}
+
+		#endregion
 	}
 }

@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	public class ItemMovementInspector<TItem, TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
 		where TMovementAuthoring : ItemMovementAuthoring<TItem, TData, TMainAuthoring>
 		where TData : ItemData
-		where TItem : Item<TData>, IHittable, IRenderable
+		where TItem : Item<TData>, IRenderable
 		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		private TMovementAuthoring _movementAuthoring;

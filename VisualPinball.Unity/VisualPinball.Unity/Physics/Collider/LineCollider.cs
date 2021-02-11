@@ -19,7 +19,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
@@ -34,8 +33,8 @@ namespace VisualPinball.Unity
 		public float2 V2;
 
 		private float2 _normal;
-		private float _zLow;
-		private float _zHigh;
+		private readonly float _zLow;
+		private readonly float _zHigh;
 		private float _length;
 
 		private ItemType ItemType => _header.ItemType;
@@ -63,16 +62,6 @@ namespace VisualPinball.Unity
 			CalcNormal();
 		}
 
-		// public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ItemType itemType) : this()
-		// {
-		// 	_header.Init(ColliderType.Line, itemType);
-		// 	_v1 = v1;
-		// 	_v2 = v2;
-		// 	_zLow = zLow;
-		// 	_zHigh = zHigh;
-		// 	CalcNormal();
-		// }
-
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
 			_header.Id = colliderId;
@@ -85,23 +74,15 @@ namespace VisualPinball.Unity
 			);
 		}
 
-		public static LineCollider Create(LineSeg src, ColliderType type = ColliderType.Line)
+		public void CalcNormal()
 		{
-			var collider = default(LineCollider);
-			collider.Init(src, type);
-			return collider;
-		}
+			var vT = new float2(V1.x - V2.x, V1.y - V2.y);
+			_length = math.length(vT);
 
-		private void Init(LineSeg src, ColliderType type)
-		{
-			_header.Init(type, src);
-
-			V1 = src.V1.ToUnityFloat2();
-			V2 = src.V2.ToUnityFloat2();
-			_normal = src.Normal.ToUnityFloat2();
-			_length = src.Length;
-			_zLow = src.HitBBox.ZLow;
-			_zHigh = src.HitBBox.ZHigh;
+			// Set up line normal
+			var invLength = 1.0f / _length;
+			_normal.x = vT.y * invLength;
+			_normal.y = -vT.x * invLength;
 		}
 
 		#region Narrowphase
@@ -245,6 +226,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Collision
+
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
 		{
@@ -256,15 +239,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void CalcNormal()
-		{
-			var vT = new float2(V1.x - V2.x, V1.y - V2.y);
-			_length = math.length(vT);
-
-			// Set up line normal
-			var invLength = 1.0f / _length;
-			_normal.x = vT.y * invLength;
-			_normal.y = -vT.x * invLength;
-		}
+		#endregion
 	}
 }

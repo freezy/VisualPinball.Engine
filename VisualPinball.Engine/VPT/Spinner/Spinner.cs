@@ -15,14 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Spinner
 {
-	public class Spinner : Item<SpinnerData>, IRenderable, IHittable, ISwitchable
+	public class Spinner : Item<SpinnerData>, IRenderable, ISwitchable
 	{
 		public override string ItemName { get; } = "Spinner";
 		public override string ItemGroupName { get; } = "Spinners";
@@ -38,15 +36,10 @@ namespace VisualPinball.Engine.VPT.Spinner
 		public const string BracketMaterialName = "__spinnerBracketMaterial";
 
 		private readonly SpinnerMeshGenerator _meshGenerator;
-		private readonly SpinnerHitGenerator _hitGenerator;
-
-		private SpinnerHit _hitSpinner;
-		private HitCircle[] _hitCircles;
 
 		public Spinner(SpinnerData data) : base(data)
 		{
 			_meshGenerator = new SpinnerMeshGenerator(Data);
-			_hitGenerator = new SpinnerHitGenerator(Data);
 		}
 
 		public Spinner(BinaryReader reader, string itemName) : this(new SpinnerData(reader, itemName))
@@ -61,10 +54,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public void Init(Table.Table table)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-
-			_hitSpinner = new SpinnerHit(Data, height, this);
-			_hitCircles = _hitGenerator.GetHitCircles(height, this);
 		}
 
 		#region IRenderable
@@ -83,12 +72,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		#endregion
 
-		public HitObject[] GetHitShapes()
-		{
-			return new HitObject[] {_hitSpinner}
-				.Concat(_hitCircles)
-				.ToArray();
-		}
 		public bool IsCollidable => true;
 	}
 }

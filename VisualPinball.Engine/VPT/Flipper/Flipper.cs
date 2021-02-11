@@ -17,11 +17,10 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
-	public class Flipper : Item<FlipperData>, IRenderable, IHittable, ISwitchable, ICoilable
+	public class Flipper : Item<FlipperData>, IRenderable, ISwitchable, ICoilable
 	{
 		public override string ItemName { get; } = "Flipper";
 		public override string ItemGroupName { get; } = "Flippers";
@@ -33,7 +32,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public bool IsPulseSwitch => false;
 
 		private readonly FlipperMeshGenerator _meshGenerator;
-		private FlipperHit _hit;
 
 		public Flipper(FlipperData data) : base(data)
 		{
@@ -48,11 +46,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 		{
 			var flipperData = new FlipperData(table.GetNewName<Flipper>("Flipper"), table.Width / 2f, table.Height / 2f);
 			return new Flipper(flipperData);
-		}
-
-		public void Init(Table.Table table)
-		{
-			_hit = new FlipperHit(Data, table, this);
 		}
 
 		#region IRenderable
@@ -71,8 +64,6 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		#endregion
 
-		public HitObject[] GetHitShapes() => new HitObject[] { _hit };
-		public bool IsCollidable => true;
 		public bool IsDualWound { get => Data.IsDualWound; set => Data.IsDualWound = value; }
 	}
 }

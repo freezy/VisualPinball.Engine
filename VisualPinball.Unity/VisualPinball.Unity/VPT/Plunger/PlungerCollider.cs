@@ -17,7 +17,6 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
 
@@ -72,35 +71,6 @@ namespace VisualPinball.Unity
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(PlungerCollider)
 			);
-		}
-
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerCollider.Create");
-
-		public static void Create(BlobBuilder builder, PlungerHit src, ref BlobPtr<Collider> dest)
-		{
-			PerfMarker.Begin();
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref dest);
-			ref var collider = ref builder.Allocate(ref ptr);
-			collider.Init(src);
-			PerfMarker.End();
-		}
-
-		private void Init(PlungerHit src)
-		{
-			_header.Type = ColliderType.Plunger;
-			_header.ItemType = src.ObjType;
-			_header.Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			_header.Id = src.Id;
-			_header.Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				ScatterAngleRad = src.Scatter,
-			};
-
-			LineSegBase = LineCollider.Create(src.LineSegBase);
-			JointBase0 = LineZCollider.Create(src.JointBase[0]);
-			JointBase1 = LineZCollider.Create(src.JointBase[1]);
 		}
 
 		#region Narrowphase

@@ -18,11 +18,10 @@ using System;
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.Physics;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
-	public class Bumper : Item<BumperData>, IRenderable, IHittable, ISwitchable, ICoilable
+	public class Bumper : Item<BumperData>, IRenderable, ISwitchable, ICoilable
 	{
 		public override string ItemName { get; } = "Bumper";
 		public override string ItemGroupName { get; } = "Bumpers";
@@ -34,8 +33,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public bool IsPulseSwitch => true;
 
 		private readonly BumperMeshGenerator _meshGenerator;
-
-		private HitObject[] _hits;
 
 		public Bumper(BumperData data) : base(data)
 		{
@@ -54,8 +51,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		public void Init(Table.Table table)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			_hits = new HitObject[] {new BumperHit(Data, height, this)};
 		}
 
 		#region IRenderable
@@ -88,7 +83,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		#endregion
 
-		public HitObject[] GetHitShapes() => _hits;
 		public bool IsCollidable => Data.IsCollidable;
 		public bool IsDualWound { get; set; }
 	}

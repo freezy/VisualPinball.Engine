@@ -23,9 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
@@ -76,19 +74,20 @@ namespace VisualPinball.Unity
 			});
 
 			if (!Data.LegacyMode) {
-				using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
-					ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
-					var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
-					var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
-					for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
-						var v = Item.KickerHit.HitMesh[i];
-						vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
-						normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
-					}
-
-					var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
-					dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
-				}
+				// todo currently we don't allow non-legacy mode
+				// using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
+				// 	ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
+				// 	var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
+				// 	var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
+				// 	for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
+				// 		var v = Item.KickerHit.HitMesh[i];
+				// 		vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
+				// 		normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
+				// 	}
+				//
+				// 	var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
+				// 	dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
+				// }
 			}
 
 			// register

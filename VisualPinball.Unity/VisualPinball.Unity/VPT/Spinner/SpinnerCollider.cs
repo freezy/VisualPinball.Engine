@@ -17,7 +17,6 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Spinner;
 

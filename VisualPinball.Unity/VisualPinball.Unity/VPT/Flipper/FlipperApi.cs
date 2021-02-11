@@ -172,22 +172,6 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		internal override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
-			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
-				? Data.OverrideElasticityFalloff
-				: Data.ElasticityFalloff,
-			Elasticity = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
-				? Data.OverrideElasticity
-				: Data.Elasticity,
-			Friction = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
-				? Data.OverrideFriction
-				: Data.Friction,
-			ScatterAngleRad = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
-				? Data.OverrideScatterAngle
-				: Data.Scatter
-			)
-		};
-
 		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
@@ -204,6 +188,22 @@ namespace VisualPinball.Unity
 		}
 
 		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+
+		internal override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
+			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideElasticityFalloff
+				: Data.ElasticityFalloff,
+			Elasticity = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideElasticity
+				: Data.Elasticity,
+			Friction = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideFriction
+				: Data.Friction,
+			ScatterAngleRad = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+				? Data.OverrideScatterAngle
+				: Data.Scatter
+			)
+		};
 
 		#endregion
 

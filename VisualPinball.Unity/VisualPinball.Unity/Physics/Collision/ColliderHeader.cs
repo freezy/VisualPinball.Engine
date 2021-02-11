@@ -16,7 +16,6 @@
 
 using System;
 using Unity.Entities;
-using VisualPinball.Engine.Physics;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
@@ -53,29 +52,6 @@ namespace VisualPinball.Unity
 		/// the hit event.
 		/// </remarks>
 		public bool IsPrimitive => ItemType == ItemType.Primitive || ItemType == ItemType.Ramp || ItemType == ItemType.Rubber;
-
-		public void Init(ColliderType type, HitObject src)
-		{
-			if (src.ItemIndex == 0 && src.ItemVersion == 0) {
-				throw new InvalidOperationException("Entity of " + type + " " + ItemType + " (" + src.Item.Name + ") not set!");
-			}
-			Type = type;
-			ItemType = src.ObjType;
-			Id = src.Id;
-			Entity = new Entity {Index = src.ItemIndex, Version = src.ItemVersion};
-			ParentEntity = src.ParentItemIndex > 0 || src.ParentItemVersion > 0
-				? new Entity {Index = src.ParentItemIndex, Version = src.ParentItemVersion}
-				: Entity;
-			Material = new PhysicsMaterialData {
-				Elasticity = src.Elasticity,
-				ElasticityFalloff = src.ElasticityFalloff,
-				Friction = src.Friction,
-				ScatterAngleRad = src.Scatter,
-			};
-			Threshold = src.Threshold;
-			FireEvents = src.FireEvents;
-			IsEnabled = src.IsEnabled;
-		}
 
 		/// <summary>
 		/// Initializes the header for internal colliders, i.e. colliders
