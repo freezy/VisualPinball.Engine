@@ -7,7 +7,8 @@
 Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/255).
 
 ### Added
-- [Lamp Manager](https://docs.visualpinball.org/creators-guide/editor/lamp-manager.html) ([#282](https://github.com/freezy/VisualPinball.Engine/pull/282))
+- Slow motion during gameplay ([#288](https://github.com/freezy/VisualPinball.Engine/pull/288)).
+- [Lamp Manager](https://docs.visualpinball.org/creators-guide/editor/lamp-manager.html) ([#282](https://github.com/freezy/VisualPinball.Engine/pull/282)).
 - The VPE core is now also available on [NuGet](https://www.nuget.org/packages/VisualPinball.Engine/).
 - VPE is now packaged and published on every merge!
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html))
