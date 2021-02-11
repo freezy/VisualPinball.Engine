@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	internal class GateVelocitySystem : SystemBase
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateVelocitySystem");
 
 		protected override void OnUpdate()
 		{

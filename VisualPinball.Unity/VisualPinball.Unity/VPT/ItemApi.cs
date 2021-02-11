@@ -80,10 +80,10 @@ namespace VisualPinball.Unity
 
 		#region Collider
 
-		internal virtual bool IsColliderEnabled  => !(Data is IPhysicalData physicalData) || physicalData.GetIsCollidable();
-		internal virtual bool FireHitEvents { get; } = false;
-		internal virtual float HitThreshold { get; } = 0;
-		internal virtual PhysicsMaterialData GetPhysicsMaterial(Table table)
+		protected virtual bool IsColliderEnabled  => !(Data is IPhysicalData physicalData) || physicalData.GetIsCollidable();
+		protected virtual bool FireHitEvents { get; } = false;
+		protected virtual float HitThreshold { get; } = 0;
+		protected virtual PhysicsMaterialData GetPhysicsMaterial(Table table)
 		{
 			if (Data is IPhysicalData physicalData) {
 				var mat = table.GetMaterial(physicalData.GetPhysicsMaterial());
@@ -111,11 +111,13 @@ namespace VisualPinball.Unity
 		/// Use this for colliders that are part of the quad tree.
 		/// </summary>
 		/// <param name="table"></param>
-		internal ColliderInfo GetColliderInfo(Table table)
+		internal ColliderInfo GetColliderInfo(Table table) => GetColliderInfo(table, Item.ItemType);
+
+		internal ColliderInfo GetColliderInfo(Table table, ItemType itemType)
 		{
 			return new ColliderInfo {
 				Id = -1,
-				ItemType = Item.ItemType,
+				ItemType = itemType,
 				Entity = Entity,
 				ParentEntity = ParentEntity,
 				FireEvents = FireHitEvents,

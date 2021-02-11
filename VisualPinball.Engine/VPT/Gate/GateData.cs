@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Gate
 {
 	[Serializable]
-	public class GateData : ItemData
+	public class GateData : ItemData, IPhysicalData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -54,8 +54,8 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffFloat("GFRC", Pos = 14)]
 		public float Friction = 0.02f;
 
-		[BiffInt("GATY", Min = VisualPinball.Engine.VPT.GateType.GateWireW, Max = VisualPinball.Engine.VPT.GateType.GateLongPlate, Pos = 21)]
-		public int GateType = VisualPinball.Engine.VPT.GateType.GateWireW;
+		[BiffInt("GATY", Min = VPT.GateType.GateWireW, Max = VPT.GateType.GateLongPlate, Pos = 21)]
+		public int GateType = VPT.GateType.GateWireW;
 
 		[BiffFloat("GGFC", Pos = 16)]
 		public float GravityFactor = 0.25f;
@@ -99,6 +99,18 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		[BiffInt("TMIN", Pos = 9)]
 		public int TimerInterval;
+
+		#region IPhysicalData
+
+		public float GetElasticity() => Elasticity;
+		public float GetElasticityFalloff() => 1f;
+		public float GetFriction() => Friction;
+		public float GetScatter() => 0;
+		public bool GetOverwritePhysics() => true;
+		public bool GetIsCollidable() => IsCollidable;
+		public string GetPhysicsMaterial() => null;
+
+		#endregion
 
 		public GateData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{

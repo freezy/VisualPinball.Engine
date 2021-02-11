@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
@@ -44,7 +45,7 @@ namespace VisualPinball.Unity
 		{
 			_x = x;
 			_y = y;
-			_kickAngle = kickAngle;
+			_kickAngle = math.radians(kickAngle);
 			_kickForce = kickForce;
 		}
 

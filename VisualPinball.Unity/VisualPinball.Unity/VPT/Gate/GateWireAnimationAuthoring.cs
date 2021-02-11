@@ -39,7 +39,8 @@ namespace VisualPinball.Unity
 				Angle = Data.AngleMin,
 				AngleSpeed = 0,
 				ForcedMove = false,
-				IsOpen = false
+				IsOpen = false,
+				HitDirection = false
 			});
 
 			LinkToParentEntity(entity, dstManager);

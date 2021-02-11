@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Table;
 
@@ -35,19 +36,25 @@ namespace VisualPinball.Unity
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
+			var angleMin = math.min(_data.AngleMin, _data.AngleMax); // correct angle inversions
+			var angleMax = math.max(_data.AngleMin, _data.AngleMax);
+
+			// todo should probably move this to somewhere else
+			_data.AngleMin = angleMin;
+			_data.AngleMax = angleMax;
+
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var radAngle = math.radians(_data.Rotation);
 			var tangent = new float2(math.cos(radAngle), math.sin(radAngle));
 
-			GenerateGateCollider(table, colliders, height);
+			GenerateGateCollider(table, colliders, height, radAngle);
 			GenerateLineCollider(table, colliders, height, tangent);
 			GenerateBracketColliders(table, colliders, height, tangent);
 		}
 
-		private void GenerateGateCollider(Table table, ICollection<ICollider> colliders, float height)
+		private void GenerateGateCollider(Table table, ICollection<ICollider> colliders, float height, float radAngle)
 		{
 			var halfLength = _data.Length * 0.5f;
-			var radAngle = math.radians(_data.Rotation);
 			var sn = math.sin(radAngle);
 			var cs = math.cos(radAngle);
 			var v1 = new float2(
@@ -71,17 +78,13 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var halfLength = _data.Length * 0.5f;
-			var angleMin = math.min(_data.AngleMin, _data.AngleMax); // correct angle inversions
-			var angleMax = math.max(_data.AngleMin, _data.AngleMax);
-
-			_data.AngleMin = angleMin;
-			_data.AngleMax = angleMax;
-
 			// oversize by the ball's radius to prevent the ball from clipping through
-			var rgv0 = _data.Center.ToUnityFloat2() + tangent * (halfLength + PhysicsConstants.PhysSkin);
-			var rgv1 = _data.Center.ToUnityFloat2() - tangent * (halfLength + PhysicsConstants.PhysSkin);
-			var info = _api.GetColliderInfo(table);
+			var halfLength = _data.Length * 0.5f;
+			var center = _data.Center.ToUnityFloat2();
+			var rgv0 = center + (halfLength + PhysicsConstants.PhysSkin) * tangent;
+			var rgv1 = center - (halfLength + PhysicsConstants.PhysSkin) * tangent;
+
+			var info = _api.GetColliderInfo(table, ItemType.Invalid); // hack to not treat this line seg as gate
 			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
 		}
 
@@ -97,7 +100,7 @@ namespace VisualPinball.Unity
 				0.01f,
 				height,
 				height + _data.Height,
-				_api.GetColliderInfo(table)
+				_api.GetColliderInfo(table, ItemType.Invalid) // hack to not treat this hit circle as gate
 			));
 
 			colliders.Add(new CircleCollider(
@@ -105,7 +108,7 @@ namespace VisualPinball.Unity
 				0.01f,
 				height,
 				height + _data.Height,
-				_api.GetColliderInfo(table)
+				_api.GetColliderInfo(table, ItemType.Invalid) // hack to not treat this hit circle as gate
 			));
 		}
 	}

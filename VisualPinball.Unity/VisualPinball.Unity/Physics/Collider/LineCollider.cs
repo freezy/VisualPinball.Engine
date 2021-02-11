@@ -32,9 +32,9 @@ namespace VisualPinball.Unity
 		public float2 V1;
 		public float2 V2;
 
-		private float2 _normal;
-		private readonly float _zLow;
-		private readonly float _zHigh;
+		public float2 Normal;
+		public readonly float ZLow;
+		public readonly float ZHigh;
 		private float _length;
 
 		private ItemType ItemType => _header.ItemType;
@@ -48,8 +48,8 @@ namespace VisualPinball.Unity
 			math.max(V1.x, V2.x),
 			math.min(V1.y, V2.y),
 			math.max(V1.y, V2.y),
-			_zLow,
-			_zHigh
+			ZLow,
+			ZHigh
 		));
 
 		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Line) : this()
@@ -57,8 +57,8 @@ namespace VisualPinball.Unity
 			_header.Init(info, type);
 			V1 = v1;
 			V2 = v2;
-			_zLow = zLow;
-			_zHigh = zHigh;
+			ZLow = zLow;
+			ZHigh = zHigh;
 			CalcNormal();
 		}
 
@@ -81,8 +81,8 @@ namespace VisualPinball.Unity
 
 			// Set up line normal
 			var invLength = 1.0f / _length;
-			_normal.x = vT.y * invLength;
-			_normal.y = -vT.x * invLength;
+			Normal.x = vT.y * invLength;
+			Normal.y = -vT.x * invLength;
 		}
 
 		#region Narrowphase
@@ -93,7 +93,8 @@ namespace VisualPinball.Unity
 			return HitTestBasic(ref collEvent, ref insideOfs, in coll, ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent,
+			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
@@ -115,7 +116,7 @@ namespace VisualPinball.Unity
 			var ballVy = ball.Velocity.y;
 
 			// ball velocity normal to segment, positive if receding, zero=parallel
-			var bnv = ballVx * coll._normal.x + ballVy * coll._normal.y;
+			var bnv = ballVx * coll.Normal.x + ballVy * coll.Normal.y;
 			var isUnHit = bnv > PhysicsConstants.LowNormVel;
 
 			// direction true and clearly receding from normal face
@@ -129,7 +130,7 @@ namespace VisualPinball.Unity
 
 			// ball normal contact distance distance normal to segment. lateral contact subtract the ball radius
 			var rollingRadius = lateral ? ball.Radius : PhysicsConstants.ToleranceRadius; // lateral or rolling point
-			var bcpd = (ballX - coll.V1.x) * coll._normal.x + (ballY - coll.V1.y) * coll._normal.y; // ball center to plane distance
+			var bcpd = (ballX - coll.V1.x) * coll.Normal.x + (ballY - coll.V1.y) * coll.Normal.y; // ball center to plane distance
 			var bnd = bcpd - rollingRadius;
 
 			if (coll.ItemType == ItemType.Spinner || coll.ItemType == ItemType.Gate) {
@@ -187,9 +188,9 @@ namespace VisualPinball.Unity
 				return -1.0f; // time is outside this frame ... no collision
 			}
 
-			var btv = ballVx * coll._normal.y - ballVy * coll._normal.x; // ball velocity tangent to segment with respect to direction from _v1 to _v2
-			var btd = (ballX - coll.V1.x) * coll._normal.y
-			             - (ballY - coll.V1.y) * coll._normal.x    // ball tangent distance
+			var btv = ballVx * coll.Normal.y - ballVy * coll.Normal.x; // ball velocity tangent to segment with respect to direction from _v1 to _v2
+			var btd = (ballX - coll.V1.x) * coll.Normal.y
+			             - (ballY - coll.V1.y) * coll.Normal.x    // ball tangent distance
 			             + btv * hitTime;                 // ball tangent distance (projection) (initial position + velocity * hitime)
 
 			if (btd < -PhysicsConstants.ToleranceEndPoints || btd > coll._length + PhysicsConstants.ToleranceEndPoints) {
@@ -204,14 +205,14 @@ namespace VisualPinball.Unity
 			var ballRadius = ball.Radius;
 			var hitZ = ball.Position.z + ball.Velocity.z * hitTime; // check too high or low relative to ball rolling point at hittime
 
-			if (hitZ + ballRadius * 0.5 < coll._zLow // check limits of object"s height and depth
-			    || hitZ - ballRadius * 0.5 > coll._zHigh) {
+			if (hitZ + ballRadius * 0.5 < coll.ZLow // check limits of object"s height and depth
+			    || hitZ - ballRadius * 0.5 > coll.ZHigh) {
 				return -1.0f;
 			}
 
 			// hit normal is same as line segment normal
-			collEvent.HitNormal.x = coll._normal.x;
-			collEvent.HitNormal.y = coll._normal.y;
+			collEvent.HitNormal.x = coll.Normal.x;
+			collEvent.HitNormal.y = coll.Normal.y;
 			collEvent.HitNormal.z = 0f;
 			collEvent.HitDistance = bnd; // actual contact distance ...
 

@@ -74,33 +74,12 @@ namespace VisualPinball.Unity
 				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, table, colliders);
 			}
 
-			GenerateTriangles(rgv3D, table, colliders);
+			ColliderUtils.Generate3DPolyColliders(rgv3D, table, _api.GetColliderInfo(table), colliders);
 		}
 
 		private void AddLineSeg(float2 pv1, float2 pv2, float height, Table table, ICollection<ICollider> colliders) {
 			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_data.HitHeight - 8.0f, 0f),
 				_api.GetColliderInfo(table), ColliderType.TriggerLine));
-		}
-
-		private void GenerateTriangles(in float3[] rgv, Table table, ICollection<ICollider> colliders)
-		{
-			var inputVerts = new float2[rgv.Length];
-
-			// Newell's method for normal computation
-			for (var i = 0; i < rgv.Length; ++i) {
-				inputVerts[i] = rgv[i].xy;
-			}
-
-			// todo make triangulator use float3
-			Triangulator.Triangulate(inputVerts, WindingOrder.CounterClockwise, out var outputVerts, out var outputIndices);
-
-			var triangulatedVerts = new Vertex3DNoTex2[outputVerts.Length];
-			for (var i = 0; i < outputVerts.Length; i++) {
-				triangulatedVerts[i] = new Vertex3DNoTex2(outputVerts[i].x, outputVerts[i].y, rgv[0].z);
-			}
-			var mesh = new Mesh(triangulatedVerts, outputIndices);
-
-			PrimitiveColliderGenerator.GenerateCollidersFromMesh(table, mesh, _api, colliders, true);
 		}
 	}
 }
