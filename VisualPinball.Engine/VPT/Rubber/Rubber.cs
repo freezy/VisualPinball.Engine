@@ -74,11 +74,5 @@ namespace VisualPinball.Engine.VPT.Rubber
 		}
 
 		#endregion
-
-		public bool IsCollidable => Data.IsCollidable;
-
-		public void Init(Table.Table table)
-		{
-		}
 	}
 }

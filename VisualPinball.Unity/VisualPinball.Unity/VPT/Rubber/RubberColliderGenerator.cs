@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			var mesh = _meshGenerator.GetMesh(table, 6, true); //!! adapt hacky code in the function if changing the "6" here
-			var addedEdges = EdgeSetBetter.Get();
+			var addedEdges = EdgeSet.Get();
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void GenerateHitEdge(Mesh mesh, EdgeSetBetter addedEdges, int i, int j,
+		private void GenerateHitEdge(Mesh mesh, EdgeSet addedEdges, int i, int j,
 			Table table, ICollection<ICollider> colliders)
 		{
 			if (addedEdges.ShouldAddHitEdge(i, j)) {

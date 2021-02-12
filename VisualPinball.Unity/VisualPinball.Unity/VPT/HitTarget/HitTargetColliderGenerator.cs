@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
 				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
 			}
-			var addedEdges = EdgeSetBetter.Get();
+			var addedEdges = EdgeSet.Get();
 			GenerateCollidables(hitMesh, addedEdges, true, table, colliders);
 		}
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
 				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
 			}
-			var addedEdges = EdgeSetBetter.Get();
+			var addedEdges = EdgeSet.Get();
 			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, colliders);
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.RotZ));
@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void GenerateCollidables(Mesh hitMesh, EdgeSetBetter addedEdges, bool setHitObject, Table table, ICollection<ICollider> colliders)  {
+		private void GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, Table table, ICollection<ICollider> colliders)  {
 
 			// add the normal drop target as collidable but without hit event
 			for (var i = 0; i < hitMesh.Indices.Length; i += 3) {

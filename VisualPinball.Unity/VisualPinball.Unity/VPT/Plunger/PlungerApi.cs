@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest, IColliderGenerator
+	public class PlungerApi : ItemApi<Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -145,13 +145,13 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			colliders.Add(new PlungerCollider(Data, zHeight, GetColliderInfo(table)));
 		}
 
-		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 

@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 		// table related
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
-		private readonly List<IColliderGenerator> _colliderGenerators = new List<IColliderGenerator>();
+		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 
 		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
 
-		internal IEnumerable<IColliderGenerator> ColliderGenerators => _colliderGenerators;
+		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
 		// input related
 		private InputManager _inputManager;

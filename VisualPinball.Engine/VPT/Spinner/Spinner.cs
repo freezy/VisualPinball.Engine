@@ -52,10 +52,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 			return new Spinner(spinnerData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
@@ -71,7 +67,5 @@ namespace VisualPinball.Engine.VPT.Spinner
 		}
 
 		#endregion
-
-		public bool IsCollidable => true;
 	}
 }

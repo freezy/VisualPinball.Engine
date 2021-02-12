@@ -49,10 +49,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 			return new Bumper(bumperData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin)
@@ -83,7 +79,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		#endregion
 
-		public bool IsCollidable => Data.IsCollidable;
 		public bool IsDualWound { get; set; }
 	}
 }

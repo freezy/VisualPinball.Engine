@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class TableApi : IApiInitializable, IColliderGenerator
+	public class TableApi : IApiInitializable, IApiColliderGenerator
 	{
 		private readonly Player _player;
 		public TableData Data;
@@ -187,9 +187,9 @@ namespace VisualPinball.Unity
 				new PlaneCollider(new float3(0, 0, -1), table.GlassHeight, info)
 			);
 		}
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var info = ((IColliderGenerator)this).GetColliderInfo(table);
+			var info = ((IApiColliderGenerator)this).GetColliderInfo(table);
 
 			// simple outer borders:
 			colliders.Add(new LineCollider(
@@ -234,7 +234,7 @@ namespace VisualPinball.Unity
 			ColliderUtils.Generate3DPolyColliders(rgv3D, table, info, colliders);
 		}
 
-		ColliderInfo IColliderGenerator.GetColliderInfo(Table table)
+		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table)
 		{
 			return new ColliderInfo {
 				Id = -1,

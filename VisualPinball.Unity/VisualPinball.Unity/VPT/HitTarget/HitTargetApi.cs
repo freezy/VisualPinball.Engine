@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class HitTargetApi : ItemApi<HitTarget, HitTargetData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IColliderGenerator
+		IApiInitializable, IApiHittable, IApiSwitch, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -94,13 +94,13 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => Data.UseHitEvent;
 		protected override float HitThreshold => Data.Threshold;
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new HitTargetColliderGenerator(this);
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		#endregion
 
