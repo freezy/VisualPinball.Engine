@@ -18,16 +18,16 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	internal class EdgeSetBetter
+	internal class EdgeSet
 	{
 		private readonly HashSet<long> _edges;
 
-		internal static EdgeSetBetter Get()
+		internal static EdgeSet Get()
 		{
-			return new EdgeSetBetter();
+			return new EdgeSet();
 		}
 
-		private EdgeSetBetter()
+		private EdgeSet()
 		{
 			_edges = new HashSet<long>();
 		}

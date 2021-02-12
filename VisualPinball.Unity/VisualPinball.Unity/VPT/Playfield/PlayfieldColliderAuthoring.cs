@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-		protected override IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
 			=> throw new InvalidOperationException("Playfield (plane) colliders are handled separately.");
 	}
 }

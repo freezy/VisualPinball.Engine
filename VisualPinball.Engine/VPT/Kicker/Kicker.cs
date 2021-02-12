@@ -50,11 +50,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 			return new Kicker(kickerData);
 		}
 
-
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
@@ -70,8 +65,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 		}
 
 		#endregion
-
-		public bool IsCollidable => Data.IsEnabled;
 
 		public bool IsDualWound { get; set; }
 

@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 
 		private readonly Entity _colliderEntity = new Entity {Index = -2, Version = 0};
 
-		protected abstract IColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
+		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
 
 		private void OnDrawGizmosSelected()
 		{

@@ -300,10 +300,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#endregion
 
-		public void Init(Table table)
-		{
-		}
-
 		/// <summary>
 		/// Adds a game item to the table.
 		/// </summary>

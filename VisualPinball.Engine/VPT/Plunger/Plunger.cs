@@ -62,10 +62,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 			return new Plunger(plungerData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;

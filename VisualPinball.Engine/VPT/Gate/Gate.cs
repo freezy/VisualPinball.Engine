@@ -48,10 +48,6 @@ namespace VisualPinball.Engine.VPT.Gate
 			return new Gate(gateData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
@@ -67,7 +63,5 @@ namespace VisualPinball.Engine.VPT.Gate
 		}
 
 		#endregion
-
-		public bool IsCollidable => Data.IsCollidable;
 	}
 }

@@ -48,10 +48,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			return new HitTarget(hitTargetData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
@@ -67,7 +63,5 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		}
 
 		#endregion
-
-		public bool IsCollidable => Data.IsCollidable;
 	}
 }

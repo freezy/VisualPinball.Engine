@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemApi<Flipper, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil, IColliderGenerator
+		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		void IColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var baseRadius = math.max(Data.BaseRadius, 0.01f);
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new FlipperCollider(hitCircleBase, Data.FlipperRadius, Data.EndRadius, GetColliderInfo(table)));
 		}
 
-		ColliderInfo IColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
 
 		protected override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
 			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0

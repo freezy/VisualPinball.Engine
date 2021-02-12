@@ -29,8 +29,6 @@ namespace VisualPinball.Engine.VPT.Surface
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		public bool IsCollidable => Data.IsCollidable;
-
 		private readonly SurfaceMeshGenerator _meshGenerator;
 
 		public Surface(SurfaceData data) : base(data)
@@ -54,10 +52,6 @@ namespace VisualPinball.Engine.VPT.Surface
 				}
 			);
 			return new Surface(surfaceData);
-		}
-
-		public void Init(Table.Table table)
-		{
 		}
 
 		#region IRenderable

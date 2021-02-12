@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			Item.Init(table);
 
 			dstManager.AddComponentData(entity, new KickerStaticData {
 				Center = Data.Center.ToUnityFloat2(),

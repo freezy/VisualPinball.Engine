@@ -60,10 +60,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return new Ramp(rampData);
 		}
 
-		public void Init(Table.Table table)
-		{
-		}
-
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
@@ -79,8 +75,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 		}
 
 		#endregion
-
-		public bool IsCollidable => Data.IsCollidable;
 
 		public float GetSurfaceHeight(float x, float y, Table.Table table)
 		{

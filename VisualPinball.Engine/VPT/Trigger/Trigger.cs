@@ -31,8 +31,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public bool IsPulseSwitch => false;
 
-		public bool IsCollidable => Data.IsEnabled;
-
 		private readonly TriggerMeshGenerator _meshGenerator;
 
 		public Trigger(TriggerData data) : base(data)
@@ -56,10 +54,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 				}
 			};
 			return new Trigger(triggerData);
-		}
-
-		public void Init(Table.Table table)
-		{
 		}
 
 		#region IRenderable
