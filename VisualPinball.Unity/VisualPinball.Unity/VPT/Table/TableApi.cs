@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	public class TableApi : IApiInitializable, IColliderGenerator
 	{
 		private readonly Player _player;
-		private readonly TableData _data;
+		public TableData Data;
 
 		internal readonly Dictionary<string, BumperApi> Bumpers = new Dictionary<string, BumperApi>();
 		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
@@ -43,10 +43,9 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<string, TroughApi> Troughs = new Dictionary<string, TroughApi>();
 		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
 
-		public TableApi(Player player, TableData data)
+		public TableApi(Player player)
 		{
 			_player = player;
-			_data = data;
 		}
 
 		internal IApiSwitch Switch(string name) => _player.Switch(name);
@@ -227,10 +226,10 @@ namespace VisualPinball.Unity
 
 			// glass:
 			var rgv3D = new[] {
-				new float3(_data.Left, _data.Top, table.Data.GlassHeight),
-				new float3(_data.Right, _data.Top, table.Data.GlassHeight),
-				new float3(_data.Right, _data.Bottom, table.Data.GlassHeight),
-				new float3(_data.Left, _data.Bottom, table.Data.GlassHeight)
+				new float3(Data.Left, Data.Top, table.Data.GlassHeight),
+				new float3(Data.Right, Data.Top, table.Data.GlassHeight),
+				new float3(Data.Right, Data.Bottom, table.Data.GlassHeight),
+				new float3(Data.Left, Data.Bottom, table.Data.GlassHeight)
 			};
 			ColliderUtils.Generate3DPolyColliders(rgv3D, table, info, colliders);
 		}
