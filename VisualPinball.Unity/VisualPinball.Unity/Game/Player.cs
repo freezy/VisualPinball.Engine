@@ -102,12 +102,17 @@ namespace VisualPinball.Unity
 
 		#region Lifecycle
 
+		public Player()
+		{
+			TableApi = new TableApi(this);
+		}
+
 		private void Awake()
 		{
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
-			TableApi = new TableApi(this, tableComponent.Data);
+			TableApi.Data = tableComponent.Data;
 			_initializables.Add(TableApi);
 			_colliderGenerators.Add(TableApi);
 
