@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			light.transform.localPosition = new Vector3(0f, 0f, 25f);
 
 			// TODO: vpe specific shadow settings
-			light.shadows = LightShadows.Hard;
+			light.shadows = LightShadows.None;
 			light.shadowBias = 0f;
 			light.shadowNearPlane = 0f;
 		}
