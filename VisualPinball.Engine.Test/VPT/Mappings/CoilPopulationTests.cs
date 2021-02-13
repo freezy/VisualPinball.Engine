@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Linq;
-using System.Reflection;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Game.Engines;

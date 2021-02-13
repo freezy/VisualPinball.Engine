@@ -25,7 +25,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RedBlackTree;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
 

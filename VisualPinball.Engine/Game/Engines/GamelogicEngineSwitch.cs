@@ -16,8 +16,6 @@
 
 // ReSharper disable BuiltInTypeReferenceStyle
 
-using System;
-
 namespace VisualPinball.Engine.Game.Engines
 {
 	/// <summary>
