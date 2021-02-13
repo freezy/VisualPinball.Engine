@@ -6,14 +6,14 @@
   "unity": "2020.2",
   "unityRelease": "1f1",
   "dependencies": {
-    "com.unity.burst": "1.4.3",
-    "com.unity.collections": "0.14.0-preview.16",
-    "com.unity.entities": "0.16.0-preview.21",
-    "com.unity.rendering.hybrid": "0.10.0-preview.21",
-    "com.unity.jobs": "0.7.0-preview.17",
+    "com.unity.burst": "1.4.4",
+    "com.unity.collections": "0.15.0-preview.21",
+    "com.unity.entities": "0.17.0-preview.41",
+    "com.unity.rendering.hybrid": "0.11.0-preview.42",
+    "com.unity.jobs": "0.8.0-preview.23",
     "com.unity.mathematics": "1.2.1",
-    "com.unity.inputsystem": "1.0.1",
-    "com.unity.test-framework": "1.1.20"
+    "com.unity.inputsystem": "1.0.2",
+    "com.unity.test-framework": "1.1.22"
   },
   "keywords": [
     "Pinball",
