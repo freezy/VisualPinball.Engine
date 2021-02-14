@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#define SKIP_VPE_DATA
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -204,6 +206,9 @@ namespace VisualPinball.Engine.IO
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
+#if SKIP_VPE_DATA
+				.Where(a => !a[0].IsVpeEnhancement)
+#endif
 				.Select(a => a[0] as ISortableBiffRecord)
 				.Concat(UnknownRecords ?? new List<UnknownBiffRecord>())
 				.OrderBy(r => r.GetPosition());

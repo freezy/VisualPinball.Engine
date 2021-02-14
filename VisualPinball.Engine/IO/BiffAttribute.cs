@@ -91,6 +91,11 @@ namespace VisualPinball.Engine.IO
 		public bool SkipHash = false;
 
 		/// <summary>
+		/// If set, counts as data exclusively used by VPE and can be disabled when writing with SKIP_VPE_DATA
+		/// </summary>
+		public bool IsVpeEnhancement = false;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }

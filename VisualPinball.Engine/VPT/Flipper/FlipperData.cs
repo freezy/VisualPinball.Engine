@@ -146,7 +146,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		// new fields by VPE
 		// -----------------
 
-		[BiffBool("DWND", Pos = 100, SkipHash = true)]
+		[BiffBool("DWND", Pos = 100, SkipHash = true, IsVpeEnhancement = true)]
 		public bool IsDualWound;
 
 		public float OverrideMass;
