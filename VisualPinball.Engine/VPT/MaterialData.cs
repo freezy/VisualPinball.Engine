@@ -34,17 +34,17 @@ namespace VisualPinball.Engine.VPT
 		/// <summary>
 		/// can be overriden by texture on object itself
 		/// </summary>
-		public int BaseColor;
+		public uint BaseColor;
 
 		/// <summary>
 		/// specular of glossy layer
 		/// </summary>
-		public int Glossiness;
+		public uint Glossiness;
 
 		/// <summary>
 		/// specular of clear coat layer
 		/// </summary>
-		public int ClearCoat;
+		public uint ClearCoat;
 
 		/// <summary>
 		/// wrap/rim lighting factor (0(off)..1(full))
@@ -91,9 +91,9 @@ namespace VisualPinball.Engine.VPT
 		{
 			var startPos = reader.BaseStream.Position;
 			Name = BiffUtil.ReadNullTerminatedString(reader, 32);
-			BaseColor = reader.ReadInt32();
-			Glossiness = reader.ReadInt32();
-			ClearCoat = reader.ReadInt32();
+			BaseColor = reader.ReadUInt32();
+			Glossiness = reader.ReadUInt32();
+			ClearCoat = reader.ReadUInt32();
 			WrapLighting = reader.ReadSingle();
 			IsMetal = reader.ReadByte();
 			reader.BaseStream.Seek(3, SeekOrigin.Current);
