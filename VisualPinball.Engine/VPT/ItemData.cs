@@ -34,7 +34,15 @@ namespace VisualPinball.Engine.VPT
 		public bool IsLocked;
 
 		[BiffInt("LAYR", Pos = 1001)]
-		public int EditorLayer;
+		public int EditorLayer {
+			get => _editorLayer;
+			set {
+				_editorLayer = value;
+				if (string.IsNullOrEmpty(EditorLayerName)) {
+					EditorLayerName = $"Layer_{value + 1}";
+				}
+			}
+		}
 
 		[BiffString("LANR", Pos = 1002)]
 		public string EditorLayerName  = string.Empty;
@@ -42,6 +50,7 @@ namespace VisualPinball.Engine.VPT
 		[BiffBool("LVIS", Pos = 1003)]
 		public bool EditorLayerVisibility = true;
 
+		private int _editorLayer;
 		public abstract string GetName();
 		public abstract void SetName(string name);
 
