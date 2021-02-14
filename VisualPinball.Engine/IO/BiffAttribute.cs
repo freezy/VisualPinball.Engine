@@ -249,9 +249,9 @@ namespace VisualPinball.Engine.IO
 			return Field != null ? Field.GetValue(obj) : null;
 		}
 
-		protected void WriteStart(BinaryWriter writer, int dataLength, HashWriter hashWriter)
+		protected void WriteStart(BinaryWriter writer, int dataLength, HashWriter hashWriter, string name = null)
 		{
-			var tag = Encoding.Default.GetBytes(Name);
+			var tag = Encoding.Default.GetBytes(name ?? Name);
 			if (Name.Length < 4) {
 				tag = tag.Concat(new byte[4 - Name.Length]).ToArray();
 			}

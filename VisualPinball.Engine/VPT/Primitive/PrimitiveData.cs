@@ -57,14 +57,17 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffInt("M3CJ", Pos = 44)]
 		public int CompressedIndices = 0;
 
-		[BiffInt("M3AY", Pos = 46)]
-		public int CompressedAnimationVertices;
+		/// <summary>
+		/// Is written with mesh below. Also it seems redundant and probably don't even needs to be read.
+		/// </summary>
+		[BiffInt("M3AY", Pos = 46, SkipWrite = true)]
+		public int[] CompressedAnimationVertices;
 
 		[BiffVertices("M3DX", SkipWrite = true)]
 		[BiffVertices("M3CX", IsCompressed = true, Pos = 42)]
 		[BiffIndices("M3DI", SkipWrite = true)]
 		[BiffIndices("M3CI", IsCompressed = true, Pos = 45)]
-		[BiffAnimation("M3AX", IsCompressed = true, Pos = 47)]
+		[BiffAnimation("M3AX", IsCompressed = true, Pos = 47 )]
 		public Mesh Mesh = new Mesh();
 
 		[BiffFloat("RTV0", Index = 0, Pos = 3)]
@@ -180,15 +183,18 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		protected override bool SkipWrite(BiffAttribute attr)
 		{
-			if (!Use3DMesh) {
-				switch (attr.Name) {
-					case "M3VN":
-					case "M3CY":
-					case "M3FN":
-					case "M3CJ":
+			switch (attr.Name) {
+				case "M3VN":
+				case "M3CY":
+				case "M3FN":
+				case "M3DN":
+				case "M3CJ":
+					if (!Use3DMesh) {
 						return true;
-				}
+					}
+					break;
 			}
+
 			return false;
 		}
 
@@ -397,16 +403,13 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Parse<T>(T obj, BinaryReader reader, int len)
 		{
-			if (obj is PrimitiveData primitiveData)
-			{
-				try
-				{
+			if (obj is PrimitiveData primitiveData) {
+				try {
 					ParseAnimation(primitiveData, IsCompressed
 						? BiffZlib.Decompress(reader.ReadBytes(len))
 						: reader.ReadBytes(len));
-				}
-				catch (Exception e)
-				{
+
+				} catch (Exception e) {
 					throw new Exception($"Error parsing animation data for {primitiveData.Name} ({primitiveData.StorageName}).", e);
 				}
 			}
@@ -414,10 +417,8 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public override void Write<TItem>(TItem obj, BinaryWriter writer, HashWriter hashWriter)
 		{
-			if (obj is PrimitiveData primitiveData)
-			{
-				if (!primitiveData.Use3DMesh)
-				{
+			if (obj is PrimitiveData primitiveData) {
+				if (!primitiveData.Use3DMesh) {
 					// don't write animation if not using 3d mesh
 					return;
 				}
@@ -425,32 +426,29 @@ namespace VisualPinball.Engine.VPT.Primitive
 				for (var i = 0; i < primitiveData.Mesh.AnimationFrames.Count; i++) {
 					var animationData = SerializeAnimation(primitiveData.Mesh.AnimationFrames[i]);
 					var data = IsCompressed ? BiffZlib.Compress(animationData) : animationData;
+					WriteStart(writer, 4, hashWriter, "M3AY");
+					writer.Write(data.Length);
 					WriteStart(writer, data.Length, hashWriter);
 					writer.Write(data);
 					hashWriter?.Write(data);
 				}
 
-			}
-			else
-			{
+			} else {
 				throw new InvalidOperationException("Unknown type for [" + GetType().Name + "] on field \"" + Name + "\".");
 			}
 		}
 
 		private void ParseAnimation(PrimitiveData data, byte[] bytes)
 		{
-			if (data.NumVertices == 0)
-			{
+			if (data.NumVertices == 0) {
 				throw new ArgumentOutOfRangeException(nameof(data), "Cannot create animation when size is unknown.");
 			}
 
-			if (bytes.Length != data.NumVertices * Mesh.VertData.Size)
-			{
+			if (bytes.Length != data.NumVertices * Mesh.VertData.Size) {
 				throw new ArgumentOutOfRangeException($"Tried to read {data.NumVertices} vertex animations for primitive item \"${data.Name}\" (${data.StorageName}), but had ${bytes.Length} bytes available.");
 			}
 
-			if (!(GetValue(data) is Mesh mesh))
-			{
+			if (!(GetValue(data) is Mesh mesh)) {
 				throw new ArgumentException("BiffAnimationAttribute attribute must sit on a Mesh object.");
 			}
 
