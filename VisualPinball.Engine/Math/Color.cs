@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.Math
 		public float B => Blue / 255f;
 		public float A => Alpha / 255f;
 
-		public int Bgr => Blue * 65536 + Green * 256 + Red;
+		public uint Bgr => (uint)Alpha * 16777216 + (uint)Blue * 65536 + (uint)Green * 256 + (uint)Red;
 
 		public Color(int red, int green, int blue, int alpha)
 		{
@@ -41,19 +41,20 @@ namespace VisualPinball.Engine.Math
 			Alpha = alpha;
 		}
 
-		public Color(long color, ColorFormat format)
+		public Color(uint color, ColorFormat format)
 		{
 			switch (format) {
 				case ColorFormat.Bgr:
 					Red = (int)(color & 0x000000ff);
-					Green = (int)(color & 0x0000ff00) >> 8;
-					Blue = (int)(color & 0x00ff0000) >> 16;
+					Green = (int)((color & 0x0000ff00) >> 8);
+					Blue = (int)((color & 0x00ff0000) >> 16);
+					Alpha = (int)(color >> 24);
 					break;
 				case ColorFormat.Argb:
-					Red = (int)(color & 0x00ff0000) >> 16;
-					Green = (int)(color & 0x0000ff00) >> 8;
+					Red = (int)((color & 0x00ff0000) >> 16);
+					Green = (int)((color & 0x0000ff00) >> 8);
 					Blue = (int)(color & 0x000000ff);
-					Alpha = (int)(color & 0xff000000) >> 24;
+					Alpha = (int)((color & 0xff000000) >> 24);
 					break;
 			}
 		}
@@ -73,13 +74,13 @@ namespace VisualPinball.Engine.Math
 			return $"rgba({System.Math.Round(R, 3)}, {System.Math.Round(G, 3)}, {System.Math.Round(B, 3)}, {System.Math.Round(A, 3)})";
 		}
 
-		public int ToInt(ColorFormat format)
+		public uint ToInt(ColorFormat format)
 		{
 			switch (format) {
 				case ColorFormat.Bgr:
-					return Red + (Green << 8) + (Blue << 16);
+					return (uint)Red + ((uint)Green << 8) + ((uint)Blue << 16) + ((uint)Alpha << 24);
 				case ColorFormat.Argb:
-					return (Red << 16) + (Green << 8) + Blue + (Alpha << 24);
+					return ((uint)Red << 16) + ((uint)Green << 8) + (uint)Blue + ((uint)Alpha << 24);
 			}
 			return 0;
 		}

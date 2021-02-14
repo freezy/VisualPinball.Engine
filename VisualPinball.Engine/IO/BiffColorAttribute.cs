@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.IO
 
 		private Color ReadColor(BinaryReader reader, int len)
 		{
-			return new Color(reader.ReadInt32(), ColorFormat);
+			return new Color(reader.ReadUInt32(), ColorFormat);
 		}
 	}
 }
