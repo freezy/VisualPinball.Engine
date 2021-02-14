@@ -23,8 +23,7 @@ namespace VisualPinball.Engine.IO
 {
 	public class BiffStringAttribute : BiffAttribute
 	{
-
-		private static readonly Encoding StringEncoding = Encoding.ASCII;
+		private static readonly Encoding StringEncoding = Encoding.GetEncoding("iso-8859-1");
 
 		/// <summary>
 		/// Wide strings have a zero byte between each character.
