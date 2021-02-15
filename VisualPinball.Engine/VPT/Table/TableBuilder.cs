@@ -19,6 +19,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -58,6 +59,14 @@ namespace VisualPinball.Engine.VPT.Table
 			mats.Add(material);
 			_table.Data.Materials = mats.ToArray();
 			_table.Data.NumMaterials = mats.Count;
+
+			return this;
+		}
+
+		public TableBuilder AddTexture(string name)
+		{
+			_table.Textures.Add(new Texture(name));
+			_table.Data.NumTextures = _table.Textures.Count;
 
 			return this;
 		}
