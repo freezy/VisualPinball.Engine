@@ -51,10 +51,9 @@ namespace VisualPinball.Engine.Test.IO
 		[Test]
 		public void ShouldBeAppliedToIntegers()
 		{
-			GetAttributes<BiffIntAttribute>(typeof(BiffIntAttribute), (memberType, member, biffDataType, attr) =>
-			{
-				if (memberType != typeof(int) && memberType != typeof(int[])) {
-					throw new Exception($"BiffInt of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either int or int[], but is {memberType.Name}.");
+			GetAttributes<BiffIntAttribute>(typeof(BiffIntAttribute), (memberType, member, biffDataType, attr) => {
+				if (memberType != typeof(int) && memberType != typeof(int[]) && memberType != typeof(uint) && memberType != typeof(uint[])) {
+					throw new Exception($"BiffInt of {biffDataType.FullName}.{member.Name} ({attr.Name}) must be either (u)int or (u)int[], but is {memberType.Name}.");
 				}
 			});
 		}

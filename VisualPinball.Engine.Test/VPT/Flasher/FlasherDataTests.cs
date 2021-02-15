@@ -73,7 +73,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 			data.IsTimerEnabled.Should().Be(false);
 
 			data.EditorLayer.Should().Be(10);
-			data.EditorLayerName.Should().Be(string.Empty);
+			data.EditorLayerName.Should().Be("Layer_11");
 			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(true);
 		}
