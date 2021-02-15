@@ -31,9 +31,6 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	[BiffIgnore("LANR")]
-	[BiffIgnore("LAYR")]
-	[BiffIgnore("LVIS")]
 	public class DragPointData : BiffData
 	{
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
@@ -59,6 +56,12 @@ namespace VisualPinball.Engine.Math
 
 		[BiffInt("LAYR", Pos = 8)]
 		public int EditorLayer;
+
+		[BiffString("LANR", Pos = 9, WasAddedInVp107 = true)]
+		public string EditorLayerName  = string.Empty;
+
+		[BiffBool("LVIS", Pos = 10, WasAddedInVp107 = true)]
+		public bool EditorLayerVisibility = true;
 
 		public float CalcHeight;
 

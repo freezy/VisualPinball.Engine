@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#define SKIP_VPE_DATA
+#define WRITE_VP107
 
 using System;
 using System.Collections.Generic;
@@ -143,8 +143,11 @@ namespace VisualPinball.Engine.IO
 		/// <returns></returns>
 		protected static T Load<T>(T obj, BinaryReader reader, Dictionary<string, List<BiffAttribute>> attributes) where T : BiffData
 		{
-
+			#if WRITE_VP106 || WRITE_VP106
+			var ignoredTags = typeof(T).GetCustomAttributes<BiffIgnoreAttribute>().Where(a => !a.IsDeprecatedInVP).Select(a => a.Name).ToArray();
+			#else
 			var ignoredTags = typeof(T).GetCustomAttributes<BiffIgnoreAttribute>().Select(a => a.Name).ToArray();
+			#endif
 
 			// initially read length and BIFF record name
 			var len = reader.ReadInt32();
@@ -206,9 +209,12 @@ namespace VisualPinball.Engine.IO
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
-#if SKIP_VPE_DATA
+				#if WRITE_VP107
 				.Where(a => !a[0].IsVpeEnhancement)
-#endif
+				#endif
+				#if WRITE_VP106
+				.Where(a => !a[0].IsVpeEnhancement && !a[0].WasAddedInVp107)
+				#endif
 				.Select(a => a[0] as ISortableBiffRecord)
 				.Concat(UnknownRecords ?? new List<UnknownBiffRecord>())
 				.OrderBy(r => r.GetPosition());

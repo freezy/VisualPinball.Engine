@@ -114,7 +114,9 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 5. Mappings
+			#if !WRITE_VP106 && !WRITE_VP107
 			_table.Mappings.Data.WriteData(_gameStorage);
+			#endif
 		}
 
 		private void WriteImages()
