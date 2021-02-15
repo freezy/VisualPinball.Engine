@@ -23,6 +23,11 @@ namespace VisualPinball.Engine.IO
 	{
 		public readonly string Name;
 
+		/// <summary>
+		/// If set, marks this as "deprecated in VP", which still writes it when the WRITE_VP106 or WRITE_VP107 flag is set.
+		/// </summary>
+		public bool IsDeprecatedInVP;
+
 		public BiffIgnoreAttribute(string name)
 		{
 			Name = name;

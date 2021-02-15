@@ -44,13 +44,14 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		[BiffString("LANR", Pos = 1002)]
+		[BiffString("LANR", Pos = 1002, WasAddedInVp107 = true)]
 		public string EditorLayerName  = string.Empty;
 
-		[BiffBool("LVIS", Pos = 1003)]
+		[BiffBool("LVIS", Pos = 1003, WasAddedInVp107 = true)]
 		public bool EditorLayerVisibility = true;
 
 		private int _editorLayer;
+
 		public abstract string GetName();
 		public abstract void SetName(string name);
 

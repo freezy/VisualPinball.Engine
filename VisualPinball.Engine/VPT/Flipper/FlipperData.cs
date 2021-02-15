@@ -32,9 +32,9 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Flipper
 {
 	[Serializable]
-	[BiffIgnore("RWDT")]
-	[BiffIgnore("RHGT")]
-	[BiffIgnore("RTHK")]
+	[BiffIgnore("RWDT", IsDeprecatedInVP = true)]
+	[BiffIgnore("RHGT", IsDeprecatedInVP = true)]
+	[BiffIgnore("RTHK", IsDeprecatedInVP = true)]
 	public class FlipperData : ItemData
 	{
 		public override string GetName() => Name;

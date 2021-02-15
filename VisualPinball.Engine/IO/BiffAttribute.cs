@@ -91,9 +91,15 @@ namespace VisualPinball.Engine.IO
 		public bool SkipHash = false;
 
 		/// <summary>
-		/// If set, counts as data exclusively used by VPE and can be disabled when writing with SKIP_VPE_DATA
+		/// If set, counts as data exclusively used by VPE and can be disabled when writing with WRITE_VP106
+		/// or WRITE_VP107 active.
 		/// </summary>
 		public bool IsVpeEnhancement = false;
+
+		/// <summary>
+		/// If set, this attribute won't written if the WRITE_VP106 flag is set.
+		/// </summary>
+		public bool WasAddedInVp107 = false;
 
 		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
