@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
 
@@ -104,6 +107,15 @@ namespace VisualPinball.Engine.VPT.Table
 
 			// 2. game items
 			foreach (var writeable in _table.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
+
+				#if !WRITE_VP106
+
+				// clean material and texture references
+				CleanInvalidReferences<MaterialReferenceAttribute, Material>(writeable, v => _table.GetMaterial(v));
+				CleanInvalidReferences<TextureReferenceAttribute, Texture>(writeable, v => _table.GetTexture(v));
+
+				#endif
+
 				writeable.WriteData(_gameStorage);
 			}
 
@@ -141,6 +153,50 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			storage.AddStream(streamName).SetData(data);
 			hashWriter?.Write(data);
+		}
+
+		private static void CleanInvalidReferences<TAttr, TRef>(ItemData data, Func<string, TRef> getter) where TAttr: Attribute
+		{
+			var refs = GetMembersWithAttribute<TAttr>(data);
+			foreach (var r in refs) {
+				var value = GetValue<string>(r, data);
+				if (getter(value) == null) {
+					SetValue(r, data, string.Empty);
+				}
+			}
+		}
+
+		private static IEnumerable<MemberInfo> GetMembersWithAttribute<TAttr>(ItemData data) where TAttr: Attribute
+		{
+			return data.GetType()
+				.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+				.Where(member => member.GetCustomAttribute<TAttr>() != null);
+		}
+
+		private static T GetValue<T>(MemberInfo memberInfo, ItemData data)
+		{
+			switch (memberInfo.MemberType) {
+				case MemberTypes.Field:
+					return (T)((FieldInfo)memberInfo).GetValue(data);
+				case MemberTypes.Property:
+					return (T)((PropertyInfo)memberInfo).GetValue(data);
+				default:
+					throw new NotImplementedException();
+			}
+		}
+
+		private static void SetValue<T>(MemberInfo memberInfo, ItemData data, T value)
+		{
+			switch (memberInfo.MemberType) {
+				case MemberTypes.Field:
+					((FieldInfo)memberInfo).SetValue(data, value);
+					break;
+				case MemberTypes.Property:
+					((PropertyInfo)memberInfo).SetValue(data, value);
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 		}
 	}
 }
