@@ -2,20 +2,11 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.Common
 {
 	public class ColorTests
 	{
-		// [Test]
-		// public void ShouldExportCorrectly()
-		// {
-		// 	const string path = "../../../../TestTables~/The Machine-Bride Of Pinbot (10.7).vpx";
-		// 	var table = TableLoader.Load(path);
-		// 	new TableWriter(table).WriteTable("../../../../TestTables~/The Machine-Bride Of Pinbot (vpe).vpx");
-		// }
-
 		[Test]
 		public void TestColor()
 		{
