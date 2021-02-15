@@ -8,6 +8,14 @@ namespace VisualPinball.Engine.Test.Common
 {
 	public class ColorTests
 	{
+		// [Test]
+		// public void ShouldExportCorrectly()
+		// {
+		// 	const string path = "../../../../TestTables~/The Machine-Bride Of Pinbot (10.7).vpx";
+		// 	var table = TableLoader.Load(path);
+		// 	new TableWriter(table).WriteTable("../../../../TestTables~/The Machine-Bride Of Pinbot (vpe).vpx");
+		// }
+
 		[Test]
 		public void TestColor()
 		{

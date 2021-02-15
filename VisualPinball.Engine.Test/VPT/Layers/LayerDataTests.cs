@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		private static void ValidateTableDataVPX1060(BumperData data)
 		{
 			data.EditorLayer.Should().Be(0);
-			data.EditorLayerName.Should().Be(string.Empty);
+			data.EditorLayerName.Should().Be("Layer_1");
 			data.EditorLayerVisibility.Should().Be(true);
 			data.IsLocked.Should().Be(false);
 		}
