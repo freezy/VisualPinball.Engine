@@ -74,7 +74,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public string TopMaterial = string.Empty;
 
 		[MaterialReference]
-		[BiffString("MAPH", Pos = 29)]
+		[BiffString("MAPH", Pos = 30)]
 		public string PhysicsMaterial = string.Empty;
 
 		[MaterialReference]
@@ -99,34 +99,37 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffFloat("SLTH", Pos = 19)]
 		public float SlingshotThreshold = 0f;
 
-		[BiffBool("SLGA", Pos = 24)]
+		[BiffBool("SLGA", Pos = 25)]
 		public bool SlingshotAnimation = true;
 
 		[BiffFloat("ELAS", Pos = 20)]
 		public float Elasticity;
 
-		[BiffFloat("WFCT", Pos = 21)]
+		[BiffFloat("ELFO", Pos = 21, WasAddedInVp107 = true)]
+		public float ElasticityFalloff;
+
+		[BiffFloat("WFCT", Pos = 22)]
 		public float Friction;
 
-		[BiffFloat("WSCT", Pos = 22)]
+		[BiffFloat("WSCT", Pos = 23)]
 		public float Scatter;
 
-		[BiffBool("VSBL", Pos = 23)]
+		[BiffBool("VSBL", Pos = 24)]
 		public bool IsTopBottomVisible = true;
 
-		[BiffBool("OVPH", Pos = 30)]
+		[BiffBool("OVPH", Pos = 31)]
 		public bool OverwritePhysics = true;
 
-		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 26)]
+		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 27)]
 		public float DisableLightingTop;
 
-		[BiffFloat("DILB", Pos = 27)]
+		[BiffFloat("DILB", Pos = 28)]
 		public float DisableLightingBelow;
 
-		[BiffBool("SVBL", Pos = 25)]
+		[BiffBool("SVBL", Pos = 26)]
 		public bool IsSideVisible = true;
 
-		[BiffBool("REEN", Pos = 28)]
+		[BiffBool("REEN", Pos = 29)]
 		public bool IsReflectionEnabled = true;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
@@ -143,7 +146,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		// IPhysicalData
 		public float GetElasticity() => Elasticity;
-		public float GetElasticityFalloff() => 0;
+		public float GetElasticityFalloff() => ElasticityFalloff;
 		public float GetFriction() => Friction;
 		public float GetScatter() => Scatter;
 		public bool GetOverwritePhysics() => OverwritePhysics;
