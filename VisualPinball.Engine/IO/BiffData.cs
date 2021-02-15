@@ -210,7 +210,7 @@ namespace VisualPinball.Engine.IO
 			var records = attributes.Values
 				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
 				#if WRITE_VP107
-				.Where(a => !a[0].IsVpeEnhancement)
+				.Where(a => !a[0].IsVpeEnhancement && !a[0].WasRemovedInVp107)
 				#endif
 				#if WRITE_VP106
 				.Where(a => !a[0].IsVpeEnhancement && !a[0].WasAddedInVp107)

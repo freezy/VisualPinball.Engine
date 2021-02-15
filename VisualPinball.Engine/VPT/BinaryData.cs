@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.VPT
 		[BiffString("NAME", HasExplicitLength = true, Pos = 1)]
 		public string Name = string.Empty;
 
-		[BiffString("INME", Pos = 2)]
+		[BiffString("INME", Pos = 2, WasRemovedInVp107 = true)]
 		public string InternalName = string.Empty;
 
 		[BiffString("PATH", Pos = 3)]
