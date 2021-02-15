@@ -102,6 +102,11 @@ namespace VisualPinball.Engine.IO
 		public bool WasAddedInVp107 = false;
 
 		/// <summary>
+		/// If set, this attribute won't written if the WRITE_VP107 flag is set.
+		/// </summary>
+		public bool WasRemovedInVp107 = false;
+
+		/// <summary>
 		/// If put on a field, this is the info from C#'s reflection API.
 		/// </summary>
 		public FieldInfo Field { get; set; }
