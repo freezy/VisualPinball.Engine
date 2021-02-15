@@ -135,6 +135,9 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffString("BLIF", Pos = 66)]
 		public string BallImageFront;
 
+		[BiffString("NOTX", Pos = 67.5, WasAddedInVp107 = true)]
+		public string Notes;
+
 		[BiffString("SSHT", Pos = 68)]
 		public string ScreenShot;
 
