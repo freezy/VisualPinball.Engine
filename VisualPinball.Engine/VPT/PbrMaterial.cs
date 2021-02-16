@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT
 
 		public readonly bool VertexLerpWithUvEnabled;
 
-		public Color Color => _material?.BaseColor ?? new Color(0xffffff, ColorFormat.Bgr);
+		public Color Color => _material?.BaseColor.WithAlpha(255) ?? new Color(0xffffffff, ColorFormat.Bgr);
 		public bool IsMetal => _material?.IsMetal ?? false;
 		public bool IsOpacityActive => _material?.IsOpacityActive ?? false;
 		public float Opacity => MathF.Min(1, MathF.Max(0, _material?.Opacity ?? 1f));
