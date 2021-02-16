@@ -64,6 +64,11 @@ namespace VisualPinball.Engine.Math
 			return new Color(Red, Green, Blue, Alpha);
 		}
 
+		public Color WithAlpha(int alpha)
+		{
+			return new Color(Red, Green, Blue, alpha);
+		}
+
 		public bool IsGray()
 		{
 			return Red == Green && Green == Blue;

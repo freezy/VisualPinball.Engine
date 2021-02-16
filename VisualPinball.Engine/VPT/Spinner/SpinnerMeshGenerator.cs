@@ -82,18 +82,18 @@ namespace VisualPinball.Engine.VPT.Spinner
 		private static Material GetBracketMaterial()
 		{
 			return new Material(Spinner.BracketMaterialName) {
-				BaseColor = new Color(0x20202020, ColorFormat.Bgr),
+				BaseColor = new Color(0x202020ff, ColorFormat.Bgr),
 				WrapLighting = 0.9f,
 				IsOpacityActive = false,
 				Opacity = 1.0f,
-				Glossiness = new Color(0x60606060, ColorFormat.Bgr),
+				Glossiness = new Color(0x606060ff, ColorFormat.Bgr),
 				IsMetal = false,
 				Edge = 1.0f,
 				EdgeAlpha = 1.0f,
 				Roughness = 0.4f,
 				GlossyImageLerp = 1.0f,
 				Thickness = 0.05f,
-				ClearCoat = new Color(0x20202020, ColorFormat.Bgr),
+				ClearCoat = new Color(0x202020ff, ColorFormat.Bgr),
 			};
 		}
 

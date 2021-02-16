@@ -107,18 +107,18 @@ namespace VisualPinball.Engine.VPT.Light
 		private static Material GetBulbMaterial()
 		{
 			return new Material(Light.BulbMaterialName) {
-				BaseColor = new Color(0x000000, ColorFormat.Bgr),
+				BaseColor = new Color(0x000000ff, ColorFormat.Bgr),
 				WrapLighting = 0.5f,
 				IsOpacityActive = true,
 				Opacity = 0.2f,
-				Glossiness = new Color(0xFFFFFF, ColorFormat.Bgr),
+				Glossiness = new Color(0xFFFFFFFF, ColorFormat.Bgr),
 				IsMetal = false,
 				Edge = 1.0f,
 				EdgeAlpha = 1.0f,
 				Roughness = 0.9f,
 				GlossyImageLerp = 1.0f,
 				Thickness = 0.05f,
-				ClearCoat = new Color(0xFFFFFF, ColorFormat.Bgr),
+				ClearCoat = new Color(0xFFFFFFFF, ColorFormat.Bgr),
 			};
 		}
 
