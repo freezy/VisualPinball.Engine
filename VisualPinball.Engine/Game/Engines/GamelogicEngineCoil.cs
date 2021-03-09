@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
+using System;
+
 namespace VisualPinball.Engine.Game.Engines
 {
+	[Serializable]
 	public class GamelogicEngineCoil
 	{
 		public string Id;

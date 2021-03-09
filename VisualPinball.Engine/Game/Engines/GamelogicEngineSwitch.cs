@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable InconsistentNaming
+
+using System;
 
 namespace VisualPinball.Engine.Game.Engines
 {
@@ -29,18 +32,19 @@ namespace VisualPinball.Engine.Game.Engines
 	/// This class isn't used during gameplay, but serves to declare the properties
 	/// that will then used in the mapping.
 	/// </remarks>
+	[Serializable]
 	public class GamelogicEngineSwitch
 	{
 		/// <summary>
 		/// A unique identifier. This is what VPE uses to identify a switch.
 		/// </summary>
-		public readonly string Id;
+		public string Id;
 
 		/// <summary>
 		/// A numerical identifier that can be used in gamelogic engines that
 		/// are tied to numerical identifiers.
 		/// </summary>
-		public readonly int InternalId;
+		public int InternalId;
 
 		/// <summary>
 		/// If true, inverts the signal, i.e. disabled switches return "closed" (true),
