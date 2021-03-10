@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Base class for all item APIs.
 	/// </summary>
-	/// <typeparam name="T">Item type</typeparam>
+	/// <typeparam name="TItem">Item type</typeparam>
 	/// <typeparam name="TData">Item data type</typeparam>
 	[Api]
 	public abstract class ItemApi<TItem, TData> : IApi where TItem : Item<TData> where TData : ItemData
@@ -140,6 +140,7 @@ namespace VisualPinball.Unity
 		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig) => _switchHandler.AddSwitchDest(switchConfig);
 
 		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
+		internal void RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
 
 		private protected void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 

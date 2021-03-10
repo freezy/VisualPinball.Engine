@@ -80,6 +80,12 @@ namespace VisualPinball.Unity
 		/// <param name="wireConfig">Configuration which game item to link to</param>
 		void AddWireDest(WireDestConfig wireConfig);
 
+		/// <summary>
+		/// Removes a wire destination for this switch.
+		/// </summary>
+		/// <param name="destId"></param>
+		void RemoveWireDest(string destId);
+
 		void DestroyBall(Entity ballEntity);
 
 		/// <summary>

@@ -77,6 +77,23 @@ namespace VisualPinball.Engine.VPT.Mappings
 		[BiffInt("PLSE", Pos = 13)]
 		public int PulseDelay = 250;
 
+		public string DestinationId => Destination == WireDestination.Device ? DestinationDeviceItem : DestinationPlayfieldItem;
+
+		public MappingsWireData(string description, MappingsSwitchData switchMapping, MappingsCoilData coilMapping) : this()
+		{
+			Description = description;
+			Source = switchMapping.Source;
+			SourceDevice = switchMapping.Device;
+			SourceDeviceItem = switchMapping.DeviceItem;
+			SourceInputAction = switchMapping.InputAction;
+			SourceInputActionMap = switchMapping.InputActionMap;
+			SourcePlayfieldItem = switchMapping.PlayfieldItem;
+			Destination = coilMapping.Destination == CoilDestination.Device ? WireDestination.Device : WireDestination.Playfield;
+			DestinationDevice = coilMapping.Device;
+			DestinationDeviceItem = coilMapping.DeviceItem;
+			DestinationPlayfieldItem = coilMapping.PlayfieldItem;
+		}
+
 		[ExcludeFromCodeCoverage]
 		public string Src { get {
 			switch (Source) {
