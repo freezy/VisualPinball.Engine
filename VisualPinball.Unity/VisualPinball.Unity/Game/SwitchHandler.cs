@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
@@ -79,6 +80,20 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Removes a previously added wire.
+		/// </summary>
+		/// <param name="destId">ID of the destination</param>
+		public void RemoveWireDest(string destId)
+		{
+			foreach (var wire in _wires) {
+				if (wire.IsDynamic && wire.DestinationId == destId) {
+					_wires.Remove(wire);
+					return;
+				}
+			}
+		}
+
+		/// <summary>
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>
 		/// <param name="enabled">Switch status</param>
@@ -133,8 +148,7 @@ namespace VisualPinball.Unity
 					// if it's pulse, schedule to re-open
 					if (enabled && wireConfig.IsPulseSource) {
 						if (dest != null) {
-							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay,
-								() => dest.OnChange(false));
+							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => dest.OnChange(false));
 						}
 					}
 				}

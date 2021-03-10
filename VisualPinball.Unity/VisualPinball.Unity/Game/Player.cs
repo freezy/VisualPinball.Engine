@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -23,11 +24,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -385,6 +388,62 @@ namespace VisualPinball.Unity
 				default:
 					throw new InvalidOperationException($"Unknown event {eventData.eventId} for entity {eventData.ItemEntity}");
 			}
+		}
+
+		#endregion
+
+		#region API
+
+		public void AddDynamicWire(string switchId, string coilId)
+		{
+			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			if (switchMapping == null) {
+				Logger.Warn($"Cannot add new hardware rule for unknown switch \"{switchId}\".");
+				return;
+			}
+			if (coilMapping == null) {
+				Logger.Warn($"Cannot add new hardware rule for unknown coil \"{coilId}\".");
+				return;
+			}
+
+			var wireMapping = new MappingsWireData($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
+			_wirePlayer.AddWire(wireMapping);
+
+			// this is for showing it in the editor during runtime only
+			Table.Mappings.Data.AddWire(wireMapping);
+		}
+
+		public void RemoveDynamicWire(string switchId, string coilId)
+		{
+			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			if (switchMapping == null) {
+				Logger.Warn($"Cannot remove hardware rule for unknown switch \"{switchId}\".");
+				return;
+			}
+			if (coilMapping == null) {
+				Logger.Warn($"Cannot remove hardware rule for unknown coil \"{coilId}\".");
+				return;
+			}
+
+			var wireMapping = new MappingsWireData($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
+			_wirePlayer.RemoveWire(wireMapping);
+
+			// this is for the editor during runtime only
+			var wire = Table.Mappings.Data.Wires.FirstOrDefault(w =>
+				w.Description == wireMapping.Description &&
+				w.SourceDevice == wireMapping.SourceDevice &&
+				w.SourceDeviceItem == wireMapping.SourceDeviceItem &&
+				w.SourceInputAction == wireMapping.SourceInputAction &&
+				w.SourceInputActionMap == wireMapping.SourceInputActionMap &&
+				w.SourcePlayfieldItem == wireMapping.SourcePlayfieldItem &&
+				w.Destination == wireMapping.Destination &&
+				w.DestinationDevice == wireMapping.DestinationDevice &&
+				w.DestinationDeviceItem == wireMapping.DestinationDeviceItem &&
+				w.DestinationPlayfieldItem == wireMapping.DestinationPlayfieldItem
+			);
+			Table.Mappings.Data.RemoveWire(wire);
 		}
 
 		#endregion

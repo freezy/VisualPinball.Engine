@@ -42,7 +42,8 @@ namespace VisualPinball.Unity
 		internal IApiSwitch Switch(string device, string itemName) => _switchDevices.ContainsKey(device) ? _switchDevices[device].Switch(itemName) : null;
 		internal void RegisterSwitch(IItem item, IApiSwitch switchApi) => _switches[item.Name] = switchApi;
 		internal void RegisterSwitchDevice(IItem item, IApiSwitchDevice switchDeviceApi) => _switchDevices[item.Name] = switchDeviceApi;
-		public void RegisterWire(MappingsWireData wireData) => _switches[wireData.SourcePlayfieldItem].AddWireDest(new WireDestConfig(wireData));
+		public void RegisterWire(MappingsWireData wireData, bool isDynamic = false) => _switches[wireData.SourcePlayfieldItem].AddWireDest(new WireDestConfig(wireData) {IsDynamic = isDynamic});
+		public void UnregisterWire(MappingsWireData wireData) => _switches[wireData.SourcePlayfieldItem].RemoveWireDest(wireData.DestinationId);
 		public bool SwitchExists(string name) => _switches.ContainsKey(name);
 		public bool SwitchDeviceExists(string name) => _switchDevices.ContainsKey(name);
 
