@@ -7,6 +7,7 @@
 Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/255).
 
 ### Added
+- Gamelogic Engine: Support for hardware rules ([#293](https://github.com/freezy/VisualPinball.Engine/pull/293)).
 - Support for Extended ASCII strings ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - Support for Elasticity Falloff in walls (added in VP 10.7) ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - Support for table notes (added in VP 10.7) ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
