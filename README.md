@@ -3,7 +3,7 @@
 
 *A library that implements world's favorite pinball simulator.*
 
-[![build](https://github.com/freezy/VisualPinball.Engine/workflows/Build/badge.svg)](https://github.com/freezy/VisualPinball.Engine/actions?query=workflow%3ABuild) [![codecov](https://codecov.io/gh/freezy/VisualPinball.Engine/branch/master/graph/badge.svg?token=gyLOj3al3T)](https://codecov.io/gh/freezy/VisualPinball.Engine)
+[![build](https://github.com/freezy/VisualPinball.Engine/workflows/Build/badge.svg)](https://github.com/freezy/VisualPinball.Engine/actions?query=workflow%3ABuild) [![codecov](https://codecov.io/gh/freezy/VisualPinball.Engine/branch/master/graph/badge.svg?token=gyLOj3al3T)](https://codecov.io/gh/freezy/VisualPinball.Engine) [![UPM Package](https://img.shields.io/npm/v/org.visualpinball.engine.unity?label=org.visualpinball.engine.unity&registry_uri=https://registry.visualpinball.org&color=%2333cf57&logo=unity&style=flat)](https://registry.visualpinball.org/-/web/detail/org.visualpinball.engine.unity)
 
 ## Why?
 
