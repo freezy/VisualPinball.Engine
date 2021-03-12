@@ -79,6 +79,7 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 		public string DestinationId => Destination == WireDestination.Device ? DestinationDeviceItem : DestinationPlayfieldItem;
 
+		[ExcludeFromCodeCoverage]
 		public MappingsWireData(string description, MappingsSwitchData switchMapping, MappingsCoilData coilMapping) : this()
 		{
 			Description = description;
