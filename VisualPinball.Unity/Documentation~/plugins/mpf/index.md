@@ -1,5 +1,5 @@
 ---
-title: VPE - Mission Pinball Framework
+title: Mission Pinball Framework
 description: Visual Pinball Engine integration with the Mission Pinball Framework.
 ---
 

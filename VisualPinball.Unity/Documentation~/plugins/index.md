@@ -1,5 +1,5 @@
 ---
-title: VPE Plugins
+title: Plugins
 description: Visual Pinball for Unity - Plugins
 ---
 
