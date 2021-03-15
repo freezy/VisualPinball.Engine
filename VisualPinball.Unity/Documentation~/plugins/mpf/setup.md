@@ -26,9 +26,9 @@ Mission Pinball Framework integration comes as an UPM package. In Unity, add it 
 
 <p><img alt="Package Manager" width="294" src="../../creators-guide/setup/unity-package-manager.png"/></p>
 
-Then, input `org.visualpinball.engine.missionpinball` and click *Add* or press `Enter`. This will download and add MPF to the project. You can test if it was successful by selecting your table node in the hierarchy, click *Add Component* and select *Visual Pinball -> Gamelogic Engine*. This should display the *Mission Pinball Framework* gamelogic engine.
-
-<p><img alt="Package Manager" width="354" src="unity-add-component.png"/></p>
+Then, input `org.visualpinball.engine.missionpinball` and click *Add* or press `Enter`. This will download and add MPF to the project. 
 
 > [!NOTE]
 > You will need to have our scoped registry added in order for Unity to find the MPF package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html).
+
+So let's [test it](usage.md).
