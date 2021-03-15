@@ -349,7 +349,9 @@ namespace VisualPinball.Unity
 
 		#region Events
 
+		public void Queue(Action action) => _simulationSystemGroup.QueueBeforeBallCreation(action);
 		public void ScheduleAction(int timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
+		public void ScheduleAction(uint timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
 
 		public void OnEvent(in EventData eventData)
 		{

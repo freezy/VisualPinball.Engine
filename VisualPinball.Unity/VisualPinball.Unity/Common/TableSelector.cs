@@ -28,6 +28,11 @@ namespace VisualPinball.Unity
 			set => SetSelectedTable(value);
 		}
 
+		public void TableUpdated()
+		{
+			OnTableSelected?.Invoke(this, EventArgs.Empty);
+		}
+
 		/// <summary>
 		/// Returns true if there is an active table component.
 		/// </summary>
