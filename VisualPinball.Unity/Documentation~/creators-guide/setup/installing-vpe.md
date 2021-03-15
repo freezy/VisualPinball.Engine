@@ -12,7 +12,7 @@ In order to start creating or tweaking tables with VPE, the first thing you'll n
 
 Unity uses an application called *Unity Hub* to update itself and provide quick access to your projects. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
-When installing Unity, use the latest **2020.2** version. You can leave all the other options unchecked.
+When installing Unity, use the latest **2020.3** version. You can leave all the other options unchecked.
 
 Once Unity is downloaded and installed, you'll need to create a new project. Unity has multiple render pipelines, and you'll be asked which render pipeline to use in your project:
 
@@ -32,12 +32,7 @@ We recommend using HDRP. It's not as mature as the built-in renderer, but it's a
 
 Next, enter a project name and a location for your project. We recommend putting the render pipeline into the name, because in the future you might test out other pipelines and thus need to create additional projects.
 
-> [!TIP]
-> We recommend creating a `VPE` folder in your user directory (which is called `%userprofile%`), to contain all the VPE-related files. In this example that would be `%userprofile%\VPE\Test Table - HDRP`, which usually resolves to `C:\Users\{username}\VPE\Test Table - HDRP`.
->
-> You're of course free to set this up however you want, but that's what we'll be referring to in the rest of the documentation.
-
-Clicking *Create* launches the Unity editor, pulls in all the dependencies for the new project, and compiles them. This can take a minute or two.
+Clicking *Create* launches the Unity editor, pulls in all the dependencies for the new project, and compiles them. This will take a few minutes.
 
 ### HDRP Setup
 
@@ -53,27 +48,31 @@ In this scene there's a plane that will [Z-fight](https://en.wikipedia.org/wiki/
 
 Hit *Ctrl+S* to save your scene.
 
-## VPE Source Code
+## VPE Package
 
-Now you have your project and scene set up, let's bring VPE into the project. Go to the GitHub page and [download the source code](https://github.com/freezy/VisualPinball.Engine). You can do that by clicking on the green *Code* button, and choosing *Download ZIP*.
+Now that you have your project and scene set up, let's bring VPE into the project. VPE ships as a package that you can install with the [Package Manager](https://docs.unity3d.com/Manual/Packages.html) inside of Unity directly. However, since Unity's package registry is only used for Unity, we need to add our own registry first.
 
-As mentioned above, we recommend extracting this into the `VPE\VisualPinball.Engine` folder. Now, since we're using the High Definition Render Pipeline, we need to download another package which contains the rendering code. This package is part of VPE but lives in a different repository. Like before, [download](https://github.com/freezy/VisualPinball.Unity.Hdrp) and extract it to your VPE folder.
+In order to do that, go to *Edit -> Project Settings*, and select the *Package Manager* panel on the left. Under *Scoped Registries*, add the following:
 
-Your structure should now look something like this:
+- Name: `Visual Pinball Engine`
+- URL: `https://registry.visualpinball.org/`
+- Scope(s): `org.visualpinball`
 
-![File Structure](explorer-vpe-root.png)
+Your settings page should now look like that:
 
-In Unity, go to *Window -> Package Manager*. Click on the "plus" icon on the top left corner of the window, and choose *Add package from disk*. Choose `package.json` in the root folder of the extracted VPE source code.
+<img alt="Scoped Registry" width="953" src="unity-scoped-registry.jpg" />
+
+Hit *Save* and close the window. You're now going to add VPE's HDRP package, which will also pull in the core package and the assets package. 
+
+Open the package manager by clicking on *Window -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package from git URL*. 
 
 <p><img alt="Package Manager" width="294" src="unity-package-manager.png"/></p>
 
-This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
+There, enter `org.visualpinball.engine.unity.hdrp` and click *Add*. This will take a moment as Unity downloads and compiles all of VPE's dependencies. If during this time, you see the following warning:
 
 <p><img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" /></p>
 
-Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the editor.
-
-Now do the same for the HDRP package. If everything went okay, you should now have these two packages showing up in the Package Manager:
+Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the editor, and you should see the following new packages in the package manager (versions will vary):
 
 ![Package Manager after installation](unity-packages-after-installation.png)
 
