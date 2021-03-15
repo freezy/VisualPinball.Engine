@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Reload()
 		{
-			if (_tableAuthoring != null) {
+			if (_tableAuthoring) {
 				_data = CollectData();
 				_listView.SetData(_data);
 			}

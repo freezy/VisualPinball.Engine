@@ -106,7 +106,7 @@ namespace VisualPinball.Unity
 						? pipelines.First()
 						: pipelines.First(p => p.Type != RenderPipelineType.Standard);
 
-					Logger.Info($"Instantiated ${_current.Name}.");
+					Logger.Info($"Instantiated {_current.Name}.");
 				}
 				return _current;
 			}

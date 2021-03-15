@@ -21,6 +21,7 @@ using NLog;
 using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
+using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
 {
@@ -51,7 +52,8 @@ namespace VisualPinball.Unity
 		private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
 		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
-		private readonly List<Action> _afterBallQueues = new List<Action>();
+		private readonly Queue<Action> _afterBallCreationQueue = new Queue<Action>();
+		private readonly Queue<Action> _beforeBallCreationQueue = new Queue<Action>();
 		private readonly List<ScheduledAction> _scheduledActions = new List<ScheduledAction>();
 
 		private const TimingMode Timing = TimingMode.UnityTime;
@@ -87,11 +89,17 @@ namespace VisualPinball.Unity
 
 		protected override void OnUpdate()
 		{
-			_createBallEntityCommandBufferSystem.Update();
-			foreach (var action in _afterBallQueues) {
-				action();
+			lock (_beforeBallCreationQueue) {
+				while (_beforeBallCreationQueue.Count > 0) {
+					_beforeBallCreationQueue.Dequeue().Invoke();
+				}
 			}
-			_afterBallQueues.Clear();
+			_createBallEntityCommandBufferSystem.Update();
+			lock (_afterBallCreationQueue) {
+				while (_afterBallCreationQueue.Count > 0) {
+					_afterBallCreationQueue.Dequeue().Invoke();
+				}
+			}
 
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();
@@ -114,10 +122,12 @@ namespace VisualPinball.Unity
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 
 				// run scheduled actions
-				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
-					if (_currentPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
-						_scheduledActions[i].Action();
-						_scheduledActions.RemoveAt(i);
+				lock (_scheduledActions) {
+					for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
+						if (_currentPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+							_scheduledActions[i].Action();
+							_scheduledActions.RemoveAt(i);
+						}
 					}
 				}
 			}
@@ -159,16 +169,32 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void QueueBeforeBallCreation(Action action)
+		{
+			lock (_beforeBallCreationQueue) {
+				_beforeBallCreationQueue.Enqueue(action);
+			}
+		}
+
 		public void QueueAfterBallCreation(Action action)
 		{
-			_afterBallQueues.Add(action);
+			lock (_afterBallCreationQueue) {
+				_afterBallCreationQueue.Enqueue(action);
+			}
 		}
 
-		public void ScheduleAction(int timeoutMs, Action action)
+		public void ScheduleAction(int timeoutMs, Action action) => ScheduleAction((uint)timeoutMs, action);
+		public void ScheduleAction(uint timeoutMs, Action action)
 		{
-			_scheduledActions.Add(new ScheduledAction(_currentPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+			lock (_scheduledActions) {
+				_scheduledActions.Add(new ScheduledAction(_currentPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+			}
 		}
 
+		public void Run(Action action)
+		{
+
+		}
 
 		private enum TimingMode
 		{
