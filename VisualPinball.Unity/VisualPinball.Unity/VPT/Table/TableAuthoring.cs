@@ -276,6 +276,18 @@ namespace VisualPinball.Unity
 			return tableBounds;
 		}
 
+		public void RepopulateHardware(IGamelogicEngine gle)
+		{
+			Mappings.RemoveAllSwitches();
+			Table.Mappings.PopulateSwitches(gle.AvailableSwitches, Table.Switchables, Table.SwitchableDevices);
+
+			Mappings.RemoveAllCoils();
+			Table.Mappings.PopulateCoils(gle.AvailableCoils, Table.Coilables, Table.CoilableDevices);
+
+			Mappings.RemoveAllLamps();
+			Table.Mappings.PopulateLamps(gle.AvailableLamps, Table.Lightables);
+		}
+
 		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
 			where TItem : Item<TData>
 			where TComp : ItemMainAuthoring<TItem, TData>
