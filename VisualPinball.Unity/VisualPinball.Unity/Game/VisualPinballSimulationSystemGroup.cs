@@ -191,11 +191,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void Run(Action action)
-		{
-
-		}
-
 		private enum TimingMode
 		{
 			UnityTime,

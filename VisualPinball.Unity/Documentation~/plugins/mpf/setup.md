@@ -29,6 +29,6 @@ Mission Pinball Framework integration comes as an UPM package. In Unity, add it 
 Then, input `org.visualpinball.engine.missionpinball` and click *Add* or press `Enter`. This will download and add MPF to the project. 
 
 > [!NOTE]
-> You will need to have our scoped registry added in order for Unity to find the MPF package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html).
+> You will need to have our scoped registry added in order for Unity to find the MPF package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html#vpe-package).
 
 So let's [test it](usage.md).

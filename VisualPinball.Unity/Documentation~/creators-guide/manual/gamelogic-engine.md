@@ -7,7 +7,7 @@ When playing a pinball game, some part of the table is driving the gameplay, i.e
 
 The gamelogic engine is purely gameplay driven. It gets input from switches, computes what will happen next, and updates the hardware components of the table. It does *not* handle game mechanics, which are about simulating the hardware *behavior* of the table - it just toggles it.
 
-Classic examples of gamelogic engines are [MPF](https://missionpinball.org/) and [PinMAME](https://sourceforge.net/projects/pinmame/).
+Classic examples of gamelogic engines are [MPF](../../plugins/mpf/index.html) and [PinMAME](https://github.com/vpinball/pinmame).
 
 > [!note]
 > Let's take a spinning wheel on the playfield as an example. The game*logic* engine's job is to know when to turn it on and off. The game *mechanics* component of the spinning wheel is about rotating the actual playfield element with the right speed, acceleration, and handle ball collisions with a given friction.
