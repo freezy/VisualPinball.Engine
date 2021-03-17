@@ -7,7 +7,7 @@ description: How to set up the Mission Pinball Framework with VPE.
 
 ## Prerequisites
 
-Future plans include shipping MPF entirely with Unity, but currently, you need to have MPF locally installed on your machine. You can do that quite easily by:
+Future plans include shipping MPF entirely with Unity, but currently, you need to have MPF installed on your machine. You can install MPF by:
 
 1. [Installing Python 3.7](https://www.python.org/downloads/)
 2. `pip install --pre mpf mpf-mc`
@@ -18,7 +18,9 @@ You can *upgrade* MPF if you already have installed it by running:
 pip install mpf mpf-mc --pre --upgrade
 ```
 
-You'll need at least MPF v0.55.0-dev.12.
+Note: On MacOS, you may have to substitue `pip` with `pip3`.
+
+You will need at least MPF v0.55.0-dev.12.
 
 ## Unity Setup
 
