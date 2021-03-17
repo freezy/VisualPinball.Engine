@@ -210,6 +210,10 @@ namespace VisualPinball.Engine.VPT.Mappings
 				var coilMapping = Data.Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
 				if (coilMapping == null) {
 
+					if (engineCoil.IsUnused) {
+						continue;
+					}
+
 					// we'll handle those in a second loop when all the main coils are added
 					if (!string.IsNullOrEmpty(engineCoil.MainCoilIdOfHoldCoil)) {
 						holdCoils.Add(engineCoil);
