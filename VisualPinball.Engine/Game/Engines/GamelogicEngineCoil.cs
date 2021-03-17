@@ -31,6 +31,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public bool IsLamp;
+		public bool IsUnused;
 
 		public GamelogicEngineCoil(string id)
 		{
