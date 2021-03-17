@@ -11,8 +11,6 @@
     href: setup/installing-vpe.md
   - name: Running VPE
     href: setup/running-vpe.md
-  - name: Updating VPE
-    href: setup/updating-vpe.md
 
 - name: Editor
   items:
