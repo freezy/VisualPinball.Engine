@@ -26,14 +26,15 @@ namespace VisualPinball.Unity
 	internal class StaticBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _quadTreeEntityQuery;
+		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhaseSystem");
-
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnCreate()
 		{
 			_quadTreeEntityQuery = EntityManager.CreateEntityQuery(typeof(QuadTreeData));
+			_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<SimulateCycleSystemGroup>();
 		}
 
 		protected override void OnUpdate()
@@ -41,10 +42,12 @@ namespace VisualPinball.Unity
 			// retrieve reference to static quad tree data
 			var collEntity = _quadTreeEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<QuadTreeData>(collEntity);
+			var itemsColliding = _simulateCycleSystemGroup.ItemsColliding;
 			var marker = PerfMarker;
 
 			Entities
 				.WithName("StaticBroadPhaseJob")
+				.WithReadOnly(itemsColliding)
 				.ForEach((ref DynamicBuffer<OverlappingStaticColliderBufferElement> colliderIds, in BallData ballData) => {
 
 				// don't play with frozen balls
@@ -56,7 +59,7 @@ namespace VisualPinball.Unity
 
 				ref var quadTree = ref collData.Value.Value.QuadTree;
 				colliderIds.Clear();
-				quadTree.GetAabbOverlaps(in ballData, ref colliderIds);
+				quadTree.GetAabbOverlaps(in ballData, in itemsColliding, ref colliderIds);
 
 				marker.End();
 
