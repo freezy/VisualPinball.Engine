@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -190,14 +191,14 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		public void GetAabbOverlaps(in BallData ball, ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds)
+		public void GetAabbOverlaps(in BallData ball, in NativeHashMap<Entity, bool> itemsColliding, ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;
 
 			for (var i = 0; i < _bounds.Length; i++) {
 				ref var bounds = ref _bounds[i].Value;
-				if (bounds.Aabb.IntersectRect(ballAabb) && bounds.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+				if (itemsColliding[bounds.ColliderEntity] && bounds.Aabb.IntersectRect(ballAabb) && bounds.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
 					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
 				}
 			}
@@ -209,22 +210,22 @@ namespace VisualPinball.Unity
 				if (ballAabb.Top <= _center.y) {
 					// Top
 					if (isLeft) {
-						_children[0].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[0].Value.GetAabbOverlaps(in ball, in itemsColliding, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						_children[1].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[1].Value.GetAabbOverlaps(in ball, in itemsColliding, ref matchedColliderIds);
 					}
 				}
 
 				if (ballAabb.Bottom >= _center.y) {
 					// Bottom
 					if (isLeft) {
-						_children[2].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[2].Value.GetAabbOverlaps(in ball, in itemsColliding, ref matchedColliderIds);
 					}
 
 					if (isRight) {
-						_children[3].Value.GetAabbOverlaps(in ball, ref matchedColliderIds);
+						_children[3].Value.GetAabbOverlaps(in ball, in itemsColliding, ref matchedColliderIds);
 					}
 				}
 			}

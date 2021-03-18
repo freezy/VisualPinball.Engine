@@ -166,7 +166,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		Entity IApiColliderGenerator.ColliderEntity { get; } = Entity.Null;
+		Entity IApiColliderGenerator.ColliderEntity { get; } = Player.TableEntity;
 		bool IApiColliderGenerator.IsColliderEnabled { get; } = true;
 
 		internal (PlaneCollider, PlaneCollider) CreateColliders(Table table)
