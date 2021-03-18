@@ -142,8 +142,9 @@ namespace VisualPinball.Unity
 
 		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
 
-
 		#region Collider Generation
+
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

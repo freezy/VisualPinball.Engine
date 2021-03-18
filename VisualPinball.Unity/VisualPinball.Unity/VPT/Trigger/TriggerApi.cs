@@ -56,6 +56,7 @@ namespace VisualPinball.Unity
 		#region Collider Generation
 
 		protected override bool FireHitEvents { get; } = true;
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

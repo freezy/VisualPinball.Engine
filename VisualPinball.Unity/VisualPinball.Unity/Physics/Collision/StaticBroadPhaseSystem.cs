@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NLog;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using Logger = NLog.Logger;
@@ -26,6 +27,7 @@ namespace VisualPinball.Unity
 	{
 		private EntityQuery _quadTreeEntityQuery;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhaseSystem");
+
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
