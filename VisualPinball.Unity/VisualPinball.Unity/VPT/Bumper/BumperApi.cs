@@ -59,12 +59,12 @@ namespace VisualPinball.Unity
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
-
 		#region Collider Generation
 
-		protected override bool IsColliderEnabled => Data.IsCollidable;
+		public override bool IsColliderEnabled => Data.IsCollidable;
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold => Data.Threshold;
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

@@ -173,6 +173,8 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
+
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);

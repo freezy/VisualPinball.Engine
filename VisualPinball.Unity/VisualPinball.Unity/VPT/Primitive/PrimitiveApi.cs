@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold => Data.Threshold;
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{

@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 
 		#region Collider
 
-		protected virtual bool IsColliderEnabled  => !(Data is IPhysicalData physicalData) || physicalData.GetIsCollidable();
+		public virtual bool IsColliderEnabled  => !(Data is IPhysicalData physicalData) || physicalData.GetIsCollidable();
 		protected virtual bool FireHitEvents { get; } = false;
 		protected virtual float HitThreshold { get; } = 0;
 		protected virtual PhysicsMaterialData GetPhysicsMaterial(Table table)

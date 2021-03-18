@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 	{
 		void CreateColliders(Table table, List<ICollider> colliders);
 		ColliderInfo GetColliderInfo(Table table);
+		Entity ColliderEntity { get; }
+		bool IsColliderEnabled { get; }
 	}
 
 	public interface IApiHittable

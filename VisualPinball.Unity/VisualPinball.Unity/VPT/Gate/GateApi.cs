@@ -83,6 +83,8 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
+
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new GateColliderGenerator(this);
