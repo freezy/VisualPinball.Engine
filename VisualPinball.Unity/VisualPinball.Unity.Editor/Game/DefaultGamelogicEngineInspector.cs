@@ -38,6 +38,13 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			// foreach (var display in _gamelogicEngine.AvailableDisplays) {
+			// 	if (!_gamelogicEngine.DisplayOutputs.ContainsKey(display.Id)) {
+			// 		_gamelogicEngine.DisplayOutputs[display.Id] = null;
+			// 	}
+			// 	_gamelogicEngine.DisplayOutputs[display.Id] = (DmdAuthoring)EditorGUILayout.ObjectField(display.Id, _gamelogicEngine.DisplayOutputs[display.Id], typeof(DmdAuthoring), true);
+			// }
+
 			_value1 = EditorGUILayout.IntSlider("Value 1", _value1, 0, 255);
 			_value2 = EditorGUILayout.IntSlider("Value 2", _value2, 0, 255);
 			_value3 = EditorGUILayout.IntSlider("Value 3", _value3, 0, 255);

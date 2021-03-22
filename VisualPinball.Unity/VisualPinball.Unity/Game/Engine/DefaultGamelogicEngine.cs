@@ -41,8 +41,11 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampEventArgs> OnLampChanged;
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
+		public event EventHandler<DisplayFrameData> OnDisplayFrame;
 
 		private const bool DualWoundFlippers = false;
+
+		private const string DisplayDmd = "dmd";
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
@@ -55,6 +58,10 @@ namespace VisualPinball.Unity
 		private const string SwTrough4 = "s_trough4";
 		private const string SwCreateBall = "s_create_ball";
 		private const string SwRedBumper = "s_red_bumper";
+
+		public DisplayConfig[] AvailableDisplays { get; } = {
+			new DisplayConfig(DisplayDmd, DisplayType.Dmd2, 32, 8)
+		};
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
@@ -106,7 +113,6 @@ namespace VisualPinball.Unity
 
 		private const string LampRedBumper = "l_bumper";
 
-
 		public GamelogicEngineLamp[] AvailableLamps { get; } =
 		{
 			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", PlayfieldItemHint = "gi1$" },
@@ -130,6 +136,7 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 		private BallManager _ballManager;
+		private bool _frameSent = false;
 
 		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
@@ -153,8 +160,21 @@ namespace VisualPinball.Unity
 			_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
 		}
 
-		public void OnUpdate()
+		private void Update()
 		{
+			if (!_frameSent) {
+				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, new byte[] {
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,3,3,3,2,0,0,3,3,3,3,3,3,2,0,0,0,
+					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,2,1,3,3,2,0,3,3,2,1,1,1,1,0,0,0,
+					0,0,0,0,1,3,3,2,0,3,3,2,1,0,3,3,2,0,3,3,2,0,3,3,3,3,3,3,2,0,0,0,
+					0,0,0,0,0,3,3,2,0,3,3,2,0,0,3,3,3,3,3,2,1,0,3,3,2,1,1,1,1,0,0,0,
+					0,0,0,0,0,1,1,3,3,2,1,1,0,0,3,3,2,1,1,1,0,0,3,3,2,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,3,3,2,0,0,0,0,3,3,2,0,0,0,0,0,3,3,3,3,3,3,2,0,0,0,
+					0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,
+				}));
+				_frameSent = true;
+			}
 		}
 
 		public void OnDestroy()
