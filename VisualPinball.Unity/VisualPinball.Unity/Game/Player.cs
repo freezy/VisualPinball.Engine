@@ -83,6 +83,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
 		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
 		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
+		[NonSerialized] private readonly DisplayPlayer _displayPlayer = new DisplayPlayer();
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
 
 		private const float SlowMotionMax = 0.1f;
@@ -130,6 +131,7 @@ namespace VisualPinball.Unity
 				_coilPlayer.Awake(Table, GamelogicEngine, _lampPlayer);
 				_switchPlayer.Awake(Table, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(Table, _inputManager, _switchPlayer);
+				_displayPlayer.Awake(Table, GamelogicEngine);
 			}
 
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
@@ -151,6 +153,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnStart();
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
+			_displayPlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
 		}
@@ -166,6 +169,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnDestroy();
 			_lampPlayer.OnDestroy();
 			_wirePlayer.OnDestroy();
+			_displayPlayer.OnDestroy();
 
 			foreach (var (action, callback) in _actions) {
 				action.performed -= callback;

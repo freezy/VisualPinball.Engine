@@ -32,6 +32,14 @@ namespace VisualPinball.Unity
 
 		void OnInit(Player player, TableApi tableApi, BallManager ballManager);
 
+		#region DMD
+
+		DisplayConfig[] AvailableDisplays { get; }
+
+		event EventHandler<DisplayFrameData> OnDisplayFrame;
+
+		#endregion
+
 		#region Switches
 
 		/// <summary>
@@ -90,6 +98,49 @@ namespace VisualPinball.Unity
 		event EventHandler<CoilEventArgs> OnCoilChanged;
 
 		#endregion
+	}
+
+	public class DisplayConfig
+	{
+		public readonly string Id;
+		public readonly DisplayType Type;
+		public readonly int Width;
+		public readonly int Height;
+
+		public DisplayConfig(string id, DisplayType type, int width, int height)
+		{
+			Id = id;
+			Type = type;
+			Width = width;
+			Height = height;
+		}
+	}
+
+	public class DisplayFrameData
+	{
+		public readonly string Id;
+		public readonly byte[] Data;
+		public readonly float Brightness = 1;
+
+		public DisplayFrameData(string id, byte[] data)
+		{
+			Id = id;
+			Data = data;
+		}
+	}
+
+	public enum DisplayType
+	{
+		Dmd2PinMame, // 2-bit (0x0, 0x14, 0x21, 0x43/0x64)
+		Dmd2, // 2-bit (0-4)
+		Dmd4, // 4-bit (0-15)
+		Dmd8, // 8-bit (0-255)
+		Dmd24, // rgb (3x 0-255)
+		Seg7,  // https://en.wikipedia.org/wiki/Seven-segment_display
+		Seg9,  // https://en.wikipedia.org/wiki/Nine-segment_display
+		Seg14, // https://en.wikipedia.org/wiki/Fourteen-segment_display
+		Seg16, // https://en.wikipedia.org/wiki/Sixteen-segment_display
+		Pixel
 	}
 
 	public readonly struct CoilEventArgs
