@@ -66,6 +66,7 @@ namespace VisualPinball.Unity
 			}
 
 			switch (_displayType) {
+				case DisplayType.Dmd2PinMame:
 				case DisplayType.Dmd2:
 				case DisplayType.Dmd4:
 				case DisplayType.Dmd8:

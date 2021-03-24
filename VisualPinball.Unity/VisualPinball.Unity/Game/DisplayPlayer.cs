@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -25,48 +24,47 @@ namespace VisualPinball.Unity
 {
 	public class DisplayPlayer
 	{
-		private readonly Dictionary<string, DmdAuthoring> _displays = new Dictionary<string, DmdAuthoring>();
-
-		private Table _table;
 		private IGamelogicEngine _gamelogicEngine;
+		private readonly Dictionary<string, DmdAuthoring> _displayGameObjects = new Dictionary<string, DmdAuthoring>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void Awake(Table table, IGamelogicEngine gamelogicEngine)
+		public void Awake(Table _, IGamelogicEngine gamelogicEngine)
 		{
-			_table = table;
 			_gamelogicEngine = gamelogicEngine;
-		}
+			_gamelogicEngine.OnDisplaysAvailable += HandleDisplayAvailable;
+			_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
 
-		public void OnStart()
-		{
-			if (_gamelogicEngine?.AvailableDisplays.Length > 0) {
-				var dmds = Object.FindObjectsOfType<DmdAuthoring>();
-				foreach (var display in _gamelogicEngine.AvailableDisplays) {
-					_displays[display.Id] = dmds.FirstOrDefault(d => d.Id == display.Id);
-					if (_displays[display.Id] != null) {
-						_displays[display.Id].UpdateDimensions(display.Width, display.Height);
-						_displays[display.Id].DisplayType = display.Type;
-
-					} else {
-						Logger.Error($"Cannot find DMD game object for display ${display.Id}");
-					}
-				}
-				_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
+			var dmds = Object.FindObjectsOfType<DmdAuthoring>();
+			foreach (var dmd in dmds) {
+				_displayGameObjects[dmd.Id] = dmd;
 			}
 		}
+
+		private void HandleDisplayAvailable(object sender, AvailableDisplays availableDisplays)
+		{
+			foreach (var display in availableDisplays.Displays) {
+				if (_displayGameObjects.ContainsKey(display.Id)) {
+					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height);
+					_displayGameObjects[display.Id].DisplayType = display.Type;
+
+				} else {
+					Logger.Error($"Cannot find DMD game object for display ${display.Id}");
+				}
+			}
+		}
+
 		private void HandleFrameEvent(object sender, DisplayFrameData e)
 		{
-			if (_displays.ContainsKey(e.Id)) {
-				_displays[e.Id].UpdateFrame(e.Data);
+			if (_displayGameObjects.ContainsKey(e.Id)) {
+				_displayGameObjects[e.Id].UpdateFrame(e.Data);
 			}
 		}
 
 		public void OnDestroy()
 		{
-			if (_gamelogicEngine?.AvailableDisplays.Length > 0) {
-				_gamelogicEngine.OnDisplayFrame -= HandleFrameEvent;
-			}
+			_gamelogicEngine.OnDisplaysAvailable -= HandleDisplayAvailable;
+			_gamelogicEngine.OnDisplayFrame -= HandleFrameEvent;
 		}
 	}
 }

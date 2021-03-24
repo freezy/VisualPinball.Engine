@@ -32,10 +32,9 @@ namespace VisualPinball.Unity
 
 		void OnInit(Player player, TableApi tableApi, BallManager ballManager);
 
-		#region DMD
+		#region Displays
 
-		DisplayConfig[] AvailableDisplays { get; }
-
+		event EventHandler<AvailableDisplays> OnDisplaysAvailable;
 		event EventHandler<DisplayFrameData> OnDisplayFrame;
 
 		#endregion
@@ -100,6 +99,21 @@ namespace VisualPinball.Unity
 		#endregion
 	}
 
+	public class AvailableDisplays
+	{
+		public readonly DisplayConfig[] Displays;
+
+		public AvailableDisplays(DisplayConfig[] availableDisplays)
+		{
+			Displays = availableDisplays;
+		}
+
+		public AvailableDisplays(DisplayConfig config)
+		{
+			Displays = new [] { config };
+		}
+	}
+
 	public class DisplayConfig
 	{
 		public readonly string Id;
@@ -113,6 +127,14 @@ namespace VisualPinball.Unity
 			Type = type;
 			Width = width;
 			Height = height;
+		}
+
+		public DisplayConfig(string id, DisplayType type, uint width, uint height)
+		{
+			Id = id;
+			Type = type;
+			Width = (int)width;
+			Height = (int)height;
 		}
 	}
 
