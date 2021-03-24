@@ -153,7 +153,6 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnStart();
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
-			_displayPlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
 		}

@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampEventArgs> OnLampChanged;
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
+		public event EventHandler<AvailableDisplays> OnDisplaysAvailable;
 		public event EventHandler<DisplayFrameData> OnDisplayFrame;
 
 		private const bool DualWoundFlippers = false;
@@ -58,10 +59,6 @@ namespace VisualPinball.Unity
 		private const string SwTrough4 = "s_trough4";
 		private const string SwCreateBall = "s_create_ball";
 		private const string SwRedBumper = "s_red_bumper";
-
-		public DisplayConfig[] AvailableDisplays { get; } = {
-			new DisplayConfig(DisplayDmd, DisplayType.Dmd2, 32, 8)
-		};
 
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
@@ -151,6 +148,8 @@ namespace VisualPinball.Unity
 		{
 			_player = player;
 			_ballManager = ballManager;
+
+			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, DisplayType.Dmd2, 32, 8)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
