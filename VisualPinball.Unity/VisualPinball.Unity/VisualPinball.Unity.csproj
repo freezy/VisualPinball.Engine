@@ -71,4 +71,7 @@
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.7" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Physics\QuadTree" />
+  </ItemGroup>
 </Project>

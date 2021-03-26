@@ -15,19 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	internal static class QuadTreeCreator
+	[DisableAutoCreation]
+	public class QuadTreeSystem : SystemBase
 	{
+		public NativeQuadTree<int> QuadTree;
+		public NativeHashMap<Entity, bool> ItemsColliding;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static readonly ProfilerMarker PerfMarkerTotal = new ProfilerMarker("QuadTreeCreator");
 		private static readonly ProfilerMarker PerfMarkerGenerateColliders = new ProfilerMarker("QuadTreeCreator (1 - generate colliders)");
@@ -36,7 +42,17 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerCreateQuadTree = new ProfilerMarker("QuadTreeCreator (3 - create quad tree)");
 		private static readonly ProfilerMarker PerfMarkerSaveToEntity = new ProfilerMarker("QuadTreeCreator (4 - save to entity)");
 
-		public static void Create(EntityManager entityManager, ref NativeHashMap<Entity, bool> itemsColliding)
+		private bool _doUpdate = true;
+
+		protected override void OnUpdate()
+		{
+			if (_doUpdate) {
+				Create(out QuadTree, out ItemsColliding);
+				_doUpdate = false;
+			}
+		}
+
+		private void Create(out NativeQuadTree<int> quadTree, out NativeHashMap<Entity, bool> itemsColliding)
 		{
 			PerfMarkerTotal.Begin();
 
@@ -70,22 +86,32 @@ namespace VisualPinball.Unity
 
 			// 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
 			PerfMarkerCreateQuadTree.Begin();
-			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
-			using (var builder = new BlobBuilder(Allocator.Temp)) {
-				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
-				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
-					player.Table.BoundingBox.ToAabb());
+			var quadStart = Stopwatch.StartNew();
 
-				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
+			var elements = new NativeArray<QuadElement<int>>(colliderBlobAssetRef.Value.Colliders.Length, Allocator.TempJob);
+			for (var i = 0; i < colliderBlobAssetRef.Value.Colliders.Length; i++) {
+				if (colliderBlobAssetRef.Value.Colliders[i].Value.Type != ColliderType.Plane) {
+					elements[i] = new QuadElement<int> {
+						bounds = colliderBlobAssetRef.Value.Colliders[i].Value.Bounds().Aabb.Bounds2D,
+						element = colliderBlobAssetRef.Value.Colliders[i].Value.Bounds().ColliderId
+					};
+				}
 			}
+			var qt = new NativeQuadTree<int>(new Aabb2D(new float2(0, 0), new float2(2000, 4000)));
+			Job.WithCode(() => qt.ClearAndBulkInsert(elements)).Run();
+
+			quadTree = qt;
+
+			//quadTree = new NativeQuadTree<int>(player.Table.BoundingBox.ToAabb().Bounds2D);
+			elements.Dispose();
+			Logger.Info($"Quadtree created in {quadStart.ElapsedMilliseconds}ms with {colliderBlobAssetRef.Value.Colliders.Length} elements.");
 			PerfMarkerCreateQuadTree.End();
 
 			// save it to entity
 			PerfMarkerSaveToEntity.Begin();
 			//Debug.Log(quadTreeBlobAssetRef.Value.QuadTree.ToString(0));
-			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
-			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
-			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
+			var collEntity = EntityManager.CreateEntity(ComponentType.ReadOnly<ColliderData>());
+			EntityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
 			PerfMarkerSaveToEntity.End();
 
 			Logger.Info("Static QuadTree initialized.");

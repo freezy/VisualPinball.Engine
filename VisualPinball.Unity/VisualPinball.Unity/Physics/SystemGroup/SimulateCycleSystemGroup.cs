@@ -39,8 +39,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool SwapBallCollisionHandling;
 
-		public NativeHashMap<Entity, bool> ItemsColliding;
-
 		public DefaultPhysicsEngine PhysicsEngine;
 
 		public override IReadOnlyList<ComponentSystemBase> Systems => _systemsToUpdate;
@@ -64,12 +62,6 @@ namespace VisualPinball.Unity
 
 		private readonly Stopwatch _simulationTime = new Stopwatch();
 		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
-
-		protected override void OnStartRunning()
-		{
-			base.OnStartRunning();
-			QuadTreeCreator.Create(EntityManager, ref ItemsColliding);
-		}
 
 		protected override void OnCreate()
 		{

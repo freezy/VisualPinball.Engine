@@ -26,23 +26,21 @@ namespace VisualPinball.Unity
 	internal class StaticBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _quadTreeEntityQuery;
-		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		private QuadTreeSystem _quadTreeSystem;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhaseSystem");
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnCreate()
 		{
-			_quadTreeEntityQuery = EntityManager.CreateEntityQuery(typeof(QuadTreeData));
-			_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_quadTreeSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<QuadTreeSystem>();
 		}
 
 		protected override void OnUpdate()
 		{
 			// retrieve reference to static quad tree data
-			var collEntity = _quadTreeEntityQuery.GetSingletonEntity();
-			var collData = EntityManager.GetComponentData<QuadTreeData>(collEntity);
-			var itemsColliding = _simulateCycleSystemGroup.ItemsColliding;
+			var quadTree = _quadTreeSystem.QuadTree;
+			var itemsColliding = _quadTreeSystem.ItemsColliding;
 			var marker = PerfMarker;
 
 			Entities
@@ -56,10 +54,14 @@ namespace VisualPinball.Unity
 				}
 
 				marker.Begin();
+				var results = new NativeList<QuadElement<int>>(0, Allocator.TempJob);
+				quadTree.RangeQuery(ballData.Aabb.Bounds2D, results);
 
-				ref var quadTree = ref collData.Value.Value.QuadTree;
 				colliderIds.Clear();
-				quadTree.GetAabbOverlaps(in ballData, in itemsColliding, ref colliderIds);
+				foreach (var quadElement in results) {
+					colliderIds.Add(new OverlappingStaticColliderBufferElement { Value = quadElement.element });
+				}
+				//quadTree.GetAabbOverlaps(in ballData, in itemsColliding, ref colliderIds);
 
 				marker.End();
 

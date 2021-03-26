@@ -31,6 +31,11 @@ namespace VisualPinball.Unity
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
 
+		public Aabb2D Bounds2D => new Aabb2D(
+			new float2(Left + Width / 2, Top + Height / 2),
+			new float2(Width / 2, Height / 2)
+		);
+
 		public Aabb(float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
 			Left = left;

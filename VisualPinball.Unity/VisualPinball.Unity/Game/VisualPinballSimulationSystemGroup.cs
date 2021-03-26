@@ -45,6 +45,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
+		private QuadTreeSystem _quadTreeSystem;
 		private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;
 		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
@@ -65,6 +66,7 @@ namespace VisualPinball.Unity
 
 			_time.Start();
 
+			_quadTreeSystem = World.GetOrCreateSystem<QuadTreeSystem>();
 			_createBallEntityCommandBufferSystem = World.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
 			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
@@ -78,6 +80,7 @@ namespace VisualPinball.Unity
 			_systemsToUpdate.Add(_ballRingCounterSystem);
 			_systemsToUpdate.Add(_updateAnimationsSystemGroup);
 			_systemsToUpdate.Add(_transformMeshesSystemGroup);
+			_systemsToUpdate.Add(_quadTreeSystem);
 			base.OnCreate();
 		}
 
@@ -100,6 +103,8 @@ namespace VisualPinball.Unity
 					_afterBallCreationQueue.Dequeue().Invoke();
 				}
 			}
+
+			_quadTreeSystem.Update();
 
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();
