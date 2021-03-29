@@ -58,19 +58,12 @@
 			static float SegmentGap = _SegmentWidth * 1.2;
 
 			static float Skew = 0.2;
-
 			static float EdgeBlur = 0.1; // used to remove aliasing
-
 			static float SharpEdge = 0.7;
 			static float RoundEdge = 0.15;
 
-			static float InnerGlow = 2.0;
-
-			static float OuterGlowLevel = .15;
-			static float OuterGlowRange = 15.0;
-
 			static float On = 0.81;
-			static float Off = 0.025;
+			static float Off = 0.012;
 
 			// Static computed vars for optimization
 			static float2 tl = float2(-.5, 1) ; // top    left  corner
@@ -127,10 +120,7 @@
 				float g = smoothstep(e - be, e - be, v);
 				float b = smoothstep(-9999, e + be, v);
 				g -= r;
-
-				// a is only used for outer glow
-				float a = smoothstep(e - OuterGlowRange, edge, v) * OuterGlowLevel;
-				return float4(r, g, b, a);
+				return float4(r, g, b, 1);
 			}
 
 			float Rounder(float x, float y, float z)
