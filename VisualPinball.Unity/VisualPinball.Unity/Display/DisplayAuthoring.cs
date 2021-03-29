@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 			};
 			var numSegments = 16;
 			var width = numSegments;
-			var height = 7;
+			var height = 16;
 			var inputTex = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
 			for (var y = 0; y < height; y++) {
