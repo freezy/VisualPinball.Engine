@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	public class DisplayPlayer
 	{
 		private IGamelogicEngine _gamelogicEngine;
-		private readonly Dictionary<string, DmdAuthoring> _displayGameObjects = new Dictionary<string, DmdAuthoring>();
+		private readonly Dictionary<string, DisplayAuthoring> _displayGameObjects = new Dictionary<string, DisplayAuthoring>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			_gamelogicEngine.OnDisplaysAvailable += HandleDisplayAvailable;
 			_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
 
-			var dmds = Object.FindObjectsOfType<DmdAuthoring>();
+			var dmds = Object.FindObjectsOfType<DisplayAuthoring>();
 			foreach (var dmd in dmds) {
 				_displayGameObjects[dmd.Id] = dmd;
 			}
