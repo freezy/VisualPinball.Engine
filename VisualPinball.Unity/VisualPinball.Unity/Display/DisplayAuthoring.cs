@@ -46,6 +46,30 @@ namespace VisualPinball.Unity
 		private static readonly int ShaderDmdWidth = Shader.PropertyToID("_Width");
 		private static readonly int ShaderDmdHeight = Shader.PropertyToID("_Height");
 
+		public void TestAlphanum()
+		{
+			var data = new ushort[] {
+				0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 0, 0, 0, 0,
+				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
+				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff
+			};
+			var numSegments = 16;
+			var width = numSegments;
+			var height = 7;
+			var inputTex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+
+			for (var y = 0; y < height; y++) {
+				for (var x = 0; x < width; x++) {
+					var seg = data[y] >> x & 0x1;
+					var val = (byte)(seg == 1 ? 0xff : 0x00);
+					inputTex.SetPixel(x, y, new Color(val, val, val, val));
+				}
+			}
+			var material = GetComponent<Renderer>().sharedMaterial;
+			material.mainTexture = inputTex;
+			inputTex.Apply();
+		}
+
 		public void UpdateDimensions(int width, int height)
 		{
 			_width = width;
