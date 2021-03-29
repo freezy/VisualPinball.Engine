@@ -57,7 +57,7 @@
 
 			static float SegmentGap = _SegmentWidth * 1.2;
 
-			static float Skew = 0; //-0.2;
+			static float Skew = 0.2;
 
 			static float EdgeBlur = 0.1; // used to remove aliasing
 
@@ -119,22 +119,17 @@
 			float4 SplitAndBlur(float v)
 			{
 				float be = clamp(EdgeBlur, 0, 9999);
-				float bo = clamp(OuterGlowLevel, 0, 9999);
-				float br = clamp(OuterGlowRange, 0, 9999);
 				float re = clamp(RoundEdge, 0, 9999);
-				float ig = clamp(InnerGlow, 0, 9999);
-				float edge = SharpEdge - re - ig;
-				br = clamp(OuterGlowRange, edge + be + 0.00001, 9999);
-				float e1 = SharpEdge - RoundEdge;
-				float e2 = e1 - ig;
+				float edge = SharpEdge - re;
+				float e = SharpEdge - RoundEdge;
 
-				float r = smoothstep(e1 - be, e1 + be, v);
-				float g = smoothstep(e2 - be, e1 - be, v);
-				float b = smoothstep(-9999, e2 + be, v);
+				float r = smoothstep(e - be, e + be, v);
+				float g = smoothstep(e - be, e - be, v);
+				float b = smoothstep(-9999, e + be, v);
 				g -= r;
 
 				// a is only used for outer glow
-				float a = smoothstep(e2 - OuterGlowRange, edge, v) * OuterGlowLevel;
+				float a = smoothstep(e - OuterGlowRange, edge, v) * OuterGlowLevel;
 				return float4(r, g, b, a);
 			}
 
@@ -205,11 +200,31 @@
 				return Rounder2(1 - v.x, 1 - v.y - v.x);
 			}
 
+			float LongLine2(float2 a, float2 b, float2 p)
+			{
+				float2 pa = p - float2(a.x, -a.y);
+				float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
+				float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
+				float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+
+				return Rounder2(1 - v.x, 1 - v.y - v.x);
+			}
+
 			float ShortLine(float2 a, float2 b, float2 p)
 			{
 				float2 pa = p - float2(a.x, -a.y);
 				float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 				float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 2.0, 1.0 - SegmentGap * 2.0);
+				float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+
+				return Rounder2(1 - v.x, 1 - v.y - v.x);
+			}
+
+			float MidLine(float2 a, float2 b, float2 p)
+			{
+				float2 pa = p - float2(a.x, -a.y);
+				float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
+				float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 1.1, 1.0 - SegmentGap * 1.1);
 				float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
 
 				return Rounder2(1 - v.x, 1 - v.y - v.x);
@@ -223,7 +238,6 @@
 				float2 intersectP = abs(pa - ba * t);
 				float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
 				float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
-
 
 				float t2 = pa.y / ba.y;
 				float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
@@ -286,19 +300,19 @@
 				float3 r = float3(0., 0., 0.);
 				p.x -= p.y * Skew;
 
-				r = Combine(r, ShortLine(tl, tr, p), ShowSeg(charIndex, 0));
+				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
 				r = Combine(r, LongLine(tr, mr, p), ShowSeg(charIndex, 1));
 				r = Combine(r, LongLine(mr, br, p), ShowSeg(charIndex, 2));
-				r = Combine(r, ShortLine(br, bl, p), ShowSeg(charIndex, 3));
+				r = Combine(r, MidLine(br, bl, p), ShowSeg(charIndex, 3));
 				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
 				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
 				r = Combine(r, ShortLine(mm, ml, p), ShowSeg(charIndex, 6));
-				r = Combine(r, ShortLine(dp, dp + float2(SegmentGap * 0.5, 0.0), p), ShowSeg(charIndex, 7));
-				r = Combine(r, DiagLine(dtl, dtm, p), ShowSeg(charIndex, 8));
-				r = Combine(r, LongLine(tm, mm, p), ShowSeg(charIndex, 9));
+				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap), dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(charIndex, 8));
+				r = Combine(r, LongLine2(tm, mm, p), ShowSeg(charIndex, 9));
 				r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(charIndex, 10));
 				r = Combine(r, ShortLine(mm, mr, p), ShowSeg(charIndex, 11));
-				r = Combine(r, DiagLine(dbm, dbr, p), ShowSeg(charIndex, 12));
+				r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(charIndex, 12));
 				r = Combine(r, LongLine(mm, bm, p), ShowSeg(charIndex, 13));
 				r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(charIndex, 14));
 
@@ -308,8 +322,8 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float2 uv = float2(
-					i.uv.x * (1. + (_NumChars - 1.) * innerPadding.x + 4.0 * outerPadding.x) - 0.5 - outerPadding.x,
-					(i.uv.y * 2.) * (1. + _SegmentWidth + 2. * outerPadding.y) - 1. - outerPadding.y
+					(i.uv.x * (1. + (_NumChars - 1.) * innerPadding.x + 4.0 * outerPadding.x) - 0.5 - outerPadding.x),
+					((i.uv.y * 2.) * (1. + _SegmentWidth + 2. * outerPadding.y) - 1. - outerPadding.y)
 				);
 
 				float2 pos = originPos;
@@ -336,13 +350,7 @@
 				}
 
 				float3 color = float3(1.0, 0.9, 0);
-				float3 innerGlowColor = float3(0.51, 0.01, 0.01);
-			//	float3 outerGlowColor = float3(0.30, 0.60, 0.10);
-				float3 outerGlowColor = float3(0.50, 0.30, 0.0);
-
-				float3 col = d.r * color
-					+ d.g * innerGlowColor
-					+ d.b * outerGlowColor;
+				float3 col = d.r * color;
 
 				return float4(col, 1.0);
 			}
