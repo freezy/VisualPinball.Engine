@@ -17,13 +17,12 @@
 using System;
 using System.Collections.Generic;
 using NLog;
-using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class DmdAuthoring : MonoBehaviour
+	public class DisplayAuthoring : MonoBehaviour
 	{
 		public string Id = "dmd";
 		public Color color = new Color(1, 0.18f, 0);
