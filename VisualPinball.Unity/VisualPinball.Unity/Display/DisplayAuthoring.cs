@@ -14,149 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
+// ReSharper disable InconsistentNaming
+// ReSharper disable CheckNamespace
+
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class DisplayAuthoring : MonoBehaviour
+	public abstract class DisplayAuthoring : MonoBehaviour
 	{
-		public string Id = "dmd";
-		public Color color = new Color(1, 0.18f, 0);
-
-		public DisplayType DisplayType {
-			get => _displayType;
-			set {
-				_displayType = value;
-				UpdatePalette();
-			}
-		}
-
-		private int _width;
-		private int _height;
-		private DisplayType _displayType;
-
-		private Texture2D _texture;
-		private readonly Dictionary<byte, Color> _map = new Dictionary<byte, Color>();
+		public abstract string Id { get; set; }
+		public abstract Color Color { get; set; }
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly int ShaderDmdWidth = Shader.PropertyToID("_Width");
-		private static readonly int ShaderDmdHeight = Shader.PropertyToID("_Height");
 
-		public void TestAlphanum()
-		{
-			var data = new ushort[] {
-				0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 0, 0, 0, 0,
-				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
-				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff
-			};
-			var numSegments = 16;
-			var width = numSegments;
-			var height = 16;
-			var inputTex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+		protected Texture2D _texture;
 
-			for (var y = 0; y < height; y++) {
-				for (var x = 0; x < width; x++) {
-					var seg = data[y] >> x & 0x1;
-					var val = (byte)(seg == 1 ? 0xff : 0x00);
-					inputTex.SetPixel(x, y, new Color(val, val, val, val));
-				}
-			}
-			var material = GetComponent<Renderer>().sharedMaterial;
-			material.mainTexture = inputTex;
-			inputTex.Apply();
-		}
+		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] frame);
 
-		public void UpdateDimensions(int width, int height)
-		{
-			_width = width;
-			_height = height;
-			_texture = new Texture2D(width, height);
-			var material = GetComponent<Renderer>().sharedMaterial;
-			material.mainTexture = _texture;
-			material.SetFloat(ShaderDmdWidth, width);
-			material.SetFloat(ShaderDmdHeight, height);
-		}
-
-		public void UpdateFrame(byte[] frame)
-		{
-			if (_texture == null) {
-				Logger.Error($"Cannot render DMD for unknown size, UpdateDimensions() first!");
-				return;
-			}
-
-			switch (_displayType) {
-				case DisplayType.Dmd2PinMame:
-				case DisplayType.Dmd2:
-				case DisplayType.Dmd4:
-				case DisplayType.Dmd8:
-					if (frame.Length == _width * _height) {
-						for (var y = 0; y < _height; y++) {
-							for (var x = 0; x < _width; x++) {
-								var pixel = frame[y * _width + x];
-								_texture.SetPixel(_width - x, _height - y, _map.ContainsKey(pixel) ? _map[pixel] : Color.magenta);
-							}
-						}
-						_texture.Apply();
-					} else {
-						Logger.Error($"Cannot render {frame.Length} bytes of frame data to {_width}x{_height}.");
-					}
-					break;
-
-				case DisplayType.Dmd24:
-					if (frame.Length == _width * _height * 3) {
-						for (var y = 0; y < _height; y++) {
-							for (var x = 0; x < _width; x++) {
-								var pos = (y * _width + x) * 3;
-								_texture.SetPixel(_width - x, _height - y, new Color(frame[pos] / 255f, frame[pos + 1] / 255f, frame[pos + 2] / 255f));
-							}
-						}
-						_texture.Apply();
-					} else {
-						Logger.Error($"Cannot render {frame.Length} bytes of RGB data to {_width}x{_height}.");
-					}
-					break;
-				case DisplayType.Seg7:
-				case DisplayType.Seg9:
-				case DisplayType.Seg14:
-				case DisplayType.Seg16:
-				case DisplayType.Pixel:
-					throw new NotImplementedException();
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
-
-		public void UpdatePalette()
-		{
-			_map.Clear();
-			var numColors = 0;
-			switch (_displayType) {
-				case DisplayType.Dmd2PinMame:
-					_map.Add(0x0, Color.Lerp(Color.black, color, 0));
-					_map.Add(0x14, Color.Lerp(Color.black, color, 0.33f));
-					_map.Add(0x21, Color.Lerp(Color.black, color, 0.66f));
-					_map.Add(0x43, Color.Lerp(Color.black, color, 1f));
-					_map.Add(0x64, Color.Lerp(Color.black, color, 1f));
-					break;
-
-				case DisplayType.Dmd2:
-					numColors = 4;
-					break;
-				case DisplayType.Dmd4:
-					numColors = 16;
-					break;
-				case DisplayType.Dmd8:
-					numColors = 256;
-					break;
-			}
-
-			for (var i = 0; i < numColors; i++) {
-				_map.Add((byte)i, Color.Lerp(Color.black, color, i * (1f / (numColors - 1))));
-			}
-		}
+		public abstract void UpdateDimensions(int width, int height);
 	}
 }

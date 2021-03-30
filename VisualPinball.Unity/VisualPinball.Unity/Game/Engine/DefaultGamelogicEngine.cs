@@ -149,7 +149,7 @@ namespace VisualPinball.Unity
 			_player = player;
 			_ballManager = ballManager;
 
-			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, DisplayType.Dmd2, 32, 8)));
+			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, 32, 8)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			if (!_frameSent) {
-				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, new byte[] {
+				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd2, new byte[] {
 					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,3,3,3,2,0,0,3,3,3,3,3,3,2,0,0,0,
 					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,2,1,3,3,2,0,3,3,2,1,1,1,1,0,0,0,
