@@ -194,8 +194,8 @@ namespace VisualPinball.Unity
 			var uvs = new [] {
 				uv00, uv00, uv00, uv00, // Bottom
 				uv00, uv00, uv00, uv00, // Left
-				uv00, uv10, uv11, uv01, // Front
-				uv00, uv10, uv11, uv01, // Back
+				uv10, uv00, uv01, uv11, // Front
+				uv10, uv00, uv01, uv11, // Back
 				uv00, uv00, uv00, uv00, // Right
 				uv00, uv00, uv00, uv00  // Top
 			};
