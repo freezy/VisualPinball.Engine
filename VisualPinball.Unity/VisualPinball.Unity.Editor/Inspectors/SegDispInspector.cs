@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using UnityEditor;
 
@@ -38,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorGUI.BeginChangeCheck();
 
+			_mb.Color = EditorGUILayout.ColorField("Color", _mb.Color);
+
 			var width = EditorGUILayout.IntSlider("Width", _mb.Width, 1, 20);
 			if (width != _mb.Width) {
 				_mb.Width = width;
@@ -54,6 +57,9 @@ namespace VisualPinball.Unity.Editor
 			if (segWidth != _segmentWidth) {
 				_mb.SegmentWidth = segWidth;
 			}
+
+			_mb.OuterPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
+			_mb.InnerPadding = EditorGUILayout.Vector2Field("Inner Padding", _mb.InnerPadding);
 
 			base.OnInspectorGUI();
 		}

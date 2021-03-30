@@ -4,6 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 
+		_Color ("Color", Color) = (1.0, 0.9, 0, 1.0)
 		_SegmentWidth ("SegmentWidth", Float) = 0.07
 		_TargetWidth ("TargetWidth", Float) = 1280
 		_TargetHeight ("TargetHeight", Float) = 120
@@ -11,7 +12,13 @@
 		_NumChars ("NumChars", Float) = 7
 		_NumSegments ("NumSegments", Float) = 16
 		_SkewAngle ("SkewAngle", Float) = 0.2
+
+		_InnerPaddingX ("InnerPaddingX", Float) = 0.5
+		_InnerPaddingY ("InnerPaddingY", Float) = 0.4
+		_OuterPaddingX ("OuterPaddingX", Float) = 0.2
+		_OuterPaddingY ("OuterPaddingY", Float) = 0.1
 	}
+
 	SubShader
 	{
 		Tags { "RenderType"="Opaque" }
@@ -42,6 +49,7 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 
+			fixed4 _Color;
 			float _SegmentWidth;
 			float _Height;
 			float _TargetWidth;
@@ -50,12 +58,10 @@
 			float _NumChars;
 			float _NumSegments;
 			float _SkewAngle;
-
-			// those are height percentages
-			static float InnerPaddingX = 0.5;
-			static float InnerPaddingY = 0.4;
-			static float OuterPaddingX = 0.2;
-			static float OuterPaddingY = 0.2;
+			float _InnerPaddingX;
+			float _InnerPaddingY;
+			float _OuterPaddingX;
+			float _OuterPaddingY;
 
 			static float SegmentGap = _SegmentWidth * 1.2;
 
@@ -88,8 +94,8 @@
 
 			static float2 resolution = float2(_TargetWidth, _TargetHeight);
 
-			static float2 outerPadding = float2(OuterPaddingX * resolution.y / resolution.x, OuterPaddingY);
-			static float2 innerPadding = float2(InnerPaddingX * resolution.y / resolution.x, InnerPaddingY);
+			static float2 outerPadding = float2(_OuterPaddingX * resolution.y / resolution.x, _OuterPaddingY);
+			static float2 innerPadding = float2(_InnerPaddingX * resolution.y / resolution.x, _InnerPaddingY);
 
 			static float2 cellSize = float2(
 				1. / _NumChars + innerPadding.x,
@@ -340,10 +346,7 @@
 					}
 				}
 
-				float3 color = float3(1.0, 0.9, 0);
-				float3 col = d.r * color;
-
-				return float4(col, 1.0);
+				return d.r * _Color;
 			}
 
 			ENDCG
