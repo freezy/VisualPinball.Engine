@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_mb = target as SegDisplayAuthoring;
-			_skewAngle = math.degrees(_mb.SkewAngle);
+			_skewAngle = -math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
 		}
 		public override void OnInspectorGUI()
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 
 			_mb.Color = EditorGUILayout.ColorField("Color", _mb.Color);
 
-			var width = EditorGUILayout.IntSlider("Width", _mb.Width, 1, 20);
+			var width = EditorGUILayout.IntSlider("Chars", _mb.Width, 1, 20);
 			if (width != _mb.Width) {
 				_mb.Width = width;
 				_mb.RegenerateMesh();
@@ -49,13 +49,19 @@ namespace VisualPinball.Unity.Editor
 
 			var skew = EditorGUILayout.Slider("Skew Angle", _skewAngle, -45f, 45f);
 			if (skew != _skewAngle) {
-				_mb.SkewAngle = math.radians(skew);
+				_mb.SkewAngle = -math.radians(skew);
 				_skewAngle = skew;
 			}
 
 			var segWidth = EditorGUILayout.Slider("Segment Width", _segmentWidth, 0.005f, 0.11f);
 			if (segWidth != _segmentWidth) {
 				_mb.SegmentWidth = segWidth;
+			}
+
+			var ar = EditorGUILayout.Slider("Width", _mb.AspectRatio, 0.1f, 3f);
+			if (ar != _mb.AspectRatio) {
+				_mb.AspectRatio = ar;
+				_mb.RegenerateMesh();
 			}
 
 			_mb.OuterPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);

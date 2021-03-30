@@ -16,8 +16,6 @@
 
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Math;
-using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -27,7 +25,7 @@ namespace VisualPinball.Unity
 		private const float Depth = 0.01f;
 
 		public int Width;
-		public float AspectRatio = 0.5f;
+		public float AspectRatio = 0.75f;
 
 		private static readonly int NumChars = Shader.PropertyToID("_NumChars");
 		private static readonly int TargetWidth = Shader.PropertyToID("_TargetWidth");
