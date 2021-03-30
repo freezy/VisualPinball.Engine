@@ -10,6 +10,7 @@
 		_NumLines ("NumLines", Float) = 1
 		_NumChars ("NumChars", Float) = 7
 		_NumSegments ("NumSegments", Float) = 16
+		_SkewAngle ("SkewAngle", Float) = 0.2
 	}
 	SubShader
 	{
@@ -48,6 +49,7 @@
 			float _NumLines;
 			float _NumChars;
 			float _NumSegments;
+			float _SkewAngle;
 
 			// those are height percentages
 			static float InnerPaddingX = 0.5;
@@ -57,7 +59,6 @@
 
 			static float SegmentGap = _SegmentWidth * 1.2;
 
-			static float Skew = 0.2;
 			static float EdgeBlur = 0.1; // used to remove aliasing
 			static float SharpEdge = 0.7;
 			static float RoundEdge = 0.15;
@@ -288,7 +289,7 @@
 			float3 SegDisp(int charIndex, float2 p)
 			{
 				float3 r = float3(0., 0., 0.);
-				p.x -= p.y * Skew;
+				p.x -= p.y * _SkewAngle;
 
 				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
 				r = Combine(r, LongLine(tr, mr, p), ShowSeg(charIndex, 1));
