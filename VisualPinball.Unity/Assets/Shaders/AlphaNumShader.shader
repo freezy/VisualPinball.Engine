@@ -294,7 +294,7 @@
 
 			float3 SegDisp(int charIndex, float2 p)
 			{
-				float3 r = float3(0., 0., 0.);
+				float3 r = (0.);
 				p.x -= p.y * _SkewAngle;
 
 				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
@@ -324,7 +324,7 @@
 				);
 
 				float2 pos = originPos;
-				float3 d = float3(0., 0., 0.);
+				float3 d = (0.);
 
 				int charIndex = 0;
 				float2 f = float2(_NumChars * (1. + innerPadding.x), _NumLines);
