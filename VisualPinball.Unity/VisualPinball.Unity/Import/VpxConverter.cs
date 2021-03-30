@@ -295,7 +295,6 @@ namespace VisualPinball.Unity
 			sidecar.dispReels = table.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = table.GetAllData<Flasher, FlasherData>();
 			sidecar.lightSeqs = table.GetAllData<LightSeq, LightSeqData>();
-			sidecar.plungers = table.GetAllData<Plunger, PlungerData>();
 			sidecar.textBoxes = table.GetAllData<TextBox, TextBoxData>();
 			sidecar.timers = table.GetAllData<Timer, TimerData>();
 
