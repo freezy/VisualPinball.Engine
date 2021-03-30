@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -31,7 +34,27 @@ namespace VisualPinball.Unity
 		private static readonly int TargetHeight = Shader.PropertyToID("_TargetHeight");
 		private static readonly int SegmentWidthProp = Shader.PropertyToID("_SegmentWidth");
 		private static readonly int SkewAngleProp = Shader.PropertyToID("_SkewAngle");
+		private static readonly int OuterPaddingX = Shader.PropertyToID("_OuterPaddingX");
+		private static readonly int OuterPaddingY = Shader.PropertyToID("_OuterPaddingY");
+		private static readonly int InnerPaddingX = Shader.PropertyToID("_InnerPaddingX");
+		private static readonly int InnerPaddingY = Shader.PropertyToID("_InnerPaddingY");
+		private static readonly int ColorProp = Shader.PropertyToID("_Color");
 
+		public Color Color {
+			get {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					return mr.material.GetColor(ColorProp);
+				}
+				return Color.yellow;
+			}
+			set {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material.SetColor(ColorProp, value);
+				}
+			}
+		}
 
 		public float SkewAngle {
 			get {
@@ -61,6 +84,46 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					mr.material.SetFloat(SegmentWidthProp, value);
+				}
+			}
+		}
+
+		public float2 OuterPadding {
+			get {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					return new float2(
+						mr.material.GetFloat(OuterPaddingX),
+						mr.material.GetFloat(OuterPaddingY)
+					);
+				}
+				return float2.zero;
+			}
+			set {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material.SetFloat(OuterPaddingX, value.x);
+					mr.material.SetFloat(OuterPaddingY, value.y);
+				}
+			}
+		}
+
+		public float2 InnerPadding {
+			get {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					return new float2(
+						mr.material.GetFloat(InnerPaddingX),
+						mr.material.GetFloat(InnerPaddingY)
+					);
+				}
+				return float2.zero;
+			}
+			set {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material.SetFloat(InnerPaddingX, value.x);
+					mr.material.SetFloat(InnerPaddingY, value.y);
 				}
 			}
 		}
