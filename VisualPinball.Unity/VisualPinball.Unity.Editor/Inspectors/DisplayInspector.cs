@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -23,11 +22,16 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DisplayAuthoring)), CanEditMultipleObjects]
 	public class DisplayInspector : UnityEditor.Editor
 	{
+		private DisplayAuthoring _mb;
+
+		protected void OnEnable()
+		{
+			_mb = target as DisplayAuthoring;
+		}
+
 		public override void OnInspectorGUI()
 		{
-			if (GUILayout.Button("Test Alphanum")) {
-				(target as DisplayAuthoring).TestAlphanum();
-			}
+			_mb.Color = EditorGUILayout.ColorField("Color", _mb.Color);
 		}
 	}
 }

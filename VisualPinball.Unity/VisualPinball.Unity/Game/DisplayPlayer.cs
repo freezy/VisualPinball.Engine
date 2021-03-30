@@ -46,7 +46,6 @@ namespace VisualPinball.Unity
 			foreach (var display in availableDisplays.Displays) {
 				if (_displayGameObjects.ContainsKey(display.Id)) {
 					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height);
-					_displayGameObjects[display.Id].DisplayType = display.Type;
 
 				} else {
 					Logger.Error($"Cannot find DMD game object for display ${display.Id}");
@@ -57,7 +56,7 @@ namespace VisualPinball.Unity
 		private void HandleFrameEvent(object sender, DisplayFrameData e)
 		{
 			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].UpdateFrame(e.Data);
+				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.Data);
 			}
 		}
 

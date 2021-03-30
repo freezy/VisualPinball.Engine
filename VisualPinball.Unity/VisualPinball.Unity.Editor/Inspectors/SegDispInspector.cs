@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Runtime.InteropServices;
+// ReSharper disable CheckNamespace
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using Unity.Mathematics;
 using UnityEditor;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-
 	[CustomEditor(typeof(SegDisplayAuthoring)), CanEditMultipleObjects]
 	public class SegDispInspector : DisplayInspector
 	{
@@ -28,22 +30,23 @@ namespace VisualPinball.Unity.Editor
 
 		private float _skewAngle;
 		private float _segmentWidth;
+		private string _testText;
 
 		private void OnEnable()
 		{
 			_mb = target as SegDisplayAuthoring;
 			_skewAngle = -math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
+			base.OnEnable();
 		}
+
 		public override void OnInspectorGUI()
 		{
-			EditorGUI.BeginChangeCheck();
+			base.OnInspectorGUI();
 
-			_mb.Color = EditorGUILayout.ColorField("Color", _mb.Color);
-
-			var width = EditorGUILayout.IntSlider("Chars", _mb.Width, 1, 20);
-			if (width != _mb.Width) {
-				_mb.Width = width;
+			var width = EditorGUILayout.IntSlider("Chars", _mb.NumChars, 1, 20);
+			if (width != _mb.NumChars) {
+				_mb.NumChars = width;
 				_mb.RegenerateMesh();
 			}
 
@@ -67,7 +70,16 @@ namespace VisualPinball.Unity.Editor
 			_mb.OuterPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
 			_mb.InnerPadding = EditorGUILayout.Vector2Field("Inner Padding", _mb.InnerPadding);
 
-			base.OnInspectorGUI();
+			var text = EditorGUILayout.TextField("Test Text", _testText);
+			if (text != _testText) {
+				_mb.SetText(text);
+				_testText = text;
+			}
+
+			if (GUILayout.Button("Test Alphanum")) {
+				// ReSharper disable once PossibleNullReferenceException
+				(target as SegDisplayAuthoring).SetTestData();
+			}
 		}
 	}
 }
