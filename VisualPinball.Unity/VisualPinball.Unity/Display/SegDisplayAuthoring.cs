@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 
 		private static readonly int NumCharsProp = Shader.PropertyToID("_NumChars");
 		private static readonly int NumLinesProp = Shader.PropertyToID("_NumLines");
+		private static readonly int NumSegmentsProp = Shader.PropertyToID("_NumSegments");
 		private static readonly int TargetWidthProp = Shader.PropertyToID("_TargetWidth");
 		private static readonly int TargetHeightProp = Shader.PropertyToID("_TargetHeight");
 		private static readonly int SegmentWidthProp = Shader.PropertyToID("_SegmentWidth");
@@ -196,18 +197,17 @@ namespace VisualPinball.Unity
 			var target = new byte[source.Length * 2];
 			Buffer.BlockCopy(source, 0, target, 0, source.Length * 2);
 
-			UpdateDimensions(text.Length, 1);
-			UpdateFrame(DisplayFrameFormat.Segment, target);
+			UpdateDimensions(math.max(1, text.Length), 1);
+			//UpdateFrame(DisplayFrameFormat.Segment, target);
+			UpdateFrame(source);
 		}
 
 		public void SetTestData()
 		{
 			var data = new ushort[] {
-				0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 0, 0, 0, 0,
-				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
-				0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff
+				0x7fff, 0x7fff, 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 0x7fff, 0x7fff
 			};
-			UpdateDimensions(16, 1);
+			UpdateDimensions(data.Length, 1);
 			UpdateFrame(data);
 		}
 
@@ -227,6 +227,7 @@ namespace VisualPinball.Unity
 			var length = NumChars * MeshHeight * AspectRatio;
 
 			mr.sharedMaterial.SetFloat(NumCharsProp, NumChars);
+			mr.sharedMaterial.SetFloat(NumSegmentsProp, NumSegments);
 			mr.sharedMaterial.SetFloat(TargetWidthProp, length * 100);
 			mr.sharedMaterial.SetFloat(TargetHeightProp, MeshHeight * 100);
 
