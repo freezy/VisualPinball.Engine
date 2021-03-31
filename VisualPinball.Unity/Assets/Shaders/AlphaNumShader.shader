@@ -304,7 +304,8 @@
 				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
 				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
 				r = Combine(r, ShortLine(mm, ml, p), ShowSeg(charIndex, 6));
-				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap), dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap),
+				                         dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
 				r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(charIndex, 8));
 				r = Combine(r, LongLine2(tm, mm, p), ShowSeg(charIndex, 9));
 				r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(charIndex, 10));
@@ -328,8 +329,8 @@
 
 				int charIndex = 0;
 				float2 f = float2(_NumChars * (1. + innerPadding.x), _NumLines);
-				for (int currLine = 0; currLine < 2; currLine++) {
-					for (int character = 0; character < 20; character++) {
+				for (int currLine = 0; currLine < _NumLines; currLine++) {
+					for (int character = 0; character < _NumChars; character++) {
 
 						d += SegDisp(charIndex, (uv - pos) * f);
 						pos.x += cellSize.x;
