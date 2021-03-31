@@ -37,7 +37,7 @@ This camera can be moved [using Unity's gizmos](https://docs.unity3d.com/Manual/
 > [!TIP]
 > A quick way to fix the game camera is to align it with the scene view camera. To do that, select the camera in the hierarchy, then click on the *GameObject* menu and select *Align with view*.
 
-One last thing we need to do before playing is enable version 2 of the [Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@0.10/manual/index.html) we're using. Go to *Edit -> Project Settings*, select *Player* on the left, scroll down a bit on the right and add `ENABLE_HYBRID_RENDERER_V2` under *Script Define Symbols*. 
+One last thing we need to do before playing is enable version 2 of the [Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@0.10/manual/index.html) we're using. Go to *Edit -> Project Settings*, select *Player* on the left, open the *Other Settings* tab, scroll down a bit on the right and add `ENABLE_HYBRID_RENDERER_V2` under *Script Define Symbols*. 
 
 ![Enable hybrid renderer](unity-settings-hybridv2.png)
 
