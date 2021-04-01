@@ -4,19 +4,21 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 
-		_Color ("Color", Color) = (1.0, 0.9, 0, 1.0)
-		_SegmentWidth ("SegmentWidth", Float) = 0.07
-		_TargetWidth ("TargetWidth", Float) = 1280
-		_TargetHeight ("TargetHeight", Float) = 120
-		_NumLines ("NumLines", Float) = 1
-		_NumChars ("NumChars", Float) = 7
-		_NumSegments ("NumSegments", Float) = 16
-		_SkewAngle ("SkewAngle", Float) = 0.2
+		_SegmentType ("Segment Type", Int) = 0
 
-		_InnerPaddingX ("InnerPaddingX", Float) = 0.5
-		_InnerPaddingY ("InnerPaddingY", Float) = 0.4
-		_OuterPaddingX ("OuterPaddingX", Float) = 0.2
-		_OuterPaddingY ("OuterPaddingY", Float) = 0.1
+		_Color ("Color", Color) = (1.0, 0.9, 0, 1.0)
+		_SegmentWidth ("Segment Width", Float) = 0.07
+		_TargetWidth ("Target Width", Float) = 1280
+		_TargetHeight ("Target Height", Float) = 120
+		_NumLines ("Num Lines", Float) = 1
+		_NumChars ("Num Chars", Float) = 7
+		_NumSegments ("Num Segments", Float) = 16
+		_SkewAngle ("Skew Angle", Float) = 0.2
+
+		_InnerPaddingX ("Inner Padding X", Float) = 0.5
+		_InnerPaddingY ("Inner Padding Y", Float) = 0.4
+		_OuterPaddingX ("Outer Padding X", Float) = 0.2
+		_OuterPaddingY ("Outer Padding Y", Float) = 0.1
 	}
 
 	SubShader
@@ -51,6 +53,7 @@
 
 			fixed4 _Color;
 			float _SegmentWidth;
+			int _SegmentType;
 			float _Height;
 			float _TargetWidth;
 			float _TargetHeight;
@@ -267,6 +270,26 @@
 				);
 			}
 
+			float DiagLine3(float2 a, float2 b, float2 p)
+			{
+				float2 pa = p - float2(a.x, -a.y);
+				float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
+				float t = pa.x / ba.x;
+				float2 intersectP = abs(pa - ba * t);
+				float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
+				float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
+
+				float t2 = pa.y / ba.y;
+				float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
+				float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
+
+				return Rounder(
+					1 - intersectP.y / (_SegmentWidth * 3.0),
+					xl * xr,
+					(yd * yu) / SegmentGap * 0.5 - 4.0
+				);
+			}
+
 
 			float3 Combine(float3 accu, float val, bool showSeg)
 			{
@@ -283,7 +306,12 @@
 
 			bool ShowSeg(int charIndex, int segIndex)
 			{
-				float2 d = float2(1. / _NumSegments, 1. / _NumChars);
+				int numSegs = 1;
+				switch (_SegmentType) {
+					case 0: numSegs = 15; break;
+					case 4: numSegs = 8; break;
+				}
+				float2 d = float2(1. / numSegs, 1. / _NumChars);
 				float2 pos = float2(float(segIndex), float(charIndex));
 				float4 pixel = tex2Dlod(_MainTex, float4(d.x * (pos.x + .5), d.y * (pos.y + .5), 0., 0.));
 				if (pixel.b > .5) {
@@ -292,11 +320,39 @@
 				return false;
 			}
 
-			float3 SegDisp(int charIndex, float2 p)
+			float3 SegDisp8(int charIndex, float2 p, float3 r)
 			{
-				float3 r = (0.);
-				p.x -= p.y * _SkewAngle;
+				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
+				r = Combine(r, LongLine(tr, mr, p), ShowSeg(charIndex, 1));
+				r = Combine(r, LongLine(mr, br, p), ShowSeg(charIndex, 2));
+				r = Combine(r, MidLine(br, bl, p), ShowSeg(charIndex, 3));
+				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
+				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
+				r = Combine(r, MidLine(mr, ml, p), ShowSeg(charIndex, 6));
+				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap),
+				                         dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				return r;
+			}
 
+			float3 SegDisp10(int charIndex, float2 p, float3 r)
+			{
+				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
+				r = Combine(r, LongLine(tr, mr, p), ShowSeg(charIndex, 1));
+				r = Combine(r, LongLine(mr, br, p), ShowSeg(charIndex, 2));
+				r = Combine(r, MidLine(br, bl, p), ShowSeg(charIndex, 3));
+				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
+				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
+				r = Combine(r, MidLine(mr, ml, p), ShowSeg(charIndex, 6));
+				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap),
+				                         dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(charIndex, 8));
+				r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(charIndex, 9));
+
+				return r;
+			}
+
+			float3 SegDisp15(int charIndex, float2 p, float3 r)
+			{
 				r = Combine(r, MidLine(tl, tr, p), ShowSeg(charIndex, 0));
 				r = Combine(r, LongLine(tr, mr, p), ShowSeg(charIndex, 1));
 				r = Combine(r, LongLine(mr, br, p), ShowSeg(charIndex, 2));
@@ -314,6 +370,18 @@
 				r = Combine(r, LongLine(mm, bm, p), ShowSeg(charIndex, 13));
 				r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(charIndex, 14));
 
+				return r;
+			}
+
+			float3 SegDisp(int charIndex, float2 p)
+			{
+				float3 r = (0.);
+				p.x -= p.y * _SkewAngle;
+				switch (_SegmentType) {
+					case 0: return SegDisp15(charIndex, p, r);
+					case 2: return SegDisp10(charIndex, p, r);
+					case 4: return SegDisp8(charIndex, p, r);
+				}
 				return r;
 			}
 
