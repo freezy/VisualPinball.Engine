@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable CheckNamespace
 
+using System;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -32,8 +33,103 @@ namespace VisualPinball.Unity
 
 		protected Texture2D _texture;
 
-		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] frame);
+		public abstract void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr);
 
 		public abstract void UpdateDimensions(int width, int height);
+
+		protected abstract string ShaderName { get; }
+		protected abstract float MeshWidth { get; }
+		protected abstract float MeshHeight { get; }
+		protected abstract float MeshDepth { get; }
+
+		protected abstract void InitMaterial(Material material);
+
+		public void RegenerateMesh()
+		{
+			var mr = gameObject.GetComponent<MeshRenderer>();
+			if (mr == null) {
+				mr = gameObject.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = new Material(Shader.Find(ShaderName));
+			}
+			var mf = gameObject.GetComponent<MeshFilter>();
+			if (mf == null) {
+				mf = gameObject.AddComponent<MeshFilter>();
+				mf.sharedMesh = new Mesh();
+			}
+
+			InitMaterial(mr.sharedMaterial);
+
+			#region Mesh Construction
+
+			var mesh = mf.sharedMesh;
+
+			var c = new[] {
+				new Vector3(-MeshWidth * .5f, -MeshHeight * .5f, MeshDepth * .5f),
+				new Vector3(MeshWidth * .5f, -MeshHeight * .5f, MeshDepth * .5f),
+				new Vector3(MeshWidth * .5f, -MeshHeight * .5f, -MeshDepth * .5f),
+				new Vector3(-MeshWidth * .5f, -MeshHeight * .5f, -MeshDepth * .5f),
+				new Vector3(-MeshWidth * .5f, MeshHeight * .5f, MeshDepth * .5f),
+				new Vector3(MeshWidth * .5f, MeshHeight * .5f, MeshDepth * .5f),
+				new Vector3(MeshWidth * .5f, MeshHeight * .5f, -MeshDepth * .5f),
+				new Vector3(-MeshWidth * .5f, MeshHeight * .5f, -MeshDepth * .5f)
+			};
+
+			var vertices = new[] {
+				c[0], c[1], c[2], c[3], // Bottom
+				c[7], c[4], c[0], c[3], // Left
+				c[4], c[5], c[1], c[0], // Front
+				c[6], c[7], c[3], c[2], // Back
+				c[5], c[6], c[2], c[1], // Right
+				c[7], c[6], c[5], c[4]  // Top
+			};
+
+			var up = Vector3.up;
+			var down = Vector3.down;
+			var forward = Vector3.forward;
+			var back = Vector3.back;
+			var left = Vector3.left;
+			var right = Vector3.right;
+
+			var normals = new [] {
+				down, down, down, down,             // Bottom
+				left, left, left, left,             // Left
+				forward, forward, forward, forward, // Front
+				back, back, back, back,             // Back
+				right, right, right, right,         // Right
+				up, up, up, up                      // Top
+			};
+
+			var uv00 = new Vector2(0f, 0f);
+			var uv10 = new Vector2(1f, 0f);
+			var uv01 = new Vector2(0f, 1f);
+			var uv11 = new Vector2(1f, 1f);
+
+			var uvs = new [] {
+				uv00, uv00, uv00, uv00, // Bottom
+				uv00, uv00, uv00, uv00, // Left
+				uv10, uv00, uv01, uv11, // Front
+				uv10, uv00, uv01, uv11, // Back
+				uv00, uv00, uv00, uv00, // Right
+				uv00, uv00, uv00, uv00  // Top
+			};
+
+			var triangles = new[] {
+				3, 1, 0,        3, 2, 1,    // Bottom
+				7, 5, 4,        7, 6, 5,    // Left
+				11, 9, 8,       11, 10, 9,  // Front
+				15, 13, 12,     15, 14, 13, // Back
+				19, 17, 16,     19, 18, 17, // Right
+				23, 21, 20,     23, 22, 21, // Top
+			};
+
+			mesh.Clear();
+			mesh.vertices = vertices;
+			mesh.triangles = triangles;
+			mesh.normals = normals;
+			mesh.uv = uvs;
+			mesh.Optimize();
+
+			#endregion
+		}
 	}
 }

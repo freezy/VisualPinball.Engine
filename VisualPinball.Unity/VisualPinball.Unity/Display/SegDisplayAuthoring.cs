@@ -31,8 +31,11 @@ namespace VisualPinball.Unity
 		public float AspectRatio = 0.75f;
 
 		private const int NumSegments = 15;
-		private const float MeshHeight = 0.2f;
-		private const float MeshDepth = 0.01f;
+
+		protected override string ShaderName => "Visual Pinball/Alphanumeric Shader";
+		protected override float MeshWidth => NumChars * MeshHeight * AspectRatio;
+		protected override float MeshHeight => 0.2f;
+		protected override float MeshDepth => 0.01f;
 
 		#region Shader Prop Constants
 
@@ -168,15 +171,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
+		public override void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr)
 		{
 			if (format != DisplayFrameFormat.Segment) {
 				// todo log error, but only once
 				return;
 			}
+			/*
 			var target = new ushort[source.Length / 2];
 			Buffer.BlockCopy(source, 0, target, 0, source.Length);
 			UpdateFrame(target);
+			*/
 		}
 
 		public override void UpdateDimensions(int width, int height)
@@ -189,6 +194,15 @@ namespace VisualPinball.Unity
 				mr.sharedMaterial.SetFloat(NumLinesProp, height);
 			}
 			RegenerateMesh();
+		}
+
+		protected override void InitMaterial(Material material)
+		{
+			var length = NumChars * MeshHeight * AspectRatio;
+			material.SetFloat(NumCharsProp, NumChars);
+			material.SetFloat(NumSegmentsProp, NumSegments);
+			material.SetFloat(TargetWidthProp, length * 100);
+			material.SetFloat(TargetHeightProp, MeshHeight * 100);
 		}
 
 		public void SetText(string text)
@@ -209,99 +223,6 @@ namespace VisualPinball.Unity
 			};
 			UpdateDimensions(data.Length, 1);
 			UpdateFrame(data);
-		}
-
-		public void RegenerateMesh()
-		{
-			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr == null) {
-				mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = new Material(Shader.Find("Visual Pinball/Alphanumeric Shader"));
-			}
-			var mf = gameObject.GetComponent<MeshFilter>();
-			if (mf == null) {
-				mf = gameObject.AddComponent<MeshFilter>();
-				mf.sharedMesh = new Mesh();
-			}
-
-			var length = NumChars * MeshHeight * AspectRatio;
-
-			mr.sharedMaterial.SetFloat(NumCharsProp, NumChars);
-			mr.sharedMaterial.SetFloat(NumSegmentsProp, NumSegments);
-			mr.sharedMaterial.SetFloat(TargetWidthProp, length * 100);
-			mr.sharedMaterial.SetFloat(TargetHeightProp, MeshHeight * 100);
-
-			#region Mesh Construction
-
-			var mesh = mf.sharedMesh;
-
-			var c = new[] {
-				new Vector3(-length * .5f, -MeshHeight * .5f, MeshDepth * .5f),
-				new Vector3(length * .5f, -MeshHeight * .5f, MeshDepth * .5f),
-				new Vector3(length * .5f, -MeshHeight * .5f, -MeshDepth * .5f),
-				new Vector3(-length * .5f, -MeshHeight * .5f, -MeshDepth * .5f),
-				new Vector3(-length * .5f, MeshHeight * .5f, MeshDepth * .5f),
-				new Vector3(length * .5f, MeshHeight * .5f, MeshDepth * .5f),
-				new Vector3(length * .5f, MeshHeight * .5f, -MeshDepth * .5f),
-				new Vector3(-length * .5f, MeshHeight * .5f, -MeshDepth * .5f)
-			};
-
-			var vertices = new[] {
-				c[0], c[1], c[2], c[3], // Bottom
-				c[7], c[4], c[0], c[3], // Left
-				c[4], c[5], c[1], c[0], // Front
-				c[6], c[7], c[3], c[2], // Back
-				c[5], c[6], c[2], c[1], // Right
-				c[7], c[6], c[5], c[4]  // Top
-			};
-
-			var up = Vector3.up;
-			var down = Vector3.down;
-			var forward = Vector3.forward;
-			var back = Vector3.back;
-			var left = Vector3.left;
-			var right = Vector3.right;
-
-			var normals = new [] {
-				down, down, down, down,             // Bottom
-				left, left, left, left,             // Left
-				forward, forward, forward, forward, // Front
-				back, back, back, back,             // Back
-				right, right, right, right,         // Right
-				up, up, up, up                      // Top
-			};
-
-			var uv00 = new Vector2(0f, 0f);
-			var uv10 = new Vector2(1f, 0f);
-			var uv01 = new Vector2(0f, 1f);
-			var uv11 = new Vector2(1f, 1f);
-
-			var uvs = new [] {
-				uv00, uv00, uv00, uv00, // Bottom
-				uv00, uv00, uv00, uv00, // Left
-				uv10, uv00, uv01, uv11, // Front
-				uv10, uv00, uv01, uv11, // Back
-				uv00, uv00, uv00, uv00, // Right
-				uv00, uv00, uv00, uv00  // Top
-			};
-
-			var triangles = new[] {
-				3, 1, 0,        3, 2, 1,    // Bottom
-				7, 5, 4,        7, 6, 5,    // Left
-				11, 9, 8,       11, 10, 9,  // Front
-				15, 13, 12,     15, 14, 13, // Back
-				19, 17, 16,     19, 18, 17, // Right
-				23, 21, 20,     23, 22, 21, // Top
-			};
-
-			mesh.Clear();
-			mesh.vertices = vertices;
-			mesh.triangles = triangles;
-			mesh.normals = normals;
-			mesh.uv = uvs;
-			mesh.Optimize();
-
-			#endregion
 		}
 
 		private void UpdateFrame(IReadOnlyList<ushort> data)

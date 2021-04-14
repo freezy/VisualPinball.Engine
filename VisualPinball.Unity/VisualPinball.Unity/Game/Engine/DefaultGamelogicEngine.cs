@@ -161,6 +161,7 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
+			/*
 			if (!_frameSent) {
 				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd2, new byte[] {
 					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -173,7 +174,7 @@ namespace VisualPinball.Unity
 					0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,
 				}));
 				_frameSent = true;
-			}
+			}*/
 		}
 
 		public void OnDestroy()

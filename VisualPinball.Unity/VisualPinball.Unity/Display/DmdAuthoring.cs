@@ -30,8 +30,15 @@ namespace VisualPinball.Unity
 		public override string Id { get; set; } = "dmd";
 		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
 
-		private int _width;
-		private int _height;
+		[SerializeField]
+		private int _width = 128;
+		[SerializeField]
+		private int _height = 32;
+
+		protected override string ShaderName => "Visual Pinball/DMD Shader";
+		protected override float MeshWidth => (float)Width / Height * MeshHeight;
+		protected override float MeshHeight => 0.4f;
+		protected override float MeshDepth => 0.01f;
 
 		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color>>();
 
@@ -39,18 +46,39 @@ namespace VisualPinball.Unity
 		private static readonly int ShaderDmdWidth = Shader.PropertyToID("_Width");
 		private static readonly int ShaderDmdHeight = Shader.PropertyToID("_Height");
 
+		public int Width
+		{
+			get => _width;
+			set => UpdateDimensions(value, _height);
+		}
+
+		public int Height
+		{
+			get => _height;
+			set => UpdateDimensions(_width, value);
+		}
+
 		public override void UpdateDimensions(int width, int height)
 		{
 			_width = width;
 			_height = height;
 			_texture = new Texture2D(width, height);
-			var material = GetComponent<Renderer>().sharedMaterial;
-			material.mainTexture = _texture;
-			material.SetFloat(ShaderDmdWidth, width);
-			material.SetFloat(ShaderDmdHeight, height);
+			var mr = GetComponent<MeshRenderer>();
+			if (mr != null) {
+				mr.sharedMaterial.mainTexture = _texture;
+				mr.sharedMaterial.SetFloat(ShaderDmdWidth, width);
+				mr.sharedMaterial.SetFloat(ShaderDmdHeight, height);
+			}
+
+			RegenerateMesh();
 		}
 
-		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
+
+		protected override void InitMaterial(Material material)
+		{
+		}
+
+		public override void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr)
 		{
 			if (_texture == null) {
 				Logger.Error($"Cannot render DMD for unknown size, UpdateDimensions() first!");
@@ -62,6 +90,7 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Dmd2:
 				case DisplayFrameFormat.Dmd4:
 				case DisplayFrameFormat.Dmd8:
+					/*
 					if (!_map.ContainsKey(format)) {
 						UpdatePalette(format);
 					}
@@ -74,12 +103,14 @@ namespace VisualPinball.Unity
 							}
 						}
 						_texture.Apply();
+
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of frame data to {_width}x{_height}.");
-					}
+					}*/
 					break;
 
 				case DisplayFrameFormat.Dmd24:
+					/*
 					if (frame.Length == _width * _height * 3) {
 						for (var y = 0; y < _height; y++) {
 							for (var x = 0; x < _width; x++) {
@@ -90,7 +121,7 @@ namespace VisualPinball.Unity
 						_texture.Apply();
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of RGB data to {_width}x{_height}.");
-					}
+					}*/
 					break;
 
 				case DisplayFrameFormat.Segment:

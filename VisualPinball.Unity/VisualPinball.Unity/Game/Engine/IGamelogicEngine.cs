@@ -148,15 +148,15 @@ namespace VisualPinball.Unity
 	public class DisplayFrameData
 	{
 		public readonly string Id;
-		public readonly byte[] Data;
+		public readonly IntPtr FramePtr;
 		public readonly DisplayFrameFormat Format;
 		public readonly float Brightness = 1;
 
-		public DisplayFrameData(string id, DisplayFrameFormat format, byte[] data)
+		public DisplayFrameData(string id, DisplayFrameFormat format, IntPtr framePtr)
 		{
 			Id = id;
 			Format = format;
-			Data = data;
+			FramePtr = framePtr;
 		}
 	}
 
