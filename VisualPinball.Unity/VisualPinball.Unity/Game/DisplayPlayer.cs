@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 		private void HandleFrameEvent(object sender, DisplayFrameData e)
 		{
 			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.Data);
+				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.FramePtr);
 			}
 		}
 
