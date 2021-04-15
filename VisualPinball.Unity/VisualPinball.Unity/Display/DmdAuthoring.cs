@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr)
+		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
 		{
 			if (_texture == null) {
 				Logger.Error($"Cannot render DMD for unknown size, UpdateDimensions() first!");
@@ -86,11 +86,9 @@ namespace VisualPinball.Unity
 			}
 
 			switch (format) {
-				case DisplayFrameFormat.Dmd2PinMame:
 				case DisplayFrameFormat.Dmd2:
 				case DisplayFrameFormat.Dmd4:
 				case DisplayFrameFormat.Dmd8:
-					/*
 					if (!_map.ContainsKey(format)) {
 						UpdatePalette(format);
 					}
@@ -106,11 +104,10 @@ namespace VisualPinball.Unity
 
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of frame data to {_width}x{_height}.");
-					}*/
+					}
 					break;
 
 				case DisplayFrameFormat.Dmd24:
-					/*
 					if (frame.Length == _width * _height * 3) {
 						for (var y = 0; y < _height; y++) {
 							for (var x = 0; x < _width; x++) {
@@ -121,7 +118,7 @@ namespace VisualPinball.Unity
 						_texture.Apply();
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of RGB data to {_width}x{_height}.");
-					}*/
+					}
 					break;
 
 				case DisplayFrameFormat.Segment:
@@ -142,14 +139,6 @@ namespace VisualPinball.Unity
 
 			var numColors = 0;
 			switch (format) {
-				case DisplayFrameFormat.Dmd2PinMame:
-					_map[format].Add(0x0, Color.Lerp(Color.black, Color, 0));
-					_map[format].Add(0x14, Color.Lerp(Color.black, Color, 0.33f));
-					_map[format].Add(0x21, Color.Lerp(Color.black, Color, 0.66f));
-					_map[format].Add(0x43, Color.Lerp(Color.black, Color, 1f));
-					_map[format].Add(0x64, Color.Lerp(Color.black, Color, 1f));
-					break;
-
 				case DisplayFrameFormat.Dmd2:
 					numColors = 4;
 					break;

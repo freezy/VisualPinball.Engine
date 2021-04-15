@@ -137,7 +137,6 @@ namespace VisualPinball.Unity
 
 	public enum DisplayFrameFormat
 	{
-		Dmd2PinMame, // 2-bit (0x0, 0x14, 0x21, 0x43/0x64)
 		Dmd2, // 2-bit (0-4)
 		Dmd4, // 4-bit (0-15)
 		Dmd8, // 8-bit (0-255)
@@ -148,15 +147,15 @@ namespace VisualPinball.Unity
 	public class DisplayFrameData
 	{
 		public readonly string Id;
-		public readonly IntPtr FramePtr;
+		public readonly byte[] Data;
 		public readonly DisplayFrameFormat Format;
 		public readonly float Brightness = 1;
 
-		public DisplayFrameData(string id, DisplayFrameFormat format, IntPtr framePtr)
+		public DisplayFrameData(string id, DisplayFrameFormat format, byte[] data)
 		{
 			Id = id;
 			Format = format;
-			FramePtr = framePtr;
+			Data = data;
 		}
 	}
 

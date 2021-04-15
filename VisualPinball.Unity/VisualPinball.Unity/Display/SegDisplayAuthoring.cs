@@ -171,17 +171,16 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr)
+		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
 			if (format != DisplayFrameFormat.Segment) {
 				// todo log error, but only once
 				return;
 			}
-			/*
+
 			var target = new ushort[source.Length / 2];
 			Buffer.BlockCopy(source, 0, target, 0, source.Length);
 			UpdateFrame(target);
-			*/
 		}
 
 		public override void UpdateDimensions(int width, int height)
