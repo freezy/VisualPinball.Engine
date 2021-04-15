@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 
 			var dmds = Object.FindObjectsOfType<DisplayAuthoring>();
 			foreach (var dmd in dmds) {
+				Logger.Info($"[Player] Display \"{dmd.Id}\" connected.");
 				_displayGameObjects[dmd.Id] = dmd;
 			}
 		}
@@ -48,7 +49,7 @@ namespace VisualPinball.Unity
 					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height);
 
 				} else {
-					Logger.Error($"Cannot find DMD game object for display ${display.Id}");
+					Logger.Error($"Cannot find DMD game object for display \"{display.Id}\"");
 				}
 			}
 		}
@@ -56,7 +57,7 @@ namespace VisualPinball.Unity
 		private void HandleFrameEvent(object sender, DisplayFrameData e)
 		{
 			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.FramePtr);
+				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.Data);
 			}
 		}
 

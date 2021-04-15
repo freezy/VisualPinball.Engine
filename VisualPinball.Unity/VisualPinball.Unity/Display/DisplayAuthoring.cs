@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 
 		protected Texture2D _texture;
 
-		public abstract void UpdateFrame(DisplayFrameFormat format, IntPtr framePtr);
+		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 
 		public abstract void UpdateDimensions(int width, int height);
 
