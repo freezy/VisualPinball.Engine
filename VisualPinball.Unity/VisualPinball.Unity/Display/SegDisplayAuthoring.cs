@@ -68,12 +68,12 @@ namespace VisualPinball.Unity
 		public int NumChars {
 			get {
 				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? (int)mr.sharedMaterial.GetFloat(NumCharsProp) : 8;
+				return mr != null ? (int)mr.material.GetFloat(NumCharsProp) : 8;
 			}
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.sharedMaterial.SetFloat(NumCharsProp, value);
+					mr.material.SetFloat(NumCharsProp, value);
 				}
 				RegenerateMesh();
 			}
@@ -82,12 +82,12 @@ namespace VisualPinball.Unity
 		public int NumLines {
 			get {
 				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? (int)mr.sharedMaterial.GetFloat(NumLinesProp) : 1;
+				return mr != null ? (int)mr.material.GetFloat(NumLinesProp) : 1;
 			}
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.sharedMaterial.SetFloat(NumLinesProp, value);
+					mr.material.SetFloat(NumLinesProp, value);
 				}
 				RegenerateMesh();
 			}
@@ -96,12 +96,12 @@ namespace VisualPinball.Unity
 		public override Color Color {
 			get {
 				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? mr.sharedMaterial.GetColor(ColorProp) : Color.yellow;
+				return mr != null ? mr.material.GetColor(ColorProp) : Color.yellow;
 			}
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.sharedMaterial.SetColor(ColorProp, value);
+					mr.material.SetColor(ColorProp, value);
 				}
 			}
 		}
@@ -110,14 +110,14 @@ namespace VisualPinball.Unity
 			get {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					return mr.sharedMaterial.GetFloat(SkewAngleProp);
+					return mr.material.GetFloat(SkewAngleProp);
 				}
 				return 0;
 			}
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(SkewAngleProp, value);
+					mr.material.SetFloat(SkewAngleProp, value);
 				}
 			}
 		}
@@ -126,14 +126,14 @@ namespace VisualPinball.Unity
 			get {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					return mr.sharedMaterial.GetFloat(SegmentWidthProp);
+					return mr.material.GetFloat(SegmentWidthProp);
 				}
 				return 0;
 			}
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(SegmentWidthProp, value);
+					mr.material.SetFloat(SegmentWidthProp, value);
 				}
 			}
 		}
@@ -143,8 +143,8 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					return new float2(
-						mr.sharedMaterial.GetFloat(OuterPaddingX),
-						mr.sharedMaterial.GetFloat(OuterPaddingY)
+						mr.material.GetFloat(OuterPaddingX),
+						mr.material.GetFloat(OuterPaddingY)
 					);
 				}
 				return float2.zero;
@@ -152,8 +152,8 @@ namespace VisualPinball.Unity
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(OuterPaddingX, value.x);
-					mr.sharedMaterial.SetFloat(OuterPaddingY, value.y);
+					mr.material.SetFloat(OuterPaddingX, value.x);
+					mr.material.SetFloat(OuterPaddingY, value.y);
 				}
 			}
 		}
@@ -163,8 +163,8 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					return new float2(
-						mr.sharedMaterial.GetFloat(InnerPaddingX),
-						mr.sharedMaterial.GetFloat(InnerPaddingY)
+						mr.material.GetFloat(InnerPaddingX),
+						mr.material.GetFloat(InnerPaddingY)
 					);
 				}
 				return float2.zero;
@@ -172,8 +172,8 @@ namespace VisualPinball.Unity
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(InnerPaddingX, value.x);
-					mr.sharedMaterial.SetFloat(InnerPaddingY, value.y);
+					mr.material.SetFloat(InnerPaddingX, value.x);
+					mr.material.SetFloat(InnerPaddingY, value.y);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 				switch (format) {
 					case DisplayFrameFormat.Segment16:
 						var mr = gameObject.GetComponent<MeshRenderer>();
-						mr.sharedMaterial.SetFloat(SegmentTypeProp, 0);
+						mr.material.SetFloat(SegmentTypeProp, 0);
 						break;
 					default:
 						Logger.Error($"Invalid data format, must be segment data, got {format}.");
@@ -205,9 +205,9 @@ namespace VisualPinball.Unity
 			_texture = new Texture2D(NumSegments, width * height);
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr) {
-				mr.sharedMaterial.mainTexture = _texture;
-				mr.sharedMaterial.SetFloat(NumCharsProp, width);
-				mr.sharedMaterial.SetFloat(NumLinesProp, height);
+				mr.material.mainTexture = _texture;
+				mr.material.SetFloat(NumCharsProp, width);
+				mr.material.SetFloat(NumLinesProp, height);
 			}
 			RegenerateMesh();
 		}

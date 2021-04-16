@@ -67,9 +67,9 @@ namespace VisualPinball.Unity
 			_texture = new Texture2D(width, height);
 			var mr = GetComponent<MeshRenderer>();
 			if (mr != null) {
-				mr.sharedMaterial.mainTexture = _texture;
-				mr.sharedMaterial.SetFloat(ShaderDmdWidth, width);
-				mr.sharedMaterial.SetFloat(ShaderDmdHeight, height);
+				mr.material.mainTexture = _texture;
+				mr.material.SetFloat(ShaderDmdWidth, width);
+				mr.material.SetFloat(ShaderDmdHeight, height);
 			}
 
 			RegenerateMesh();

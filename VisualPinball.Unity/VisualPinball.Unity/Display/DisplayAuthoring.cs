@@ -54,19 +54,19 @@ namespace VisualPinball.Unity
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr == null) {
 				mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = new Material(Shader.Find(ShaderName));
+				mr.material = new Material(Shader.Find(ShaderName));
 			}
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {
 				mf = gameObject.AddComponent<MeshFilter>();
-				mf.sharedMesh = new Mesh();
+				mf.mesh = new Mesh();
 			}
 
-			InitMaterial(mr.sharedMaterial);
+			InitMaterial(mr.material);
 
 			#region Mesh Construction
 
-			var mesh = mf.sharedMesh;
+			var mesh = mf.mesh;
 
 			var c = new[] {
 				new Vector3(-MeshWidth * .5f, -MeshHeight * .5f, MeshDepth * .5f),
