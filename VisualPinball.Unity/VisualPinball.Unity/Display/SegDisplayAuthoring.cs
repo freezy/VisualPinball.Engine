@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	public class SegDisplayAuthoring : DisplayAuthoring
 	{
-		public override string Id { get; set; } = "display0";
+		public override string Id { get => _id; set => _id = value;}
 
 		public float AspectRatio = 0.75f;
 
@@ -39,6 +39,8 @@ namespace VisualPinball.Unity
 		protected override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
 
+		[SerializeField]
+		private string _id = "display0";
 		private bool _isInitialized;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
