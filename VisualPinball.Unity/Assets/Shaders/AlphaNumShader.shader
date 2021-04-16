@@ -73,7 +73,7 @@
 			static float RoundEdge = 0.15;
 
 			static float On = 0.81;
-			static float Off = 0.012;
+			static float Off = 0.02;
 
 			// Static computed vars for optimization
 			static float2 tl = float2(-.5, 1) ; // top    left  corner

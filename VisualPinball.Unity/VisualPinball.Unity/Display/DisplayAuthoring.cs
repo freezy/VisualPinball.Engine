@@ -37,6 +37,11 @@ namespace VisualPinball.Unity
 
 		public abstract void UpdateDimensions(int width, int height);
 
+		public virtual void UpdateColor(Color color)
+		{
+			Color = color;
+		}
+
 		protected abstract string ShaderName { get; }
 		protected abstract float MeshWidth { get; }
 		protected abstract float MeshHeight { get; }

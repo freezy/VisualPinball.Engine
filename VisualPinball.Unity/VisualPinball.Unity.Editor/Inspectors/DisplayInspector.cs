@@ -31,7 +31,10 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			_mb.Color = EditorGUILayout.ColorField("Color", _mb.Color);
+			var color = EditorGUILayout.ColorField("Color", _mb.Color);
+			if (color != _mb.Color) {
+				_mb.UpdateColor(color);
+			}
 		}
 	}
 }

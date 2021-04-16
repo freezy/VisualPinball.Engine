@@ -19,14 +19,16 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public class SegDisplayAuthoring : DisplayAuthoring
 	{
-		public override string Id { get; set; } = "dmd";
+		public override string Id { get; set; } = "display0";
 
 		public float AspectRatio = 0.75f;
 
@@ -36,6 +38,10 @@ namespace VisualPinball.Unity
 		protected override float MeshWidth => NumChars * MeshHeight * AspectRatio;
 		protected override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
+
+		private bool _isInitialized;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#region Shader Prop Constants
 
@@ -51,6 +57,7 @@ namespace VisualPinball.Unity
 		private static readonly int InnerPaddingX = Shader.PropertyToID("_InnerPaddingX");
 		private static readonly int InnerPaddingY = Shader.PropertyToID("_InnerPaddingY");
 		private static readonly int ColorProp = Shader.PropertyToID("_Color");
+		private static readonly int SegmentTypeProp = Shader.PropertyToID("_SegmentType");
 
 		#endregion
 
@@ -173,9 +180,17 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			if (format != DisplayFrameFormat.Segment) {
-				// todo log error, but only once
-				return;
+			if (!_isInitialized) {
+				_isInitialized = true;
+				switch (format) {
+					case DisplayFrameFormat.Segment16:
+						var mr = gameObject.GetComponent<MeshRenderer>();
+						mr.sharedMaterial.SetFloat(SegmentTypeProp, 0);
+						break;
+					default:
+						Logger.Error($"Invalid data format, must be segment data, got {format}.");
+						return;
+				}
 			}
 
 			var target = new ushort[source.Length / 2];

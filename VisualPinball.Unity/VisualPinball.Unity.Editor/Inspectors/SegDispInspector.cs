@@ -17,6 +17,7 @@
 // ReSharper disable CheckNamespace
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using Unity.Entities.CodeGeneratedJobForEach;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -42,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
+
 			base.OnInspectorGUI();
 
 			var width = EditorGUILayout.IntSlider("Chars", _mb.NumChars, 1, 20);
