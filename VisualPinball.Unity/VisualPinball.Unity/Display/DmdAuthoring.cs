@@ -27,9 +27,11 @@ namespace VisualPinball.Unity
 {
 	public class DmdAuthoring : DisplayAuthoring
 	{
-		public override string Id { get; set; } = "display0";
+		public override string Id { get => _id; set => _id = value; }
 		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
 
+		[SerializeField]
+		private string _id = "display0";
 		[SerializeField]
 		private int _width = 128;
 		[SerializeField]
