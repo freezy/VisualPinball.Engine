@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 {
 	public class DmdAuthoring : DisplayAuthoring
 	{
-		public override string Id { get; set; } = "dmd";
+		public override string Id { get; set; } = "display0";
 		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
 
 		[SerializeField]
@@ -73,6 +73,12 @@ namespace VisualPinball.Unity
 			RegenerateMesh();
 		}
 
+		public override void UpdateColor(Color color)
+		{
+			base.UpdateColor(color);
+			_map.Clear();
+		}
+
 
 		protected override void InitMaterial(Material material)
 		{
@@ -81,7 +87,7 @@ namespace VisualPinball.Unity
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
 		{
 			if (_texture == null) {
-				Logger.Error($"Cannot render DMD for unknown size, UpdateDimensions() first!");
+				Logger.Error("Cannot render DMD for unknown size, UpdateDimensions() first!");
 				return;
 			}
 
@@ -121,8 +127,9 @@ namespace VisualPinball.Unity
 					}
 					break;
 
-				case DisplayFrameFormat.Segment:
-					throw new NotImplementedException();
+				case DisplayFrameFormat.Segment16:
+					Logger.Error($"This is a DMD component that cannot render segment data. Use a segment component!");
+					break;
 
 				default:
 					throw new ArgumentOutOfRangeException();
@@ -136,6 +143,7 @@ namespace VisualPinball.Unity
 			} else {
 				_map[format].Clear();
 			}
+			Logger.Info($"Regenerating palette for format {format} and color {Color}.");
 
 			var numColors = 0;
 			switch (format) {
@@ -152,9 +160,9 @@ namespace VisualPinball.Unity
 					break;
 
 				case DisplayFrameFormat.Dmd24:
-				case DisplayFrameFormat.Segment:
 					// no palette to handle here
 					break;
+
 				default:
 					throw new ArgumentOutOfRangeException(nameof(format), format, null);
 			}
