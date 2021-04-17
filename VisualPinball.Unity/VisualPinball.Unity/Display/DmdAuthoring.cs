@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		protected override float MeshHeight => 0.4f;
 		protected override float MeshDepth => 0.01f;
 
-		[SerializeField] private string _id = "display0";
+		[SerializeField] private string _id = "dmd0";
 		[SerializeField] private int _width = 128;
 		[SerializeField] private int _height = 32;
 
