@@ -82,8 +82,8 @@ namespace VisualPinball.Unity
 			var vertices = new[] {
 				c[0], c[1], c[2], c[3], // Bottom
 				c[7], c[4], c[0], c[3], // Left
-				c[4], c[5], c[1], c[0], // Front
-				c[6], c[7], c[3], c[2], // Back
+				c[4], c[5], c[1], c[0], // Back
+				c[6], c[7], c[3], c[2], // Front
 				c[5], c[6], c[2], c[1], // Right
 				c[7], c[6], c[5], c[4]  // Top
 			};
@@ -98,8 +98,8 @@ namespace VisualPinball.Unity
 			var normals = new [] {
 				down, down, down, down,             // Bottom
 				left, left, left, left,             // Left
-				forward, forward, forward, forward, // Front
-				back, back, back, back,             // Back
+				forward, forward, forward, forward, // Back
+				back, back, back, back,             // Front
 				right, right, right, right,         // Right
 				up, up, up, up                      // Top
 			};
@@ -112,8 +112,8 @@ namespace VisualPinball.Unity
 			var uvs = new [] {
 				uv00, uv00, uv00, uv00, // Bottom
 				uv00, uv00, uv00, uv00, // Left
+				uv10, uv00, uv00, uv00, // Back
 				uv10, uv00, uv01, uv11, // Front
-				uv10, uv00, uv01, uv11, // Back
 				uv00, uv00, uv00, uv00, // Right
 				uv00, uv00, uv00, uv00  // Top
 			};
@@ -121,8 +121,8 @@ namespace VisualPinball.Unity
 			var triangles = new[] {
 				3, 1, 0,        3, 2, 1,    // Bottom
 				7, 5, 4,        7, 6, 5,    // Left
-				11, 9, 8,       11, 10, 9,  // Front
-				15, 13, 12,     15, 14, 13, // Back
+				11, 9, 8,       11, 10, 9,  // Back
+				15, 13, 12,     15, 14, 13, // Front
 				19, 17, 16,     19, 18, 17, // Right
 				23, 21, 20,     23, 22, 21, // Top
 			};
