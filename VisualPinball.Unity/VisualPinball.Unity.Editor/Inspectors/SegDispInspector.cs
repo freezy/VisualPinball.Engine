@@ -29,14 +29,14 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SegDisplayAuthoring _mb;
 
-		private float _skewAngle;
+		private float _skewAngleDeg;
 		private float _segmentWidth;
 		private string _testText;
 
 		private void OnEnable()
 		{
 			_mb = target as SegDisplayAuthoring;
-			_skewAngle = -math.degrees(_mb.SkewAngle);
+			_skewAngleDeg = -math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
 			base.OnEnable();
 		}
@@ -53,10 +53,10 @@ namespace VisualPinball.Unity.Editor
 				_mb.RegenerateMesh();
 			}
 
-			var skew = EditorGUILayout.Slider("Skew Angle", _skewAngle, -45f, 45f);
-			if (skew != _skewAngle) {
-				_mb.SkewAngle = -math.radians(skew);
-				_skewAngle = skew;
+			var skewAngleDeg = EditorGUILayout.Slider("Skew Angle", _skewAngleDeg, -45f, 45f);
+			if (skewAngleDeg != _skewAngleDeg) {
+				_mb.SkewAngle = -math.radians(skewAngleDeg);
+				_skewAngleDeg = skewAngleDeg;
 			}
 
 			var segWidth = EditorGUILayout.Slider("Segment Width", _segmentWidth, 0.005f, 0.11f);

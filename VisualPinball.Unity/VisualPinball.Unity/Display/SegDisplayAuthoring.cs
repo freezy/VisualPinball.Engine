@@ -23,6 +23,7 @@ using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
+using Object = System.Object;
 
 namespace VisualPinball.Unity
 {
@@ -31,21 +32,26 @@ namespace VisualPinball.Unity
 	{
 		public override string Id { get => _id; set => _id = value;}
 
-		public float AspectRatio = 0.75f;
+		public float AspectRatio = 0.8f;
 
 		private const int NumSegments = 15;
 
-		protected override string ShaderName => "Visual Pinball/Alphanumeric Shader";
 		protected override float MeshWidth => NumChars * MeshHeight * AspectRatio;
 		protected override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
 
-		[SerializeField]
-		private string _id = "display0";
-		private bool _isInitialized;
+		[SerializeField] private string _id = "display0";
+		[SerializeField] private int _numChars = 7;
+		[SerializeField] private int _numLines = 1;
+		[SerializeField] private Color _color = Color.yellow;
+		[SerializeField] private float _skewAngle = -0.02f;
+		[SerializeField] private float _segmentWidth = 0.07f;
+		[SerializeField] private float2 _outerPadding = new float2(0.2f, 0.1f);
+		[SerializeField] private float2 _innerPadding = new float2(0.5f, 0.4f);
+		[SerializeField] private float _segmentType = 0f;
 
-		[NonSerialized]
-		private Color32[] _colorBuffer;
+		[NonSerialized] private bool _isInitialized;
+		[NonSerialized] private Color32[] _colorBuffer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -70,119 +76,111 @@ namespace VisualPinball.Unity
 		#region Shader Props
 
 		public int NumChars {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? (int)mr.material.GetFloat(NumCharsProp) : 8;
-			}
+			get => _numChars;
 			set {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material.SetFloat(NumCharsProp, value);
+					mr.material = CreateMaterial();
 				}
+				_numChars = value;
 				RegenerateMesh();
 			}
 		}
 
 		public int NumLines {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? (int)mr.material.GetFloat(NumLinesProp) : 1;
-			}
+			get => _numLines;
 			set {
+				_numLines = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material.SetFloat(NumLinesProp, value);
+					mr.material = CreateMaterial();
 				}
 				RegenerateMesh();
 			}
 		}
 
 		public override Color Color {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				return mr != null ? mr.material.GetColor(ColorProp) : Color.yellow;
-			}
+			get => _color;
 			set {
+				_color = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material.SetColor(ColorProp, value);
+					mr.material = CreateMaterial();
 				}
 			}
 		}
 
 		public float SkewAngle {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					return mr.material.GetFloat(SkewAngleProp);
-				}
-				return 0;
-			}
+			get => _skewAngle;
 			set {
+				_skewAngle = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material.SetFloat(SkewAngleProp, value);
+					mr.material = CreateMaterial();
 				}
 			}
 		}
 
 		public float SegmentWidth {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					return mr.material.GetFloat(SegmentWidthProp);
-				}
-				return 0;
-			}
+			get => _segmentWidth;
 			set {
+				_segmentWidth = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material.SetFloat(SegmentWidthProp, value);
+					mr.material = CreateMaterial();
 				}
 			}
 		}
 
 		public float2 OuterPadding {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					return new float2(
-						mr.material.GetFloat(OuterPaddingX),
-						mr.material.GetFloat(OuterPaddingY)
-					);
-				}
-				return float2.zero;
-			}
+			get => _outerPadding;
 			set {
+				_outerPadding = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material.SetFloat(OuterPaddingX, value.x);
-					mr.material.SetFloat(OuterPaddingY, value.y);
+					mr.material = CreateMaterial();
 				}
 			}
 		}
 
 		public float2 InnerPadding {
-			get {
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					return new float2(
-						mr.material.GetFloat(InnerPaddingX),
-						mr.material.GetFloat(InnerPaddingY)
-					);
-				}
-				return float2.zero;
-			}
+			get => _innerPadding;
 			set {
+				_innerPadding = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material.SetFloat(InnerPaddingX, value.x);
-					mr.material.SetFloat(InnerPaddingY, value.y);
+					mr.material = CreateMaterial();
 				}
 			}
 		}
 
 		#endregion
+
+		protected override Material CreateMaterial()
+		{
+			var material = Instantiate(UnityEngine.Resources.Load<Material>("Materials/Segment Display"));
+
+			material.mainTexture = _texture;
+			material.SetFloat(NumCharsProp, _numChars);
+			material.SetFloat(NumLinesProp, _numLines);
+			material.SetColor(ColorProp, _color);
+			material.SetFloat(SkewAngleProp, _skewAngle);
+			material.SetFloat(SegmentWidthProp, _segmentWidth);
+			material.SetFloat(OuterPaddingX, _outerPadding.x);
+			material.SetFloat(OuterPaddingY, _outerPadding.y);
+			material.SetFloat(InnerPaddingX, _innerPadding.x);
+			material.SetFloat(InnerPaddingY, _innerPadding.y);
+
+			var length = _numChars * MeshHeight * AspectRatio;
+			material.SetFloat(NumSegmentsProp, NumSegments);
+			material.SetFloat(SegmentTypeProp, _segmentType);
+			material.SetFloat(TargetWidthProp, length * 100);
+			material.SetFloat(TargetHeightProp, MeshHeight * 100);
+
+			Logger.Info("Recreating segment display material!");
+
+			return material;
+		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
@@ -191,10 +189,12 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				switch (format) {
 					case DisplayFrameFormat.Segment7:
-						mr.material.SetFloat(SegmentTypeProp, 4);
+						_segmentType = 4;
+						mr.material = CreateMaterial();
 						break;
 					case DisplayFrameFormat.Segment16:
-						mr.material.SetFloat(SegmentTypeProp, 0);
+						_segmentType = 0;
+						mr.material = CreateMaterial();
 						break;
 					default:
 						Logger.Error($"Invalid data format, must be segment data, got {format}.");
@@ -211,22 +211,7 @@ namespace VisualPinball.Unity
 		{
 			_texture = new Texture2D(NumSegments, width * height);
 			_colorBuffer = new Color32[NumSegments * width * height];
-			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr) {
-				mr.material.mainTexture = _texture;
-				mr.material.SetFloat(NumCharsProp, width);
-				mr.material.SetFloat(NumLinesProp, height);
-			}
 			RegenerateMesh();
-		}
-
-		protected override void InitMaterial(Material material)
-		{
-			var length = NumChars * MeshHeight * AspectRatio;
-			material.SetFloat(NumCharsProp, NumChars);
-			material.SetFloat(NumSegmentsProp, NumSegments);
-			material.SetFloat(TargetWidthProp, length * 100);
-			material.SetFloat(TargetHeightProp, MeshHeight * 100);
 		}
 
 		public void SetText(string text)
