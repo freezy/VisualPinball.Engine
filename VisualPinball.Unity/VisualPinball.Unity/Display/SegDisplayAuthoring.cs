@@ -43,6 +43,9 @@ namespace VisualPinball.Unity
 		private string _id = "display0";
 		private bool _isInitialized;
 
+		[NonSerialized]
+		private Color32[] _colorBuffer;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#region Shader Prop Constants
@@ -184,9 +187,12 @@ namespace VisualPinball.Unity
 		{
 			if (!_isInitialized) {
 				_isInitialized = true;
+				var mr = gameObject.GetComponent<MeshRenderer>();
 				switch (format) {
+					case DisplayFrameFormat.Segment7:
+						mr.material.SetFloat(SegmentTypeProp, 4);
+						break;
 					case DisplayFrameFormat.Segment16:
-						var mr = gameObject.GetComponent<MeshRenderer>();
 						mr.material.SetFloat(SegmentTypeProp, 0);
 						break;
 					default:
@@ -203,6 +209,7 @@ namespace VisualPinball.Unity
 		public override void UpdateDimensions(int width, int height)
 		{
 			_texture = new Texture2D(NumSegments, width * height);
+			_colorBuffer = new Color32[NumSegments * width * height];
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr) {
 				mr.material.mainTexture = _texture;
@@ -247,10 +254,11 @@ namespace VisualPinball.Unity
 			for (var y = 0; y < height; y++) {
 				for (var x = 0; x < NumSegments; x++) {
 					var seg = data[y] >> x & 0x1;
-					var val = seg == 1 ? 1f : 0f;
-					_texture.SetPixel(x, y, new Color(val, val, val, 1));
+					var val = seg == 1 ? (byte)0xff : (byte)0x0;
+					_colorBuffer[y * NumSegments + x] = new Color32(val, val, val, 1);
 				}
 			}
+			_texture.SetPixels32(_colorBuffer);
 			_texture.Apply();
 		}
 
