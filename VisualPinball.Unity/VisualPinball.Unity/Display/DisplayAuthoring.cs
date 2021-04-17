@@ -42,31 +42,27 @@ namespace VisualPinball.Unity
 			Color = color;
 		}
 
-		protected abstract string ShaderName { get; }
+		protected abstract Material CreateMaterial();
 		protected abstract float MeshWidth { get; }
 		protected abstract float MeshHeight { get; }
 		protected abstract float MeshDepth { get; }
-
-		protected abstract void InitMaterial(Material material);
 
 		public void RegenerateMesh()
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr == null) {
 				mr = gameObject.AddComponent<MeshRenderer>();
-				mr.material = new Material(Shader.Find(ShaderName));
 			}
+			mr.material = CreateMaterial();
+
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {
 				mf = gameObject.AddComponent<MeshFilter>();
-				mf.mesh = new Mesh();
 			}
-
-			InitMaterial(mr.material);
 
 			#region Mesh Construction
 
-			var mesh = mf.mesh;
+			var mesh = new Mesh();
 
 			var c = new[] {
 				new Vector3(-MeshWidth * .5f, -MeshHeight * .5f, MeshDepth * .5f),
@@ -133,6 +129,8 @@ namespace VisualPinball.Unity
 			mesh.normals = normals;
 			mesh.uv = uvs;
 			mesh.Optimize();
+
+			mf.sharedMesh = mesh;
 
 			#endregion
 		}

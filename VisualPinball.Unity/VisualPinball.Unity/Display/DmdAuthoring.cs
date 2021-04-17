@@ -31,17 +31,13 @@ namespace VisualPinball.Unity
 		public override string Id { get => _id; set => _id = value; }
 		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
 
-		[SerializeField]
-		private string _id = "display0";
-		[SerializeField]
-		private int _width = 128;
-		[SerializeField]
-		private int _height = 32;
-
-		protected override string ShaderName => "Visual Pinball/DMD Shader";
 		protected override float MeshWidth => (float)Width / Height * MeshHeight;
 		protected override float MeshHeight => 0.4f;
 		protected override float MeshDepth => 0.01f;
+
+		[SerializeField] private string _id = "display0";
+		[SerializeField] private int _width = 128;
+		[SerializeField] private int _height = 32;
 
 		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color>>();
 
@@ -66,13 +62,6 @@ namespace VisualPinball.Unity
 			_width = width;
 			_height = height;
 			_texture = new Texture2D(width, height);
-			var mr = GetComponent<MeshRenderer>();
-			if (mr != null) {
-				mr.material.mainTexture = _texture;
-				mr.material.SetFloat(ShaderDmdWidth, width);
-				mr.material.SetFloat(ShaderDmdHeight, height);
-			}
-
 			RegenerateMesh();
 		}
 
@@ -82,9 +71,13 @@ namespace VisualPinball.Unity
 			_map.Clear();
 		}
 
-
-		protected override void InitMaterial(Material material)
+		protected override Material CreateMaterial()
 		{
+			var material = UnityEngine.Resources.Load<Material>("Materials/Dot Matrix Display");
+			material.mainTexture = _texture;
+			material.SetFloat(ShaderDmdWidth, _width);
+			material.SetFloat(ShaderDmdHeight, _height);
+			return material;
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)

@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DmdMaterial
-  m_Shader: {fileID: 4800000, guid: 2c2404b6815719646b1fabebec86b4d3, type: 3}
+  m_Name: Dot Matrix Display
+  m_Shader: {fileID: 4800000, guid: 7130383a7e4e55b429fe3af74b2f192e, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -24,6 +24,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _Height: 32
     - _InnerPaddingX: 0.5
     - _InnerPaddingY: 0.4
     - _NumChars: 16
@@ -31,10 +32,13 @@ Material:
     - _NumSegments: 16
     - _OuterPaddingX: 0.2
     - _OuterPaddingY: 0.1
+    - _SegmentType: 0
     - _SegmentWidth: 0.07
+    - _Size: 1.25
     - _SkewAngle: 0.2
     - _TargetHeight: 118.01
     - _TargetWidth: 1450.11
+    - _Width: 128
     m_Colors:
     - _Color: {r: 1, g: 0.9, b: 0, a: 1}
   m_BuildTextureStacks: []
