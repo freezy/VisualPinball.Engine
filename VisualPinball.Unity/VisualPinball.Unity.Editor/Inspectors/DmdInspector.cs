@@ -36,6 +36,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
+
 			base.OnInspectorGUI();
 
 			var width = EditorGUILayout.IntField("Columns", _mb.Width);
@@ -47,6 +49,33 @@ namespace VisualPinball.Unity.Editor
 			if (height != _mb.Height) {
 				_mb.Height = height;
 			}
+		}
+
+		[MenuItem("GameObject/Visual Pinball/Dot Matrix Display", false, 12)]
+		private static void CreateDmdGameObject()
+		{
+			var go = new GameObject {
+				name = "Dot Matrix Display"
+			};
+
+			if (Selection.activeGameObject != null) {
+				go.transform.parent = Selection.activeGameObject.transform;
+
+			} else {
+				go.transform.localPosition = new Vector3(0f, 0.36f, 1.1f);
+				go.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+			}
+
+			var dmd = go.AddComponent<DmdAuthoring>();
+			dmd.UpdateDimensions(128, 32);
+
+			// var mr = go.GetComponent<MeshRenderer>();
+			// if (mr != null) {
+			// 	mr.material.mainTexture = _texture;
+			// 	mr.material.SetFloat(ShaderDmdWidth, width);
+			// 	mr.material.SetFloat(ShaderDmdHeight, height);
+			// }
+
 		}
 	}
 }

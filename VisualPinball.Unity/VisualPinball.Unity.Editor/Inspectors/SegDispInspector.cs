@@ -84,5 +84,24 @@ namespace VisualPinball.Unity.Editor
 				(target as SegDisplayAuthoring).SetTestData();
 			}
 		}
+
+		[MenuItem("GameObject/Visual Pinball/Segment Display", false, 13)]
+		private static void CreateSegmentDisplayGameObject()
+		{
+			var go = new GameObject {
+				name = "Segment Display"
+			};
+
+			if (Selection.activeGameObject != null) {
+				go.transform.parent = Selection.activeGameObject.transform;
+
+			} else {
+				go.transform.localPosition = new Vector3(0f, 0.36f, 1.1f);
+				go.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+			}
+
+			var display = go.AddComponent<SegDisplayAuthoring>();
+			display.UpdateDimensions(6, 1);
+		}
 	}
 }
