@@ -25,7 +25,7 @@ You can do this by clicking *Get Machine Description* in the MPF component's ins
 
 ## Wire It Up
 
-Now that VPE knows which switches, coils, and lamps your machine expects, you'll need to connect them using the [switch](../../editor/switch-manager.md), [coil](../../editor/coil-manager.md), and [lamp manager](../../editor/lamp-manager.md).
+Now that VPE knows which switches, coils, and lamps your machine expects, you'll need to connect them using the [switch](../../creators-guide/editor/switch-manager.md), [coil](../../creators-guide/editor/coil-manager.md), and [lamp manager](../../creators-guide/editor/lamp-manager.md).
 
 You can watch the entire process in a quick video here:
 
