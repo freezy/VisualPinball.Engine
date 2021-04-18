@@ -35,6 +35,8 @@
   items:
     - name: Gamelogic Engine
       href: manual/gamelogic-engine.md
+    - name: Displays
+      href: manual/displays.md
     - name: Pinball Mechanisms
       items:
       - name: Troughs / Ball Drains
