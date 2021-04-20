@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 			} else {
 				go.transform.localPosition = new Vector3(0f, 0.36f, 1.1f);
-				go.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+				go.transform.localScale = new Vector3(GameObjectScale, GameObjectScale, GameObjectScale);
 			}
 
 			var dmd = go.AddComponent<DmdAuthoring>();

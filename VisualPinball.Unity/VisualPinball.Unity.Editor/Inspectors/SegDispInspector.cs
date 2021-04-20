@@ -17,17 +17,19 @@
 // ReSharper disable CheckNamespace
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
-using Unity.Entities.CodeGeneratedJobForEach;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SegDisplayAuthoring)), CanEditMultipleObjects]
+	[CanEditMultipleObjects]
+	[CustomEditor(typeof(SegDisplayAuthoring))]
 	public class SegDispInspector : DisplayInspector
 	{
 		private SegDisplayAuthoring _mb;
+		private SegDisplayAuthoring[] _mbs;
 
 		private float _skewAngleDeg;
 		private float _segmentWidth;
@@ -36,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_mb = target as SegDisplayAuthoring;
+			_mbs = targets.Select(t => t as SegDisplayAuthoring).ToArray();
 			_skewAngleDeg = -math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
 			base.OnEnable();
@@ -55,19 +58,25 @@ namespace VisualPinball.Unity.Editor
 
 			var skewAngleDeg = EditorGUILayout.Slider("Skew Angle", _skewAngleDeg, -45f, 45f);
 			if (skewAngleDeg != _skewAngleDeg) {
-				_mb.SkewAngle = -math.radians(skewAngleDeg);
+				foreach (var mb in _mbs) {
+					mb.SkewAngle = -math.radians(skewAngleDeg);
+				}
 				_skewAngleDeg = skewAngleDeg;
 			}
 
-			var segWidth = EditorGUILayout.Slider("Segment Width", _segmentWidth, 0.005f, 0.11f);
+			var segWidth = EditorGUILayout.Slider("Weight", _segmentWidth, 0.005f, 0.11f);
 			if (segWidth != _segmentWidth) {
-				_mb.SegmentWidth = segWidth;
+				foreach (var mb in _mbs) {
+					mb.SegmentWidth = segWidth;
+				}
 			}
 
 			var ar = EditorGUILayout.Slider("Width", _mb.AspectRatio, 0.1f, 3f);
 			if (ar != _mb.AspectRatio) {
-				_mb.AspectRatio = ar;
-				_mb.RegenerateMesh();
+				foreach (var mb in _mbs) {
+					mb.AspectRatio = ar;
+					mb.RegenerateMesh();
+				}
 			}
 
 			_mb.OuterPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
@@ -97,11 +106,13 @@ namespace VisualPinball.Unity.Editor
 
 			} else {
 				go.transform.localPosition = new Vector3(0f, 0.36f, 1.1f);
-				go.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+				go.transform.localScale = new Vector3(GameObjectScale, GameObjectScale, GameObjectScale);
 			}
 
 			var display = go.AddComponent<SegDisplayAuthoring>();
 			display.UpdateDimensions(6, 1);
 		}
+
+
 	}
 }

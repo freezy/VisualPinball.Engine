@@ -44,8 +44,9 @@ namespace VisualPinball.Unity
 
 		protected abstract Material CreateMaterial();
 		protected abstract float MeshWidth { get; }
-		protected abstract float MeshHeight { get; }
+		public abstract float MeshHeight { get; }
 		protected abstract float MeshDepth { get; }
+		public abstract float AspectRatio { get; set; }
 
 		public void RegenerateMesh()
 		{

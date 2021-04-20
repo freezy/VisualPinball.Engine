@@ -30,9 +30,13 @@ namespace VisualPinball.Unity
 	{
 		public override string Id { get => _id; set => _id = value; }
 		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
+		public override float AspectRatio {
+			get => (float)Width / Height;
+			set => Width = (int)(Height * value);
+		}
 
-		protected override float MeshWidth => (float)Width / Height * MeshHeight;
-		protected override float MeshHeight => 0.4f;
+		protected override float MeshWidth => AspectRatio * MeshHeight;
+		public override float MeshHeight => 0.4f;
 		protected override float MeshDepth => 0.01f;
 
 		[SerializeField] private string _id = "dmd0";

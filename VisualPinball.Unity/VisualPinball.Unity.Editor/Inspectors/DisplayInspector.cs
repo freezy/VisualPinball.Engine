@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
@@ -22,18 +23,25 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DisplayAuthoring)), CanEditMultipleObjects]
 	public class DisplayInspector : UnityEditor.Editor
 	{
+		public const float GameObjectScale = 0.5f;
+
 		private DisplayAuthoring _mb;
+		private DisplayAuthoring[] _mbs;
+
 
 		protected void OnEnable()
 		{
 			_mb = target as DisplayAuthoring;
+			_mbs = targets.Select(t => t as DisplayAuthoring).ToArray();
 		}
 
 		public override void OnInspectorGUI()
 		{
 			var color = EditorGUILayout.ColorField("Color", _mb.Color);
 			if (color != _mb.Color) {
-				_mb.UpdateColor(color);
+				foreach (var mb in _mbs) {
+					mb.UpdateColor(color);
+				}
 			}
 		}
 	}
