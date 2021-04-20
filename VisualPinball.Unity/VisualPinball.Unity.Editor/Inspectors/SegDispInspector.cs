@@ -79,8 +79,19 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			_mb.OuterPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
-			_mb.InnerPadding = EditorGUILayout.Vector2Field("Inner Padding", _mb.InnerPadding);
+			var innerPadding = EditorGUILayout.Vector2Field("Inner Padding", _mb.InnerPadding);
+			if (innerPadding.x != _mb.InnerPadding.x || innerPadding.y != _mb.InnerPadding.y) {
+				foreach (var mb in _mbs) {
+					mb.InnerPadding = innerPadding;
+				}
+			}
+
+			var outerPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
+			if (outerPadding.x != _mb.OuterPadding.x || outerPadding.y != _mb.OuterPadding.y) {
+				foreach (var mb in _mbs) {
+					mb.OuterPadding = outerPadding;
+				}
+			}
 
 			var text = EditorGUILayout.TextField("Test Text", _testText);
 			if (text != _testText) {
