@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using NLog;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
-using Object = System.Object;
 
 namespace VisualPinball.Unity
 {
@@ -32,18 +32,19 @@ namespace VisualPinball.Unity
 	{
 		public override string Id { get => _id; set => _id = value;}
 
-		public float AspectRatio = 0.8f;
+		public override float AspectRatio { get; set; } = 0.8f;
 
 		private const int NumSegments = 15;
 
 		protected override float MeshWidth => NumChars * MeshHeight * AspectRatio;
-		protected override float MeshHeight => 0.2f;
+		public override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
+
 
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
 		[SerializeField] private int _numLines = 1;
-		[SerializeField] private Color _color = Color.yellow;
+		[SerializeField] private Color _color = new Color(1, 0.4f, 0);
 		[SerializeField] private float _skewAngle = -0.02f;
 		[SerializeField] private float _segmentWidth = 0.07f;
 		[SerializeField] private float2 _outerPadding = new float2(0.2f, 0.1f);
