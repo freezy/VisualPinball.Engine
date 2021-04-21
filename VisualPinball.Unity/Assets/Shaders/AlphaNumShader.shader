@@ -4,16 +4,16 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 
-		_SegmentType ("Segment Type", Int) = 0
-
-		_Color ("Color", Color) = (1.0, 0.9, 0, 1.0)
-		_SegmentWidth ("Weight", Float) = 0.07
 		_NumChars ("Num Chars", Float) = 7
+		_SegmentType ("Segment Type", Int) = 0
 		_NumSegments ("Segments", Float) = 16
+
+		_Color ("Color", Color) = (1.0, 0.4, 0, 1.0)
+		_SegmentWidth ("Weight", Float) = 0.07
 		_SkewAngle ("Skew Angle", Float) = 0.2
 
-		_InnerPaddingX ("Inner Padding X", Float) = 0.5
-		_InnerPaddingY ("Inner Padding Y", Float) = 0.4
+		_InnerPaddingX ("Inner Padding X", Float) = 0.4
+		_InnerPaddingY ("Inner Padding Y", Float) = 0.15
 	}
 
 	SubShader
@@ -87,20 +87,6 @@
 
 			static float2 innerPadding = float2(_InnerPaddingX, _InnerPaddingY);
 
-			/*
-			static float2 cellSize = float2(
-				1. / _NumChars + innerPadding.x,
-				1. / 1 * 2. + _SegmentWidth * 2.
-			);
-			*/
-
-			/*
-			static float2 originPos = float2(
-				-.5 + cellSize.x / 2. - innerPadding.x / 2. + outerPadding.x,
-				_SegmentWidth + outerPadding.y
-			);
-			*/
-
 			v2f vert (appdata v)
 			{
 				v2f o;
@@ -150,9 +136,7 @@
 
 			float Rounder2(float x, float y)
 			{
-
 				float d = y;
-
 				if (d < SharpEdge && x > y) {
 					float a = x - y;
 					float b = SharpEdge - x;
@@ -281,7 +265,6 @@
 				);
 			}
 
-
 			float3 Combine(float3 accu, float val, bool showSeg)
 			{
 				float lev = (showSeg ? 1. : 0.) * (On - Off) + Off;
@@ -376,39 +359,18 @@
 				return r;
 			}
 
-
 			static float2 cellSize = float2(
 				1. / _NumChars,
 				2. + _SegmentWidth * 2.
 			);
-
 
 			static float2 originPos = float2(
 				-.5 + cellSize.x / 2.,
 				_SegmentWidth
 			);
 
-
 			fixed4 frag(v2f i) : SV_Target
 			{
-				/*
-				float2 uv = float2(
-					(i.uv.x * (1. + (_NumChars - 1.) * innerPadding.x + 4.0 * outerPadding.x) - 0.5 - outerPadding.x),
-					((i.uv.y * 2.) * (1. + _SegmentWidth + 2. * outerPadding.y) - 1. - outerPadding.y)
-				);*/
-
-/*
-				float2 uv = float2(
-					(i.uv.x * (1. + (_NumChars - 1.) * innerPadding.x) - 0.5),
-					((i.uv.y * 2.) * (1. + _SegmentWidth) - 1.)
-				);
-
-				float2 uv = float2(
-					i.uv.x - 0.5,
-					(i.uv.y * 2.) * (1. + _SegmentWidth) - 1.
-				);
-*/
-
 				float2 uv = float2(
 					i.uv.x - 0.5,
 					(i.uv.y * 2.) * (1. + _SegmentWidth) - 1.
@@ -417,13 +379,11 @@
 				float2 pos = originPos;
 				float3 d = (0.);
 
-				int charIndex = 0;
-				float2 f = float2(_NumChars * (1. + innerPadding.x), 1.);
+				float2 f = float2(_NumChars * (1. + innerPadding.x + _SegmentWidth * 2.), 1. + innerPadding.y);
 				for (int character = 0; character < _NumChars; character++) {
 
-					d += SegDisp(charIndex, (uv - pos) * f);
+					d += SegDisp(character, (uv - pos) * f);
 					pos.x += cellSize.x;
-					charIndex++;
 
 					if (character >= _NumChars - 1.) {
 						break;
