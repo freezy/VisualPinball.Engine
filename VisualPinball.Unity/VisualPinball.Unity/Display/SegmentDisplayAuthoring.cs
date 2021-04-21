@@ -42,8 +42,8 @@ namespace VisualPinball.Unity
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
 		[SerializeField] private Color _color = new Color(1, 0.4f, 0);
-		[SerializeField] private float _skewAngle = math.radians(10);
-		[SerializeField] private float _segmentWidth = 0.07f;
+		[SerializeField] private float _skewAngle = math.radians(7);
+		[SerializeField] private float _segmentWidth = 0.05f;
 		[SerializeField] private float2 _innerPadding = new float2(0.4f, 0.15f);
 		[SerializeField] private float _segmentType;
 
