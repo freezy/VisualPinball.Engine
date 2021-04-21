@@ -1,4 +1,4 @@
-﻿Shader "Visual Pinball/Alphanumeric Shader"
+﻿Shader "Visual Pinball/Segment Display Shader"
 {
 	Properties
 	{
@@ -350,7 +350,7 @@
 			float3 SegDisp(int charIndex, float2 p)
 			{
 				float3 r = (0.);
-				p.x -= p.y * _SkewAngle;
+				p.x -= p.y * -_SkewAngle;
 				switch (_SegmentType) {
 					case 0: return SegDisp15(charIndex, p, r);
 					case 2: return SegDisp10(charIndex, p, r);
