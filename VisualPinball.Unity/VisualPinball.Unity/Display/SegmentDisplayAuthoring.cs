@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	{
 		public override string Id { get => _id; set => _id = value;}
 
-		public override float AspectRatio { get; set; } = 0.8f;
+		public override float AspectRatio { get; set; } = 0.7f;
 
 		private const int NumSegments = 15;
 
