@@ -21,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using NLog;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
 
@@ -40,14 +39,13 @@ namespace VisualPinball.Unity
 		public override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
 
-
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
 		[SerializeField] private Color _color = new Color(1, 0.4f, 0);
-		[SerializeField] private float _skewAngle = -0.02f;
+		[SerializeField] private float _skewAngle = math.radians(10);
 		[SerializeField] private float _segmentWidth = 0.07f;
-		[SerializeField] private float2 _innerPadding = new float2(0.5f, 0.4f);
-		[SerializeField] private float _segmentType = 0f;
+		[SerializeField] private float2 _innerPadding = new float2(0.4f, 0.15f);
+		[SerializeField] private float _segmentType;
 
 		[NonSerialized] private bool _isInitialized;
 		[NonSerialized] private Color32[] _colorBuffer;
