@@ -17,6 +17,7 @@
 // ReSharper disable CheckNamespace
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using System;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
@@ -28,8 +29,8 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SegDisplayAuthoring))]
 	public class SegDispInspector : DisplayInspector
 	{
-		private SegDisplayAuthoring _mb;
-		private SegDisplayAuthoring[] _mbs;
+		[NonSerialized] private SegDisplayAuthoring _mb;
+		[NonSerialized] private SegDisplayAuthoring[] _mbs;
 
 		private float _skewAngleDeg;
 		private float _segmentWidth;
@@ -83,13 +84,6 @@ namespace VisualPinball.Unity.Editor
 			if (innerPadding.x != _mb.InnerPadding.x || innerPadding.y != _mb.InnerPadding.y) {
 				foreach (var mb in _mbs) {
 					mb.InnerPadding = innerPadding;
-				}
-			}
-
-			var outerPadding = EditorGUILayout.Vector2Field("Outer Padding", _mb.OuterPadding);
-			if (outerPadding.x != _mb.OuterPadding.x || outerPadding.y != _mb.OuterPadding.y) {
-				foreach (var mb in _mbs) {
-					mb.OuterPadding = outerPadding;
 				}
 			}
 
