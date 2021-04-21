@@ -9,7 +9,7 @@
 		_NumSegments ("Segments", Float) = 16
 
 		_Color ("Color", Color) = (1.0, 0.4, 0, 1.0)
-		_SegmentWidth ("Weight", Float) = 0.07
+		_SegmentWidth ("Weight", Float) = 0.05
 		_SkewAngle ("Skew Angle", Float) = 0.2
 
 		_InnerPaddingX ("Inner Padding X", Float) = 0.4
@@ -56,7 +56,7 @@
 			float _InnerPaddingX;
 			float _InnerPaddingY;
 
-			static float SegmentGap = _SegmentWidth * 1.2;
+			static float SegmentGap = _SegmentWidth * 1.5;
 
 			static float EdgeBlur = 0.1; // used to remove aliasing
 			static float SharpEdge = 0.7;
@@ -219,7 +219,7 @@
 				float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
 
 				return Rounder(
-					1 - intersectP.y / (_SegmentWidth * 3.0),
+					1 - intersectP.y / (_SegmentWidth * 4.0),
 					xl * xr,
 					(yd * yu) / SegmentGap * 0.5 - 4.0
 				);
@@ -239,7 +239,7 @@
 				float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
 
 				return Rounder(
-					1 - intersectP.y / (_SegmentWidth * 3.0),
+					1 - intersectP.y / (_SegmentWidth * 4.0),
 					xl * xr,
 					(yd * yu) / SegmentGap * 0.5 - 4.0
 				);

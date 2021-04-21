@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
-			_skewAngleDeg = -math.degrees(_mb.SkewAngle);
+			_skewAngleDeg = math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
 			base.OnEnable();
 		}
@@ -70,6 +70,7 @@ namespace VisualPinball.Unity.Editor
 				foreach (var mb in _mbs) {
 					mb.SegmentWidth = segWidth;
 				}
+				_segmentWidth = segWidth;
 			}
 
 			var ar = EditorGUILayout.Slider("Width", _mb.AspectRatio, 0.1f, 3f);
