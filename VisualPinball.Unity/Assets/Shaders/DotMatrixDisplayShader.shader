@@ -1,4 +1,4 @@
-﻿Shader "Visual Pinball/DMD Shader"
+﻿Shader "Visual Pinball/Dot Matrix Display Shader"
 {
 	Properties
 	{

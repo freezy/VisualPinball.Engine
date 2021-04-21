@@ -26,11 +26,11 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	[CanEditMultipleObjects]
-	[CustomEditor(typeof(SegDisplayAuthoring))]
+	[CustomEditor(typeof(SegmentDisplayAuthoring))]
 	public class SegDispInspector : DisplayInspector
 	{
-		[NonSerialized] private SegDisplayAuthoring _mb;
-		[NonSerialized] private SegDisplayAuthoring[] _mbs;
+		[NonSerialized] private SegmentDisplayAuthoring _mb;
+		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
 
 		private float _skewAngleDeg;
 		private float _segmentWidth;
@@ -38,8 +38,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_mb = target as SegDisplayAuthoring;
-			_mbs = targets.Select(t => t as SegDisplayAuthoring).ToArray();
+			_mb = target as SegmentDisplayAuthoring;
+			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
 			_skewAngleDeg = -math.degrees(_mb.SkewAngle);
 			_segmentWidth = _mb.SegmentWidth;
 			base.OnEnable();
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 			var skewAngleDeg = EditorGUILayout.Slider("Skew Angle", _skewAngleDeg, -45f, 45f);
 			if (skewAngleDeg != _skewAngleDeg) {
 				foreach (var mb in _mbs) {
-					mb.SkewAngle = -math.radians(skewAngleDeg);
+					mb.SkewAngle = math.radians(skewAngleDeg);
 				}
 				_skewAngleDeg = skewAngleDeg;
 			}
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (GUILayout.Button("Test Alphanum")) {
 				// ReSharper disable once PossibleNullReferenceException
-				(target as SegDisplayAuthoring).SetTestData();
+				(target as SegmentDisplayAuthoring).SetTestData();
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 				go.transform.localScale = new Vector3(GameObjectScale, GameObjectScale, GameObjectScale);
 			}
 
-			var display = go.AddComponent<SegDisplayAuthoring>();
+			var display = go.AddComponent<SegmentDisplayAuthoring>();
 			display.UpdateDimensions(6, 1);
 		}
 
