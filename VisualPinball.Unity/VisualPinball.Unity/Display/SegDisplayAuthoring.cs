@@ -43,11 +43,9 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
-		[SerializeField] private int _numLines = 1;
 		[SerializeField] private Color _color = new Color(1, 0.4f, 0);
 		[SerializeField] private float _skewAngle = -0.02f;
 		[SerializeField] private float _segmentWidth = 0.07f;
-		[SerializeField] private float2 _outerPadding = new float2(0.2f, 0.1f);
 		[SerializeField] private float2 _innerPadding = new float2(0.5f, 0.4f);
 		[SerializeField] private float _segmentType = 0f;
 
@@ -59,14 +57,9 @@ namespace VisualPinball.Unity
 		#region Shader Prop Constants
 
 		private static readonly int NumCharsProp = Shader.PropertyToID("_NumChars");
-		private static readonly int NumLinesProp = Shader.PropertyToID("_NumLines");
 		private static readonly int NumSegmentsProp = Shader.PropertyToID("_NumSegments");
-		private static readonly int TargetWidthProp = Shader.PropertyToID("_TargetWidth");
-		private static readonly int TargetHeightProp = Shader.PropertyToID("_TargetHeight");
 		private static readonly int SegmentWidthProp = Shader.PropertyToID("_SegmentWidth");
 		private static readonly int SkewAngleProp = Shader.PropertyToID("_SkewAngle");
-		private static readonly int OuterPaddingX = Shader.PropertyToID("_OuterPaddingX");
-		private static readonly int OuterPaddingY = Shader.PropertyToID("_OuterPaddingY");
 		private static readonly int InnerPaddingX = Shader.PropertyToID("_InnerPaddingX");
 		private static readonly int InnerPaddingY = Shader.PropertyToID("_InnerPaddingY");
 		private static readonly int ColorProp = Shader.PropertyToID("_Color");
@@ -84,18 +77,6 @@ namespace VisualPinball.Unity
 					mr.material = CreateMaterial();
 				}
 				_numChars = value;
-				RegenerateMesh();
-			}
-		}
-
-		public int NumLines {
-			get => _numLines;
-			set {
-				_numLines = value;
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr) {
-					mr.material = CreateMaterial();
-				}
 				RegenerateMesh();
 			}
 		}
@@ -133,17 +114,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public float2 OuterPadding {
-			get => _outerPadding;
-			set {
-				_outerPadding = value;
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					mr.material = CreateMaterial();
-				}
-			}
-		}
-
 		public float2 InnerPadding {
 			get => _innerPadding;
 			set {
@@ -163,20 +133,14 @@ namespace VisualPinball.Unity
 
 			material.mainTexture = _texture;
 			material.SetFloat(NumCharsProp, _numChars);
-			material.SetFloat(NumLinesProp, _numLines);
 			material.SetColor(ColorProp, _color);
 			material.SetFloat(SkewAngleProp, _skewAngle);
 			material.SetFloat(SegmentWidthProp, _segmentWidth);
-			material.SetFloat(OuterPaddingX, _outerPadding.x);
-			material.SetFloat(OuterPaddingY, _outerPadding.y);
 			material.SetFloat(InnerPaddingX, _innerPadding.x);
 			material.SetFloat(InnerPaddingY, _innerPadding.y);
 
-			var length = _numChars * MeshHeight * AspectRatio;
 			material.SetFloat(NumSegmentsProp, NumSegments);
 			material.SetFloat(SegmentTypeProp, _segmentType);
-			material.SetFloat(TargetWidthProp, length * 100);
-			material.SetFloat(TargetHeightProp, MeshHeight * 100);
 
 			Logger.Info("Recreating segment display material!");
 

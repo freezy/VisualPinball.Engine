@@ -17,6 +17,7 @@
 // ReSharper disable CheckNamespace
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using System;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DmdAuthoring)), CanEditMultipleObjects]
 	public class DmdInspector : DisplayInspector
 	{
-		private DmdAuthoring _mb;
+		[NonSerialized] private DmdAuthoring _mb;
 
 		private void OnEnable()
 		{
