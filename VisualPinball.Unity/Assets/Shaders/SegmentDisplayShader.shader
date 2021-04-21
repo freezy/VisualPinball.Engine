@@ -63,7 +63,7 @@
 			static float RoundEdge = 0.15;
 
 			static float On = 0.81;
-			static float Off = 0.02;
+			static float Off = 0.05;
 
 			// Static computed vars for optimization
 			static float2 tl = float2(-.5, 1) ; // top    left  corner
@@ -265,6 +265,20 @@
 				);
 			}
 
+			float Circle(float2 _st, float _radius)
+			{
+				float smooth = 2.;
+				_st.x += _st.y * -_SkewAngle; // un-angle
+				_st.x += _SkewAngle * 0.5; // un-angle
+				_st.y *= 0.9; // unstretch
+				float2 dist = _st - float2(0.5, 0.5);
+				return 1. - smoothstep(
+					_radius - (_radius * smooth),
+					_radius + (_radius * smooth),
+					dot(dist, dist) * 4.0
+				);
+			}
+
 			float3 Combine(float3 accu, float val, bool showSeg)
 			{
 				float lev = (showSeg ? 1. : 0.) * (On - Off) + Off;
@@ -303,8 +317,7 @@
 				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
 				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
 				r = Combine(r, MidLine(mr, ml, p), ShowSeg(charIndex, 6));
-				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap),
-				                         dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025), ShowSeg(charIndex, 7));
 				return r;
 			}
 
@@ -317,26 +330,11 @@
 				r = Combine(r, LongLine(bl, ml, p), ShowSeg(charIndex, 4));
 				r = Combine(r, LongLine(ml, tl, p), ShowSeg(charIndex, 5));
 				r = Combine(r, MidLine(mr, ml, p), ShowSeg(charIndex, 6));
-				r = Combine(r, ShortLine(dp - float2(SegmentGap * 0.9, SegmentGap),
-				                         dp - float2(SegmentGap * 1.0, SegmentGap), p), ShowSeg(charIndex, 7));
+				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025), ShowSeg(charIndex, 7));
 				r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(charIndex, 8));
 				r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(charIndex, 9));
 
 				return r;
-			}
-
-			float Circle(float2 _st, float _radius)
-			{
-				float smooth = 2.;
-				_st.x += _st.y * -_SkewAngle; // un-angle
-				_st.x += _SkewAngle * 0.5; // un-angle
-				_st.y *= 0.9; // unstretch
-				float2 dist = _st - float2(0.5, 0.5);
-				return 1. - smoothstep(
-					_radius - (_radius * smooth),
-					_radius + (_radius * smooth),
-					dot(dist, dist) * 4.0
-				);
 			}
 
 			float3 SegDisp15(int charIndex, float2 p, float3 r)
