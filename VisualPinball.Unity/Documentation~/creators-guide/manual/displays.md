@@ -27,6 +27,8 @@ VPE provides two display components, a segment display and a DMD component. Both
 
 Or even more easily, create the game object with the already assigned component by right-clicking in the hierarchy and choosing *Visual Pinball -> Dot Matrix Display*. This will place the display into your scene right behind your playfield.
 
+<img src="display-dmd-inspector.png" width="354" alt="DMD Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+
 Selecting the game object will let you customize it in the inspector, but more importantly, it lets you set the ID that links it to the Gamelogic Engine.
 
 ### Runtime
