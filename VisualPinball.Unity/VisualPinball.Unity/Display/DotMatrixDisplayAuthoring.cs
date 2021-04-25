@@ -120,7 +120,7 @@ namespace VisualPinball.Unity
 
 		protected override Material CreateMaterial()
 		{
-			var material = UnityEngine.Resources.Load<Material>("Materials/DotMatrixDisplay");
+			var material = RenderPipeline.Current.MaterialConverter.DotMatrixDisplay;
 			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);
 			material.SetVector(DimensionsProp, new Vector4(_width, _height));

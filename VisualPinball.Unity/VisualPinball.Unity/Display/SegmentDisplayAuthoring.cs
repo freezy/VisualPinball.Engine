@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 
 		protected override Material CreateMaterial()
 		{
-			var material = Instantiate(UnityEngine.Resources.Load<Material>("Materials/SegmentDisplay"));
+			var material = Instantiate(RenderPipeline.Current.MaterialConverter.SegmentDisplay);
 
 			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);

@@ -18,11 +18,15 @@ using System;
 using System.Text;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity
 {
 	public class StandardMaterialConverter : IMaterialConverter
 	{
+		public Material DotMatrixDisplay => UnityEngine.Resources.Load<Material>("Materials/DotMatrixDisplayBuiltin");
+		public Material SegmentDisplay => UnityEngine.Resources.Load<Material>("Materials/SegmentDisplayBuiltin");
+
 		#region Shader Properties
 
 		private static readonly int BaseColor = Shader.PropertyToID("_Color");
@@ -49,27 +53,25 @@ namespace VisualPinball.Unity
 				: GetShader();
 		}
 
-		public static UnityEngine.Material GetDefaultMaterial(BlendMode blendMode)
+		public static Material GetDefaultMaterial(BlendMode blendMode)
 		{
 			switch (blendMode)
 			{
 				case BlendMode.Opaque:
-					return UnityEngine.Resources.Load<UnityEngine.Material>("Materials/TableOpaque");
+					return UnityEngine.Resources.Load<Material>("Materials/TableOpaque");
 				case BlendMode.Cutout:
-					return UnityEngine.Resources.Load<UnityEngine.Material>("Materials/TableCutout");
+					return UnityEngine.Resources.Load<Material>("Materials/TableCutout");
 				case BlendMode.Translucent:
-					return UnityEngine.Resources.Load<UnityEngine.Material>("Materials/TableTranslucent");
+					return UnityEngine.Resources.Load<Material>("Materials/TableTranslucent");
 				default:
 					throw new ArgumentOutOfRangeException("Undefined blend mode " + blendMode);
 			}
-
 		}
-
-		public UnityEngine.Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null)
+		public Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null)
 		{
-			UnityEngine.Material defaultMaterial = GetDefaultMaterial(vpxMaterial.MapBlendMode);
+			Material defaultMaterial = GetDefaultMaterial(vpxMaterial.MapBlendMode);
 
-			var unityMaterial = new UnityEngine.Material(GetShader(vpxMaterial));
+			var unityMaterial = new Material(GetShader(vpxMaterial));
 			unityMaterial.CopyPropertiesFromMaterial(defaultMaterial);
 			unityMaterial.name = vpxMaterial.Id;
 
