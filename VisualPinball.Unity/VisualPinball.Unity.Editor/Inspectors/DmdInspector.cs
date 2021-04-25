@@ -18,7 +18,6 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
