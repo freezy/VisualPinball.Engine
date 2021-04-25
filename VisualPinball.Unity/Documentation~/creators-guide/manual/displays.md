@@ -15,7 +15,7 @@ VPE supports segment displays as well as dot matrix displays (the latter are als
 
 ## Setup
 
-Displays are lazily bound, meaning it's when the game starts that the Gamelogic Engine announces its displays and VPE connects them to the objects in your scene that actually render them. Matching is done with an ID and depends on how the Gamelogic Engine deals with displays. 
+Displays are lazily bound, meaning it's when the game starts that the gamelogic engine announces its displays and VPE connects them to the objects in your scene that actually render them. Matching is done with an ID and depends on how the gamelogic engine deals with displays. 
 
 For example, in [MPF](../../plugins/mpf/index.md) you name your displays yourself in the machine configuration, while PinMAME uses IDs like `dmd0` and `display0` to identify its DMDs and segment displays.
 
@@ -29,13 +29,13 @@ Or even more easily, create the game object with the already assigned component 
 
 <img src="display-dmd-inspector.png" width="354" alt="DMD Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-Selecting the game object will let you customize it in the inspector, but more importantly, it lets you set the ID that links it to the Gamelogic Engine.
+Selecting the game object will let you customize it in the inspector, but more importantly, it lets you set the ID that links it to the gamelogic engine.
 
 ### Runtime
 
 You've noticed that the inspector lets you customize parameters like DMD resolution or number of segment columns in the editor that affected the geometry of the display. This is useful, because it allows you to see the correct geometry without running the game and place the display where it fits in the scene.
 
-However, during runtime, these parameters are provided by the Gamelogic Engine and the displays are reconfigured as soon as they are received. This means that if you've set the wrong number of chars in your segment display, it will be resized and look differently than in the editor.
+However, during runtime, these parameters are provided by the gamelogic engine and the displays are reconfigured as soon as they are received. This means that if you've set the wrong number of chars in your segment display, it will be resized and look differently than in the editor.
 
 > [!note]
 > There are additional settings that don't affect geometry that aren't configurable in the editor but will be automatically set during gameplay, such as number of segments per column.
