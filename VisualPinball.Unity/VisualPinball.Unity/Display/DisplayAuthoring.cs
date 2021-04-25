@@ -26,7 +26,8 @@ namespace VisualPinball.Unity
 	public abstract class DisplayAuthoring : MonoBehaviour
 	{
 		public abstract string Id { get; set; }
-		public abstract Color Color { get; set; }
+		public abstract Color LitColor { get; set; }
+		public abstract Color UnlitColor { get; set; }
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -38,7 +39,7 @@ namespace VisualPinball.Unity
 
 		public virtual void UpdateColor(Color color)
 		{
-			Color = color;
+			LitColor = color;
 		}
 
 		protected abstract Material CreateMaterial();
