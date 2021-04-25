@@ -48,7 +48,6 @@ namespace VisualPinball.Unity
 		[SerializeField] private float2 _innerPadding = new float2(0.4f, 0.15f);
 		[SerializeField] private int _segmentType;
 
-		[NonSerialized] private bool _isInitialized;
 		[NonSerialized] private Color32[] _colorBuffer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
