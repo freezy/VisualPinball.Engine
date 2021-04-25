@@ -28,6 +28,16 @@ namespace VisualPinball.Unity
 	public interface IMaterialConverter
 	{
 		/// <summary>
+		/// Loads the material used for the dot matrix display.
+		/// </summary>
+		Material DotMatrixDisplay { get; }
+
+		/// <summary>
+		/// Loads the material for the segment display.
+		/// </summary>
+		Material SegmentDisplay { get; }
+
+		/// <summary>
 		/// Create a material for the currently detected graphics pipeline.
 		/// </summary>
 		/// <param name="vpxMaterial"></param>
@@ -36,6 +46,5 @@ namespace VisualPinball.Unity
 		/// <param name="debug"></param>
 		/// <returns></returns>
 		Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null);
-
 	}
 }
