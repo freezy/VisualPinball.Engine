@@ -29,8 +29,6 @@ namespace VisualPinball.Unity
 	public class DmdAuthoring : DisplayAuthoring
 	{
 		public override string Id { get => _id; set => _id = value; }
-		public override Color LitColor { get; set; } = new Color(1, 0.18f, 0);
-		public override Color UnlitColor { get; set; } = new Color(0.2f, 0.2f, 0.2f);
 		public override float AspectRatio {
 			get => (float)Width / Height;
 			set => Width = (int)(Height * value);
@@ -41,9 +39,13 @@ namespace VisualPinball.Unity
 		protected override float MeshDepth => 0.01f;
 
 		[SerializeField] private string _id = "dmd0";
+		[SerializeField] private Color _litColor = new Color(1, 0.18f, 0);
+		[SerializeField] private Color _unlitColor = new Color(0.2f, 0.2f, 0.2f);
 		[SerializeField] private int _width = 128;
 		[SerializeField] private int _height = 32;
+		[SerializeField] private float _dotSize = 1.7f;
 
+		[NonSerialized] private DisplayFrameFormat _frameFormat = DisplayFrameFormat.Dmd4;
 		[NonSerialized] private Color32[] _colorBuffer;
 
 		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>>();
@@ -52,7 +54,7 @@ namespace VisualPinball.Unity
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
 		private static readonly int DataProp = Shader.PropertyToID("__Data");
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
-		private static readonly int DotSize = Shader.PropertyToID("__DotSize");
+		private static readonly int DotSizeProp = Shader.PropertyToID("__DotSize2");
 
 		public int Width
 		{
@@ -66,12 +68,47 @@ namespace VisualPinball.Unity
 			set => UpdateDimensions(_width, value);
 		}
 
+		public override Color LitColor
+		{
+			get => _litColor;
+			set {
+				_litColor = value;
+				UpdatePalette(_frameFormat);
+			}
+		}
+
+		public override Color UnlitColor
+		{
+			get => _unlitColor;
+			set {
+				_unlitColor = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material = CreateMaterial();
+				}
+			}
+		}
+
+		public float DotSize
+		{
+			get => _dotSize;
+			set {
+				_dotSize = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material = CreateMaterial();
+				}
+			}
+		}
+
 		public override void UpdateDimensions(int width, int height)
 		{
 			_width = width;
 			_height = height;
-			_texture = new Texture2D(width, height);
 			_colorBuffer = new Color32[width * height];
+			_texture = new Texture2D(width, height);
+			_texture.SetPixels32(_colorBuffer);
+			_texture.Apply();
 			RegenerateMesh();
 		}
 
@@ -87,6 +124,8 @@ namespace VisualPinball.Unity
 			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);
 			material.SetVector(DimensionsProp, new Vector4(_width, _height));
+			material.SetColor(UnlitColorProp, _unlitColor);
+			material.SetFloat(DotSizeProp, _dotSize);
 			return material;
 		}
 
@@ -103,6 +142,7 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Dmd8:
 					if (!_map.ContainsKey(format)) {
 						UpdatePalette(format);
+						_frameFormat = format;
 					}
 					var map = _map[format];
 					if (frame.Length == _width * _height) {
@@ -175,7 +215,7 @@ namespace VisualPinball.Unity
 			}
 
 			for (var i = 0; i < numColors; i++) {
-				_map[format].Add((byte)i, Color.Lerp(Color.black, LitColor, i * (1f / (numColors - 1))));
+				_map[format].Add((byte)i, Color.Lerp(Color.black, _litColor, i * (1f / (numColors - 1))));
 			}
 		}
 	}
