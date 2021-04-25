@@ -29,7 +29,8 @@ namespace VisualPinball.Unity
 	public class DmdAuthoring : DisplayAuthoring
 	{
 		public override string Id { get => _id; set => _id = value; }
-		public override Color Color { get; set; } = new Color(1, 0.18f, 0);
+		public override Color LitColor { get; set; } = new Color(1, 0.18f, 0);
+		public override Color UnlitColor { get; set; } = new Color(0.2f, 0.2f, 0.2f);
 		public override float AspectRatio {
 			get => (float)Width / Height;
 			set => Width = (int)(Height * value);
@@ -143,7 +144,7 @@ namespace VisualPinball.Unity
 			} else {
 				_map[format].Clear();
 			}
-			Logger.Info($"Regenerating palette for format {format} and color {Color}.");
+			Logger.Info($"Regenerating palette for format {format} and color {LitColor}.");
 
 			var numColors = 0;
 			switch (format) {
@@ -168,7 +169,7 @@ namespace VisualPinball.Unity
 			}
 
 			for (var i = 0; i < numColors; i++) {
-				_map[format].Add((byte)i, Color.Lerp(Color.black, Color, i * (1f / (numColors - 1))));
+				_map[format].Add((byte)i, Color.Lerp(Color.black, LitColor, i * (1f / (numColors - 1))));
 			}
 		}
 	}

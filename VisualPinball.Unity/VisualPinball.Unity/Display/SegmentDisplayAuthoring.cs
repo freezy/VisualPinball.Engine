@@ -41,11 +41,12 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
-		[SerializeField] private Color _color = new Color(1, 0.4f, 0);
+		[SerializeField] private Color _litColor = new Color(1, 0.4f, 0);
+		[SerializeField] private Color _unlitColor = new Color(0.25f, 0.25f, 0.25f);
 		[SerializeField] private float _skewAngle = math.radians(7);
 		[SerializeField] private float _segmentWidth = 0.05f;
 		[SerializeField] private float2 _innerPadding = new float2(0.4f, 0.15f);
-		[SerializeField] private float _segmentType;
+		[SerializeField] private int _segmentType;
 
 		[NonSerialized] private bool _isInitialized;
 		[NonSerialized] private Color32[] _colorBuffer;
@@ -80,10 +81,21 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override Color Color {
-			get => _color;
+		public override Color LitColor {
+			get => _litColor;
 			set {
-				_color = value;
+				_litColor = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr) {
+					mr.material = CreateMaterial();
+				}
+			}
+		}
+
+		public override Color UnlitColor {
+			get => _unlitColor;
+			set {
+				_unlitColor = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
 					mr.material = CreateMaterial();
@@ -130,9 +142,11 @@ namespace VisualPinball.Unity
 		{
 			var material = Instantiate(UnityEngine.Resources.Load<Material>("Materials/SegmentDisplay"));
 
+			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);
 			material.SetFloat(NumCharsProp, _numChars);
-			material.SetColor(LitColorProp, _color);
+			material.SetColor(LitColorProp, _litColor);
+			material.SetColor(UnlitColorProp, _unlitColor);
 			material.SetFloat(SkewAngleProp, _skewAngle);
 			material.SetFloat(SegmentWeightProp, _segmentWidth);
 			material.SetVector(PaddingProp, new Vector4(_innerPadding.x, _innerPadding.y));
@@ -147,27 +161,29 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			if (!_isInitialized) {
-				_isInitialized = true;
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				switch (format) {
-					case DisplayFrameFormat.Segment7:
-						_segmentType = 4;
-						mr.material = CreateMaterial();
-						break;
-					case DisplayFrameFormat.Segment16:
-						_segmentType = 0;
-						mr.material = CreateMaterial();
-						break;
-					default:
-						Logger.Error($"Invalid data format, must be segment data, got {format}.");
-						return;
-				}
+			var shaderSegmentType = ConvertSegmentType(format);
+			if (shaderSegmentType != _segmentType) {
+				_segmentType = shaderSegmentType;
+				gameObject.GetComponent<MeshRenderer>().material = CreateMaterial();
 			}
 
 			var target = new ushort[source.Length / 2];
 			Buffer.BlockCopy(source, 0, target, 0, source.Length);
 			UpdateFrame(target);
+		}
+
+		private int ConvertSegmentType(DisplayFrameFormat format)
+		{
+			switch (format) {
+				case DisplayFrameFormat.Segment7:
+					return 4;
+				case DisplayFrameFormat.Segment16:
+					return 0;
+				default:
+					Logger.Error($"Invalid data format, must be segment data, got {format}.");
+					break;
+			}
+			return 0;
 		}
 
 		public override void UpdateDimensions(int width, int height)
@@ -180,12 +196,13 @@ namespace VisualPinball.Unity
 		public void SetText(string text)
 		{
 			var source = GenerateAlphaNumeric(text);
-			var target = new byte[source.Length * 2];
-			Buffer.BlockCopy(source, 0, target, 0, source.Length * 2);
+			var target = new byte[_numChars * 2];
+			Buffer.BlockCopy(source, 0, target, 0, math.min(source.Length, _numChars) * 2);
 
-			UpdateDimensions(math.max(1, text.Length), 1);
-			//UpdateFrame(DisplayFrameFormat.Segment, target);
-			UpdateFrame(source);
+			if (_colorBuffer == null) {
+				UpdateDimensions(_numChars, 1);
+			}
+			UpdateFrame(DisplayFrameFormat.Segment16, target);
 		}
 
 		public void SetTestData()
