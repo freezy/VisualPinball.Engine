@@ -49,6 +49,11 @@ namespace VisualPinball.Unity.Editor
 			if (height != _mb.Height) {
 				_mb.Height = height;
 			}
+
+			var dotSize = EditorGUILayout.Slider("Dot Size", _mb.DotSize, 0.1f, 5.0f);
+			if (dotSize != _mb.DotSize) {
+				_mb.DotSize = dotSize;
+			}
 		}
 
 		[MenuItem("GameObject/Visual Pinball/Dot Matrix Display", false, 12)]
@@ -68,13 +73,6 @@ namespace VisualPinball.Unity.Editor
 
 			var dmd = go.AddComponent<DmdAuthoring>();
 			dmd.UpdateDimensions(128, 32);
-
-			// var mr = go.GetComponent<MeshRenderer>();
-			// if (mr != null) {
-			// 	mr.material.mainTexture = _texture;
-			// 	mr.material.SetFloat(ShaderDmdWidth, width);
-			// 	mr.material.SetFloat(ShaderDmdHeight, height);
-			// }
 
 		}
 	}

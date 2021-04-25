@@ -127,7 +127,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - __Data:
-        m_Texture: {fileID: 2800000, guid: a1ce5429ec1062b479416ab08326d360, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - __SegmentData:
@@ -290,8 +290,8 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
-    - __Dimensions: {r: 128, g: 32, b: 0, a: 0}
+    - __Dimensions: {r: 34, g: 7, b: 0, a: 0}
     - __LitColor: {r: 1, g: 0.39999998, b: 0, a: 0}
     - __Padding: {r: 0.3, g: 0.5, b: 0, a: 0}
-    - __UnlitColor: {r: 0.2, g: 0.2, b: 0.2, a: 0}
+    - __UnlitColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []

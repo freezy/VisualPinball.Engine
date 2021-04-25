@@ -309,8 +309,8 @@
     },
     "m_FragmentContext": {
         "m_Position": {
-            "x": 258.66668701171877,
-            "y": -659.9999389648438
+            "x": 257.9999084472656,
+            "y": -692.6666259765625
         },
         "m_Blocks": [
             {
@@ -577,17 +577,17 @@
     },
     "m_Name": "DotSize",
     "m_DefaultReferenceName": "Vector1_3ebae42385484fdab87c4c0493f74e5a",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "__DotSize2",
     "m_GeneratePropertyBlock": true,
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
-    "m_Value": 0.33000001311302187,
+    "m_Value": 0.4000000059604645,
     "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.10000000149011612,
-        "y": 2.0
+        "y": 3.0
     }
 }
 
@@ -1357,7 +1357,7 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": -921.3333129882813,
-            "y": -471.3332824707031,
+            "y": -471.9999694824219,
             "width": 118.0,
             "height": 34.0
         }
