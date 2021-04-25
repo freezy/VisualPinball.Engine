@@ -308,7 +308,7 @@ float3 SegDisp(UnityTexture2D data, int charIndex, float2 p)
 }
 
 void SegmentDisplay_float(float2 coords, UnityTexture2D data, float segmentType, float numChars,
-	float numSegments, float segmentWidth, float skewAngle, float2 innerPadding, out float output)
+	float numSegments, float segmentWidth, float skewAngle, float2 padding, out float output)
 {
 	_SegmentWidth = segmentWidth;
 	_SegmentType = segmentType;
@@ -316,38 +316,35 @@ void SegmentDisplay_float(float2 coords, UnityTexture2D data, float segmentType,
 	_NumSegments = numSegments;
 	_SkewAngle = skewAngle;
 
-	SegmentGap = _SegmentWidth * 1.5;
-	dtl = tl + float2(0.0, -_SegmentWidth);
-	dtr = tr + float2(0.0, -_SegmentWidth);
-	dtm = mm + float2(0.0, _SegmentWidth);
-	dbm = mm + float2(0.0, -_SegmentWidth);
-	dbl = bl + float2(0.0, _SegmentWidth);
-	dbr = br + float2(0.0, _SegmentWidth);
-	dp = br + float2(_SegmentWidth * 4.0, SegmentGap);
+	SegmentGap = segmentWidth * 1.5;
+	dtl = tl + float2(0.0, -segmentWidth);
+	dtr = tr + float2(0.0, -segmentWidth);
+	dtm = mm + float2(0.0, segmentWidth);
+	dbm = mm + float2(0.0, -segmentWidth);
+	dbl = bl + float2(0.0, segmentWidth);
+	dbr = br + float2(0.0, segmentWidth);
+	dp = br + float2(segmentWidth * 4.0, SegmentGap);
 
-	float2 cellSize = float2(
-				1. / _NumChars,
-				2. + _SegmentWidth * 2.
-			);
+	float cellWidth = 1. / _NumChars;
 
 	float2 originPos = float2(
-		-.5 + cellSize.x / 2.,
-		_SegmentWidth
+		-.5 + cellWidth / 2.,
+		0
 	);
 
 	float2 uv = float2(
 		coords.x - 0.5,
-		-((coords.y * 2.) * (1. + _SegmentWidth) - 1.)
+		1 - (coords.y * 2.)
 	);
 
 	float2 pos = originPos;
 	float3 d = (0.);
 
-	float2 f = float2(numChars * (1. + innerPadding.x + segmentWidth * 2.), 1. + innerPadding.y);
+	float2 f = float2(numChars * (1. + padding.x + segmentWidth * 2.), 1. + (padding.y + segmentWidth));
 	for (int character = 0; character < numChars; character++) {
 
 		d += SegDisp(data, character, (uv - pos) * f);
-		pos.x += cellSize.x;
+		pos.x += cellWidth;
 
 		if (character >= numChars - 1.) {
 			break;

@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable CheckNamespace
 
-using System;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -110,7 +109,7 @@ namespace VisualPinball.Unity
 				uv00, uv00, uv00, uv00, // Bottom
 				uv00, uv00, uv00, uv00, // Left
 				uv10, uv00, uv00, uv00, // Back
-				uv10, uv00, uv01, uv11, // Front
+				uv11, uv01, uv00, uv10, // Front
 				uv00, uv00, uv00, uv00, // Right
 				uv00, uv00, uv00, uv00  // Top
 			};

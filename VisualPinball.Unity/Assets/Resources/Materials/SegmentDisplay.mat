@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SegmentDisplayShaderMaterial
+  m_Name: SegmentDisplay
   m_Shader: {fileID: -6465566751694194690, guid: d54eb986991300e419411008eb1f597d, type: 3}
   m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 4
@@ -95,6 +95,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SegmentDisplayCustomFunction_0563660bc71f4f08a7f5351963cc7f5f_SegmentData_2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -254,6 +258,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - Color_754dade2513142578632eb55adb8f59b: {r: 1, g: 0.36865607, b: 0, a: 0}
+    - Color_a1cf9b5e0df34a8c907984367d220f54: {r: 0.25471696, g: 0.25471696, b: 0.25471696, a: 0}
     - Vector2_59fda9737b9e42259b122fbd66ccd94d: {r: 0.7, g: 0.28, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
