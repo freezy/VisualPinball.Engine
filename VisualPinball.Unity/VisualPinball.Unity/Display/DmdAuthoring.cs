@@ -44,11 +44,15 @@ namespace VisualPinball.Unity
 		[SerializeField] private int _width = 128;
 		[SerializeField] private int _height = 32;
 
-		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color>>();
+		[NonSerialized] private Color32[] _colorBuffer;
+
+		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly int ShaderDmdWidth = Shader.PropertyToID("_Width");
-		private static readonly int ShaderDmdHeight = Shader.PropertyToID("_Height");
+		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
+		private static readonly int DataProp = Shader.PropertyToID("__Data");
+		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
+		private static readonly int DotSize = Shader.PropertyToID("__DotSize");
 
 		public int Width
 		{
@@ -67,6 +71,7 @@ namespace VisualPinball.Unity
 			_width = width;
 			_height = height;
 			_texture = new Texture2D(width, height);
+			_colorBuffer = new Color32[width * height];
 			RegenerateMesh();
 		}
 
@@ -78,10 +83,10 @@ namespace VisualPinball.Unity
 
 		protected override Material CreateMaterial()
 		{
-			var material = UnityEngine.Resources.Load<Material>("Materials/Dot Matrix Display");
+			var material = UnityEngine.Resources.Load<Material>("Materials/DotMatrixDisplay");
 			material.mainTexture = _texture;
-			material.SetFloat(ShaderDmdWidth, _width);
-			material.SetFloat(ShaderDmdHeight, _height);
+			material.SetTexture(DataProp, _texture);
+			material.SetVector(DimensionsProp, new Vector4(_width, _height));
 			return material;
 		}
 
@@ -103,10 +108,11 @@ namespace VisualPinball.Unity
 					if (frame.Length == _width * _height) {
 						for (var y = 0; y < _height; y++) {
 							for (var x = 0; x < _width; x++) {
-								var pixel = frame[y * _width + x];
-								_texture.SetPixel(x, y, map.ContainsKey(pixel) ? map[pixel] : Color.magenta);
+								var pixel = frame[(_height - y - 1) * _width + x];
+								_colorBuffer[y * _width + x] = map.ContainsKey(pixel) ? map[pixel] : (Color32)Color.magenta;
 							}
 						}
+						_texture.SetPixels32(_colorBuffer);
 						_texture.Apply();
 
 					} else {
@@ -129,7 +135,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case DisplayFrameFormat.Segment16:
-					Logger.Error($"This is a DMD component that cannot render segment data. Use a segment component!");
+					Logger.Error("This is a DMD component that cannot render segment data. Use a segment component!");
 					break;
 
 				default:
@@ -140,7 +146,7 @@ namespace VisualPinball.Unity
 		private void UpdatePalette(DisplayFrameFormat format)
 		{
 			if (!_map.ContainsKey(format)) {
-				_map[format] = new Dictionary<byte, Color>();
+				_map[format] = new Dictionary<byte, Color32>();
 			} else {
 				_map[format].Clear();
 			}
