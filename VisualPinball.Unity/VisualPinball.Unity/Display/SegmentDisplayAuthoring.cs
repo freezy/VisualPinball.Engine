@@ -26,7 +26,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Display/Segmented Display")]
+	[AddComponentMenu("Visual Pinball/Display/Segment Display")]
 	public class SegmentDisplayAuthoring : DisplayAuthoring
 	{
 		public override string Id { get => _id; set => _id = value;}
@@ -54,14 +54,15 @@ namespace VisualPinball.Unity
 
 		#region Shader Prop Constants
 
-		private static readonly int NumCharsProp = Shader.PropertyToID("_NumChars");
-		private static readonly int NumSegmentsProp = Shader.PropertyToID("_NumSegments");
-		private static readonly int SegmentWidthProp = Shader.PropertyToID("_SegmentWidth");
-		private static readonly int SkewAngleProp = Shader.PropertyToID("_SkewAngle");
-		private static readonly int InnerPaddingX = Shader.PropertyToID("_InnerPaddingX");
-		private static readonly int InnerPaddingY = Shader.PropertyToID("_InnerPaddingY");
-		private static readonly int ColorProp = Shader.PropertyToID("_Color");
-		private static readonly int SegmentTypeProp = Shader.PropertyToID("_SegmentType");
+		private static readonly int LitColorProp = Shader.PropertyToID("__LitColor");
+		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
+		private static readonly int DataProp = Shader.PropertyToID("__SegmentData");
+		private static readonly int NumCharsProp = Shader.PropertyToID("__NumChars");
+		private static readonly int NumSegmentsProp = Shader.PropertyToID("__NumSegments");
+		private static readonly int SegmentWeightProp = Shader.PropertyToID("__SegmentWeight");
+		private static readonly int SkewAngleProp = Shader.PropertyToID("__SkewAngle");
+		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
+		private static readonly int SegmentTypeProp = Shader.PropertyToID("__SegmentType");
 
 		#endregion
 
@@ -127,15 +128,14 @@ namespace VisualPinball.Unity
 
 		protected override Material CreateMaterial()
 		{
-			var material = Instantiate(UnityEngine.Resources.Load<Material>("Materials/Segment Display"));
+			var material = Instantiate(UnityEngine.Resources.Load<Material>("Materials/SegmentDisplay"));
 
-			material.mainTexture = _texture;
+			material.SetTexture(DataProp, _texture);
 			material.SetFloat(NumCharsProp, _numChars);
-			material.SetColor(ColorProp, _color);
+			material.SetColor(LitColorProp, _color);
 			material.SetFloat(SkewAngleProp, _skewAngle);
-			material.SetFloat(SegmentWidthProp, _segmentWidth);
-			material.SetFloat(InnerPaddingX, _innerPadding.x);
-			material.SetFloat(InnerPaddingY, _innerPadding.y);
+			material.SetFloat(SegmentWeightProp, _segmentWidth);
+			material.SetVector(PaddingProp, new Vector4(_innerPadding.x, _innerPadding.y));
 
 			material.SetFloat(NumSegmentsProp, NumSegments);
 			material.SetFloat(SegmentTypeProp, _segmentType);
