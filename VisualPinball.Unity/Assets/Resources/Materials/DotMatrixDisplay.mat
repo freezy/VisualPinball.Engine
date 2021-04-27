@@ -265,6 +265,7 @@ Material:
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1
+    - __DotSize2: 1.7
     - __NumChars: 2
     - __NumSegments: 15
     - __SegmentType: 0
@@ -290,7 +291,7 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
-    - __Dimensions: {r: 34, g: 7, b: 0, a: 0}
+    - __Dimensions: {r: 128, g: 32, b: 0, a: 0}
     - __LitColor: {r: 1, g: 0.39999998, b: 0, a: 0}
     - __Padding: {r: 0.3, g: 0.5, b: 0, a: 0}
     - __UnlitColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
