@@ -164,10 +164,12 @@ namespace VisualPinball.Unity
 					if (frame.Length == _width * _height * 3) {
 						for (var y = 0; y < _height; y++) {
 							for (var x = 0; x < _width; x++) {
-								var pos = (y * _width + x) * 3;
-								_texture.SetPixel(_width - x, _height - y, new Color(frame[pos] / 255f, frame[pos + 1] / 255f, frame[pos + 2] / 255f));
+								_colorBuffer[y * _width + x].r = frame[y * _width + x * 3];
+								_colorBuffer[y * _width + x].g = frame[y * _width + x * 3 + 1];
+								_colorBuffer[y * _width + x].b = frame[y * _width + x * 3 + 2];
 							}
 						}
+						_texture.SetPixels32(_colorBuffer);
 						_texture.Apply();
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of RGB data to {_width}x{_height}.");
