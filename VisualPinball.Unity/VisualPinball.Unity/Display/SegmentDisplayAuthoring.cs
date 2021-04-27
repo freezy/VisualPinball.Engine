@@ -174,6 +174,8 @@ namespace VisualPinball.Unity
 		private int ConvertSegmentType(DisplayFrameFormat format)
 		{
 			switch (format) {
+				case DisplayFrameFormat.Segment9:
+					return 2;
 				case DisplayFrameFormat.Segment7:
 					return 4;
 				case DisplayFrameFormat.Segment16:
