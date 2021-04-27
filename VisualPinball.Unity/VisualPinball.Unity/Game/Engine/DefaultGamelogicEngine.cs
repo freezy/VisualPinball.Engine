@@ -46,7 +46,9 @@ namespace VisualPinball.Unity
 
 		private const bool DualWoundFlippers = false;
 
-		private const string DisplayDmd = "dmd";
+		private const int DmdWidth = 128;
+		private const int DmdHeight = 32;
+		private const string DisplayDmd = "dmd0";
 
 		private const string SwLeftFlipper = "s_left_flipper";
 		private const string SwLeftFlipperEos = "s_left_flipper_eos";
@@ -149,7 +151,7 @@ namespace VisualPinball.Unity
 			_player = player;
 			_ballManager = ballManager;
 
-			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, 32, 8)));
+			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -161,20 +163,31 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
-			/*
 			if (!_frameSent) {
-				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd2, new byte[] {
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,3,3,3,2,0,0,3,3,3,3,3,3,2,0,0,0,
-					0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,2,1,3,3,2,0,3,3,2,1,1,1,1,0,0,0,
-					0,0,0,0,1,3,3,2,0,3,3,2,1,0,3,3,2,0,3,3,2,0,3,3,3,3,3,3,2,0,0,0,
-					0,0,0,0,0,3,3,2,0,3,3,2,0,0,3,3,3,3,3,2,1,0,3,3,2,1,1,1,1,0,0,0,
-					0,0,0,0,0,1,1,3,3,2,1,1,0,0,3,3,2,1,1,1,0,0,3,3,2,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,3,3,2,0,0,0,0,3,3,2,0,0,0,0,0,3,3,3,3,3,3,2,0,0,0,
-					0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,
-				}));
+				var frameTex = UnityEngine.Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
+				var framePixels = frameTex.GetPixels32();
+				var frameData = new byte[DmdWidth * DmdHeight * 3];
+				for (var y = 0; y < DmdHeight; y++) {
+					for (var x = 0; x < DmdWidth; x++) {
+						frameData[y * DmdWidth + x * 3] = framePixels[y * DmdWidth + x].r;
+						frameData[y * DmdWidth + x * 3 + 1] = framePixels[y * DmdWidth + x].g;
+						frameData[y * DmdWidth + x * 3 + 2] = framePixels[y * DmdWidth + x].b;
+					}
+				}
+				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, frameData));
+
+				// OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd2, new byte[] {
+				// 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+				// 	0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,3,3,3,2,0,0,3,3,3,3,3,3,2,0,0,0,
+				// 	0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,2,1,3,3,2,0,3,3,2,1,1,1,1,0,0,0,
+				// 	0,0,0,0,1,3,3,2,0,3,3,2,1,0,3,3,2,0,3,3,2,0,3,3,3,3,3,3,2,0,0,0,
+				// 	0,0,0,0,0,3,3,2,0,3,3,2,0,0,3,3,3,3,3,2,1,0,3,3,2,1,1,1,1,0,0,0,
+				// 	0,0,0,0,0,1,1,3,3,2,1,1,0,0,3,3,2,1,1,1,0,0,3,3,2,0,0,0,0,0,0,0,
+				// 	0,0,0,0,0,0,0,3,3,2,0,0,0,0,3,3,2,0,0,0,0,0,3,3,3,3,3,3,2,0,0,0,
+				// 	0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,
+				// }));
 				_frameSent = true;
-			}*/
+			}
 		}
 
 		public void OnDestroy()
