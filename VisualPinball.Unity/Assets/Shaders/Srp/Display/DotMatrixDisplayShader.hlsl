@@ -1,9 +1,8 @@
-﻿void SampleDot_float(float2 uv, UnityTexture2D data, float2 dimensions, out float4 dotColor, out float2 dotCenter)
+﻿void SamplePosition_float(float2 uv, float2 dimensions, out float2 dotCenter)
 {
 	float2 dimensionsPerDot = 1. / dimensions;
 	float2 dotPos = floor(uv * dimensions);
 	dotCenter = dotPos * dimensionsPerDot + dimensionsPerDot * 0.5;
-	dotColor = tex2D(data, dotCenter);
 }
 
 void RoundDot_float(float2 uv, float2 dimensions, float dotSize, float4 dotColor, float2 dotCenter, out float4 output)
