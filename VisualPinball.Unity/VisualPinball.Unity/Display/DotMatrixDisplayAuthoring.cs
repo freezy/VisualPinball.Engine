@@ -20,6 +20,8 @@
 using System;
 using System.Collections.Generic;
 using NLog;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using Logger = NLog.Logger;
 
@@ -106,7 +108,7 @@ namespace VisualPinball.Unity
 			_width = width;
 			_height = height;
 			_colorBuffer = new Color32[width * height];
-			_texture = new Texture2D(width, height);
+			_texture = new Texture2D(width, height, TextureFormat.RGB24, false);
 			_texture.SetPixels32(_colorBuffer);
 			_texture.Apply();
 			RegenerateMesh();
@@ -162,15 +164,13 @@ namespace VisualPinball.Unity
 
 				case DisplayFrameFormat.Dmd24:
 					if (frame.Length == _width * _height * 3) {
-						for (var y = 0; y < _height; y++) {
-							for (var x = 0; x < _width; x++) {
-								_colorBuffer[y * _width + x].r = frame[y * _width + x * 3];
-								_colorBuffer[y * _width + x].g = frame[y * _width + x * 3 + 1];
-								_colorBuffer[y * _width + x].b = frame[y * _width + x * 3 + 2];
-							}
-						}
-						_texture.SetPixels32(_colorBuffer);
+
+						// the texture has RGB24 format, so we can just copy all into the texture directly.
+						CopyData(frame, 0, frame.Length, _texture.GetRawTextureData<byte>());
+
+						// still need to apply it.
 						_texture.Apply();
+
 					} else {
 						Logger.Error($"Cannot render {frame.Length} bytes of RGB data to {_width}x{_height}.");
 					}
@@ -182,6 +182,14 @@ namespace VisualPinball.Unity
 
 				default:
 					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		private static unsafe void CopyData<T>(T[] array, int offset, int count, NativeArray<T> dst) where T : unmanaged
+		{
+			fixed (T * srcPtr = array) {
+				var dstPtr = dst.GetUnsafePtr();
+				UnsafeUtility.MemCpy(dstPtr,srcPtr + offset, sizeof(T) * count);
 			}
 		}
 
