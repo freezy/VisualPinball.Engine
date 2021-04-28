@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -165,27 +166,11 @@ namespace VisualPinball.Unity
 		{
 			if (!_frameSent) {
 				var frameTex = UnityEngine.Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
-				var framePixels = frameTex.GetPixels32();
-				var frameData = new byte[DmdWidth * DmdHeight * 3];
-				for (var y = 0; y < DmdHeight; y++) {
-					for (var x = 0; x < DmdWidth; x++) {
-						frameData[y * DmdWidth + x * 3] = framePixels[y * DmdWidth + x].r;
-						frameData[y * DmdWidth + x * 3 + 1] = framePixels[y * DmdWidth + x].g;
-						frameData[y * DmdWidth + x * 3 + 2] = framePixels[y * DmdWidth + x].b;
-					}
-				}
-				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, frameData));
+				var data = frameTex.GetRawTextureData<byte>().ToArray();
 
-				// OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd2, new byte[] {
-				// 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				// 	0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,3,3,3,2,0,0,3,3,3,3,3,3,2,0,0,0,
-				// 	0,0,0,0,3,3,2,0,0,0,3,3,2,0,3,3,2,1,3,3,2,0,3,3,2,1,1,1,1,0,0,0,
-				// 	0,0,0,0,1,3,3,2,0,3,3,2,1,0,3,3,2,0,3,3,2,0,3,3,3,3,3,3,2,0,0,0,
-				// 	0,0,0,0,0,3,3,2,0,3,3,2,0,0,3,3,3,3,3,2,1,0,3,3,2,1,1,1,1,0,0,0,
-				// 	0,0,0,0,0,1,1,3,3,2,1,1,0,0,3,3,2,1,1,1,0,0,3,3,2,0,0,0,0,0,0,0,
-				// 	0,0,0,0,0,0,0,3,3,2,0,0,0,0,3,3,2,0,0,0,0,0,3,3,3,3,3,3,2,0,0,0,
-				// 	0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,
-				// }));
+				// this texture happens to be stored as RGB24, so we can send the raw data directly.
+				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, data));
+
 				_frameSent = true;
 			}
 		}
