@@ -3,9 +3,8 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_Width ("Width", Float) = 128
-		_Height ("Height", Float) = 32
-		_Size ("Dot Size", Float) = 1.25
+		__Dimensions ("Dimensions", Vector) = (128, 32, 0, 0)
+		__DotSize2 ("Dot Size", Float) = 1.25
 	}
 	SubShader
 	{
@@ -20,7 +19,7 @@
 			#pragma multi_compile_fog
 
 			#include "UnityCG.cginc"
-			#include "Srp/Display/DotMatrixDisplayShader.hlsl"
+			#include "../Srp/Display/DotMatrixDisplayShader.hlsl"
 
 			struct appdata
 			{
@@ -38,17 +37,8 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 
-			float _Width;
-			float _Height;
-			float _Size;
-
-			float4 FilterColor;
-			float _IsMonochrome;
-
-			// Static computed vars for optimization
-			static float AspectRatio = _Width / _Height;
-			static float2 Dimensions = float2(_Width, _Height);
-			static float2 DimensionsPerDot = 1.0f / Dimensions;
+			float __DotSize2;
+			float2 __Dimensions;
 
 			v2f vert (appdata v)
 			{
@@ -62,12 +52,12 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
 				float2 dotCenter;
-				SamplePosition_float(i.uv, Dimensions, dotCenter);
+				SamplePosition_float(i.uv, __Dimensions, dotCenter);
 
 				float4 pixelColor = tex2D(_MainTex, dotCenter);
 
 				float4 outColor;
-				RoundDot_float(i.uv, Dimensions, _Size, pixelColor, dotCenter, outColor);
+				RoundDot_float(i.uv, __Dimensions, __DotSize2, pixelColor, dotCenter, outColor);
 
 				return outColor;
 			}
