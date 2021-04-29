@@ -23,6 +23,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - __Data:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Height: 32
     - _InnerPaddingX: 0.5
@@ -39,6 +43,8 @@ Material:
     - _TargetHeight: 118.01
     - _TargetWidth: 1450.11
     - _Width: 128
+    - __DotSize2: 0.83
     m_Colors:
     - _Color: {r: 1, g: 0.9, b: 0, a: 1}
+    - __Dimensions: {r: 128, g: 32, b: 0, a: 0}
   m_BuildTextureStacks: []

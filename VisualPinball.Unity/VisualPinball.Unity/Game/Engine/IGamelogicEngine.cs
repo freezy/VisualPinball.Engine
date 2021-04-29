@@ -119,6 +119,7 @@ namespace VisualPinball.Unity
 		public readonly string Id;
 		public readonly int Width;
 		public readonly int Height;
+		public readonly bool FlipX;
 
 		public DisplayConfig(string id, int width, int height)
 		{
@@ -132,6 +133,14 @@ namespace VisualPinball.Unity
 			Id = id;
 			Width = (int)width;
 			Height = (int)height;
+		}
+
+		public DisplayConfig(string id, uint width, uint height, bool flipX)
+		{
+			Id = id;
+			Width = (int)width;
+			Height = (int)height;
+			FlipX = flipX;
 		}
 	}
 

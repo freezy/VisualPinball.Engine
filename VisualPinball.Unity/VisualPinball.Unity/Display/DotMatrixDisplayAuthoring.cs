@@ -103,15 +103,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void UpdateDimensions(int width, int height)
+		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
+			Logger.Info($"Updating dimensions for display \"{_id}\" to {width}x{height}.");
 			_width = width;
 			_height = height;
 			_colorBuffer = new Color32[width * height];
 			_texture = new Texture2D(width, height, TextureFormat.RGB24, false);
 			_texture.SetPixels32(_colorBuffer);
 			_texture.Apply();
-			RegenerateMesh();
+			RegenerateMesh(flipX);
 		}
 
 		public override void UpdateColor(Color color)
