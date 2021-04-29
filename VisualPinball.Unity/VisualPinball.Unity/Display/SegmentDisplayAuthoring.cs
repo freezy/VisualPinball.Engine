@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 			return 0;
 		}
 
-		public override void UpdateDimensions(int width, int height)
+		public override void UpdateDimensions(int width, int height, bool _ = false)
 		{
 			_texture = new Texture2D(NumSegments, width * height);
 			_colorBuffer = new Color32[NumSegments * width * height];

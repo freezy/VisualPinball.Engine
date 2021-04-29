@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 
 		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 
-		public abstract void UpdateDimensions(int width, int height);
+		public abstract void UpdateDimensions(int width, int height, bool flipX = false);
 
 		public virtual void UpdateColor(Color color)
 		{
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		protected abstract float MeshDepth { get; }
 		public abstract float AspectRatio { get; set; }
 
-		public void RegenerateMesh()
+		public void RegenerateMesh(bool flipX = false)
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr == null) {
@@ -106,14 +106,29 @@ namespace VisualPinball.Unity
 			var uv01 = new Vector2(0f, 1f);
 			var uv11 = new Vector2(1f, 1f);
 
-			var uvs = new [] {
-				uv00, uv00, uv00, uv00, // Bottom
-				uv00, uv00, uv00, uv00, // Left
-				uv10, uv00, uv00, uv00, // Back
-				uv11, uv01, uv00, uv10, // Front
-				uv00, uv00, uv00, uv00, // Right
-				uv00, uv00, uv00, uv00  // Top
-			};
+			Vector2[] uvs;
+			if (flipX) {
+				Logger.Error("FLIPX");
+				uvs = new [] {
+					uv00, uv00, uv00, uv00, // Bottom
+					uv00, uv00, uv00, uv00, // Left
+					uv10, uv00, uv00, uv00, // Back
+					uv10, uv00, uv01, uv11, // Front
+					uv00, uv00, uv00, uv00, // Right
+					uv00, uv00, uv00, uv00  // Top
+				};
+
+			} else {
+				uvs = new [] {
+					uv00, uv00, uv00, uv00, // Bottom
+					uv00, uv00, uv00, uv00, // Left
+					uv10, uv00, uv00, uv00, // Back
+					uv11, uv01, uv00, uv10, // Front
+					uv00, uv00, uv00, uv00, // Right
+					uv00, uv00, uv00, uv00  // Top
+				};
+			}
+
 
 			var triangles = new[] {
 				3, 1, 0,        3, 2, 1,    // Bottom
