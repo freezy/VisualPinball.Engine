@@ -8,3 +8,7 @@
     href: mpf/setup.md
   - name: Usage
     href: mpf/usage.md
+- name: PinMAME
+  items:
+  - name: Overview
+    href: pinmame/index.md

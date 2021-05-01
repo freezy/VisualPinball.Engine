@@ -3,7 +3,7 @@ title: Mission Pinball Framework
 description: Visual Pinball Engine integration with the Mission Pinball Framework.
 ---
 
-<img alt="MPF Logo" width="256" src="https://missionpinball.org/images/mpf-logo-full.png" />
+<img alt="MPF Logo" width="256" src="mpf-logo-full.png" />
 
 # Mission Pinball Framework
 
