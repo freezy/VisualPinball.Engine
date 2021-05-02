@@ -202,9 +202,12 @@ float DiagLine3(float2 a, float2 b, float2 p)
 	);
 }
 
-float Circle(float2 _st, float _radius)
+float2 Translate(float2 coord, float2 translate) {
+	return coord - translate;
+}
+
+float Circle(float2 _st, float _radius, float smooth)
 {
-	float smooth = 2.;
 	_st.x += _st.y * -_SkewAngle; // un-angle
 	_st.x += _SkewAngle * 0.5; // un-angle
 	_st.y *= 0.9; // unstretch
@@ -214,6 +217,19 @@ float Circle(float2 _st, float _radius)
 		_radius + (_radius * smooth),
 		dot(dist, dist) * 4.0
 	);
+}
+
+
+float Comma(float2 uv)
+{
+	if (uv.y < 0.61) {
+		return 0.;
+	}
+
+	float c = Circle(Translate(uv, float2(-0.15, 0.1)), 0.15, .7);   // plus
+	c *= 1. - Circle(Translate(uv, float2(-0.01, 0.05)), 0.01, 2.5); // minus top
+	c *= 1. - Circle(Translate(uv, float2(-0.42, .13)), 0.48, .3);   // minus left
+	return c;
 }
 
 float3 Combine(float3 accu, float val, bool showSeg)
@@ -254,7 +270,7 @@ float3 SegDisp8(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025), ShowSeg(data, charIndex, 7));
+	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
 	return r;
 }
 
@@ -267,11 +283,32 @@ float3 SegDisp10(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025), ShowSeg(data, charIndex, 7));
+	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
 	r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(data, charIndex, 9));
 
 	return r;
+}
+
+// float draw_circle(in float2 _st, in float _radius){
+// 	float2 dist = _st - float2(0.5);
+// 	return 1. - smoothstep(_radius-(_radius*0.02), _radius+(_radius*0.02), dot(dist,dist)*4.0);
+// }
+//
+// float draw_circle2(float2 coord, float radius) {
+// 	return smoothstep(length(coord), radius-0.01, radius+0.01);
+// }
+
+float2 translate(float2 coord, float2 translate) {
+	return coord - translate;
+}
+
+float2 comma(float2 uv)
+{
+	float c = Circle(translate(uv, float2(0.0, 0.8)), 0.03);
+	// c *= (1. - Circle(translate(uv, float2(0.5, 0.5)), 0.6));
+	// c *= (1. - Circle(translate(uv, float2(1.2, 0.7)), 0.25));
+	return c;
 }
 
 float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
@@ -283,7 +320,7 @@ float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025), ShowSeg(data, charIndex, 7));
+	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
 	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));
 	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10));
@@ -291,6 +328,7 @@ float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));
 	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));
 	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14));
+	r = Combine(r, Comma(float2(p.x - 0.2, p.y - 0.43)), ShowSeg(data, charIndex, 15));
 
 	return r;
 }
