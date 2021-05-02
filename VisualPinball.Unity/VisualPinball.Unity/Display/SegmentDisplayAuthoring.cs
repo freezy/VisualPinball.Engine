@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	{
 		public override string Id { get => _id; set => _id = value;}
 
-		public override float AspectRatio { get; set; } = 0.7f;
+		public override float AspectRatio { get; set; } = 0.6f;
 
 		private const int NumSegments = 15;
 
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private Color _unlitColor = new Color(0.25f, 0.25f, 0.25f);
 		[SerializeField] private float _skewAngle = math.radians(7);
 		[SerializeField] private float _segmentWidth = 0.05f;
-		[SerializeField] private float2 _innerPadding = new float2(0.4f, 0.15f);
+		[SerializeField] private float2 _innerPadding = new float2(0.5f, 0.4f);
 		[SerializeField] private int _segmentType;
 
 		[NonSerialized] private Color32[] _colorBuffer;
