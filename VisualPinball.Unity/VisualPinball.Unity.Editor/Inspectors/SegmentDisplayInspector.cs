@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(SegmentDisplayAuthoring))]
-	public class SegDispInspector : DisplayInspector
+	public class SegmentDisplayInspector : DisplayInspector
 	{
 		[NonSerialized] private SegmentDisplayAuthoring _mb;
 		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
