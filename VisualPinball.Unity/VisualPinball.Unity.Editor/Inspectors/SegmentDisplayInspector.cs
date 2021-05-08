@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
+			EditorGUILayout.LabelField("Segment Type", _mb.SegmentTypeName);
 
 			base.OnInspectorGUI();
 

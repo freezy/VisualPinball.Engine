@@ -150,9 +150,16 @@ namespace VisualPinball.Unity
 		Dmd4, // 4-bit (0-15)
 		Dmd8, // 8-bit (0-255)
 		Dmd24, // rgb (3x 0-255)
+		Segment16,
 		Segment7,
+		Segment7Comma,
+		Segment7Dot,
+		Segment7CommaEvery3,
+		Segment7CommaEvery3Forced,
 		Segment9,
-		Segment16
+		Segment9Comma,
+		Segment9CommaEvery3,
+		Segment9CommaEvery3Forced
 	}
 
 	public class DisplayFrameData

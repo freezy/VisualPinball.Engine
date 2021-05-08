@@ -124,6 +124,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public int SegmentType {
+			get => _segmentType;
+			set {
+				_segmentType = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.material = CreateMaterial();
+				}
+			}
+		}
+
 		public float2 InnerPadding {
 			get => _innerPadding;
 			set {
@@ -134,6 +145,8 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+		public string SegmentTypeName;
 
 		#endregion
 
@@ -171,13 +184,22 @@ namespace VisualPinball.Unity
 			UpdateFrame(target);
 		}
 
-		private int ConvertSegmentType(DisplayFrameFormat format)
+		public int ConvertSegmentType(DisplayFrameFormat format)
 		{
 			switch (format) {
-				case DisplayFrameFormat.Segment9:
-					return 2;
 				case DisplayFrameFormat.Segment7:
+				case DisplayFrameFormat.Segment7Dot:
+				case DisplayFrameFormat.Segment7Comma:
+				case DisplayFrameFormat.Segment7CommaEvery3:
+				case DisplayFrameFormat.Segment7CommaEvery3Forced:
 					return 4;
+
+				case DisplayFrameFormat.Segment9:
+				case DisplayFrameFormat.Segment9Comma:
+				case DisplayFrameFormat.Segment9CommaEvery3:
+				case DisplayFrameFormat.Segment9CommaEvery3Forced:
+					return 2;
+
 				case DisplayFrameFormat.Segment16:
 					return 0;
 				default:
