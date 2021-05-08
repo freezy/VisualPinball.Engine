@@ -8,6 +8,9 @@ float _NumChars;
 float _NumSegments;
 float _SkewAngle;
 
+int _SeparatorType; // 0 = none, 1 = dot, 2 = 2-segment comma
+int _SeparatorEveryThreeOnly;
+
 static float SegmentGap;
 
 static float EdgeBlur = 0.1; // used to remove aliasing
@@ -263,6 +266,27 @@ bool ShowSeg(sampler2D data, int charIndex, int segIndex)
 	return false;
 }
 
+float3 SegDispSeparator(sampler2D data, int charIndex, int segIndex, float2 p, float3 r)
+{
+	bool isThree = fmod(_NumChars - charIndex + 2, 3) == 0 && charIndex != _NumChars - 1;
+	bool separatorEveryThreeOnly = _SeparatorEveryThreeOnly == 1;
+	if (!separatorEveryThreeOnly || isThree) {
+
+		switch (_SeparatorType) {
+			case 0:
+				return r;
+			case 1:
+				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				break;
+			case 2:
+				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				r = Combine(r, Comma(float2(p.x - 0.2, p.y - 0.43)), ShowSeg(data, charIndex, segIndex));
+				break;
+		}
+	}
+	return r;
+}
+
 float3 SegDisp8(sampler2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
@@ -272,7 +296,8 @@ float3 SegDisp8(sampler2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
+
 	return r;
 }
 
@@ -285,7 +310,7 @@ float3 SegDisp10(sampler2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
 	r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(data, charIndex, 9));
 
@@ -301,7 +326,7 @@ float3 SegDisp15(sampler2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
 	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));
 	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10));
@@ -309,7 +334,6 @@ float3 SegDisp15(sampler2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));
 	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));
 	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14));
-	r = Combine(r, Comma(float2(p.x - 0.2, p.y - 0.43)), ShowSeg(data, charIndex, 15));
 
 	return r;
 }
@@ -327,13 +351,15 @@ float3 SegDisp(sampler2D data, int charIndex, float2 p)
 }
 
 void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, float numChars,
-	float numSegments, float segmentWidth, float skewAngle, float2 padding, out float output)
+	float numSegments, int separatorType, int separatorEveryThreeOnly, float segmentWidth, float skewAngle, float2 padding, out float output)
 {
 	_SegmentWidth = segmentWidth;
 	_SegmentType = segmentType;
 	_NumChars = numChars;
 	_NumSegments = numSegments;
 	_SkewAngle = skewAngle;
+	_SeparatorType = separatorType;
+	_SeparatorEveryThreeOnly = separatorEveryThreeOnly;
 
 	SegmentGap = segmentWidth * 1.5;
 	dtl = tl + float2(0.0, -segmentWidth);

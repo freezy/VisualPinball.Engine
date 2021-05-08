@@ -8,6 +8,9 @@
 		__SegmentType ("Segment Type", Int) = 0
 		__NumSegments ("Segments", Float) = 16
 
+		__SeparatorType ("Separator Type", Int) = 2
+		__SeparatorEveryThreeOnly ("Separator Every Three Only", Int) = 0
+
 		__LitColor ("Color", Color) = (1.0, 0.4, 0, 1.0)
 		__SegmentWeight ("Weight", Float) = 0.05
 		__SkewAngle ("Skew Angle", Float) = 0.2
@@ -48,6 +51,10 @@
 			float __NumChars;
 			int __SegmentType;
 			int __NumSegments;
+
+			int __SeparatorType;
+			int __SeparatorEveryThreeOnly;
+
 			fixed4 __LitColor;
 			float __SegmentWeight;
 			float __SkewAngle;
@@ -65,8 +72,8 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float pixelAlpha;
-				SegmentDisplay_float(i.uv, _MainTex, __SegmentType, __NumChars,
-					__NumSegments, __SegmentWeight, __SkewAngle, __Padding, pixelAlpha);
+				SegmentDisplay_float(i.uv, _MainTex, __SegmentType, __NumChars, __NumSegments,
+					__SeparatorType, __SeparatorEveryThreeOnly, __SegmentWeight, __SkewAngle, __Padding, pixelAlpha);
 
 				return pixelAlpha * __LitColor;
 			}
