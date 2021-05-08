@@ -7,6 +7,7 @@ float _Height;
 float _NumChars;
 float _NumSegments;
 float _SkewAngle;
+float _HorizontalMiddle;
 
 float2 _SeparatorPos;
 int _SeparatorType; // 0 = none, 1 = dot, 2 = 2-segment comma
@@ -28,9 +29,9 @@ static float2 ml = float2(-.5, 0);  // mid    left  corner
 static float2 mr = float2(.5, 0);   // mid    right corner
 static float2 bl = float2(-.5, -1); // bottom left  corner
 static float2 br = float2(.5, -1);  // bottom right corner
-static float2 tm = float2(.0, 1);
-static float2 mm = float2(.0, 0);   // middle
-static float2 bm = float2(.0, -1);
+static float2 tm;
+static float2 mm; // middle
+static float2 bm;
 
 static float2 dtl;
 static float2 dtr;
@@ -355,13 +356,14 @@ float3 SegDisp(sampler2D data, int charIndex, float2 p)
 
 void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, float numChars,
 	float numSegments, int separatorType, int separatorEveryThreeOnly, float2 separatorPos,
-	float segmentWidth, float skewAngle, float2 padding, out float output)
+	float segmentWidth, float horizontalMiddle, float skewAngle, float2 padding, out float output)
 {
 	_SegmentWidth = segmentWidth;
 	_SegmentType = segmentType;
 	_NumChars = numChars;
 	_NumSegments = numSegments;
 	_SkewAngle = skewAngle;
+	_HorizontalMiddle = horizontalMiddle;
 	_SeparatorType = separatorType;
 	_SeparatorEveryThreeOnly = separatorEveryThreeOnly;
 	_SeparatorPos = separatorPos;
@@ -369,11 +371,15 @@ void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, floa
 	SegmentGap = segmentWidth * 1.5;
 	dtl = tl + float2(0.0, -segmentWidth);
 	dtr = tr + float2(0.0, -segmentWidth);
-	dtm = mm + float2(0.0, segmentWidth);
-	dbm = mm + float2(0.0, -segmentWidth);
+	dtm = mm + float2(0.0 + _HorizontalMiddle, segmentWidth);
+	dbm = mm + float2(0.0 + _HorizontalMiddle, -segmentWidth);
 	dbl = bl + float2(0.0, segmentWidth);
 	dbr = br + float2(0.0, segmentWidth);
 	dp = br + float2(segmentWidth * 4.0, SegmentGap);
+	mm = float2(.0 + _HorizontalMiddle, 0);   // middle
+	tm = float2(.0 + _HorizontalMiddle, 1);
+	bm = float2(.0 + _HorizontalMiddle, -1);
+
 
 	float cellWidth = 1. / _NumChars;
 
