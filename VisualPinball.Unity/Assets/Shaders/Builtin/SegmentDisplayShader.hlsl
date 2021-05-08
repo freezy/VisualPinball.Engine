@@ -8,6 +8,7 @@ float _NumChars;
 float _NumSegments;
 float _SkewAngle;
 
+float2 _SeparatorPos;
 int _SeparatorType; // 0 = none, 1 = dot, 2 = 2-segment comma
 int _SeparatorEveryThreeOnly;
 
@@ -270,17 +271,19 @@ float3 SegDispSeparator(sampler2D data, int charIndex, int segIndex, float2 p, f
 {
 	bool isThree = fmod(_NumChars - charIndex + 2, 3) == 0 && charIndex != _NumChars - 1;
 	bool separatorEveryThreeOnly = _SeparatorEveryThreeOnly == 1;
+	float2 pos = float2(-0.5, 0.43);
+
 	if (!separatorEveryThreeOnly || isThree) {
 
 		switch (_SeparatorType) {
 			case 0:
 				return r;
 			case 1:
-				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				r = Combine(r, Circle(p - pos - _SeparatorPos / 2., 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
 				break;
 			case 2:
-				r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
-				r = Combine(r, Comma(float2(p.x - 0.2, p.y - 0.43)), ShowSeg(data, charIndex, segIndex));
+				r = Combine(r, Circle(p - pos - _SeparatorPos / 2., 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				r = Combine(r, Comma(p - pos - _SeparatorPos / 2.), ShowSeg(data, charIndex, segIndex));
 				break;
 		}
 	}
@@ -351,7 +354,8 @@ float3 SegDisp(sampler2D data, int charIndex, float2 p)
 }
 
 void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, float numChars,
-	float numSegments, int separatorType, int separatorEveryThreeOnly, float segmentWidth, float skewAngle, float2 padding, out float output)
+	float numSegments, int separatorType, int separatorEveryThreeOnly, float2 separatorPos,
+	float segmentWidth, float skewAngle, float2 padding, out float output)
 {
 	_SegmentWidth = segmentWidth;
 	_SegmentType = segmentType;
@@ -360,6 +364,7 @@ void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, floa
 	_SkewAngle = skewAngle;
 	_SeparatorType = separatorType;
 	_SeparatorEveryThreeOnly = separatorEveryThreeOnly;
+	_SeparatorPos = separatorPos;
 
 	SegmentGap = segmentWidth * 1.5;
 	dtl = tl + float2(0.0, -segmentWidth);

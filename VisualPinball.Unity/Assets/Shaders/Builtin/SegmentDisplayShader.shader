@@ -10,6 +10,7 @@
 
 		__SeparatorType ("Separator Type", Int) = 2
 		__SeparatorEveryThreeOnly ("Separator Every Three Only", Int) = 0
+		__SeparatorPos ("Separator Position", Vector) = (1.5, 0.0, 0, 0)
 
 		__LitColor ("Color", Color) = (1.0, 0.4, 0, 1.0)
 		__SegmentWeight ("Weight", Float) = 0.05
@@ -54,6 +55,7 @@
 
 			int __SeparatorType;
 			int __SeparatorEveryThreeOnly;
+			float2 __SeparatorPos;
 
 			fixed4 __LitColor;
 			float __SegmentWeight;
@@ -73,7 +75,8 @@
 			{
 				float pixelAlpha;
 				SegmentDisplay_float(i.uv, _MainTex, __SegmentType, __NumChars, __NumSegments,
-					__SeparatorType, __SeparatorEveryThreeOnly, __SegmentWeight, __SkewAngle, __Padding, pixelAlpha);
+					__SeparatorType, __SeparatorEveryThreeOnly, __SeparatorPos, __SegmentWeight,
+					__SkewAngle, __Padding, pixelAlpha);
 
 				return pixelAlpha * __LitColor;
 			}
