@@ -4,6 +4,11 @@ float _Height;
 float _NumChars;
 float _NumSegments;
 float _SkewAngle;
+float _HorizontalMiddle;
+
+float2 _SeparatorPos;
+int _SeparatorType; // 0 = none, 1 = dot, 2 = 2-segment comma
+int _SeparatorEveryThreeOnly;
 
 static float SegmentGap;
 
@@ -21,9 +26,9 @@ static float2 ml = float2(-.5, 0);  // mid    left  corner
 static float2 mr = float2(.5, 0);   // mid    right corner
 static float2 bl = float2(-.5, -1); // bottom left  corner
 static float2 br = float2(.5, -1);  // bottom right corner
-static float2 tm = float2(.0, 1);
-static float2 mm = float2(.0, 0);   // middle
-static float2 bm = float2(.0, -1);
+static float2 tm;
+static float2 mm; // middle
+static float2 bm;
 
 static float2 dtl;
 static float2 dtr;
@@ -219,7 +224,6 @@ float Circle(float2 _st, float _radius, float smooth)
 	);
 }
 
-
 float Comma(float2 uv)
 {
 	if (uv.y < 0.61) {
@@ -261,6 +265,29 @@ bool ShowSeg(UnityTexture2D data, int charIndex, int segIndex)
 	return false;
 }
 
+float3 SegDispSeparator(UnityTexture2D data, int charIndex, int segIndex, float2 p, float3 r)
+{
+	bool isThree = fmod(_NumChars - charIndex + 2, 3) == 0 && charIndex != _NumChars - 1;
+	bool separatorEveryThreeOnly = _SeparatorEveryThreeOnly == 1;
+	float2 pos = float2(-0.5, 0.43);
+
+	if (!separatorEveryThreeOnly || isThree) {
+
+		switch (_SeparatorType) {
+			case 0:
+				return r;
+			case 1:
+				r = Combine(r, Circle(p - pos - _SeparatorPos / 2., 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				break;
+			case 2:
+				r = Combine(r, Circle(p - pos - _SeparatorPos / 2., 0.025, 1.5), ShowSeg(data, charIndex, segIndex));
+				r = Combine(r, Comma(p - pos - _SeparatorPos / 2.), ShowSeg(data, charIndex, segIndex));
+				break;
+		}
+	}
+	return r;
+}
+
 float3 SegDisp8(UnityTexture2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
@@ -270,7 +297,8 @@ float3 SegDisp8(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
+
 	return r;
 }
 
@@ -283,32 +311,11 @@ float3 SegDisp10(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
 	r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(data, charIndex, 9));
 
 	return r;
-}
-
-// float draw_circle(in float2 _st, in float _radius){
-// 	float2 dist = _st - float2(0.5);
-// 	return 1. - smoothstep(_radius-(_radius*0.02), _radius+(_radius*0.02), dot(dist,dist)*4.0);
-// }
-//
-// float draw_circle2(float2 coord, float radius) {
-// 	return smoothstep(length(coord), radius-0.01, radius+0.01);
-// }
-
-float2 translate(float2 coord, float2 translate) {
-	return coord - translate;
-}
-
-float2 comma(float2 uv)
-{
-	float c = Circle(translate(uv, float2(0.0, 0.8)), 0.03);
-	// c *= (1. - Circle(translate(uv, float2(0.5, 0.5)), 0.6));
-	// c *= (1. - Circle(translate(uv, float2(1.2, 0.7)), 0.25));
-	return c;
 }
 
 float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
@@ -320,7 +327,7 @@ float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 6));
-	r = Combine(r, Circle(float2(p.x - 0.2, p.y - 0.43), 0.025, 1.5), ShowSeg(data, charIndex, 7));
+	r = SegDispSeparator(data, charIndex, 7, p, r);
 	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8));
 	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));
 	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10));
@@ -328,7 +335,6 @@ float3 SegDisp15(UnityTexture2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));
 	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));
 	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14));
-	r = Combine(r, Comma(float2(p.x - 0.2, p.y - 0.43)), ShowSeg(data, charIndex, 15));
 
 	return r;
 }
@@ -346,22 +352,31 @@ float3 SegDisp(UnityTexture2D data, int charIndex, float2 p)
 }
 
 void SegmentDisplay_float(float2 coords, UnityTexture2D data, float segmentType, float numChars,
-	float numSegments, float segmentWidth, float skewAngle, float2 padding, out float output)
+	float numSegments, int separatorType, int separatorEveryThreeOnly, float2 separatorPos,
+	float segmentWidth, float horizontalMiddle, float skewAngle, float2 padding, out float output)
 {
 	_SegmentWidth = segmentWidth;
 	_SegmentType = segmentType;
 	_NumChars = numChars;
 	_NumSegments = numSegments;
 	_SkewAngle = skewAngle;
+	_HorizontalMiddle = horizontalMiddle;
+	_SeparatorType = separatorType;
+	_SeparatorEveryThreeOnly = separatorEveryThreeOnly;
+	_SeparatorPos = separatorPos;
 
 	SegmentGap = segmentWidth * 1.5;
 	dtl = tl + float2(0.0, -segmentWidth);
 	dtr = tr + float2(0.0, -segmentWidth);
-	dtm = mm + float2(0.0, segmentWidth);
-	dbm = mm + float2(0.0, -segmentWidth);
+	dtm = mm + float2(0.0 + _HorizontalMiddle, segmentWidth);
+	dbm = mm + float2(0.0 + _HorizontalMiddle, -segmentWidth);
 	dbl = bl + float2(0.0, segmentWidth);
 	dbr = br + float2(0.0, segmentWidth);
 	dp = br + float2(segmentWidth * 4.0, SegmentGap);
+	mm = float2(.0 + _HorizontalMiddle, 0);   // middle
+	tm = float2(.0 + _HorizontalMiddle, 1);
+	bm = float2(.0 + _HorizontalMiddle, -1);
+
 
 	float cellWidth = 1. / _NumChars;
 
