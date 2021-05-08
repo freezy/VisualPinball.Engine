@@ -14,6 +14,7 @@
 
 		__LitColor ("Color", Color) = (1.0, 0.4, 0, 1.0)
 		__SegmentWeight ("Weight", Float) = 0.05
+		__HorizontalMiddle ("Horizontal Middle", Float) = 0.0
 		__SkewAngle ("Skew Angle", Float) = 0.2
 		__Padding ("Padding", Vector) = (0.4, 0.15, 0, 0)
 	}
@@ -59,6 +60,7 @@
 
 			fixed4 __LitColor;
 			float __SegmentWeight;
+			float __HorizontalMiddle;
 			float __SkewAngle;
 			float2 __Padding;
 
@@ -76,7 +78,7 @@
 				float pixelAlpha;
 				SegmentDisplay_float(i.uv, _MainTex, __SegmentType, __NumChars, __NumSegments,
 					__SeparatorType, __SeparatorEveryThreeOnly, __SeparatorPos, __SegmentWeight,
-					__SkewAngle, __Padding, pixelAlpha);
+					__HorizontalMiddle, __SkewAngle, __Padding, pixelAlpha);
 
 				return pixelAlpha * __LitColor;
 			}
