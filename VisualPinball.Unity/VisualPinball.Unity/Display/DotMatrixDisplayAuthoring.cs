@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
-			Logger.Info($"Updating dimensions for display \"{_id}\" to {width}x{height}.");
+			Logger.Info($"Updating dimensions for DMD \"{_id}\" to {width}x{height}.");
 			_width = width;
 			_height = height;
 			_colorBuffer = new Color32[width * height];
@@ -177,7 +177,7 @@ namespace VisualPinball.Unity
 					}
 					break;
 
-				case DisplayFrameFormat.Segment16:
+				case DisplayFrameFormat.Segment:
 					Logger.Error("This is a DMD component that cannot render segment data. Use a segment component!");
 					break;
 
