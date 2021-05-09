@@ -178,6 +178,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// otherwise, let the user toggle
+			EditorGUI.BeginChangeCheck();
 			var value = EditorGUI.Toggle(cellRect, switchListData.NormallyClosed);
 			if (EditorGUI.EndChangeCheck()) {
 				switchListData.NormallyClosed = value;

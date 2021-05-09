@@ -17,6 +17,8 @@
 using System;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
+using Object = System.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -40,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var color = EditorGUILayout.ColorField("Lit Color", _mb.LitColor);
 			if (color != _mb.LitColor) {
+				RecordUndo("Change Segment Lit Color", this);
 				foreach (var mb in _mbs) {
 					mb.UpdateColor(color);
 				}
@@ -47,10 +50,20 @@ namespace VisualPinball.Unity.Editor
 
 			color = EditorGUILayout.ColorField("Unlit Color", _mb.UnlitColor);
 			if (color != _mb.UnlitColor) {
+				RecordUndo("Change Segment Unlit Color", this);
 				foreach (var mb in _mbs) {
 					mb.UnlitColor = color;
 				}
 			}
+		}
+
+		protected void RecordUndo(string description, DisplayInspector inspector)
+		{
+			var objs = _mbs
+				.Select(mb => mb.GetComponent<MeshRenderer>().sharedMaterial as UnityEngine.Object)
+				.Concat(_mbs.Select(mb => mb as UnityEngine.Object))
+				.Concat(new UnityEngine.Object[] {inspector});
+			Undo.RecordObjects(objs.ToArray(), description);
 		}
 	}
 }

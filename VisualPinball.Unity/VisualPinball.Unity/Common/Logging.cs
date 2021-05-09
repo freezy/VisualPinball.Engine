@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		{
 			var config = new NLog.Config.LoggingConfiguration();
 			var logConsole = new UnityTarget();
-			config.AddRule(LogLevel.Trace, LogLevel.Fatal, logConsole);
+			config.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
 			LogManager.Configuration = config;
 		}
 	}
