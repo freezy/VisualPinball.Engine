@@ -23,7 +23,6 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -31,16 +30,23 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SegmentDisplayAuthoring))]
 	public class SegmentDisplayInspector : DisplayInspector
 	{
-		private readonly (int, string)[] NumSegmentsTypes = {
+		private static readonly (int, string)[] NumSegmentsTypes = {
 			(7, "Seven-segment"),
 			(9, "Nine-segment"),
 			(14, "Fourteen-segment"),
+		};
+
+		private static readonly (int, string)[] SeparatorTypes = {
+			(0, "None"),
+			(1, "Period"),
+			(2, "Two-segment comma"),
 		};
 
 		[NonSerialized] private SegmentDisplayAuthoring _mb;
 		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
 
 		private int _numSegmentsIndex;
+		private int _separatorTypeIndex;
 		private float _skewAngleDeg;
 		private string _testText;
 		private bool _foldoutStyle = true;
@@ -50,9 +56,13 @@ namespace VisualPinball.Unity.Editor
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
 			_skewAngleDeg = math.degrees(_mb.SkewAngle);
+			Debug.Log("Finding seg " + _mb.NumSegments);
 			_numSegmentsIndex = NumSegmentsTypes
 				.Select((tuple, index) => new {tuple, index})
 				.First(pair => pair.tuple.Item1 == _mb.NumSegments).index;
+			_separatorTypeIndex = SeparatorTypes
+				.Select((tuple, index) => new {tuple, index})
+				.First(pair => pair.tuple.Item1 == _mb.SeparatorType).index;
 			base.OnEnable();
 		}
 
@@ -62,12 +72,22 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Segment Type", _mb.SegmentTypeName);
 
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUILayout.Popup("# of segments", _numSegmentsIndex, NumSegmentsTypes.Select(s => s.Item2).ToArray());
+			var typeIndex = EditorGUILayout.Popup("Type", _numSegmentsIndex, NumSegmentsTypes.Select(s => s.Item2).ToArray());
 			if (EditorGUI.EndChangeCheck()) {
-				_numSegmentsIndex = index;
+				_numSegmentsIndex = typeIndex;
 				RecordUndo("Change Number of Segments", this);
 				foreach (var mb in _mbs) {
-					mb.NumSegments = NumSegmentsTypes[index].Item1;
+					mb.NumSegments = NumSegmentsTypes[typeIndex].Item1;
+				}
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var sepIndex = EditorGUILayout.Popup("Separator", _separatorTypeIndex, SeparatorTypes.Select(s => s.Item2).ToArray());
+			if (EditorGUI.EndChangeCheck()) {
+				_separatorTypeIndex = sepIndex;
+				RecordUndo("Change Separator Type", this);
+				foreach (var mb in _mbs) {
+					mb.SeparatorType = SeparatorTypes[sepIndex].Item1;
 				}
 			}
 
@@ -105,27 +125,48 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
-				var innerPadding = EditorGUILayout.Vector2Field("Padding", _mb.Padding);
-				if (innerPadding.x != _mb.Padding.x || innerPadding.y != _mb.Padding.y) {
+				var padding = EditorGUILayout.Vector2Field("Padding", _mb.Padding);
+				if (padding.x != _mb.Padding.x || padding.y != _mb.Padding.y) {
 					RecordUndo("Change Segment Padding", this);
 					foreach (var mb in _mbs) {
-						mb.Padding = innerPadding;
+						mb.Padding = padding;
+					}
+				}
+
+				var separatorPos = EditorGUILayout.Vector2Field("Separator Position", _mb.SeparatorPos);
+				if (separatorPos.x != _mb.SeparatorPos.x || separatorPos.y != _mb.SeparatorPos.y) {
+					RecordUndo("Change Separator Position", this);
+					foreach (var mb in _mbs) {
+						mb.SeparatorPos = separatorPos;
+					}
+				}
+
+				var separatorEveryThree = EditorGUILayout.ToggleLeft("Separator Every Third Only", _mb.SeparatorEveryThreeOnly);
+				if (separatorEveryThree != _mb.SeparatorEveryThreeOnly) {
+					RecordUndo("Change Separator Visibility", this);
+					foreach (var mb in _mbs) {
+						mb.SeparatorEveryThreeOnly = separatorEveryThree;
 					}
 				}
 
 				EditorGUI.indentLevel--;
 			}
 
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+
+			EditorGUI.BeginDisabledGroup(_mb.NumSegments < 14);
 			var text = EditorGUILayout.TextField("Test Text", _testText);
 			if (text != _testText) {
 				_mb.SetText(text);
 				_testText = text;
 			}
+			EditorGUI.EndDisabledGroup();
 
-			if (GUILayout.Button("Test Alphanum")) {
-				// ReSharper disable once PossibleNullReferenceException
-				(target as SegmentDisplayAuthoring).SetTestData();
-			}
+			// if (GUILayout.Button("Test Alphanum")) {
+			// 	// ReSharper disable once PossibleNullReferenceException
+			// 	(target as SegmentDisplayAuthoring).SetTestData();
+			// }
 		}
 
 		[MenuItem("GameObject/Visual Pinball/Segment Display", false, 13)]
@@ -146,7 +187,5 @@ namespace VisualPinball.Unity.Editor
 			var display = go.AddComponent<SegmentDisplayAuthoring>();
 			display.UpdateDimensions(6, 1);
 		}
-
-
 	}
 }
