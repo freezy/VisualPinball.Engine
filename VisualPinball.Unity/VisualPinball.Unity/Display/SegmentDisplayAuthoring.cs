@@ -209,7 +209,7 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			var numSegments = ConvertSegmentType(format);
+			var numSegments = ConvertNumSegments(format);
 			if (numSegments != _numSegments) {
 				NumSegments = numSegments;
 			}
@@ -219,7 +219,7 @@ namespace VisualPinball.Unity
 			UpdateFrame(target);
 		}
 
-		public int ConvertSegmentType(DisplayFrameFormat format)
+		public int ConvertNumSegments(DisplayFrameFormat format)
 		{
 			switch (format) {
 				case DisplayFrameFormat.Segment7:
