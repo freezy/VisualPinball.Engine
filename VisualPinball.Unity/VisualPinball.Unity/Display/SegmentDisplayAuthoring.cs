@@ -33,20 +33,18 @@ namespace VisualPinball.Unity
 
 		public override float AspectRatio { get; set; } = 0.6f;
 
-		private const int NumSegments = 15;
-
 		protected override float MeshWidth => NumChars * MeshHeight * AspectRatio;
 		public override float MeshHeight => 0.2f;
 		protected override float MeshDepth => 0.01f;
 
 		[SerializeField] private string _id = "display0";
 		[SerializeField] private int _numChars = 7;
+		[SerializeField] private int _numSegments = 14;
 		[SerializeField] private Color _litColor = new Color(1, 0.4f, 0);
 		[SerializeField] private Color _unlitColor = new Color(0.25f, 0.25f, 0.25f);
 		[SerializeField] private float _skewAngle = math.radians(7);
 		[SerializeField] private float segmentWeight = 0.05f;
 		[SerializeField] private float2 _padding = new float2(0.5f, 0.4f);
-		[SerializeField] private int _segmentType;
 
 		[NonSerialized] private Color32[] _colorBuffer;
 
@@ -62,7 +60,6 @@ namespace VisualPinball.Unity
 		private static readonly int SegmentWeightProp = Shader.PropertyToID("__SegmentWeight");
 		private static readonly int SkewAngleProp = Shader.PropertyToID("__SkewAngle");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
-		private static readonly int SegmentTypeProp = Shader.PropertyToID("__SegmentType");
 
 		#endregion
 
@@ -77,6 +74,17 @@ namespace VisualPinball.Unity
 					mr.sharedMaterial.SetFloat(NumCharsProp, value);
 				}
 				RegenerateMesh();
+			}
+		}
+
+		public int NumSegments {
+			get => _numSegments;
+			set {
+				_numSegments = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetFloat(NumSegmentsProp, value);
+				}
 			}
 		}
 
@@ -124,17 +132,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public int SegmentType {
-			get => _segmentType;
-			set {
-				_segmentType = value;
-				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					mr.sharedMaterial.SetFloat(SegmentTypeProp, value);
-				}
-			}
-		}
-
 		public float2 Padding {
 			get => _padding;
 			set {
@@ -157,14 +154,12 @@ namespace VisualPinball.Unity
 			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);
 			material.SetFloat(NumCharsProp, _numChars);
+			material.SetFloat(NumSegmentsProp, _numSegments);
 			material.SetColor(LitColorProp, _litColor);
 			material.SetColor(UnlitColorProp, _unlitColor);
 			material.SetFloat(SkewAngleProp, _skewAngle);
 			material.SetFloat(SegmentWeightProp, segmentWeight);
 			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
-
-			material.SetFloat(NumSegmentsProp, NumSegments);
-			material.SetFloat(SegmentTypeProp, _segmentType);
 
 			Logger.Info("Recreating segment display material!");
 
@@ -173,10 +168,9 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			var shaderSegmentType = ConvertSegmentType(format);
-			if (shaderSegmentType != _segmentType) {
-				_segmentType = shaderSegmentType;
-				gameObject.GetComponent<MeshRenderer>().sharedMaterial = CreateMaterial();
+			var numSegments = ConvertSegmentType(format);
+			if (numSegments != _numSegments) {
+				NumSegments = numSegments;
 			}
 
 			var target = new ushort[source.Length / 2];
@@ -192,16 +186,16 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Segment7Comma:
 				case DisplayFrameFormat.Segment7CommaEvery3:
 				case DisplayFrameFormat.Segment7CommaEvery3Forced:
-					return 4;
+					return 7;
 
 				case DisplayFrameFormat.Segment9:
 				case DisplayFrameFormat.Segment9Comma:
 				case DisplayFrameFormat.Segment9CommaEvery3:
 				case DisplayFrameFormat.Segment9CommaEvery3Forced:
-					return 2;
+					return 9;
 
 				case DisplayFrameFormat.Segment16:
-					return 0;
+					return 15;
 				default:
 					Logger.Error($"Invalid data format, must be segment data, got {format}.");
 					break;

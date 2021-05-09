@@ -5,7 +5,6 @@
 		_MainTex ("Texture", 2D) = "white" {}
 
 		__NumChars ("Num Chars", Float) = 7
-		__SegmentType ("Segment Type", Int) = 0
 		__NumSegments ("Segments", Float) = 16
 
 		__SeparatorType ("Separator Type", Int) = 2
@@ -51,7 +50,6 @@
 			float4 _MainTex_ST;
 
 			float __NumChars;
-			int __SegmentType;
 			int __NumSegments;
 
 			int __SeparatorType;
@@ -76,7 +74,7 @@
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float pixelAlpha;
-				SegmentDisplay_float(i.uv, _MainTex, __SegmentType, __NumChars, __NumSegments,
+				SegmentDisplay_float(i.uv, _MainTex, __NumChars, __NumSegments,
 					__SeparatorType, __SeparatorEveryThreeOnly, __SeparatorPos, __SegmentWeight,
 					__HorizontalMiddle, __SkewAngle, __Padding, pixelAlpha);
 

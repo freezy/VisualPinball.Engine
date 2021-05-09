@@ -1,8 +1,7 @@
 ﻿// this shader is identical to the one in ../Srp, the only
 // difference is that it uses sampler2D instead of UnityTexture2D.
 
-float _SegmentWidth;
-int _SegmentType;
+float _SegmentWeight;
 float _Height;
 float _NumChars;
 float _NumSegments;
@@ -115,7 +114,7 @@ float LongLine(float2 a, float2 b, float2 p)
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
-	float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
@@ -125,7 +124,7 @@ float LongLine2(float2 a, float2 b, float2 p)
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
-	float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
@@ -135,7 +134,7 @@ float ShortLine(float2 a, float2 b, float2 p)
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 2.0, 1.0 - SegmentGap * 2.0);
-	float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
@@ -145,7 +144,7 @@ float MidLine(float2 a, float2 b, float2 p)
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 1.1, 1.0 - SegmentGap * 1.1);
-	float2 v = abs(pa - ba * t) / _SegmentWidth * 0.5;
+	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
@@ -156,15 +155,15 @@ float DiagLine(float2 a, float2 b, float2 p)
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = pa.x / ba.x;
 	float2 intersectP = abs(pa - ba * t);
-	float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
-	float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
+	float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
+	float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
 
 	float t2 = pa.y / ba.y;
 	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
 	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
 
 	return Rounder(
-		1 - intersectP.y / (_SegmentWidth * 4.0),
+		1 - intersectP.y / (_SegmentWeight * 4.0),
 		xl * xr,
 		(yd * yu) / SegmentGap * 0.5 - 4.0
 	);
@@ -176,15 +175,15 @@ float DiagLine2(float2 a, float2 b, float2 p)
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = pa.x / ba.x;
 	float2 intersectP = abs(pa - ba * t);
-	float xr = clamp(0 + (p.x - a.x - SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
-	float xl = clamp(1 - (p.x - b.x + SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
+	float xr = clamp(0 + (p.x - a.x - SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
+	float xl = clamp(1 - (p.x - b.x + SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
 
 	float t2 = pa.y / ba.y;
 	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
 	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
 
 	return Rounder(
-		1 - intersectP.y / (_SegmentWidth * 4.0),
+		1 - intersectP.y / (_SegmentWeight * 4.0),
 		xl * xr,
 		(yd * yu) / SegmentGap * 0.5 - 4.0
 	);
@@ -196,15 +195,15 @@ float DiagLine3(float2 a, float2 b, float2 p)
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = pa.x / ba.x;
 	float2 intersectP = abs(pa - ba * t);
-	float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
-	float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWidth) / _SegmentWidth * 0.5, -9999, 1);
+	float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
+	float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
 
 	float t2 = pa.y / ba.y;
 	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
 	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
 
 	return Rounder(
-		1 - intersectP.y / (_SegmentWidth * 3.0),
+		1 - intersectP.y / (_SegmentWeight * 3.0),
 		xl * xr,
 		(yd * yu) / SegmentGap * 0.5 - 4.0
 	);
@@ -254,12 +253,7 @@ float3 Combine(float3 accu, float val, bool showSeg)
 
 bool ShowSeg(sampler2D data, int charIndex, int segIndex)
 {
-	int numSegs = 1;
-	switch (_SegmentType) {
-		case 0: numSegs = 15; break;
-		case 4: numSegs = 8; break;
-	}
-	float2 d = float2(1. / numSegs, 1. / _NumChars);
+	float2 d = float2(1. / 16, 1. / _NumChars);
 	float2 pos = float2(float(segIndex), float(charIndex));
 	float4 pixel = tex2Dlod(data, float4(d.x * (pos.x + .5), d.y * (pos.y + .5), 0., 0.));
 	if (pixel.b > .5) {
@@ -291,7 +285,7 @@ float3 SegDispSeparator(sampler2D data, int charIndex, int segIndex, float2 p, f
 	return r;
 }
 
-float3 SegDisp8(sampler2D data, int charIndex, float2 p, float3 r)
+float3 SegDisp7(sampler2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
 	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
@@ -305,7 +299,7 @@ float3 SegDisp8(sampler2D data, int charIndex, float2 p, float3 r)
 	return r;
 }
 
-float3 SegDisp10(sampler2D data, int charIndex, float2 p, float3 r)
+float3 SegDisp9(sampler2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
 	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
@@ -321,7 +315,7 @@ float3 SegDisp10(sampler2D data, int charIndex, float2 p, float3 r)
 	return r;
 }
 
-float3 SegDisp15(sampler2D data, int charIndex, float2 p, float3 r)
+float3 SegDisp14(sampler2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
 	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
@@ -346,20 +340,19 @@ float3 SegDisp(sampler2D data, int charIndex, float2 p)
 {
 	float3 r = (0.);
 	p.x -= p.y * -_SkewAngle;
-	switch (_SegmentType) {
-		case 0: return SegDisp15(data, charIndex, p, r);
-		case 2: return SegDisp10(data, charIndex, p, r);
-		case 4: return SegDisp8(data, charIndex, p, r);
+	switch (_NumSegments) {
+		case 7: return SegDisp7(data, charIndex, p, r);
+		case 9: return SegDisp9(data, charIndex, p, r);
+		case 14: return SegDisp14(data, charIndex, p, r);
 	}
 	return r;
 }
 
-void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, float numChars,
-	float numSegments, int separatorType, int separatorEveryThreeOnly, float2 separatorPos,
-	float segmentWidth, float horizontalMiddle, float skewAngle, float2 padding, out float output)
+void SegmentDisplay_float(float2 coords, sampler2D data, float numChars, float numSegments,
+	int separatorType, int separatorEveryThreeOnly, float2 separatorPos, float segmentWeight,
+	float horizontalMiddle, float skewAngle, float2 padding, out float output)
 {
-	_SegmentWidth = segmentWidth;
-	_SegmentType = segmentType;
+	_SegmentWeight = segmentWeight;
 	_NumChars = numChars;
 	_NumSegments = numSegments;
 	_SkewAngle = skewAngle;
@@ -368,14 +361,14 @@ void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, floa
 	_SeparatorEveryThreeOnly = separatorEveryThreeOnly;
 	_SeparatorPos = separatorPos;
 
-	SegmentGap = segmentWidth * 1.5;
-	dtl = tl + float2(0.0, -segmentWidth);
-	dtr = tr + float2(0.0, -segmentWidth);
-	dtm = mm + float2(0.0 + _HorizontalMiddle, segmentWidth);
-	dbm = mm + float2(0.0 + _HorizontalMiddle, -segmentWidth);
-	dbl = bl + float2(0.0, segmentWidth);
-	dbr = br + float2(0.0, segmentWidth);
-	dp = br + float2(segmentWidth * 4.0, SegmentGap);
+	SegmentGap = segmentWeight * 1.5;
+	dtl = tl + float2(0.0, -segmentWeight);
+	dtr = tr + float2(0.0, -segmentWeight);
+	dtm = mm + float2(0.0 + _HorizontalMiddle, segmentWeight);
+	dbm = mm + float2(0.0 + _HorizontalMiddle, -segmentWeight);
+	dbl = bl + float2(0.0, segmentWeight);
+	dbr = br + float2(0.0, segmentWeight);
+	dp = br + float2(segmentWeight * 4.0, SegmentGap);
 	mm = float2(.0 + _HorizontalMiddle, 0);   // middle
 	tm = float2(.0 + _HorizontalMiddle, 1);
 	bm = float2(.0 + _HorizontalMiddle, -1);
@@ -396,7 +389,7 @@ void SegmentDisplay_float(float2 coords, sampler2D data, float segmentType, floa
 	float2 pos = originPos;
 	float3 d = (0.);
 
-	float2 f = float2(numChars * (1. + padding.x + segmentWidth * 2.), 1. + (padding.y + segmentWidth));
+	float2 f = float2(numChars * (1. + padding.x + segmentWeight * 2.), 1. + (padding.y + segmentWeight));
 	for (int character = 0; character < numChars; character++) {
 
 		d += SegDisp(data, character, (uv - pos) * f);

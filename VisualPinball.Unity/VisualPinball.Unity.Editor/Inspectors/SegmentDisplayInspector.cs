@@ -31,9 +31,16 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SegmentDisplayAuthoring))]
 	public class SegmentDisplayInspector : DisplayInspector
 	{
+		private readonly (int, string)[] NumSegmentsTypes = {
+			(7, "Seven-segment"),
+			(9, "Nine-segment"),
+			(14, "Fourteen-segment"),
+		};
+
 		[NonSerialized] private SegmentDisplayAuthoring _mb;
 		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
 
+		private int _numSegmentsIndex;
 		private float _skewAngleDeg;
 		private string _testText;
 		private bool _foldoutStyle = true;
@@ -43,6 +50,9 @@ namespace VisualPinball.Unity.Editor
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
 			_skewAngleDeg = math.degrees(_mb.SkewAngle);
+			_numSegmentsIndex = NumSegmentsTypes
+				.Select((tuple, index) => new {tuple, index})
+				.First(pair => pair.tuple.Item1 == _mb.NumSegments).index;
 			base.OnEnable();
 		}
 
@@ -50,6 +60,16 @@ namespace VisualPinball.Unity.Editor
 		{
 			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
 			EditorGUILayout.LabelField("Segment Type", _mb.SegmentTypeName);
+
+			EditorGUI.BeginChangeCheck();
+			var index = EditorGUILayout.Popup("# of segments", _numSegmentsIndex, NumSegmentsTypes.Select(s => s.Item2).ToArray());
+			if (EditorGUI.EndChangeCheck()) {
+				_numSegmentsIndex = index;
+				RecordUndo("Change Number of Segments", this);
+				foreach (var mb in _mbs) {
+					mb.NumSegments = NumSegmentsTypes[index].Item1;
+				}
+			}
 
 			var width = EditorGUILayout.IntSlider("Chars", _mb.NumChars, 1, 20);
 			if (width != _mb.NumChars) {
