@@ -45,9 +45,13 @@ namespace VisualPinball.Unity
 		[SerializeField] private float _skewAngle = math.radians(7);
 		[SerializeField] private float segmentWeight = 0.05f;
 		[SerializeField] private float2 _padding = new float2(0.5f, 0.4f);
+		[SerializeField] private float2 _separatorPos = new float2(1.5f, 0.0f);
+		[SerializeField] private int _separatorType = 1;
+		[SerializeField] private bool _separatorEveryThreeOnly;
 
 		[NonSerialized] private Color32[] _colorBuffer;
 
+		private const int MaxNumSegments = 16;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#region Shader Prop Constants
@@ -60,6 +64,9 @@ namespace VisualPinball.Unity
 		private static readonly int SegmentWeightProp = Shader.PropertyToID("__SegmentWeight");
 		private static readonly int SkewAngleProp = Shader.PropertyToID("__SkewAngle");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
+		private static readonly int SeparatorPosProp = Shader.PropertyToID("__SeparatorPos");
+		private static readonly int SeparatorTypeProp = Shader.PropertyToID("__SeparatorType");
+		private static readonly int SeparatorEveryThreeOnlyProp = Shader.PropertyToID("__SeparatorEveryThreeOnly");
 
 		#endregion
 
@@ -143,6 +150,40 @@ namespace VisualPinball.Unity
 			}
 		}
 
+
+		public float2 SeparatorPos {
+			get => _separatorPos;
+			set {
+				_separatorPos = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetVector(SeparatorPosProp, new Vector4(value.x, value.y));
+				}
+			}
+		}
+
+		public int SeparatorType {
+			get => _separatorType;
+			set {
+				_separatorType = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetInt(SeparatorTypeProp, value);
+				}
+			}
+		}
+
+		public bool SeparatorEveryThreeOnly {
+			get => _separatorEveryThreeOnly;
+			set {
+				_separatorEveryThreeOnly = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetInt(SeparatorEveryThreeOnlyProp, value ? 1 : 0);
+				}
+			}
+		}
+
 		public string SegmentTypeName;
 
 		#endregion
@@ -195,7 +236,7 @@ namespace VisualPinball.Unity
 					return 9;
 
 				case DisplayFrameFormat.Segment16:
-					return 15;
+					return 14;
 				default:
 					Logger.Error($"Invalid data format, must be segment data, got {format}.");
 					break;
@@ -205,16 +246,17 @@ namespace VisualPinball.Unity
 
 		public override void UpdateDimensions(int width, int height, bool _ = false)
 		{
-			_texture = new Texture2D(NumSegments, width * height);
-			_colorBuffer = new Color32[NumSegments * width * height];
+			_texture = new Texture2D(MaxNumSegments, width * height);
+			_colorBuffer = new Color32[MaxNumSegments * width * height];
 			RegenerateMesh();
 		}
 
 		public void SetText(string text)
 		{
 			var source = GenerateAlphaNumeric(text);
-			var target = new byte[_numChars * 2];
-			Buffer.BlockCopy(source, 0, target, 0, math.min(source.Length, _numChars) * 2);
+			const int size = sizeof(short);
+			var target = new byte[_numChars * size];
+			Buffer.BlockCopy(source, 0, target, 0, math.min(source.Length, _numChars) * size);
 
 			if (_colorBuffer == null) {
 				UpdateDimensions(_numChars, 1);
@@ -235,10 +277,10 @@ namespace VisualPinball.Unity
 		{
 			var height = NumChars;
 			for (var y = 0; y < height; y++) {
-				for (var x = 0; x < NumSegments; x++) {
+				for (var x = 0; x < MaxNumSegments; x++) {
 					var seg = data[y] >> x & 0x1;
 					var val = seg == 1 ? (byte)0xff : (byte)0x0;
-					_colorBuffer[y * NumSegments + x] = new Color32(val, val, val, 1);
+					_colorBuffer[y * MaxNumSegments + x] = new Color32(val, val, val, 1);
 				}
 			}
 			_texture.SetPixels32(_colorBuffer);
