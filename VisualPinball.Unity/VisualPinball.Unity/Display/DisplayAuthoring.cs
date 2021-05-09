@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			if (mr == null) {
 				mr = gameObject.AddComponent<MeshRenderer>();
 			}
-			mr.material = CreateMaterial();
+			mr.sharedMaterial = CreateMaterial();
 
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {

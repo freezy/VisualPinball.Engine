@@ -16,12 +16,14 @@
 
 // ReSharper disable CheckNamespace
 // ReSharper disable CompareOfFloatsByEqualityOperator
+// ReSharper disable AssignmentInConditionalExpression
 
 using System;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -33,15 +35,14 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
 
 		private float _skewAngleDeg;
-		private float _segmentWidth;
 		private string _testText;
+		private bool _foldoutStyle = true;
 
 		private void OnEnable()
 		{
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
 			_skewAngleDeg = math.degrees(_mb.SkewAngle);
-			_segmentWidth = _mb.SegmentWidth;
 			base.OnEnable();
 		}
 
@@ -50,28 +51,10 @@ namespace VisualPinball.Unity.Editor
 			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
 			EditorGUILayout.LabelField("Segment Type", _mb.SegmentTypeName);
 
-			base.OnInspectorGUI();
-
 			var width = EditorGUILayout.IntSlider("Chars", _mb.NumChars, 1, 20);
 			if (width != _mb.NumChars) {
 				_mb.NumChars = width;
 				_mb.RegenerateMesh();
-			}
-
-			var skewAngleDeg = EditorGUILayout.Slider("Skew Angle", _skewAngleDeg, -45f, 45f);
-			if (skewAngleDeg != _skewAngleDeg) {
-				foreach (var mb in _mbs) {
-					mb.SkewAngle = math.radians(skewAngleDeg);
-				}
-				_skewAngleDeg = skewAngleDeg;
-			}
-
-			var segWidth = EditorGUILayout.Slider("Weight", _segmentWidth, 0.005f, 0.11f);
-			if (segWidth != _segmentWidth) {
-				foreach (var mb in _mbs) {
-					mb.SegmentWidth = segWidth;
-				}
-				_segmentWidth = segWidth;
 			}
 
 			var ar = EditorGUILayout.Slider("Width", _mb.AspectRatio, 0.1f, 3f);
@@ -82,11 +65,35 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			var innerPadding = EditorGUILayout.Vector2Field("Inner Padding", _mb.InnerPadding);
-			if (innerPadding.x != _mb.InnerPadding.x || innerPadding.y != _mb.InnerPadding.y) {
-				foreach (var mb in _mbs) {
-					mb.InnerPadding = innerPadding;
+			if (_foldoutStyle = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutStyle, "Style")) {
+				EditorGUI.indentLevel++;
+				base.OnInspectorGUI();
+
+				var skewAngleDeg = EditorGUILayout.Slider("Skew Angle", _skewAngleDeg, -45f, 45f);
+				if (skewAngleDeg != _skewAngleDeg) {
+					RecordUndo("Change Skew Angle", this);
+					foreach (var mb in _mbs) {
+						mb.SkewAngle = math.radians(skewAngleDeg);
+					}
 				}
+
+				var segWidth = EditorGUILayout.Slider("Weight", _mb.SegmentWeight, 0.005f, 0.11f);
+				if (segWidth != _mb.SegmentWeight) {
+					RecordUndo("Change Segment Weight", this);
+					foreach (var mb in _mbs) {
+						mb.SegmentWeight = segWidth;
+					}
+				}
+
+				var innerPadding = EditorGUILayout.Vector2Field("Padding", _mb.Padding);
+				if (innerPadding.x != _mb.Padding.x || innerPadding.y != _mb.Padding.y) {
+					RecordUndo("Change Segment Padding", this);
+					foreach (var mb in _mbs) {
+						mb.Padding = innerPadding;
+					}
+				}
+
+				EditorGUI.indentLevel--;
 			}
 
 			var text = EditorGUILayout.TextField("Test Text", _testText);

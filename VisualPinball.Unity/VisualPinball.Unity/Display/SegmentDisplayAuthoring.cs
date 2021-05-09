@@ -44,8 +44,8 @@ namespace VisualPinball.Unity
 		[SerializeField] private Color _litColor = new Color(1, 0.4f, 0);
 		[SerializeField] private Color _unlitColor = new Color(0.25f, 0.25f, 0.25f);
 		[SerializeField] private float _skewAngle = math.radians(7);
-		[SerializeField] private float _segmentWidth = 0.05f;
-		[SerializeField] private float2 _innerPadding = new float2(0.5f, 0.4f);
+		[SerializeField] private float segmentWeight = 0.05f;
+		[SerializeField] private float2 _padding = new float2(0.5f, 0.4f);
 		[SerializeField] private int _segmentType;
 
 		[NonSerialized] private Color32[] _colorBuffer;
@@ -71,11 +71,11 @@ namespace VisualPinball.Unity
 		public int NumChars {
 			get => _numChars;
 			set {
+				_numChars = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetFloat(NumCharsProp, value);
 				}
-				_numChars = value;
 				RegenerateMesh();
 			}
 		}
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 				_litColor = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetColor(LitColorProp, value);
 				}
 			}
 		}
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 				_unlitColor = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetColor(UnlitColorProp, value);
 				}
 			}
 		}
@@ -107,19 +107,19 @@ namespace VisualPinball.Unity
 			set {
 				_skewAngle = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
-					mr.material = CreateMaterial();
+				if (mr) {
+					mr.sharedMaterial.SetFloat(SkewAngleProp, value);
 				}
 			}
 		}
 
-		public float SegmentWidth {
-			get => _segmentWidth;
+		public float SegmentWeight {
+			get => segmentWeight;
 			set {
-				_segmentWidth = value;
+				segmentWeight = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetFloat(SegmentWeightProp, value);
 				}
 			}
 		}
@@ -130,18 +130,18 @@ namespace VisualPinball.Unity
 				_segmentType = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetFloat(SegmentTypeProp, value);
 				}
 			}
 		}
 
-		public float2 InnerPadding {
-			get => _innerPadding;
+		public float2 Padding {
+			get => _padding;
 			set {
-				_innerPadding = value;
+				_padding = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetVector(PaddingProp, new Vector4(value.x, value.y));
 				}
 			}
 		}
@@ -160,8 +160,8 @@ namespace VisualPinball.Unity
 			material.SetColor(LitColorProp, _litColor);
 			material.SetColor(UnlitColorProp, _unlitColor);
 			material.SetFloat(SkewAngleProp, _skewAngle);
-			material.SetFloat(SegmentWeightProp, _segmentWidth);
-			material.SetVector(PaddingProp, new Vector4(_innerPadding.x, _innerPadding.y));
+			material.SetFloat(SegmentWeightProp, segmentWeight);
+			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
 
 			material.SetFloat(NumSegmentsProp, NumSegments);
 			material.SetFloat(SegmentTypeProp, _segmentType);
@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			var shaderSegmentType = ConvertSegmentType(format);
 			if (shaderSegmentType != _segmentType) {
 				_segmentType = shaderSegmentType;
-				gameObject.GetComponent<MeshRenderer>().material = CreateMaterial();
+				gameObject.GetComponent<MeshRenderer>().sharedMaterial = CreateMaterial();
 			}
 
 			var target = new ushort[source.Length / 2];
