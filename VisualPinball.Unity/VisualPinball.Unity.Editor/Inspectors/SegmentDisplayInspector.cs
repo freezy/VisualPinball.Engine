@@ -56,7 +56,6 @@ namespace VisualPinball.Unity.Editor
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
 			_skewAngleDeg = math.degrees(_mb.SkewAngle);
-			Debug.Log("Finding seg " + _mb.NumSegments);
 			_numSegmentsIndex = NumSegmentsTypes
 				.Select((tuple, index) => new {tuple, index})
 				.First(pair => pair.tuple.Item1 == _mb.NumSegments).index;

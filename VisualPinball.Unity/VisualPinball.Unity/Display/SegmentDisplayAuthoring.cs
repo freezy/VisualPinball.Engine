@@ -201,6 +201,9 @@ namespace VisualPinball.Unity
 			material.SetFloat(SkewAngleProp, _skewAngle);
 			material.SetFloat(SegmentWeightProp, segmentWeight);
 			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
+			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
+			material.SetInt(SeparatorTypeProp, _separatorType);
+			material.SetInt(SeparatorEveryThreeOnlyProp, _separatorEveryThreeOnly ? 1 : 0);
 
 			Logger.Info("Recreating segment display material!");
 
@@ -209,39 +212,9 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			var numSegments = ConvertNumSegments(format);
-			if (numSegments != _numSegments) {
-				NumSegments = numSegments;
-			}
-
-			var target = new ushort[source.Length / 2];
+			var target = new ushort[source.Length / sizeof(short)];
 			Buffer.BlockCopy(source, 0, target, 0, source.Length);
 			UpdateFrame(target);
-		}
-
-		public int ConvertNumSegments(DisplayFrameFormat format)
-		{
-			switch (format) {
-				case DisplayFrameFormat.Segment7:
-				case DisplayFrameFormat.Segment7Dot:
-				case DisplayFrameFormat.Segment7Comma:
-				case DisplayFrameFormat.Segment7CommaEvery3:
-				case DisplayFrameFormat.Segment7CommaEvery3Forced:
-					return 7;
-
-				case DisplayFrameFormat.Segment9:
-				case DisplayFrameFormat.Segment9Comma:
-				case DisplayFrameFormat.Segment9CommaEvery3:
-				case DisplayFrameFormat.Segment9CommaEvery3Forced:
-					return 9;
-
-				case DisplayFrameFormat.Segment16:
-					return 14;
-				default:
-					Logger.Error($"Invalid data format, must be segment data, got {format}.");
-					break;
-			}
-			return 0;
 		}
 
 		public override void UpdateDimensions(int width, int height, bool _ = false)
@@ -261,7 +234,7 @@ namespace VisualPinball.Unity
 			if (_colorBuffer == null) {
 				UpdateDimensions(_numChars, 1);
 			}
-			UpdateFrame(DisplayFrameFormat.Segment16, target);
+			UpdateFrame(DisplayFrameFormat.Segment, target);
 		}
 
 		public void SetTestData()
