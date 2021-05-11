@@ -18,15 +18,17 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(DotMatrixDisplayAuthoring)), CanEditMultipleObjects]
-	public class DmdInspector : DisplayInspector
+	public class DotMatrixDisplayInspector : DisplayInspector
 	{
 		[NonSerialized] private DotMatrixDisplayAuthoring _mb;
+		[NonSerialized] private DotMatrixDisplayAuthoring[] _mbs;
 
 		private void OnEnable()
 		{
@@ -37,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
+			_mbs = targets.Select(t => t as DotMatrixDisplayAuthoring).ToArray();
 
 			base.OnInspectorGUI();
 
@@ -50,9 +53,20 @@ namespace VisualPinball.Unity.Editor
 				_mb.Height = height;
 			}
 
-			var dotSize = EditorGUILayout.Slider("Dot Size", _mb.DotSize, 0.1f, 5.0f);
+			var dotSize = EditorGUILayout.Slider("Dot Size", _mb.DotSize, 0.05f, 1.0f);
 			if (dotSize != _mb.DotSize) {
-				_mb.DotSize = dotSize;
+				RecordUndo("Change DMD Dot Size", this);
+				foreach (var mb in _mbs) {
+					mb.DotSize = dotSize;
+				}
+			}
+
+			var sharpness = EditorGUILayout.Slider("Dot Sharpness", _mb.Sharpness, 0.0f, 0.5f);
+			if (sharpness != _mb.Sharpness) {
+				RecordUndo("Change DMD Dot Sharpness", this);
+				foreach (var mb in _mbs) {
+					mb.Sharpness = sharpness;
+				}
 			}
 		}
 

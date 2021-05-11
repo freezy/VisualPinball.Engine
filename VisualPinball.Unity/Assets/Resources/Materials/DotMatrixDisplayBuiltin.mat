@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: DotMatrixDisplayBuiltin
   m_Shader: {fileID: 4800000, guid: 7130383a7e4e55b429fe3af74b2f192e, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -43,7 +43,7 @@ Material:
     - _TargetHeight: 118.01
     - _TargetWidth: 1450.11
     - _Width: 128
-    - __DotSize2: 0.83
+    - __DotSize: 0.7
     m_Colors:
     - _Color: {r: 1, g: 0.9, b: 0, a: 1}
     - __Dimensions: {r: 128, g: 32, b: 0, a: 0}
