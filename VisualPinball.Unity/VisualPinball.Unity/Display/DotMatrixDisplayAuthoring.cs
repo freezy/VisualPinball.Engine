@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 				_unlitColor = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetColor(UnlitColorProp, value);
 				}
 			}
 		}
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 				_dotSize = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.material = CreateMaterial();
+					mr.sharedMaterial.SetFloat(DotSizeProp, value);
 				}
 			}
 		}
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 
 		protected override Material CreateMaterial()
 		{
-			var material = RenderPipeline.Current.MaterialConverter.DotMatrixDisplay;
+			var material = Instantiate(RenderPipeline.Current.MaterialConverter.DotMatrixDisplay);
 			material.mainTexture = _texture;
 			material.SetTexture(DataProp, _texture);
 			material.SetVector(DimensionsProp, new Vector4(_width, _height));
