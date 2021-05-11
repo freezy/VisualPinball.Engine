@@ -130,9 +130,8 @@ namespace VisualPinball.Unity
 			RegenerateMesh(flipX);
 
 			var mr = gameObject.GetComponent<MeshRenderer>();
-			mr.sharedMaterial.mainTexture = _texture;
 			mr.sharedMaterial.SetVector(DimensionsProp, new Vector4(_width, _height));
-
+			mr.sharedMaterial.SetTexture(DataProp, _texture);
 		}
 
 		public override void UpdateColor(Color color)
