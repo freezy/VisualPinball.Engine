@@ -25,22 +25,22 @@ namespace VisualPinball.Unity.Test
 	[TestFixture]
 	public class DynamicStructTests
 	{
-		[Test]
-		public unsafe void ShouldSerializeBlobAssetReference()
-		{
-			var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference();
-
-			ref var collider1 = ref quadTreeBlobAssetRef.Value.Colliders[0].Value;
-			ref var collider2 = ref quadTreeBlobAssetRef.Value.Colliders[1].Value;
-
-			Assert.AreEqual(ColliderType.Line, collider1.Type);
-			//Assert.AreEqual(new Aabb(1f, 3f, 20f, 4f, 5f, 6f), collider1.Aabb);
-			fixed (Collider* collider = &collider1) {
-				Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->V1);
-				Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->GetV1());
-			}
-			Assert.AreEqual(ColliderType.Point, collider2.Type);
-		}
+		// [Test]
+		// public unsafe void ShouldSerializeBlobAssetReference()
+		// {
+		// 	var quadTreeBlobAssetRef = QuadTree.CreateBlobAssetReference();
+		//
+		// 	ref var collider1 = ref quadTreeBlobAssetRef.Value.Colliders[0].Value;
+		// 	ref var collider2 = ref quadTreeBlobAssetRef.Value.Colliders[1].Value;
+		//
+		// 	Assert.AreEqual(ColliderType.Line, collider1.Type);
+		// 	//Assert.AreEqual(new Aabb(1f, 3f, 20f, 4f, 5f, 6f), collider1.Aabb);
+		// 	fixed (Collider* collider = &collider1) {
+		// 		Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->V1);
+		// 		Assert.AreEqual(new float2(1f, 20f), ((LineCollider*)collider)->GetV1());
+		// 	}
+		// 	Assert.AreEqual(ColliderType.Point, collider2.Type);
+		// }
 
 		[Test]
 		public unsafe void ShouldSerializeStruc()

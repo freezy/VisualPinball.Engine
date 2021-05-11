@@ -4,7 +4,8 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		__Dimensions ("Dimensions", Vector) = (128, 32, 0, 0)
-		__DotSize2 ("Dot Size", Float) = 1.25
+		__DotSize ("Dot Size", Float) = 0.7
+		__Sharpness ("Sharpness", Float) = .3
 	}
 	SubShader
 	{
@@ -37,8 +38,9 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 
-			float __DotSize2;
 			float2 __Dimensions;
+			float __DotSize;
+			float __Sharpness;
 
 			v2f vert (appdata v)
 			{
@@ -55,9 +57,9 @@
 				SamplePosition_float(i.uv, __Dimensions, dotCenter);
 
 				float4 pixelColor = tex2D(_MainTex, dotCenter);
-
 				float4 outColor;
-				RoundDot_float(i.uv, __Dimensions, __DotSize2, pixelColor, dotCenter, outColor);
+
+				RoundDot_float(i.uv, __Dimensions, __DotSize, __Sharpness, pixelColor, outColor);
 
 				return outColor;
 			}

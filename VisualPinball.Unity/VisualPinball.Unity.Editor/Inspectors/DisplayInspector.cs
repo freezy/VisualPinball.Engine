@@ -31,7 +31,6 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized] private DisplayAuthoring _mb;
 		[NonSerialized] private DisplayAuthoring[] _mbs;
 
-
 		protected void OnEnable()
 		{
 			_mb = target as DisplayAuthoring;

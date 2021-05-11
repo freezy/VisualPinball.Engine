@@ -45,7 +45,8 @@ namespace VisualPinball.Unity
 		[SerializeField] private Color _unlitColor = new Color(0.2f, 0.2f, 0.2f);
 		[SerializeField] private int _width = 128;
 		[SerializeField] private int _height = 32;
-		[SerializeField] private float _dotSize = 1.7f;
+		[SerializeField] private float _dotSize = 0.7f;
+		[SerializeField] private float _sharpness = 0.3f;
 
 		[NonSerialized] private DisplayFrameFormat _frameFormat = DisplayFrameFormat.Dmd4;
 		[NonSerialized] private Color32[] _colorBuffer;
@@ -56,7 +57,8 @@ namespace VisualPinball.Unity
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
 		private static readonly int DataProp = Shader.PropertyToID("__Data");
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
-		private static readonly int DotSizeProp = Shader.PropertyToID("__DotSize2");
+		private static readonly int DotSizeProp = Shader.PropertyToID("__DotSize");
+		private static readonly int SharpnessProp = Shader.PropertyToID("__Sharpness");
 
 		public int Width
 		{
@@ -103,6 +105,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public float Sharpness
+		{
+			get => _sharpness;
+			set {
+				_sharpness = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetFloat(SharpnessProp, value);
+				}
+			}
+		}
+
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
 			Logger.Info($"Updating dimensions for DMD \"{_id}\" to {width}x{height}.");
@@ -112,7 +126,13 @@ namespace VisualPinball.Unity
 			_texture = new Texture2D(width, height, TextureFormat.RGB24, false);
 			_texture.SetPixels32(_colorBuffer);
 			_texture.Apply();
+
 			RegenerateMesh(flipX);
+
+			var mr = gameObject.GetComponent<MeshRenderer>();
+			mr.sharedMaterial.mainTexture = _texture;
+			mr.sharedMaterial.SetVector(DimensionsProp, new Vector4(_width, _height));
+
 		}
 
 		public override void UpdateColor(Color color)
