@@ -53,19 +53,19 @@ namespace VisualPinball.Unity.Editor
 				_mb.Height = height;
 			}
 
-			var dotSize = EditorGUILayout.Slider("Dot Size", _mb.DotSize, 0.05f, 1.0f);
-			if (dotSize != _mb.DotSize) {
-				RecordUndo("Change DMD Dot Size", this);
+			var padding = EditorGUILayout.Slider("Padding", _mb.Padding, 0.0f, 0.8f);
+			if (padding != _mb.Padding) {
+				RecordUndo("Change DMD Padding", this);
 				foreach (var mb in _mbs) {
-					mb.DotSize = dotSize;
+					mb.Padding = padding;
 				}
 			}
 
-			var sharpness = EditorGUILayout.Slider("Dot Sharpness", _mb.Sharpness, 0.0f, 0.5f);
-			if (sharpness != _mb.Sharpness) {
-				RecordUndo("Change DMD Dot Sharpness", this);
+			var roundness = EditorGUILayout.Slider("Dot Roundness", _mb.Roundness, 0.0f, 0.5f);
+			if (roundness != _mb.Roundness) {
+				RecordUndo("Change DMD Dot Roundness", this);
 				foreach (var mb in _mbs) {
-					mb.Sharpness = sharpness;
+					mb.Roundness = roundness;
 				}
 			}
 		}
