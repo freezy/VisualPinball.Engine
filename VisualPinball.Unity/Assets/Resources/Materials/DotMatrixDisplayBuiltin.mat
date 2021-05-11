@@ -43,7 +43,7 @@ Material:
     - _TargetHeight: 118.01
     - _TargetWidth: 1450.11
     - _Width: 128
-    - __DotSize: 0.7
+    - __Padding: 0.2
     m_Colors:
     - _Color: {r: 1, g: 0.9, b: 0, a: 1}
     - __Dimensions: {r: 128, g: 32, b: 0, a: 0}

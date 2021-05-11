@@ -45,8 +45,8 @@ namespace VisualPinball.Unity
 		[SerializeField] private Color _unlitColor = new Color(0.2f, 0.2f, 0.2f);
 		[SerializeField] private int _width = 128;
 		[SerializeField] private int _height = 32;
-		[SerializeField] private float _dotSize = 0.7f;
-		[SerializeField] private float _sharpness = 0.3f;
+		[SerializeField] private float _padding = 0.2f;
+		[SerializeField] private float _roundness = 0.35f;
 
 		[NonSerialized] private DisplayFrameFormat _frameFormat = DisplayFrameFormat.Dmd4;
 		[NonSerialized] private Color32[] _colorBuffer;
@@ -57,8 +57,8 @@ namespace VisualPinball.Unity
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
 		private static readonly int DataProp = Shader.PropertyToID("__Data");
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
-		private static readonly int DotSizeProp = Shader.PropertyToID("__DotSize");
-		private static readonly int SharpnessProp = Shader.PropertyToID("__Sharpness");
+		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
+		private static readonly int RoundnessProp = Shader.PropertyToID("__Roundness");
 
 		public int Width
 		{
@@ -93,26 +93,26 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public float DotSize
+		public float Padding
 		{
-			get => _dotSize;
+			get => _padding;
 			set {
-				_dotSize = value;
+				_padding = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(DotSizeProp, value);
+					mr.sharedMaterial.SetFloat(PaddingProp, value);
 				}
 			}
 		}
 
-		public float Sharpness
+		public float Roundness
 		{
-			get => _sharpness;
+			get => _roundness;
 			set {
-				_sharpness = value;
+				_roundness = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
-					mr.sharedMaterial.SetFloat(SharpnessProp, value);
+					mr.sharedMaterial.SetFloat(RoundnessProp, value);
 				}
 			}
 		}
@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 			material.SetTexture(DataProp, _texture);
 			material.SetVector(DimensionsProp, new Vector4(_width, _height));
 			material.SetColor(UnlitColorProp, _unlitColor);
-			material.SetFloat(DotSizeProp, _dotSize);
+			material.SetFloat(PaddingProp, _padding);
 			return material;
 		}
 

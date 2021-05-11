@@ -5,17 +5,41 @@
 	dotCenter = dimensionsPerDot * (dotPos + 0.5);
 }
 
-float Circle(float2 uv, float _radius, float _sharpness) {
-	float2 dist = uv - float2(0.5, 0.5);
-	return 1. - smoothstep(
-		_radius - (_radius * _sharpness),
-		_radius + (_radius * _sharpness),
-		dot(dist, dist) * 4.0
-	);
+float Ellipse(float2 _uv, float _padding)
+{
+	float len = 1.0 - _padding;
+	float d = length((_uv * 2 - 1) / float2(len, len));
+	return saturate((1 - d) / fwidth(d));
 }
 
-void RoundDot_float(float2 uv, float2 dimensions, float scale, float sharpness, float4 color, out float4 output)
+float RoundedRectangle(float2 _uv, float _padding, float _radius)
+{
+	float len = 1.0 - _padding;
+	_radius = max(min(min(abs(_radius * 2), abs(len)), abs(len)), 1e-5);
+	float2 uv = abs(_uv * 2 - 1) - float2(len, len) + _radius;
+	float d = length(max(0, uv)) / _radius;
+	return saturate((1 - d) / fwidth(d));
+}
+
+float Rectangle(float2 _uv, float _padding)
+{
+	float len = 1.0 - _padding;
+	float2 d = abs(_uv * 2 - 1) - float2(len, len);
+	d = 1 - d / fwidth(d);
+	return saturate(min(d.x, d.y));
+}
+
+void Dot_float(float2 uv, float2 dimensions, float padding, float roundness, float4 color, out float4 output)
 {
 	float2 pos = frac(uv * dimensions);
-	output = color * Circle(pos, scale, sharpness);
+
+	if (roundness >= 0.5) {
+		output = color * Ellipse(pos, padding);
+
+	} else if (roundness <= 0) {
+		output = color * Rectangle(pos, padding);
+
+	} else {
+		output = color * RoundedRectangle(pos, padding, roundness);
+	}
 }

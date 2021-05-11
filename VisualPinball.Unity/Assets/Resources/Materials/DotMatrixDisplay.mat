@@ -265,7 +265,7 @@ Material:
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1
-    - __DotSize: 0.7
+    - __Padding: 0.2
     - __NumChars: 2
     - __NumSegments: 15
     - __SegmentType: 0
