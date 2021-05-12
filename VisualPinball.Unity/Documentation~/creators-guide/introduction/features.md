@@ -85,31 +85,6 @@ There are common patterns for VPX tables that are obsolete in VPE. For instance,
 
 Of course the changes don't apply to the table data itself but to how we convert it into the Unity scene. You can read more about it [here](https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Unity/VisualPinball.Unity.Patcher#unity-patching-system).
 
+## Display Support
 
-# Missing Features
-
-There are some things you might expect to work, but don't, because they're not yet implemented. Here's an incomplete list of those things.
-
-## Key Assignments
-
-Currently, we grab left and right shift and map it to `LeftFlipper` and `RightFlipper` respectively. If the flippers are named differently, it doesn't work.
-
-VPE will provide a simple mapping mechanism where authors can link semantic key events to table logic and users can link keyboard keys to those key events.
-
-## Performance
-
-When building the table, performance is okay but still not satisfactory. We think we can still do better.
-
-## Runtime Import
-
-Right now, when you "build" your game and run it, Unity will compile it into binary assets. We want to avoid authors distributing those binaries, because they hide how things are done prevent further modding by other creators.
-
-Both of these aspects are crucial in building an ecosystem, so the goal is to only compile the player itself and load the tables at runtime.
-
-## Ball Destruction
-
-Currently balls can't be destroyed during gameplay, so every drain will just leave them on the table, resulting in poor performance.
-
-# Planned Features
-
-This section will at some point contain a list of major new features.
+VPE provides high-quality rendering of dot matrix and segment displays. Displays can be placed anywhere in the scene, multiple at once, and are easily linked to the game logic engine. For DMDs, dot size, shape and color can be customized, and for segment displays it's the segment weight, skew angle and color.
