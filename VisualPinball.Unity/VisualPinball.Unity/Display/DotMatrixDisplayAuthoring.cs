@@ -138,6 +138,11 @@ namespace VisualPinball.Unity
 			_map.Clear();
 		}
 
+		public override void Clear()
+		{
+			UpdateFrame(DisplayFrameFormat.Dmd2, new byte[_width * _height]);
+		}
+
 		protected override Material CreateMaterial()
 		{
 			var material = Instantiate(RenderPipeline.Current.MaterialConverter.DotMatrixDisplay);

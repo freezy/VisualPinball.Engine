@@ -36,8 +36,8 @@ namespace VisualPinball.Unity
 		protected Texture2D _texture;
 
 		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
-
 		public abstract void UpdateDimensions(int width, int height, bool flipX = false);
+		public abstract void Clear();
 
 		public virtual void UpdateColor(Color color)
 		{

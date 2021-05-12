@@ -222,6 +222,11 @@ namespace VisualPinball.Unity
 			RegenerateMesh();
 		}
 
+		public override void Clear()
+		{
+			UpdateFrame(DisplayFrameFormat.Segment, new byte[_colorBuffer.Length * sizeof(short)]);
+		}
+
 		public void SetText(string text)
 		{
 			var source = GenerateAlphaNumeric(text);
