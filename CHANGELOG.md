@@ -7,6 +7,7 @@
 Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/255).
 
 ### Added
+- DMD and segment display support ([Documentation](https://docs.visualpinball.org/creators-guide/manual/displays.html)).
 - Plugin: Mission Pinball Framework ([Documentation](https://docs.visualpinball.org/plugins/mpf/index.html))
 - Gamelogic Engine: Support for hardware rules ([#293](https://github.com/freezy/VisualPinball.Engine/pull/293)).
 - Support for Extended ASCII strings ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
