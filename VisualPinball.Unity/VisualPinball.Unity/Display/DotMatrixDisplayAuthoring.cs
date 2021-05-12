@@ -55,7 +55,6 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
-		private static readonly int DataProp = Shader.PropertyToID("__Data");
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
 		private static readonly int RoundnessProp = Shader.PropertyToID("__Roundness");
@@ -131,7 +130,6 @@ namespace VisualPinball.Unity
 
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			mr.sharedMaterial.SetVector(DimensionsProp, new Vector4(_width, _height));
-			mr.sharedMaterial.SetTexture(DataProp, _texture);
 		}
 
 		public override void UpdateColor(Color color)
@@ -144,7 +142,6 @@ namespace VisualPinball.Unity
 		{
 			var material = Instantiate(RenderPipeline.Current.MaterialConverter.DotMatrixDisplay);
 			material.mainTexture = _texture;
-			material.SetTexture(DataProp, _texture);
 			material.SetVector(DimensionsProp, new Vector4(_width, _height));
 			material.SetColor(UnlitColorProp, _unlitColor);
 			material.SetFloat(PaddingProp, _padding);
