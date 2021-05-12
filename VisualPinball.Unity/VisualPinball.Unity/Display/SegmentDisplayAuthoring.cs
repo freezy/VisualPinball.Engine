@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 
 		private static readonly int LitColorProp = Shader.PropertyToID("__LitColor");
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
-		private static readonly int DataProp = Shader.PropertyToID("__SegmentData");
 		private static readonly int NumCharsProp = Shader.PropertyToID("__NumChars");
 		private static readonly int NumSegmentsProp = Shader.PropertyToID("__NumSegments");
 		private static readonly int SegmentWeightProp = Shader.PropertyToID("__SegmentWeight");
@@ -193,7 +192,6 @@ namespace VisualPinball.Unity
 			var material = Instantiate(RenderPipeline.Current.MaterialConverter.SegmentDisplay);
 
 			material.mainTexture = _texture;
-			material.SetTexture(DataProp, _texture);
 			material.SetFloat(NumCharsProp, _numChars);
 			material.SetFloat(NumSegmentsProp, _numSegments);
 			material.SetColor(LitColorProp, _litColor);

@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 		public abstract Color LitColor { get; set; }
 		public abstract Color UnlitColor { get; set; }
 
+		private static readonly int DataProp = Shader.PropertyToID("__Data");
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected Texture2D _texture;
@@ -56,6 +58,8 @@ namespace VisualPinball.Unity
 				mr.sharedMaterial = CreateMaterial();
 			}
 			mr.sharedMaterial.mainTexture = _texture;
+			mr.sharedMaterial.SetTexture(DataProp, _texture);
+
 
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {
