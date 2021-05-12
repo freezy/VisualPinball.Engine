@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 				if (_displayGameObjects.ContainsKey(display.Id)) {
 					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
 					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height, display.FlipX);
+					_displayGameObjects[display.Id].Clear();
 
 				} else {
 					Logger.Error($"Cannot find DMD game object for display \"{display.Id}\"");
