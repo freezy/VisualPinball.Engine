@@ -336,6 +336,28 @@ float3 SegDisp14(sampler2D data, int charIndex, float2 p, float3 r)
 	return r;
 }
 
+float3 SegDisp16(sampler2D data, int charIndex, float2 p, float3 r)
+{
+	r = Combine(r, ShortLine(tl, tm, p), ShowSeg(data, charIndex, 0)); // a
+	r = Combine(r, ShortLine(tm, tr, p), ShowSeg(data, charIndex, 1)); // b
+	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 2));  // c
+	r = Combine(r, LongLine(mr, br, p), ShowSeg(data, charIndex, 3));  // d
+	r = Combine(r, ShortLine(br, bm, p), ShowSeg(data, charIndex, 4)); // e
+	r = Combine(r, ShortLine(bm, bl, p), ShowSeg(data, charIndex, 5)); // f
+	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 6));  // g
+	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 7));  // h
+	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8)); // i
+	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));   // j
+	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10)); // k
+	r = Combine(r, ShortLine(mm, mr, p), ShowSeg(data, charIndex, 11));  // l
+	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));// m
+	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));   // n
+	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14)); // o
+	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 15));   // p
+
+	return r;
+}
+
 float3 SegDisp(sampler2D data, int charIndex, float2 p)
 {
 	float3 r = (0.);
@@ -344,6 +366,7 @@ float3 SegDisp(sampler2D data, int charIndex, float2 p)
 		case 7: return SegDisp7(data, charIndex, p, r);
 		case 9: return SegDisp9(data, charIndex, p, r);
 		case 14: return SegDisp14(data, charIndex, p, r);
+		case 16: return SegDisp16(data, charIndex, p, r);
 	}
 	return r;
 }
