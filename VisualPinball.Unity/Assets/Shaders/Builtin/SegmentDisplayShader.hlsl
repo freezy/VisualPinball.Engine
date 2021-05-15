@@ -309,8 +309,8 @@ float3 SegDisp9(sampler2D data, int charIndex, float2 p, float3 r)
 	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
 	r = SegDispSeparator(data, charIndex, 7, p, r);
-	r = Combine(r, DiagLine3(dtr, dtm, p), ShowSeg(data, charIndex, 8));
-	r = Combine(r, DiagLine3(dbm, dbl, p), ShowSeg(data, charIndex, 9));
+	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 8));
+	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 9));
 
 	return r;
 }
