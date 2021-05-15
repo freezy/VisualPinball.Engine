@@ -7,6 +7,8 @@ description: Visual Pinball Engine integration with the Mission Pinball Framewor
 
 # Mission Pinball Framework
 
+MPF is a rich framework that allows to easily implement game logic for existing or completely new pinball machines. It's mature, very well documented, and actively maintained.
+
 VPE connects to MPF using [gRPC](https://grpc.io/), which is a high-performance, low-latency RPC framework. It works by VPE launching MPF as a Python process. MPF will then spawn a gRPC server, to which VPE connects to.
 
 There are two situations when this is done:

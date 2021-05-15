@@ -12,3 +12,5 @@
   items:
   - name: Overview
     href: pinmame/index.md
+  - name: Setup
+    href: pinmame/setup.md
