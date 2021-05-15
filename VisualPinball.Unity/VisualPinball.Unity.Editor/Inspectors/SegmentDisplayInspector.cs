@@ -78,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo("Change Number of Segments", this);
 				foreach (var mb in _mbs) {
 					mb.NumSegments = NumSegmentsTypes[typeIndex].Item1;
+					mb.HorizontalMiddle = 0f;
 				}
 			}
 
@@ -115,13 +116,24 @@ namespace VisualPinball.Unity.Editor
 					foreach (var mb in _mbs) {
 						mb.SkewAngle = math.radians(skewAngleDeg);
 					}
+					_skewAngleDeg = skewAngleDeg;
 				}
 
-				var segWidth = EditorGUILayout.Slider("Weight", _mb.SegmentWeight, 0.005f, 0.11f);
-				if (segWidth != _mb.SegmentWeight) {
+				var segWeight = EditorGUILayout.Slider("Weight", _mb.SegmentWeight, 0.005f, 0.11f);
+				if (segWeight != _mb.SegmentWeight) {
 					RecordUndo("Change Segment Weight", this);
 					foreach (var mb in _mbs) {
-						mb.SegmentWeight = segWidth;
+						mb.SegmentWeight = segWeight;
+					}
+				}
+
+				if (_mb.NumSegments == 9) {
+					var hPos = EditorGUILayout.Slider("Middle Shift", _mb.HorizontalMiddle, -0.5f, 0.5f);
+					if (hPos != _mb.HorizontalMiddle) {
+						RecordUndo("Change Segment Middle", this);
+						foreach (var mb in _mbs) {
+							mb.HorizontalMiddle = hPos;
+						}
 					}
 				}
 

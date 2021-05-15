@@ -43,7 +43,8 @@ namespace VisualPinball.Unity
 		[SerializeField] private Color _litColor = new Color(1, 0.18f, 0);
 		[SerializeField] private Color _unlitColor = new Color(0.25f, 0.25f, 0.25f);
 		[SerializeField] private float _skewAngle = math.radians(7);
-		[SerializeField] private float segmentWeight = 0.05f;
+		[SerializeField] private float _segmentWeight = 0.05f;
+		[SerializeField] private float _horizontalMiddle;
 		[SerializeField] private float2 _padding = new float2(0.5f, 0.4f);
 		[SerializeField] private float2 _separatorPos = new float2(1.5f, 0.0f);
 		[SerializeField] private int _separatorType = 1;
@@ -61,6 +62,7 @@ namespace VisualPinball.Unity
 		private static readonly int NumCharsProp = Shader.PropertyToID("__NumChars");
 		private static readonly int NumSegmentsProp = Shader.PropertyToID("__NumSegments");
 		private static readonly int SegmentWeightProp = Shader.PropertyToID("__SegmentWeight");
+		private static readonly int HorizontalMiddleProp = Shader.PropertyToID("__HorizontalMiddle");
 		private static readonly int SkewAngleProp = Shader.PropertyToID("__SkewAngle");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
 		private static readonly int SeparatorPosProp = Shader.PropertyToID("__SeparatorPos");
@@ -127,10 +129,21 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public float SegmentWeight {
-			get => segmentWeight;
+		public float HorizontalMiddle {
+			get => _horizontalMiddle;
 			set {
-				segmentWeight = value;
+				_horizontalMiddle = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetFloat(HorizontalMiddleProp, value);
+				}
+			}
+		}
+
+		public float SegmentWeight {
+			get => _segmentWeight;
+			set {
+				_segmentWeight = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					mr.sharedMaterial.SetFloat(SegmentWeightProp, value);
@@ -197,7 +210,7 @@ namespace VisualPinball.Unity
 			material.SetColor(LitColorProp, _litColor);
 			material.SetColor(UnlitColorProp, _unlitColor);
 			material.SetFloat(SkewAngleProp, _skewAngle);
-			material.SetFloat(SegmentWeightProp, segmentWeight);
+			material.SetFloat(SegmentWeightProp, _segmentWeight);
 			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
 			material.SetVector(PaddingProp, new Vector4(_padding.x, _padding.y));
 			material.SetInt(SeparatorTypeProp, _separatorType);
