@@ -106,23 +106,15 @@ float DiagDist(float2 v)
 	return abs(v.x);
 }
 
-float LongLine(float2 a, float2 b, float2 p)
+float LongLine(float2 a, float2 b, float2 p, bool topFlat, bool bottomFlat)
 {
+	if ((topFlat && p.y < min(-a.y, -b.y) + SegmentGap) || (bottomFlat && p.y > max(-a.y, -b.y) - SegmentGap)) {
+		return 0;
+	}
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
 	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
-
-	return Rounder2(1 - v.x, 1 - v.y - v.x);
-}
-
-float LongLine2(float2 a, float2 b, float2 p)
-{
-	float2 pa = p - float2(a.x, -a.y);
-	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
-	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
-	float2 v = abs(pa - ba * t) / _SegmentWeight * 0.5;
-
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
 
@@ -146,7 +138,7 @@ float MidLine(float2 a, float2 b, float2 p)
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
 
-float DiagLine(float2 a, float2 b, float2 p)
+float DiagLineForward(float2 a, float2 b, float2 p)
 {
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
@@ -166,7 +158,7 @@ float DiagLine(float2 a, float2 b, float2 p)
 	);
 }
 
-float DiagLine2(float2 a, float2 b, float2 p)
+float DiagLineBackward(float2 a, float2 b, float2 p)
 {
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
@@ -181,26 +173,6 @@ float DiagLine2(float2 a, float2 b, float2 p)
 
 	return Rounder(
 		1 - intersectP.y / (_SegmentWeight * 4.0),
-		xl * xr,
-		(yd * yu) / SegmentGap * 0.5 - 4.0
-	);
-}
-
-float DiagLine3(float2 a, float2 b, float2 p)
-{
-	float2 pa = p - float2(a.x, -a.y);
-	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
-	float t = pa.x / ba.x;
-	float2 intersectP = abs(pa - ba * t);
-	float xl = clamp(1 - (p.x - a.x + SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
-	float xr = clamp(0 + (p.x - b.x - SegmentGap + _SegmentWeight) / _SegmentWeight * 0.5, -9999, 1);
-
-	float t2 = pa.y / ba.y;
-	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
-	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
-
-	return Rounder(
-		1 - intersectP.y / (_SegmentWeight * 3.0),
 		xl * xr,
 		(yd * yu) / SegmentGap * 0.5 - 4.0
 	);
@@ -285,11 +257,11 @@ float3 SegDispSeparator(UnityTexture2D data, int charIndex, int segIndex, float2
 float3 SegDisp7(UnityTexture2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
-	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
-	r = Combine(r, LongLine(mr, br, p), ShowSeg(data, charIndex, 2));
+	r = Combine(r, LongLine(tr, mr, p, false, false), ShowSeg(data, charIndex, 1));
+	r = Combine(r, LongLine(mr, br, p, false, false), ShowSeg(data, charIndex, 2));
 	r = Combine(r, MidLine(br, bl, p), ShowSeg(data, charIndex, 3));
-	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
-	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
+	r = Combine(r, LongLine(bl, ml, p, false, false), ShowSeg(data, charIndex, 4));
+	r = Combine(r, LongLine(ml, tl, p, false, false), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
 	r = SegDispSeparator(data, charIndex, 7, p, r);
 
@@ -299,15 +271,15 @@ float3 SegDisp7(UnityTexture2D data, int charIndex, float2 p, float3 r)
 float3 SegDisp9(UnityTexture2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
-	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
-	r = Combine(r, LongLine(mr, br, p), ShowSeg(data, charIndex, 2));
+	r = Combine(r, LongLine(tr, mr, p, false, false), ShowSeg(data, charIndex, 1));
+	r = Combine(r, LongLine(mr, br, p, false, false), ShowSeg(data, charIndex, 2));
 	r = Combine(r, MidLine(br, bl, p), ShowSeg(data, charIndex, 3));
-	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
-	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
+	r = Combine(r, LongLine(bl, ml, p, false, false), ShowSeg(data, charIndex, 4));
+	r = Combine(r, LongLine(ml, tl, p, false, false), ShowSeg(data, charIndex, 5));
 	r = Combine(r, MidLine(mr, ml, p), ShowSeg(data, charIndex, 6));
 	r = SegDispSeparator(data, charIndex, 7, p, r);
-	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 8));
-	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 9));
+	r = Combine(r, LongLine(tm, mm, p, true, true), ShowSeg(data, charIndex, 8));
+	r = Combine(r, LongLine(mm, bm, p, true, true), ShowSeg(data, charIndex, 9));
 
 	return r;
 }
@@ -315,20 +287,20 @@ float3 SegDisp9(UnityTexture2D data, int charIndex, float2 p, float3 r)
 float3 SegDisp14(UnityTexture2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, MidLine(tl, tr, p), ShowSeg(data, charIndex, 0));
-	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 1));
-	r = Combine(r, LongLine(mr, br, p), ShowSeg(data, charIndex, 2));
+	r = Combine(r, LongLine(tr, mr, p, false, false), ShowSeg(data, charIndex, 1));
+	r = Combine(r, LongLine(mr, br, p, false, false), ShowSeg(data, charIndex, 2));
 	r = Combine(r, MidLine(br, bl, p), ShowSeg(data, charIndex, 3));
-	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 4));
-	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 5));
+	r = Combine(r, LongLine(bl, ml, p, false, false), ShowSeg(data, charIndex, 4));
+	r = Combine(r, LongLine(ml, tl, p, false, false), ShowSeg(data, charIndex, 5));
 	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 6));
 	r = SegDispSeparator(data, charIndex, 7, p, r);
-	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8));
-	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));
-	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10));
+	r = Combine(r, DiagLineBackward(dtl, dtm, p), ShowSeg(data, charIndex, 8));
+	r = Combine(r, LongLine(tm, mm, p, true, false), ShowSeg(data, charIndex, 9));
+	r = Combine(r, DiagLineForward(dtr, dtm, p), ShowSeg(data, charIndex, 10));
 	r = Combine(r, ShortLine(mm, mr, p), ShowSeg(data, charIndex, 11));
-	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));
-	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));
-	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14));
+	r = Combine(r, DiagLineBackward(dbm, dbr, p), ShowSeg(data, charIndex, 12));
+	r = Combine(r, LongLine(mm, bm, p, false, true), ShowSeg(data, charIndex, 13));
+	r = Combine(r, DiagLineForward(dbm, dbl, p), ShowSeg(data, charIndex, 14));
 
 	return r;
 }
@@ -337,24 +309,23 @@ float3 SegDisp16(UnityTexture2D data, int charIndex, float2 p, float3 r)
 {
 	r = Combine(r, ShortLine(tl, tm, p), ShowSeg(data, charIndex, 0)); // a
 	r = Combine(r, ShortLine(tm, tr, p), ShowSeg(data, charIndex, 1)); // b
-	r = Combine(r, LongLine(tr, mr, p), ShowSeg(data, charIndex, 2));  // c
-	r = Combine(r, LongLine(mr, br, p), ShowSeg(data, charIndex, 3));  // d
+	r = Combine(r, LongLine(tr, mr, p, false, false), ShowSeg(data, charIndex, 2));  // c
+	r = Combine(r, LongLine(mr, br, p, false, false), ShowSeg(data, charIndex, 3));  // d
 	r = Combine(r, ShortLine(br, bm, p), ShowSeg(data, charIndex, 4)); // e
 	r = Combine(r, ShortLine(bm, bl, p), ShowSeg(data, charIndex, 5)); // f
-	r = Combine(r, LongLine(bl, ml, p), ShowSeg(data, charIndex, 6));  // g
-	r = Combine(r, LongLine(ml, tl, p), ShowSeg(data, charIndex, 7));  // h
-	r = Combine(r, DiagLine2(dtl, dtm, p), ShowSeg(data, charIndex, 8)); // i
-	r = Combine(r, LongLine2(tm, mm, p), ShowSeg(data, charIndex, 9));   // j
-	r = Combine(r, DiagLine(dtr, dtm, p), ShowSeg(data, charIndex, 10)); // k
+	r = Combine(r, LongLine(bl, ml, p, false, false), ShowSeg(data, charIndex, 6));  // g
+	r = Combine(r, LongLine(ml, tl, p, false, false), ShowSeg(data, charIndex, 7));  // h
+	r = Combine(r, DiagLineBackward(dtl, dtm, p), ShowSeg(data, charIndex, 8)); // i
+	r = Combine(r, LongLine(tm, mm, p, false, false), ShowSeg(data, charIndex, 9));   // j
+	r = Combine(r, DiagLineForward(dtr, dtm, p), ShowSeg(data, charIndex, 10)); // k
 	r = Combine(r, ShortLine(mm, mr, p), ShowSeg(data, charIndex, 11));  // l
-	r = Combine(r, DiagLine2(dbm, dbr, p), ShowSeg(data, charIndex, 12));// m
-	r = Combine(r, LongLine(mm, bm, p), ShowSeg(data, charIndex, 13));   // n
-	r = Combine(r, DiagLine(dbm, dbl, p), ShowSeg(data, charIndex, 14)); // o
+	r = Combine(r, DiagLineBackward(dbm, dbr, p), ShowSeg(data, charIndex, 12));// m
+	r = Combine(r, LongLine(mm, bm, p, false, false), ShowSeg(data, charIndex, 13));   // n
+	r = Combine(r, DiagLineForward(dbm, dbl, p), ShowSeg(data, charIndex, 14)); // o
 	r = Combine(r, ShortLine(mm, ml, p), ShowSeg(data, charIndex, 15));   // p
 
 	return r;
 }
-
 
 float3 SegDisp(UnityTexture2D data, int charIndex, float2 p)
 {
@@ -383,6 +354,10 @@ void SegmentDisplay_float(float2 coords, UnityTexture2D data, float numChars, fl
 	_SeparatorPos = separatorPos;
 
 	SegmentGap = segmentWeight * 1.5;
+	mm = float2(.0 + _HorizontalMiddle, 0);   // middle
+	tm = float2(.0 + _HorizontalMiddle, 1);
+	bm = float2(.0 + _HorizontalMiddle, -1);
+
 	dtl = tl + float2(0.0, -segmentWeight);
 	dtr = tr + float2(0.0, -segmentWeight);
 	dtm = mm + float2(0.0 + _HorizontalMiddle, segmentWeight);
@@ -390,9 +365,7 @@ void SegmentDisplay_float(float2 coords, UnityTexture2D data, float numChars, fl
 	dbl = bl + float2(0.0, segmentWeight);
 	dbr = br + float2(0.0, segmentWeight);
 	dp = br + float2(segmentWeight * 4.0, SegmentGap);
-	mm = float2(.0 + _HorizontalMiddle, 0);   // middle
-	tm = float2(.0 + _HorizontalMiddle, 1);
-	bm = float2(.0 + _HorizontalMiddle, -1);
+
 
 
 	float cellWidth = 1. / _NumChars;
