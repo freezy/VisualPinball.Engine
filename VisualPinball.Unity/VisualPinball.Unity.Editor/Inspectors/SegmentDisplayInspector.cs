@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 			(7, "Seven-segment"),
 			(9, "Nine-segment"),
 			(14, "Fourteen-segment"),
+			(16, "Sixteen-segment"),
 		};
 
 		private static readonly (int, string)[] SeparatorTypes = {
