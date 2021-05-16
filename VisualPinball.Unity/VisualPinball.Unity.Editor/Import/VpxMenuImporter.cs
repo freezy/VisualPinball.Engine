@@ -32,6 +32,18 @@ namespace VisualPinball.Unity.Editor
 			ImportVpxEditor(menuCommand);
 		}
 
+		[MenuItem("Visual Pinball/Import VPX (Scene)", false, 2)]
+		public static void ImportVpxIntoScene(MenuCommand menuCommand)
+		{
+			// open file dialog
+			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
+			if (vpxPath.Length == 0) {
+				return;
+			}
+
+			VpxImportEngine.ImportIntoScene(vpxPath);
+		}
+
 		/// <summary>
 		/// Imports a Visual Pinball File (.vpx) into the Unity Editor. <p/>
 		///
