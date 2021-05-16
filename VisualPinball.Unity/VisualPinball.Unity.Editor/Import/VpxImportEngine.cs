@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics;
 using System.IO;
 using NLog;
 using UnityEditor;
@@ -44,21 +45,43 @@ namespace VisualPinball.Unity.Editor
 			// select imported object
 			Selection.activeObject = rootGameObj;
 
-			Logger.Info("Imported {0}", vpxPath);
+			Logger.Info($"Imported {vpxPath}");
+		}
+
+		public static void ImportIntoScene(string path)
+		{
+			var sw = Stopwatch.StartNew();
+
+			// load table
+			var table = TableLoader.LoadTable(path);
+			var loadedIn = sw.ElapsedMilliseconds;
+
+			var converter = new VpxSceneConverter(table);
+
+			var tableGameObject = converter.Convert(Path.GetFileName(path));
+			var convertedIn = sw.ElapsedMilliseconds;
+
+			// register undo system
+			Undo.RegisterCreatedObjectUndo(tableGameObject, "Import VPX table file");
+
+			// select imported object
+			Selection.activeObject = tableGameObject;
+
+			Logger.Info($"Imported {path} in {convertedIn}ms (loaded after {loadedIn}ms).");
 		}
 
 		private static GameObject ImportVpx(string path, bool applyPatch, string tableName)
 		{
 			// create root object
 			var rootGameObj = new GameObject();
-			var importer = rootGameObj.AddComponent<VpxConverter>();
+			var converter = rootGameObj.AddComponent<VpxConverter>();
 
 			// load table
 			var table = TableLoader.LoadTable(path);
 
 			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", table.InfoName, table.InfoAuthorName);
 
-			importer.Convert(Path.GetFileName(path), table, applyPatch, tableName);
+			converter.Convert(Path.GetFileName(path), table, applyPatch, tableName);
 
 			return rootGameObj;
 		}
