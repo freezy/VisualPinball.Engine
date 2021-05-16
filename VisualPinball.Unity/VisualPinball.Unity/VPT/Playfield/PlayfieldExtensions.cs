@@ -21,7 +21,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	internal static class PlayfieldExtensions
+	public static class PlayfieldExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Table table, GameObject obj)
 		{
