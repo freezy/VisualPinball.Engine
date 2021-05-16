@@ -105,6 +105,14 @@ namespace VisualPinball.Unity
 			if (go.transform.parent.transform.parent != null) {
 				ac = go.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
 			}
+			if (ac != null) {
+				return ac;
+			}
+
+			// search on great grand parent
+			if (go.transform.parent.transform.parent.transform.parent != null) {
+				ac = go.transform.parent.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
+			}
 
 			if (ac == null) {
 				Debug.LogWarning("No same- or parent authoring component found.");

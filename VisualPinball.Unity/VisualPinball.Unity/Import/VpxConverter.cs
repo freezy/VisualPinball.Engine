@@ -47,6 +47,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -253,7 +254,7 @@ namespace VisualPinball.Unity
 				case Gate gate:                 return gate.SetupGameObject(obj);
 				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
 				case Kicker kicker:             return kicker.SetupGameObject(obj);
-				case Engine.VPT.Light.Light lt: return lt.SetupGameObject(obj);
+				case Light lt:                  return lt.SetupGameObject(obj);
 				case Plunger plunger:           return plunger.SetupGameObject(obj);
 				case Primitive primitive:       return primitive.SetupGameObject(obj);
 				case Ramp ramp:                 return ramp.SetupGameObject(obj);
@@ -320,84 +321,6 @@ namespace VisualPinball.Unity
 			var item = new Trough(troughData);
 			_table.Add(item, true);
 			CreateGameObjects(_tableAuthoring.Table, item, _tableAuthoring.gameObject);
-		}
-	}
-
-	public class ConvertedItem
-	{
-		public readonly IItemMainAuthoring MainAuthoring;
-		public IEnumerable<IItemMeshAuthoring> MeshAuthoring;
-		public IItemColliderAuthoring ColliderAuthoring;
-
-		public ConvertedItem()
-		{
-			MainAuthoring = null;
-			MeshAuthoring = new IItemMeshAuthoring[0];
-			ColliderAuthoring = null;
-		}
-
-		public ConvertedItem(IItemMainAuthoring mainAuthoring)
-		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = new IItemMeshAuthoring[0];
-			ColliderAuthoring = null;
-		}
-
-		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring)
-		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = meshAuthoring;
-			ColliderAuthoring = null;
-		}
-
-		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring, IItemColliderAuthoring colliderAuthoring)
-		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = meshAuthoring;
-			ColliderAuthoring = colliderAuthoring;
-		}
-
-		public void Destroy()
-		{
-			MainAuthoring.Destroy();
-		}
-
-		public void DestroyMeshComponent()
-		{
-			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
-				renderableAuthoring.DestroyMeshComponent();
-				MeshAuthoring = new IItemMeshAuthoring[0];
-			}
-		}
-
-		public void DestroyColliderComponent()
-		{
-			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
-				renderableAuthoring.DestroyColliderComponent();
-				ColliderAuthoring = null;
-			}
-		}
-
-		public bool IsValidChild(ConvertedItem parent)
-		{
-			if (MeshAuthoring.Any()) {
-				return MeshAuthoring.First().ValidParents.Contains(parent.MainAuthoring.GetType());
-			}
-
-			if (ColliderAuthoring != null) {
-				return ColliderAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
-			}
-
-			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			subObj.layer = VpxConverter.ChildObjectsLayer;
-			return comp;
 		}
 	}
 }
