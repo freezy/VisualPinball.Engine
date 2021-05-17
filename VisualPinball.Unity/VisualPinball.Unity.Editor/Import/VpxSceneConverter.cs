@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -21,10 +22,13 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Playfield;
+using Material = UnityEngine.Material;
+using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class VpxSceneConverter
+	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
 	{
 		private readonly Table _table;
 		private GameObject _tableGo;
@@ -36,7 +40,8 @@ namespace VisualPinball.Unity.Editor
 		private string _assetsMaterials;
 
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
-		private readonly Dictionary<string, string> _texturePaths = new Dictionary<string, string>();
+		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
+		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -79,6 +84,7 @@ namespace VisualPinball.Unity.Editor
 			itemGo.transform.SetParent(parentGo.transform, false);
 
 			_table.SetupGameObject(itemGo);
+			itemGo.GetComponent<PlayfieldMeshAuthoring>().CreateMesh(this, this);
 
 			// apply transformation
 			if (item is IRenderable renderable) {
@@ -91,7 +97,10 @@ namespace VisualPinball.Unity.Editor
 			foreach (var texture in _table.Textures) {
 				var path = texture.GetUnityFilename(_assetsTextures);
 				File.WriteAllBytes(path, texture.Content);
-				_texturePaths[texture.Name] = path;
+				var unityTexture = texture.IsHdr
+					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
+					: AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+				_textures[texture.Name.ToLower()] = unityTexture;
 			}
 		}
 
@@ -152,5 +161,29 @@ namespace VisualPinball.Unity.Editor
 
 			return groupParent;
 		}
+
+		#region ITextureProvider
+
+		public Texture GetTexture(string name)
+		{
+			if (!_textures.ContainsKey(name.ToLower())) {
+				throw new ArgumentException($"Texture \"{name.ToLower()}\" not loaded!");
+			}
+			return _textures[name.ToLower()];
+		}
+
+		#endregion
+
+		#region IMaterialProvider
+
+		public bool HasMaterial(string name) => _materials.ContainsKey(name);
+		public Material GetMaterial(string name) => _materials[name];
+		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
+		{
+			_materials[vpxMaterial.Id] = material;
+			AssetDatabase.CreateAsset(material, vpxMaterial.GetUnityFilename(_assetsMaterials));
+		}
+
+		#endregion
 	}
 }

@@ -14,34 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable StringLiteralTypo
-
-using System;
-using System.Text;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity
 {
-	public static class MaterialExtensions
+	public interface IMaterialProvider
 	{
-		public static Material ToUnityMaterial(this PbrMaterial vpxMaterial, IMaterialProvider materialProvider, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null)
-		{
-			if (materialProvider.HasMaterial(vpxMaterial.Id)) {
-				return materialProvider.GetMaterial(vpxMaterial.Id);
-			}
-
-			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpxMaterial, textureProvider, objectType, debug);
-
-			materialProvider.SaveMaterial(vpxMaterial, unityMaterial);
-
-			return unityMaterial;
-		}
-
-		public static string GetUnityFilename(this PbrMaterial vpMat, string folderName)
-		{
-			return $"{folderName}/{vpMat.Id}.mat";
-		}
-
+		bool HasMaterial(string name);
+		void SaveMaterial(PbrMaterial vpxMaterial, Material material);
+		Material GetMaterial(string name);
 	}
 }

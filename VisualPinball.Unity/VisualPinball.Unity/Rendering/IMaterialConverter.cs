@@ -41,10 +41,10 @@ namespace VisualPinball.Unity
 		/// Create a material for the currently detected graphics pipeline.
 		/// </summary>
 		/// <param name="vpxMaterial"></param>
-		/// <param name="table"></param>
+		/// <param name="textureProvider"></param>
 		/// <param name="objectType">Type of the item to which the material is applied (e.g. <see cref="Flipper"/>)</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		Material CreateMaterial(PbrMaterial vpxMaterial, TableAuthoring table, Type objectType, StringBuilder debug = null);
+		Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null);
 	}
 }

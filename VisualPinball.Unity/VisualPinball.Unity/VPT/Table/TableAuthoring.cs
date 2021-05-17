@@ -191,9 +191,7 @@ namespace VisualPinball.Unity
 
 		public void AddMaterial(PbrMaterial vpxMat, Material material)
 		{
-			UnityEngine.Material oldMaterial = null;
-			_unityMaterials.TryGetValue(vpxMat.Id, out oldMaterial);
-
+			_unityMaterials.TryGetValue(vpxMat.Id, out var oldMaterial);
 			_unityMaterials[vpxMat.Id] = material;
 			if (oldMaterial != null) {
 				Destroy(oldMaterial);
