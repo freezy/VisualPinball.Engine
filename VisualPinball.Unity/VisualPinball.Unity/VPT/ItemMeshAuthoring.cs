@@ -50,14 +50,14 @@ namespace VisualPinball.Unity
 
 		[HideInInspector]
 		[SerializeField]
-		private bool _meshCreated;
+		private bool _meshCreated = true;
 
 		private void Awake()
 		{
-			if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
-				CreateMesh();
-				_meshCreated = true;
-			}
+			// if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
+			// 	CreateMesh();
+			// 	_meshCreated = true;
+			// }
 		}
 
 		private void OnEnable()
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 			_meshDirty = false;
 		}
 
-		private void CreateMesh()
+		public void CreateMesh(ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
 			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
@@ -110,13 +110,13 @@ namespace VisualPinball.Unity
 			// apply material
 			if (ro.Mesh.AnimationFrames.Count > 1) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;
 				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
 				smr.enabled = ro.IsVisible;
 			} else {
 				var mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
 				mr.enabled = ro.IsVisible;
 			}
 		}
@@ -141,12 +141,12 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			if (mr != null) {
-				if (ta != null) {
-					mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
-				}
-				mr.enabled = true;
-			}
+			// if (mr != null) {
+			// 	if (ta != null) {
+			// 		mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
+			// 	}
+			// 	mr.enabled = true;
+			// }
 		}
 
 		protected virtual void OnDrawGizmos()
