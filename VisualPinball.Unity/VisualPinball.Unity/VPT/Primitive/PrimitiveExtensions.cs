@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
-	internal static class PrimitiveExtensions
+	public static class PrimitiveExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Primitive primitive, GameObject obj)
 		{

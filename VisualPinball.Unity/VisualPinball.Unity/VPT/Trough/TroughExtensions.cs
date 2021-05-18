@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	internal static class TroughExtensions
+	public static class TroughExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Engine.VPT.Trough.Trough trough, GameObject obj)
 		{

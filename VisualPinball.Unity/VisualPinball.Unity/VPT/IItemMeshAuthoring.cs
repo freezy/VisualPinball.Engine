@@ -32,6 +32,8 @@ namespace VisualPinball.Unity
 
 		GameObject gameObject { get; }
 
+		void CreateMesh(ITextureProvider texProvider, IMaterialProvider matProvider);
+
 		void RebuildMeshes();
 
 		IEnumerable<Type> ValidParents { get; }
