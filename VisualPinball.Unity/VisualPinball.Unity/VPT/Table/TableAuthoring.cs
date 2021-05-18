@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 			// that would just be everything at this level
 		}
 
-		internal TableSidecar GetOrCreateSidecar()
+		public TableSidecar GetOrCreateSidecar()
 		{
 			if (_sidecar == null) {
 				_sidecar = ScriptableObject.CreateInstance<TableSidecar>();
