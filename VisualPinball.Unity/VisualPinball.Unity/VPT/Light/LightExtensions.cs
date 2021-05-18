@@ -21,7 +21,7 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
-	internal static class LightExtensions
+	public static class LightExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Light light, GameObject obj)
 		{

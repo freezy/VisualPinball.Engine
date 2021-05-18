@@ -25,7 +25,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	internal static class HitTargetExtensions
+	public static class HitTargetExtensions
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
