@@ -47,6 +47,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 		}
 
+		public void ClearBinaryData()
+		{
+			Data.ClearBinaryData();
+		}
+
 		public static Primitive GetDefault(Table.Table table)
 		{
 			var primitiveData = new PrimitiveData(table.GetNewName<Primitive>("Primitive"), table.Width / 2f, table.Height / 2f);

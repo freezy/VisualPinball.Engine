@@ -86,6 +86,11 @@ namespace VisualPinball.Engine.VPT
 			Data = ToggleRgbBgr(Data);
 		}
 
+		public void ClearBinaryData()
+		{
+			Data = new byte[0];
+		}
+
 		public void WriteCompressed(BinaryWriter writer)
 		{
 			var lzwWriter = new LzwWriter(writer, ToggleRgbBgr(Data), Width * 4, Height, Pitch());
