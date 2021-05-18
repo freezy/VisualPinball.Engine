@@ -33,6 +33,7 @@ using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -102,6 +103,8 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
+			ConfigurePlayer();
+
 			return _tableGo;
 		}
 
@@ -122,7 +125,7 @@ namespace VisualPinball.Unity.Editor
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					convertedItems[lookupName] = CreateGameObjects(_table, renderable);
+					convertedItems[lookupName] = CreateGameObjects(renderable);
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
@@ -130,7 +133,7 @@ namespace VisualPinball.Unity.Editor
 					if (convertedItems.ContainsKey(parentName)) {
 						var parent = convertedItems[parentName];
 
-						var convertedItem = CreateGameObjects(_table, renderable);
+						var convertedItem = CreateGameObjects(renderable);
 						if (convertedItem.IsValidChild(parent)) {
 
 							if (convertedItem.MeshAuthoring.Any()) {
@@ -154,7 +157,7 @@ namespace VisualPinball.Unity.Editor
 							renderable.DisableSubComponent();
 
 							// invalid parenting, re-convert the item, because it returned only the sub component.
-							convertedItems[lookupName] = CreateGameObjects(_table, renderable);
+							convertedItems[lookupName] = CreateGameObjects(renderable);
 
 							// ..and destroy the other one
 							convertedItem.Destroy();
@@ -177,11 +180,11 @@ namespace VisualPinball.Unity.Editor
 			foreach (var item in _table.NonRenderables) {
 
 				// create object(s)
-				CreateGameObjects(_table, item);
+				CreateGameObjects(item);
 			}
 		}
 
-		public ConvertedItem CreateGameObjects(Table table, IItem item)
+		public ConvertedItem CreateGameObjects(IItem item)
 		{
 			var parentGo = GetGroupParent(item);
 			var itemGo = new GameObject(item.Name);
@@ -195,7 +198,7 @@ namespace VisualPinball.Unity.Editor
 
 			// apply transformation
 			if (item is IRenderable renderable) {
-				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(table, Origin.Original).ToUnityMatrix());
+				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 
 			return importedObject;
@@ -301,6 +304,57 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 		}
+
+		private void ConfigurePlayer()
+		{
+			// add the player script and default game engine
+			_tableGo.AddComponent<Player>();
+			var dga = _tableGo.AddComponent<DefaultGamelogicEngine>();
+
+			// add trough if none available
+			if (!_table.HasTrough) {
+				CreateTrough();
+			}
+
+			// populate mappings
+			if (_table.Mappings.IsEmpty()) {
+				_table.Mappings.PopulateSwitches(dga.AvailableSwitches, _table.Switchables, _table.SwitchableDevices);
+				_table.Mappings.PopulateCoils(dga.AvailableCoils, _table.Coilables, _table.CoilableDevices);
+
+				// wire up plunger
+				var plunger = _table.Plunger();
+				if (plunger != null) {
+					_table.Mappings.Data.AddWire(new MappingsWireData {
+						Description = "Plunger",
+						Source = SwitchSource.InputSystem,
+						SourceInputActionMap = InputConstants.MapCabinetSwitches,
+						SourceInputAction = InputConstants.ActionPlunger,
+						Destination = WireDestination.Device,
+						DestinationDevice = plunger.Name,
+						DestinationDeviceItem = Plunger.PullCoilId
+					});
+				}
+			}
+		}
+
+		private void CreateTrough()
+		{
+			var troughData = new TroughData("Trough") {
+				BallCount = 4,
+				SwitchCount = 4,
+				Type = TroughType.ModernMech
+			};
+			if (_table.Has<Kicker>("BallRelease")) {
+				troughData.PlayfieldExitKicker = "BallRelease";
+			}
+			if (_table.Has<Kicker>("Drain")) {
+				troughData.PlayfieldEntrySwitch = "Drain";
+			}
+			var item = new Trough(troughData);
+			_table.Add(item, true);
+			CreateGameObjects(item);
+		}
+
 
 		private void CreateFileHierarchy()
 		{
