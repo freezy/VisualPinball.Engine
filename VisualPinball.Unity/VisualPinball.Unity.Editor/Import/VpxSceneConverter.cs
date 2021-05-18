@@ -25,10 +25,14 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Decal;
+using VisualPinball.Engine.VPT.DispReel;
+using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -36,9 +40,10 @@ using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
+using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
@@ -87,6 +92,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
+				MakeSerializable();
 				ConvertGameItems();
 
 			} finally {
@@ -185,6 +191,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
 				meshAuthoring.CreateMesh(this, this);
 			}
+			item.ClearBinaryData();
 
 			// apply transformation
 			if (item is IRenderable renderable) {
@@ -217,6 +224,38 @@ namespace VisualPinball.Unity.Editor
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
 		}
 
+		private void MakeSerializable()
+		{
+			var sidecar = _tableAuthoring.GetOrCreateSidecar();
+
+			foreach (var key in _table.TableInfo.Keys) {
+				sidecar.tableInfo[key] = _table.TableInfo[key];
+			}
+
+			// // copy each serializable ref into the sidecar's serialized storage
+			// sidecar.textures.AddRange(_table.Textures);
+			// sidecar.sounds.AddRange(_table.Sounds);
+			//
+			// // and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
+			// _table.SetTextureContainer(sidecar.textures);
+			// _table.SetSoundContainer(sidecar.sounds);
+
+			sidecar.customInfoTags = _table.CustomInfoTags;
+			sidecar.collections = _table.Collections.Values.Select(c => c.Data).ToList();
+			sidecar.mappings = _table.Mappings.Data;
+			sidecar.decals = _table.GetAllData<Decal, DecalData>();
+			sidecar.dispReels = _table.GetAllData<DispReel, DispReelData>();
+			sidecar.flashers = _table.GetAllData<Flasher, FlasherData>();
+			sidecar.lightSeqs = _table.GetAllData<LightSeq, LightSeqData>();
+			sidecar.textBoxes = _table.GetAllData<TextBox, TextBoxData>();
+			sidecar.timers = _table.GetAllData<Timer, TimerData>();
+
+			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
+				string.Join(", ", _table.Collections.Keys),
+				string.Join(", ", sidecar.collections.Select(c => c.Name))
+			);
+		}
+
 		private void ExtractTextures()
 		{
 			try {
@@ -226,6 +265,7 @@ namespace VisualPinball.Unity.Editor
 				foreach (var texture in _table.Textures) {
 					var path = texture.GetUnityFilename(_assetsTextures);
 					File.WriteAllBytes(path, texture.Content);
+					texture.Data.ClearBinaryData();
 				}
 
 			} finally {
