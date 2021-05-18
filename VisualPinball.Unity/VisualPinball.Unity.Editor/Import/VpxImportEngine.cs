@@ -56,9 +56,9 @@ namespace VisualPinball.Unity.Editor
 			var table = TableLoader.LoadTable(path);
 			var loadedIn = sw.ElapsedMilliseconds;
 
-			var converter = new VpxSceneConverter(table);
+			var converter = new VpxSceneConverter(table, Path.GetFileName(path));
 
-			var tableGameObject = converter.Convert(Path.GetFileName(path));
+			var tableGameObject = converter.Convert();
 			var convertedIn = sw.ElapsedMilliseconds;
 
 			// register undo system

@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
 {
-	internal static class SurfaceExtensions
+	public static class SurfaceExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Surface surface, GameObject obj)
 		{

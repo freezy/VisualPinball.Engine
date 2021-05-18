@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
-	internal static class RubberExtensions
+	public static class RubberExtensions
 	{
 		public static ConvertedItem SetupGameObject(this Rubber rubber, GameObject obj)
 		{

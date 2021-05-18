@@ -25,7 +25,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	internal static class FlipperExtensions
+	public static class FlipperExtensions
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
