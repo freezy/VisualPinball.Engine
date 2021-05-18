@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Table;
@@ -53,24 +54,39 @@ namespace VisualPinball.Engine.VPT.Sound
 			Load(reader, fileVersion);
 		}
 
+		public byte[] GetWavData()
+		{
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream)) {
+				WriteHeader(writer);
+				writer.Write(Data);
+				return stream.ToArray();
+			}
+		}
+
 		public byte[] GetHeader() {
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				writer.Write(Encoding.Default.GetBytes("RIFF"));
-				writer.Write(Data.Length + 36);
-				writer.Write(Encoding.Default.GetBytes("WAVE"));
-				writer.Write(Encoding.Default.GetBytes("fmt "));
-				writer.Write(16);
-				writer.Write((short)Wfx.FormatTag);
-				writer.Write((short)Wfx.Channels);
-				writer.Write((int)Wfx.SamplesPerSec);
-				writer.Write((int)(Wfx.SamplesPerSec * Wfx.BitsPerSample * Wfx.Channels / 8));
-				writer.Write((short)Wfx.BlockAlign);
-				writer.Write((short)Wfx.BitsPerSample);
-				writer.Write(Encoding.Default.GetBytes("data"));
-				writer.Write(Data.Length);
+				WriteHeader(writer);
 				return stream.ToArray();
 			}
+		}
+
+		private void WriteHeader(BinaryWriter writer)
+		{
+			writer.Write(Encoding.Default.GetBytes("RIFF"));
+			writer.Write(Data.Length + 36);
+			writer.Write(Encoding.Default.GetBytes("WAVE"));
+			writer.Write(Encoding.Default.GetBytes("fmt "));
+			writer.Write(16);
+			writer.Write((short)Wfx.FormatTag);
+			writer.Write((short)Wfx.Channels);
+			writer.Write((int)Wfx.SamplesPerSec);
+			writer.Write((int)(Wfx.SamplesPerSec * Wfx.BitsPerSample * Wfx.Channels / 8));
+			writer.Write((short)Wfx.BlockAlign);
+			writer.Write((short)Wfx.BitsPerSample);
+			writer.Write(Encoding.Default.GetBytes("data"));
+			writer.Write(Data.Length);
 		}
 
 		private void Load(BinaryReader reader, int fileVersion)

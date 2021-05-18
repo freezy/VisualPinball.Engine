@@ -21,6 +21,7 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -55,6 +56,7 @@ namespace VisualPinball.Unity.Editor
 
 		private string _assetsTextures;
 		private string _assetsMaterials;
+		private string _assetsSounds;
 
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
@@ -76,13 +78,14 @@ namespace VisualPinball.Unity.Editor
 		public GameObject Convert(string tableName = null)
 		{
 			CreateRootHierarchy(tableName);
+			CreateFileHierarchy();
+
+			ExtractTextures();
+			//ExtractSounds();
 
 			try {
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
-				CreateFileHierarchy();
-
-				ExtractTextures();
 
 				ConvertGameItems();
 
@@ -216,13 +219,46 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExtractTextures()
 		{
+			try {
+				// pause asset database refreshing
+				AssetDatabase.StartAssetEditing();
+
+				foreach (var texture in _table.Textures) {
+					var path = texture.GetUnityFilename(_assetsTextures);
+					File.WriteAllBytes(path, texture.Content);
+				}
+
+			} finally {
+				// resume asset database refreshing
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
+			}
+
+			// now they are in the asset database, we can load them.
 			foreach (var texture in _table.Textures) {
 				var path = texture.GetUnityFilename(_assetsTextures);
-				File.WriteAllBytes(path, texture.Content);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
 					: AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 				_textures[texture.Name.ToLower()] = unityTexture;
+			}
+		}
+		private void ExtractSounds()
+		{
+			try {
+				// pause asset database refreshing
+				AssetDatabase.StartAssetEditing();
+
+				foreach (var sound in _table.Sounds) {
+					var fileName = Path.GetFileName(sound.Data.Path).ToNormalizedName();
+					var path = $"{_assetsSounds}/{fileName}";
+					File.WriteAllBytes(path, sound.Data.GetWavData());
+				}
+
+			} finally {
+				// resume asset database refreshing
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
 			}
 		}
 
@@ -245,6 +281,11 @@ namespace VisualPinball.Unity.Editor
 			_assetsMaterials = $"{assetsTableRoot}/Materials/";
 			if (!Directory.Exists(_assetsMaterials)) {
 				Directory.CreateDirectory(_assetsMaterials);
+			}
+
+			_assetsSounds = $"{assetsTableRoot}/Sounds/";
+			if (!Directory.Exists(_assetsSounds)) {
+				Directory.CreateDirectory(_assetsSounds);
 			}
 		}
 
