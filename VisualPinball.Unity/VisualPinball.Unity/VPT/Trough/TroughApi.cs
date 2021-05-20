@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 				_stackSwitches = new DeviceSwitch[Data.SwitchCount];
 				foreach (var sw in Item.AvailableSwitches) {
 					if (sw.InternalId > 0) {
-						_stackSwitches[sw.InternalId - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+						_stackSwitches[sw.InternalId - 1] = CreateSwitch(sw.Id, false, SwitchDefault.NormallyOpen);
 						_switchLookup[sw.Id] = _stackSwitches[sw.InternalId - 1];
 					}
 				}
@@ -209,7 +209,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (Data.JamSwitch) {
-				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, SwitchDefault.NormallyOpen);
 				_switchLookup[Trough.JamSwitchId] = JamSwitch;
 			}
 
