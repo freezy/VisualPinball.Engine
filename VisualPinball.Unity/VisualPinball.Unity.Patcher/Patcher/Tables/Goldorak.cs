@@ -27,9 +27,19 @@ namespace VisualPinball.Unity.Patcher
 	{
 		[NameMatch("LFLogo", Ref = "Flippers/LeftFlipper")]
 		[NameMatch("RFLogo", Ref = "Flippers/RightFlipper")]
-		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+		public void ReparentFlippers(Primitive flipper, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
+
+			gameObject.transform.localPosition = new Vector3(0, 0, 0);
+			gameObject.transform.localRotation = Quaternion.identity;
+
+			flipper.Data.Position.X = 0;
+			flipper.Data.Position.Y = 0;
+
+			// rotation is set in the original data, reparenting caused the flippers to be rotated wrong => fixing the rotation
+			flipper.RotationY = 0;
+
 		}
 	}
 }
