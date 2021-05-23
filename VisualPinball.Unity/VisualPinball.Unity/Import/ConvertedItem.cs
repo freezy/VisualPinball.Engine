@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 		public readonly IItemMainAuthoring MainAuthoring;
 		public IEnumerable<IItemMeshAuthoring> MeshAuthoring;
 		public IItemColliderAuthoring ColliderAuthoring;
+		public bool IsProceduralMesh = true;
 
 		public ConvertedItem()
 		{

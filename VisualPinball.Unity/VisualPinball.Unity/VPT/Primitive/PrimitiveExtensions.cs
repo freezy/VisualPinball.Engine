@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 			}
 			obj.AddComponent<ConvertToEntity>();
 
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring) { IsProceduralMesh = false };
 		}
 
 		private static PrimitiveColliderAuthoring AddColliderComponent(this GameObject obj, Primitive primitive)
