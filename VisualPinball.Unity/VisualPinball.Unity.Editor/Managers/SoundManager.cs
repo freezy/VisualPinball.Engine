@@ -258,11 +258,11 @@ namespace VisualPinball.Unity.Editor
 
 			if (_shouldDisplaySoundPosition) {
 				if (_displayAllSounds) {
-					foreach (var snd in _tableAuthoring.Sounds) {
-						if (snd.Data != sndData) {
-							RenderSound(snd.Data, false);
-						}
-					}
+					// foreach (var snd in _tableAuthoring.Sounds) {
+					// 	if (snd.Data != sndData) {
+					// 		RenderSound(snd.Data, false);
+					// 	}
+					// }
 				}
 
 				RenderSound(sndData, true);
@@ -293,32 +293,32 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName, SoundData data)
 		{
-			if (_tableAuthoring == null) { return; }
-
-			// Run over table's sound scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _tableAuthoring.Sounds.SerializedObjects) {
-				if (tableTex.Data == data) {
-					Undo.RecordObject(tableTex, undoName);
-					break;
-				}
-			}
+			// if (_tableAuthoring == null) { return; }
+			//
+			// // Run over table's sound scriptable object wrappers to find the one being edited and add to the undo stack
+			// foreach (var tableTex in _tableAuthoring.Sounds.SerializedObjects) {
+			// 	if (tableTex.Data == data) {
+			// 		Undo.RecordObject(tableTex, undoName);
+			// 		break;
+			// 	}
+			// }
 		}
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			Undo.RecordObject(_tableAuthoring, undoName);
-
-			var newSnd = new Sound(newName);
-			_tableAuthoring.Sounds.Add(newSnd);
-			_tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
+			// Undo.RecordObject(_tableAuthoring, undoName);
+			//
+			// var newSnd = new Sound(newName);
+			// _tableAuthoring.Sounds.Add(newSnd);
+			// _tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
 		}
 
 		protected override void RemoveData(string undoName, SoundListData data)
 		{
-			Undo.RecordObject(_tableAuthoring, undoName);
-
-			_tableAuthoring.Sounds.Remove(data.Name);
-			_tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
+			// Undo.RecordObject(_tableAuthoring, undoName);
+			//
+			// _tableAuthoring.Sounds.Remove(data.Name);
+			// _tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
 		}
 
 		protected override void RenameExistingItem(SoundListData data, string newName)
@@ -335,12 +335,12 @@ namespace VisualPinball.Unity.Editor
 		protected override List<SoundListData> CollectData()
 		{
 			List<SoundListData> data = new List<SoundListData>();
-
-			foreach (var snd in _tableAuthoring.Sounds) {
-				var sndData = snd.Data;
-				data.Add(new SoundListData { SoundData = sndData });
-			}
-
+			//
+			// foreach (var snd in _tableAuthoring.Sounds) {
+			// 	var sndData = snd.Data;
+			// 	data.Add(new SoundListData { SoundData = sndData });
+			// }
+			//
 			return data;
 		}
 	}

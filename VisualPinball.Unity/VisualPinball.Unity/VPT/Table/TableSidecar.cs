@@ -37,7 +37,6 @@ namespace VisualPinball.Unity
 	public class TableSidecar : ScriptableObject
     {
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public TableSerializedTextureContainer textures = new TableSerializedTextureContainer();
 		[HideInInspector] public CustomInfoTags customInfoTags;
 		[HideInInspector] public List<CollectionData> collections;
 		[HideInInspector] public MappingsData mappings;
@@ -45,8 +44,6 @@ namespace VisualPinball.Unity
 		[HideInInspector] public DispReelData[] dispReels;
 		[HideInInspector] public FlasherData[] flashers;
 		[HideInInspector] public LightSeqData[] lightSeqs;
-		[HideInInspector] public PlungerData[] plungers;
-		[HideInInspector] public TableSerializedSoundContainer sounds = new TableSerializedSoundContainer();
 		[HideInInspector] public TextBoxData[] textBoxes;
 		[HideInInspector] public TimerData[] timers;
 	}

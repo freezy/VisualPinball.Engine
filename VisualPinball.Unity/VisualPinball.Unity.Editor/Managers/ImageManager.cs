@@ -100,22 +100,22 @@ namespace VisualPinball.Unity.Editor
 			List<ImageListData> data = new List<ImageListData>();
 
 			// collect list of in use textures
-			List<string> inUseTextures = new List<string>();
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				var texRefs = item.TextureRefs;
-				if (texRefs == null) { continue; }
-				foreach (var texRef in texRefs) {
-					var texName = GetMemberValue(texRef, item.ItemData);
-					if (!string.IsNullOrEmpty(texName)) {
-						inUseTextures.Add(texName);
-					}
-				}
-			}
-
-			foreach (var t in _tableAuthoring.Textures) {
-				var texData = t.Data;
-				data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
-			}
+			// List<string> inUseTextures = new List<string>();
+			// foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
+			// 	var texRefs = item.TextureRefs;
+			// 	if (texRefs == null) { continue; }
+			// 	foreach (var texRef in texRefs) {
+			// 		var texName = GetMemberValue(texRef, item.ItemData);
+			// 		if (!string.IsNullOrEmpty(texName)) {
+			// 			inUseTextures.Add(texName);
+			// 		}
+			// 	}
+			// }
+			//
+			// foreach (var t in _tableAuthoring.Textures) {
+			// 	var texData = t.Data;
+			// 	data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
+			// }
 
 			return data;
 		}
@@ -126,19 +126,19 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected override void AddNewData(string undoName, string newName) {
-			Undo.RecordObject(_tableAuthoring, undoName);
-
-			var newTex = new Engine.VPT.Texture(newName);
-			_tableAuthoring.Textures.Add(newTex);
-			_tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
+			// Undo.RecordObject(_tableAuthoring, undoName);
+			//
+			// var newTex = new Engine.VPT.Texture(newName);
+			// _tableAuthoring.Textures.Add(newTex);
+			// _tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
 		}
 
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
-			Undo.RecordObject(_tableAuthoring, undoName);
-
-			_tableAuthoring.Textures.Remove(data.Name);
-			_tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
+			// Undo.RecordObject(_tableAuthoring, undoName);
+			//
+			// _tableAuthoring.Textures.Remove(data.Name);
+			// _tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
 		}
 
 		private void OnDataChanged(string undoName, TextureData textureData)
@@ -156,27 +156,27 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName, TextureData textureData)
 		{
-			if (_tableAuthoring == null) { return; }
-
-			// Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
-			foreach (var tableTex in _tableAuthoring.Textures.SerializedObjects) {
-				if (tableTex.Data == textureData) {
-					Undo.RecordObject(tableTex, undoName);
-					break;
-				}
-			}
+			// if (_tableAuthoring == null) { return; }
+			//
+			// // Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
+			// foreach (var tableTex in _tableAuthoring.Textures.SerializedObjects) {
+			// 	if (tableTex.Data == textureData) {
+			// 		Undo.RecordObject(tableTex, undoName);
+			// 		break;
+			// 	}
+			// }
 		}
 
 		private void UpdateAllImages()
 		{
-			int countFound = 0;
-			foreach (var t in _tableAuthoring.Textures) {
-				if (File.Exists(t.Data.Path)) {
-					countFound++;
-					ReplaceImageFromPath(t.Data, t.Data.Path);
-				}
-			}
-			Logger.Info($"Update all images complete. Found files for {countFound} / {_tableAuthoring.Textures.Count}");
+			// int countFound = 0;
+			// foreach (var t in _tableAuthoring.Textures) {
+			// 	if (File.Exists(t.Data.Path)) {
+			// 		countFound++;
+			// 		ReplaceImageFromPath(t.Data, t.Data.Path);
+			// 	}
+			// }
+			// Logger.Info($"Update all images complete. Found files for {countFound} / {_tableAuthoring.Textures.Count}");
 		}
 
 		private void ReplaceImageFromPath(TextureData textureData, string path) {
