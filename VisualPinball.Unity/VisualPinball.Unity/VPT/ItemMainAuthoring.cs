@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 			}
 
 			// search on grand parent
-			if (go.transform.parent.transform.parent != null) {
+			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
 				ma = go.transform.parent.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
 			}
 
