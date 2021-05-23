@@ -60,8 +60,10 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject _playfieldGo;
 
+		private string _assetsPrefabs;
 		private string _assetsTextures;
 		private string _assetsMaterials;
+		private string _assetsMeshes;
 		private string _assetsSounds;
 
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
@@ -201,7 +203,37 @@ namespace VisualPinball.Unity.Editor
 				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 
+			CreateAssetFromGameObject(itemGo);
+
 			return importedObject;
+		}
+
+		private GameObject CreateAssetFromGameObject(GameObject go)
+		{
+			var name = go.name;
+			var mfs = go.GetComponentsInChildren<MeshFilter>();
+
+			foreach (var mf in mfs) {
+				var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
+				var meshFilename = $"{name}{suffix}.mesh";
+				var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+				if (File.Exists(meshPath)) {
+					AssetDatabase.DeleteAsset(meshPath);
+				}
+				AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
+			}
+
+			if (mfs.Length > 0) {
+				// Make sure the file name is unique, in case an existing Prefab has the same name.
+				var prefabPath = Path.Combine(_assetsPrefabs, $"{name}.prefab");
+				//prefabPath = AssetDatabase.GenerateUniqueAssetPath(prefabPath);
+				if (File.Exists(prefabPath)) {
+					AssetDatabase.DeleteAsset(prefabPath);
+				}
+				return PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
+			}
+
+			return go;
 		}
 
 		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
@@ -367,6 +399,11 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory(assetsTableRoot);
 			}
 
+			_assetsPrefabs = $"{assetsTableRoot}/Items/";
+			if (!Directory.Exists(_assetsPrefabs)) {
+				Directory.CreateDirectory(_assetsPrefabs);
+			}
+
 			_assetsTextures = $"{assetsTableRoot}/Textures/";
 			if (!Directory.Exists(_assetsTextures)) {
 				Directory.CreateDirectory(_assetsTextures);
@@ -375,6 +412,11 @@ namespace VisualPinball.Unity.Editor
 			_assetsMaterials = $"{assetsTableRoot}/Materials/";
 			if (!Directory.Exists(_assetsMaterials)) {
 				Directory.CreateDirectory(_assetsMaterials);
+			}
+
+			_assetsMeshes = $"{assetsTableRoot}/Models/";
+			if (!Directory.Exists(_assetsMeshes)) {
+				Directory.CreateDirectory(_assetsMeshes);
 			}
 
 			_assetsSounds = $"{assetsTableRoot}/Sounds/";
