@@ -64,8 +64,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => new Type[0];
 		public Table Table => Item;
-		public TableSerializedTextureContainer Textures => _sidecar?.textures;
-		public TableSerializedSoundContainer Sounds => _sidecar?.sounds;
 		public List<CollectionData> Collections => _sidecar?.collections;
 		public MappingsData Mappings => _sidecar?.mappings;
 		//public PatcherManager.Patcher Patcher { get; internal set; }
@@ -221,12 +219,6 @@ namespace VisualPinball.Unity
 			// restore custom info tags
 			table.CustomInfoTags = _sidecar.customInfoTags;
 
-			// replace texture container
-			table.SetTextureContainer(_sidecar.textures);
-
-			// replace sound container
-			table.SetSoundContainer(_sidecar.sounds);
-
 			// restore custom info tags
 			table.Mappings = new Mappings(_sidecar.mappings);
 
@@ -236,7 +228,6 @@ namespace VisualPinball.Unity
 			Restore(_sidecar.dispReels, table, d => new DispReel(d));
 			Restore(_sidecar.flashers, table, d => new Flasher(d));
 			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
-			Restore(_sidecar.plungers, table, d => new Plunger(d));
 			Restore(_sidecar.textBoxes, table, d => new TextBox(d));
 			Restore(_sidecar.timers, table, d => new Timer(d));
 

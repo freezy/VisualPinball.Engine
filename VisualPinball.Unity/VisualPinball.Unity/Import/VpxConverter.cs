@@ -282,12 +282,12 @@ namespace VisualPinball.Unity
 			}
 
 			// copy each serializable ref into the sidecar's serialized storage
-			sidecar.textures.AddRange(table.Textures);
-			sidecar.sounds.AddRange(table.Sounds);
+			// sidecar.textures.AddRange(table.Textures);
+			// sidecar.sounds.AddRange(table.Sounds);
 
 			// and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
-			table.SetTextureContainer(sidecar.textures);
-			table.SetSoundContainer(sidecar.sounds);
+			// table.SetTextureContainer(sidecar.textures);
+			// table.SetSoundContainer(sidecar.sounds);
 
 			sidecar.customInfoTags = table.CustomInfoTags;
 			sidecar.collections = table.Collections.Values.Select(c => c.Data).ToList();

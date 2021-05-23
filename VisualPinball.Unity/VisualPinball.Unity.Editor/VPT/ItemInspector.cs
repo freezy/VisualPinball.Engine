@@ -99,12 +99,12 @@ namespace VisualPinball.Unity.Editor
 				}
 				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 			}
-			if (_table.Textures != null) {
-				_allTextures = new string[_table.Textures.Count + 1];
-				_allTextures[0] = "- none -";
-				_table.Textures.Select(tex => tex.Name).ToArray().CopyTo(_allTextures, 1);
-				Array.Sort(_allTextures, 1, _allTextures.Length - 1);
-			}
+			// if (_table.Textures != null) {
+			// 	_allTextures = new string[_table.Textures.Count + 1];
+			// 	_allTextures[0] = "- none -";
+			// 	_table.Textures.Select(tex => tex.Name).ToArray().CopyTo(_allTextures, 1);
+			// 	Array.Sort(_allTextures, 1, _allTextures.Length - 1);
+			// }
 		}
 
 		protected void OnPreInspectorGUI()
