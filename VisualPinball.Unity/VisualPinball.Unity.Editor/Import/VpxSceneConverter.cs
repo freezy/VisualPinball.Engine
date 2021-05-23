@@ -203,24 +203,26 @@ namespace VisualPinball.Unity.Editor
 				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 
-			CreateAssetFromGameObject(itemGo);
+			CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
 
 			return importedObject;
 		}
 
-		private GameObject CreateAssetFromGameObject(GameObject go)
+		private void CreateAssetFromGameObject(GameObject go, bool extractMesh)
 		{
 			var name = go.name;
 			var mfs = go.GetComponentsInChildren<MeshFilter>();
 
-			foreach (var mf in mfs) {
-				var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
-				var meshFilename = $"{name}{suffix}.mesh";
-				var meshPath = Path.Combine(_assetsMeshes, meshFilename);
-				if (File.Exists(meshPath)) {
-					AssetDatabase.DeleteAsset(meshPath);
+			if (extractMesh) {
+				foreach (var mf in mfs) {
+					var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
+					var meshFilename = $"{name}{suffix}.mesh";
+					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+					if (File.Exists(meshPath)) {
+						AssetDatabase.DeleteAsset(meshPath);
+					}
+					AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
 				}
-				AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
 			}
 
 			if (mfs.Length > 0) {
@@ -230,10 +232,8 @@ namespace VisualPinball.Unity.Editor
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
 				}
-				return PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
+				PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 			}
-
-			return go;
 		}
 
 		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
