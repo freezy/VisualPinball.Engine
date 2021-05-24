@@ -195,17 +195,30 @@ namespace VisualPinball.Unity.Editor
 			itemGo.transform.parent = parentGo.transform;
 
 			var importedObject = SetupGameObjects(item, itemGo);
-			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
-				meshAuthoring.CreateMesh(this, this);
-			}
-			item.ClearBinaryData();
+			if (importedObject != null) {
+				foreach (var meshAuthoring in importedObject.MeshAuthoring) {
+					meshAuthoring.CreateMesh(this, this);
+				}
+				item.ClearBinaryData();
 
-			// apply transformation
-			if (item is IRenderable renderable) {
-				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				// apply transformation
+				if (item is IRenderable renderable) {
+					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				}
+
+				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
+
+			} else {
+				var c = SetupComponents(item, itemGo);
+
+				foreach (var meshComp in c.MeshComponents) {
+					meshComp.CreateMesh((IRenderable)item, this, this);
+				}
+				item.ClearBinaryData();
+
+				CreateAssetFromGameObject(itemGo, false);
 			}
 
-			CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
 
 			return importedObject;
 		}
@@ -238,11 +251,19 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private static ConvertedComponent SetupComponents(IItem item, GameObject go)
+		{
+			switch (item) {
+				case Flipper flipper:           return flipper.SetupComponents(go);
+			}
+			throw new ArgumentException("Unknown item type " + item.GetType());
+		}
+
 		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
 		{
 			switch (item) {
 				case Bumper bumper:             return bumper.SetupGameObject(obj);
-				case Flipper flipper:           return flipper.SetupGameObject(obj);
+				case Flipper flipper:           return null;
 				case Gate gate:                 return gate.SetupGameObject(obj);
 				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
 				case Kicker kicker:             return kicker.SetupGameObject(obj);

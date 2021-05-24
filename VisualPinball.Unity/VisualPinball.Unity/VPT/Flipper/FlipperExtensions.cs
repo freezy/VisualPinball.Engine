@@ -29,6 +29,16 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		public static ConvertedComponent SetupComponents(this Flipper flipper, GameObject obj)
+		{
+			var comp = new ConvertedComponent(obj);
+
+			comp.AddMainComponent<FlipperComponent>().Set(flipper);
+			comp.AddMeshComponent<FlipperBaseMeshComponent>(FlipperMeshGenerator.Base);
+
+			return comp;
+		}
+
 		public static ConvertedItem SetupGameObject(this Flipper flipper, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
