@@ -20,6 +20,8 @@ namespace VisualPinball.Unity
 {
 	public abstract class ItemMainRenderableComponent : MonoBehaviour
 	{
+		#region Editor
+
 		protected virtual void OnDrawGizmos()
 		{
 			// handle dirty whenever scene view draws just in case a field or dependant changed and our
@@ -39,8 +41,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#region Editor
-
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorPosition() => Vector3.zero;
 		public virtual void SetEditorPosition(Vector3 pos) { }
@@ -54,6 +54,5 @@ namespace VisualPinball.Unity
 		public virtual void SetEditorScale(Vector3 rot) { }
 
 		#endregion
-
 	}
 }

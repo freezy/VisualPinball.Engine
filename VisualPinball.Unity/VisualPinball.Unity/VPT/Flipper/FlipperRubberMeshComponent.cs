@@ -15,15 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
-	public class FlipperBaseMeshComponent : ItemMeshComponent
+	public class FlipperRubberMeshComponent : ItemMeshComponent
 	{
-		protected override string MeshId => FlipperMeshGenerator.Base;
+		protected override string MeshId => FlipperMeshGenerator.Rubber;
 		protected override Type ItemType => typeof(Flipper);
 	}
 }
