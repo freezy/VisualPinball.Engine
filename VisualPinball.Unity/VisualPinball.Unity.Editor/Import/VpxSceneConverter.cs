@@ -175,6 +175,11 @@ namespace VisualPinball.Unity.Editor
 
 			// now we have all renderables imported, patch them.
 			foreach (var lookupName in convertedItems.Keys) {
+
+				if (!convertedItems.ContainsKey(lookupName) || convertedItems[lookupName] == null) {
+					continue;
+				}
+
 				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
 					_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
 				}
@@ -192,7 +197,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var parentGo = GetGroupParent(item);
 			var itemGo = new GameObject(item.Name);
-			itemGo.transform.parent = parentGo.transform;
+			itemGo.transform.SetParent(parentGo.transform, false);
 
 			var importedObject = SetupGameObjects(item, itemGo);
 			if (importedObject != null) {
@@ -209,21 +214,25 @@ namespace VisualPinball.Unity.Editor
 				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
 
 			} else {
-				var c = SetupComponents(item, itemGo);
+				var convertedComponent = SetupComponents(item, itemGo);
 
-				foreach (var meshComp in c.MeshComponents) {
-					meshComp.CreateMesh((IRenderable)item, this, this);
+				if (item is IRenderable renderable) {
+
+					foreach (var meshComp in convertedComponent.MeshComponents) {
+						meshComp.CreateMesh(renderable, this, this);
+					}
+					item.ClearBinaryData();
+					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+
+					CreateAssetFromGameObject(itemGo, false);
 				}
-				item.ClearBinaryData();
-
-				CreateAssetFromGameObject(itemGo, false);
 			}
 
 
 			return importedObject;
 		}
 
-		private void CreateAssetFromGameObject(GameObject go, bool extractMesh)
+		private GameObject CreateAssetFromGameObject(GameObject go, bool extractMesh)
 		{
 			var name = go.name;
 			var mfs = go.GetComponentsInChildren<MeshFilter>();
@@ -247,8 +256,10 @@ namespace VisualPinball.Unity.Editor
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
 				}
-				PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
+				return PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 			}
+
+			return go;
 		}
 
 		private static ConvertedComponent SetupComponents(IItem item, GameObject go)
