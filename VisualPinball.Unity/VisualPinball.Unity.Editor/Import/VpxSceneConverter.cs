@@ -107,6 +107,8 @@ namespace VisualPinball.Unity.Editor
 
 			ConfigurePlayer();
 
+			FreeTextures();
+
 			return _tableGo;
 		}
 
@@ -300,7 +302,6 @@ namespace VisualPinball.Unity.Editor
 				foreach (var texture in _table.Textures) {
 					var path = texture.GetUnityFilename(_assetsTextures);
 					File.WriteAllBytes(path, texture.Content);
-					texture.Data.ClearBinaryData();
 				}
 
 			} finally {
@@ -318,6 +319,14 @@ namespace VisualPinball.Unity.Editor
 				_textures[texture.Name.ToLower()] = unityTexture;
 			}
 		}
+
+		private void FreeTextures()
+		{
+			foreach (var texture in _table.Textures) {
+				texture.Data.FreeBinaryData();
+			}
+		}
+
 		private void ExtractSounds()
 		{
 			try {
