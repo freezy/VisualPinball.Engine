@@ -14,16 +14,45 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
 	public abstract class ItemMeshComponent : MonoBehaviour
 	{
-		public abstract void CreateMesh(IRenderable item, ITextureProvider texProvider, IMaterialProvider matProvider);
+		protected abstract Type ItemType { get; }
 
 		protected virtual string MeshId => null;
+
+		public void CreateMesh(IRenderable item, ITextureProvider texProvider, IMaterialProvider matProvider)
+		{
+			var ta = GetComponentInParent<TableAuthoring>();
+			var ro = item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
+			if (ro?.Mesh == null) {
+				return;
+			}
+			var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
+			enabled = ro.IsVisible;
+
+			// apply mesh to game object
+			var mf = gameObject.AddComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply material
+			if (ro.Mesh.AnimationFrames.Count > 1) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
+				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, ItemType);
+				smr.sharedMesh = mesh;
+				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
+				smr.enabled = ro.IsVisible;
+
+			} else {
+				var mr = gameObject.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, ItemType);
+				mr.enabled = ro.IsVisible;
+			}
+		}
 	}
 }
