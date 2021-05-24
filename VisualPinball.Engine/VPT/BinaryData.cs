@@ -63,7 +63,7 @@ namespace VisualPinball.Engine.VPT
 			Data = res.Data;
 		}
 
-		public void ClearBinaryData()
+		public void FreeBinaryData()
 		{
 			Data = new byte[0];
 		}

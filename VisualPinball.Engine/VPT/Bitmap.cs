@@ -86,7 +86,7 @@ namespace VisualPinball.Engine.VPT
 			Data = ToggleRgbBgr(Data);
 		}
 
-		public void ClearBinaryData()
+		public void FreeBinaryData()
 		{
 			Data = new byte[0];
 		}
