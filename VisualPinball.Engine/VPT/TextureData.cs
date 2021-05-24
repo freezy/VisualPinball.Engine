@@ -73,10 +73,10 @@ namespace VisualPinball.Engine.VPT
 			Binary = new BinaryData(res);
 		}
 
-		public void ClearBinaryData()
+		public void FreeBinaryData()
 		{
-			Binary?.ClearBinaryData();
-			Bitmap?.ClearBinaryData();
+			Binary?.FreeBinaryData();
+			Bitmap?.FreeBinaryData();
 		}
 
 		protected override bool SkipWrite(BiffAttribute attr)
