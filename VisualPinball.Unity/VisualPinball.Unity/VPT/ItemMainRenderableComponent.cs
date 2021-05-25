@@ -14,13 +14,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	public abstract class ItemMainRenderableComponent : MonoBehaviour
 	{
-		#region Editor
+		public virtual bool CanBeTransformed => true;
+
+		public bool IsLocked { get; set; }
+
+		protected abstract IEnumerable<Type> MeshAuthoringTypes { get; }
+
+		protected IEnumerable<ItemMeshComponent> MeshComponents => MeshAuthoringTypes
+			.SelectMany(type => GetComponentsInChildren(type, true))
+			.Select(c => (ItemMeshComponent)c);
+
+		public void SetMeshDirty()
+		{
+			foreach (var meshComponent in MeshComponents) {
+				meshComponent.MeshDirty = true;
+			}
+		}
+
+		public void RebuildMeshIfDirty()
+		{
+			foreach (var meshComponent in MeshComponents) {
+				if (meshComponent.MeshDirty) {
+					meshComponent.RebuildMeshes();
+				}
+			}
+
+			// // update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
+			// var ta = GetComponentInParent<TableAuthoring>();
+			// if (ta != this) {
+			// 	transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
+			// }
+		}
 
 		protected virtual void OnDrawGizmos()
 		{
@@ -53,6 +86,5 @@ namespace VisualPinball.Unity
 		public virtual Vector3 GetEditorScale() => Vector3.zero;
 		public virtual void SetEditorScale(Vector3 rot) { }
 
-		#endregion
 	}
 }

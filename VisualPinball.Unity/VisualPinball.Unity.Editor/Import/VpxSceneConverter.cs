@@ -342,6 +342,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
+			// todo lazy load
 			// now they are in the asset database, we can load them.
 			foreach (var texture in _table.Textures) {
 				var path = texture.GetUnityFilename(_assetsTextures);
