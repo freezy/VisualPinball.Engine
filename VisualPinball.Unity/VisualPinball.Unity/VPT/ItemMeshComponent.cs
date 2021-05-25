@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 
 		protected virtual string MeshId => null;
 
+		public bool MeshDirty;
+
 		public void CreateMesh(IRenderable item, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
@@ -53,6 +55,41 @@ namespace VisualPinball.Unity
 				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, ItemType);
 				mr.enabled = ro.IsVisible;
 			}
+		}
+
+		public void RebuildMeshes()
+		{
+			// UpdateMesh();
+			// ItemDataChanged();
+			MeshDirty = false;
+		}
+
+		private void UpdateMesh()
+		{
+			// var ta = GetComponentInParent<TableAuthoring>();
+			// var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
+			//
+			// // mesh generator can return null - but in this case the main component
+			// // will take care of removing the mesh component.
+			// if (ro == null) {
+			// 	return;
+			// }
+			// var mr = GetComponent<MeshRenderer>();
+			// var mf = GetComponent<MeshFilter>();
+			//
+			// if (mf != null) {
+			// 	var unityMesh = mf.sharedMesh;
+			// 	if (ro.Mesh != null) {
+			// 		ro.Mesh.ApplyToUnityMesh(unityMesh);
+			// 	}
+			// }
+
+			// if (mr != null) {
+			// 	if (ta != null) {
+			// 		mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
+			// 	}
+			// 	mr.enabled = true;
+			// }
 		}
 	}
 }
