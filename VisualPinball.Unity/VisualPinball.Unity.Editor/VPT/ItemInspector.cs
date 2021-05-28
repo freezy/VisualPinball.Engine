@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public abstract MonoBehaviour UndoTarget { get; }
 
-		protected TableAuthoring _table;
+		protected TableAuthoring _ta;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 // 			}
 // #endif
 
-			_table = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
+			_ta = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
 			PopulateDropDownOptions();
 		}
 
@@ -89,13 +89,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void PopulateDropDownOptions()
 		{
-			if (_table == null) return;
+			if (_ta == null) return;
 
-			if (_table.Data.Materials != null) {
-				_allMaterials = new string[_table.Data.Materials.Length + 1];
+			if (_ta.Data.Materials != null) {
+				_allMaterials = new string[_ta.Data.Materials.Length + 1];
 				_allMaterials[0] = "- none -";
-				for (var i = 0; i < _table.Data.Materials.Length; i++) {
-					_allMaterials[i + 1] = _table.Data.Materials[i].Name;
+				for (var i = 0; i < _ta.Data.Materials.Length; i++) {
+					_allMaterials[i + 1] = _ta.Data.Materials[i].Name;
 				}
 				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
 			}
@@ -250,10 +250,10 @@ namespace VisualPinball.Unity.Editor
 			where TItemAuthoring : ItemAuthoring<TItem, TData>
 			where TData : ItemData where TItem : Item<TData>, IRenderable
 		{
-			if (!_refItems.ContainsKey(cacheKey) && _table != null) {
+			if (!_refItems.ContainsKey(cacheKey) && _ta != null) {
 				var currentFieldName = field;
-				if (currentFieldName != null && _table.Table.Has<TItem>(currentFieldName)) {
-					_refItems[cacheKey] = _table.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
+				if (currentFieldName != null && _ta.TableHolder.Has<TItem>(currentFieldName)) {
+					_refItems[cacheKey] = _ta.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}
 			}
@@ -296,7 +296,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
 		{
-			if (_table == null) return;
+			if (_ta == null) return;
 
 			// if the field is set, but the tex isn't in our list, maybe it was added after this
 			// inspector was instantiated, so re-grab our options from the table data
@@ -342,7 +342,7 @@ namespace VisualPinball.Unity.Editor
 			MonoBehaviour obj = null;
 			if (!_objItems.ContainsKey(cacheKey)) {
 				if (!string.IsNullOrEmpty(field)) {
-					obj = _table.gameObject.GetComponentsInChildren<T>(true)
+					obj = _ta.gameObject.GetComponentsInChildren<T>(true)
 						.FirstOrDefault(s => s.Name == field) as MonoBehaviour;
 					_objItems[cacheKey] = obj;
 				}
@@ -371,7 +371,7 @@ namespace VisualPinball.Unity.Editor
 
 					var dropdown = new ItemSearchableDropdown<T>(
 						_itemPickDropdownState,
-						_table,
+						_ta,
 						pickerLabel,
 						item => {
 							switch (item) {

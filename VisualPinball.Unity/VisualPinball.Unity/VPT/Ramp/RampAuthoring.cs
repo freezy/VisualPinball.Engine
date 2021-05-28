@@ -84,13 +84,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Ramp>(Name);
-			}
-		}
-
 		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)
 		{
 			var rampFlatBefore = rampTypeBefore == RampType.RampTypeFlat;

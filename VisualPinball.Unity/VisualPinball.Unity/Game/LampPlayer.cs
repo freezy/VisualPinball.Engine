@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
 		private readonly Dictionary<string, Dictionary<string, MappingsLampData>> _lampMappings = new Dictionary<string, Dictionary<string, MappingsLampData>>();
 
-		private Table _table;
+		private ITableHolder _th;
 		private IGamelogicEngine _gamelogicEngine;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -40,16 +40,16 @@ namespace VisualPinball.Unity
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(IItem item, IApiLamp lampApi) => _lamps[item.Name] = lampApi;
 
-		public void Awake(Table table, IGamelogicEngine gamelogicEngine)
+		public void Awake(ITableHolder th, IGamelogicEngine gamelogicEngine)
 		{
-			_table = table;
+			_th = th;
 			_gamelogicEngine = gamelogicEngine;
 		}
 
 		public void OnStart()
 		{
 			if (_gamelogicEngine != null) {
-				var config = _table.Mappings;
+				var config = _th.Mappings;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
 				foreach (var lampData in config.Data.Lamps) {
