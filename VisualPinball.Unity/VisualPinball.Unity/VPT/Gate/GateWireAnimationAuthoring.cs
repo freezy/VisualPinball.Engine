@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateWireAnimationAuthoring : ItemMovementAuthoring<Gate, GateData, GateAuthoring>, IConvertGameObjectToEntity
+	public class GateWireAnimationAuthoring : ItemAnimationAuthoring<Gate, GateData, GateAuthoring>, IConvertGameObjectToEntity
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
 
