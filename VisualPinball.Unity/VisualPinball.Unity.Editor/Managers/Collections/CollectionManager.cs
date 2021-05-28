@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
 
 			//Keep the available items
-			var items = _tableAuthoring.Item.GameItems
+			var items = _tableAuthoring.TableHolder.GameItems
 							.Where(i => !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
 							.OrderBy(i => i.Name);
 			rootAvailable.AddChildren(items.Select(i => new CollectionTreeElement(i.Name)).ToArray());

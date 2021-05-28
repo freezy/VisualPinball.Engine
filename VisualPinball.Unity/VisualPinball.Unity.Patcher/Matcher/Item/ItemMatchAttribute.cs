@@ -17,6 +17,7 @@
 using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -28,6 +29,6 @@ namespace VisualPinball.Unity.Patcher
 		/// </summary>
 		public string Ref;
 
-		public abstract bool Matches(Engine.VPT.Table.Table table, IRenderable item, GameObject obj);
+		public abstract bool Matches(TableHolder th, IRenderable item, GameObject obj);
 	}
 }

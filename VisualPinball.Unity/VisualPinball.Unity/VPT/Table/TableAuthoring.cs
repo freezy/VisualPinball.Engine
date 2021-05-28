@@ -24,30 +24,9 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.Decal;
-using VisualPinball.Engine.VPT.DispReel;
-using VisualPinball.Engine.VPT.Flasher;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Light;
-using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Engine.VPT.Ramp;
-using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.TextBox;
-using VisualPinball.Engine.VPT.Timer;
-using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Engine.VPT.Trough;
-using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
@@ -57,7 +36,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
-		protected override Table InstantiateItem(TableData data) => RecreateTable(data);
+		protected override Table InstantiateItem(TableData data) => new Table(TableHolder, data);
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
@@ -66,6 +45,9 @@ namespace VisualPinball.Unity
 		public Table Table => Item;
 		public List<CollectionData> Collections => _sidecar?.collections;
 		public MappingsData Mappings => _sidecar?.mappings;
+
+		public ITableHolder TableHolder => _ta ??= new SceneTableHolder(this);
+
 		//public PatcherManager.Patcher Patcher { get; internal set; }
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
@@ -74,7 +56,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
-		private readonly Dictionary<string, UnityEngine.Material> _unityMaterials = new Dictionary<string, UnityEngine.Material>();
+		private readonly Dictionary<string, Material> _unityMaterials = new Dictionary<string, Material>();
 		/// <summary>
 		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
@@ -82,6 +64,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private SceneTableHolder _ta;
 
 		//Private runtime values needed for camera adjustments.  
 		[HideInInspector] [SerializeField] public  Bounds _tableBounds;
@@ -204,60 +187,60 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		public Table CreateTable(TableData data)
-		{
-			Logger.Info("Restoring table...");
-			// restore table data
-			var table = new Table(data);
+		// public Table CreateTable(TableData data)
+		// {
+		// 	Logger.Info("Restoring table...");
+		// 	// restore table data
+		// 	var table = new Table(data);
+		//
+		// 	// restore table info
+		// 	Logger.Info("Restoring table info...");
+		// 	foreach (var k in _sidecar.tableInfo.Keys) {
+		// 		table.TableInfo[k] = _sidecar.tableInfo[k];
+		// 	}
+		//
+		// 	// restore custom info tags
+		// 	table.CustomInfoTags = _sidecar.customInfoTags;
+		//
+		// 	// restore custom info tags
+		// 	table.Mappings = new Mappings(_sidecar.mappings);
+		//
+		// 	// restore game items with no game object (yet!)
+		// 	table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
+		// 	Restore(_sidecar.collections, table.Collections, d => new Collection(d));
+		// 	Restore(_sidecar.dispReels, table, d => new DispReel(d));
+		// 	Restore(_sidecar.flashers, table, d => new Flasher(d));
+		// 	Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
+		// 	Restore(_sidecar.textBoxes, table, d => new TextBox(d));
+		// 	Restore(_sidecar.timers, table, d => new Timer(d));
+		//
+		// 	// restore game items
+		// 	Logger.Info("Restoring game items...");
+		// 	Restore<BumperAuthoring, Bumper, BumperData>(table);
+		// 	Restore<FlipperAuthoring, Flipper, FlipperData>(table);
+		// 	Restore<GateAuthoring, Gate, GateData>(table);
+		// 	Restore<HitTargetAuthoring, HitTarget, HitTargetData>(table);
+		// 	Restore<KickerAuthoring, Kicker, KickerData>(table);
+		// 	Restore<LightAuthoring, Light, LightData>(table);
+		// 	Restore<PlungerAuthoring, Plunger, PlungerData>(table);
+		// 	Restore<PrimitiveAuthoring, Primitive, PrimitiveData>(table);
+		// 	Restore<RampAuthoring, Ramp, RampData>(table);
+		// 	Restore<RubberAuthoring, Rubber, RubberData>(table);
+		// 	Restore<SpinnerAuthoring, Spinner, SpinnerData>(table);
+		// 	Restore<SurfaceAuthoring, Surface, SurfaceData>(table);
+		// 	Restore<TriggerAuthoring, Trigger, TriggerData>(table);
+		// 	Restore<TroughAuthoring, Trough, TroughData>(table);
+		//
+		// 	return table;
+		// }
 
-			// restore table info
-			Logger.Info("Restoring table info...");
-			foreach (var k in _sidecar.tableInfo.Keys) {
-				table.TableInfo[k] = _sidecar.tableInfo[k];
-			}
-
-			// restore custom info tags
-			table.CustomInfoTags = _sidecar.customInfoTags;
-
-			// restore custom info tags
-			table.Mappings = new Mappings(_sidecar.mappings);
-
-			// restore game items with no game object (yet!)
-			table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
-			Restore(_sidecar.collections, table.Collections, d => new Collection(d));
-			Restore(_sidecar.dispReels, table, d => new DispReel(d));
-			Restore(_sidecar.flashers, table, d => new Flasher(d));
-			Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
-			Restore(_sidecar.textBoxes, table, d => new TextBox(d));
-			Restore(_sidecar.timers, table, d => new Timer(d));
-
-			// restore game items
-			Logger.Info("Restoring game items...");
-			Restore<BumperAuthoring, Bumper, BumperData>(table);
-			Restore<FlipperAuthoring, Flipper, FlipperData>(table);
-			Restore<GateAuthoring, Gate, GateData>(table);
-			Restore<HitTargetAuthoring, HitTarget, HitTargetData>(table);
-			Restore<KickerAuthoring, Kicker, KickerData>(table);
-			Restore<LightAuthoring, Light, LightData>(table);
-			Restore<PlungerAuthoring, Plunger, PlungerData>(table);
-			Restore<PrimitiveAuthoring, Primitive, PrimitiveData>(table);
-			Restore<RampAuthoring, Ramp, RampData>(table);
-			Restore<RubberAuthoring, Rubber, RubberData>(table);
-			Restore<SpinnerAuthoring, Spinner, SpinnerData>(table);
-			Restore<SurfaceAuthoring, Surface, SurfaceData>(table);
-			Restore<TriggerAuthoring, Trigger, TriggerData>(table);
-			Restore<TroughAuthoring, Trough, TroughData>(table);
-
-			return table;
-		}
-
-		public Table RecreateTable(TableData tableData)
-		{
-			var table = CreateTable(tableData);
-
-			Logger.Info("Table restored.");
-			return table;
-		}
+		// public Table RecreateTable(TableData tableData)
+		// {
+		// 	var table = CreateTable(tableData);
+		//
+		// 	Logger.Info("Table restored.");
+		// 	return table;
+		// }
 
 		public Vector3 GetTableCenter()
 		{
@@ -282,39 +265,39 @@ namespace VisualPinball.Unity
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
 			Mappings.RemoveAllSwitches();
-			Table.Mappings.PopulateSwitches(gle.AvailableSwitches, Table.Switchables, Table.SwitchableDevices);
+			TableHolder.Mappings.PopulateSwitches(gle.AvailableSwitches, TableHolder.Switchables, TableHolder.SwitchableDevices);
 
 			Mappings.RemoveAllCoils();
-			Table.Mappings.PopulateCoils(gle.AvailableCoils, Table.Coilables, Table.CoilableDevices);
+			TableHolder.Mappings.PopulateCoils(gle.AvailableCoils, TableHolder.Coilables, TableHolder.CoilableDevices);
 
 			Mappings.RemoveAllLamps();
-			Table.Mappings.PopulateLamps(gle.AvailableLamps, Table.Lightables);
+			TableHolder.Mappings.PopulateLamps(gle.AvailableLamps, TableHolder.Lightables);
 		}
 
-		private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
-			where TItem : Item<TData>
-			where TComp : ItemMainAuthoring<TItem, TData>
-		{
-			foreach (var component in GetComponentsInChildren<TComp>(true))
-			{
-				component.Restore();
-				table.Add(component.Item);
-			}
-		}
-
-		private static void Restore<TItem, TData>(IEnumerable<TData> src, IDictionary<string, TItem> dest, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
-		{
-			foreach (var d in src) {
-				dest[d.GetName()] = create(d);
-			}
-		}
-
-		private static void Restore<TItem, TData>(IEnumerable<TData> src, Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
-		{
-			foreach (var d in src) {
-				table.Add(create(d));
-			}
-		}
+		// private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
+		// 	where TItem : Item<TData>
+		// 	where TComp : ItemMainAuthoring<TItem, TData>
+		// {
+		// 	foreach (var component in GetComponentsInChildren<TComp>(true))
+		// 	{
+		// 		component.Restore();
+		// 		table.Add(component.Item);
+		// 	}
+		// }
+		//
+		// private static void Restore<TItem, TData>(IEnumerable<TData> src, IDictionary<string, TItem> dest, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
+		// {
+		// 	foreach (var d in src) {
+		// 		dest[d.GetName()] = create(d);
+		// 	}
+		// }
+		//
+		// private static void Restore<TItem, TData>(IEnumerable<TData> src, Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
+		// {
+		// 	foreach (var d in src) {
+		// 		table.Add(create(d));
+		// 	}
+		// }
 
 	}
 }

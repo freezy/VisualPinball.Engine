@@ -107,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
 				RecordUndo("Populate all switch mappings");
-				_tableAuthoring.Table.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.Table.Switchables, _tableAuthoring.Table.SwitchableDevices);
+				_tableAuthoring.TableHolder.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.TableHolder.Switchables, _tableAuthoring.TableHolder.SwitchableDevices);
 				Reload();
 			}
 
@@ -211,7 +211,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitchIds()
 		{
 			_gleSwitches.Clear();
-			_gleSwitches.AddRange(_tableAuthoring.Table.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
+			_gleSwitches.AddRange(_tableAuthoring.TableHolder.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
 		}
 
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()

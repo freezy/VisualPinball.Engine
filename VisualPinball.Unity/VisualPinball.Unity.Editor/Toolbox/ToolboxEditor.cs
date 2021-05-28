@@ -72,9 +72,9 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
 				var rootGameObj = new GameObject();
-				var table = new Table(new TableData {Name = tableName});
+				var th = new TableHolder(tableName);
 				var converter = rootGameObj.AddComponent<VpxConverter>();
-				converter.Convert(tableName, table);
+				converter.Convert(tableName, th);
 				DestroyImmediate(converter);
 				Selection.activeGameObject = rootGameObj;
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
@@ -178,9 +178,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var table = _tableAuthoring.Table;
-			var item = create(table);
-			table.Add(item, true);
+			var th = _tableAuthoring.TableHolder;
+			var item = create(th.Table);
 			Selection.activeGameObject = CreateRenderable(item);
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);

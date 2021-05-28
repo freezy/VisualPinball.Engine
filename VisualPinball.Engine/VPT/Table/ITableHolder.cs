@@ -21,6 +21,9 @@ namespace VisualPinball.Engine.VPT.Table
 		Material GetMaterial(string name);
 		Texture GetTexture(string name);
 
+		IEnumerable<IItem> GameItems { get; }
+		IEnumerable<IRenderable> Renderables { get; }
+		IEnumerable<IItem> NonRenderables { get; }
 		IEnumerable<ItemData> ItemDatas { get; }
 		Dictionary<string, Collection.Collection> Collections { get; }
 		ITableResourceContainer<Texture> Textures { get; }
@@ -31,5 +34,7 @@ namespace VisualPinball.Engine.VPT.Table
 		IEnumerable<ICoilable> Coilables { get; }
 		IEnumerable<ICoilableDevice> CoilableDevices { get; }
 		IEnumerable<ILightable> Lightables { get; }
+
+		void Save(string fileName);
 	}
 }

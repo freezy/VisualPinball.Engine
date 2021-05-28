@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.VPT.Table;
+
 namespace VisualPinball.Unity.Patcher.Matcher.Table
 {
 	/// <summary>
@@ -28,9 +30,9 @@ namespace VisualPinball.Unity.Patcher.Matcher.Table
 			_name = name;
 		}
 
-		public override bool Matches(Engine.VPT.Table.Table table, string fileName)
+		public override bool Matches(TableHolder th, string fileName)
 		{
-			return _name == null || table.Data.Name == _name;
+			return _name == null || th.Table.Data.Name == _name;
 		}
 	}
 }

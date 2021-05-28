@@ -85,13 +85,6 @@ namespace VisualPinball.Unity
 			// todo handle IsEnabled
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Trigger>(Name);
-			}
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 
 		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);

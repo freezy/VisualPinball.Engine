@@ -17,6 +17,7 @@
 using System;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity.Patcher
 			_name = name;
 		}
 
-		public override bool Matches(Engine.VPT.Table.Table table, IRenderable item, GameObject obj)
+		public override bool Matches(TableHolder th, IRenderable item, GameObject obj)
 		{
 			return IgnoreCase
 				? string.Equals(item.Name, _name, StringComparison.CurrentCultureIgnoreCase)

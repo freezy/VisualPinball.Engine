@@ -232,13 +232,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Plunger>(Name);
-			}
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
 		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
