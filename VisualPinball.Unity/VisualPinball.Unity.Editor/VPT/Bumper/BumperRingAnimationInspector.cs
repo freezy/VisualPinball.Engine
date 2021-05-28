@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperRingAnimationAuthoring))]
-	public class BumperRingMovementInspector : ItemMovementInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
+	public class BumperRingAnimationInspector : ItemAnimationInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{

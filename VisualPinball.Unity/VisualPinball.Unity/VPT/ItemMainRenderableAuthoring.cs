@@ -24,7 +24,8 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemMainRenderableAuthoring<TItem, TData> : ItemMainAuthoring<TItem, TData>, IItemMainRenderableAuthoring
+	public abstract class  ItemMainRenderableAuthoring<TItem, TData> : ItemMainAuthoring<TItem, TData>,
+		IItemMainRenderableAuthoring
 		where TItem : Item<TData>, IRenderable
 		where TData : ItemData
 	{

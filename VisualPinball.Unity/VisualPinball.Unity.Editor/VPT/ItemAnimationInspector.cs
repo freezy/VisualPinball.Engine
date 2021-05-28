@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemMovementInspector<TItem, TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
-		where TMovementAuthoring : ItemMovementAuthoring<TItem, TData, TMainAuthoring>
+	public class ItemAnimationInspector<TItem, TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
+		where TMovementAuthoring : ItemAnimationAuthoring<TItem, TData, TMainAuthoring>
 		where TData : ItemData
 		where TItem : Item<TData>, IRenderable
 		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
