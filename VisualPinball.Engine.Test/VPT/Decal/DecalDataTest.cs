@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Decal;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Decal
 {
@@ -27,18 +28,18 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 		[Test]
 		public void ShouldReadDecalData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Decal);
-			ValidateDecal0(table.Decal(0).Data);
-			ValidateDecal1(table.Decal(1).Data);
+			var th = TableHolder.Load(VpxPath.Decal);
+			ValidateDecal0(th.Decal(0).Data);
+			ValidateDecal1(th.Decal(1).Data);
 		}
 
 		[Test]
 		public void ShouldWriteDecalData()
 		{
 			const string tmpFileName = "ShouldWriteDecalData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Decal);
+			var table = TableHolder.Load(VpxPath.Decal);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateDecal0(writtenTable.Decal(0).Data);
 			ValidateDecal1(writtenTable.Decal(1).Data);
 		}

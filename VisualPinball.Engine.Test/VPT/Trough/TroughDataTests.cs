@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.Test.VPT.Trough
@@ -27,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		[Test]
 		public void ShouldReadTroughData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trough);
+			var table = TableHolder.Load(VpxPath.Trough);
 			ValidateTroughData(table.Trough("Trough1").Data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldWriteTroughData()
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trough);
+			var table = TableHolder.Load(VpxPath.Trough);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateTroughData(writtenTable.Trough("Trough1").Data);
 		}
 

@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldReadFlipperData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			var table = TableHolder.Load(VpxPath.Flipper);
 			ValidateFlipper(table.Flipper("FatFlipper").Data);
 		}
 
@@ -34,9 +35,9 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldWriteFlipperData()
 		{
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			var table = TableHolder.Load(VpxPath.Flipper);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
 		}
 

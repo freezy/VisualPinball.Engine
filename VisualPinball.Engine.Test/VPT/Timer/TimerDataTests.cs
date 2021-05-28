@@ -17,6 +17,7 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Timer;
 
 namespace VisualPinball.Engine.Test.VPT.Timer
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		[Test]
 		public void ShouldReadTimerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
+			var table = TableHolder.Load(VpxPath.Timer);
 			ValidateTimerData1(table.Timer("Timer1").Data);
 			ValidateTimerData2(table.Timer("Timer2").Data);
 		}
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		public void ShouldWriteTimerData()
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
+			var table = TableHolder.Load(VpxPath.Timer);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
 			ValidateTimerData2(writtenTable.Timer("Timer2").Data);
 		}

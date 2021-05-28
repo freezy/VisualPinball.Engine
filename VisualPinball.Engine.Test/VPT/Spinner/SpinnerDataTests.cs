@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Spinner
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		[Test]
 		public void ShouldReadSpinnerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
+			var table = TableHolder.Load(VpxPath.Spinner);
 			ValidateSpinnerData(table.Spinner("Data").Data);
 		}
 
@@ -34,9 +35,9 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		public void ShouldWriteSpinnerData()
 		{
 			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Spinner);
+			var table = TableHolder.Load(VpxPath.Spinner);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateSpinnerData(writtenTable.Spinner("Data").Data);
 		}
 

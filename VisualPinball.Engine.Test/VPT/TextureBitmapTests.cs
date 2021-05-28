@@ -17,23 +17,24 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Resources;
 
 namespace VisualPinball.Engine.Test.VPT
 {
 	public class TextureBitmapTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly TableHolder _th;
 
 		public TextureBitmapTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Texture);
+			_th = TableHolder.Load(VpxPath.Texture);
 		}
 
 		[Test]
 		public void ShouldAnalyzeAnOpaqueTexture()
 		{
-			var texture = _table.Textures["test_pattern_png"];
+			var texture = _th.Textures["test_pattern_png"];
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -44,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeAnotherOpaqueTexture()
 		{
-			var texture = _table.Textures["test_pattern_argb"];
+			var texture = _th.Textures["test_pattern_argb"];
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -55,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeATransparentTexture()
 		{
-			var texture = _table.Textures["test_pattern_transparent"];
+			var texture = _th.Textures["test_pattern_transparent"];
 			texture.Analyze();
 			var stats = texture.GetStats();
 

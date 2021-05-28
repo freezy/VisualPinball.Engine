@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Collection
 {
@@ -26,8 +27,8 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		[Test]
 		public void ShouldReadCollectionData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
-			var data = table.Collections["flippers"].Data;
+			var th = TableHolder.Load(VpxPath.Collection);
+			var data = th.Collections["flippers"].Data;
 			ValidateTableData(data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		public void ShouldWriteCollectionData()
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
-			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var th = TableHolder.Load(VpxPath.Collection);
+			th.Save(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateTableData(writtenTable.Collections["flippers"].Data);
 		}
 
