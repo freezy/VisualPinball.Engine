@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 		[Test]
 		public void ShouldReadTextBoxData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
+			var table = TableHolder.Load(VpxPath.TextBox);
 			ValidateTableData(table.TextBox("TextBox001").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 		public void ShouldWriteTextBoxData()
 		{
 			const string tmpFileName = "ShouldWriteTextBoxData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.TextBox);
+			var table = TableHolder.Load(VpxPath.TextBox);
 			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateTableData(writtenTable.TextBox("TextBox001").Data);
 		}
 

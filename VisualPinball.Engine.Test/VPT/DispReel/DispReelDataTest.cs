@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.DispReel;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.DispReel
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		[Test]
 		public void ShouldReadDispReelData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.DispReel);
+			var table = TableHolder.Load(VpxPath.DispReel);
 			ValidateDispReel1(table.DispReel("Reel1").Data);
 			ValidateDispReel2(table.DispReel("Reel2").Data);
 		}
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		public void ShouldWriteDispReelData()
 		{
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.DispReel);
+			var table = TableHolder.Load(VpxPath.DispReel);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateDispReel1(writtenTable.DispReel("Reel1").Data);
 			ValidateDispReel2(writtenTable.DispReel("Reel2").Data);
 		}

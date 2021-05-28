@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
@@ -26,8 +27,8 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		[Test]
 		public void ShouldReadBumperData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumper("Bumper1").Data;
+			var th = TableHolder.Load(VpxPath.Bumper);
+			var data = th.Bumper("Bumper1").Data;
 			ValidateTableData(data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		public void ShouldWriteBumperData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			var table = TableHolder.Load(VpxPath.Bumper);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 		}
 

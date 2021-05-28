@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.HitTarget
 {
@@ -27,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		[Test]
 		public void ShouldReadHitTargetData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
+			var table = TableHolder.Load(VpxPath.HitTarget);
 			ValidateHitTargetData(table.HitTarget("Data").Data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		public void ShouldWriteHitTargetData()
 		{
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
+			var table = TableHolder.Load(VpxPath.HitTarget);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
 		}
 

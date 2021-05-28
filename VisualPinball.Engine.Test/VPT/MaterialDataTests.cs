@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldReadMaterialData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
+			var table = TableHolder.Load(VpxPath.Material);
 			ValidateMaterial1(table.GetMaterial("Material1"));
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT
 		public void ShouldWriteMaterialData()
 		{
 			const string tmpFileName = "ShouldWriteMaterialData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
+			var table = TableHolder.Load(VpxPath.Material);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
 		}
 
@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT
 			const string tmpFileName = "ShouldCreateMaterialData.vpx";
 			new TableWriter(tb.Build()).WriteTable(tmpFileName);
 
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			writtenTable.GetMaterial("test_mat").BaseColor.Red.Should().Be(255);
 			writtenTable.GetMaterial("test_mat").BaseColor.Green.Should().Be(0);
 			writtenTable.GetMaterial("test_mat").BaseColor.Blue.Should().Be(0);
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.Test.VPT
 		public void ShouldWriteUpdatedMaterialData()
 		{
 			const string tmpFileName = "ShouldWriteUpdatedMaterialData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Material);
+			var table = TableHolder.Load(VpxPath.Material);
 
 			var mat = table.GetMaterial("Material1");
 			mat.Name = "MaterialUpdated";
@@ -87,7 +87,7 @@ namespace VisualPinball.Engine.Test.VPT
 			mat.WrapLighting = 0.68f;
 
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			var material = writtenTable.GetMaterial("MaterialUpdated");
 			material.Name.Should().Be("MaterialUpdated");
 			material.BaseColor.Red.Should().Be(1);

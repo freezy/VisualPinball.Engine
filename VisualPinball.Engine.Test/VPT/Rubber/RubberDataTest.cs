@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Rubber
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		[Test]
 		public void ShouldReadRubberData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
+			var table = TableHolder.Load(VpxPath.Rubber);
 			ValidateRubberData1(table.Rubber("Rubber1").Data);
 			ValidateRubberData2(table.Rubber("Rubber2").Data);
 		}
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		public void ShouldWriteRubberData()
 		{
 			const string tmpFileName = "ShouldWriteRubberData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Rubber);
+			var table = TableHolder.Load(VpxPath.Rubber);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);
 			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
 		}

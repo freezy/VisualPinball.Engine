@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Kicker
 {
@@ -27,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		[Test]
 		public void ShouldReadKickerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
+			var table = TableHolder.Load(VpxPath.Kicker);
 			ValidateKickerData(table.Kicker("Data").Data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		public void ShouldWriteKickerData()
 		{
 			const string tmpFileName = "ShouldWriteKickerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
+			var table = TableHolder.Load(VpxPath.Kicker);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateKickerData(writtenTable.Kicker("Data").Data);
 		}
 

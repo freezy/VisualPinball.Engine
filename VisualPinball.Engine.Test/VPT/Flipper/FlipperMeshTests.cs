@@ -18,25 +18,26 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
 	public class FlipperMeshTests : MeshTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly TableHolder _th;
 		private readonly ObjFile _obj;
 
 		public FlipperMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			_th = TableHolder.Load(VpxPath.Flipper);
 			_obj = LoadObjFixture(ObjPath.Flipper);
 		}
 
 		[Test]
 		public void ShouldGenerateFatMesh()
 		{
-			var flipper = _table.Flipper("FatFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _th.Flipper("FatFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", 0.00013f);
 			}
@@ -45,8 +46,8 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldGenerateFatRubberMesh()
 		{
-			var flipper = _table.Flipper("FatRubberFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _th.Flipper("FatRubberFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", threshold: 0.00015f);
 			}
@@ -55,8 +56,8 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldGenerateFlipperOnSurfaceMesh()
 		{
-			var flipper = _table.Flipper("SurfaceFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _th.Flipper("SurfaceFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}");
 			}

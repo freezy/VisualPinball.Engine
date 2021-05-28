@@ -22,12 +22,12 @@ namespace VisualPinball.Unity.Test
 {
 	public class BumperCollisionTests
 	{
-		private Table _table;
+		private TableHolder _th;
 
 		[SetUp]
 		public void Setup()
 		{
-			_table = Table.Load(VpxPath.Bumper);
+			_th = TableHolder.Load(VpxPath.Bumper);
 		}
 
 		[Test]

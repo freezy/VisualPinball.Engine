@@ -24,28 +24,26 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public bool HasMeshAsPlayfield => _playfield != null;
 
-		private readonly Table _table;
-		private readonly TableData _data;
+		private readonly ITableHolder _th;
 		private Primitive.Primitive _playfield;
 
-		public TableMeshGenerator(Table table)
+		public TableMeshGenerator(ITableHolder th)
 		{
-			_data = table.Data;
-			_table = table;
+			_th = th;
 		}
 
 		public RenderObject GetRenderObject(bool asRightHanded = true)
 		{
-			var material = new PbrMaterial(_table.GetMaterial(_data.PlayfieldMaterial), _table.GetTexture(_data.Image));
+			var material = new PbrMaterial(_th.GetMaterial(_th.Table.Data.PlayfieldMaterial), _th.GetTexture(_th.Table.Data.Image));
 			return GetFromTableDimensions(asRightHanded, material);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
 		{
-			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
+			var material = new PbrMaterial(table.GetMaterial(_th.Table.Data.PlayfieldMaterial), table.GetTexture(_th.Table.Data.Image));
 			return HasMeshAsPlayfield
 				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table", material)
-				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
+				: new RenderObjectGroup(_th.Table.Data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
 		}
 
 		public void SetFromPrimitive(Primitive.Primitive primitive)
@@ -56,13 +54,13 @@ namespace VisualPinball.Engine.VPT.Table
 		private RenderObject GetFromTableDimensions(bool asRightHanded, PbrMaterial material)
 		{
 			var rgv = new[] {
-				new Vertex3DNoTex2(_data.Left, _data.Top, _table.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Top, _table.TableHeight),
-				new Vertex3DNoTex2(_data.Right, _data.Bottom, _table.TableHeight),
-				new Vertex3DNoTex2(_data.Left, _data.Bottom, _table.TableHeight),
+				new Vertex3DNoTex2(_th.Table.Data.Left, _th.Table.Data.Top, _th.Table.TableHeight),
+				new Vertex3DNoTex2(_th.Table.Data.Right, _th.Table.Data.Top, _th.Table.TableHeight),
+				new Vertex3DNoTex2(_th.Table.Data.Right, _th.Table.Data.Bottom, _th.Table.TableHeight),
+				new Vertex3DNoTex2(_th.Table.Data.Left, _th.Table.Data.Bottom, _th.Table.TableHeight),
 			};
 			var mesh = new Mesh {
-				Name = _data.Name,
+				Name = _th.Table.Data.Name,
 				Vertices = rgv.Select(r => new Vertex3DNoTex2()).ToArray(),
 				Indices = new [] { 0, 1, 3, 0, 3, 2 }
 			};
@@ -93,7 +91,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			return new RenderObject(
-				_data.Name,
+				_th.Table.Data.Name,
 				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
 				material,
 				true
