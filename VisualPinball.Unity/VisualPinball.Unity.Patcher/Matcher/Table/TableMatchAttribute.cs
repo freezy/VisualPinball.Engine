@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public abstract class TableMatchAttribute : Attribute
 	{
-		public abstract bool Matches(Engine.VPT.Table.Table table, string fileName);
+		public abstract bool Matches(TableHolder th, string fileName);
 	}
 }

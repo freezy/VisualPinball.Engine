@@ -8,7 +8,7 @@ namespace VisualPinball.Unity
 {
 	public interface IPatcher
 	{
-		void SetTable(Table table, string filename);
+		void Set(TableHolder th, string filename);
 		void ApplyPrePatches(IRenderable item);
 		void ApplyPatches(IRenderable item, GameObject gameObject, GameObject tableGameObject);
 	}

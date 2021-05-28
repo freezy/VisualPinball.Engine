@@ -53,10 +53,10 @@ namespace VisualPinball.Unity.Editor
 			var sw = Stopwatch.StartNew();
 
 			// load table
-			var table = TableLoader.LoadTable(path);
+			var th = TableLoader.LoadTable(path);
 			var loadedIn = sw.ElapsedMilliseconds;
 
-			var converter = new VpxSceneConverter(table, Path.GetFileName(path));
+			var converter = new VpxSceneConverter(th, Path.GetFileName(path));
 
 			var tableGameObject = converter.Convert();
 			var convertedIn = sw.ElapsedMilliseconds;
@@ -77,11 +77,11 @@ namespace VisualPinball.Unity.Editor
 			var converter = rootGameObj.AddComponent<VpxConverter>();
 
 			// load table
-			var table = TableLoader.LoadTable(path);
+			var th = TableLoader.LoadTable(path);
 
-			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", table.InfoName, table.InfoAuthorName);
+			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", th.InfoName, th.InfoAuthorName);
 
-			converter.Convert(Path.GetFileName(path), table, applyPatch, tableName);
+			converter.Convert(Path.GetFileName(path), th, applyPatch, tableName);
 
 			return rootGameObj;
 		}

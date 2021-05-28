@@ -100,7 +100,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false))) {
 				if (_tableAuthoring != null) {
 					RecordUndo("Populate all lamp mappings");
-					_tableAuthoring.Table.Mappings.PopulateLamps(GetAvailableEngineLamps(), _tableAuthoring.Table.Lightables);
+					_tableAuthoring.TableHolder.Mappings.PopulateLamps(GetAvailableEngineLamps(), _tableAuthoring.TableHolder.Lightables);
 					Reload();
 				}
 			}
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 
 				lampListData.Update();
 
-				var lamp = _tableAuthoring.Table.Lightables.FirstOrDefault(c => c.Name == lampListData.PlayfieldItem);
+				var lamp = _tableAuthoring.TableHolder.Lightables.FirstOrDefault(c => c.Name == lampListData.PlayfieldItem);
 			});
 		}
 
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshLampIds()
 		{
 			_gleLamps.Clear();
-			_gleLamps.AddRange(_tableAuthoring.Table.Mappings.GetLamps(GetAvailableEngineLamps()));
+			_gleLamps.AddRange(_tableAuthoring.TableHolder.Mappings.GetLamps(GetAvailableEngineLamps()));
 		}
 
 		private GamelogicEngineLamp[] GetAvailableEngineLamps()

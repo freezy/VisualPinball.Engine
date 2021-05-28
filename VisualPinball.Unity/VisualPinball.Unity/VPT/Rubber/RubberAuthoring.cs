@@ -43,13 +43,6 @@ namespace VisualPinball.Unity
 			.Concat(RubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Rubber>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

@@ -24,7 +24,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
@@ -63,6 +62,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		// table related
+		private ITableHolder _ta;
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
@@ -121,17 +121,18 @@ namespace VisualPinball.Unity
 			_colliderGenerators.Add(TableApi);
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
+			_ta = tableComponent.TableHolder;
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(Table, GamelogicEngine);
-				_coilPlayer.Awake(Table, GamelogicEngine, _lampPlayer);
-				_switchPlayer.Awake(Table, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(Table, _inputManager, _switchPlayer);
-				_displayPlayer.Awake(Table, GamelogicEngine);
+				_lampPlayer.Awake(_ta, GamelogicEngine);
+				_coilPlayer.Awake(_ta, GamelogicEngine, _lampPlayer);
+				_switchPlayer.Awake(_ta, GamelogicEngine, _inputManager);
+				_wirePlayer.Awake(_ta, _inputManager, _switchPlayer);
+				_displayPlayer.Awake(GamelogicEngine);
 			}
 
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
@@ -401,8 +402,8 @@ namespace VisualPinball.Unity
 
 		public void AddDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _ta.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _ta.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot add new hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -416,13 +417,13 @@ namespace VisualPinball.Unity
 			_wirePlayer.AddWire(wireMapping);
 
 			// this is for showing it in the editor during runtime only
-			Table.Mappings.Data.AddWire(wireMapping);
+			_ta.Mappings.Data.AddWire(wireMapping);
 		}
 
 		public void RemoveDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _ta.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _ta.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot remove hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -436,7 +437,7 @@ namespace VisualPinball.Unity
 			_wirePlayer.RemoveWire(wireMapping);
 
 			// this is for the editor during runtime only
-			var wire = Table.Mappings.Data.Wires.FirstOrDefault(w =>
+			var wire = _ta.Mappings.Data.Wires.FirstOrDefault(w =>
 				w.Description == wireMapping.Description &&
 				w.SourceDevice == wireMapping.SourceDevice &&
 				w.SourceDeviceItem == wireMapping.SourceDeviceItem &&
@@ -448,7 +449,7 @@ namespace VisualPinball.Unity
 				w.DestinationDeviceItem == wireMapping.DestinationDeviceItem &&
 				w.DestinationPlayfieldItem == wireMapping.DestinationPlayfieldItem
 			);
-			Table.Mappings.Data.RemoveWire(wire);
+			_ta.Mappings.Data.RemoveWire(wire);
 		}
 
 		#endregion

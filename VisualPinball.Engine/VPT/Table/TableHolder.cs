@@ -171,9 +171,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 
-		public TableHolder()
+		public TableHolder(string name = "Table1")
 		{
-			Table = new Table(this, new TableData());
+			Table = new Table(this, new TableData { Name = name });
 		}
 
 		public TableHolder(BinaryReader reader)

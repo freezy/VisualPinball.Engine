@@ -53,13 +53,6 @@ namespace VisualPinball.Unity
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Flipper>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

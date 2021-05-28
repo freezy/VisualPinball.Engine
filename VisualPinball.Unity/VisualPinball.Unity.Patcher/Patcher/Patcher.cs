@@ -32,20 +32,20 @@ namespace VisualPinball.Unity.Patcher
 	public class Patcher : IPatcher
 	{
 		private readonly List<object> _patchers = new List<object>();
-		private Table _table;
+		private TableHolder _th;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void SetTable(Table table, string fileName)
+		public void Set(TableHolder th, string fileName)
 		{
-			_table = table;
+			_th = th;
 			var types = typeof(Patcher).Assembly.GetTypes();
 			foreach (var type in types) {
 				var classMatchers = type
 					.GetCustomAttributes(typeof(TableMatchAttribute), false)
 					.Select(a => a as TableMatchAttribute)
 					.Where(a => a != null)
-					.Where(a => a.Matches(table, fileName))
+					.Where(a => a.Matches(_th, fileName))
 					.ToArray();
 
 				if (classMatchers.Length > 0) {
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity.Patcher
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
 							var validArgs = true;
-							if (methodMatcher.Matches(_table, item, null)) {
+							if (methodMatcher.Matches(_th, item, null)) {
 								var patcherParamInfos = methodInfo.GetParameters();
 								var patcherParams = new object[patcherParamInfos.Length];
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Patcher
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
 							var validArgs = true;
-							if (methodMatcher.Matches(_table, item, gameObject)) {
+							if (methodMatcher.Matches(_th, item, gameObject)) {
 								var patcherParamInfos = methodInfo.GetParameters();
 								var patcherParams = new object[patcherParamInfos.Length];
 
@@ -139,7 +139,10 @@ namespace VisualPinball.Unity.Patcher
 										}
 
 									} else if (pi.ParameterType == typeof(Table)) {
-										patcherParams[pi.Position] = _table;
+										patcherParams[pi.Position] = _th.Table;
+
+									} else if (pi.ParameterType == typeof(TableHolder)) {
+										patcherParams[pi.Position] = _th;
 
 									} else if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {
 										patcherParams[pi.Position] = item;
