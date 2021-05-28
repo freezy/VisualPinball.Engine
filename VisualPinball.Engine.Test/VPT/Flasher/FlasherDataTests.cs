@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flasher;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flasher
 {
@@ -27,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		[Test]
 		public void ShouldReadFlasherData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
+			var table = TableHolder.Load(VpxPath.Flasher);
 			ValidateFlasher(table.Flasher("Data").Data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		public void ShouldWriteFlasherData()
 		{
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
+			var table = TableHolder.Load(VpxPath.Flasher);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateFlasher(writtenTable.Flasher("Data").Data);
 		}
 

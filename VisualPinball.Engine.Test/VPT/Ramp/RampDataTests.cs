@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
@@ -27,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		[Test]
 		public void ShouldReadRampData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = TableHolder.Load(VpxPath.Ramp);
 			ValidateRampData(table.Ramp("FlatL").Data);
 		}
 
@@ -35,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		public void ShouldWriteRampData()
 		{
 			const string tmpFileName = "ShouldWriteRampData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = TableHolder.Load(VpxPath.Ramp);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateRampData(writtenTable.Ramp("FlatL").Data);
 		}
 
@@ -73,7 +74,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		[Test]
 		public void ShouldLoadWireData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = TableHolder.Load(VpxPath.Ramp);
 			var data = table.Ramp("Wire3R").Data;
 
 			data.RampType.Should().Be(RampType.RampType3WireRight);

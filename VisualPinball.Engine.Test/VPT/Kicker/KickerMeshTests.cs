@@ -17,33 +17,34 @@
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Kicker
 {
 	public class KickerMeshTests : MeshTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly TableHolder _th;
 		private readonly ObjFile _obj;
 
 		public KickerMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Kicker);
+			_th = TableHolder.Load(VpxPath.Kicker);
 			_obj = LoadObjFixture(ObjPath.Kicker);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshesCorrectly()
 		{
-			AssertObjMesh(_table, _obj, _table.Kicker("Cup"));
-			AssertObjMesh(_table, _obj, _table.Kicker("Cup2"));
-			AssertObjMesh(_table, _obj, _table.Kicker("Gottlieb"), threshold: 0.00015f);
-			AssertObjMesh(_table, _obj, _table.Kicker("Hole"));
-			AssertObjMesh(_table, _obj, _table.Kicker("HoleSimple"));
-			AssertObjMesh(_table, _obj, _table.Kicker("Williams"), threshold: 0.001f);
-			AssertObjMesh(_table, _obj, _table.Kicker("Scaled"));
-			AssertObjMesh(_table, _obj, _table.Kicker("Rotated"), threshold: 0.00015f);
-			AssertObjMesh(_table, _obj, _table.Kicker("Surface"));
-			AssertObjMesh(_table, _obj, _table.Kicker("Data"), threshold: 0.00015f);
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Cup"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Cup2"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Gottlieb"), threshold: 0.00015f);
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Hole"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("HoleSimple"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Williams"), threshold: 0.001f);
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Scaled"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Rotated"), threshold: 0.00015f);
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Surface"));
+			AssertObjMesh(_th.Table, _obj, _th.Kicker("Data"), threshold: 0.00015f);
 		}
 	}
 }

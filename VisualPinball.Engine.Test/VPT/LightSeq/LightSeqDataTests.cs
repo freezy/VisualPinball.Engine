@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.LightSeq
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		[Test]
 		public void ShouldReadLightSeqData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
+			var table = TableHolder.Load(VpxPath.LightSeq);
 			ValidateLightSeqData(table.LightSeq("LightSeq001").Data);
 		}
 
@@ -34,9 +35,9 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		public void ShouldWriteLightSeqData()
 		{
 			const string tmpFileName = "ShouldWriteLightSeqData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
+			var table = TableHolder.Load(VpxPath.LightSeq);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateLightSeqData(writtenTable.LightSeq("LightSeq001").Data);
 		}
 

@@ -18,6 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
@@ -26,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		[Test]
 		public void ShouldReadSurfaceData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
+			var table = TableHolder.Load(VpxPath.Surface);
 			ValidateSurfaceData(table.Surface("TopInvisible").Data);
 		}
 
@@ -34,9 +35,9 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldWriteSurfaceData()
 		{
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
+			var table = TableHolder.Load(VpxPath.Surface);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = TableHolder.Load(tmpFileName);
 			ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);
 		}
 

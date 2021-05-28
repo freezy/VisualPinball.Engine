@@ -27,14 +27,14 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private const int VpFileFormatVersion = 1060;
 
-		private readonly Table _table;
+		private readonly ITableHolder _th;
 
 		private CompoundFile _cf;
 		private CFStorage _gameStorage;
 
-		public TableWriter(Table table)
+		public TableWriter(ITableHolder th)
 		{
-			_table = table;
+			_th = th;
 		}
 
 		public void WriteTable(string fileName)
@@ -81,20 +81,20 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 2. write custom tag names
-			_table.CustomInfoTags?.WriteData(_gameStorage, hashWriter);
+			_th.CustomInfoTags?.WriteData(_gameStorage, hashWriter);
 
 			// 3. write custom tags
-			foreach (var tag in _table.CustomInfoTags?.TagNames ?? Array.Empty<string>()) {
+			foreach (var tag in _th.CustomInfoTags?.TagNames ?? Array.Empty<string>()) {
 				WriteInfoTag(tableInfo, tag, hashWriter);
 			}
 		}
 
 		private void WriteInfoTag(CFStorage tableInfo, string tag, HashWriter hashWriter)
 		{
-			if (!_table.TableInfo.ContainsKey(tag)) {
+			if (!_th.TableInfo.ContainsKey(tag)) {
 				return;
 			}
-			WriteStream(tableInfo, tag, BiffUtil.GetWideString(_table.TableInfo[tag]), hashWriter);
+			WriteStream(tableInfo, tag, BiffUtil.GetWideString(_th.TableInfo[tag]), hashWriter);
 		}
 
 		private void WriteGameItems(HashWriter hashWriter)
@@ -102,16 +102,16 @@ namespace VisualPinball.Engine.VPT.Table
 			// again, the order is important, because we're hashing at the same time.
 
 			// 1. game data
-			_table.Data.WriteData(_gameStorage, hashWriter);
+			_th.Table.Data.WriteData(_gameStorage, hashWriter);
 
 			// 2. game items
-			foreach (var writeable in _table.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
+			foreach (var writeable in _th.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
 
 				#if !WRITE_VP106
 
 				// clean material and texture references
-				CleanInvalidReferences<MaterialReferenceAttribute, Material>(writeable, v => _table.GetMaterial(v));
-				CleanInvalidReferences<TextureReferenceAttribute, Texture>(writeable, v => _table.GetTexture(v));
+				CleanInvalidReferences<MaterialReferenceAttribute, Material>(writeable, v => _th.GetMaterial(v));
+				CleanInvalidReferences<TextureReferenceAttribute, Texture>(writeable, v => _th.GetTexture(v));
 
 				#endif
 
@@ -119,21 +119,21 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 3. Collections
-			var collections = _table.Collections.Values;
+			var collections = _th.Collections.Values;
 			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 
 			// 5. Mappings
 			#if !WRITE_VP106 && !WRITE_VP107
-			_table.Mappings.Data.WriteData(_gameStorage);
+			_th.Mappings.Data.WriteData(_gameStorage);
 			#endif
 		}
 
 		private void WriteImages()
 		{
 			int i = 0;
-			foreach (var texture in _table.Textures.Values) {
+			foreach (var texture in _th.Textures.Values) {
 				texture.Data.StorageIndex = i++;
 				texture.Data.WriteData(_gameStorage);
 			}
@@ -142,7 +142,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void WriteSounds()
 		{
 			int i = 0;
-			foreach (var sound in _table.Sounds.Values) {
+			foreach (var sound in _th.Sounds.Values) {
 				sound.Data.StorageIndex = i++;
 				sound.Data.WriteData(_gameStorage);
 			}
