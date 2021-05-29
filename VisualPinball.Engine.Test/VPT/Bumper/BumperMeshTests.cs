@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 {
 	public class BumperMeshTests : MeshTests
 	{
-		private readonly TableContainer _table;
+		private readonly FileTableContainer _table;
 		private readonly ObjFile _obj;
 
 		public BumperMeshTests()
 		{
-			_table = TableContainer.Load(VpxPath.Bumper);
+			_table = FileTableContainer.Load(VpxPath.Bumper);
 			_obj = LoadObjFixture(ObjPath.Bumper);
 		}
 

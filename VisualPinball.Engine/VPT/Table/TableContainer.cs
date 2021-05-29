@@ -23,42 +23,52 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Table
 {
-	public class TableContainer : ITableContainer
+	public abstract class TableContainer
 	{
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
 
-		public Table Table { get; }
+		public Table Table { get; protected set; }
 
 		public Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
-		public ITableResourceContainer<Texture> Textures { get; private set; } = new DefaultTableResourceContainer<Texture>();
-		public ITableResourceContainer<Sound.Sound> Sounds { get; private set; } = new DefaultTableResourceContainer<Sound.Sound>();
+		public ITableResourceContainer<Texture> Textures { get; protected set; } = new DefaultTableResourceContainer<Texture>();
+		public ITableResourceContainer<Sound.Sound> Sounds { get; protected set; } = new DefaultTableResourceContainer<Sound.Sound>();
 		public Dictionary<string, Collection.Collection> Collections { get; } = new Dictionary<string, Collection.Collection>();
 		public Mappings.Mappings Mappings { get; set; } = new Mappings.Mappings();
 
+		public bool IsCollidable => true;
+		public bool HasTrough => _troughs.Count > 0;
+		public int NumTextures => Table.Data.NumTextures;
+		public int NumGameItems => Table.Data.NumGameItems;
+		public int NumSounds => Table.Data.NumSounds;
+		public int NumCollections => Table.Data.NumCollections;
+
+		public abstract Material GetMaterial(string name);
+		public abstract Texture GetTexture(string name);
+
 		#region GameItems
 
-		private readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
-		private readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
-		private readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
-		private readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
-		private readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
-		private readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
-		private readonly Dictionary<string, Kicker.Kicker> _kickers = new Dictionary<string, Kicker.Kicker>();
-		private readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
-		private readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
-		private readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
-		private readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
-		private readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
-		private readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
-		private readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
-		private readonly Dictionary<string, Spinner.Spinner> _spinners = new Dictionary<string, Spinner.Spinner>();
-		private readonly Dictionary<string, Surface.Surface> _surfaces = new Dictionary<string, Surface.Surface>();
-		private readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
-		private readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
-		private readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
-		private readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
+		protected readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
+		protected readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
+		protected readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
+		protected readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
+		protected readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
+		protected readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
+		protected readonly Dictionary<string, Kicker.Kicker> _kickers = new Dictionary<string, Kicker.Kicker>();
+		protected readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
+		protected readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
+		protected readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
+		protected readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
+		protected readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
+		protected readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
+		protected readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
+		protected readonly Dictionary<string, Spinner.Spinner> _spinners = new Dictionary<string, Spinner.Spinner>();
+		protected readonly Dictionary<string, Surface.Surface> _surfaces = new Dictionary<string, Surface.Surface>();
+		protected readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
+		protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
+		protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
+		protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
 
 		public Bumper.Bumper Bumper(string name) => _bumpers[name];
 		public Decal.Decal Decal(int i) => _decals[i];
@@ -171,34 +181,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 
-		public TableContainer(string name = "Table1")
-		{
-			Table = new Table(this, new TableData { Name = name });
-		}
 
-		public TableContainer(BinaryReader reader)
-		{
-			Table = new Table(this, new TableData(reader));
-		}
-
-		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
-		{
-			if (updateStorageIndices) {
-				item.StorageIndex = ItemDatas.Count();
-				Table.Data.NumGameItems = item.StorageIndex + 1;
-			}
-			d[name] = item;
-		}
-
-		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
-		{
-			if (updateStorageIndices) {
-				item.StorageIndex = ItemDatas.Count();
-			}
-			d.Add(item);
-		}
-
-		private Dictionary<string, T> GetItemDictionary<T>() where T : IItem
+		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
 			if (typeof(T) == typeof(Bumper.Bumper)) {
 				return _bumpers as Dictionary<string, T>;
@@ -278,7 +262,7 @@ namespace VisualPinball.Engine.VPT.Table
 			return null;
 		}
 
-		private List<T> GetItemList<T>() {
+		protected List<T> GetItemList<T>() {
 			if (typeof(T) == typeof(Decal.Decal)) {
 				return _decals as List<T>;
 			}
@@ -287,51 +271,6 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		#endregion
-
-		/// <summary>
-		/// Adds a game item to the table.
-		/// </summary>
-		/// <param name="item">Game item instance</param>
-		/// <param name="updateStorageIndices">If set, re-computes the storage indices. Only needed when adding game items via the editor.</param>
-		/// <typeparam name="T">Game item type</typeparam>
-		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
-		public void Add<T>(T item, bool updateStorageIndices = false) where T : IItem
-		{
-			var dict = GetItemDictionary<T>();
-			if (dict != null) {
-				AddItem(item.Name, item, dict, updateStorageIndices);
-
-			} else {
-				var list = GetItemList<T>();
-				if (list != null) {
-					AddItem(item, list, updateStorageIndices);
-
-				} else {
-					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
-				}
-			}
-		}
-
-		/// <summary>
-		/// Replaces all game items of a list with new game items.
-		/// </summary>
-		///
-		/// <remarks>
-		/// This only applied to Decals, because they are the only game items
-		/// that don't have a name.
-		/// </remarks>
-		/// <param name="items">New list of game items</param>
-		/// <typeparam name="T">Game item type (only Decals)</typeparam>
-		/// <exception cref="ArgumentException">If not decals</exception>
-		public void ReplaceAll<T>(IEnumerable<T> items) where T : IItem
-		{
-			var list = GetItemList<T>();
-			if (list == null) {
-				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
-			}
-			list.Clear();
-			list.AddRange(items);
-		}
 
 		/// <summary>
 		/// Checks whether a game item of a given type exists.
@@ -362,24 +301,6 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		/// <summary>
-		/// Computes a new name for a game item.
-		/// </summary>
-		/// <param name="prefix">Prefix</param>
-		/// <typeparam name="T">Type of the game item</typeparam>
-		/// <returns>New name, a concatenation of the prefix and the next free index</returns>
-		public string GetNewName<T>(string prefix) where T : IItem
-		{
-			var n = 0;
-			var dict = GetItemDictionary<T>();
-			do {
-				var elementName = $"{prefix}{++n}";
-				if (!dict.ContainsKey(elementName)) {
-					return elementName;
-				}
-			} while (true);
-		}
-
-		/// <summary>
 		/// Removes a game item from the table.
 		/// </summary>
 		/// <param name="name">Name of the game item</param>
@@ -402,17 +323,22 @@ namespace VisualPinball.Engine.VPT.Table
 			dict.Remove(name);
 		}
 
-		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
+		/// <summary>
+		/// Computes a new name for a game item.
+		/// </summary>
+		/// <param name="prefix">Prefix</param>
+		/// <typeparam name="T">Type of the game item</typeparam>
+		/// <returns>New name, a concatenation of the prefix and the next free index</returns>
+		public string GetNewName<T>(string prefix) where T : IItem
 		{
-			var dict = GetItemDictionary<TItem>();
-			if (dict != null) {
-				return dict.Values.Select(d => d.Data).ToArray();
-			}
-			var list = GetItemList<TItem>();
-			if (list != null) {
-				return list.Select(d => d.Data).ToArray();
-			}
-			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+			var n = 0;
+			var dict = GetItemDictionary<T>();
+			do {
+				var elementName = $"{prefix}{++n}";
+				if (!dict.ContainsKey(elementName)) {
+					return elementName;
+				}
+			} while (true);
 		}
 
 		#region Table Info
@@ -428,62 +354,10 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#endregion
 
-		/// <summary>
-		/// The API to load the table from a file.
-		/// </summary>
-		/// <param name="filename">Path to the VPX file</param>
-		/// <param name="loadGameItems">If false, game items are not loaded. Useful when loading them on multiple threads.</param>
-		/// <returns>The parsed table</returns>
-		public static TableContainer Load(string filename, bool loadGameItems = true)
-		{
-			return TableLoader.Load(filename, loadGameItems);
-		}
-
-		public bool IsCollidable => true;
-		public bool HasTrough => _troughs.Count > 0;
-		public int NumTextures => Table.Data.NumTextures;
-		public int NumGameItems => Table.Data.NumGameItems;
-		public int NumSounds => Table.Data.NumSounds;
-		public int NumCollections => Table.Data.NumCollections;
-
 		public void Save(string fileName)
 		{
 			new TableWriter(this).WriteTable(fileName);
 			Logger.Info("File successfully saved to {0}.", fileName);
-		}
-
-		public Material GetMaterial(string name)
-		{
-			if (Table.Data.Materials == null || name == null) {
-				return null;
-			}
-
-			// ReSharper disable once LoopCanBeConvertedToQuery
-			foreach (var t in Table.Data.Materials) {
-				if (t.Name == name) {
-					return t;
-				}
-			}
-
-			return null;
-		}
-
-		public void SetTextureContainer(ITableResourceContainer<Texture> container)
-		{
-			Textures = container;
-		}
-
-		public Texture GetTexture(string name)
-		{
-			var tex = name == null
-				? null
-				: Textures[name.ToLower()];
-			return tex;
-		}
-
-		public void SetSoundContainer(ITableResourceContainer<Sound.Sound> container)
-		{
-			Sounds = container;
 		}
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

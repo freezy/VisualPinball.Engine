@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		[Test]
 		public void ShouldReadFlasherData()
 		{
-			var table = TableContainer.Load(VpxPath.Flasher);
+			var table = FileTableContainer.Load(VpxPath.Flasher);
 			ValidateFlasher(table.Flasher("Data").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		public void ShouldWriteFlasherData()
 		{
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
-			var table = TableContainer.Load(VpxPath.Flasher);
+			var table = FileTableContainer.Load(VpxPath.Flasher);
 			table.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlasher(writtenTable.Flasher("Data").Data);
 		}
 

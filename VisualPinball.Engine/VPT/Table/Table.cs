@@ -44,10 +44,10 @@ namespace VisualPinball.Engine.VPT.Table
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		private readonly ITableContainer _tableContainer;
+		private readonly TableContainer _tableContainer;
 		private readonly TableMeshGenerator _meshGenerator;
 
-		public Table(ITableContainer tableContainer, TableData data) : base(data)
+		public Table(TableContainer tableContainer, TableData data) : base(data)
 		{
 			_tableContainer = tableContainer;
 			_meshGenerator = new TableMeshGenerator(_tableContainer);

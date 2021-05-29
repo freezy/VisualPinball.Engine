@@ -48,9 +48,9 @@ namespace VisualPinball.Unity
 {
 	public static class TableLoader
 	{
-		public static TableContainer LoadTable(string path)
+		public static FileTableContainer LoadTable(string path)
 		{
-			var th = TableContainer.Load(path, false);
+			var th = FileTableContainer.Load(path, false);
 
 			var job = new GameItemJob(th.Table.Data.NumGameItems);
 			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, th.Table.Data.NumGameItems);

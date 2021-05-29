@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		[Test]
 		public void ShouldReadTroughData()
 		{
-			var table = TableContainer.Load(VpxPath.Trough);
+			var table = FileTableContainer.Load(VpxPath.Trough);
 			ValidateTroughData(table.Trough("Trough1").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldWriteTroughData()
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
-			var table = TableContainer.Load(VpxPath.Trough);
+			var table = FileTableContainer.Load(VpxPath.Trough);
 			table.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTroughData(writtenTable.Trough("Trough1").Data);
 		}
 

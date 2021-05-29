@@ -24,10 +24,10 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public bool HasMeshAsPlayfield => _playfield != null;
 
-		private readonly ITableContainer _tableContainer;
+		private readonly TableContainer _tableContainer;
 		private Primitive.Primitive _playfield;
 
-		public TableMeshGenerator(ITableContainer tableContainer)
+		public TableMeshGenerator(TableContainer tableContainer)
 		{
 			_tableContainer = tableContainer;
 		}

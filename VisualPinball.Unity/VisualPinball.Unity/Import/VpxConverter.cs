@@ -63,12 +63,12 @@ namespace VisualPinball.Unity
 		//private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 
-		private TableContainer _tableContainer;
+		private FileTableContainer _tableContainer;
 		private TableAuthoring _tableAuthoring;
 		private bool _applyPatch = true;
 		private IPatcher _patcher;
 
-		public void Convert(string fileName, TableContainer th, bool applyPatch = true, string tableName = null)
+		public void Convert(string fileName, FileTableContainer th, bool applyPatch = true, string tableName = null)
 		{
 			_tableContainer = th;
 

@@ -18,6 +18,7 @@
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedType.Global
 
+using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -47,6 +48,10 @@ namespace VisualPinball.Unity.Editor
 					if (!string.IsNullOrEmpty(path)) {
 						th.Save(path);
 					}
+				}
+
+				if (GUILayout.Button("Refresh game items")) {
+					tableComponent.TableContainer.Refresh();
 				}
 			}
 		}

@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		[Test]
 		public void ShouldReadTimerData()
 		{
-			var table = TableContainer.Load(VpxPath.Timer);
+			var table = FileTableContainer.Load(VpxPath.Timer);
 			ValidateTimerData1(table.Timer("Timer1").Data);
 			ValidateTimerData2(table.Timer("Timer2").Data);
 		}
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		public void ShouldWriteTimerData()
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
-			var table = TableContainer.Load(VpxPath.Timer);
+			var table = FileTableContainer.Load(VpxPath.Timer);
 			table.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
 			ValidateTimerData2(writtenTable.Timer("Timer2").Data);
 		}

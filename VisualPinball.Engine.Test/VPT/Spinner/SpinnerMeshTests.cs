@@ -25,12 +25,12 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 {
 	public class SpinnerMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public SpinnerMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Spinner);
+			_tc = FileTableContainer.Load(VpxPath.Spinner);
 			_obj = LoadObjFixture(ObjPath.Spinner);
 		}
 

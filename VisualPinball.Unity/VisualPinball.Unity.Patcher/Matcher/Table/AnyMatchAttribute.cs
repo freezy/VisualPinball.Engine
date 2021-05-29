@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Patcher
 	/// </summary>
 	public class AnyMatchAttribute : TableMatchAttribute
 	{
-		public override bool Matches(TableContainer th, string fileName)
+		public override bool Matches(FileTableContainer th, string fileName)
 		{
 			return true;
 		}

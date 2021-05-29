@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private static int _tableItem;
 		private int _gameItem = 0;
 
-		private readonly TableContainer _tableContainer = new TableContainer();
+		private readonly FileTableContainer _tableContainer = new FileTableContainer();
 
 		public TableBuilder()
 		{
@@ -96,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Table
 			return this;
 		}
 
-		public TableContainer Build(string name = null)
+		public FileTableContainer Build(string name = null)
 		{
 			if (name != null) {
 				_tableContainer.Table.Data.Name = name;

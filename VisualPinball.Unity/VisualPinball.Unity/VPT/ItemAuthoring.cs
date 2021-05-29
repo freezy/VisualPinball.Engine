@@ -69,10 +69,10 @@ namespace VisualPinball.Unity
 		public bool IsLocked { get => Data.IsLocked; set => Data.IsLocked = value; }
 
 		private Table _table;
-		private ITableContainer _tableContainer;
+		private TableContainer _tableContainer;
 
 		protected Table Table => _table ??= GetComponentInParent<TableAuthoring>()?.Item;
-		protected ITableContainer TableContainer => _tableContainer ??= GetComponentInParent<TableAuthoring>()?.TableContainer;
+		protected TableContainer TableContainer => _tableContainer ??= GetComponentInParent<TableAuthoring>()?.TableContainer;
 
 		public virtual void ItemDataChanged()
 		{

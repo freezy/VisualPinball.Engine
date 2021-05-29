@@ -24,12 +24,12 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 {
 	public class SurfaceMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public SurfaceMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Surface);
+			_tc = FileTableContainer.Load(VpxPath.Surface);
 			_obj = LoadObjFixture(ObjPath.Surface);
 		}
 
