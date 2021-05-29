@@ -205,12 +205,6 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 
-		protected Dictionary<string, T> GetItemDictionary<T>(T item) where T : IItem
-		{
-			var dict = GetItemDictionary<T>(item.GetType());
-			return dict;
-		}
-
 		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
 			return GetItemDictionary<T>(typeof(T));
