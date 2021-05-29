@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Patcher
 			_name = name;
 		}
 
-		public override bool Matches(FileTableContainer th, IRenderable item, GameObject obj)
+		public override bool Matches(FileTableContainer tableContainer, IRenderable item, GameObject obj)
 		{
 			return IgnoreCase
 				? string.Equals(item.Name, _name, StringComparison.CurrentCultureIgnoreCase)

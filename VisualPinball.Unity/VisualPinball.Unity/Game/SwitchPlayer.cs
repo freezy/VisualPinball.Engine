@@ -47,9 +47,9 @@ namespace VisualPinball.Unity
 		public bool SwitchExists(string name) => _switches.ContainsKey(name);
 		public bool SwitchDeviceExists(string name) => _switchDevices.ContainsKey(name);
 
-		public void Awake(TableContainer th, IGamelogicEngine gamelogicEngine, InputManager inputManager)
+		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, InputManager inputManager)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 			_gamelogicEngine = gamelogicEngine;
 			_inputManager = inputManager;
 		}

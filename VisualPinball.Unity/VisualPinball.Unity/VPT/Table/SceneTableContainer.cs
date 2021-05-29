@@ -21,12 +21,14 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {
+	[Serializable]
 	public class SceneTableContainer : TableContainer, IDisposable
 	{
 		public Table Table => _tableAuthoring.Table;
@@ -54,6 +56,7 @@ namespace VisualPinball.Unity
 		public void Refresh()
 		{
 			OnHierarchyChanged();
+			Mappings = new Mappings(_tableAuthoring.Mappings);
 		}
 
 		private void OnHierarchyChanged()
