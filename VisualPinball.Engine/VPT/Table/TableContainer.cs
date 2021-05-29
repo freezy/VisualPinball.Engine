@@ -16,8 +16,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NLog;
 using VisualPinball.Engine.Game;
 
@@ -52,6 +52,7 @@ namespace VisualPinball.Engine.VPT.Table
 		protected readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
 		protected readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
 		protected readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
+		protected readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
 		protected readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
 		protected readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
 		protected readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
@@ -59,7 +60,6 @@ namespace VisualPinball.Engine.VPT.Table
 		protected readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
 		protected readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
 		protected readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
-		protected readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
 		protected readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
 		protected readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
 		protected readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
@@ -69,6 +69,30 @@ namespace VisualPinball.Engine.VPT.Table
 		protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
 		protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
 		protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
+
+		protected void Clear()
+		{
+			_bumpers.Clear();
+			_decals.Clear();
+			_dispReels.Clear();
+			_flashers.Clear();
+			_flippers.Clear();
+			_gates.Clear();
+			_hitTargets.Clear();
+			_kickers.Clear();
+			_lights.Clear();
+			_lightSeqs.Clear();
+			_plungers.Clear();
+			_primitives.Clear();
+			_ramps.Clear();
+			_rubbers.Clear();
+			_spinners.Clear();
+			_surfaces.Clear();
+			_textBoxes.Clear();
+			_timers.Clear();
+			_triggers.Clear();
+			_troughs.Clear();
+		}
 
 		public Bumper.Bumper Bumper(string name) => _bumpers[name];
 		public Decal.Decal Decal(int i) => _decals[i];
@@ -181,81 +205,91 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 
+		protected Dictionary<string, T> GetItemDictionary<T>(T item) where T : IItem
+		{
+			var dict = GetItemDictionary<T>(item.GetType());
+			return dict;
+		}
 
 		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
-			if (typeof(T) == typeof(Bumper.Bumper)) {
+			return GetItemDictionary<T>(typeof(T));
+		}
+
+		protected Dictionary<string, T> GetItemDictionary<T>(Type t) where T : IItem
+		{
+			if (t == typeof(Bumper.Bumper)) {
 				return _bumpers as Dictionary<string, T>;
 			}
-			if (typeof(T) == typeof(DispReel.DispReel)) {
+			if (t == typeof(DispReel.DispReel)) {
 				return _dispReels as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Flipper.Flipper)) {
+			if (t == typeof(Flipper.Flipper)) {
 				return _flippers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Gate.Gate)) {
+			if (t == typeof(Gate.Gate)) {
 				return _gates as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(HitTarget.HitTarget)) {
+			if (t == typeof(HitTarget.HitTarget)) {
 				return _hitTargets as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Kicker.Kicker)) {
+			if (t == typeof(Kicker.Kicker)) {
 				return _kickers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Light.Light)) {
+			if (t == typeof(Light.Light)) {
 				return _lights as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(LightSeq.LightSeq)) {
+			if (t == typeof(LightSeq.LightSeq)) {
 				return _lightSeqs as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Plunger.Plunger)) {
+			if (t == typeof(Plunger.Plunger)) {
 				return _plungers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Flasher.Flasher)) {
+			if (t == typeof(Flasher.Flasher)) {
 				return _flashers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Primitive.Primitive)) {
+			if (t == typeof(Primitive.Primitive)) {
 				return _primitives as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Ramp.Ramp)) {
+			if (t == typeof(Ramp.Ramp)) {
 				return _ramps as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Rubber.Rubber)) {
+			if (t == typeof(Rubber.Rubber)) {
 				return _rubbers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Spinner.Spinner)) {
+			if (t == typeof(Spinner.Spinner)) {
 				return _spinners as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Surface.Surface)) {
+			if (t == typeof(Surface.Surface)) {
 				return _surfaces as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(TextBox.TextBox)) {
+			if (t == typeof(TextBox.TextBox)) {
 				return _textBoxes as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Timer.Timer)) {
+			if (t == typeof(Timer.Timer)) {
 				return _timers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Trigger.Trigger)) {
+			if (t == typeof(Trigger.Trigger)) {
 				return _triggers as Dictionary<string, T>;
 			}
 
-			if (typeof(T) == typeof(Trough.Trough)) {
+			if (t == typeof(Trough.Trough)) {
 				return _troughs as Dictionary<string, T>;
 			}
 
@@ -360,7 +394,7 @@ namespace VisualPinball.Engine.VPT.Table
 			Logger.Info("File successfully saved to {0}.", fileName);
 		}
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 	}
 }
