@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		// table related
-		private ITableHolder _ta;
+		private ITableContainer _ta;
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 			_colliderGenerators.Add(TableApi);
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
-			_ta = tableComponent.TableHolder;
+			_ta = tableComponent.TableContainer;
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);

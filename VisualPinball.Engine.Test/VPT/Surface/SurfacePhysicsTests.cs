@@ -21,13 +21,13 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 {
 	public class SurfacePhysicsTests : BaseTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly Engine.VPT.Kicker.Kicker _kicker;
 
 		public SurfacePhysicsTests()
 		{
-			_th = TableHolder.Load(VpxPath.Flipper);
-			_kicker = _th.Kicker("BallRelease");
+			_tc = TableContainer.Load(VpxPath.Flipper);
+			_kicker = _tc.Kicker("BallRelease");
 		}
 
 		// [Test]

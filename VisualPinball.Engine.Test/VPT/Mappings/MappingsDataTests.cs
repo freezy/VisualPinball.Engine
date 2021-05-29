@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		[Test]
 		public void ShouldReadMappingsData()
 		{
-			var table = TableHolder.Load(VpxPath.Mappings);
+			var table = TableContainer.Load(VpxPath.Mappings);
 			var data = table.Mappings.Data;
 			ValidateTableData(data);
 		}
@@ -37,9 +37,9 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		public void ShouldWriteMappingsData()
 		{
 			const string tmpFileName = "ShouldWriteMappingsData.vpx";
-			var table = TableHolder.Load(VpxPath.Mappings);
+			var table = TableContainer.Load(VpxPath.Mappings);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Mappings.Data);
 		}
 

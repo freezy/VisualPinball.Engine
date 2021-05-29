@@ -25,12 +25,12 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 {
 	public class GateMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public GateMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Gate);
+			_tc = TableContainer.Load(VpxPath.Gate);
 			_obj = LoadObjFixture(ObjPath.Gate);
 		}
 
@@ -38,18 +38,18 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldGenerateBracketMeshes()
 		{
 			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
-			AssertObjMesh(_th.Table, _obj, _th.Gate("LongPlate"), GetName, 0.00015f);
-			AssertObjMesh(_th.Table, _obj, _th.Gate("Plate"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Gate("WireRectangle"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Gate("WireW"), GetName, 0.00015f);
-			AssertObjMesh(_th.Table, _obj, _th.Gate("TransformedGate"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Gate("SurfaceGate"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("LongPlate"), GetName, 0.00015f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("Plate"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireRectangle"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireW"), GetName, 0.00015f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("TransformedGate"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("SurfaceGate"), GetName);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshWithoutBracket()
 		{
-			AssertObjMesh(_obj, _th.Gate("NoBracketGate").GetRenderObjects(_th.Table).RenderObjects[0].Mesh, "NoBracketGateWire");
+			AssertObjMesh(_obj, _tc.Gate("NoBracketGate").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh, "NoBracketGateWire");
 			AssertNoObjMesh(_obj, "NoBracketGateBracket");
 		}
 	}

@@ -23,30 +23,30 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 {
 	public class HitTargetMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public HitTargetMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.HitTarget);
+			_tc = TableContainer.Load(VpxPath.HitTarget);
 			_obj = LoadObjFixture(ObjPath.HitTarget);
 		}
 
 		[Test]
 		public void ShouldGenerateMesh()
 		{
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("DropTargetBeveled"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("DropTargetFlatSimple"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("DropTargetSimple"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("Data"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("HitFatTargetSlim"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("HitFatTargetSquare"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("HitTargetRect"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("HitTargetRound"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("HitTargetSlim"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("ScaledTarget"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("RotatedTarget"));
-			AssertObjMesh(_th.Table, _obj, _th.HitTarget("DroppedTarget"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("DropTargetBeveled"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("DropTargetFlatSimple"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("DropTargetSimple"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("Data"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("HitFatTargetSlim"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("HitFatTargetSquare"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("HitTargetRect"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("HitTargetRound"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("HitTargetSlim"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("ScaledTarget"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("RotatedTarget"));
+			AssertObjMesh(_tc.Table, _obj, _tc.HitTarget("DroppedTarget"));
 		}
 	}
 }

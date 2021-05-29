@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Test]
 		public void ShouldReadLightData()
 		{
-			var table = TableHolder.Load(VpxPath.Light);
+			var table = TableContainer.Load(VpxPath.Light);
 			ValidateLightData(table.Light("Light1").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldWriteLightData()
 		{
 			const string tmpFileName = "ShouldWriteLightData.vpx";
-			var table = TableHolder.Load(VpxPath.Light);
+			var table = TableContainer.Load(VpxPath.Light);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateLightData(writtenTable.Light("Light1").Data);
 		}
 
@@ -78,7 +78,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Test]
 		public void ShouldLoadCorrectDragPointData()
 		{
-			var table = TableHolder.Load(VpxPath.Light);
+			var table = TableContainer.Load(VpxPath.Light);
 			var dragPoints = table.Light("PlayfieldLight").Data.DragPoints;
 
 			dragPoints[0].IsSmooth.Should().Be(false);

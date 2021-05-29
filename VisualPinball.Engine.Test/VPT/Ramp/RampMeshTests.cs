@@ -24,12 +24,12 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 {
 	public class RampMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public RampMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Ramp);
+			_tc = TableContainer.Load(VpxPath.Ramp);
 			_obj = LoadObjFixture(ObjPath.Ramp);
 		}
 
@@ -72,8 +72,8 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 
 		private void ShouldGenerate(string name)
 		{
-			var ramp = _th.Ramp(name);
-			var rampMeshes = ramp.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh).ToArray();
+			var ramp = _tc.Ramp(name);
+			var rampMeshes = ramp.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 #if WIN64
 			const float threshold = 0.0001f;
 #else

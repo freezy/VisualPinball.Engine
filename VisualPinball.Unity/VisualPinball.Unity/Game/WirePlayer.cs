@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiWireDeviceDest> _wireDevices = new Dictionary<string, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 
-		private ITableHolder _th;
+		private ITableContainer _tableContainer;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
@@ -41,16 +41,16 @@ namespace VisualPinball.Unity
 		internal void RegisterWire(IItem item, IApiWireDest wireApi) => _wires[item.Name] = wireApi;
 		internal void RegisterWireDevice(IItem item, IApiWireDeviceDest wireDeviceApi) => _wireDevices[item.Name] = wireDeviceApi;
 
-		public void Awake(ITableHolder th, InputManager inputManager, SwitchPlayer switchPlayer)
+		public void Awake(ITableContainer th, InputManager inputManager, SwitchPlayer switchPlayer)
 		{
-			_th = th;
+			_tableContainer = th;
 			_inputManager = inputManager;
 			_switchPlayer = switchPlayer;
 		}
 
 		public void OnStart()
 		{
-			var config = _th.Mappings;
+			var config = _tableContainer.Mappings;
 			_keyWireAssignments.Clear();
 			foreach (var wireData in config.Data.Wires) {
 				AddWire(wireData);

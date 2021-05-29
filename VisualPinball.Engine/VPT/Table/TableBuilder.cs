@@ -28,16 +28,16 @@ namespace VisualPinball.Engine.VPT.Table
 		private static int _tableItem;
 		private int _gameItem = 0;
 
-		private readonly TableHolder _th = new TableHolder();
+		private readonly TableContainer _tableContainer = new TableContainer();
 
 		public TableBuilder()
 		{
-			_th.Table.Data.Name = $"Table${_tableItem++}";
+			_tableContainer.Table.Data.Name = $"Table${_tableItem++}";
 		}
 
 		public TableBuilder WithTableScript(string vbs)
 		{
-			_th.Table.Data.Code = vbs;
+			_tableContainer.Table.Data.Code = vbs;
 			return this;
 		}
 
@@ -48,24 +48,24 @@ namespace VisualPinball.Engine.VPT.Table
 				Center = new Vertex2D(500, 500)
 			};
 
-			_th.Add(new Bumper.Bumper(data));
+			_tableContainer.Add(new Bumper.Bumper(data));
 			return this;
 		}
 
 		public TableBuilder AddMaterial(Material material)
 		{
-			var mats = _th.Table.Data.Materials.ToList();
+			var mats = _tableContainer.Table.Data.Materials.ToList();
 			mats.Add(material);
-			_th.Table.Data.Materials = mats.ToArray();
-			_th.Table.Data.NumMaterials = mats.Count;
+			_tableContainer.Table.Data.Materials = mats.ToArray();
+			_tableContainer.Table.Data.NumMaterials = mats.Count;
 
 			return this;
 		}
 
 		public TableBuilder AddTexture(string name)
 		{
-			_th.Textures.Add(new Texture(name));
-			_th.Table.Data.NumTextures = _th.Textures.Count;
+			_tableContainer.Textures.Add(new Texture(name));
+			_tableContainer.Table.Data.NumTextures = _tableContainer.Textures.Count;
 
 			return this;
 		}
@@ -76,7 +76,7 @@ namespace VisualPinball.Engine.VPT.Table
 				Name = name, Center = new Vertex2D(500, 500)
 			};
 
-			_th.Add(new Flipper.Flipper(data));
+			_tableContainer.Add(new Flipper.Flipper(data));
 			return this;
 		}
 
@@ -86,22 +86,22 @@ namespace VisualPinball.Engine.VPT.Table
 				Name = name
 			};
 
-			_th.Add(new Trough.Trough(data));
+			_tableContainer.Add(new Trough.Trough(data));
 			return this;
 		}
 
 		public TableBuilder AddLight(string name)
 		{
-			_th.Add(new Light.Light(new LightData(name, 500, 500)));
+			_tableContainer.Add(new Light.Light(new LightData(name, 500, 500)));
 			return this;
 		}
 
-		public TableHolder Build(string name = null)
+		public TableContainer Build(string name = null)
 		{
 			if (name != null) {
-				_th.Table.Data.Name = name;
+				_tableContainer.Table.Data.Name = name;
 			}
-			return _th;
+			return _tableContainer;
 		}
 	}
 }

@@ -24,11 +24,11 @@ namespace VisualPinball.Engine.Test.VPT
 {
 	public class TextureDataTests
 	{
-		private readonly TableHolder _table;
+		private readonly TableContainer _table;
 
 		public TextureDataTests()
 		{
-			_table = TableHolder.Load(VpxPath.Texture);
+			_table = TableContainer.Load(VpxPath.Texture);
 		}
 
 		[Test]
@@ -150,7 +150,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";
 			new TableWriter(_table).WriteTable(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			writtenTable.Textures["test_pattern_jpg"].Data.Binary.Data.Should().Equal(_table.Textures["test_pattern_jpg"].Data.Binary.Data);
 		}
 
@@ -159,7 +159,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			const string tmpFileName = "ShouldWriteCorrectBitmap.vpx";
 			new TableWriter(_table).WriteTable(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			writtenTable.Textures["test_pattern_bmp"].Data.Bitmap.Bytes.Should().Equal(_table.Textures["test_pattern_bmp"].Data.Bitmap.Bytes);
 		}
 	}

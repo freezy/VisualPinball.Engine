@@ -36,17 +36,17 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
-		protected override Table InstantiateItem(TableData data) => new Table(TableHolder, data);
+		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
 
 		public override IEnumerable<Type> ValidParents => new Type[0];
-		public Table Table => Item;
 		public List<CollectionData> Collections => _sidecar?.collections;
 		public MappingsData Mappings => _sidecar?.mappings;
 
-		public ITableHolder TableHolder => _ta ??= new SceneTableHolder(this);
+		public new Table Table => Item;
+		public new SceneTableContainer TableContainer => _ta ??= new SceneTableContainer(this);
 
 		//public PatcherManager.Patcher Patcher { get; internal set; }
 
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private SceneTableHolder _ta;
+		private SceneTableContainer _ta;
 
 		//Private runtime values needed for camera adjustments.  
 		[HideInInspector] [SerializeField] public  Bounds _tableBounds;
@@ -265,13 +265,13 @@ namespace VisualPinball.Unity
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
 			Mappings.RemoveAllSwitches();
-			TableHolder.Mappings.PopulateSwitches(gle.AvailableSwitches, TableHolder.Switchables, TableHolder.SwitchableDevices);
+			TableContainer.Mappings.PopulateSwitches(gle.AvailableSwitches, TableContainer.Switchables, TableContainer.SwitchableDevices);
 
 			Mappings.RemoveAllCoils();
-			TableHolder.Mappings.PopulateCoils(gle.AvailableCoils, TableHolder.Coilables, TableHolder.CoilableDevices);
+			TableContainer.Mappings.PopulateCoils(gle.AvailableCoils, TableContainer.Coilables, TableContainer.CoilableDevices);
 
 			Mappings.RemoveAllLamps();
-			TableHolder.Mappings.PopulateLamps(gle.AvailableLamps, TableHolder.Lightables);
+			TableContainer.Mappings.PopulateLamps(gle.AvailableLamps, TableContainer.Lightables);
 		}
 
 		// private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData

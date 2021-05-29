@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Table
 {
-	public interface ITableHolder
+	public interface ITableContainer
 	{
 		Table Table { get; }
 		CustomInfoTags CustomInfoTags { get; }

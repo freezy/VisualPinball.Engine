@@ -24,20 +24,20 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 {
 	public class FlipperMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public FlipperMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Flipper);
+			_tc = TableContainer.Load(VpxPath.Flipper);
 			_obj = LoadObjFixture(ObjPath.Flipper);
 		}
 
 		[Test]
 		public void ShouldGenerateFatMesh()
 		{
-			var flipper = _th.Flipper("FatFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _tc.Flipper("FatFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", 0.00013f);
 			}
@@ -46,8 +46,8 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldGenerateFatRubberMesh()
 		{
-			var flipper = _th.Flipper("FatRubberFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _tc.Flipper("FatRubberFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", threshold: 0.00015f);
 			}
@@ -56,8 +56,8 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldGenerateFlipperOnSurfaceMesh()
 		{
-			var flipper = _th.Flipper("SurfaceFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_th.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipper = _tc.Flipper("SurfaceFlipper");
+			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}");
 			}

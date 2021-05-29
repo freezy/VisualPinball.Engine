@@ -23,19 +23,19 @@ namespace VisualPinball.Engine.Test.VPT.Table
 {
 	public class TableMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public TableMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Table);
+			_tc = TableContainer.Load(VpxPath.Table);
 			_obj = LoadObjFixture(ObjPath.Table);
 		}
 
 		[Test]
 		public void ShouldGeneratePlayfieldCorrectly()
 		{
-			var tableMesh = _th.Table.GetRenderObjects(_th.Table).RenderObjects[0].Mesh;
+			var tableMesh = _tc.Table.GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, tableMesh);
 		}
 	}

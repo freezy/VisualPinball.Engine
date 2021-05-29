@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		[Test]
 		public void ShouldReadRubberData()
 		{
-			var table = TableHolder.Load(VpxPath.Rubber);
+			var table = TableContainer.Load(VpxPath.Rubber);
 			ValidateRubberData1(table.Rubber("Rubber1").Data);
 			ValidateRubberData2(table.Rubber("Rubber2").Data);
 		}
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		public void ShouldWriteRubberData()
 		{
 			const string tmpFileName = "ShouldWriteRubberData.vpx";
-			var table = TableHolder.Load(VpxPath.Rubber);
+			var table = TableContainer.Load(VpxPath.Rubber);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);
 			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
 		}
