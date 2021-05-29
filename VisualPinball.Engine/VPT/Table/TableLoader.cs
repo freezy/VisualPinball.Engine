@@ -29,7 +29,7 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static TableContainer Load(string filename, bool loadGameItems = true)
+		public static FileTableContainer Load(string filename, bool loadGameItems = true)
 		{
 			var cf = new CompoundFile(filename);
 			try {
@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
 				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var tableHolder = new TableContainer(reader);
+					var tableHolder = new FileTableContainer(reader);
 
 					LoadTableInfo(tableHolder, cf.RootStorage, gameStorage);
 					if (loadGameItems) {
@@ -119,7 +119,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadGameItems(TableContainer tableContainer, CFStorage storage)
+		private static void LoadGameItems(FileTableContainer tableContainer, CFStorage storage)
 		{
 			for (var i = 0; i < tableContainer.NumGameItems; i++) {
 				var itemName = $"GameItem{i}";
@@ -248,7 +248,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadTextures(TableContainer tableContainer, CFStorage storage)
+		private static void LoadTextures(FileTableContainer tableContainer, CFStorage storage)
 		{
 			for (var i = 0; i < tableContainer.NumTextures; i++) {
 				var textureName = $"Image{i}";
@@ -271,7 +271,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadCollections(TableContainer tableContainer, CFStorage storage)
+		private static void LoadCollections(FileTableContainer tableContainer, CFStorage storage)
 		{
 			for (var i = 0; i < tableContainer.NumCollections; i++) {
 				var collectionName = $"Collection{i}";
@@ -288,7 +288,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadMappings(TableContainer tableContainer, CFStorage gameStorage)
+		private static void LoadMappings(FileTableContainer tableContainer, CFStorage gameStorage)
 		{
 			var name = "Mappings0";
 			gameStorage.TryGetStream(name, out var citStream);
@@ -301,7 +301,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadSounds(TableContainer tableContainer, CFStorage storage, int fileVersion)
+		private static void LoadSounds(FileTableContainer tableContainer, CFStorage storage, int fileVersion)
 		{
 			for (var i = 0; i < tableContainer.NumSounds; i++) {
 				var soundName = $"Sound{i}";
@@ -319,7 +319,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadTableInfo(TableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
+		private static void LoadTableInfo(FileTableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
 		{
 			// first, although we can loop through entries, get them from the game storage, so we
 			// know their order, which is important when writing back (because you know, hashing).
@@ -347,7 +347,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}, false);
 		}
 
-		private static void LoadTableMeta(TableContainer tableContainer, CFStorage gameStorage)
+		private static void LoadTableMeta(FileTableContainer tableContainer, CFStorage gameStorage)
 		{
 			// version
 			gameStorage.TryGetStream("Version", out var versionBytes);

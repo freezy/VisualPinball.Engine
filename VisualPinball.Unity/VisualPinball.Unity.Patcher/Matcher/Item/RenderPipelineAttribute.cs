@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Patcher.Matcher.Item
 			_type = type;
 		}
 
-		public override bool Matches(TableContainer th, IRenderable item, GameObject obj)
+		public override bool Matches(FileTableContainer th, IRenderable item, GameObject obj)
 		{
 			return RenderPipeline.Current.Type == _type;
 		}

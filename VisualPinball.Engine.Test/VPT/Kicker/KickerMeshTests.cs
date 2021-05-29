@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 {
 	public class KickerMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public KickerMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Kicker);
+			_tc = FileTableContainer.Load(VpxPath.Kicker);
 			_obj = LoadObjFixture(ObjPath.Kicker);
 		}
 

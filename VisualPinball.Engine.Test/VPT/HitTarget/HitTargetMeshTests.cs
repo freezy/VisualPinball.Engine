@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 {
 	public class HitTargetMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public HitTargetMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.HitTarget);
+			_tc = FileTableContainer.Load(VpxPath.HitTarget);
 			_obj = LoadObjFixture(ObjPath.HitTarget);
 		}
 

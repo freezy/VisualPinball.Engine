@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 {
 	public class RubberMeshTest : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public RubberMeshTest()
 		{
-			_tc = TableContainer.Load(VpxPath.Rubber);
+			_tc = FileTableContainer.Load(VpxPath.Rubber);
 			_obj = LoadObjFixture(ObjPath.Rubber);
 		}
 

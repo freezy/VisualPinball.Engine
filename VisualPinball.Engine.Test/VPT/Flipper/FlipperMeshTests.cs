@@ -24,12 +24,12 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 {
 	public class FlipperMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public FlipperMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Flipper);
+			_tc = FileTableContainer.Load(VpxPath.Flipper);
 			_obj = LoadObjFixture(ObjPath.Flipper);
 		}
 

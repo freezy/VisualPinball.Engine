@@ -24,12 +24,12 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 {
 	public class RampMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public RampMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Ramp);
+			_tc = FileTableContainer.Load(VpxPath.Ramp);
 			_obj = LoadObjFixture(ObjPath.Ramp);
 		}
 

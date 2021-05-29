@@ -27,12 +27,12 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private const int VpFileFormatVersion = 1060;
 
-		private readonly ITableContainer _tableContainer;
+		private readonly TableContainer _tableContainer;
 
 		private CompoundFile _cf;
 		private CFStorage _gameStorage;
 
-		public TableWriter(ITableContainer tableContainer)
+		public TableWriter(TableContainer tableContainer)
 		{
 			_tableContainer = tableContainer;
 		}

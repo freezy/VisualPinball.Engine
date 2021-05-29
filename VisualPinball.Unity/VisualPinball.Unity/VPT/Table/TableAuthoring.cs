@@ -46,7 +46,8 @@ namespace VisualPinball.Unity
 		public MappingsData Mappings => _sidecar?.mappings;
 
 		public new Table Table => Item;
-		public new SceneTableContainer TableContainer => _ta ??= new SceneTableContainer(this);
+		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
+		private SceneTableContainer _tableContainer;
 
 		//public PatcherManager.Patcher Patcher { get; internal set; }
 
@@ -64,7 +65,11 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private SceneTableContainer _ta;
+
+		private void Reset()
+		{
+			_tableContainer ??= new SceneTableContainer(this);
+		}
 
 		//Private runtime values needed for camera adjustments.  
 		[HideInInspector] [SerializeField] public  Bounds _tableBounds;
@@ -89,6 +94,11 @@ namespace VisualPinball.Unity
 		{
 			// do nothing, base class draws all child meshes for ease of selection, but
 			// that would just be everything at this level
+		}
+
+		private void OnDestroy()
+		{
+			_tableContainer.Dispose();
 		}
 
 		public TableSidecar GetOrCreateSidecar()

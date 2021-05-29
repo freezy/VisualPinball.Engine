@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		[Test]
 		public void ShouldReadHitTargetData()
 		{
-			var table = TableContainer.Load(VpxPath.HitTarget);
+			var table = FileTableContainer.Load(VpxPath.HitTarget);
 			ValidateHitTargetData(table.HitTarget("Data").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		public void ShouldWriteHitTargetData()
 		{
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
-			var table = TableContainer.Load(VpxPath.HitTarget);
+			var table = FileTableContainer.Load(VpxPath.HitTarget);
 			table.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
 		}
 

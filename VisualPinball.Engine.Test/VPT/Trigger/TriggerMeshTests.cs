@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 {
 	public class TriggerMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public TriggerMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Trigger);
+			_tc = FileTableContainer.Load(VpxPath.Trigger);
 			_obj = LoadObjFixture(ObjPath.Trigger);
 		}
 

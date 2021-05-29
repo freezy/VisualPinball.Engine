@@ -27,12 +27,12 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 {
 	public class PrimitiveMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public PrimitiveMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Primitive);
+			_tc = FileTableContainer.Load(VpxPath.Primitive);
 			_obj = LoadObjFixture(ObjPath.Primitive);
 		}
 
@@ -74,7 +74,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Test]
 		public void ShouldGenerateACompressedMesh()
 		{
-			var th = TableContainer.Load(VpxPath.PrimitiveCompressed);
+			var th = FileTableContainer.Load(VpxPath.PrimitiveCompressed);
 			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
 
 			var compressedMesh = th.Primitive("compressed").GetRenderObjects(th.Table).RenderObjects[0].Mesh;
@@ -83,7 +83,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 
 		[Test]
 		public void ShouldGenerateAnAnimatedMesh() {
-			var table = TableContainer.Load(VpxPath.PrimitiveAnimated);
+			var table = FileTableContainer.Load(VpxPath.PrimitiveAnimated);
 
 			var animatedPrimitive = table.Primitive("AnimatedPrimitive");
 			var mesh = animatedPrimitive.GetMesh();

@@ -28,14 +28,14 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Test]
 		public void ShouldReadTableData()
 		{
-			var table = TableContainer.Load(VpxPath.Table);
+			var table = FileTableContainer.Load(VpxPath.Table);
 			ValidateTableData(table.Table.Data);
 		}
 
 		[Test]
 		public void ShouldReadTableInfo()
 		{
-			var table = TableContainer.Load(VpxPath.Table);
+			var table = FileTableContainer.Load(VpxPath.Table);
 
 			table.InfoAuthorEmail.Should().Be("test@vpdb.io");
 			table.InfoAuthorName.Should().Be("Table Author");
@@ -53,9 +53,9 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		public void ShouldWriteTableData()
 		{
 			const string tmpFileName = "ShouldWriteTable.vpx";
-			var table = TableContainer.Load(VpxPath.Table);
+			var table = FileTableContainer.Load(VpxPath.Table);
 			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Table.Data);
 		}
 
@@ -63,9 +63,9 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		public void ShouldWriteCorrectHash()
 		{
 			const string tmpFileName = "ShouldWriteCorrectHash.vpx";
-			var table = TableContainer.Load(VpxPath.TableChecksum);
+			var table = FileTableContainer.Load(VpxPath.TableChecksum);
 			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 
 			writtenTable.FileHash.Should().Equal(table.FileHash);
 		}
@@ -73,7 +73,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Test]
 		public void ShouldReadCustomInfoTags()
 		{
-			var table = TableContainer.Load(VpxPath.Table);
+			var table = FileTableContainer.Load(VpxPath.Table);
 			table.CustomInfoTags.TagNames[0].Should().Be("customdata1");
 			table.CustomInfoTags.TagNames[1].Should().Be("foo");
 		}

@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
 	{
-		private readonly TableContainer _tableContainer;
+		private readonly FileTableContainer _tableContainer;
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
 
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
 
-		public VpxSceneConverter(TableContainer tableContainer, string fileName)
+		public VpxSceneConverter(FileTableContainer tableContainer, string fileName)
 		{
 			_tableContainer = tableContainer;
 			_patcher = PatcherManager.GetPatcher();
