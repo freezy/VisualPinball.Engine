@@ -47,9 +47,9 @@ namespace VisualPinball.Unity
 
 		public new Table Table => Item;
 		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
-		private SceneTableContainer _tableContainer;
 
-		//public PatcherManager.Patcher Patcher { get; internal set; }
+		[SerializeField]
+		private SceneTableContainer _tableContainer;
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;

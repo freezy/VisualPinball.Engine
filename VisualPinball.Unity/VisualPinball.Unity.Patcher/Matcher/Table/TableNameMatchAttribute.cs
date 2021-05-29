@@ -30,9 +30,9 @@ namespace VisualPinball.Unity.Patcher.Matcher.Table
 			_name = name;
 		}
 
-		public override bool Matches(FileTableContainer th, string fileName)
+		public override bool Matches(FileTableContainer tableContainer, string fileName)
 		{
-			return _name == null || th.Table.Data.Name == _name;
+			return _name == null || tableContainer.Table.Data.Name == _name;
 		}
 	}
 }

@@ -40,9 +40,9 @@ namespace VisualPinball.Unity
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(IItem item, IApiLamp lampApi) => _lamps[item.Name] = lampApi;
 
-		public void Awake(TableContainer th, IGamelogicEngine gamelogicEngine)
+		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 			_gamelogicEngine = gamelogicEngine;
 		}
 

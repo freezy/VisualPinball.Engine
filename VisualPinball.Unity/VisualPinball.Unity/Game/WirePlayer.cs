@@ -41,9 +41,9 @@ namespace VisualPinball.Unity
 		internal void RegisterWire(IItem item, IApiWireDest wireApi) => _wires[item.Name] = wireApi;
 		internal void RegisterWireDevice(IItem item, IApiWireDeviceDest wireDeviceApi) => _wireDevices[item.Name] = wireDeviceApi;
 
-		public void Awake(TableContainer th, InputManager inputManager, SwitchPlayer switchPlayer)
+		public void Awake(TableContainer tableContainer, InputManager inputManager, SwitchPlayer switchPlayer)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 			_inputManager = inputManager;
 			_switchPlayer = switchPlayer;
 		}

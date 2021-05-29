@@ -36,9 +36,9 @@ namespace VisualPinball.Unity.Patcher
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void Set(FileTableContainer th, string fileName)
+		public void Set(FileTableContainer tableContainer, string fileName)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 			var types = typeof(Patcher).Assembly.GetTypes();
 			foreach (var type in types) {
 				var classMatchers = type
