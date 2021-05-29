@@ -23,7 +23,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Table
 {
-	public class TableHolder : ITableHolder
+	public class TableContainer : ITableContainer
 	{
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
@@ -171,12 +171,12 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 
-		public TableHolder(string name = "Table1")
+		public TableContainer(string name = "Table1")
 		{
 			Table = new Table(this, new TableData { Name = name });
 		}
 
-		public TableHolder(BinaryReader reader)
+		public TableContainer(BinaryReader reader)
 		{
 			Table = new Table(this, new TableData(reader));
 		}
@@ -434,7 +434,7 @@ namespace VisualPinball.Engine.VPT.Table
 		/// <param name="filename">Path to the VPX file</param>
 		/// <param name="loadGameItems">If false, game items are not loaded. Useful when loading them on multiple threads.</param>
 		/// <returns>The parsed table</returns>
-		public static TableHolder Load(string filename, bool loadGameItems = true)
+		public static TableContainer Load(string filename, bool loadGameItems = true)
 		{
 			return TableLoader.Load(filename, loadGameItems);
 		}

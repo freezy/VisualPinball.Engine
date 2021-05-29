@@ -29,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		[Test]
 		public void ShouldReadGateData()
 		{
-			var table = TableHolder.Load(VpxPath.Gate);
+			var table = TableContainer.Load(VpxPath.Gate);
 			ValidateGateData(table.Gate("Data").Data);
 		}
 
@@ -37,9 +37,9 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldWriteGateData()
 		{
 			const string tmpFileName = "ShouldWriteGateData.vpx";
-			var table = TableHolder.Load(VpxPath.Gate);
+			var table = TableContainer.Load(VpxPath.Gate);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateGateData(writtenTable.Gate("Data").Data);
 		}
 

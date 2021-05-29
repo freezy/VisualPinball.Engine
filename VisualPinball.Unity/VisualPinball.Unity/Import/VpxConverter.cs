@@ -63,14 +63,14 @@ namespace VisualPinball.Unity
 		//private readonly Dictionary<IRenderable, RenderObjectGroup> _renderObjects = new Dictionary<IRenderable, RenderObjectGroup>();
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 
-		private TableHolder _th;
+		private TableContainer _tableContainer;
 		private TableAuthoring _tableAuthoring;
 		private bool _applyPatch = true;
 		private IPatcher _patcher;
 
-		public void Convert(string fileName, TableHolder th, bool applyPatch = true, string tableName = null)
+		public void Convert(string fileName, TableContainer th, bool applyPatch = true, string tableName = null)
 		{
-			_th = th;
+			_tableContainer = th;
 
 			// TODO: implement disabling patching; not so obvious because of the static methods being used for the import
 			if( !applyPatch)
@@ -82,23 +82,23 @@ namespace VisualPinball.Unity
 
 			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
 			if (string.IsNullOrEmpty(tableName)) {
-				go.name = _th.Table.Name;
+				go.name = _tableContainer.Table.Name;
 
 			} else {
 				go.name = tableName
-					.Replace("%TABLENAME%", _th.Table.Name)
-					.Replace("%INFONAME%", _th.InfoName);
+					.Replace("%TABLENAME%", _tableContainer.Table.Name)
+					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
 			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(_th, fileName);
+			_patcher?.Set(_tableContainer, fileName);
 
 			// import
 			ConvertGameItems(go);
 
 			// set root transformation
 			go.transform.localRotation = GlobalRotation;
-			go.transform.localPosition = new Vector3(-_th.Table.Width / 2 * GlobalScale, 0f, _th.Table.Height / 2 * GlobalScale);
+			go.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * GlobalScale, 0f, _tableContainer.Table.Height / 2 * GlobalScale);
 			go.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 			//ScaleNormalizer.Normalize(go, GlobalScale);
 
@@ -107,19 +107,19 @@ namespace VisualPinball.Unity
 			var dga = go.AddComponent<DefaultGamelogicEngine>();
 
 			// add trough if none available
-			if (!_th.HasTrough) {
+			if (!_tableContainer.HasTrough) {
 				CreateTrough();
 			}
 
 			// populate mappings
-			if (_th.Mappings.IsEmpty()) {
-				_th.Mappings.PopulateSwitches(dga.AvailableSwitches, _th.Switchables, _th.SwitchableDevices);
-				_th.Mappings.PopulateCoils(dga.AvailableCoils, _th.Coilables, _th.CoilableDevices);
+			if (_tableContainer.Mappings.IsEmpty()) {
+				_tableContainer.Mappings.PopulateSwitches(dga.AvailableSwitches, _tableContainer.Switchables, _tableContainer.SwitchableDevices);
+				_tableContainer.Mappings.PopulateCoils(dga.AvailableCoils, _tableContainer.Coilables, _tableContainer.CoilableDevices);
 
 				// wire up plunger
-				var plunger = _th.Plunger();
+				var plunger = _tableContainer.Plunger();
 				if (plunger != null) {
-					_th.Mappings.Data.AddWire(new MappingsWireData {
+					_tableContainer.Mappings.Data.AddWire(new MappingsWireData {
 						Description = "Plunger",
 						Source = SwitchSource.InputSystem,
 						SourceInputActionMap = InputConstants.MapCabinetSwitches,
@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 		{
 			var convertedItems = new Dictionary<string, ConvertedItem>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
-			var renderables = from renderable in _th.Renderables
+			var renderables = from renderable in _tableContainer.Renderables
 				orderby renderable.SubComponent
 				select renderable;
 
@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 
 				if (renderable.SubComponent == ItemSubComponent.None) {
 					// create object(s)
-					convertedItems[lookupName] = CreateGameObjects(_th.Table, renderable, groupParent);
+					convertedItems[lookupName] = CreateGameObjects(_tableContainer.Table, renderable, groupParent);
 
 				} else {
 					// if the object's names was parsed to be part of another object, re-link to other object.
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 					if (convertedItems.ContainsKey(parentName)) {
 						var parent = convertedItems[parentName];
 
-						var convertedItem = CreateGameObjects(_th.Table, renderable, groupParent);
+						var convertedItem = CreateGameObjects(_tableContainer.Table, renderable, groupParent);
 						if (convertedItem.IsValidChild(parent)) {
 
 							if (convertedItem.MeshAuthoring.Any()) {
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity
 							renderable.DisableSubComponent();
 
 							// invalid parenting, re-convert the item, because it returned only the sub component.
-							convertedItems[lookupName] = CreateGameObjects(_th.Table, renderable, groupParent);
+							convertedItems[lookupName] = CreateGameObjects(_tableContainer.Table, renderable, groupParent);
 
 							// ..and destroy the other one
 							convertedItem.Destroy();
@@ -206,11 +206,11 @@ namespace VisualPinball.Unity
 			}
 
 			// convert non-renderables
-			foreach (var item in _th.NonRenderables) {
+			foreach (var item in _tableContainer.NonRenderables) {
 				var groupParent = GetGroupParent(item);
 
 				// create object(s)
-				CreateGameObjects(_th.Table, item, groupParent);
+				CreateGameObjects(_tableContainer.Table, item, groupParent);
 			}
 		}
 
@@ -273,12 +273,12 @@ namespace VisualPinball.Unity
 		{
 			// add table component (plus other data)
 			_tableAuthoring = go.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetItem(_th.Table);
+			_tableAuthoring.SetItem(_tableContainer.Table);
 
 			var sidecar = _tableAuthoring.GetOrCreateSidecar();
 
-			foreach (var key in _th.TableInfo.Keys) {
-				sidecar.tableInfo[key] = _th.TableInfo[key];
+			foreach (var key in _tableContainer.TableInfo.Keys) {
+				sidecar.tableInfo[key] = _tableContainer.TableInfo[key];
 			}
 
 			// copy each serializable ref into the sidecar's serialized storage
@@ -289,18 +289,18 @@ namespace VisualPinball.Unity
 			// table.SetTextureContainer(sidecar.textures);
 			// table.SetSoundContainer(sidecar.sounds);
 
-			sidecar.customInfoTags = _th.CustomInfoTags;
-			sidecar.collections = _th.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappings = _th.Mappings.Data;
-			sidecar.decals = _th.GetAllData<Decal, DecalData>();
-			sidecar.dispReels = _th.GetAllData<DispReel, DispReelData>();
-			sidecar.flashers = _th.GetAllData<Flasher, FlasherData>();
-			sidecar.lightSeqs = _th.GetAllData<LightSeq, LightSeqData>();
-			sidecar.textBoxes = _th.GetAllData<TextBox, TextBoxData>();
-			sidecar.timers = _th.GetAllData<Timer, TimerData>();
+			sidecar.customInfoTags = _tableContainer.CustomInfoTags;
+			sidecar.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
+			sidecar.mappings = _tableContainer.Mappings.Data;
+			sidecar.decals = _tableContainer.GetAllData<Decal, DecalData>();
+			sidecar.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
+			sidecar.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
+			sidecar.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
+			sidecar.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
+			sidecar.timers = _tableContainer.GetAllData<Timer, TimerData>();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
-				string.Join(", ", _th.Collections.Keys),
+				string.Join(", ", _tableContainer.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
 		}
@@ -312,14 +312,14 @@ namespace VisualPinball.Unity
 				SwitchCount = 4,
 				Type = TroughType.ModernMech
 			};
-			if (_th.Has<Kicker>("BallRelease")) {
+			if (_tableContainer.Has<Kicker>("BallRelease")) {
 				troughData.PlayfieldExitKicker = "BallRelease";
 			}
-			if (_th.Has<Kicker>("Drain")) {
+			if (_tableContainer.Has<Kicker>("Drain")) {
 				troughData.PlayfieldEntrySwitch = "Drain";
 			}
 			var item = new Trough(troughData);
-			_th.Add(item, true);
+			_tableContainer.Add(item, true);
 			CreateGameObjects(_tableAuthoring.Table, item, _tableAuthoring.gameObject);
 		}
 	}

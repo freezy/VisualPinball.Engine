@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		[Test]
 		public void ShouldReadTriggerData()
 		{
-			var table = TableHolder.Load(VpxPath.Trigger);
+			var table = TableContainer.Load(VpxPath.Trigger);
 			ValidateTriggerData(table.Trigger("Data").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		public void ShouldWriteTriggerData()
 		{
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
-			var table = TableHolder.Load(VpxPath.Trigger);
+			var table = TableContainer.Load(VpxPath.Trigger);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateTriggerData(writtenTable.Trigger("Data").Data);
 		}
 

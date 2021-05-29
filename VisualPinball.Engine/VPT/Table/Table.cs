@@ -44,13 +44,13 @@ namespace VisualPinball.Engine.VPT.Table
 		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
 		public float RotationY { get => 0; set { } }
 
-		private readonly ITableHolder _th;
+		private readonly ITableContainer _tableContainer;
 		private readonly TableMeshGenerator _meshGenerator;
 
-		public Table(ITableHolder th, TableData data) : base(data)
+		public Table(ITableContainer tableContainer, TableData data) : base(data)
 		{
-			_th = th;
-			_meshGenerator = new TableMeshGenerator(_th);
+			_tableContainer = tableContainer;
+			_meshGenerator = new TableMeshGenerator(_tableContainer);
 		}
 
 		public float GetScaleZ()
@@ -64,12 +64,12 @@ namespace VisualPinball.Engine.VPT.Table
 				return TableHeight;
 			}
 
-			if (_th.Has<Surface.Surface>(surfaceName)) {
-				return TableHeight + _th.Get<Surface.Surface>(surfaceName).Data.HeightTop;
+			if (_tableContainer.Has<Surface.Surface>(surfaceName)) {
+				return TableHeight + _tableContainer.Get<Surface.Surface>(surfaceName).Data.HeightTop;
 			}
 
-			if (_th.Has<Ramp.Ramp>(surfaceName)) {
-				return TableHeight + _th.Get<Ramp.Ramp>(surfaceName).GetSurfaceHeight(x, y, this);
+			if (_tableContainer.Has<Ramp.Ramp>(surfaceName)) {
+				return TableHeight + _tableContainer.Get<Ramp.Ramp>(surfaceName).GetSurfaceHeight(x, y, this);
 			}
 
 			// Logger.Warn(
@@ -83,9 +83,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public void SetupPlayfieldMesh()
 		{
-			if (_th.Has<Primitive.Primitive>("playfield_mesh")) {
-				_meshGenerator.SetFromPrimitive(_th.Get<Primitive.Primitive>("playfield_mesh"));
-				_th.Remove<Primitive.Primitive>("playfield_mesh");
+			if (_tableContainer.Has<Primitive.Primitive>("playfield_mesh")) {
+				_meshGenerator.SetFromPrimitive(_tableContainer.Get<Primitive.Primitive>("playfield_mesh"));
+				_tableContainer.Remove<Primitive.Primitive>("playfield_mesh");
 			}
 		}
 
@@ -112,9 +112,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#region Holder Shortcuts
 
-		public Material GetMaterial(string name) => _th.GetMaterial(name);
-		public Texture GetTexture(string dataImage) => _th.GetTexture(dataImage);
-		public string GetNewName<T>(string name)  where T : IItem => _th.GetNewName<T>(name);
+		public Material GetMaterial(string name) => _tableContainer.GetMaterial(name);
+		public Texture GetTexture(string dataImage) => _tableContainer.GetTexture(dataImage);
+		public string GetNewName<T>(string name)  where T : IItem => _tableContainer.GetNewName<T>(name);
 
 		#endregion
 	}

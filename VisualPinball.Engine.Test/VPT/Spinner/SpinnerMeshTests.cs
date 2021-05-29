@@ -25,12 +25,12 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 {
 	public class SpinnerMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public SpinnerMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Spinner);
+			_tc = TableContainer.Load(VpxPath.Spinner);
 			_obj = LoadObjFixture(ObjPath.Spinner);
 		}
 
@@ -38,16 +38,16 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		public void ShouldGenerateBracketMeshes()
 		{
 			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
-			AssertObjMesh(_th.Table, _obj, _th.Spinner("Spinner"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Spinner("Transformed"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Spinner("Surface"), GetName);
-			AssertObjMesh(_th.Table, _obj, _th.Spinner("Data"), GetName, 0.001f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Spinner("Spinner"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Spinner("Transformed"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Spinner("Surface"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Spinner("Data"), GetName, 0.001f);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshWithoutBracket()
 		{
-			AssertObjMesh(_obj, _th.Spinner("WithoutBracket").GetRenderObjects(_th.Table).RenderObjects[0].Mesh, "WithoutBracketPlate");
+			AssertObjMesh(_obj, _tc.Spinner("WithoutBracket").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh, "WithoutBracketPlate");
 			AssertNoObjMesh(_obj, "WithoutBracketBracket");
 		}
 

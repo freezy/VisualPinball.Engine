@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldReadFlipperData()
 		{
-			var table = TableHolder.Load(VpxPath.Flipper);
+			var table = TableContainer.Load(VpxPath.Flipper);
 			ValidateFlipper(table.Flipper("FatFlipper").Data);
 		}
 
@@ -35,9 +35,9 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldWriteFlipperData()
 		{
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
-			var table = TableHolder.Load(VpxPath.Flipper);
+			var table = TableContainer.Load(VpxPath.Flipper);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
 		}
 

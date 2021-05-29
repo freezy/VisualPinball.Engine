@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 			if (!EditorApplication.isPlaying) {
 				DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {
-					var th = tableComponent.TableHolder;
+					var th = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
 						"Export table as VPX",
 						"",
