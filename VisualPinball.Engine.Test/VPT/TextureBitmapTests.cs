@@ -24,11 +24,11 @@ namespace VisualPinball.Engine.Test.VPT
 {
 	public class TextureBitmapTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 
 		public TextureBitmapTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Texture);
+			_tc = FileTableContainer.Load(VpxPath.Texture);
 		}
 
 		[Test]

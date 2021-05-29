@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		[Test]
 		public void ShouldReadDispReelData()
 		{
-			var table = TableContainer.Load(VpxPath.DispReel);
+			var table = FileTableContainer.Load(VpxPath.DispReel);
 			ValidateDispReel1(table.DispReel("Reel1").Data);
 			ValidateDispReel2(table.DispReel("Reel2").Data);
 		}
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		public void ShouldWriteDispReelData()
 		{
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
-			var table = TableContainer.Load(VpxPath.DispReel);
+			var table = FileTableContainer.Load(VpxPath.DispReel);
 			table.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateDispReel1(writtenTable.DispReel("Reel1").Data);
 			ValidateDispReel2(writtenTable.DispReel("Reel2").Data);
 		}

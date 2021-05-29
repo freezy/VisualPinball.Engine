@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		[Test]
 		public void ShouldReadCollectionData()
 		{
-			var th = TableContainer.Load(VpxPath.Collection);
+			var th = FileTableContainer.Load(VpxPath.Collection);
 			var data = th.Collections["flippers"].Data;
 			ValidateTableData(data);
 		}
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		public void ShouldWriteCollectionData()
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
-			var th = TableContainer.Load(VpxPath.Collection);
+			var th = FileTableContainer.Load(VpxPath.Collection);
 			th.Save(tmpFileName);
-			var writtenTable = TableContainer.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Collections["flippers"].Data);
 		}
 

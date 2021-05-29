@@ -23,12 +23,12 @@ namespace VisualPinball.Engine.Test.VPT.Table
 {
 	public class TableMeshTests : MeshTests
 	{
-		private readonly TableContainer _tc;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public TableMeshTests()
 		{
-			_tc = TableContainer.Load(VpxPath.Table);
+			_tc = FileTableContainer.Load(VpxPath.Table);
 			_obj = LoadObjFixture(ObjPath.Table);
 		}
 

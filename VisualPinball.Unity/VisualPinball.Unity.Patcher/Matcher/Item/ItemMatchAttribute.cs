@@ -29,6 +29,6 @@ namespace VisualPinball.Unity.Patcher
 		/// </summary>
 		public string Ref;
 
-		public abstract bool Matches(TableContainer th, IRenderable item, GameObject obj);
+		public abstract bool Matches(FileTableContainer th, IRenderable item, GameObject obj);
 	}
 }

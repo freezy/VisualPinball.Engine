@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
 		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new Dictionary<string, List<KeyboardSwitch>>();
 
-		private ITableContainer _tableContainer;
+		private TableContainer _tableContainer;
 		private IGamelogicEngine _gamelogicEngine;
 		private InputManager _inputManager;
 
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 		public bool SwitchExists(string name) => _switches.ContainsKey(name);
 		public bool SwitchDeviceExists(string name) => _switchDevices.ContainsKey(name);
 
-		public void Awake(ITableContainer th, IGamelogicEngine gamelogicEngine, InputManager inputManager)
+		public void Awake(TableContainer th, IGamelogicEngine gamelogicEngine, InputManager inputManager)
 		{
 			_tableContainer = th;
 			_gamelogicEngine = gamelogicEngine;

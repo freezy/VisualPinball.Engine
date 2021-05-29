@@ -32,11 +32,11 @@ namespace VisualPinball.Unity.Patcher
 	public class Patcher : IPatcher
 	{
 		private readonly List<object> _patchers = new List<object>();
-		private TableContainer _tableContainer;
+		private FileTableContainer _tableContainer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void Set(TableContainer th, string fileName)
+		public void Set(FileTableContainer th, string fileName)
 		{
 			_tableContainer = th;
 			var types = typeof(Patcher).Assembly.GetTypes();
@@ -141,7 +141,7 @@ namespace VisualPinball.Unity.Patcher
 									} else if (pi.ParameterType == typeof(Table)) {
 										patcherParams[pi.Position] = _tableContainer.Table;
 
-									} else if (pi.ParameterType == typeof(TableContainer)) {
+									} else if (pi.ParameterType == typeof(FileTableContainer)) {
 										patcherParams[pi.Position] = _tableContainer;
 
 									} else if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {

@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
 				var rootGameObj = new GameObject();
-				var th = new TableContainer(tableName);
+				var th = new FileTableContainer(tableName);
 				var converter = rootGameObj.AddComponent<VpxConverter>();
 				converter.Convert(tableName, th);
 				DestroyImmediate(converter);
