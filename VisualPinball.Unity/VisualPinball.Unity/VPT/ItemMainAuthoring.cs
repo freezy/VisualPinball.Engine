@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		/// Instantiates a new item based on the serialized data, and caches it
 		/// for the next access.
 		/// </summary>
-		public override TItem Item => _item ?? (_item = InstantiateItem(_data));
+		public override TItem Item => _item ??= InstantiateItem(_data);
 
 		/// <summary>
 		/// Applies the GameObject data to the item data. typically name and visibility.

@@ -16,30 +16,12 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.DispReel;
-using VisualPinball.Engine.VPT.Flasher;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.LightSeq;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Engine.VPT.Ramp;
-using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.TextBox;
-using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Engine.VPT.Trough;
-using Light = VisualPinball.Engine.VPT.Light.Light;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
@@ -103,47 +85,57 @@ namespace VisualPinball.Unity
 			}
 			switch (comp) {
 				case BumperAuthoring bumperAuthoring:
-					GetItemDictionary<Bumper>().Add(comp.Name, bumperAuthoring.Item);
+					Add(comp.gameObject.name, bumperAuthoring.Item);
 					break;
 				case FlipperAuthoring flipperAuthoring:
-					GetItemDictionary<Flipper>().Add(comp.Name, flipperAuthoring.Item);
+					Add(comp.gameObject.name, flipperAuthoring.Item);
 					break;
 				case GateAuthoring gateAuthoring:
-					GetItemDictionary<Gate>().Add(comp.Name, gateAuthoring.Item);
+					Add(comp.gameObject.name, gateAuthoring.Item);
 					break;
 				case HitTargetAuthoring hitTargetAuthoring:
-					GetItemDictionary<HitTarget>().Add(comp.Name, hitTargetAuthoring.Item);
+					Add(comp.gameObject.name, hitTargetAuthoring.Item);
 					break;
 				case KickerAuthoring kickerAuthoring:
-					GetItemDictionary<Kicker>().Add(comp.Name, kickerAuthoring.Item);
+					Add(comp.gameObject.name, kickerAuthoring.Item);
 					break;
 				case LightAuthoring lightAuthoring:
-					GetItemDictionary<Light>().Add(comp.Name, lightAuthoring.Item);
+					Add(comp.gameObject.name, lightAuthoring.Item);
 					break;
 				case PlungerAuthoring plungerAuthoring:
-					GetItemDictionary<Plunger>().Add(comp.Name, plungerAuthoring.Item);
+					Add(comp.gameObject.name, plungerAuthoring.Item);
 					break;
 				case PrimitiveAuthoring primitiveAuthoring:
-					GetItemDictionary<Primitive>().Add(comp.Name, primitiveAuthoring.Item);
+					Add(comp.gameObject.name, primitiveAuthoring.Item);
 					break;
 				case RampAuthoring rampAuthoring:
-					GetItemDictionary<Ramp>().Add(comp.Name, rampAuthoring.Item);
+					Add(comp.gameObject.name, rampAuthoring.Item);
 					break;
 				case RubberAuthoring rubberAuthoring:
-					GetItemDictionary<Rubber>().Add(comp.Name, rubberAuthoring.Item);
+					Add(comp.gameObject.name, rubberAuthoring.Item);
 					break;
 				case SpinnerAuthoring spinnerAuthoring:
-					GetItemDictionary<Spinner>().Add(comp.Name, spinnerAuthoring.Item);
+					Add(comp.gameObject.name, spinnerAuthoring.Item);
 					break;
 				case SurfaceAuthoring surfaceAuthoring:
-					GetItemDictionary<Surface>().Add(comp.Name, surfaceAuthoring.Item);
+					Add(comp.gameObject.name, surfaceAuthoring.Item);
 					break;
 				case TriggerAuthoring triggerAuthoring:
-					GetItemDictionary<Trigger>().Add(comp.Name, triggerAuthoring.Item);
+					Add(comp.gameObject.name, triggerAuthoring.Item);
 					break;
 				case TroughAuthoring troughAuthoring:
-					GetItemDictionary<Trough>().Add(comp.Name, troughAuthoring.Item);
+					Add(comp.gameObject.name, troughAuthoring.Item);
 					break;
+			}
+		}
+
+		private void Add<T>(string name, T item) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			if (dict.ContainsKey(name)) {
+				Logger.Warn($"{item.GetType()} {name} already added.");
+			} else {
+				dict.Add(name, item);
 			}
 		}
 
