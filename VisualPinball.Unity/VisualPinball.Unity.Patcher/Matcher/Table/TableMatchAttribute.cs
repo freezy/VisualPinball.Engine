@@ -22,6 +22,6 @@ namespace VisualPinball.Unity.Patcher
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public abstract class TableMatchAttribute : Attribute
 	{
-		public abstract bool Matches(FileTableContainer th, string fileName);
+		public abstract bool Matches(FileTableContainer tableContainer, string fileName);
 	}
 }

@@ -39,9 +39,9 @@ namespace VisualPinball.Unity
 		internal void RegisterCoil(IItem item, IApiCoil coilApi) => _coils[item.Name] = coilApi;
 		internal void RegisterCoilDevice(IItem item, IApiCoilDevice coilDeviceApi) => _coilDevices[item.Name] = coilDeviceApi;
 
-		public void Awake(TableContainer th, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
 		}

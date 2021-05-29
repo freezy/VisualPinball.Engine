@@ -68,9 +68,9 @@ namespace VisualPinball.Unity
 		private bool _applyPatch = true;
 		private IPatcher _patcher;
 
-		public void Convert(string fileName, FileTableContainer th, bool applyPatch = true, string tableName = null)
+		public void Convert(string fileName, FileTableContainer tableContainer, bool applyPatch = true, string tableName = null)
 		{
-			_tableContainer = th;
+			_tableContainer = tableContainer;
 
 			// TODO: implement disabling patching; not so obvious because of the static methods being used for the import
 			if( !applyPatch)

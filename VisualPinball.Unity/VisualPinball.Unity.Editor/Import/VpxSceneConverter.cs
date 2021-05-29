@@ -98,6 +98,8 @@ namespace VisualPinball.Unity.Editor
 				MakeSerializable();
 				ConvertGameItems();
 
+				_tableAuthoring.TableContainer.Refresh();
+
 			} finally {
 
 				// resume asset database refreshing
