@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class SceneTableHolder : ITableHolder
+	public class SceneTableContainer : ITableContainer
 	{
 		public Table Table => _tableAuthoring.Table;
 		public CustomInfoTags CustomInfoTags { get; }
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 
 		private readonly TableAuthoring _tableAuthoring;
 
-		public SceneTableHolder(TableAuthoring ta)
+		public SceneTableContainer(TableAuthoring ta)
 		{
 			_tableAuthoring = ta;
 		}

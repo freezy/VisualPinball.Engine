@@ -24,17 +24,17 @@ namespace VisualPinball.Engine.Test.VPT
 {
 	public class TextureBitmapTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 
 		public TextureBitmapTests()
 		{
-			_th = TableHolder.Load(VpxPath.Texture);
+			_tc = TableContainer.Load(VpxPath.Texture);
 		}
 
 		[Test]
 		public void ShouldAnalyzeAnOpaqueTexture()
 		{
-			var texture = _th.Textures["test_pattern_png"];
+			var texture = _tc.Textures["test_pattern_png"];
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeAnotherOpaqueTexture()
 		{
-			var texture = _th.Textures["test_pattern_argb"];
+			var texture = _tc.Textures["test_pattern_argb"];
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeATransparentTexture()
 		{
-			var texture = _th.Textures["test_pattern_transparent"];
+			var texture = _tc.Textures["test_pattern_transparent"];
 			texture.Analyze();
 			var stats = texture.GetStats();
 

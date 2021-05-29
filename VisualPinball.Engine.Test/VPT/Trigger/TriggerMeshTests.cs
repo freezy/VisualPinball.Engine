@@ -23,25 +23,25 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 {
 	public class TriggerMeshTests : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public TriggerMeshTests()
 		{
-			_th = TableHolder.Load(VpxPath.Trigger);
+			_tc = TableContainer.Load(VpxPath.Trigger);
 			_obj = LoadObjFixture(ObjPath.Trigger);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshesCorrectly()
 		{
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("Button"));
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("Star"), threshold: 0.001f);
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("WireA"));
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("WireB"));
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("WireC"));
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("WireD"));
-			AssertObjMesh(_th.Table, _obj, _th.Trigger("Surface"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Button"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Star"), threshold: 0.001f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireA"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireB"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireC"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireD"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Surface"));
 
 			// the last two fail because vpx ignores thickness when exporting.
 			// re-enable when fixed on vp side.

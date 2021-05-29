@@ -23,26 +23,26 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 {
 	public class RubberMeshTest : MeshTests
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public RubberMeshTest()
 		{
-			_th = TableHolder.Load(VpxPath.Rubber);
+			_tc = TableContainer.Load(VpxPath.Rubber);
 			_obj = LoadObjFixture(ObjPath.Rubber);
 		}
 
 		[Test]
 		public void ShouldGenerateMesh()
 		{
-			var rubberMesh = _th.Rubber("Rubber2").GetRenderObjects(_th.Table).RenderObjects[0].Mesh;
+			var rubberMesh = _tc.Rubber("Rubber2").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, rubberMesh, threshold: 0.00015f);
 		}
 
 		[Test]
 		public void ShouldGenerateThickMesh()
 		{
-			var rubberMesh = _th.Rubber("Rubber1").GetRenderObjects(_th.Table).RenderObjects[0].Mesh;
+			var rubberMesh = _tc.Rubber("Rubber1").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
 			AssertObjMesh(_obj, rubberMesh, threshold: 0.001f);
 		}
 	}

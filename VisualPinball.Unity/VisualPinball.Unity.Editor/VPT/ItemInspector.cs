@@ -252,7 +252,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (!_refItems.ContainsKey(cacheKey) && _ta != null) {
 				var currentFieldName = field;
-				if (currentFieldName != null && _ta.TableHolder.Has<TItem>(currentFieldName)) {
+				if (currentFieldName != null && _ta.TableContainer.Has<TItem>(currentFieldName)) {
 					_refItems[cacheKey] = _ta.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
 						.FirstOrDefault(s => s.name == currentFieldName);
 				}

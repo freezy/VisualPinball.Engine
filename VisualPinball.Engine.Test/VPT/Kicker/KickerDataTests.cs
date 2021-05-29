@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		[Test]
 		public void ShouldReadKickerData()
 		{
-			var table = TableHolder.Load(VpxPath.Kicker);
+			var table = TableContainer.Load(VpxPath.Kicker);
 			ValidateKickerData(table.Kicker("Data").Data);
 		}
 
@@ -36,9 +36,9 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		public void ShouldWriteKickerData()
 		{
 			const string tmpFileName = "ShouldWriteKickerData.vpx";
-			var table = TableHolder.Load(VpxPath.Kicker);
+			var table = TableContainer.Load(VpxPath.Kicker);
 			table.Save(tmpFileName);
-			var writtenTable = TableHolder.Load(tmpFileName);
+			var writtenTable = TableContainer.Load(tmpFileName);
 			ValidateKickerData(writtenTable.Kicker("Data").Data);
 		}
 

@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
 				RecordUndo("Populate all coil mappings");
-				_tableAuthoring.TableHolder.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.TableHolder.Coilables, _tableAuthoring.TableHolder.CoilableDevices);
+				_tableAuthoring.TableContainer.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.TableContainer.Coilables, _tableAuthoring.TableContainer.CoilableDevices);
 				Reload();
 				LampManager.Refresh();
 			}
@@ -214,7 +214,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_gleCoils.Clear();
-			_gleCoils.AddRange(_tableAuthoring.TableHolder.Mappings.GetCoils(GetAvailableEngineCoils()));
+			_gleCoils.AddRange(_tableAuthoring.TableContainer.Mappings.GetCoils(GetAvailableEngineCoils()));
 		}
 
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()

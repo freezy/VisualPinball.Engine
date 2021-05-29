@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
 	{
-		private readonly TableHolder _th;
+		private readonly TableContainer _tableContainer;
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
 
@@ -76,11 +76,11 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
 
-		public VpxSceneConverter(TableHolder th, string fileName)
+		public VpxSceneConverter(TableContainer tableContainer, string fileName)
 		{
-			_th = th;
+			_tableContainer = tableContainer;
 			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(_th, fileName);
+			_patcher?.Set(_tableContainer, fileName);
 		}
 
 		public GameObject Convert(string tableName = null)
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var convertedItems = new Dictionary<string, ConvertedItem>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
-			var renderables = from renderable in _th.Renderables
+			var renderables = from renderable in _tableContainer.Renderables
 				orderby renderable.SubComponent
 				select renderable;
 
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// convert non-renderables
-			foreach (var item in _th.NonRenderables) {
+			foreach (var item in _tableContainer.NonRenderables) {
 
 				// create object(s)
 				CreateGameObjects(item);
@@ -208,7 +208,7 @@ namespace VisualPinball.Unity.Editor
 
 				// apply transformation
 				if (item is IRenderable renderable) {
-					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_th.Table, Origin.Original).ToUnityMatrix());
+					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
 				}
 
 				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
@@ -222,7 +222,7 @@ namespace VisualPinball.Unity.Editor
 						meshComp.CreateMesh(renderable, this, this);
 					}
 					item.ClearBinaryData();
-					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_th.Table, Origin.Original).ToUnityMatrix());
+					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
 
 					CreateAssetFromGameObject(itemGo, false);
 				}
@@ -297,8 +297,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			var sidecar = _tableAuthoring.GetOrCreateSidecar();
 
-			foreach (var key in _th.TableInfo.Keys) {
-				sidecar.tableInfo[key] = _th.TableInfo[key];
+			foreach (var key in _tableContainer.TableInfo.Keys) {
+				sidecar.tableInfo[key] = _tableContainer.TableInfo[key];
 			}
 
 			// // copy each serializable ref into the sidecar's serialized storage
@@ -309,18 +309,18 @@ namespace VisualPinball.Unity.Editor
 			// _table.SetTextureContainer(sidecar.textures);
 			// _table.SetSoundContainer(sidecar.sounds);
 
-			sidecar.customInfoTags = _th.CustomInfoTags;
-			sidecar.collections = _th.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappings = _th.Mappings.Data;
-			sidecar.decals = _th.GetAllData<Decal, DecalData>();
-			sidecar.dispReels = _th.GetAllData<DispReel, DispReelData>();
-			sidecar.flashers = _th.GetAllData<Flasher, FlasherData>();
-			sidecar.lightSeqs = _th.GetAllData<LightSeq, LightSeqData>();
-			sidecar.textBoxes = _th.GetAllData<TextBox, TextBoxData>();
-			sidecar.timers = _th.GetAllData<Timer, TimerData>();
+			sidecar.customInfoTags = _tableContainer.CustomInfoTags;
+			sidecar.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
+			sidecar.mappings = _tableContainer.Mappings.Data;
+			sidecar.decals = _tableContainer.GetAllData<Decal, DecalData>();
+			sidecar.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
+			sidecar.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
+			sidecar.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
+			sidecar.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
+			sidecar.timers = _tableContainer.GetAllData<Timer, TimerData>();
 
 			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
-				string.Join(", ", _th.Collections.Keys),
+				string.Join(", ", _tableContainer.Collections.Keys),
 				string.Join(", ", sidecar.collections.Select(c => c.Name))
 			);
 		}
@@ -331,7 +331,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var texture in _th.Textures) {
+				foreach (var texture in _tableContainer.Textures) {
 					var path = texture.GetUnityFilename(_assetsTextures);
 					File.WriteAllBytes(path, texture.Content);
 				}
@@ -344,7 +344,7 @@ namespace VisualPinball.Unity.Editor
 
 			// todo lazy load
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _th.Textures) {
+			foreach (var texture in _tableContainer.Textures) {
 				var path = texture.GetUnityFilename(_assetsTextures);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
@@ -355,7 +355,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FreeTextures()
 		{
-			foreach (var texture in _th.Textures) {
+			foreach (var texture in _tableContainer.Textures) {
 				texture.Data.FreeBinaryData();
 			}
 		}
@@ -366,7 +366,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var sound in _th.Sounds) {
+				foreach (var sound in _tableContainer.Sounds) {
 					var fileName = Path.GetFileName(sound.Data.Path).ToNormalizedName();
 					var path = $"{_assetsSounds}/{fileName}";
 					File.WriteAllBytes(path, sound.Data.GetWavData());
@@ -386,19 +386,19 @@ namespace VisualPinball.Unity.Editor
 			var dga = _tableGo.AddComponent<DefaultGamelogicEngine>();
 
 			// add trough if none available
-			if (!_th.HasTrough) {
+			if (!_tableContainer.HasTrough) {
 				CreateTrough();
 			}
 
 			// populate mappings
-			if (_th.Mappings.IsEmpty()) {
-				_th.Mappings.PopulateSwitches(dga.AvailableSwitches, _th.Switchables, _th.SwitchableDevices);
-				_th.Mappings.PopulateCoils(dga.AvailableCoils, _th.Coilables, _th.CoilableDevices);
+			if (_tableContainer.Mappings.IsEmpty()) {
+				_tableContainer.Mappings.PopulateSwitches(dga.AvailableSwitches, _tableContainer.Switchables, _tableContainer.SwitchableDevices);
+				_tableContainer.Mappings.PopulateCoils(dga.AvailableCoils, _tableContainer.Coilables, _tableContainer.CoilableDevices);
 
 				// wire up plunger
-				var plunger = _th.Plunger();
+				var plunger = _tableContainer.Plunger();
 				if (plunger != null) {
-					_th.Mappings.Data.AddWire(new MappingsWireData {
+					_tableContainer.Mappings.Data.AddWire(new MappingsWireData {
 						Description = "Plunger",
 						Source = SwitchSource.InputSystem,
 						SourceInputActionMap = InputConstants.MapCabinetSwitches,
@@ -418,14 +418,14 @@ namespace VisualPinball.Unity.Editor
 				SwitchCount = 4,
 				Type = TroughType.ModernMech
 			};
-			if (_th.Has<Kicker>("BallRelease")) {
+			if (_tableContainer.Has<Kicker>("BallRelease")) {
 				troughData.PlayfieldExitKicker = "BallRelease";
 			}
-			if (_th.Has<Kicker>("Drain")) {
+			if (_tableContainer.Has<Kicker>("Drain")) {
 				troughData.PlayfieldEntrySwitch = "Drain";
 			}
 			var item = new Trough(troughData);
-			_th.Add(item, true);
+			_tableContainer.Add(item, true);
 			CreateGameObjects(item);
 		}
 
@@ -436,7 +436,7 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory("Assets/Tables/");
 			}
 
-			var assetsTableRoot = $"Assets/Tables/{_th.Table.Name}/";
+			var assetsTableRoot = $"Assets/Tables/{_tableContainer.Table.Name}/";
 			if (!Directory.Exists(assetsTableRoot)) {
 				Directory.CreateDirectory(assetsTableRoot);
 			}
@@ -471,12 +471,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
 			if (string.IsNullOrEmpty(tableName)) {
-				tableName = _th.Table.Name;
+				tableName = _tableContainer.Table.Name;
 
 			} else {
 				tableName = tableName
-					.Replace("%TABLENAME%", _th.Table.Name)
-					.Replace("%INFONAME%", _th.InfoName);
+					.Replace("%TABLENAME%", _tableContainer.Table.Name)
+					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
 			_tableGo = new GameObject(tableName);
@@ -485,14 +485,14 @@ namespace VisualPinball.Unity.Editor
 			var cabinetGo = new GameObject("Cabinet");
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetItem(_th.Table);
+			_tableAuthoring.SetItem(_tableContainer.Table);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
 			_playfieldGo.transform.localRotation = GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_th.Table.Width / 2 * GlobalScale, 0f, _th.Table.Height / 2 * GlobalScale);
+			_playfieldGo.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * GlobalScale, 0f, _tableContainer.Table.Height / 2 * GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
 		}
 

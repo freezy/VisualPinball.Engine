@@ -47,17 +47,17 @@ namespace VisualPinball.Unity
 			if (string.IsNullOrEmpty(Data.PlayfieldEntrySwitch)) {
 				return Vector3.zero;
 			}
-			if (TableHolder.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
-				return TableHolder.Get<Trigger>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
+			if (TableContainer.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
+				return TableContainer.Get<Trigger>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
 			}
-			return TableHolder.Has<Kicker>(Data.PlayfieldEntrySwitch)
-				? TableHolder.Get<Kicker>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
+			return TableContainer.Has<Kicker>(Data.PlayfieldEntrySwitch)
+				? TableContainer.Get<Kicker>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
 				: Vector3.zero;
 		}
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: TableHolder.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
+			: TableContainer.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
 
 		private void Awake()
 		{

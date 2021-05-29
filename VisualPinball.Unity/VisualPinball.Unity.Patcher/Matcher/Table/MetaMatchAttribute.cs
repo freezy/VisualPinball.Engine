@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Patcher
 		public string TableName;
 		public string AuthorName;
 
-		public override bool Matches(TableHolder th, string fileName)
+		public override bool Matches(TableContainer th, string fileName)
 		{
 			if (TableName != null && th.InfoName != TableName) {
 				return false;
