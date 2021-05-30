@@ -36,24 +36,31 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
+
+		#region Table Data
+
+		public MappingsData Mappings;
+
+		#endregion
+
 		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;
 
 		public override IEnumerable<Type> ValidParents => new Type[0];
-		public List<CollectionData> Collections => _sidecar?.collections;
-		public MappingsData Mappings => _sidecar?.mappings;
+		public List<CollectionData> Collections => _legacyContainer?.collections;
+
 
 		public new Table Table => Item;
 		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 
-		[SerializeField]
+		[NonSerialized]
 		private SceneTableContainer _tableContainer;
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
-		[HideInInspector] [SerializeField] private TableSidecar _sidecar;
+		[HideInInspector] [SerializeField] private LegacyContainer _legacyContainer;
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
@@ -101,12 +108,12 @@ namespace VisualPinball.Unity
 			_tableContainer.Dispose();
 		}
 
-		public TableSidecar GetOrCreateSidecar()
+		public LegacyContainer GetOrCreateLegacyContainer()
 		{
-			if (_sidecar == null) {
-				_sidecar = ScriptableObject.CreateInstance<TableSidecar>();
+			if (_legacyContainer == null) {
+				_legacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
 			}
-			return _sidecar;
+			return _legacyContainer;
 		}
 
 		public void AddTexture(string name, Texture2D texture)

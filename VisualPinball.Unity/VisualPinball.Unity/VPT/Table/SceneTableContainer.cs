@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		public SceneTableContainer(TableAuthoring ta)
 		{
 			_tableAuthoring = ta;
+			Refresh();
 
 #if UNITY_EDITOR
 			EditorApplication.hierarchyChanged += OnHierarchyChanged;

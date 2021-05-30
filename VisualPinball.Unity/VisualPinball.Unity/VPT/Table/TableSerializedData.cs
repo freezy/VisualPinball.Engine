@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <typeparam name="TData">The ItemData based class which will be wrapped into a ScriptableObject</typeparam>
 	/// <remarks>
-	/// These wrapper are used by <see cref="TableSidecar"/> for Textures, Sounds to avoid undo operations on the whole structure
+	/// These wrapper are used by <see cref="LegacyContainer"/> for Textures, Sounds to avoid undo operations on the whole structure
 	/// </remarks>
 	public class TableSerializedData<TData> : ScriptableObject where TData : ItemData
 	{

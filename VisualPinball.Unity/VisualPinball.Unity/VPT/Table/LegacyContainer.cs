@@ -30,16 +30,15 @@ using VisualPinball.Engine.VPT.Timer;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-    /// This monobehavior is meant to hold all the (large) serialized data needed to reconstruct
-    /// a vpx table. We're storing this off on a different object so that selecting the table itself
-    /// doesn't cause the editor to slow to a crawl
-    /// </summary>
-	public class TableSidecar : ScriptableObject
-    {
+	/// This monobehavior is meant to hold all the (large) serialized data needed to reconstruct
+	/// a vpx table. We're storing this off on a different object so that selecting the table itself
+	/// doesn't cause the editor to slow to a crawl
+	/// </summary>
+	public class LegacyContainer : ScriptableObject
+	{
 		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
 		[HideInInspector] public CustomInfoTags customInfoTags;
 		[HideInInspector] public List<CollectionData> collections;
-		[HideInInspector] public MappingsData mappings;
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
 		[HideInInspector] public FlasherData[] flashers;
