@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class FileTableContainer : TableContainer
 	{
-
 		public FileTableContainer(string name = "Table1")
 		{
 			Table = new Table(this, new TableData { Name = name });

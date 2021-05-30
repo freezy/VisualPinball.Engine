@@ -29,39 +29,6 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedComponent SetupComponents(this Flipper flipper, GameObject obj)
-		{
-			var comp = new ConvertedComponent(obj);
-			comp.AddMainComponent<FlipperComponent>().Set(flipper);
-
-			switch (flipper.SubComponent) {
-				case ItemSubComponent.None:
-					//colliderAuthoring = obj.AddComponent<FlipperColliderAuthoring>();
-
-					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
-					if (flipper.Data.IsVisible) {
-						comp.AddMeshComponent<FlipperBaseMeshComponent>(FlipperMeshGenerator.Base);
-						comp.AddMeshComponent<FlipperRubberMeshComponent>(FlipperMeshGenerator.Rubber);
-					}
-					break;
-
-				case ItemSubComponent.Collider: {
-					Logger.Warn("Cannot parent a flipper collider to a different object than a flipper!");
-					break;
-				}
-
-				case ItemSubComponent.Mesh: {
-					Logger.Warn("Cannot parent a flipper mesh to a different object than a flipper!");
-					break;
-				}
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			return comp.AddConvertToEntity();
-		}
-
 		public static ConvertedItem SetupGameObject(this Flipper flipper, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
