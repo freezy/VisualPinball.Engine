@@ -275,7 +275,9 @@ namespace VisualPinball.Unity
 			_tableAuthoring = go.AddComponent<TableAuthoring>();
 			_tableAuthoring.SetItem(_tableContainer.Table);
 
-			var sidecar = _tableAuthoring.GetOrCreateSidecar();
+			_tableAuthoring.Mappings = _tableContainer.Mappings.Data;
+
+			var sidecar = _tableAuthoring.GetOrCreateLegacyContainer();
 
 			foreach (var key in _tableContainer.TableInfo.Keys) {
 				sidecar.tableInfo[key] = _tableContainer.TableInfo[key];
@@ -291,7 +293,6 @@ namespace VisualPinball.Unity
 
 			sidecar.customInfoTags = _tableContainer.CustomInfoTags;
 			sidecar.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappings = _tableContainer.Mappings.Data;
 			sidecar.decals = _tableContainer.GetAllData<Decal, DecalData>();
 			sidecar.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
 			sidecar.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();

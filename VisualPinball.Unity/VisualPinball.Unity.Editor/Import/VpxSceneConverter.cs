@@ -95,7 +95,9 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				MakeSerializable();
+				SaveData();
+				SaveLegacyData();
+
 				ConvertGameItems();
 
 				_tableAuthoring.TableContainer.Refresh();
@@ -112,6 +114,35 @@ namespace VisualPinball.Unity.Editor
 			FreeTextures();
 
 			return _tableGo;
+		}
+
+		private void SaveData()
+		{
+			_tableAuthoring.Mappings = _tableContainer.Mappings.Data;
+		}
+
+		private void SaveLegacyData()
+		{
+			var legacyContainer = _tableAuthoring.GetOrCreateLegacyContainer();
+
+			foreach (var key in _tableContainer.TableInfo.Keys) {
+				legacyContainer.tableInfo[key] = _tableContainer.TableInfo[key];
+			}
+
+			legacyContainer.customInfoTags = _tableContainer.CustomInfoTags;
+			legacyContainer.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
+
+			legacyContainer.decals = _tableContainer.GetAllData<Decal, DecalData>();
+			legacyContainer.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
+			legacyContainer.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
+			legacyContainer.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
+			legacyContainer.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
+			legacyContainer.timers = _tableContainer.GetAllData<Timer, TimerData>();
+
+			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
+				string.Join(", ", _tableContainer.Collections.Keys),
+				string.Join(", ", legacyContainer.collections.Select(c => c.Name))
+			);
 		}
 
 		private void ConvertGameItems()
@@ -202,34 +233,17 @@ namespace VisualPinball.Unity.Editor
 			itemGo.transform.SetParent(parentGo.transform, false);
 
 			var importedObject = SetupGameObjects(item, itemGo);
-			if (importedObject != null) {
-				foreach (var meshAuthoring in importedObject.MeshAuthoring) {
-					meshAuthoring.CreateMesh(this, this);
-				}
-				item.ClearBinaryData();
+			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
+				meshAuthoring.CreateMesh(this, this);
+			}
+			item.ClearBinaryData();
 
-				// apply transformation
-				if (item is IRenderable renderable) {
-					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
-				}
-
-				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
-
-			} else {
-				var convertedComponent = SetupComponents(item, itemGo);
-
-				if (item is IRenderable renderable) {
-
-					foreach (var meshComp in convertedComponent.MeshComponents) {
-						meshComp.CreateMesh(renderable, this, this);
-					}
-					item.ClearBinaryData();
-					itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
-
-					CreateAssetFromGameObject(itemGo, false);
-				}
+			// apply transformation
+			if (item is IRenderable renderable) {
+				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
 			}
 
+			CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
 
 			return importedObject;
 		}
@@ -264,19 +278,11 @@ namespace VisualPinball.Unity.Editor
 			return go;
 		}
 
-		private static ConvertedComponent SetupComponents(IItem item, GameObject go)
-		{
-			switch (item) {
-				case Flipper flipper:           return flipper.SetupComponents(go);
-			}
-			throw new ArgumentException("Unknown item type " + item.GetType());
-		}
-
 		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
 		{
 			switch (item) {
 				case Bumper bumper:             return bumper.SetupGameObject(obj);
-				case Flipper flipper:           return null;
+				case Flipper flipper:           return flipper.SetupGameObject(obj);
 				case Gate gate:                 return gate.SetupGameObject(obj);
 				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
 				case Kicker kicker:             return kicker.SetupGameObject(obj);
@@ -293,38 +299,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
-		}
-
-		private void MakeSerializable()
-		{
-			var sidecar = _tableAuthoring.GetOrCreateSidecar();
-
-			foreach (var key in _tableContainer.TableInfo.Keys) {
-				sidecar.tableInfo[key] = _tableContainer.TableInfo[key];
-			}
-
-			// // copy each serializable ref into the sidecar's serialized storage
-			// sidecar.textures.AddRange(_table.Textures);
-			// sidecar.sounds.AddRange(_table.Sounds);
-			//
-			// // and tell the engine's table to now use the sidecar as its container so we can all operate on the same underlying container
-			// _table.SetTextureContainer(sidecar.textures);
-			// _table.SetSoundContainer(sidecar.sounds);
-
-			sidecar.customInfoTags = _tableContainer.CustomInfoTags;
-			sidecar.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
-			sidecar.mappings = _tableContainer.Mappings.Data;
-			sidecar.decals = _tableContainer.GetAllData<Decal, DecalData>();
-			sidecar.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
-			sidecar.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
-			sidecar.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
-			sidecar.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
-			sidecar.timers = _tableContainer.GetAllData<Timer, TimerData>();
-
-			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
-				string.Join(", ", _tableContainer.Collections.Keys),
-				string.Join(", ", sidecar.collections.Select(c => c.Name))
-			);
 		}
 
 		private void ExtractTextures()
