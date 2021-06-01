@@ -115,7 +115,6 @@ namespace VisualPinball.Unity
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
-				Debug.LogWarning($"Setting coil {coilEvent.Id} to {coilEvent.IsEnabled}.");
 
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
