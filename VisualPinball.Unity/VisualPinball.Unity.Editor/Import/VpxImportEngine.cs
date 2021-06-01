@@ -27,28 +27,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		/// <summary>
-		/// Import the table specified with the given path and assign it to the given parent.
-		/// </summary>
-		/// <param name="vpxPath"></param>
-		/// <param name="parent"></param>
-		public static void Import( string vpxPath, GameObject parent, bool applyPatch = true, string tableName = null)
-		{
-			var rootGameObj = ImportVpx(vpxPath, applyPatch, tableName);
-
-			// if an object was selected in the editor, make it its parent
-			GameObjectUtility.SetParentAndAlign(rootGameObj, parent);
-
-			// register undo system
-			Undo.RegisterCreatedObjectUndo(rootGameObj, "Import VPX table file");
-
-			// select imported object
-			Selection.activeObject = rootGameObj;
-
-			Logger.Info($"Imported {vpxPath}");
-		}
-
-		public static void ImportIntoScene(string path)
+		public static void ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null)
 		{
 			var sw = Stopwatch.StartNew();
 
@@ -58,8 +37,13 @@ namespace VisualPinball.Unity.Editor
 
 			var converter = new VpxSceneConverter(th, Path.GetFileName(path));
 
-			var tableGameObject = converter.Convert();
+			var tableGameObject = converter.Convert(applyPatch, tableName);
 			var convertedIn = sw.ElapsedMilliseconds;
+
+			// if an object was selected in the editor, make it its parent
+			if (parent != null) {
+				GameObjectUtility.SetParentAndAlign(tableGameObject, parent);
+			}
 
 			// register undo system
 			Undo.RegisterCreatedObjectUndo(tableGameObject, "Import VPX table file");
@@ -68,22 +52,6 @@ namespace VisualPinball.Unity.Editor
 			Selection.activeObject = tableGameObject;
 
 			Logger.Info($"Imported {path} in {convertedIn}ms (loaded after {loadedIn}ms).");
-		}
-
-		private static GameObject ImportVpx(string path, bool applyPatch, string tableName)
-		{
-			// create root object
-			var rootGameObj = new GameObject();
-			var converter = rootGameObj.AddComponent<VpxConverter>();
-
-			// load table
-			var th = TableLoader.LoadTable(path);
-
-			Logger.Info("Importing Table\nInfoName={0}\nInfoAuthorName={1}", th.InfoName, th.InfoAuthorName);
-
-			converter.Convert(Path.GetFileName(path), th, applyPatch, tableName);
-
-			return rootGameObj;
 		}
 	}
 }

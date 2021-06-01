@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Ramp
 {
 	[Serializable]
-	public class RampData : ItemData, IPhysicalData
+	public class RampData : ItemData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }

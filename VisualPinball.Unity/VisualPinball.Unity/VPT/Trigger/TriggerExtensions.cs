@@ -29,16 +29,13 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Trigger trigger, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Trigger trigger, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			TriggerColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
 			switch (trigger.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddComponent<TriggerColliderAuthoring>();
-					meshAuthoring.Add(obj.AddComponent<TriggerMeshAuthoring>());
+					convertedItem.SetColliderAuthoring<TriggerColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<TriggerMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -50,12 +47,11 @@ namespace VisualPinball.Unity
 					Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
 					break;
 				}
-
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

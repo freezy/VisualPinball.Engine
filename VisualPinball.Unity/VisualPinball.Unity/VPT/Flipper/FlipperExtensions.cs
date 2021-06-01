@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
@@ -29,21 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Flipper flipper, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Flipper flipper, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<FlipperAuthoring>().SetItem(flipper);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			FlipperColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper);
 			switch (flipper.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddComponent<FlipperColliderAuthoring>();
-
-					// if invisible in main component, we skip creation entirely, because we think users won't dynamically toggle visibility.
-					if (flipper.Data.IsVisible) {
-						meshAuthoring.Add(ConvertedItem.CreateChild<FlipperBaseMeshAuthoring>(obj, FlipperMeshGenerator.Base));
-						meshAuthoring.Add(ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(obj, FlipperMeshGenerator.Rubber));
-					}
+					convertedItem.SetColliderAuthoring<FlipperColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<FlipperBaseMeshAuthoring>(FlipperMeshGenerator.Base);
+					convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -59,8 +50,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

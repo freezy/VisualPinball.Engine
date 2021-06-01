@@ -29,16 +29,13 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj)
+		public static IConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<HitTargetAuthoring>().SetItem(hitTarget);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			HitTargetColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, hitTarget);
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddColliderComponent(hitTarget);
-					meshAuthoring.Add(obj.AddComponent<HitTargetMeshAuthoring>());
+					convertedItem.SetColliderAuthoring<HitTargetColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -54,14 +51,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
 
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		private static HitTargetColliderAuthoring AddColliderComponent(this GameObject obj, HitTarget hitTarget)
-		{
-			return hitTarget.Data.IsCollidable ? obj.AddComponent<HitTargetColliderAuthoring>() : null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

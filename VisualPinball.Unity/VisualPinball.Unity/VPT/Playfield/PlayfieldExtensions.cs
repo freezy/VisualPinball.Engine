@@ -23,15 +23,12 @@ namespace VisualPinball.Unity
 {
 	public static class PlayfieldExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Table table, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Table table, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
-			obj.AddComponent<PlayfieldColliderAuthoring>();
-			var meshAuthoring = obj.AddComponent<PlayfieldMeshAuthoring>();
-			obj.AddComponent<ConvertToEntity>();
-			obj.name = "Default Playfield";
-
-			return new ConvertedItem(mainAuthoring, new []{meshAuthoring});
+			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table);
+			convertedItem.SetMeshAuthoring<PlayfieldMeshAuthoring>();
+			convertedItem.SetColliderAuthoring<PlayfieldColliderAuthoring>(materialProvider);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

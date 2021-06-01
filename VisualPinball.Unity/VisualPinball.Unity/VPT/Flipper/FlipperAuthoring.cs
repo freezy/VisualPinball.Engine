@@ -167,15 +167,13 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
 			if (before == 0) {
-				ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
+				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
 			}
 
 			if (after == 0) {
-				var rubberAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
-				if (rubberAuthoring != null) {
-					DestroyImmediate(rubberAuthoring.gameObject);
-				}
+				convertedItem.Destroy<FlipperRubberMeshAuthoring>();
 			}
 		}
 

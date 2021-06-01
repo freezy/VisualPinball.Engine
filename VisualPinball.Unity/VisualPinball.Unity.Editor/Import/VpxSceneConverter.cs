@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
 	{
-		private readonly FileTableContainer _tableContainer;
+		private readonly TableContainer _tableContainer;
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
 
@@ -70,22 +70,28 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		private readonly Dictionary<string, PhysicsMaterialAsset> _physicalMaterials = new Dictionary<string, PhysicsMaterialAsset>();
 
 		private readonly IPatcher _patcher;
+		private bool _applyPatch = true;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
-		public const float GlobalScale = 0.001f;
 
-		public VpxSceneConverter(FileTableContainer tableContainer, string fileName)
+		public VpxSceneConverter(TableContainer tableContainer, string fileName = "")
 		{
 			_tableContainer = tableContainer;
-			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(_tableContainer, fileName);
+			if (tableContainer is FileTableContainer fileTableContainer) {
+				_patcher = PatcherManager.GetPatcher();
+				_patcher?.Set(fileTableContainer, fileName);
+			} else {
+				_patcher = null;
+			}
 		}
 
-		public GameObject Convert(string tableName = null)
+		public GameObject Convert(bool applyPatch = true, string tableName = null)
 		{
+			_applyPatch = applyPatch;
+
 			CreateRootHierarchy(tableName);
 			CreateFileHierarchy();
 
@@ -146,7 +152,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ConvertGameItems()
 		{
-			var convertedItems = new Dictionary<string, ConvertedItem>();
+			var convertedItems = new Dictionary<string, IConvertedItem>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
 			var renderables = from renderable in _tableContainer.Renderables
 				orderby renderable.SubComponent
@@ -154,7 +160,9 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var renderable in renderables) {
 
-				_patcher?.ApplyPrePatches(renderable);
+				if (_applyPatch) {
+					_patcher?.ApplyPrePatches(renderable);
+				}
 
 				var lookupName = renderable.Name.ToLower();
 				renderableLookup[lookupName] = renderable;
@@ -212,6 +220,9 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 
+				if (!_applyPatch) {
+					continue;
+				}
 				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
 					_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
 				}
@@ -225,7 +236,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public ConvertedItem CreateGameObjects(IItem item)
+		public IConvertedItem CreateGameObjects(IItem item)
 		{
 			var parentGo = GetGroupParent(item);
 			var itemGo = new GameObject(item.Name);
@@ -246,6 +257,7 @@ namespace VisualPinball.Unity.Editor
 
 			return importedObject;
 		}
+
 
 		private GameObject CreateAssetFromGameObject(GameObject go, bool extractMesh)
 		{
@@ -277,24 +289,24 @@ namespace VisualPinball.Unity.Editor
 			return go;
 		}
 
-		private static ConvertedItem SetupGameObjects(IItem item, GameObject obj)
+		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
 		{
 			switch (item) {
-				case Bumper bumper:             return bumper.SetupGameObject(obj);
-				case Flipper flipper:           return flipper.SetupGameObject(obj);
-				case Gate gate:                 return gate.SetupGameObject(obj);
-				case HitTarget hitTarget:       return hitTarget.SetupGameObject(obj);
-				case Kicker kicker:             return kicker.SetupGameObject(obj);
-				case Light lt:                  return lt.SetupGameObject(obj);
-				case Plunger plunger:           return plunger.SetupGameObject(obj);
-				case Primitive primitive:       return primitive.SetupGameObject(obj);
-				case Ramp ramp:                 return ramp.SetupGameObject(obj);
-				case Rubber rubber:             return rubber.SetupGameObject(obj);
-				case Spinner spinner:           return spinner.SetupGameObject(obj);
-				case Surface surface:           return surface.SetupGameObject(obj);
-				case Table table:               return table.SetupGameObject(obj);
-				case Trigger trigger:           return trigger.SetupGameObject(obj);
-				case Trough trough:             return trough.SetupGameObject(obj);
+				case Bumper bumper:       return bumper.SetupGameObject(obj, this);
+				case Flipper flipper:     return flipper.SetupGameObject(obj, this);
+				case Gate gate:           return gate.SetupGameObject(obj, this);
+				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this);
+				case Kicker kicker:       return kicker.SetupGameObject(obj, this);
+				case Light lt:            return lt.SetupGameObject(obj);
+				case Plunger plunger:     return plunger.SetupGameObject(obj, this);
+				case Primitive primitive: return primitive.SetupGameObject(obj, this);
+				case Ramp ramp:           return ramp.SetupGameObject(obj, this);
+				case Rubber rubber:       return rubber.SetupGameObject(obj, this);
+				case Spinner spinner:     return spinner.SetupGameObject(obj, this);
+				case Surface surface:     return surface.SetupGameObject(obj, this);
+				case Table table:         return table.SetupGameObject(obj, this);
+				case Trigger trigger:     return trigger.SetupGameObject(obj, this);
+				case Trough trough:       return trough.SetupGameObject(obj);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -309,13 +321,17 @@ namespace VisualPinball.Unity.Editor
 				foreach (var material in _tableContainer.Table.Data.Materials) {
 					var mat = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
 					mat.Material = material;
-					AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{mat.Material.Name}.asset");
+					AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{material.Name}.asset");
 				}
 
 			} finally {
 				// resume asset database refreshing
 				AssetDatabase.StopAssetEditing();
 				AssetDatabase.Refresh();
+			}
+
+			foreach (var material in _tableContainer.Table.Data.Materials) {
+				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterialAsset>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
 		}
 
@@ -491,9 +507,9 @@ namespace VisualPinball.Unity.Editor
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
 			_playfieldGo.AddComponent<TablePlayfieldAuthoring>();
-			_playfieldGo.transform.localRotation = GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * GlobalScale, 0f, _tableContainer.Table.Height / 2 * GlobalScale);
-			_playfieldGo.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);
+			_playfieldGo.transform.localRotation = TablePlayfieldAuthoring.GlobalRotation;
+			_playfieldGo.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * TablePlayfieldAuthoring.GlobalScale, 0f, _tableContainer.Table.Height / 2 * TablePlayfieldAuthoring.GlobalScale);
+			_playfieldGo.transform.localScale = new Vector3(TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale);
 		}
 
 		private GameObject GetGroupParent(IItem item)
@@ -528,7 +544,9 @@ namespace VisualPinball.Unity.Editor
 		#region IMaterialProvider
 
 		public bool HasMaterial(string name) => _materials.ContainsKey(name);
-		public Material GetMaterial(string name) => _materials[name];
+		public Material GetMaterial(string name) => string.IsNullOrEmpty(name) ? null : _materials[name];
+		public PhysicsMaterialAsset GetPhysicsMaterial(string name) => string.IsNullOrEmpty(name) ? null : _physicalMaterials[name];
+
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
 		{
 			_materials[vpxMaterial.Id] = material;

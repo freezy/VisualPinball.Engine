@@ -64,7 +64,7 @@ namespace VisualPinball.Engine.VPT
 		}
 	}
 
-	public interface IPhysicalData
+	public interface IPhysicsMaterialData
 	{
 		/// <summary>
 		/// If <see cref="GetOverwritePhysics"/>, use this elasticity instead of the material's.

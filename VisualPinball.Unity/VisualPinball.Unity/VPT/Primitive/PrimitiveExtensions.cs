@@ -25,44 +25,33 @@ namespace VisualPinball.Unity
 {
 	public static class PrimitiveExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Primitive primitive, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<PrimitiveAuthoring>().SetItem(primitive);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			PrimitiveColliderAuthoring colliderAuthoring = null;
+			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive) {
+				IsProceduralMesh = false
+			};
 
 			switch (primitive.SubComponent) {
-				case ItemSubComponent.None: {
-					colliderAuthoring = obj.AddColliderComponent(primitive);
-					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
+				case ItemSubComponent.None:
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
 					break;
-				}
 
 				case ItemSubComponent.Collider: {
-					colliderAuthoring = obj.AddColliderComponent(primitive);
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					meshAuthoring.Add(obj.AddComponent<PrimitiveMeshAuthoring>());
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
 					break;
 				}
 
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
 
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring) { IsProceduralMesh = false };
-		}
-
-		private static PrimitiveColliderAuthoring AddColliderComponent(this GameObject obj, Primitive primitive)
-		{
-			// todo handle dynamic collision
-			if (!primitive.Data.IsToy && primitive.IsCollidable) {
-				return obj.AddComponent<PrimitiveColliderAuthoring>();
-			}
-			return null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

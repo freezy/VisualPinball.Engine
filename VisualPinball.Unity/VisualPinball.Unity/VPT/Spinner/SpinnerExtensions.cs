@@ -29,20 +29,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Spinner spinner, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			var mainAuthoring = obj.AddComponent<SpinnerAuthoring>().SetItem(spinner);
-			SpinnerColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner);
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddComponent<SpinnerColliderAuthoring>();
-					meshAuthoring.Add(ConvertedItem.CreateChild<SpinnerBracketMeshAuthoring>(obj, SpinnerMeshGenerator.Bracket));
-
-					var wireMeshAuth = ConvertedItem.CreateChild<SpinnerPlateMeshAuthoring>(obj, SpinnerMeshGenerator.Plate);
-					wireMeshAuth.gameObject.AddComponent<SpinnerPlateAnimationAuthoring>();
-					meshAuthoring.Add(wireMeshAuth);
+					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket);
+					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -58,8 +52,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

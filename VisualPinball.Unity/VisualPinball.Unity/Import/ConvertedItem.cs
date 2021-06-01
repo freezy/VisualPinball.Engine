@@ -14,88 +14,144 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
-	public class ConvertedItem
+	public interface IConvertedItem
 	{
-		public readonly IItemMainAuthoring MainAuthoring;
-		public IEnumerable<IItemMeshAuthoring> MeshAuthoring;
-		public IItemColliderAuthoring ColliderAuthoring;
-		public bool IsProceduralMesh = true;
+		Type MainAuthoringType { get; }
 
-		public ConvertedItem()
+		IItemMainRenderableAuthoring MainAuthoring { get; }
+		IEnumerable<IItemMeshAuthoring> MeshAuthoring { get; }
+		IItemColliderAuthoring ColliderAuthoring { get; }
+		bool IsProceduralMesh { get; set; }
+
+		bool IsValidChild(IConvertedItem parent);
+		public void Destroy();
+		public void DestroyMeshComponent();
+		public void DestroyColliderComponent();
+	}
+
+	public class ConvertedItem<TItem, TData, TMainAuthoring> : IConvertedItem
+		where TItem : Item<TData>, IRenderable
+		where TData : ItemData
+		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>, IItemMainRenderableAuthoring
+	{
+		public Type MainAuthoringType => _mainAuthoring.GetType();
+
+		public IItemMainRenderableAuthoring MainAuthoring => _mainAuthoring;
+		public IEnumerable<IItemMeshAuthoring> MeshAuthoring => _meshAuthoring;
+		public IItemColliderAuthoring ColliderAuthoring => _colliderAuthoring;
+		public bool IsProceduralMesh { get; set; }
+
+		private readonly TMainAuthoring _mainAuthoring;
+		private ItemColliderAuthoring<TItem, TData, TMainAuthoring> _colliderAuthoring;
+
+		private readonly TData _itemData;
+		private readonly GameObject _gameObject;
+		private readonly List<IItemMeshAuthoring> _meshAuthoring = new List<IItemMeshAuthoring>();
+
+		public ConvertedItem(GameObject gameObject, TItem item)
 		{
-			MainAuthoring = null;
-			MeshAuthoring = new IItemMeshAuthoring[0];
-			ColliderAuthoring = null;
+			_gameObject = gameObject;
+			_itemData = item.Data;
+
+			_mainAuthoring = _gameObject.AddComponent<TMainAuthoring>();
+			_mainAuthoring.SetItem(item);
 		}
 
-		public ConvertedItem(IItemMainAuthoring mainAuthoring)
+		public ConvertedItem(GameObject gameObject)
 		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = new IItemMeshAuthoring[0];
-			ColliderAuthoring = null;
+			_gameObject = gameObject;
+			_itemData = _gameObject.GetComponent<TMainAuthoring>().Data;
 		}
 
-		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring)
+		public void AddMeshAuthoring<T>(string name) where T : Component, IItemMeshAuthoring
 		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = meshAuthoring;
-			ColliderAuthoring = null;
+			var meshGo = new GameObject(name);
+			meshGo.transform.SetParent(_mainAuthoring.transform, false);
+			var meshComp = meshGo.AddComponent<T>();
+			meshGo.layer = SceneTableContainer.ChildObjectsLayer;
+			_meshAuthoring.Add(meshComp);
 		}
 
-		public ConvertedItem(IItemMainAuthoring mainAuthoring, IEnumerable<IItemMeshAuthoring> meshAuthoring, IItemColliderAuthoring colliderAuthoring)
+		public void SetMeshAuthoring<T>() where T : Component, IItemMeshAuthoring
 		{
-			MainAuthoring = mainAuthoring;
-			MeshAuthoring = meshAuthoring;
-			ColliderAuthoring = colliderAuthoring;
+			var meshComp = _gameObject.AddComponent<T>();
+			_meshAuthoring.Add(meshComp);
+		}
+
+		public void SetColliderAuthoring<T>(IMaterialProvider materialProvider) where T : ItemColliderAuthoring<TItem, TData, TMainAuthoring>
+		{
+			if (!_mainAuthoring.IsCollidable) {
+				return;
+			}
+			_colliderAuthoring = _gameObject.AddComponent<T>();
+			if (_itemData is IPhysicsMaterialData physicsMaterialData) {
+				_colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(physicsMaterialData.GetPhysicsMaterial());
+			}
+		}
+
+		public void SetAnimationAuthoring<T>(string name) where T : ItemAnimationAuthoring<TItem, TData, TMainAuthoring>
+		{
+			var go = _gameObject.transform.Find(name).gameObject;
+			go.AddComponent<T>();
+		}
+
+		public IConvertedItem AddConvertToEntity()
+		{
+			_gameObject.AddComponent<ConvertToEntity>();
+			return this;
 		}
 
 		public void Destroy()
 		{
-			MainAuthoring.Destroy();
+			_mainAuthoring.Destroy();
+		}
+
+		public void Destroy<T>() where T : Component
+		{
+			var childAuthoring = _gameObject.GetComponentInChildren<T>();
+			if (childAuthoring) {
+				Object.DestroyImmediate(childAuthoring.gameObject);
+			}
 		}
 
 		public void DestroyMeshComponent()
 		{
-			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
+			if (_mainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
 				renderableAuthoring.DestroyMeshComponent();
-				MeshAuthoring = new IItemMeshAuthoring[0];
+				_meshAuthoring.Clear();
 			}
 		}
 
 		public void DestroyColliderComponent()
 		{
-			if (MainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
+			if (_mainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
 				renderableAuthoring.DestroyColliderComponent();
-				ColliderAuthoring = null;
+				_colliderAuthoring = null;
 			}
 		}
 
-		public bool IsValidChild(ConvertedItem parent)
+		public bool IsValidChild(IConvertedItem parent)
 		{
 			if (MeshAuthoring.Any()) {
-				return MeshAuthoring.First().ValidParents.Contains(parent.MainAuthoring.GetType());
+				return MeshAuthoring.First().ValidParents.Contains(parent.MainAuthoringType);
 			}
 
-			if (ColliderAuthoring != null) {
-				return ColliderAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
+			if (_colliderAuthoring != null) {
+				return _colliderAuthoring.ValidParents.Contains(parent.MainAuthoringType);
 			}
 
-			return MainAuthoring.ValidParents.Contains(parent.MainAuthoring.GetType());
-		}
-
-		public static T CreateChild<T>(GameObject obj, string name) where T : MonoBehaviour, IItemMeshAuthoring
-		{
-			var subObj = new GameObject(name);
-			subObj.transform.SetParent(obj.transform, false);
-			var comp = subObj.AddComponent<T>();
-			subObj.layer = VpxConverter.ChildObjectsLayer;
-			return comp;
+			return _mainAuthoring.ValidParents.Contains(parent.MainAuthoringType);
 		}
 	}
 }
