@@ -63,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 		private string _assetsPrefabs;
 		private string _assetsTextures;
 		private string _assetsMaterials;
+		private string _assetsPhysicsMaterials;
 		private string _assetsMeshes;
 		private string _assetsSounds;
 
@@ -88,6 +89,7 @@ namespace VisualPinball.Unity.Editor
 			CreateRootHierarchy(tableName);
 			CreateFileHierarchy();
 
+			ExtractPhysicsMaterials();
 			ExtractTextures();
 			//ExtractSounds();
 
@@ -100,8 +102,6 @@ namespace VisualPinball.Unity.Editor
 
 				ConvertGameItems();
 
-				_tableAuthoring.TableContainer.Refresh();
-
 			} finally {
 
 				// resume asset database refreshing
@@ -110,7 +110,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			ConfigurePlayer();
-
 			FreeTextures();
 
 			return _tableGo;
@@ -301,6 +300,13 @@ namespace VisualPinball.Unity.Editor
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
 		}
 
+		private void ExtractPhysicsMaterials()
+		{
+			// foreach (var material in _tableContainer.Table.Data.Materials) {
+			// 	AssetDatabase.CreateAsset(material, $"{_assetsMaterials}/test.vpmat");
+			// }
+		}
+
 		private void ExtractTextures()
 		{
 			try {
@@ -430,6 +436,11 @@ namespace VisualPinball.Unity.Editor
 			_assetsMaterials = $"{assetsTableRoot}/Materials/";
 			if (!Directory.Exists(_assetsMaterials)) {
 				Directory.CreateDirectory(_assetsMaterials);
+			}
+
+			_assetsPhysicsMaterials = $"{assetsTableRoot}/Physics Materials/";
+			if (!Directory.Exists(_assetsPhysicsMaterials)) {
+				Directory.CreateDirectory(_assetsPhysicsMaterials);
 			}
 
 			_assetsMeshes = $"{assetsTableRoot}/Models/";

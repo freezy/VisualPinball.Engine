@@ -24,6 +24,9 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public abstract class TableContainer
 	{
+		public abstract Material GetMaterial(string name);
+		public abstract Texture GetTexture(string name);
+		public abstract Mappings.Mappings Mappings { get; }
 		public CustomInfoTags CustomInfoTags { get; set; }
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
@@ -35,42 +38,36 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Sound.Sound> Sounds { get; protected set; } = new DefaultTableResourceContainer<Sound.Sound>();
 		public Dictionary<string, Collection.Collection> Collections { get; } = new Dictionary<string, Collection.Collection>();
 
-
-		public bool IsCollidable => true;
 		public bool HasTrough => _troughs.Count > 0;
 		public int NumTextures => Table.Data.NumTextures;
 		public int NumGameItems => Table.Data.NumGameItems;
 		public int NumSounds => Table.Data.NumSounds;
 		public int NumCollections => Table.Data.NumCollections;
 
-		public abstract Material GetMaterial(string name);
-		public abstract Texture GetTexture(string name);
-		public abstract Mappings.Mappings Mappings { get; }
-
 		#region GameItems
 
-		protected readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
-		protected readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
-		protected readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
-		protected readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
-		protected readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
-		protected readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
-		protected readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
-		protected readonly Dictionary<string, Kicker.Kicker> _kickers = new Dictionary<string, Kicker.Kicker>();
-		protected readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
-		protected readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
-		protected readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
-		protected readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
-		protected readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
-		protected readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
-		protected readonly Dictionary<string, Spinner.Spinner> _spinners = new Dictionary<string, Spinner.Spinner>();
-		protected readonly Dictionary<string, Surface.Surface> _surfaces = new Dictionary<string, Surface.Surface>();
-		protected readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
-		protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
-		protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
-		protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
+		[NonSerialized] protected readonly Dictionary<string, Bumper.Bumper> _bumpers = new Dictionary<string, Bumper.Bumper>();
+		[NonSerialized] protected readonly List<Decal.Decal> _decals = new List<Decal.Decal>();
+		[NonSerialized] protected readonly Dictionary<string, DispReel.DispReel> _dispReels = new Dictionary<string, DispReel.DispReel>();
+		[NonSerialized] protected readonly Dictionary<string, Flasher.Flasher> _flashers = new Dictionary<string, Flasher.Flasher>();
+		[NonSerialized] protected readonly Dictionary<string, Flipper.Flipper> _flippers = new Dictionary<string, Flipper.Flipper>();
+		[NonSerialized] protected readonly Dictionary<string, Gate.Gate> _gates = new Dictionary<string, Gate.Gate>();
+		[NonSerialized] protected readonly Dictionary<string, HitTarget.HitTarget> _hitTargets = new Dictionary<string, HitTarget.HitTarget>();
+		[NonSerialized] protected readonly Dictionary<string, Kicker.Kicker> _kickers = new Dictionary<string, Kicker.Kicker>();
+		[NonSerialized] protected readonly Dictionary<string, Light.Light> _lights = new Dictionary<string, Light.Light>();
+		[NonSerialized] protected readonly Dictionary<string, LightSeq.LightSeq> _lightSeqs = new Dictionary<string, LightSeq.LightSeq>();
+		[NonSerialized] protected readonly Dictionary<string, Plunger.Plunger> _plungers = new Dictionary<string, Plunger.Plunger>();
+		[NonSerialized] protected readonly Dictionary<string, Primitive.Primitive> _primitives = new Dictionary<string, Primitive.Primitive>();
+		[NonSerialized] protected readonly Dictionary<string, Ramp.Ramp> _ramps = new Dictionary<string, Ramp.Ramp>();
+		[NonSerialized] protected readonly Dictionary<string, Rubber.Rubber> _rubbers = new Dictionary<string, Rubber.Rubber>();
+		[NonSerialized] protected readonly Dictionary<string, Spinner.Spinner> _spinners = new Dictionary<string, Spinner.Spinner>();
+		[NonSerialized] protected readonly Dictionary<string, Surface.Surface> _surfaces = new Dictionary<string, Surface.Surface>();
+		[NonSerialized] protected readonly Dictionary<string, TextBox.TextBox> _textBoxes = new Dictionary<string, TextBox.TextBox>();
+		[NonSerialized] protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
+		[NonSerialized] protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
+		[NonSerialized] protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
 
-		protected void Clear()
+		protected virtual void Clear()
 		{
 			_bumpers.Clear();
 			_decals.Clear();
