@@ -16,7 +16,7 @@
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMovementAuthoring
+	public interface IItemAnimationAuthoring
 	{
 	}
 }

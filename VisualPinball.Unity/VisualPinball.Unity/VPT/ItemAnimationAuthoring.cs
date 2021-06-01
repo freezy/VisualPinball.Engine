@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity
 {
 	public abstract class ItemAnimationAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
-		IItemMovementAuthoring
+		IItemAnimationAuthoring
 		where TData : ItemData
 		where TItem : Item<TData>, IRenderable
 		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
