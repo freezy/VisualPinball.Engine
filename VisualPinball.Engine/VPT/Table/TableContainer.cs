@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public ITableResourceContainer<Texture> Textures { get; protected set; } = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds { get; protected set; } = new DefaultTableResourceContainer<Sound.Sound>();
 		public Dictionary<string, Collection.Collection> Collections { get; } = new Dictionary<string, Collection.Collection>();
-		public Mappings.Mappings Mappings { get; set; } = new Mappings.Mappings();
+
 
 		public bool IsCollidable => true;
 		public bool HasTrough => _troughs.Count > 0;
@@ -45,6 +45,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public abstract Material GetMaterial(string name);
 		public abstract Texture GetTexture(string name);
+		public abstract Mappings.Mappings Mappings { get; }
 
 		#region GameItems
 
