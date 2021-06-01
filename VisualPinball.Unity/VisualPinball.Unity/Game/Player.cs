@@ -116,6 +116,8 @@ namespace VisualPinball.Unity
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
+			tableComponent.TableContainer.Refresh();
+
 			TableApi.Data = tableComponent.Data;
 			_initializables.Add(TableApi);
 			_colliderGenerators.Add(TableApi);
