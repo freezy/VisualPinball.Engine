@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider);
 					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket);
 					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire);
+					convertedItem.SetAnimationAuthoring<GateWireAnimationAuthoring>(GateMeshGenerator.Wire);
 					break;
 
 				case ItemSubComponent.Collider: {
