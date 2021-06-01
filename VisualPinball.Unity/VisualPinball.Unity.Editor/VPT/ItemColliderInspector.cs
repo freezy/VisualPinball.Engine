@@ -64,6 +64,13 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			EditorGUI.BeginChangeCheck();
+			var physicsMaterial = (PhysicsMaterialAsset)EditorGUILayout.ObjectField("Physics Material", ColliderAuthoring.PhysicsMaterial, typeof(PhysicsMaterialAsset), false);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(target, "Set Physics Material");
+				ColliderAuthoring.PhysicsMaterial = physicsMaterial;
+			}
+
 			var refresh = false;
 
 			// scene view toggles
