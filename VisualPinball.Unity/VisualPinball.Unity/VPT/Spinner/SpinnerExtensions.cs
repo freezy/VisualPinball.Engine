@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider);
 					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket);
 					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate);
+					convertedItem.SetAnimationAuthoring<SpinnerPlateAnimationAuthoring>(SpinnerMeshGenerator.Plate);
 					break;
 
 				case ItemSubComponent.Collider: {
