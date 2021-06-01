@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 									renderable.RotationY -= parentRenderable.RotationY;
 								}
 
-								parent.DestroyMeshComponent();
+								parent.DestroyMeshComponents();
 							}
 							if (convertedItem.ColliderAuthoring != null) {
 								parent.DestroyColliderComponent();
