@@ -302,10 +302,20 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExtractPhysicsMaterials()
 		{
-			foreach (var material in _tableContainer.Table.Data.Materials) {
-				var mat = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
-				mat.Material = material;
-				AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{mat.Material.Name}.asset");
+			try {
+				// pause asset database refreshing
+				AssetDatabase.StartAssetEditing();
+
+				foreach (var material in _tableContainer.Table.Data.Materials) {
+					var mat = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
+					mat.Material = material;
+					AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{mat.Material.Name}.asset");
+				}
+
+			} finally {
+				// resume asset database refreshing
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
 			}
 		}
 
