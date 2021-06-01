@@ -34,7 +34,10 @@ namespace VisualPinball.Unity
 		public new Table Table => _tableAuthoring.Table;
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 
+		public const int ChildObjectsLayer = 16;
+
 		[NonSerialized] private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+
 
 		public override Material GetMaterial(string name)
 		{
@@ -54,7 +57,6 @@ namespace VisualPinball.Unity
 		public SceneTableContainer(TableAuthoring ta)
 		{
 			_tableAuthoring = ta;
-			Refresh();
 		}
 
 		public void Refresh()

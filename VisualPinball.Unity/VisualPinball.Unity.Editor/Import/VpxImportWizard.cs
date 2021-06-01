@@ -158,7 +158,7 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (File.Exists(VpxImportWizardSettings.VpxPath))
 					{
-						VpxImportEngine.Import(VpxImportWizardSettings.VpxPath, null, VpxImportWizardSettings.ApplyPatch, VpxImportWizardSettings.TableName);
+						VpxImportEngine.ImportIntoScene(VpxImportWizardSettings.VpxPath, null, VpxImportWizardSettings.ApplyPatch, VpxImportWizardSettings.TableName);
 					}
 					else
 					{

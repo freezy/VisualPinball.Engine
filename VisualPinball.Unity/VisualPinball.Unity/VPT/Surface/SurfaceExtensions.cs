@@ -25,40 +25,32 @@ namespace VisualPinball.Unity
 {
 	public static class SurfaceExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Surface surface, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Surface surface, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<SurfaceAuthoring>().SetItem(surface);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			SurfaceColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface);
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddColliderComponent(surface);
-					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
-					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
+					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
 					break;
 
 				case ItemSubComponent.Collider: {
-					colliderAuthoring = obj.AddColliderComponent(surface);
+					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceSideMeshAuthoring>(obj, SurfaceMeshGenerator.Side));
-					meshAuthoring.Add(ConvertedItem.CreateChild<SurfaceTopMeshAuthoring>(obj, SurfaceMeshGenerator.Top));
+					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
 					break;
 				}
 
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
 
-		private static SurfaceColliderAuthoring AddColliderComponent(this GameObject obj, Surface surface)
-		{
-			return surface.Data.IsCollidable ? obj.AddComponent<SurfaceColliderAuthoring>() : null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

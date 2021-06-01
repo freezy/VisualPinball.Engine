@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -29,26 +27,19 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Bumper bumper, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Bumper bumper, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<BumperAuthoring>().SetItem(bumper);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			BumperColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, bumper);
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddColliderComponent(bumper);
-					meshAuthoring.Add(ConvertedItem.CreateChild<BumperBaseMeshAuthoring>(obj, BumperMeshGenerator.Base));
-					meshAuthoring.Add(ConvertedItem.CreateChild<BumperCapMeshAuthoring>(obj, BumperMeshGenerator.Cap));
+					convertedItem.SetColliderAuthoring<BumperColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<BumperBaseMeshAuthoring>(BumperMeshGenerator.Base);
+					convertedItem.AddMeshAuthoring<BumperCapMeshAuthoring>(BumperMeshGenerator.Cap);
+					convertedItem.AddMeshAuthoring<BumperRingMeshAuthoring>(BumperMeshGenerator.Ring);
+					convertedItem.AddMeshAuthoring<BumperSkirtMeshAuthoring>(BumperMeshGenerator.Skirt);
 
-					var ring = ConvertedItem.CreateChild<BumperRingMeshAuthoring>(obj, BumperMeshGenerator.Ring);
-					var skirt = ConvertedItem.CreateChild<BumperSkirtMeshAuthoring>(obj, BumperMeshGenerator.Skirt);
-
-					ring.gameObject.AddComponent<BumperRingAnimationAuthoring>();
-					skirt.gameObject.AddComponent<BumperSkirtAnimationAuthoring>();
-
-					meshAuthoring.Add(ring);
-					meshAuthoring.Add(skirt);
+					convertedItem.SetAnimationAuthoring<BumperRingAnimationAuthoring>(BumperMeshGenerator.Ring);
+					convertedItem.SetAnimationAuthoring<BumperSkirtAnimationAuthoring>(BumperMeshGenerator.Skirt);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -64,14 +55,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
 
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		private static BumperColliderAuthoring AddColliderComponent(this GameObject obj, Bumper bumper)
-		{
-			return bumper.Data.IsCollidable ? obj.AddComponent<BumperColliderAuthoring>() : null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

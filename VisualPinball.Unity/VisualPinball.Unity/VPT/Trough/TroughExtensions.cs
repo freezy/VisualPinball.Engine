@@ -15,18 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
 	public static class TroughExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Engine.VPT.Trough.Trough trough, GameObject obj)
+		// public static IConvertedItem SetupGameObject(this Trough surface, GameObject obj, IMaterialProvider materialProvider)
+		// {
+		// 	var convertedItem = new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, surface);
+		// 	switch (surface.SubComponent) {
+		// 		case ItemSubComponent.None:
+		// 			convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
+		// 			convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+		// 			convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
+		// 			break;
+		//
+		// 		case ItemSubComponent.Collider: {
+		// 			convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
+		// 			break;
+		// 		}
+		//
+		// 		case ItemSubComponent.Mesh: {
+		// 			convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+		// 			convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
+		// 			break;
+		// 		}
+		//
+		// 		default:
+		// 			throw new ArgumentOutOfRangeException();
+		// 	}
+		//
+		// 	return convertedItem.AddConvertToEntity();
+		// }
+
+		public static IConvertedItem SetupGameObject(this Trough trough, GameObject obj)
 		{
 			var mainAuthoring = obj.AddComponent<TroughAuthoring>();
 			mainAuthoring.SetItem(trough);
 			mainAuthoring.UpdatePosition();
-			//obj.GetComponentInParent<Player>()?.RegisterTrough(trough, obj);
-			return new ConvertedItem(mainAuthoring);
+			return null;
 		}
 	}
 }

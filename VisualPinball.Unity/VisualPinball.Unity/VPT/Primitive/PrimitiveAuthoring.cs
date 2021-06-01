@@ -32,6 +32,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
+		public override bool IsCollidable => !Data.IsToy;
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
