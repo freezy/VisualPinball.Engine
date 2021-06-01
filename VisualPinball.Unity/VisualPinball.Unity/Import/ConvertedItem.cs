@@ -19,27 +19,76 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// An untyped interface for <see cref="ConvertedItem{TItem,TData,TMainAuthoring}"/>.
+	/// </summary>
 	public interface IConvertedItem
 	{
+		/// <summary>
+		/// Type of the main component. Used to check whether a sub component
+		/// has the correct parent.
+		/// </summary>
 		Type MainAuthoringType { get; }
 
+		/// <summary>
+		/// Main authoring component
+		/// </summary>
 		IItemMainAuthoring MainAuthoring { get; }
+
+		/// <summary>
+		/// List of mesh authoring components
+		/// </summary>
 		IEnumerable<IItemMeshAuthoring> MeshAuthoring { get; }
+
+		/// <summary>
+		/// Collider authoring component
+		/// </summary>
 		IItemColliderAuthoring ColliderAuthoring { get; }
+
+		/// <summary>
+		/// If false, the mesh is saved as an asset in the asset folder.
+		/// </summary>
 		bool IsProceduralMesh { get; set; }
 
+		/// <summary>
+		/// Checks whether this item is correctly attached to a given parent.
+		/// </summary>
+		/// <param name="parent">Parent to check</param>
+		/// <returns>true if valid, false otherwise.</returns>
 		bool IsValidChild(IConvertedItem parent);
+
+		/// <summary>
+		/// Destroys the game item inclusively all children.
+		/// </summary>
 		public void Destroy();
-		public void DestroyMeshComponent();
+
+		/// <summary>
+		/// Destroys the game items of all mesh components. Should only be
+		/// called when the mesh component sits on a different game object
+		/// than the main component.
+		/// </summary>
+		public void DestroyMeshComponents();
+
+		/// <summary>
+		/// Destroys the collider component. If the collider component sits on
+		/// a different game object than the main component, the game object
+		/// is destroyed as well.
+		/// </summary>
 		public void DestroyColliderComponent();
 	}
 
+	/// <summary>
+	/// A helper class that provides easy access to creating and destroying the
+	/// various authoring components.
+	/// </summary>
+	/// <typeparam name="TItem">Item type</typeparam>
+	/// <typeparam name="TData">Data type</typeparam>
+	/// <typeparam name="TMainAuthoring">Main component type</typeparam>
 	public class ConvertedItem<TItem, TData, TMainAuthoring> : IConvertedItem
 		where TItem : Item<TData>
 		where TData : ItemData
@@ -60,6 +109,14 @@ namespace VisualPinball.Unity
 		private readonly GameObject _gameObject;
 		private readonly List<IItemMeshAuthoring> _meshAuthoring = new List<IItemMeshAuthoring>();
 
+		/// <summary>
+		/// Instantiates for <b>new</b> items.
+		/// </summary>
+		/// <remarks>
+		/// Used when importing a new table.
+		/// </remarks>
+		/// <param name="gameObject">Freshly created game object</param>
+		/// <param name="item">Item to assign to</param>
 		public ConvertedItem(GameObject gameObject, TItem item)
 		{
 			_gameObject = gameObject;
@@ -69,6 +126,13 @@ namespace VisualPinball.Unity
 			_mainAuthoring.SetItem(item);
 		}
 
+		/// <summary>
+		/// Instantiates for <b>existing</b> items.
+		/// </summary>
+		/// <remarks>
+		/// Used when just creating a new item with the toolbox.
+		/// </remarks>
+		/// <param name="gameObject">Existing game object which already has the main component set.</param>
 		public ConvertedItem(GameObject gameObject)
 		{
 			_gameObject = gameObject;
@@ -126,7 +190,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void DestroyMeshComponent()
+		public void DestroyMeshComponents()
 		{
 			if (_mainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
 				renderableAuthoring.DestroyMeshComponent();
