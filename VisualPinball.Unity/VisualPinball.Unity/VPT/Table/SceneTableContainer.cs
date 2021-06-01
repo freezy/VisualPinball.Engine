@@ -18,7 +18,6 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
@@ -29,9 +28,10 @@ using Texture = VisualPinball.Engine.VPT.Texture;
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class SceneTableContainer : TableContainer, IDisposable
+	public class SceneTableContainer : TableContainer
 	{
 		public Table Table => _tableAuthoring.Table;
+		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 
 		public override Material GetMaterial(string name)
 		{
@@ -48,16 +48,11 @@ namespace VisualPinball.Unity
 		{
 			_tableAuthoring = ta;
 			Refresh();
-
-#if UNITY_EDITOR
-			EditorApplication.hierarchyChanged += OnHierarchyChanged;
-#endif
 		}
 
 		public void Refresh()
 		{
 			OnHierarchyChanged();
-			Mappings = new Mappings(_tableAuthoring.Mappings);
 		}
 
 		private void OnHierarchyChanged()
@@ -133,6 +128,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
+
 		private void Add<T>(string name, T item) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
@@ -141,13 +137,6 @@ namespace VisualPinball.Unity
 			} else {
 				dict.Add(name, item);
 			}
-		}
-
-		public void Dispose()
-		{
-#if UNITY_EDITOR
-			EditorApplication.hierarchyChanged -= OnHierarchyChanged;
-#endif
 		}
 	}
 }

@@ -296,7 +296,7 @@ namespace VisualPinball.Engine.VPT.Table
 			{
 				using (var stream = new MemoryStream(citStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					tableContainer.Mappings = new Mappings.Mappings(reader, name);
+					tableContainer.SetMappings(new Mappings.Mappings(reader, name));
 				}
 			}
 		}
