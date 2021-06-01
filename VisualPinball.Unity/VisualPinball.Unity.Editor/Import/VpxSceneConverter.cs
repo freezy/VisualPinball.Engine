@@ -45,7 +45,6 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Unity.VisualPinball.Unity.Scene;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
@@ -304,7 +303,7 @@ namespace VisualPinball.Unity.Editor
 		private void ExtractPhysicsMaterials()
 		{
 			foreach (var material in _tableContainer.Table.Data.Materials) {
-				var mat = ScriptableObject.CreateInstance<MaterialAsset>();
+				var mat = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
 				mat.Material = material;
 				AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{mat.Material.Name}.asset");
 			}
