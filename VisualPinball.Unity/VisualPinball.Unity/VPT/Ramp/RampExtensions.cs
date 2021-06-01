@@ -29,25 +29,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Ramp ramp, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<RampAuthoring>().SetItem(ramp);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			RampColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp);
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddColliderComponent(ramp);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
 					if (ramp.IsHabitrail) {
-						meshAuthoring.Add(ConvertedItem.CreateChild<RampWireMeshAuthoring>(obj, RampMeshGenerator.Wires));
+						convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
 					} else {
-						meshAuthoring.Add(ConvertedItem.CreateChild<RampFloorMeshAuthoring>(obj, RampMeshGenerator.Floor));
-						meshAuthoring.Add(ConvertedItem.CreateChild<RampWallMeshAuthoring>(obj, RampMeshGenerator.Wall));
+						convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
+						convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
 					}
 					break;
 
 				case ItemSubComponent.Collider: {
-					colliderAuthoring = obj.AddColliderComponent(ramp);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
 					break;
 				}
 
@@ -59,13 +56,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
 
-		private static RampColliderAuthoring AddColliderComponent(this GameObject obj, Ramp ramp)
-		{
-			return ramp.Data.IsCollidable ? obj.AddComponent<RampColliderAuthoring>() : null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

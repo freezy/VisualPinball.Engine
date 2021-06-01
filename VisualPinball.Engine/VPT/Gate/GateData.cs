@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Gate
 {
 	[Serializable]
-	public class GateData : ItemData, IPhysicalData
+	public class GateData : ItemData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }

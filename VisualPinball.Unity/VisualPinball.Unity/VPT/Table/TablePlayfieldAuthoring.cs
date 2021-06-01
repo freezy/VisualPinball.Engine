@@ -20,5 +20,7 @@ namespace VisualPinball.Unity
 {
 	public class TablePlayfieldAuthoring : MonoBehaviour
 	{
+		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
+		public const float GlobalScale = 0.001f;
 	}
 }

@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, TableAuthoring>
+	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, PlayfieldAuthoring>
 	{
 		public static readonly Type[] ValidParentTypes = new Type[0];
 

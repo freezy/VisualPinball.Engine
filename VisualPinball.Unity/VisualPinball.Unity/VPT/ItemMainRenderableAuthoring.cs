@@ -32,11 +32,18 @@ namespace VisualPinball.Unity
 		public virtual bool CanBeTransformed => true;
 
 		/// <summary>
+		/// If false is returned, no colliders will be created. If your
+		/// component collides, but not per default, set this to true.
+		/// </summary>
+		public virtual bool IsCollidable => true;
+
+		/// <summary>
 		/// Authoring type of the child class.
 		/// </summary>
 		protected abstract Type MeshAuthoringType { get; }
 
 		protected abstract Type ColliderAuthoringType { get; }
+
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.

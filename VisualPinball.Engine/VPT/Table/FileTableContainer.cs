@@ -42,47 +42,6 @@ namespace VisualPinball.Engine.VPT.Table
 			_mappings = mappings;
 		}
 
-		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
-		{
-			if (updateStorageIndices) {
-				item.StorageIndex = ItemDatas.Count();
-				Table.Data.NumGameItems = item.StorageIndex + 1;
-			}
-			d[name] = item;
-		}
-
-		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
-		{
-			if (updateStorageIndices) {
-				item.StorageIndex = ItemDatas.Count();
-			}
-			d.Add(item);
-		}
-
-		/// <summary>
-		/// Adds a game item to the table.
-		/// </summary>
-		/// <param name="item">Game item instance</param>
-		/// <param name="updateStorageIndices">If set, re-computes the storage indices. Only needed when adding game items via the editor.</param>
-		/// <typeparam name="T">Game item type</typeparam>
-		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
-		public void Add<T>(T item, bool updateStorageIndices = false) where T : IItem
-		{
-			var dict = GetItemDictionary<T>();
-			if (dict != null) {
-				AddItem(item.Name, item, dict, updateStorageIndices);
-
-			} else {
-				var list = GetItemList<T>();
-				if (list != null) {
-					AddItem(item, list, updateStorageIndices);
-
-				} else {
-					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
-				}
-			}
-		}
-
 		/// <summary>
 		/// Replaces all game items of a list with new game items.
 		/// </summary>
@@ -102,19 +61,6 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 			list.Clear();
 			list.AddRange(items);
-		}
-
-		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
-		{
-			var dict = GetItemDictionary<TItem>();
-			if (dict != null) {
-				return dict.Values.Select(d => d.Data).ToArray();
-			}
-			var list = GetItemList<TItem>();
-			if (list != null) {
-				return list.Select(d => d.Data).ToArray();
-			}
-			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
 		}
 
 		/// <summary>

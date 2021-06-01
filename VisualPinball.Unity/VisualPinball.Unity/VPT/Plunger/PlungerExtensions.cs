@@ -29,32 +29,28 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Plunger plunger, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<PlungerAuthoring>().SetItem(plunger);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			PlungerColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger);
 			switch (plunger.SubComponent) {
-				case ItemSubComponent.None: {
-					colliderAuthoring = obj.AddComponent<PlungerColliderAuthoring>();
+				case ItemSubComponent.None:
+
+					convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider);
 					switch (plunger.Data.Type) {
 						case PlungerType.PlungerTypeFlat:
-							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerFlatMeshAuthoring>(obj, PlungerMeshGenerator.Flat));
+							convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
 							break;
 
 						case PlungerType.PlungerTypeCustom:
-							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerSpringMeshAuthoring>(obj, PlungerMeshGenerator.Spring));
-							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
 							break;
 
 						case PlungerType.PlungerTypeModern:
-							meshAuthoring.Add(ConvertedItem.CreateChild<PlungerRodMeshAuthoring>(obj, PlungerMeshGenerator.Rod));
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
 							break;
-
 					}
 					break;
-				}
 
 				case ItemSubComponent.Collider: {
 					Logger.Warn("Cannot parent a plunger collider to a different object than a plunger!");
@@ -69,8 +65,8 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

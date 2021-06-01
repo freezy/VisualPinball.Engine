@@ -71,11 +71,9 @@ namespace VisualPinball.Unity.Editor
 
 			if (GUILayout.Button("New Table")) {
 				const string tableName = "Table1";
-				var rootGameObj = new GameObject();
-				var th = new FileTableContainer(tableName);
-				var converter = rootGameObj.AddComponent<VpxConverter>();
-				converter.Convert(tableName, th);
-				DestroyImmediate(converter);
+				var th = new FileTableContainer();
+				var converter = new VpxSceneConverter(th);
+				var rootGameObj = converter.Convert(false);
 				Selection.activeGameObject = rootGameObj;
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
@@ -178,8 +176,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var th = _tableAuthoring.TableContainer;
-			var item = create(th.Table);
+			var tableContainer = _tableAuthoring.TableContainer;
+			var item = create(tableContainer.Table);
 			Selection.activeGameObject = CreateRenderable(item);
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
@@ -187,24 +185,10 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IItem item)
 		{
-			var convertedItem = VpxConverter.CreateGameObjects(_tableAuthoring.Table, item, GetOrCreateParent(_tableAuthoring, item));
+			var converter = new VpxSceneConverter(_tableAuthoring.TableContainer);
+			_tableAuthoring.TableContainer.Refresh();
+			var convertedItem = converter.CreateGameObjects(item);
 			return convertedItem.MainAuthoring.gameObject;
-		}
-
-		private static GameObject GetOrCreateParent(Component tb, IItem renderable)
-		{
-			var parent = string.IsNullOrEmpty(renderable.ItemGroupName)
-				? tb.gameObject
-				: tb.gameObject.transform.Find(renderable.ItemGroupName)?.gameObject;
-			if (parent == null) {
-				parent = new GameObject(renderable.ItemGroupName);
-				parent.transform.parent = tb.gameObject.transform;
-				parent.transform.localPosition = Vector3.zero;
-				parent.transform.localRotation = Quaternion.identity;
-				parent.transform.localScale = Vector3.one;
-			}
-
-			return parent;
 		}
 	}
 }

@@ -151,18 +151,14 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(gameObject);
 			if (bulbEnabledAfter) {
-				ConvertedItem.CreateChild<LightBulbMeshAuthoring>(gameObject, LightMeshGenerator.Bulb);
-				ConvertedItem.CreateChild<LightSocketMeshAuthoring>(gameObject, LightMeshGenerator.Socket);
+				convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb);
+				convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket);
+
 			} else {
-				var bulbMeshAuthoring = GetComponentInChildren<LightBulbMeshAuthoring>();
-				if (bulbMeshAuthoring != null) {
-					DestroyImmediate(bulbMeshAuthoring.gameObject);
-				}
-				var socketMeshAuthoring = GetComponentInChildren<LightSocketMeshAuthoring>();
-				if (socketMeshAuthoring != null) {
-					DestroyImmediate(socketMeshAuthoring.gameObject);
-				}
+				convertedItem.Destroy<LightBulbMeshAuthoring>();
+				convertedItem.Destroy<LightSocketMeshAuthoring>();
 			}
 		}
 
@@ -174,7 +170,7 @@ namespace VisualPinball.Unity
 				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
 				if (_unityLight == null) {
 					var lightObj = new GameObject("Light (Unity)") {
-						layer = VpxConverter.ChildObjectsLayer
+						layer = SceneTableContainer.ChildObjectsLayer
 					};
 					lightObj.transform.parent = transform;
 					lightObj.transform.localPosition = Vector3.zero;
