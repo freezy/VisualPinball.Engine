@@ -23,9 +23,9 @@ namespace VisualPinball.Unity
 	/// <typeparam name="TData">Data type of the item</typeparam>
 	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
 	public abstract class ItemSubAuthoring<TItem, TData, TMainAuthoring> : ItemAuthoring<TItem, TData>
-		where TItem : Item<TData>, IRenderable
+		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		/// <summary>
 		/// We're in a sub component here, so in order to retrieve the data,
