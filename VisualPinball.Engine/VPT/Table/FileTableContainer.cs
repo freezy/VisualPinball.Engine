@@ -24,6 +24,9 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class FileTableContainer : TableContainer
 	{
+		public override Mappings.Mappings Mappings => _mappings;
+		private Mappings.Mappings _mappings = new Mappings.Mappings();
+
 		public FileTableContainer(string name = "Table1")
 		{
 			Table = new Table(this, new TableData { Name = name });
@@ -32,6 +35,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public FileTableContainer(BinaryReader reader)
 		{
 			Table = new Table(this, new TableData(reader));
+		}
+
+		public void SetMappings(Mappings.Mappings mappings)
+		{
+			_mappings = mappings;
 		}
 
 		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem

@@ -30,9 +30,8 @@ using VisualPinball.Engine.VPT.Timer;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// This monobehavior is meant to hold all the (large) serialized data needed to reconstruct
-	/// a vpx table. We're storing this off on a different object so that selecting the table itself
-	/// doesn't cause the editor to slow to a crawl
+	/// Legacy in VPE is data from Visual Pinball 10 that isn't used in VPE,
+	/// but still available to export.
 	/// </summary>
 	public class LegacyContainer : ScriptableObject
 	{

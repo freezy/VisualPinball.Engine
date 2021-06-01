@@ -103,11 +103,6 @@ namespace VisualPinball.Unity
 			// that would just be everything at this level
 		}
 
-		private void OnDestroy()
-		{
-			_tableContainer.Dispose();
-		}
-
 		public LegacyContainer GetOrCreateLegacyContainer()
 		{
 			if (_legacyContainer == null) {
@@ -204,61 +199,6 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		// public Table CreateTable(TableData data)
-		// {
-		// 	Logger.Info("Restoring table...");
-		// 	// restore table data
-		// 	var table = new Table(data);
-		//
-		// 	// restore table info
-		// 	Logger.Info("Restoring table info...");
-		// 	foreach (var k in _sidecar.tableInfo.Keys) {
-		// 		table.TableInfo[k] = _sidecar.tableInfo[k];
-		// 	}
-		//
-		// 	// restore custom info tags
-		// 	table.CustomInfoTags = _sidecar.customInfoTags;
-		//
-		// 	// restore custom info tags
-		// 	table.Mappings = new Mappings(_sidecar.mappings);
-		//
-		// 	// restore game items with no game object (yet!)
-		// 	table.ReplaceAll(_sidecar.decals.Select(d => new Decal(d)));
-		// 	Restore(_sidecar.collections, table.Collections, d => new Collection(d));
-		// 	Restore(_sidecar.dispReels, table, d => new DispReel(d));
-		// 	Restore(_sidecar.flashers, table, d => new Flasher(d));
-		// 	Restore(_sidecar.lightSeqs, table, d => new LightSeq(d));
-		// 	Restore(_sidecar.textBoxes, table, d => new TextBox(d));
-		// 	Restore(_sidecar.timers, table, d => new Timer(d));
-		//
-		// 	// restore game items
-		// 	Logger.Info("Restoring game items...");
-		// 	Restore<BumperAuthoring, Bumper, BumperData>(table);
-		// 	Restore<FlipperAuthoring, Flipper, FlipperData>(table);
-		// 	Restore<GateAuthoring, Gate, GateData>(table);
-		// 	Restore<HitTargetAuthoring, HitTarget, HitTargetData>(table);
-		// 	Restore<KickerAuthoring, Kicker, KickerData>(table);
-		// 	Restore<LightAuthoring, Light, LightData>(table);
-		// 	Restore<PlungerAuthoring, Plunger, PlungerData>(table);
-		// 	Restore<PrimitiveAuthoring, Primitive, PrimitiveData>(table);
-		// 	Restore<RampAuthoring, Ramp, RampData>(table);
-		// 	Restore<RubberAuthoring, Rubber, RubberData>(table);
-		// 	Restore<SpinnerAuthoring, Spinner, SpinnerData>(table);
-		// 	Restore<SurfaceAuthoring, Surface, SurfaceData>(table);
-		// 	Restore<TriggerAuthoring, Trigger, TriggerData>(table);
-		// 	Restore<TroughAuthoring, Trough, TroughData>(table);
-		//
-		// 	return table;
-		// }
-
-		// public Table RecreateTable(TableData tableData)
-		// {
-		// 	var table = CreateTable(tableData);
-		//
-		// 	Logger.Info("Table restored.");
-		// 	return table;
-		// }
-
 		public Vector3 GetTableCenter()
 		{
 			var playfield = GetComponentInChildren<PlayfieldAuthoring>().gameObject;
@@ -290,31 +230,5 @@ namespace VisualPinball.Unity
 			Mappings.RemoveAllLamps();
 			TableContainer.Mappings.PopulateLamps(gle.AvailableLamps, TableContainer.Lightables);
 		}
-
-		// private void Restore<TComp, TItem, TData>(Table table) where TData : ItemData
-		// 	where TItem : Item<TData>
-		// 	where TComp : ItemMainAuthoring<TItem, TData>
-		// {
-		// 	foreach (var component in GetComponentsInChildren<TComp>(true))
-		// 	{
-		// 		component.Restore();
-		// 		table.Add(component.Item);
-		// 	}
-		// }
-		//
-		// private static void Restore<TItem, TData>(IEnumerable<TData> src, IDictionary<string, TItem> dest, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
-		// {
-		// 	foreach (var d in src) {
-		// 		dest[d.GetName()] = create(d);
-		// 	}
-		// }
-		//
-		// private static void Restore<TItem, TData>(IEnumerable<TData> src, Table table, Func<TData, TItem> create) where TData : ItemData where TItem : Item<TData>
-		// {
-		// 	foreach (var d in src) {
-		// 		table.Add(create(d));
-		// 	}
-		// }
-
 	}
 }
