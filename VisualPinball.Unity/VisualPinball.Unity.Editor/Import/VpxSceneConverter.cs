@@ -45,6 +45,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Unity.VisualPinball.Unity.Scene;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
@@ -302,9 +303,11 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExtractPhysicsMaterials()
 		{
-			// foreach (var material in _tableContainer.Table.Data.Materials) {
-			// 	AssetDatabase.CreateAsset(material, $"{_assetsMaterials}/test.vpmat");
-			// }
+			foreach (var material in _tableContainer.Table.Data.Materials) {
+				var mat = ScriptableObject.CreateInstance<MaterialAsset>();
+				mat.Material = material;
+				AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{mat.Material.Name}.asset");
+			}
 		}
 
 		private void ExtractTextures()
@@ -423,32 +426,32 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory(assetsTableRoot);
 			}
 
-			_assetsPrefabs = $"{assetsTableRoot}/Items/";
+			_assetsPrefabs = $"{assetsTableRoot}Items/";
 			if (!Directory.Exists(_assetsPrefabs)) {
 				Directory.CreateDirectory(_assetsPrefabs);
 			}
 
-			_assetsTextures = $"{assetsTableRoot}/Textures/";
+			_assetsTextures = $"{assetsTableRoot}Textures/";
 			if (!Directory.Exists(_assetsTextures)) {
 				Directory.CreateDirectory(_assetsTextures);
 			}
 
-			_assetsMaterials = $"{assetsTableRoot}/Materials/";
+			_assetsMaterials = $"{assetsTableRoot}Materials/";
 			if (!Directory.Exists(_assetsMaterials)) {
 				Directory.CreateDirectory(_assetsMaterials);
 			}
 
-			_assetsPhysicsMaterials = $"{assetsTableRoot}/Physics Materials/";
+			_assetsPhysicsMaterials = $"{assetsTableRoot}Physics Materials/";
 			if (!Directory.Exists(_assetsPhysicsMaterials)) {
 				Directory.CreateDirectory(_assetsPhysicsMaterials);
 			}
 
-			_assetsMeshes = $"{assetsTableRoot}/Models/";
+			_assetsMeshes = $"{assetsTableRoot}Models/";
 			if (!Directory.Exists(_assetsMeshes)) {
 				Directory.CreateDirectory(_assetsMeshes);
 			}
 
-			_assetsSounds = $"{assetsTableRoot}/Sounds/";
+			_assetsSounds = $"{assetsTableRoot}Sounds/";
 			if (!Directory.Exists(_assetsSounds)) {
 				Directory.CreateDirectory(_assetsSounds);
 			}
