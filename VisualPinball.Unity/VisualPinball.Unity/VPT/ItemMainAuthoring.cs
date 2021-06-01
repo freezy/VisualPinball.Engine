@@ -30,6 +30,12 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>
 		where TData : ItemData
 	{
+		/// <summary>
+		/// If false is returned, no colliders will be created. If your
+		/// component collides, but not per default, set this to true.
+		/// </summary>
+		public virtual bool IsCollidable => true;
+
 		#region Data
 
 		/// <summary>

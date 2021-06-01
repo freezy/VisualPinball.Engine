@@ -411,7 +411,7 @@ namespace VisualPinball.Unity.Editor
 						break;
 
 					case IItemColliderAuthoring colliderItem:
-						colliderItem.MainAuthoring.SetMeshDirty();
+						//colliderItem.MainAuthoring.SetMeshDirty();
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 

@@ -57,7 +57,9 @@ namespace VisualPinball.Unity
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: TableContainer.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
+			: !TableContainer.Has<Kicker>(Data.PlayfieldExitKicker)
+				? Vector3.zero
+				: TableContainer.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
 
 		private void Awake()
 		{

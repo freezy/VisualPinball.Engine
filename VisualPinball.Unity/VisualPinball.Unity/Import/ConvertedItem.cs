@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	{
 		Type MainAuthoringType { get; }
 
-		IItemMainRenderableAuthoring MainAuthoring { get; }
+		IItemMainAuthoring MainAuthoring { get; }
 		IEnumerable<IItemMeshAuthoring> MeshAuthoring { get; }
 		IItemColliderAuthoring ColliderAuthoring { get; }
 		bool IsProceduralMesh { get; set; }
@@ -41,13 +41,14 @@ namespace VisualPinball.Unity
 	}
 
 	public class ConvertedItem<TItem, TData, TMainAuthoring> : IConvertedItem
-		where TItem : Item<TData>, IRenderable
+		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>, IItemMainRenderableAuthoring
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>, IItemMainAuthoring
 	{
 		public Type MainAuthoringType => _mainAuthoring.GetType();
 
-		public IItemMainRenderableAuthoring MainAuthoring => _mainAuthoring;
+		public TMainAuthoring Authoring => _mainAuthoring;
+		public IItemMainAuthoring MainAuthoring => _mainAuthoring;
 		public IEnumerable<IItemMeshAuthoring> MeshAuthoring => _meshAuthoring;
 		public IItemColliderAuthoring ColliderAuthoring => _colliderAuthoring;
 		public bool IsProceduralMesh { get; set; }
@@ -100,7 +101,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void SetAnimationAuthoring<T>(string name) where T : ItemAnimationAuthoring<TItem, TData, TMainAuthoring>
+		public void SetAnimationAuthoring<T>(string name) where T : Component, IItemAnimationAuthoring
 		{
 			var go = _gameObject.transform.Find(name).gameObject;
 			go.AddComponent<T>();
