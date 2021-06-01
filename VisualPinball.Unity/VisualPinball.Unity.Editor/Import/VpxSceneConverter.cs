@@ -478,6 +478,7 @@ namespace VisualPinball.Unity.Editor
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
+			_playfieldGo.AddComponent<TablePlayfieldAuthoring>();
 			_playfieldGo.transform.localRotation = GlobalRotation;
 			_playfieldGo.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * GlobalScale, 0f, _tableContainer.Table.Height / 2 * GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(GlobalScale, GlobalScale, GlobalScale);

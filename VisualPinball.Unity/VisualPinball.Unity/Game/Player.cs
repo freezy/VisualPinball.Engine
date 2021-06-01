@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		public TableApi TableApi { get; private set; }
 
 		// shortcuts
-		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+		public Matrix4x4 TableToWorld => GetComponentInChildren<TablePlayfieldAuthoring>().transform.localToWorldMatrix;
 
 		[NonSerialized]
 		public IGamelogicEngine GamelogicEngine;
