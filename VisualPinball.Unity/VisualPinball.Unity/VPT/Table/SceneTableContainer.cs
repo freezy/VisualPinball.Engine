@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
@@ -30,13 +31,19 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class SceneTableContainer : TableContainer
 	{
-		public Table Table => _tableAuthoring.Table;
+		public new Table Table => _tableAuthoring.Table;
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
+
+		[NonSerialized] private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
 		public override Material GetMaterial(string name)
 		{
-			throw new NotImplementedException();
+			if (string.IsNullOrEmpty(name)) {
+				return null;
+			}
+			return _materials.ContainsKey(name.ToLower()) ? _materials[name.ToLower()] : null;
 		}
+
 		public override Texture GetTexture(string name)
 		{
 			throw new NotImplementedException();
@@ -52,16 +59,21 @@ namespace VisualPinball.Unity
 
 		public void Refresh()
 		{
-			OnHierarchyChanged();
-		}
-
-		private void OnHierarchyChanged()
-		{
 			var stopWatch = Stopwatch.StartNew();
 			Clear();
 			WalkChildren(_tableAuthoring.transform);
 
+			foreach (var material in _tableAuthoring.Data.Materials) {
+				_materials[material.Name.ToLower()] = material;
+			}
+
 			Logger.Info($"Refreshed {GameItems.Count()} game items in {stopWatch.ElapsedMilliseconds}ms.");
+		}
+
+		protected override void Clear()
+		{
+			base.Clear();
+			_materials.Clear();
 		}
 
 		private void WalkChildren(IEnumerable node)
@@ -127,7 +139,6 @@ namespace VisualPinball.Unity
 					break;
 			}
 		}
-
 
 		private void Add<T>(string name, T item) where T : IItem
 		{
