@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
-		private readonly Dictionary<string, PhysicsMaterialAsset> _physicalMaterials = new Dictionary<string, PhysicsMaterialAsset>();
+		private readonly Dictionary<string, PhysicsMaterial> _physicalMaterials = new Dictionary<string, PhysicsMaterial>();
 
 		private readonly IPatcher _patcher;
 		private bool _applyPatch = true;
@@ -258,8 +258,7 @@ namespace VisualPinball.Unity.Editor
 			return importedObject;
 		}
 
-
-		private GameObject CreateAssetFromGameObject(GameObject go, bool extractMesh)
+		private void CreateAssetFromGameObject(GameObject go, bool extractMesh)
 		{
 			var name = go.name;
 			var mfs = go.GetComponentsInChildren<MeshFilter>();
@@ -283,10 +282,8 @@ namespace VisualPinball.Unity.Editor
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
 				}
-				return PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
+				PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 			}
-
-			return go;
 		}
 
 		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
@@ -319,8 +316,11 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				foreach (var material in _tableContainer.Table.Data.Materials) {
-					var mat = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
-					mat.Material = material;
+					var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
+					mat.Elasticity = material.Elasticity;
+					mat.ElasticityFalloff = material.ElasticityFalloff;
+					mat.ScatterAngle = material.ScatterAngle;
+					mat.Friction = material.Friction;
 					AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{material.Name}.asset");
 				}
 
@@ -331,7 +331,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			foreach (var material in _tableContainer.Table.Data.Materials) {
-				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterialAsset>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
+				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
 		}
 
@@ -545,7 +545,7 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasMaterial(string name) => _materials.ContainsKey(name);
 		public Material GetMaterial(string name) => string.IsNullOrEmpty(name) ? null : _materials[name];
-		public PhysicsMaterialAsset GetPhysicsMaterial(string name) => string.IsNullOrEmpty(name) ? null : _physicalMaterials[name];
+		public PhysicsMaterial GetPhysicsMaterial(string name) => string.IsNullOrEmpty(name) ? null : _physicalMaterials[name];
 
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
 		{

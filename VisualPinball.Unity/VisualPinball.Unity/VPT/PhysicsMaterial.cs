@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
-	public class FlipperBaseMeshComponent : ItemMeshComponent
+	/// <summary>
+	/// A physical material used by the physics engine<p/>
+	///
+	/// Materials are actually a big deal in VP, authors as well as players
+	/// tweak them all the time, so getting those from external assets instead
+	/// of writing them into the scene seems a good plan.
+	/// </summary>
+	public class PhysicsMaterial : ScriptableObject
 	{
-		protected override string MeshId => FlipperMeshGenerator.Base;
-		protected override Type ItemType => typeof(Flipper);
+		public float Elasticity;
+		public float ElasticityFalloff;
+		public float Friction;
+		public float ScatterAngle;
 	}
 }
