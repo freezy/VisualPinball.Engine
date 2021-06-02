@@ -31,8 +31,8 @@ namespace VisualPinball.Unity
 		where TAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
-		public List<MemberInfo> MaterialRefs => _materialRefs ?? (_materialRefs = GetMembersWithAttribute<MaterialReferenceAttribute>());
-		public List<MemberInfo> TextureRefs => _textureRefs ?? (_textureRefs = GetMembersWithAttribute<TextureReferenceAttribute>());
+		public List<MemberInfo> MaterialRefs => _materialRefs ??= GetMembersWithAttribute<MaterialReferenceAttribute>();
+		public List<MemberInfo> TextureRefs => _textureRefs ??= GetMembersWithAttribute<TextureReferenceAttribute>();
 
 		public IItemMainRenderableAuthoring IMainAuthoring => MainAuthoring;
 
