@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		[SerializeField]
-		public PhysicsMaterialAsset PhysicsMaterial;
+		public PhysicsMaterial PhysicsMaterial;
 
 		[NonSerialized]
 		public bool ShowGizmos;
