@@ -37,93 +37,96 @@ namespace VisualPinball.Engine.VPT.Light
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
 
+		//FP note: there are multiple types of "lights" in fp : playfield (shape and round) and bulbs
+
 		[BiffString("NAME", IsWideString = true, Pos = 15)]
 		public string Name = string.Empty;
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center;  // FP: yes position/glow_center (can be offset by script)
 
 		[BiffFloat("RADI", Pos = 2)]
-		public float Falloff = 50f;
+		public float Falloff = 50f;  // FP: yes (diameter, glow_radius)
 
 		[BiffFloat("FAPO", Pos = 3)]
-		public float FalloffPower = 2f;
+		public float FalloffPower = 2f;  // FP: no 
 
 		[BiffInt("STAT", Pos = 4)]
-		public int State = LightStatus.LightStateOff;
+		public int State = LightStatus.LightStateOff; // FP: yes
 
 		[BiffColor("COLR", Pos = 5)]
-		public Color Color = new Color(0xffff00, ColorFormat.Argb);
+		public Color Color = new Color(0xffff00, ColorFormat.Argb);  // FP: yes (lit/unlit color) 
 
 		[BiffColor("COL2", Pos = 6)]
-		public Color Color2 = new Color(0xffffff, ColorFormat.Argb);
+		public Color Color2 = new Color(0xffffff, ColorFormat.Argb); // FP: yes (lit/unlit color)
 
 		[BiffString("IMG1", Pos = 10)]
-		public string OffImage = string.Empty;
+		public string OffImage = string.Empty;  // FP: no 
 
 		[BiffBool("SHAP", SkipWrite = true)]
-		public bool IsRoundLight = false;
+		public bool IsRoundLight = false;  // FP: no (round shape lamp)
 
 		[BiffString("BPAT", Pos = 9)]
-		public string BlinkPattern = "10";
+		public string BlinkPattern = "10";  // FP: yes
 
 		[BiffInt("BINT", Pos = 11)]
-		public int BlinkInterval = 125;
+		public int BlinkInterval = 125;  // FP: yes
 
 		[BiffFloat("BWTH", Pos = 12)]
-		public float Intensity = 1f;
+		public float Intensity = 1f;  // FP: no 
 
 		[BiffFloat("TRMS", Pos = 13)]
-		public float TransmissionScale = 0.5f;
+		public float TransmissionScale = 0.5f;  // FP: no 
 
 		[BiffString("SURF", Pos = 14)]
-		public string Surface = string.Empty;
+		public string Surface = string.Empty;  // FP: yes
 
 		[BiffBool("BGLS", Pos = 16)]
-		public bool IsBackglass = false;
+		public bool IsBackglass = false;   // FP: yes for bulbs
 
 		[BiffFloat("LIDB", Pos = 17)]
-		public float DepthBias;
+		public float DepthBias;  // FP: no 
 
 		[BiffFloat("FASP", Pos = 18)]
-		public float FadeSpeedUp = 0.2f;
+		public float FadeSpeedUp = 0.2f;  // FP: no 
 
 		[BiffFloat("FASD", Pos = 19)]
-		public float FadeSpeedDown = 0.2f;
+		public float FadeSpeedDown = 0.2f;  // FP: no 
 
 		[BiffBool("BULT", Pos = 20)]
-		public bool IsBulbLight = false;
+		public bool IsBulbLight = false;  // FP: no (bulb type)
 
 		[BiffBool("IMMO", Pos = 21)]
-		public bool IsImageMode = false;
+		public bool IsImageMode = false;  // FP: no 
 
 		[BiffBool("SHBM", Pos = 22)]
-		public bool ShowBulbMesh = false;
+		public bool ShowBulbMesh = false;  // FP: yes, for bulbs lights
 
 		[BiffBool("STBM", Pos = 22)]
-		public bool HasStaticBulbMesh = true;
+		public bool HasStaticBulbMesh = true;  // FP: idem 
 
 		[BiffBool("SHRB", Pos = 23)]
-		public bool ShowReflectionOnBall = true;
+		public bool ShowReflectionOnBall = true;  // FP: no 
 
 		[BiffFloat("BMSC", Pos = 24)]
-		public float MeshRadius = 20f;
+		public float MeshRadius = 20f;  // FP: no 
 
 		[BiffFloat("BMVA", Pos = 25)]
-		public float BulbModulateVsAdd = 0.9f;
+		public float BulbModulateVsAdd = 0.9f;  // FP: no 
 
 		[BiffFloat("BHHI", Pos = 26)]
-		public float BulbHaloHeight = 28f;
+		public float BulbHaloHeight = 28f;  // FP: no 
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints;  // FP: no ? (shape lamp points?)
 
 		[BiffBool("TMON", Pos = 7)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled;  // FP: no 
 
 		[BiffInt("TMIN", Pos = 8)]
-		public int TimerInterval;
+		public int TimerInterval;  // FP: no 
 
+		//FP +: cookie cut, lens texture, etc...
 		#region BIFF
 
 		static LightData()

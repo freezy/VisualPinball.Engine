@@ -41,70 +41,70 @@ namespace VisualPinball.Engine.VPT.Flasher
 		public string Name = string.Empty;
 
 		[BiffFloat("FHEI", Pos = 1)]
-		public float Height = 50.0f;
+		public float Height = 50.0f;	// FP: no
 
 		[BiffFloat("FLAX", Pos = 2)] public float PosX { set => Center.X = value; get => Center.X; }
 		[BiffFloat("FLAY", Pos = 3)] public float PosY { set => Center.Y = value; get => Center.Y; }
-		public Vertex2D Center = new Vertex2D();
+		public Vertex2D Center = new Vertex2D(); // FP: yes (position)
 
 		[BiffFloat("FROX", Pos = 4)]
-		public float RotX = 0.0f;
+		public float RotX = 0.0f;	// FP: 1 axis "up" (rotation)
 
 		[BiffFloat("FROY", Pos = 5)]
-		public float RotY = 0.0f;
+		public float RotY = 0.0f;   // FP: 1 axis "up" (rotation)
 
 		[BiffFloat("FROZ", Pos = 6)]
-		public float RotZ = 0.0f;
+		public float RotZ = 0.0f;   // FP: 1 axis "up" (rotation)
 
 		[BiffColor("COLR", Pos = 7)]
-		public Color Color = new Color(0xfffffff, ColorFormat.Bgr);
+		public Color Color = new Color(0xfffffff, ColorFormat.Bgr);	// FP: light color
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 11)]
-		public string ImageA;
+		public string ImageA;	// FP: no
 
 		[TextureReference]
 		[BiffString("IMAB", Pos = 12)]
-		public string ImageB;
+		public string ImageB;	// FP: no
 
 		[BiffInt("FALP", Min = 0, Pos = 13)]
-		public int Alpha = 100;
+		public int Alpha = 100;	// FP: no
 
 		[BiffFloat("MOVA", Pos = 14)]
-		public float ModulateVsAdd = 0.9f;
+		public float ModulateVsAdd = 0.9f;  // FP: no
 
 		[BiffBool("FVIS", Pos = 15)]
-		public bool IsVisible = true;
+		public bool IsVisible = true;   // FP: no (infered with model empty or not)
 
 		[BiffBool("ADDB", Pos = 17)]
-		public bool AddBlend = false;
+		public bool AddBlend = false; // FP: no 
 
 		[BiffBool("IDMD", Pos = 18)]
-		public bool IsDmd = false;
+		public bool IsDmd = false; // FP: no 
 
 		[BiffBool("DSPT", Pos = 16)]
-		public bool DisplayTexture = false;
+		public bool DisplayTexture = false; //FP: no
 
 		[BiffFloat("FLDB", Pos = 19)]
-		public float DepthBias = 0.0f;
+		public float DepthBias = 0.0f; //FP: no
 
 		[BiffInt("ALGN", Pos = 20)]
-		public int ImageAlignment = VisualPinball.Engine.VPT.ImageAlignment.ImageAlignTopLeft;
+		public int ImageAlignment = VisualPinball.Engine.VPT.ImageAlignment.ImageAlignTopLeft; //FP: no
 
 		[BiffInt("FILT", Pos = 21)]
-		public int Filter = Filters.Filter_Overlay;
+		public int Filter = Filters.Filter_Overlay; // FP: no
 
 		[BiffInt("FIAM", Pos = 22)]
-		public int FilterAmount = 100;
+		public int FilterAmount = 100;  //FP: no
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints;  //FP: no
 
 		[BiffBool("TMON", Pos = 8)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled;  //FP: no? (blink interval?)
 
 		[BiffInt("TMIN", Pos = 9)]
-		public int TimerInterval;
+		public int TimerInterval;  //FP: no? (blink interval?)
 
 		#region BIFF
 

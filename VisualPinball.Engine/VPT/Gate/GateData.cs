@@ -40,66 +40,67 @@ namespace VisualPinball.Engine.VPT.Gate
 		public string Name = string.Empty;
 
 		[BiffFloat("GAMA", Pos = 12)]
-		public float AngleMax = MathF.PI / 2.0f;
+		public float AngleMax = MathF.PI / 2.0f; // FP: no (just "one way" or not)
 
 		[BiffFloat("GAMI", Pos = 13)]
-		public float AngleMin = 0f;
+		public float AngleMin = 0f; // FP: no (just "one way" or not)
 
 		[BiffFloat("AFRC", Pos = 15)]
-		public float Damping = 0.985f;
+		public float Damping = 0.985f; // FP: no 
 
 		[BiffFloat("ELAS", Pos = 11)]
-		public float Elasticity = 0.3f;
+		public float Elasticity = 0.3f; // FP: no 
 
 		[BiffFloat("GFRC", Pos = 14)]
-		public float Friction = 0.02f;
+		public float Friction = 0.02f; // FP: no 
 
 		[BiffInt("GATY", Min = VPT.GateType.GateWireW, Max = VPT.GateType.GateLongPlate, Pos = 21)]
-		public int GateType = VPT.GateType.GateWireW;
+		public int GateType = VPT.GateType.GateWireW; // FP: no (model)
 
 		[BiffFloat("GGFC", Pos = 16)]
-		public float GravityFactor = 0.25f;
+		public float GravityFactor = 0.25f; // FP: no 
 
 		[BiffFloat("HGTH", Pos = 3)]
-		public float Height = 50f;
+		public float Height = 50f; // FP: no 
 
 		[BiffBool("GCOL", Pos = 8)]
-		public bool IsCollidable = true;
+		public bool IsCollidable = true; // FP: no (always)
 
 		[BiffBool("REEN", Pos = 20)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true; // FP: yes (reflects_off_playfield) 
 
 		[BiffBool("GVSB", Pos = 17)]
-		public bool IsVisible = true;
+		public bool IsVisible = true; //  // FP: no (infered if model is empty)
 
 		[BiffFloat("LGTH", Pos = 2)]
-		public float Length = 100f;
+		public float Length = 100f; // FP: no 
 
 		[BiffFloat("ROTA", Pos = 4)]
-		public float Rotation = -90f;
+		public float Rotation = -90f; // FP: yes (around up: rotation) 
 
 		[BiffBool("GSUP", Pos = 7)]
-		public bool ShowBracket = true;
+		public bool ShowBracket = true; // FP: no 
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material;
+		public string Material; // FP: no (texture)
 
 		[BiffString("SURF", Pos = 10)]
-		public string Surface;
+		public string Surface; // FP: yes 
 
 		[BiffBool("TWWA", Pos = 19)]
-		public bool TwoWay = false;
+		public bool TwoWay = false; // FP: yes (negative: one way or not)
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center; // FP: yes (position)
 
 		[BiffBool("TMON", Pos = 6)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled; // FP: no 
 
 		[BiffInt("TMIN", Pos = 9)]
-		public int TimerInterval;
+		public int TimerInterval; // FP: no 
 
+		// FP+ : model, sphere_mapping, color
 		#region IPhysicalData
 
 		public float GetElasticity() => Elasticity;

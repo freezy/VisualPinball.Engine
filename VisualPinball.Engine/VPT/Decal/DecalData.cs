@@ -40,47 +40,48 @@ namespace VisualPinball.Engine.VPT.Decal
 		public string Name = string.Empty;
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center;	// FP: yes (position)
 
 		[BiffFloat("WDTH", Pos = 2)]
-		public float Width = 100.0f;
+		public float Width = 100.0f;	// FP: yes
 
 		[BiffFloat("HIGH", Pos = 3)]
-		public float Height = 100.0f;
+		public float Height = 100.0f;	// FP: yes
 
 		[BiffFloat("ROTA", Pos = 4)]
-		public float Rotation = 0.0f;
+		public float Rotation = 0.0f;	// FP: yes
 
 		[BiffString("IMAG", Pos = 5)]
-		public string Image;
+		public string Image;	// FP: yes (texture)
 
 		[BiffString("SURF", Pos = 6)]
-		public string Surface;
+		public string Surface;	// FP: yes
 
 		[BiffString("TEXT", Pos = 8)]
-		public string Text;
+		public string Text;	// FP: No
 
 		[BiffInt("TYPE", Pos = 9)]
-		public int DecalType = VisualPinball.Engine.VPT.DecalType.DecalImage;
+		public int DecalType = VisualPinball.Engine.VPT.DecalType.DecalImage; // FP: NO: always images
 
 		[BiffInt("SIZE", Pos = 12)]
-		public int SizingType = VisualPinball.Engine.VPT.SizingType.ManualSize;
+		public int SizingType = VisualPinball.Engine.VPT.SizingType.ManualSize; // FP: no (always "Manual"
 
 		[BiffColor("COLR", Pos = 11)]
-		public Color Color = new Color(0x000000, ColorFormat.Bgr);
+		public Color Color = new Color(0x000000, ColorFormat.Bgr); // FP: yes
 
 		[BiffString("MATR", Pos = 10)]
-		public string Material;
+		public string Material;	// FP: no
 
 		[BiffBool("VERT", Pos = 13)]
-		public bool VerticalText = false;
+		public bool VerticalText = false;	// FP: no
 
 		[BiffBool("BGLS", Pos = 14)]
-		public bool Backglass = false;
+		public bool Backglass = false;	// FP: no
 
 		[BiffFont("FONT", Pos = 2000)]
-		public Font Font;
+		public Font Font;	// FP: no
 
+		// FP +: transparency
 		#region BIFF
 
 		static DecalData()

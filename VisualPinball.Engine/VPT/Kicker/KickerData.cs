@@ -41,47 +41,49 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public string Name = string.Empty;
 
 		[BiffInt("TYPE", Pos = 9)]
-		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;
+		public int KickerType = VisualPinball.Engine.VPT.KickerType.KickerHole;  // FP: kinf of: vertical or horizontal
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center; // FP: yes 
 
 		[BiffFloat("RADI", Pos = 2)]
-		public float Radius = 25f;
+		public float Radius = 25f; // FP: no 
 
 		[BiffFloat("KSCT", Pos = 10)]
-		public float Scatter = 0.0f;
+		public float Scatter = 0.0f; // FP: no 
 
 		[BiffFloat("KHAC", Pos = 11)]
-		public float HitAccuracy = 0.7f;
+		public float HitAccuracy = 0.7f; // FP: no 
 
 		[BiffFloat("KHHI", Pos = 12)]
-		public float HitHeight = 40.0f;
+		public float HitHeight = 40.0f; // FP: no 
 
 		[BiffFloat("KORI", Pos = 13)]
-		public float Orientation = 0.0f;
+		public float Orientation = 0.0f; // FP: yes (rotation)
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material = string.Empty;
+		public string Material = string.Empty; // FP: no (just texture)
 
 		[BiffString("SURF", Pos = 6)]
-		public string Surface = string.Empty;
+		public string Surface = string.Empty; // FP: yes 
 
 		[BiffBool("FATH", Pos = 14)]
-		public bool FallThrough = false;
+		public bool FallThrough = false; // FP: no 
 
 		[BiffBool("EBLD", Pos = 7)]
-		public bool IsEnabled = true;
+		public bool IsEnabled = true; // FP: no 
 
 		[BiffBool("LEMO", Pos = 15)]
-		public bool LegacyMode = true;
+		public bool LegacyMode = true; // FP: no 
 
 		[BiffBool("TMON", Pos = 3)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled; // FP: no 
 
 		[BiffInt("TMIN", Pos = 4)]
-		public int TimerInterval;
+		public int TimerInterval; // FP: no 
+
+		// FP+: model, color, render_model, sound_when_hit
 
 		// -----------------
 		// new fields by VPE
@@ -91,7 +93,7 @@ namespace VisualPinball.Engine.VPT.Kicker
 		public float Angle = 90f;
 
 		[BiffFloat("SPED", Pos = 17, SkipHash = true, IsVpeEnhancement = true)]
-		public float Speed = 3f;
+		public float Speed = 3f; // FP: equivalent? (strength)
 
 		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{

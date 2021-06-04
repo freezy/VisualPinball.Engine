@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
 
-		public readonly Dictionary<string, string> TableInfo = new Dictionary<string, string>();
+		public Dictionary<string, string> TableInfo = new Dictionary<string, string>();
 		public ITableResourceContainer<Texture> Textures = new DefaultTableResourceContainer<Texture>();
 		public ITableResourceContainer<Sound.Sound> Sounds = new DefaultTableResourceContainer<Sound.Sound>();
 		public readonly Dictionary<string, Collection.Collection> Collections = new Dictionary<string, Collection.Collection>();

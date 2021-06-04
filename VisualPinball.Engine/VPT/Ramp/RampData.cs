@@ -40,100 +40,103 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public string Name = string.Empty;
 
 		[BiffFloat("RADB", Pos = 24)]
-		public float DepthBias = 0f;
+		public float DepthBias = 0f;  // FP: no 
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints;  // FP: yes (ramp points)
 
 		[BiffFloat("ELAS", Pos = 19)]
-		public float Elasticity;
+		public float Elasticity;  // FP: no 
 
 		[BiffFloat("RFCT", Pos = 20)]
-		public float Friction;
+		public float Friction;  // FP: no (physics material)
 
 		[BiffBool("HTEV", Pos = 17)]
-		public bool HitEvent = false;
+		public bool HitEvent = false;  // FP: no 
 
 		[BiffFloat("HTBT", Pos = 1)]
-		public float HeightBottom = 0f;
+		public float HeightBottom = 0f;  // FP: yes
 
 		[BiffFloat("HTTP", Pos = 2)]
-		public float HeightTop = 50f;
+		public float HeightTop = 50f;  // FP: yes
 
 		[BiffInt("ALGN", Pos = 11)]
-		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
+		public int ImageAlignment = RampImageAlignment.ImageModeWorld;  // FP: no 
 
 		[BiffBool("IMGW", Pos = 12)]
-		public bool ImageWalls = true;
+		public bool ImageWalls = true;  // FP: yes? (texture?)
 
 		[BiffBool("CLDR", Pos = 22)]
-		public bool IsCollidable = true;
+		public bool IsCollidable = true;  // FP: no 
 
 		[BiffBool("REEN", Pos = 28)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true;  // FP: yes (reflects_off_playfield)
 
 		[BiffBool("RVIS", Pos = 23)]
-		public bool IsVisible = true;
+		public bool IsVisible = true;  // FP: no 
 
 		[BiffFloat("WLHL", Pos = 13)]
-		public float LeftWallHeight = 62f;
+		public float LeftWallHeight = 62f;  // FP: yes (left_side_height)
 
 		[BiffFloat("WVHL", Pos = 15)]
-		public float LeftWallHeightVisible = 30f;
+		public float LeftWallHeightVisible = 30f;  // FP: no 
 
 		[BiffBool("OVPH", Pos = 30)]
-		public bool OverwritePhysics = true;
+		public bool OverwritePhysics = true;  // FP: no 
 
 		[BiffInt("TYPE", Pos = 8)]
 		public int RampType = VisualPinball.Engine.VPT.RampType.RampTypeFlat;
 
 		[BiffFloat("WLHR", Pos = 14)]
-		public float RightWallHeight = 62f;
+		public float RightWallHeight = 62f;// FP: ]yes (right_side_height)
+
 
 		[BiffFloat("WVHR", Pos = 16)]
-		public float RightWallHeightVisible = 30f;
+		public float RightWallHeightVisible = 30f;  // FP: no 
 
 		[BiffFloat("RSCT", Pos = 21)]
-		public float Scatter;
+		public float Scatter;  // FP: no 
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 10)]
-		public string Image = string.Empty;
+		public string Image = string.Empty;  // FP: yes (texture) 
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material = string.Empty;
+		public string Material = string.Empty;  // FP: no 
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
-		public string PhysicsMaterial = string.Empty;
+		public string PhysicsMaterial = string.Empty;  // FP: no 
 
 		[BiffFloat("THRS", Pos = 18)]
-		public float Threshold;
+		public float Threshold;  // FP: no 
 
 		[BiffFloat("WDBT", Pos = 3)]
-		public float WidthBottom = 75f;
+		public float WidthBottom = 75f;  // FP: yes (start_width)
 
 		[BiffFloat("WDTP", Pos = 4)]
-		public float WidthTop = 60f;
+		public float WidthTop = 60f;  // FP: yes (end_width)
 
 		[BiffFloat("RADI", Pos = 25)]
-		public float WireDiameter = 8f;
+		public float WireDiameter = 8f;  // FP: no (for wireramps)
 
 		[BiffFloat("RADX", Pos = 26)]
-		public float WireDistanceX = 38f;
+		public float WireDistanceX = 38f;  // FP: no 
 
 		[BiffFloat("RADY", Pos = 27)]
-		public float WireDistanceY = 88f;
+		public float WireDistanceY = 88f;  // FP: no 
 
 		[BiffBool("TMON", Pos = 6)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled;  // FP: no 
 
 		[BiffInt("TMIN", Pos = 7)]
-		public int TimerInterval;
+		public int TimerInterval;  // FP: no 
 
 		[BiffTag("PNTS", Pos = 1999)]
-		public bool Points;
+		public bool Points;  // FP: yes
+
+		//FP+ : model (for modelramps), transparency, profile_type, color, sphere_mapping
 
 		public RampData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
 		{

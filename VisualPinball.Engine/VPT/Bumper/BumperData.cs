@@ -40,83 +40,85 @@ namespace VisualPinball.Engine.VPT.Bumper
 		public string Name = string.Empty;
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center;	// FP: idem
 
 		[BiffFloat("RADI", Pos = 2)]
-		public float Radius = 45f;
+		public float Radius = 45f; // FP: No
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 12)]
-		public string CapMaterial = string.Empty;
+		public string CapMaterial = string.Empty; // FP: cap texture, "crystal" for transparency
 
 		[MaterialReference]
 		[BiffString("RIMA", Pos = 15)]
-		public string RingMaterial = string.Empty;
+		public string RingMaterial = string.Empty; // FP: No
 
 		[MaterialReference]
 		[BiffString("BAMA", Pos = 13)]
-		public string BaseMaterial = string.Empty;
+		public string BaseMaterial = string.Empty; // FP: Just color
 
 		[MaterialReference]
 		[BiffString("SKMA", Pos = 14)]
-		public string SocketMaterial = string.Empty;
+		public string SocketMaterial = string.Empty; //FP: Just color
 
 		[BiffFloat("THRS", Pos = 5)]
-		public float Threshold = 1.0f;
+		public float Threshold = 1.0f; // FP: No
 
 		[BiffFloat("FORC", Pos = 6)]
-		public float Force = 15f;
+		public float Force = 15f;	// FP: idem (strength)
 
 		[BiffFloat("BSCT", Pos = 7)]
-		public float Scatter;
+		public float Scatter;	// FP: No
 
 		[BiffFloat("HISC", Pos = 8)]
-		public float HeightScale = 90.0f;
+		public float HeightScale = 90.0f; // FP: No
 
 		[BiffFloat("RISP", Pos = 9)]
-		public float RingSpeed = 0.5f;
+		public float RingSpeed = 0.5f;	// FP: No (animated in mesh)
 
 		[BiffFloat("ORIN", Pos = 10)]
-		public float Orientation = 0.0f;
+		public float Orientation = 0.0f;	// FP: yes (rotation)
 
 		[BiffFloat("RDLI", Pos = 11)]
-		public float RingDropOffset = 0.0f;
+		public float RingDropOffset = 0.0f;	// FP: No (in animation)
 
 		[BiffString("SURF", Pos = 16)]
-		public string Surface = string.Empty;
+		public string Surface = string.Empty;	// FP: yes
 
 		[BiffBool("BVIS", SkipWrite = true)]
 		[BiffBool("CAVI", Pos = 18)]
-		public bool IsCapVisible = true;
+		public bool IsCapVisible = true;	// FP: no (always cap)
 
 		[BiffBool("BVIS", SkipWrite = true)]
 		[BiffBool("BSVS", Pos = 19)]
-		public bool IsBaseVisible = true;
+		public bool IsBaseVisible = true;	// FP: no (always base)
 
 		[BiffBool("BSVS", SkipWrite = true)]
 		[BiffBool("BVIS", SkipWrite = true)]
 		[BiffBool("RIVS", Pos = 20)]
-		public bool IsRingVisible = true;
+		public bool IsRingVisible = true;	// FP: no (always ring)
 
 		[BiffBool("BSVS", SkipWrite = true)]
 		[BiffBool("BVIS", SkipWrite = true)]
 		[BiffBool("SKVS", Pos = 21)]
-		public bool IsSocketVisible = true;
+		public bool IsSocketVisible = true; // FP: yes (trigger_skirt)
 
 		[BiffBool("HAHE", Pos = 22)]
-		public bool HitEvent = true;
+		public bool HitEvent = true;	// FP: no?
 
 		[BiffBool("COLI", Pos = 23)]
-		public bool IsCollidable = true;
+		public bool IsCollidable = true;	// FP: always
 
 		[BiffBool("REEN", Pos = 24)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true; // FP: kind of? : "reflects_off_playfield"
 
 		[BiffBool("TMON", Pos = 3)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled;	// FP: no
 
 		[BiffInt("TMIN", Pos = 4)]
-		public int TimerInterval;
+		public int TimerInterval;	// FP: no
+
+		// FP +: Lamp color, auto-flsh when hit, models...
 
 		public BumperData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{

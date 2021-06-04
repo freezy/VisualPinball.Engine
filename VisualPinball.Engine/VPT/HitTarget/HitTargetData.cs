@@ -37,88 +37,91 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public override void SetName(string name) { Name = name; }
 
 		[BiffString("NAME", IsWideString = true, Pos = 6)]
-		public string Name = string.Empty;
+		public string Name = string.Empty; 
 
 		[BiffFloat("PIDB", Pos = 20)]
-		public float DepthBias;
+		public float DepthBias; // FP: no 
 
 		[BiffFloat("DILB", Pos = 18)]
-		public float DisableLightingBelow;
+		public float DisableLightingBelow; // FP: no 
 
 		[BiffFloat("DILI", QuantizedUnsignedBits = 8, Pos = 17)]
-		public float DisableLightingTop;
+		public float DisableLightingTop; // FP: no 
 
 		[BiffFloat("DRSP", Pos = 22)]
-		public float DropSpeed =  0.5f;
+		public float DropSpeed =  0.5f; // FP: no 
 
 		[BiffBool("REEN", Pos = 19)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true; // FP: yes 
 
 		[BiffInt("RADE", Pos = 25)]
-		public int RaiseDelay = 100;
+		public int RaiseDelay = 100; // FP: no 
 
 		[BiffFloat("ELAS", Pos = 12)]
-		public float Elasticity;
+		public float Elasticity; // FP: no 
 
 		[BiffFloat("ELFO", Pos = 13)]
-		public float ElasticityFalloff;
+		public float ElasticityFalloff; // FP: no 
 
 		[BiffFloat("RFCT", Pos = 14)]
-		public float Friction;
+		public float Friction; // FP: no 
 
 		[BiffBool("CLDR", Pos = 16)]
-		public bool IsCollidable = true;
+		public bool IsCollidable = true; // FP: no (always)
 
 		[BiffBool("ISDR", Pos = 21)]
-		public bool IsDropped = false;
+		public bool IsDropped = false; // FP: no 
 
 		[BiffBool("TVIS", Pos = 8)]
-		public bool IsVisible = true;
+		public bool IsVisible = true; // FP: no 
 
 		[BiffBool("LEMO", Pos = 9)]
-		public bool IsLegacy = false;
+		public bool IsLegacy = false; // FP: no 
 
 		[BiffBool("OVPH", Pos = 27)]
-		public bool OverwritePhysics = false;
+		public bool OverwritePhysics = false; // FP: no 
 
 		[BiffFloat("ROTZ", Pos = 3)]
-		public float RotZ = 0f;
+		public float RotZ = 0f; // FP: yes (rotation)
 
 		[BiffFloat("RSCT", Pos = 15)]
-		public float Scatter;
+		public float Scatter; // FP: no 
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 4)]
-		public string Image = string.Empty;
+		public string Image = string.Empty; // FP: yes (texture)
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 7)]
-		public string Material = string.Empty;
+		public string Material = string.Empty; // FP: no 
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 26)]
-		public string PhysicsMaterial = string.Empty;
+		public string PhysicsMaterial = string.Empty; // FP: no 
 
+		// FP: Actually, two kinds of "targets": leaf target and drop target banks (generating multiple drop targets)
 		[BiffInt("TRTY", Pos = 5)]
 		public int TargetType = VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
 
 		[BiffFloat("THRS", Pos = 11)]
-		public float Threshold = 2.0f;
+		public float Threshold = 2.0f; // FP: no 
 
 		[BiffBool("HTEV", Pos = 10)]
-		public bool UseHitEvent = true;
+		public bool UseHitEvent = true; // FP: no 
 
 		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
-		public Vertex3D Position = new Vertex3D();
+		public Vertex3D Position = new Vertex3D(); // FP: yes
 
 		[BiffVertex("VSIZ", IsPadded = true, Pos = 2)]
-		public Vertex3D Size = new Vertex3D(32, 32, 32);
+		public Vertex3D Size = new Vertex3D(32, 32, 32); // FP: no 
 
 		[BiffBool("TMON", Pos = 23)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled; // FP: no 
 
 		[BiffInt("TMIN", Pos = 24)]
-		public int TimerInterval;
+		public int TimerInterval; // FP: no 
+
+		// FP+: Model, color, sound when hit, sound when released
 
 		public bool IsDropTarget =>
 			   TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetBeveled

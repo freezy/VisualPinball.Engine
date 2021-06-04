@@ -40,82 +40,82 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public string Name = string.Empty;
 
 		[BiffFloat("HTTP", Pos = 1)]
-		public float Height = 25f;
+		public float Height = 25f; // FP: no? (offset?)
 
 		[BiffFloat("HTHI", Pos = 2)]
-		public float HitHeight = 25f;
+		public float HitHeight = 25f; // FP: no
 
 		[BiffInt("WDTP", Pos = 3)]
-		public int Thickness = 8;
+		public int Thickness = 8; // FP: no (subtype)
 
 		[BiffBool("HTEV", Pos = 4)]
-		public bool HitEvent = false;
+		public bool HitEvent = false; // FP: no
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
-		public string Material = string.Empty;
+		public string Material = string.Empty; // FP: no (color)
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
-		public string Image = string.Empty;
+		public string Image = string.Empty; // FP: no (yes for modelreubber: texture)
 
 		[BiffFloat("ELAS", Pos = 10)]
-		public float Elasticity;
+		public float Elasticity; // FP: yes
 
 		[BiffFloat("ELFO", Pos = 11)]
-		public float ElasticityFalloff;
+		public float ElasticityFalloff; // FP: no
 
 		[BiffFloat("RFCT", Pos = 12)]
-		public float Friction;
+		public float Friction; // FP: no
 
 		[BiffFloat("RSCT", Pos = 13)]
-		public float Scatter;
+		public float Scatter; // FP: no
 
 		[BiffBool("CLDR", Pos = 14)]
-		public bool IsCollidable = true;
+		public bool IsCollidable = true; // FP: no (always)
 
 		[BiffBool("RVIS", Pos = 15)]
-		public bool IsVisible = true;
+		public bool IsVisible = true; // FP: no
 
 		[BiffBool("REEN", Pos = 21)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true; // FP: yes (reflects_off_playfield)
 
 		[BiffBool("ESTR", Pos = 16)]
-		public bool StaticRendering = true;
+		public bool StaticRendering = true; // FP: no
 
 		[BiffBool("ESIE", Pos = 17)]
-		public bool ShowInEditor = true;
+		public bool ShowInEditor = true; // FP: no
 
 		[BiffFloat("ROTX", Pos = 18)]
-		public float RotX = 0f;
+		public float RotX = 0f;  // FP: no (rotation on z if modelrubber)
 
 		[BiffFloat("ROTY", Pos = 19)]
-		public float RotY = 0f;
+		public float RotY = 0f;  // FP: no (rotation on z if modelrubber)
 
 		[BiffFloat("ROTZ", Pos = 20)]
-		public float RotZ = 0f;
+		public float RotZ = 0f;  // FP: no (rotation on z if modelrubber)
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 22)]
-		public string PhysicsMaterial = string.Empty;
+		public string PhysicsMaterial = string.Empty;  // FP: no
 
 		[BiffBool("OVPH", Pos = 23)]
-		public bool OverwritePhysics = false;
+		public bool OverwritePhysics = false;  // FP: no
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints;  // FP: yes (for shapeable rubbers)
 
 		[BiffBool("TMON", Pos = 6)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled;  // FP: no
 
 		[BiffInt("TMIN", Pos = 7)]
-		public int TimerInterval;
+		public int TimerInterval;  // FP: no
 
 		[BiffTag("PNTS", Pos = 1999)]
-		public bool Points;
+		public bool Points;  // FP: no
 
 		// Not saved in .vpx but still serialized so we don't need to re-calculate.
-		public Vertex3D MiddlePoint = new Vertex3D();
+		public Vertex3D MiddlePoint = new Vertex3D();  // FP: no
 
 		// IPhysicalData
 		public float GetElasticity() => Elasticity;

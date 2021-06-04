@@ -44,103 +44,105 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public string Name = string.Empty;
 
 		[BiffFloat("BASR", Pos = 2)]
-		public float BaseRadius = 21.5f;
+		public float BaseRadius = 21.5f; //FP: no
 
 		[BiffFloat("ENDR", Pos = 3)]
-		public float EndRadius = 13.0f;
+		public float EndRadius = 13.0f; //FP: no
 
 		[BiffFloat("FRMN", Pos = 29)]
-		public float FlipperRadiusMin;
+		public float FlipperRadiusMin; //FP: no
 
 		[BiffFloat("FLPR", Pos = 4)]
-		public float FlipperRadiusMax = 130.0f;
+		public float FlipperRadiusMax = 130.0f; //FP: no
 
 		[BiffFloat("FLPR", SkipWrite = true)]
-		public float FlipperRadius = 130.0f;
+		public float FlipperRadius = 130.0f; //FP: no
 
 		[BiffFloat("ANGS", Pos = 6)]
-		public float StartAngle = 121.0f;
+		public float StartAngle = 121.0f; //FP: yes (start_angle)
 
 		[BiffFloat("ANGE", Pos = 7)]
-		public float EndAngle = 70.0f;
+		public float EndAngle = 70.0f;  //FP: not directly (cumulative using swing)
 
 		[BiffFloat("FHGT", Pos = 30)]
-		public float Height = 50.0f;
+		public float Height = 50.0f; //FP: no 
 
 		[BiffVertex("VCEN", Pos = 1)]
-		public Vertex2D Center;
+		public Vertex2D Center; //FP: yes (position) 
 
 		[TextureReference]
 		[BiffString("IMAG", Pos = 31)]
-		public string Image = string.Empty;
+		public string Image = string.Empty; // FP: yes (texture)
 
 		[BiffString("SURF", Pos = 12)]
-		public string Surface = string.Empty;
+		public string Surface = string.Empty; //FP: yes (surface)
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
-		public string Material = string.Empty;
+		public string Material = string.Empty; //FP: no
 
 		[MaterialReference]
 		[BiffString("RUMA", Pos = 15)]
-		public string RubberMaterial = string.Empty;
+		public string RubberMaterial = string.Empty; // FP: no
 
 		[BiffFloat("RTHF", Pos = 16.1)]
-		public float RubberThickness = 7.0f;
+		public float RubberThickness = 7.0f; //FP: no
 
 		[BiffFloat("RHGF", Pos = 17.1)]
-		public float RubberHeight = 19.0f;
+		public float RubberHeight = 19.0f; //FP: no
 
 		[BiffFloat("RWDF", Pos = 18.1)]
-		public float RubberWidth = 24.0f;
+		public float RubberWidth = 24.0f; //FP: no
 
 		[BiffFloat("FORC", Pos = 9)]
-		public float Mass = 1f;
+		public float Mass = 1f; //FP: no
 
 		[BiffFloat("STRG", Pos = 19)]
-		public float Strength = 2200f;
+		public float Strength = 2200f; //FP: yes
 
 		[BiffFloat("ELAS", Pos = 20)]
-		public float Elasticity = 0.8f;
+		public float Elasticity = 0.8f; //FP: yes
 
 		[BiffFloat("ELFO", Pos = 21)]
-		public float ElasticityFalloff = 0.43f;
+		public float ElasticityFalloff = 0.43f; //FP: no
 
 		[BiffFloat("FRIC", Pos = 22)]
-		public float Friction = 0.6f;
+		public float Friction = 0.6f; //FP: no
 
 		[BiffFloat("FRTN", Pos = 5)]
-		public float Return = 0.058f;
+		public float Return = 0.058f; //FP: no
 
 		[BiffFloat("RPUP", Pos = 23)]
-		public float RampUp = 3f;
+		public float RampUp = 3f; //FP: no
 
 		[BiffFloat("TODA", Pos = 25)]
-		public float TorqueDamping = 0.75f;
+		public float TorqueDamping = 0.75f; //FP: no
 
 		[BiffFloat("TDAA", Pos = 26)]
-		public float TorqueDampingAngle = 6f;
+		public float TorqueDampingAngle = 6f; //FP: no
 
 		[BiffFloat("SCTR", Pos = 24)]
-		public float Scatter;
+		public float Scatter; //FP: no
 
 		[BiffInt("OVRP", Pos = 8)]
-		public int OverridePhysics;
+		public int OverridePhysics; //FP: no
 
 		[BiffBool("VSBL", Pos = 27)]
-		public bool IsVisible = true;
+		public bool IsVisible = true; //FP: no (model empty or not)
 
 		[BiffBool("ENBL", Pos = 28)]
-		public bool IsEnabled = true;
+		public bool IsEnabled = true; //FP: no
 
 		[BiffBool("REEN", Pos = 32)]
-		public bool IsReflectionEnabled = true;
+		public bool IsReflectionEnabled = true; //FP: no
 
 		[BiffBool("TMON", Pos = 10)]
-		public bool IsTimerEnabled;
+		public bool IsTimerEnabled; //FP: no
 
 		[BiffInt("TMIN", Pos = 11)]
-		public int TimerInterval;
+		public int TimerInterval; //FP: no
+
+		//FP +: model, color, up/down sounds
 
 		// -----------------
 		// new fields by VPE
