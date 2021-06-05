@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialField("Base Material", ref Data.BaseMaterial);
+			MaterialFieldLegacy("Base Material", ref Data.BaseMaterial);
 
 			base.OnInspectorGUI();
 		}

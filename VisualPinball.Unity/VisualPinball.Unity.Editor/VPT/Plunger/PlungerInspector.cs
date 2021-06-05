@@ -51,8 +51,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialField("Material", ref Data.Material);
-				TextureField("Image", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
+				TextureFieldLegacy("Texture", ref Data.Image);
 				ItemDataField("Flat Frames", ref Data.AnimFrames);
 				ItemDataField("Width", ref Data.Width);
 				ItemDataField("Z Adjustment", ref Data.ZAdjust);

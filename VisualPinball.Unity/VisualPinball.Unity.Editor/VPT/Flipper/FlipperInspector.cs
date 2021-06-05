@@ -55,13 +55,13 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutBaseMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutBaseMesh, "Base Mesh")) {
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
+				TextureFieldLegacy("Texture", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutRubberMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberMesh, "Rubber Mesh")) {
-				MaterialField("Rubber Material", ref Data.RubberMaterial);
+				MaterialFieldLegacy("Rubber Material", ref Data.RubberMaterial);
 				ItemDataField("Rubber Thickness", ref Data.RubberThickness, onChanged: ItemAuthoring.OnRubberWidthUpdated);
 				ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
 				ItemDataField("Rubber Width", ref Data.RubberWidth);

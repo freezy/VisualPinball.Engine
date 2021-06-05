@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.GateType, GateTypeLabels, GateTypeValues);
 				ItemDataField("Show Bracket", ref Data.ShowBracket);
-				MaterialField("Material", ref Data.Material);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

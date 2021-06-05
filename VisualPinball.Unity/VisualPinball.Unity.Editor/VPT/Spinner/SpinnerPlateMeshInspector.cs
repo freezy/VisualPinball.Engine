@@ -31,8 +31,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			ItemDataField("Visible", ref Data.IsVisible);
-			TextureField("Image", ref Data.Image);
-			MaterialField("Material", ref Data.Material);
+			TextureFieldLegacy("Texture", ref Data.Image);
+			MaterialFieldLegacy("Material", ref Data.Material);
 			ItemDataField("Show Bracket", ref Data.ShowBracket);
 
 			base.OnInspectorGUI();
