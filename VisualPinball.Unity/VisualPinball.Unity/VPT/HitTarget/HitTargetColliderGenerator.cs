@@ -114,22 +114,22 @@ namespace VisualPinball.Unity
 					var rgv1 = rgv3D[i1].ToUnityFloat3();
 					var rgv2 = rgv3D[i2].ToUnityFloat3();
 
-					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(table, true)));
+					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(true)));
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(table, true)));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(true)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(table, true)));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(true)));
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(table, true)));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(true)));
 					}
 				}
 
 				// add collision vertices
 				for (var i = 0; i < DropTargetHitPlaneVertices.Length; ++i) {
-					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(table, true)));
+					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(true)));
 				}
 			}
 		}
@@ -147,28 +147,28 @@ namespace VisualPinball.Unity
 				var rgv1 = hitMesh.Vertices[i1].ToUnityFloat3();
 				var rgv2 = hitMesh.Vertices[i2].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(table, setHitObject)));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(setHitObject)));
 
 				if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-					colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(table, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(setHitObject)));
 				}
 				if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-					colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(table, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(setHitObject)));
 				}
 				if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-					colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(table, setHitObject)));
+					colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(setHitObject)));
 				}
 			}
 
 			// add collision vertices
 			foreach (var vertex in hitMesh.Vertices) {
-				colliders.Add(new PointCollider(vertex.ToUnityFloat3(), GetColliderInfo(table, setHitObject)));
+				colliders.Add(new PointCollider(vertex.ToUnityFloat3(), GetColliderInfo(setHitObject)));
 			}
 		}
 
-		private ColliderInfo GetColliderInfo(Table table, bool setHitObject)
+		private ColliderInfo GetColliderInfo(bool setHitObject)
 		{
-			var info = _api.GetColliderInfo(table);
+			var info = _api.GetColliderInfo();
 			info.FireEvents = setHitObject && info.FireEvents;
 			return info;
 		}

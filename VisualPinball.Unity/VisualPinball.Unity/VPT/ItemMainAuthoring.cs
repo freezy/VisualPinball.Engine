@@ -25,6 +25,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	[DisallowMultipleComponent]
 	public abstract class ItemMainAuthoring<TItem, TData> : ItemAuthoring<TItem, TData>,
 		IItemMainAuthoring, ILayerableItemAuthoring, IIdentifiableItemAuthoring
 		where TItem : Item<TData>

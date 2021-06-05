@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			colliders.Add(new SpinnerCollider(_data, height, _api.GetColliderInfo(table)));
+			colliders.Add(new SpinnerCollider(_data, height, _api.GetColliderInfo()));
 			if (_data.ShowBracket) {
 				GenerateBracketColliders(table, colliders);
 			}
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 				_data.Length * 0.075f,
 				height + _data.Height,
 				height + h,
-				_api.GetColliderInfo(table)
+				_api.GetColliderInfo()
 			));
 
 			colliders.Add(new CircleCollider(
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 				_data.Length * 0.075f,
 				height + _data.Height,
 				height + h,
-				_api.GetColliderInfo(table)
+				_api.GetColliderInfo()
 			));
 		}
 	}
