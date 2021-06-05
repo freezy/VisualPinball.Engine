@@ -184,12 +184,15 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(Bumper bumper, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<BumperColliderAuthoring>();
 			var bumperApi = new BumperApi(bumper, entity, parentEntity, this);
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
-			_colliderGenerators.Add(bumperApi);
-			_hittables[entity] = bumperApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(bumperApi);
+				_hittables[entity] = bumperApi;
+			}
 			_switchPlayer.RegisterSwitch(bumper, bumperApi);
 			_coilPlayer.RegisterCoil(bumper, bumperApi);
 			_wirePlayer.RegisterWire(bumper, bumperApi);
@@ -197,15 +200,18 @@ namespace VisualPinball.Unity
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<FlipperColliderAuthoring>();
 			var flipperApi = new FlipperApi(flipper, entity, parentEntity, this);
 			TableApi.Flippers[flipper.Name] = flipperApi;
 			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
-			_colliderGenerators.Add(flipperApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(flipperApi);
+				_collidables[entity] = flipperApi;
+				_hittables[entity] = flipperApi;
+			}
 			Flippers[entity] = flipper;
-			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
-			_collidables[entity] = flipperApi;
 			_switchPlayer.RegisterSwitch(flipper, flipperApi);
 			_coilPlayer.RegisterCoil(flipper, flipperApi);
 			_wirePlayer.RegisterWire(flipper, flipperApi);
@@ -217,12 +223,15 @@ namespace VisualPinball.Unity
 
 		public void RegisterGate(Gate gate, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<GateColliderAuthoring>();
 			var gateApi = new GateApi(gate, entity, parentEntity, this);
 			TableApi.Gates[gate.Name] = gateApi;
 			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
-			_colliderGenerators.Add(gateApi);
-			_hittables[entity] = gateApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(gateApi);
+				_hittables[entity] = gateApi;
+			}
 			_rotatables[entity] = gateApi;
 			_switchPlayer.RegisterSwitch(gate, gateApi);
 		}
@@ -234,19 +243,24 @@ namespace VisualPinball.Unity
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
-			_colliderGenerators.Add(hitTargetApi);
-			_hittables[entity] = hitTargetApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(hitTargetApi);
+				_hittables[entity] = hitTargetApi;
+			}
 			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<KickerColliderAuthoring>();
 			var kickerApi = new KickerApi(kicker, entity, parentEntity, this);
 			TableApi.Kickers[kicker.Name] = kickerApi;
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
-			_colliderGenerators.Add(kickerApi);
-			_hittables[entity] = kickerApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(kickerApi);
+				_hittables[entity] = kickerApi;
+			}
 			_switchPlayer.RegisterSwitch(kicker, kickerApi);
 			_coilPlayer.RegisterCoil(kicker, kickerApi);
 			_wirePlayer.RegisterWire(kicker, kickerApi);
@@ -285,9 +299,11 @@ namespace VisualPinball.Unity
 			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
-			_colliderGenerators.Add(primitiveApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(primitiveApi);
+				_hittables[entity] = primitiveApi;
+			}
 			_initializables.Add(primitiveApi);
-			_hittables[entity] = primitiveApi;
 		}
 
 		public void RegisterRamp(Ramp ramp, Entity entity, Entity parentEntity, GameObject go)
@@ -297,7 +313,9 @@ namespace VisualPinball.Unity
 			TableApi.Ramps[ramp.Name] = rampApi;
 			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
-			_colliderGenerators.Add(rampApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(rampApi);
+			}
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, Entity parentEntity, GameObject go)
@@ -307,8 +325,10 @@ namespace VisualPinball.Unity
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
-			_colliderGenerators.Add(rubberApi);
-			_hittables[entity] = rubberApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(rubberApi);
+				_hittables[entity] = rubberApi;
+			}
 		}
 
 		public void RegisterSurface(Surface surface, Entity entity, Entity parentEntity, GameObject go)
@@ -318,18 +338,23 @@ namespace VisualPinball.Unity
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
-			_colliderGenerators.Add(surfaceApi);
-			_hittables[entity] = surfaceApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(surfaceApi);
+				_hittables[entity] = surfaceApi;
+			}
 			_slingshots[entity] = surfaceApi;
 		}
 
 		public void RegisterSpinner(Spinner spinner, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<SpinnerColliderAuthoring>();
 			var spinnerApi = new SpinnerApi(spinner, entity, parentEntity, this);
 			TableApi.Spinners[spinner.Name] = spinnerApi;
 			_apis.Add(spinnerApi);
 			_initializables.Add(spinnerApi);
-			_colliderGenerators.Add(spinnerApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(spinnerApi);
+			}
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
@@ -337,12 +362,15 @@ namespace VisualPinball.Unity
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity)
 		{
+			var colliderAuth = go.GetComponent<TriggerColliderAuthoring>();
 			var triggerApi = new TriggerApi(trigger, entity, parentEntity, this);
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
-			_colliderGenerators.Add(triggerApi);
-			_hittables[entity] = triggerApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(triggerApi);
+				_hittables[entity] = triggerApi;
+			}
 			_switchPlayer.RegisterSwitch(trigger, triggerApi);
 		}
 
