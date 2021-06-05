@@ -27,6 +27,7 @@ using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[DisallowMultipleComponent]
 	public abstract class ItemColliderAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
 		IItemColliderAuthoring
 		where TData : ItemData

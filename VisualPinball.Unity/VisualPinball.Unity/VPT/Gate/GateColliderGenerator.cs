@@ -66,10 +66,10 @@ namespace VisualPinball.Unity
 				_data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)
 			);
 
-			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo(table));
-			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo(table));
+			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
 
-			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo(table)));
+			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()));
 		}
 
 		private void GenerateLineCollider(Table table, ICollection<ICollider> colliders, float height, float2 tangent)
@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 			var rgv0 = center + (halfLength + PhysicsConstants.PhysSkin) * tangent;
 			var rgv1 = center - (halfLength + PhysicsConstants.PhysSkin) * tangent;
 
-			var info = _api.GetColliderInfo(table, ItemType.Invalid); // hack to not treat this line seg as gate
+			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
 			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
 		}
 
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 				0.01f,
 				height,
 				height + _data.Height,
-				_api.GetColliderInfo(table, ItemType.Invalid) // hack to not treat this hit circle as gate
+				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			));
 
 			colliders.Add(new CircleCollider(
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 				0.01f,
 				height,
 				height + _data.Height,
-				_api.GetColliderInfo(table, ItemType.Invalid) // hack to not treat this hit circle as gate
+				_api.GetColliderInfo( ItemType.Invalid) // hack to not treat this hit circle as gate
 			));
 		}
 	}

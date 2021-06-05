@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Hit Threshold", ref Data.Threshold, false);
 
 			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-			MaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
+			PhysicsMaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
 			EditorGUI.EndDisabledGroup();
 
 			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);

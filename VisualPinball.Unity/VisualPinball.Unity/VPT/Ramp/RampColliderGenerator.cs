@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	public class RampColliderGenerator
 	{
-		private readonly RampApi _api;
+		private readonly IApiColliderGenerator _api;
 		private readonly RampData _data;
 		private readonly RampMeshGenerator _meshGenerator;
 
@@ -64,12 +64,12 @@ namespace VisualPinball.Unity
 					// add joints at start and end of right wall
 					if (i == 0) {
 						colliders.Add(new LineZCollider(pv2, rgHeight1[0], rgHeight1[0] + wallHeightRight,
-							_api.GetColliderInfo(table)));
+							_api.GetColliderInfo()));
 					}
 
 					if (i == vertexCount - 2) {
 						colliders.Add(new LineZCollider(pv3, rgHeight1[vertexCount - 1], rgHeight1[vertexCount - 1] + wallHeightRight,
-							_api.GetColliderInfo(table)));
+							_api.GetColliderInfo()));
 					}
 				}
 			}
@@ -88,12 +88,12 @@ namespace VisualPinball.Unity
 					// add joints at start and end of left wall
 					if (i == 0) {
 						colliders.Add(new LineZCollider(pv2, rgHeight1[vertexCount - 1],
-							rgHeight1[vertexCount - 1] + wallHeightLeft, _api.GetColliderInfo(table)));
+							rgHeight1[vertexCount - 1] + wallHeightLeft, _api.GetColliderInfo()));
 					}
 
 					if (i == vertexCount - 2) {
 						colliders.Add(new LineZCollider(pv3, rgHeight1[0], rgHeight1[0] + wallHeightLeft,
-							_api.GetColliderInfo(table)));
+							_api.GetColliderInfo()));
 					}
 				}
 			}
@@ -123,15 +123,15 @@ namespace VisualPinball.Unity
 
 				// add joint for starting edge of ramp
 				if (i == 0) {
-					colliders.Add(new Line3DCollider(rg0, rg1, _api.GetColliderInfo(table)));
+					colliders.Add(new Line3DCollider(rg0, rg1, _api.GetColliderInfo()));
 				}
 
 				// add joint for left edge
-				colliders.Add(new Line3DCollider(rg0, rg2, _api.GetColliderInfo(table)));
+				colliders.Add(new Line3DCollider(rg0, rg2, _api.GetColliderInfo()));
 
 				// degenerate triangles happen if width is 0 at some point
 				if (!TriangleCollider.IsDegenerate(rg0, rg1, rg2)) {
-					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table));
+					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo());
 					colliders.Add(ph3dPoly);
 
 					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, table, colliders);
@@ -145,10 +145,10 @@ namespace VisualPinball.Unity
 				rg2 = new float3(pv4.x, pv4.y, rgHeight1[i + 1]);
 
 				// add joint for right edge
-				colliders.Add(new Line3DCollider(rg1, rg2, _api.GetColliderInfo(table)));
+				colliders.Add(new Line3DCollider(rg1, rg2, _api.GetColliderInfo()));
 
 				if (!TriangleCollider.IsDegenerate(rg0, rg1, rg2)) {
-					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table));
+					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo());
 					colliders.Add(ph3dPoly);
 
 					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, table, colliders);
@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 				// add joint for final edge of ramp
 				var v1 = new float3(pv4.x, pv4.y, rgHeight1[vertexCount - 1]);
 				var v2 = new float3(pv3.x, pv3.y, rgHeight1[vertexCount - 1]);
-				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo(table)));
+				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()));
 			}
 
 			// add outside bottom,
@@ -181,7 +181,7 @@ namespace VisualPinball.Unity
 				var rg2 = new float3(pv3.x, pv3.y, rgHeight1[i + 1]);
 
 				if (!TriangleCollider.IsDegenerate(rg0, rg1, rg2)) {
-					colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table)));
+					colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
 				}
 
 				// right ramp triangle, order CW
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 				rg2 = new float3(pv1.x, pv1.y, rgHeight1[i]);
 
 				if (!TriangleCollider.IsDegenerate(rg0, rg1, rg2)) {
-					colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table)));
+					colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
 				}
 			}
 		}
@@ -223,10 +223,10 @@ namespace VisualPinball.Unity
 
 			} else {
 				colliders.Add(new LineCollider(pv1, pv2, height1, height2 + wallHeight,
-					_api.GetColliderInfo(table)));
+					_api.GetColliderInfo()));
 
 				if (pv3Exists) {
-					colliders.Add(new LineZCollider(pv1, height1, height2 + wallHeight, _api.GetColliderInfo(table)));
+					colliders.Add(new LineZCollider(pv1, height1, height2 + wallHeight, _api.GetColliderInfo()));
 				}
 			}
 		}
@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 			}
 			// By convention of the calling function, points 1 [0] and 2 [1] of the second polygon will
 			// be the common-edge points
-			colliders.Add(new Line3DCollider(ph3d2.Rgv0, ph3d2.Rgv1, _api.GetColliderInfo(table)));
+			colliders.Add(new Line3DCollider(ph3d2.Rgv0, ph3d2.Rgv1, _api.GetColliderInfo()));
 		}
 	}
 }

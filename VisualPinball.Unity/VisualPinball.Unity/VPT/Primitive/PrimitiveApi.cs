@@ -35,11 +35,14 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(Primitive item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		internal PrimitiveApi(Primitive item, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player) : base(item, entity, parentEntity, player)
 		{
+			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Collider Generation
+
+		private readonly PhysicsMaterial _physicsMaterial;
 
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold => Data.Threshold;
@@ -51,7 +54,7 @@ namespace VisualPinball.Unity
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 

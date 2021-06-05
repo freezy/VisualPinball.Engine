@@ -34,11 +34,14 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal RubberApi(Engine.VPT.Rubber.Rubber item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		internal RubberApi(Engine.VPT.Rubber.Rubber item, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player) : base(item, entity, parentEntity, player)
 		{
+			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Collider Generation
+
+		private readonly PhysicsMaterial _physicsMaterial;
 
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold { get; } = 2.0f; // hard coded threshold for now
@@ -50,7 +53,7 @@ namespace VisualPinball.Unity
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 

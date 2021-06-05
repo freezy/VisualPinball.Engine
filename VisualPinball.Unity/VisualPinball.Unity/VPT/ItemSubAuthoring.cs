@@ -92,6 +92,10 @@ namespace VisualPinball.Unity
 			if (ac != null) {
 				return ac;
 			}
+			if (this is IItemColliderAuthoring) {
+				// collider must be on the same game object
+				return null;
+			}
 
 			// search on parent
 			if (go.transform.parent != null) {

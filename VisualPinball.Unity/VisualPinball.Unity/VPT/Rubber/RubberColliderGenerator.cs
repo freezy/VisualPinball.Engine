@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	public class RubberColliderGenerator
 	{
-		private readonly RubberApi _api;
+		private readonly IApiColliderGenerator _api;
 		private readonly RubberMeshGenerator _meshGenerator;
 
 		public RubberColliderGenerator(RubberApi rubberApi)
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 				var rg1 = mesh.Vertices[mesh.Indices[i + 2]].ToUnityFloat3();
 				var rg2 = mesh.Vertices[mesh.Indices[i + 1]].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo(table)));
+				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
 
 				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], table, colliders);
 				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], table, colliders);
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
-				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo(table)));
+				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()));
 			}
 		}
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 			if (addedEdges.ShouldAddHitEdge(i, j)) {
 				var v1 = mesh.Vertices[i].ToUnityFloat3();
 				var v2 = mesh.Vertices[j].ToUnityFloat3();
-				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo(table)));
+				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()));
 			}
 		}
 	}

@@ -229,7 +229,8 @@ namespace VisualPinball.Unity
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var hitTargetApi = new HitTargetApi(hitTarget, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<HitTargetColliderAuthoring>();
+			var hitTargetApi = new HitTargetApi(hitTarget, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
@@ -280,7 +281,8 @@ namespace VisualPinball.Unity
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<PrimitiveColliderAuthoring>();
+			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
 			_colliderGenerators.Add(primitiveApi);
@@ -290,7 +292,8 @@ namespace VisualPinball.Unity
 
 		public void RegisterRamp(Ramp ramp, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rampApi = new RampApi(ramp, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<RampColliderAuthoring>();
+			var rampApi = new RampApi(ramp, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Ramps[ramp.Name] = rampApi;
 			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
@@ -299,7 +302,8 @@ namespace VisualPinball.Unity
 
 		public void RegisterRubber(Rubber rubber, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rubberApi = new RubberApi(rubber, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<RubberColliderAuthoring>();
+			var rubberApi = new RubberApi(rubber, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
@@ -309,7 +313,8 @@ namespace VisualPinball.Unity
 
 		public void RegisterSurface(Surface surface, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var surfaceApi = new SurfaceApi(surface, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<SurfaceColliderAuthoring>();
+			var surfaceApi = new SurfaceApi(surface, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);

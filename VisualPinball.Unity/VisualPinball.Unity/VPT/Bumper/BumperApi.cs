@@ -70,10 +70,10 @@ namespace VisualPinball.Unity
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
-				height + Data.HeightScale, GetColliderInfo(table), ColliderType.Bumper));
+				height + Data.HeightScale, GetColliderInfo(), ColliderType.Bumper));
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 
