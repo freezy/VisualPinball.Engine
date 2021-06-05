@@ -30,8 +30,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureField("Image", ref Data.Image);
-			MaterialField("Material", ref Data.Material);
+			TextureFieldLegacy("Texture", ref Data.Image);
+			MaterialFieldLegacy("Material", ref Data.Material);
 			ItemDataField("Static", ref Data.StaticRendering);
 
 			base.OnInspectorGUI();

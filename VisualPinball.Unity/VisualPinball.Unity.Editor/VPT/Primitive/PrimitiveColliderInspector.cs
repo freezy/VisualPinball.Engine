@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 
 			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-			MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
+			MaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
 			EditorGUI.EndDisabledGroup();
 			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
 			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);

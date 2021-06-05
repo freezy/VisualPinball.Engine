@@ -294,7 +294,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void TextureField(string label, ref string field, bool dirtyMesh = true)
+		protected void TextureFieldLegacy(string label, ref string field, bool dirtyMesh = true)
 		{
 			if (_ta == null) return;
 
@@ -312,14 +312,24 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			EditorGUI.BeginChangeCheck();
-			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, _allTextures);
+			selectedIndex = EditorGUILayout.Popup("[VPX] " + label, selectedIndex, _allTextures);
 			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allTextures.Length) {
 				FinishEdit(label, dirtyMesh);
 				field = selectedIndex == 0 ? string.Empty : _allTextures[selectedIndex];
 			}
 		}
 
-		protected void MaterialField(string label, ref string field, bool dirtyMesh = true)
+		protected void MaterialField(string label, ref PhysicsMaterial material)
+		{
+			EditorGUI.BeginChangeCheck();
+			var physMat = (PhysicsMaterial)EditorGUILayout.ObjectField(label, material, typeof(PhysicsMaterial), false);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(UndoTarget, "Change physics material of " + UndoTarget.name);
+				material = physMat;
+			}
+		}
+
+		protected void MaterialFieldLegacy(string label, ref string field, bool dirtyMesh = true)
 		{
 			// if the field is set, but the material isn't in our list, maybe it was added after this
 			// inspector was instantiated, so re-grab our mat options from the table data
@@ -327,7 +337,7 @@ namespace VisualPinball.Unity.Editor
 				PopulateDropDownOptions();
 			}
 
-			DropDownField(label, ref field, _allMaterials, _allMaterials, dirtyMesh);
+			DropDownField("[VPX] " + label, ref field, _allMaterials, _allMaterials, dirtyMesh);
 			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
 				field = string.Empty; // don't store the none value string in our data
 			}

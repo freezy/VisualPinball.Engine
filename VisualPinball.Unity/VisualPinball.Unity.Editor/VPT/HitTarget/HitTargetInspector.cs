@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutMesh;
-		private bool _foldoutPhysics;
 		private bool _foldoutMisc;
 
 		public override void OnInspectorGUI()
@@ -52,32 +51,8 @@ namespace VisualPinball.Unity.Editor
 			// mesh
 			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
 				DropDownField("Type", ref Data.TargetType, HitTargetMeshInspector.TargetTypeLabels, HitTargetMeshInspector.TargetTypeValues);
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			// physics
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref Data.UseHitEvent, false);
-				ItemDataField("Hit Threshold", ref Data.Threshold, false);
-
-				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
-
-				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Legacy Mode", ref Data.IsLegacy, false);
-				ItemDataField("Collidable", ref Data.IsCollidable, false);
-				ItemDataField("Is Dropped", ref Data.IsDropped, false);
+				TextureFieldLegacy("Image", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
