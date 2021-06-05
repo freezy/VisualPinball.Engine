@@ -137,23 +137,80 @@ namespace VisualPinball.Unity
 			Data.Height = scale.z;
 		}
 
+		//! Add a circle arc on a given polygon (used for enclosing poygon)
+		public static void AddPolyArc(ref List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F)
+		{
+			float A = angleFrom % 360;
+			float B = angleTo % 360;
+			A = A < 0 ? A + 360 : A;
+			B = B < 0 ? B + 360 : B;
+			A *= Mathf.PI / 180F;
+			B *= Mathf.PI / 180F;
+			float angleDiffRad = (B - A);
+			if (angleDiffRad < 0)
+				angleDiffRad += Mathf.PI * 2;
+			
+			float arcLength = Mathf.Abs(angleDiffRad) * radius;
+			int num = (Mathf.CeilToInt(arcLength / Mathf.Abs(stepSize)));
+			if (num <= 0)
+				return;
+			float stepA = angleDiffRad / num;
+			if (stepSize < 0)
+				stepA = -stepA;
+
+			float a = A;
+
+			for (int i = 0; i <= num; i++)
+			{
+				poly.Add(new Vector3(center.x + Mathf.Cos(a) * radius, center.y + Mathf.Sin(a) * radius, 0F));
+				a += stepA;
+			}
+		}
+
+		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F)
+		{
+			var swing =	Data.EndAngle -  Data.StartAngle;
+			bool isLeft = (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
+			swing = Mathf.Abs(swing);
+
+			List<Vector3> ret = new List<Vector3>(); // TODO: caching
+
+			float baseRadius = Data.BaseRadius + margin;
+			float tipRadius = Data.EndRadius + margin;
+			Vector3 baseLocalPos = Vector3.zero;
+			float length = Data.FlipperRadius;
+			Vector3 tipLocalPos = Vector3.up * -length;
+			
+			if (isLeft) // left
+			{
+				AddPolyArc(ref ret, baseLocalPos, baseRadius, 0F,90F+swing, stepSize);
+				Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, -swing) * new Vector3(0, -length, 0);
+				AddPolyArc(ref ret, swingTipLocalPos, tipRadius, 90F + swing, 180F + swing, stepSize);
+				AddPolyArc(ref ret, baseLocalPos, length + tipRadius, 180F+swing, 270F, stepSize);
+				AddPolyArc(ref ret, tipLocalPos, tipRadius, 270F, 0F, stepSize);
+			}
+			else
+			{
+				AddPolyArc(ref ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
+				AddPolyArc(ref ret, tipLocalPos, tipRadius, 180F, 270F, stepSize);
+				AddPolyArc(ref ret, baseLocalPos, length+tipRadius, 270F, 270F+swing, stepSize);
+				Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, swing) * new Vector3(0, -length, 0);
+				AddPolyArc(ref ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize);
+			}
+			return ret;
+		}
+
 		protected void OnDrawGizmosSelected()
 		{
-			//base.OnDrawGizmosSelected();
+			var poly = GetEnclosingPolygon();
+			if (poly == null)
+				return;
 
-			// draw end position mesh
-			var mfs = GetComponentsInChildren<MeshFilter>();
-			Gizmos.color = EndAngleMeshColor;
-			Gizmos.matrix = Matrix4x4.identity;
-			var baseRotation = math.normalize(math.mul(
-				math.normalize(transform.rotation),
-				quaternion.EulerXYZ(0, 0, -math.radians(Data.StartAngle))
-			));
-			foreach (var mf in mfs) {
-				var t = mf.transform;
-				var r = math.mul(baseRotation, quaternion.EulerXYZ(0, 0, math.radians(Data.EndAngle)));
-				Gizmos.DrawWireMesh(mf.sharedMesh, t.position, r, t.lossyScale);
-			}
+			Gizmos.color = Color.cyan;
+			for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+				Gizmos.DrawLine(transform.TransformPoint(poly[j]), transform.TransformPoint(poly[i]));
+
+			Gizmos.color = Color.white;
 		}
 
 		private FlipperStaticData GetMaterialData()
