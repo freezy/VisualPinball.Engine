@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutGeometry = true;
-		private bool _foldoutPhysics;
 		private bool _foldoutMisc;
 
 		private static readonly string[] RampTypeLabels = {
@@ -65,8 +64,8 @@ namespace VisualPinball.Unity.Editor
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.RampType, RampTypeLabels, RampTypeValues, onChanged: ItemAuthoring.UpdateMeshComponents);
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
+				TextureFieldLegacy("Texture", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
 				DropDownField("Image Mode", ref Data.ImageAlignment, RampImageAlignmentLabels, RampImageAlignmentValues);
 				ItemDataField("Apply Image To Wall", ref Data.ImageWalls);
 				ItemDataField("Depth Bias", ref Data.DepthBias);
@@ -93,30 +92,6 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Distance X", ref Data.WireDistanceX);
 				ItemDataField("Distance Y", ref Data.WireDistanceY);
 				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-				ItemDataField("Hit Threshold", ref Data.Threshold, false);
-
-				EditorGUILayout.LabelField("Physical Wall");
-				EditorGUI.indentLevel++;
-				ItemDataField("Left Wall", ref Data.LeftWallHeight);
-				ItemDataField("Right Wall", ref Data.RightWallHeight);
-				EditorGUI.indentLevel--;
-
-				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				MaterialField("Physics Material", ref Data.PhysicsMaterial, false);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
-
-				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
-				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

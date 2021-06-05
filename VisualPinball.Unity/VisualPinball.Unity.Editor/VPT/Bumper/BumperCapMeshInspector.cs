@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialField("Cap Material", ref Data.CapMaterial);
+			MaterialFieldLegacy("Cap Material", ref Data.CapMaterial);
 
 			base.OnInspectorGUI();
 		}

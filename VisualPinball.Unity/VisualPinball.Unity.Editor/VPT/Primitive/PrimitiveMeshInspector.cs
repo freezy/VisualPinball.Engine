@@ -41,12 +41,12 @@ namespace VisualPinball.Unity.Editor
 				if (GUILayout.Button("Export Mesh")) ExportMesh();
 				GUILayout.EndHorizontal();
 
-				TextureField("Image", ref Data.Image);
-				TextureField("Normal Map", ref Data.NormalMap);
+				TextureFieldLegacy("Texture", ref Data.Image);
+				TextureFieldLegacy("Normal Map", ref Data.NormalMap);
 				EditorGUI.indentLevel++;
 				ItemDataField("Object Space", ref Data.ObjectSpaceNormalMap);
 				EditorGUI.indentLevel--;
-				MaterialField("Material", ref Data.Material);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
