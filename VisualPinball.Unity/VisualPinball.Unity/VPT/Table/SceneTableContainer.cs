@@ -38,7 +38,6 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
-
 		public override Material GetMaterial(string name)
 		{
 			if (string.IsNullOrEmpty(name)) {

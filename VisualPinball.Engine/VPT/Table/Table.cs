@@ -110,7 +110,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#endregion
 
-		#region Holder Shortcuts
+		#region Container Shortcuts
 
 		public Material GetMaterial(string name) => _tableContainer.GetMaterial(name);
 		public Texture GetTexture(string dataImage) => _tableContainer.GetTexture(dataImage);
