@@ -316,12 +316,12 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				foreach (var material in _tableContainer.Table.Data.Materials) {
-					var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
-					mat.Elasticity = material.Elasticity;
-					mat.ElasticityFalloff = material.ElasticityFalloff;
-					mat.ScatterAngle = material.ScatterAngle;
-					mat.Friction = material.Friction;
-					AssetDatabase.CreateAsset(mat, $"{_assetsPhysicsMaterials}/{material.Name}.asset");
+
+					// skip material if physics aren't set.
+					if (material.Elasticity == 0 && material.ElasticityFalloff == 0 && material.ScatterAngle == 0 && material.Friction == 0) {
+						continue;
+					}
+					SavePhysicsMaterial(material);
 				}
 
 			} finally {
@@ -333,6 +333,19 @@ namespace VisualPinball.Unity.Editor
 			foreach (var material in _tableContainer.Table.Data.Materials) {
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
+		}
+
+		private string SavePhysicsMaterial(VisualPinball.Engine.VPT.Material material)
+		{
+			var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
+			mat.Elasticity = material.Elasticity;
+			mat.ElasticityFalloff = material.ElasticityFalloff;
+			mat.ScatterAngle = material.ScatterAngle;
+			mat.Friction = material.Friction;
+			var path = $"{_assetsPhysicsMaterials}/{material.Name}.asset";
+			AssetDatabase.CreateAsset(mat, path);
+
+			return path;
 		}
 
 		private void ExtractTextures()
@@ -545,7 +558,24 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasMaterial(string name) => _materials.ContainsKey(name);
 		public Material GetMaterial(string name) => string.IsNullOrEmpty(name) ? null : _materials[name];
-		public PhysicsMaterial GetPhysicsMaterial(string name) => string.IsNullOrEmpty(name) ? null : _physicalMaterials[name];
+		public PhysicsMaterial GetPhysicsMaterial(string name)
+		{
+			if (string.IsNullOrEmpty(name)) {
+				return null;
+			}
+			if (_physicalMaterials.ContainsKey(name)) {
+				return _physicalMaterials[name];
+			}
+
+			var material = _tableAuthoring.Table.Data.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+			if (material != null) {
+				var path = SavePhysicsMaterial(material);
+				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);
+				return _physicalMaterials[material.Name];
+			}
+
+			return null;
+		}
 
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
 		{
