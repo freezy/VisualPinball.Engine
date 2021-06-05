@@ -192,7 +192,7 @@ namespace VisualPinball.Unity
 		}
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var info = ((IApiColliderGenerator)this).GetColliderInfo(table);
+			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 
 			// simple outer borders:
 			colliders.Add(new LineCollider(
@@ -237,7 +237,7 @@ namespace VisualPinball.Unity
 			ColliderUtils.Generate3DPolyColliders(rgv3D, table, info, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table)
+		ColliderInfo IApiColliderGenerator.GetColliderInfo()
 		{
 			return new ColliderInfo {
 				Id = -1,

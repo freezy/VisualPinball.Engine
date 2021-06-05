@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 	/// tweak them all the time, so getting those from external assets instead
 	/// of writing them into the scene seems a good plan.
 	/// </summary>
+	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
 	public class PhysicsMaterial : ScriptableObject
 	{
 		public float Elasticity;

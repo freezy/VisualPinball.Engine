@@ -83,10 +83,9 @@ namespace VisualPinball.Unity
 		public virtual bool IsColliderEnabled  => !(Data is IPhysicsMaterialData physicalData) || physicalData.GetIsCollidable();
 		protected virtual bool FireHitEvents { get; } = false;
 		protected virtual float HitThreshold { get; } = 0;
-		protected virtual PhysicsMaterialData GetPhysicsMaterial(Table table)
+		protected virtual PhysicsMaterialData GetPhysicsMaterial(PhysicsMaterial mat)
 		{
 			if (Data is IPhysicsMaterialData physicalData) {
-				var mat = table.GetMaterial(physicalData.GetPhysicsMaterial());
 				var matData = new PhysicsMaterialData();
 				if (mat != null && !physicalData.GetOverwritePhysics()) {
 					matData.Elasticity = mat.Elasticity;
@@ -110,10 +109,10 @@ namespace VisualPinball.Unity
 		///
 		/// Use this for colliders that are part of the quad tree.
 		/// </summary>
-		/// <param name="table"></param>
-		internal ColliderInfo GetColliderInfo(Table table) => GetColliderInfo(table, Item.ItemType);
+		/// <param name="physicsMaterial">physics material read from the collider component</param>
+		internal ColliderInfo GetColliderInfo(PhysicsMaterial physicsMaterial = null) => GetColliderInfo(Item.ItemType, physicsMaterial);
 
-		internal ColliderInfo GetColliderInfo(Table table, ItemType itemType)
+		internal ColliderInfo GetColliderInfo(ItemType itemType, PhysicsMaterial physicsMaterial = null)
 		{
 			return new ColliderInfo {
 				Id = -1,
@@ -122,7 +121,7 @@ namespace VisualPinball.Unity
 				ParentEntity = ParentEntity,
 				FireEvents = FireHitEvents,
 				IsEnabled = IsColliderEnabled,
-				Material = GetPhysicsMaterial(table),
+				Material = GetPhysicsMaterial(physicsMaterial),
 				HitThreshold = HitThreshold,
 			};
 		}

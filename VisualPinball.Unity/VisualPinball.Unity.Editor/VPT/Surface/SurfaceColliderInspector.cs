@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
 				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				MaterialField("Preset", ref ColliderAuthoring.PhysicsMaterial);
+				PhysicsMaterialField("Preset", ref ColliderAuthoring.PhysicsMaterial);
 				EditorGUI.EndDisabledGroup();
 
 				ItemDataField("Overwrite Preset", ref Data.OverwritePhysics, false);

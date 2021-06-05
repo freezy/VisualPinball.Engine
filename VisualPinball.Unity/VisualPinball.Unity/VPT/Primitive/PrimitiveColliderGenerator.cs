@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 {
 	public class PrimitiveColliderGenerator
 	{
-		private readonly PrimitiveApi _api;
+		private readonly IApiColliderGenerator _api;
 		private readonly PrimitiveData _data;
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 		private bool _useAsPlayfield;
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			ColliderUtils.GenerateCollidersFromMesh(table, mesh, _api.GetColliderInfo(table), colliders);
+			ColliderUtils.GenerateCollidersFromMesh(table, mesh, _api.GetColliderInfo(), colliders);
 		}
 
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)

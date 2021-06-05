@@ -319,13 +319,13 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void MaterialField(string label, ref PhysicsMaterial material)
+		protected void PhysicsMaterialField(string label, ref PhysicsMaterial prevMat)
 		{
 			EditorGUI.BeginChangeCheck();
-			var physMat = (PhysicsMaterial)EditorGUILayout.ObjectField(label, material, typeof(PhysicsMaterial), false);
+			var newMat = (PhysicsMaterial)EditorGUILayout.ObjectField(label, prevMat, typeof(PhysicsMaterial), false);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(UndoTarget, "Change physics material of " + UndoTarget.name);
-				material = physMat;
+				prevMat = newMat;
 			}
 		}
 

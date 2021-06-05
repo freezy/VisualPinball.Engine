@@ -149,10 +149,10 @@ namespace VisualPinball.Unity
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			colliders.Add(new PlungerCollider(Data, zHeight, GetColliderInfo(table)));
+			colliders.Add(new PlungerCollider(Data, zHeight, GetColliderInfo()));
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 
