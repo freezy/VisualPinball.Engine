@@ -17,7 +17,12 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Trigger;
+using Unity.Entities;
+using Unity.Mathematics;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -87,6 +92,50 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (GUILayout.Button("Setup nFozzy Corrections"))
+			{
+				var fa = target as FlipperAuthoring;
+
+				// Get table reference
+				TableAuthoring table = fa.GetComponentInParent<TableAuthoring>();
+				if (fa != null && table != null)
+				{
+
+					GameObject nFozzyCorrection = new GameObject(fa.name + "_nFozzy");
+					nFozzyCorrection.transform.parent = fa.transform.parent;
+					nFozzyCorrection.transform.localScale = fa.transform.localScale;
+					nFozzyCorrection.transform.localPosition = fa.transform.localPosition;
+					nFozzyCorrection.transform.rotation = table.transform.rotation;
+
+					TriggerData data = new TriggerData(fa.name + "_nFozzy", Data.Center.X, Data.Center.Y);
+					var poly = fa.GetEnclosingPolygon(23, 12);
+					data.DragPoints = new Engine.Math.DragPointData[poly.Count];
+					data.IsLocked = true;
+
+					for (int i = 0; i < poly.Count; i++)
+					{
+						// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
+						var p = table.transform.InverseTransformPoint(fa.transform.TransformPoint(poly[i]));
+						data.DragPoints[i] = new Engine.Math.DragPointData(p.x, p.y);
+					}
+					var triggerAuth = nFozzyCorrection.AddComponent<TriggerAuthoring>();
+					Trigger trigger = new Trigger(data);
+					triggerAuth.SetItem(trigger);
+
+					var triggerColl = nFozzyCorrection.AddComponent<TriggerColliderAuthoring>();
+					triggerColl.Data.HitHeight = 150F; // nFozzy's recommandation, but I think 50 should be ok
+					triggerColl.ItemDataChanged();
+
+					nFozzyCorrection.AddComponent<ConvertToEntity>();
+
+					// Register to Table
+					if (table.Table != null)
+						table.Table.Add<Trigger>(trigger);
+
+					Undo.RegisterCreatedObjectUndo(nFozzyCorrection, "Create nFozzy's corrections object");
+				}
+			}
 
 			base.OnInspectorGUI();
 		}
