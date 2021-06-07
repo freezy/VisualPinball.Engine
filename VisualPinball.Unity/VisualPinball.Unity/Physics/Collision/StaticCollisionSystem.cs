@@ -153,14 +153,31 @@ namespace VisualPinball.Unity
 								break;
 
 							case ColliderType.TriggerCircle:
-							case ColliderType.TriggerLine:
-							{
-								var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
+							case ColliderType.TriggerLine: {
+
+								var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.Entity)
+									? GetComponent<TriggerAnimationData>(coll.Entity)
+									: new TriggerAnimationData();
+
 								TriggerCollider.Collide(
 									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
 									in ballEntity, in coll
 								);
-								SetComponent(coll.Entity, triggerAnimationData);
+
+								if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
+									if (triggerAnimationData.UnHitEvent) {
+										var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
+										var flipperData = GetComponent<FlipperCorrectionData>(flipperCorrectionData.FlipperEntity);
+										FlipperCorrection.OnBallLeaveFlipper(
+											ref ballData, ref flipperCorrectionData, in flipperData
+										);
+										SetComponent(coll.Entity, flipperCorrectionData);
+										SetComponent(flipperCorrectionData.FlipperEntity, flipperData);
+									}
+
+								} else {
+									SetComponent(coll.Entity, triggerAnimationData);
+								}
 								break;
 							}
 							case ColliderType.KickerCircle:
@@ -197,12 +214,30 @@ namespace VisualPinball.Unity
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
-									var triggerAnimationData = GetComponent<TriggerAnimationData>(coll.Entity);
+
+									var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.Entity)
+										? GetComponent<TriggerAnimationData>(coll.Entity)
+										: new TriggerAnimationData();
+
 									TriggerCollider.Collide(
 										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
 										in ballEntity, in coll
 									);
-									SetComponent(coll.Entity, triggerAnimationData);
+
+									if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
+										if (triggerAnimationData.UnHitEvent) {
+											var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
+											var flipperData = GetComponent<FlipperCorrectionData>(flipperCorrectionData.FlipperEntity);
+											FlipperCorrection.OnBallLeaveFlipper(
+												ref ballData, ref flipperCorrectionData, in flipperData
+											);
+											SetComponent(coll.Entity, flipperCorrectionData);
+											SetComponent(flipperCorrectionData.FlipperEntity, flipperData);
+										}
+
+									} else {
+										SetComponent(coll.Entity, triggerAnimationData);
+									}
 
 								} else {
 									Collider.Collide(ref coll, ref ballData, ref events, in ballEntity, in collEvent, ref random);

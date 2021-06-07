@@ -327,7 +327,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
 		}
 
-		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
+		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity)
 		{
 			var triggerApi = new TriggerApi(trigger, entity, parentEntity, this);
 			TableApi.Triggers[trigger.Name] = triggerApi;

@@ -23,11 +23,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mpf.Vpe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
@@ -68,8 +71,27 @@ namespace VisualPinball.Unity
 			dstManager.AddComponentData(entity, GetHitData());
 			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
+			var player = transform.GetComponentInParent<Player>();
+
+			var correctionAuthoring = gameObject.GetComponent<FlipperCorrectionAuthoring>();
+			if (correctionAuthoring) {
+
+				// create trigger
+				var trigger = CreateCorrectionTrigger();
+				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
+				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
+
+				// todo create special registration method since we don't need all the api stuff.
+				player.RegisterTrigger(trigger, triggerEntity, Entity.Null);
+
+				// add correction data
+				dstManager.AddComponentData(triggerEntity, new FlipperCorrectionData {
+					FlipperEntity = entity
+				});
+			}
+
 			// register
-			transform.GetComponentInParent<Player>().RegisterFlipper(Item, entity, ParentEntity, gameObject);
+			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()
@@ -327,6 +349,30 @@ namespace VisualPinball.Unity
 				HitVelocity = new float2(),
 				LastHitFace = false,
 			};
+		}
+
+		private Trigger CreateCorrectionTrigger()
+		{
+			// Get table reference
+			var ta = GetComponentInParent<TableAuthoring>();
+			if (ta != null) {
+
+				var data = new TriggerData(name + "_nFozzy", Data.Center.X, Data.Center.Y);
+				var poly = GetEnclosingPolygon(23, 12);
+				data.DragPoints = new Engine.Math.DragPointData[poly.Count];
+				data.IsLocked = true;
+				data.HitHeight = 150F; // nFozzy's recommandation, but I think 50 should be ok
+
+				for (var i = 0; i < poly.Count; i++) {
+
+					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
+					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
+					data.DragPoints[i] = new Engine.Math.DragPointData(p.x, p.y);
+				}
+
+				return new Trigger(data);
+			}
+			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
 		}
 	}
 }

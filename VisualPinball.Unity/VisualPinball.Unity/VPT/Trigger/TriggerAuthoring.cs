@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 
 			// register
 			var trigger = GetComponent<TriggerAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity);
 		}
 
 		public override void Restore()
