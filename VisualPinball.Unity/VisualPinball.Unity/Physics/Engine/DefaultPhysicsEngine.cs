@@ -39,6 +39,8 @@ namespace VisualPinball.Unity
 		private readonly DebugFlipperSlider[] _flipperSliders = new DebugFlipperSlider[0];
 		private int _nextBallIdToNotifyDebugUI;
 
+		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
+
 		public void Init(TableAuthoring tableAuthoring, BallManager ballManager)
 		{
 			_ballManager = ballManager;
@@ -51,10 +53,10 @@ namespace VisualPinball.Unity
 
 			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
 
-			var visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			_visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystem<SimulateCycleSystemGroup>();
 
-			visualPinballSimulationSystemGroup.Enabled = true;
+			_visualPinballSimulationSystemGroup.Enabled = true;
 			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
 
 			var transform = tableAuthoring.gameObject.transform;
@@ -98,6 +100,7 @@ namespace VisualPinball.Unity
 		{
 			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
 			mData.EnableRotateEvent = 1;
+			mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
 			_entityManager.SetComponentData(entity, mData);
 			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
 		}
