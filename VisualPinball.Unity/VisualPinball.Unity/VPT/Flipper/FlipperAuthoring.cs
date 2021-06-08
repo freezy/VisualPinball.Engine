@@ -167,11 +167,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		bool IsLeft
+		{
+			get
+			{
+				return Data.EndAngle < Data.StartAngle;
+				//return (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
+			}
+		}
+
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F)
 		{
 			var swing =	Data.EndAngle -  Data.StartAngle;
-			bool isLeft = (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
 			swing = Mathf.Abs(swing);
+
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
 
@@ -181,22 +190,29 @@ namespace VisualPinball.Unity
 			float length = Data.FlipperRadius;
 			Vector3 tipLocalPos = Vector3.up * -length;
 			
-			if (isLeft) // left
 			{
-				AddPolyArc(ref ret, baseLocalPos, baseRadius, 0F,90F+swing, stepSize);
-				Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, -swing) * new Vector3(0, -length, 0);
-				AddPolyArc(ref ret, swingTipLocalPos, tipRadius, 90F + swing, 180F + swing, stepSize);
-				AddPolyArc(ref ret, baseLocalPos, length + tipRadius, 180F+swing, 270F, stepSize);
-				AddPolyArc(ref ret, tipLocalPos, tipRadius, 270F, 0F, stepSize);
-			}
-			else
-			{
-				AddPolyArc(ref ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
+				if (swing < 180F)
+					AddPolyArc(ref ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
+				else
+				{
+					if (IsLeft)
+						ret.Add(Quaternion.Euler(0, 0, swing) * new Vector3(baseRadius, 0F, 0F));
+					else
+						ret.Add(new Vector3(-baseRadius, 0F, 0F));
+				}
 				AddPolyArc(ref ret, tipLocalPos, tipRadius, 180F, 270F, stepSize);
 				AddPolyArc(ref ret, baseLocalPos, length+tipRadius, 270F, 270F+swing, stepSize);
 				Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, swing) * new Vector3(0, -length, 0);
 				AddPolyArc(ref ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize);
 			}
+
+			if (IsLeft) // left
+			{
+				var rot = Quaternion.Euler(0,0,-swing);
+				for(int i=0;i<ret.Count;i++)
+					ret[i] = rot * ret[i];
+			}
+
 			return ret;
 		}
 
@@ -206,10 +222,27 @@ namespace VisualPinball.Unity
 			if (poly == null)
 				return;
 
+			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
+			if (IsLeft)
+				Gizmos.color = new Color(Gizmos.color.g, Gizmos.color.b, Gizmos.color.r, Gizmos.color.a);
 			for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
 				Gizmos.DrawLine(transform.TransformPoint(poly[j]), transform.TransformPoint(poly[i]));
 
+			// Draw arc arrow
+			List<Vector3> arrow = new List<Vector3>();
+			float start = -90F;
+			float end = -90F + Data.EndAngle - Data.StartAngle;
+			if(IsLeft) { var tmp = start; start = end; end = tmp; }
+			AddPolyArc(ref arrow, Vector3.zero, Data.FlipperRadius - 20F, start, end );
+			for(int i = 1, j = 0; i < arrow.Count; j = i++)
+				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
+			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
+			var tmpa = IsLeft ? start + 90F + 3F : end +90F - 3F;
+			var a = Quaternion.Euler(0, 0, tmpa) * new Vector3(0, -Data.FlipperRadius + 15F, 0F);
+			var b = Quaternion.Euler(0, 0, tmpa) * new Vector3(0F, -Data.FlipperRadius + 25F, 0F);
+			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
+			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
 		}
 
