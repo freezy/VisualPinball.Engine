@@ -47,6 +47,8 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
+		private bool IsLeft => Data.EndAngle < Data.StartAngle;
+
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 
 		private void OnDestroy()
@@ -138,49 +140,41 @@ namespace VisualPinball.Unity
 		}
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
-		public static void AddPolyArc(ref List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F)
+		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F)
 		{
-			float A = angleFrom % 360;
-			float B = angleTo % 360;
-			A = A < 0 ? A + 360 : A;
-			B = B < 0 ? B + 360 : B;
-			A *= Mathf.PI / 180F;
-			B *= Mathf.PI / 180F;
-			float angleDiffRad = (B - A);
+			angleFrom %= 360;
+			angleTo %= 360;
+
+			angleFrom = angleFrom < 0 ? angleFrom + 360 : angleFrom;
+			angleTo = angleTo < 0 ? angleTo + 360 : angleTo;
+			angleFrom *= Mathf.PI / 180F;
+			angleTo *= Mathf.PI / 180F;
+			float angleDiffRad = angleTo - angleFrom;
 			if (angleDiffRad < 0)
 				angleDiffRad += Mathf.PI * 2;
-			
+
 			float arcLength = Mathf.Abs(angleDiffRad) * radius;
-			int num = (Mathf.CeilToInt(arcLength / Mathf.Abs(stepSize)));
-			if (num <= 0)
+			int num = Mathf.CeilToInt(arcLength / Mathf.Abs(stepSize));
+			if (num <= 0) {
 				return;
+			}
 			float stepA = angleDiffRad / num;
-			if (stepSize < 0)
+			if (stepSize < 0) {
 				stepA = -stepA;
+			}
 
-			float a = A;
-
-			for (int i = 0; i <= num; i++)
-			{
+			float a = angleFrom;
+			for (int i = 0; i <= num; i++) {
 				poly.Add(new Vector3(center.x + Mathf.Cos(a) * radius, center.y + Mathf.Sin(a) * radius, 0F));
 				a += stepA;
 			}
 		}
 
-		bool IsLeft
-		{
-			get
-			{
-				return Data.EndAngle < Data.StartAngle;
-				//return (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
-			}
-		}
-
+		//return (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F)
 		{
-			var swing =	Data.EndAngle -  Data.StartAngle;
+			var swing = Data.EndAngle - Data.StartAngle;
 			swing = Mathf.Abs(swing);
-
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
 
@@ -189,28 +183,26 @@ namespace VisualPinball.Unity
 			Vector3 baseLocalPos = Vector3.zero;
 			float length = Data.FlipperRadius;
 			Vector3 tipLocalPos = Vector3.up * -length;
-			
-			{
-				if (swing < 180F)
-					AddPolyArc(ref ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
-				else
-				{
-					if (IsLeft)
-						ret.Add(Quaternion.Euler(0, 0, swing) * new Vector3(baseRadius, 0F, 0F));
-					else
-						ret.Add(new Vector3(-baseRadius, 0F, 0F));
-				}
-				AddPolyArc(ref ret, tipLocalPos, tipRadius, 180F, 270F, stepSize);
-				AddPolyArc(ref ret, baseLocalPos, length+tipRadius, 270F, 270F+swing, stepSize);
-				Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, swing) * new Vector3(0, -length, 0);
-				AddPolyArc(ref ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize);
-			}
 
-			if (IsLeft) // left
-			{
-				var rot = Quaternion.Euler(0,0,-swing);
-				for(int i=0;i<ret.Count;i++)
+			if (swing < 180F) {
+				AddPolyArc(ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
+			} else {
+				if (IsLeft) {
+					ret.Add(Quaternion.Euler(0, 0, swing) * new Vector3(baseRadius, 0F, 0F));
+				} else {
+					ret.Add(new Vector3(-baseRadius, 0F, 0F));
+				}
+			}
+			AddPolyArc(ret, tipLocalPos, tipRadius, 180F, 270F, stepSize);
+			AddPolyArc(ret, baseLocalPos, length + tipRadius, 270F, 270F + swing, stepSize);
+			Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, swing) * new Vector3(0, -length, 0);
+			AddPolyArc(ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize);
+
+			if (IsLeft) { // left
+				var rot = Quaternion.Euler(0, 0, -swing);
+				for (int i = 0; i < ret.Count; i++) {
 					ret[i] = rot * ret[i];
+				}
 			}
 
 			return ret;
@@ -219,8 +211,9 @@ namespace VisualPinball.Unity
 		protected void OnDrawGizmosSelected()
 		{
 			var poly = GetEnclosingPolygon();
-			if (poly == null)
+			if (poly == null) {
 				return;
+			}
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
@@ -233,14 +226,19 @@ namespace VisualPinball.Unity
 			List<Vector3> arrow = new List<Vector3>();
 			float start = -90F;
 			float end = -90F + Data.EndAngle - Data.StartAngle;
-			if(IsLeft) { var tmp = start; start = end; end = tmp; }
-			AddPolyArc(ref arrow, Vector3.zero, Data.FlipperRadius - 20F, start, end );
-			for(int i = 1, j = 0; i < arrow.Count; j = i++)
+			if (IsLeft) {
+				var tmp = start;
+				start = end;
+				end = tmp;
+			}
+			AddPolyArc(arrow, Vector3.zero, Data.FlipperRadius - 20F, start, end );
+			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
+			}
 			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
-			var tmpa = IsLeft ? start + 90F + 3F : end +90F - 3F;
-			var a = Quaternion.Euler(0, 0, tmpa) * new Vector3(0, -Data.FlipperRadius + 15F, 0F);
-			var b = Quaternion.Euler(0, 0, tmpa) * new Vector3(0F, -Data.FlipperRadius + 25F, 0F);
+			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
+			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -Data.FlipperRadius + 15F, 0F);
+			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -Data.FlipperRadius + 25F, 0F);
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
