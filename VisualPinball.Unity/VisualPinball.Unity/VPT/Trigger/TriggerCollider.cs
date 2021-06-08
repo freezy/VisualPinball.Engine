@@ -16,6 +16,7 @@
 
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 
@@ -27,35 +28,18 @@ namespace VisualPinball.Unity
 			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref TriggerAnimationData animationData, in Entity ballEntity, in Collider coll)
 		{
-			Collide(ref ball, ref events, ref collEvent, ref insideOfs, ref animationData, in ballEntity, in coll, true);
-		}
-
-		private static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref TriggerAnimationData animationData, in Entity ballEntity, in Collider coll, bool animate)
-		{
-			// todo?
-			// if (!ball.isRealBall()) {
-			// 	return;
-			// }
-
 			var insideOf = BallData.IsInsideOf(in insideOfs, coll.Entity);
 			if (collEvent.HitFlag == insideOf) {                                         // Hit == NotAlreadyHit
 				ball.Position += PhysicsConstants.StaticTime * ball.Velocity;            // move ball slightly forward
-
 				if (!insideOf) {
 					BallData.SetInsideOf(ref insideOfs, coll.Entity);
-					if (animate) {
-						animationData.HitEvent = true;
-					}
+					animationData.HitEvent = true;
 
 					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity,  ballEntity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
-					if (animate) {
-						animationData.UnHitEvent = true;
-					}
+					animationData.UnHitEvent = true;
 
 					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, ballEntity, true));
 				}

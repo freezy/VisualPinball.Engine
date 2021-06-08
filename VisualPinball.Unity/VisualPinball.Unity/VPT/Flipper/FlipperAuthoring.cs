@@ -351,7 +351,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private Trigger CreateCorrectionTrigger()
+		public Trigger CreateCorrectionTrigger()
 		{
 			// Get table reference
 			var ta = GetComponentInParent<TableAuthoring>();
@@ -367,7 +367,7 @@ namespace VisualPinball.Unity
 
 					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
 					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
-					data.DragPoints[i] = new Engine.Math.DragPointData(p.x, p.y);
+					data.DragPoints[poly.Count - i - 1] = new Engine.Math.DragPointData(p.x, p.y);
 				}
 
 				return new Trigger(data);
