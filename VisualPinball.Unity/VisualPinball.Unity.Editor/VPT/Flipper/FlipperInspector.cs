@@ -16,13 +16,10 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Trigger;
-using Unity.Entities;
-using Unity.Mathematics;
-using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -92,6 +89,34 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (GUILayout.Button("Setup nFozzy Corrections"))
+			{
+				// Get table reference
+				var table = ItemAuthoring.GetComponentInParent<TableAuthoring>();
+				if (table != null) {
+
+					var nFozzyCorrection = new GameObject(ItemAuthoring.name + "_nFozzy");
+					nFozzyCorrection.transform.parent = ItemAuthoring.transform.parent;
+					nFozzyCorrection.transform.localScale = ItemAuthoring.transform.localScale;
+					nFozzyCorrection.transform.localPosition = ItemAuthoring.transform.localPosition;
+					nFozzyCorrection.transform.rotation = table.transform.rotation;
+
+					var trigger = ItemAuthoring.CreateCorrectionTrigger();
+					var triggerAuth = nFozzyCorrection.AddComponent<TriggerAuthoring>();
+					triggerAuth.SetItem(trigger);
+
+					var triggerColl = nFozzyCorrection.AddComponent<TriggerColliderAuthoring>();
+					triggerColl.ItemDataChanged();
+
+					nFozzyCorrection.AddComponent<ConvertToEntity>();
+
+					// Register to Table
+					table.Table?.Add(trigger);
+
+					Undo.RegisterCreatedObjectUndo(nFozzyCorrection, "Create nFozzy's corrections object");
+				}
+			}
 
 			base.OnInspectorGUI();
 		}

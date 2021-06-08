@@ -18,14 +18,15 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
 	internal static class FlipperCorrection
 	{
-		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionData flipperCorrectionData, in FlipperCorrectionData flipperData)
+		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionData flipperCorrectionData, in FlipperMovementData flipperMovementData, in FlipperStaticData flipperStaticData)
 		{
-			Debug.Log("Ball going out!");
+			Debug.Log("[CORR] Ball going out!");
 		}
 	}
 }
