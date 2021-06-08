@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperCorrectionData : IComponentData
+	public struct FlipperCorrectionBlob
 	{
-		public BlobAssetReference<FlipperCorrectionBlob> Value;
+		public Entity FlipperEntity;
+		public BlobArray<float2> Polarities;
+		public BlobArray<float2> Velocities;
 	}
 }

@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
 	internal static class FlipperCorrection
 	{
-		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionData flipperCorrectionData, in FlipperMovementData flipperMovementData, in FlipperStaticData flipperStaticData)
+		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionBlob flipperCorrectionBlob,
+			in FlipperMovementData flipperMovementData, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
-			Debug.Log("[CORR] Ball going out!");
+			ref var velocities = ref flipperCorrectionBlob.Velocities;
+			ref var polarities = ref flipperCorrectionBlob.Polarities;
+			var flipperAngleRad = flipperMovementData.Angle;
+			var flipperStrength = flipperStaticData.Strength;
+			var ballPosition = ballData.Position;
+			var ballVelocity = ballData.Velocity;
+			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementData.StartRotateToEndTime;
+
 		}
 	}
 }

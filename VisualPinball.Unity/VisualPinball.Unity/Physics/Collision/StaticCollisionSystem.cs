@@ -20,9 +20,7 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
-using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Flipper;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -174,14 +172,13 @@ namespace VisualPinball.Unity
 
 								if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
 									if (triggerAnimationData.UnHitEvent) {
-
 										var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
-										var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionData.FlipperEntity);
-										var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionData.FlipperEntity);
+										ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
+										var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
+										var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
 										FlipperCorrection.OnBallLeaveFlipper(
-											ref ballData, ref flipperCorrectionData, in flipperMovementData, in flipperStaticData
+											ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperStaticData, timeMsec
 										);
-										SetComponent(coll.Entity, flipperCorrectionData);
 									}
 
 								} else {
@@ -237,14 +234,13 @@ namespace VisualPinball.Unity
 
 									if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
 										if (triggerAnimationData.UnHitEvent) {
-
 											var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
-											var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionData.FlipperEntity);
-											var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionData.FlipperEntity);
+											ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
+											var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
+											var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
 											FlipperCorrection.OnBallLeaveFlipper(
-												ref ballData, ref flipperCorrectionData, in flipperMovementData, in flipperStaticData
+												ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperStaticData, timeMsec
 											);
-											SetComponent(coll.Entity, flipperCorrectionData);
 										}
 
 									} else {

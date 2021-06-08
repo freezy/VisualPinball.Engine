@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mpf.Vpe;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor;
@@ -84,10 +85,27 @@ namespace VisualPinball.Unity
 				// todo create special registration method since we don't need all the api stuff.
 				player.RegisterTrigger(trigger, triggerEntity, Entity.Null);
 
-				// add correction data
-				dstManager.AddComponentData(triggerEntity, new FlipperCorrectionData {
-					FlipperEntity = entity
-				});
+				using (var builder = new BlobBuilder(Allocator.Temp)) {
+
+					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
+					root.FlipperEntity = entity;
+
+					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.Polarities.Length);
+					for (var i = 0; i < correctionAuthoring.Polarities.Length; i++) {
+						polarities[i] = correctionAuthoring.Polarities[i];
+					}
+					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.Velocities.Length);
+					for (var i = 0; i < correctionAuthoring.Velocities.Length; i++) {
+						velocities[i] = correctionAuthoring.Velocities[i];
+					}
+
+					var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
+
+					// add correction data
+					dstManager.AddComponentData(triggerEntity, new FlipperCorrectionData {
+						Value = blobAssetRef
+					});
+				}
 			}
 
 			// register
