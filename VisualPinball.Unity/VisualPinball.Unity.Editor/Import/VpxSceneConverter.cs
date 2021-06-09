@@ -238,7 +238,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
 				meshAuthoring.CreateMesh(this, this);
 			}
-			item.ClearBinaryData();
+			item.FreeBinaryData();
 
 			// apply transformation
 			if (item is IRenderable renderable) {
