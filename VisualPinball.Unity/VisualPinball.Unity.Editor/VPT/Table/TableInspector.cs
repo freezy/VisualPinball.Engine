@@ -45,7 +45,6 @@ namespace VisualPinball.Unity.Editor
 						"vpx");
 
 					if (!string.IsNullOrEmpty(path)) {
-						tableContainer.PrepareForExport();
 						tableContainer.Save(path);
 					}
 				}
