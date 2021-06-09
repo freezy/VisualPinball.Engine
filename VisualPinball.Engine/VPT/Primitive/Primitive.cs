@@ -48,9 +48,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 		}
 
-		public void ClearBinaryData()
+		public override void FreeBinaryData()
 		{
-			Data.ClearBinaryData();
+			Data.FreeBinaryData();
 		}
 
 		public static Primitive GetDefault(Table.Table table)
