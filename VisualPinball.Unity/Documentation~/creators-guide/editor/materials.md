@@ -25,7 +25,7 @@ We refer to how the material interacts with the ball during the physics simulati
 - **Friction** - How much friction is applied when the ball rolls along this material.
 - **Scatter** - Adds a random factor to the collision angle.
 
-Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each parameter individually.
+Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each of those four parameters individually.
 
 > [!note]
 > In Visual Pinball, the physical parameters are part of the rendered material, so there is only one notion of material.
@@ -35,10 +35,10 @@ Physics materials are a way to group common behavior among certain objects, but 
 As mentioned above, there are two differences between Visual Pinball and VPE how materials are handled:
 
 1. VPE includes textures in the material, while Visual Pinball does not.
-2. VPE differentiates between rendered and physics materials.
+2. VPE differentiates between rendered and the physical material.
 
-When importing a `.vpx` file, VPE converts the Visual Pinball materials into materials for the current render pipeline. It does that by creating a new material for every material/texture combination in Visual Pinball. The materials are then written to the `Materials` asset folder of the imported table where they can be easily edited. Since Visual Pinball uses different shaders than Unity, the results of the conversion are approximations and should be heavily tweaked. 
+When importing a `.vpx` file, VPE converts the "visual part" of Visual Pinball materials into materials for the current render pipeline. It does that by creating a new material for every material/texture combination in Visual Pinball. The materials are then written to the `Materials` asset folder of the imported table where they can be easily edited and referenced. Since Visual Pinball uses different shaders than Unity, the results of the conversion are approximations and should be heavily tweaked. 
 
-Since VPE uses the same physics engine as Visual Pinball, the original materials are written as physics materials to the asset folder. During that process, the visual attributes are stripped from the material, making it a physics material only. 
+Since VPE uses the same physics engine as Visual Pinball, the physical values of the materials don't need to be converted, they are copied 1:1 into a new physics material and saved in the asset folder.
 
-In case you're using the Unity editor for authoring a Visual Pinball table, you can still edit the original VPX materials using the materials manager. However, you'll note that the physics attributes are missing, since they are now handled by physical material assets. When exporting, VPE will apply the physics values from the assets to the internal materials.
+In case you're using the Unity editor for authoring a Visual Pinball table, you can still edit the original VPX materials using the materials manager. However, you'll notice that the physical attributes are missing, since they are now handled by physical material assets. That means when exporting, VPE will apply the physics values from the assets to the internal materials (the match between the material editor and the asset is done via name).
