@@ -36,10 +36,13 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
-
 		#region Table Data
 
-		public MappingsData Mappings;
+		[SerializeField] public MappingsData Mappings;
+		[SerializeField] public Dictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
+		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
+		[SerializeField] public LegacyContainer LegacyContainer;
+		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
 
 		#endregion
 
@@ -49,8 +52,6 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType { get; } = null;
 
 		public override IEnumerable<Type> ValidParents => new Type[0];
-		public List<CollectionData> Collections => _legacyContainer?.collections;
-
 
 		public new Table Table => Item;
 		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
@@ -60,7 +61,7 @@ namespace VisualPinball.Unity
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
-		[HideInInspector] [SerializeField] private LegacyContainer _legacyContainer;
+
 		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
 		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
 		// will cache miss and get recreated as well
@@ -69,7 +70,7 @@ namespace VisualPinball.Unity
 		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
 		/// </summary>
-		[HideInInspector] [SerializeField] private Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
+		[HideInInspector] [SerializeField] private readonly Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -105,10 +106,10 @@ namespace VisualPinball.Unity
 
 		public LegacyContainer GetOrCreateLegacyContainer()
 		{
-			if (_legacyContainer == null) {
-				_legacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
+			if (LegacyContainer == null) {
+				LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
 			}
-			return _legacyContainer;
+			return LegacyContainer;
 		}
 
 		public void AddTexture(string name, Texture2D texture)
