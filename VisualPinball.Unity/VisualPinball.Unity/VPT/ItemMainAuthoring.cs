@@ -99,6 +99,15 @@ namespace VisualPinball.Unity
 
 		#region Parenting
 
+		public virtual void FillBinaryData()
+		{
+		}
+
+		public void FreeBinaryData()
+		{
+			Item.FreeBinaryData();
+		}
+
 		/// <summary>
 		/// List of types for parenting. Empty list if only to own parent.
 		/// </summary>

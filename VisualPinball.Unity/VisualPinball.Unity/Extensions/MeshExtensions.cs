@@ -80,6 +80,19 @@ namespace VisualPinball.Unity
 			return mesh;
 		}
 
+		public static void ApplyToVpMesh(this Mesh mesh, Engine.VPT.Mesh vpMesh)
+		{
+			vpMesh.Vertices = new Vertex3DNoTex2[mesh.vertices.Length];
+			for (var i = 0; i < mesh.vertices.Length; i++) {
+				vpMesh.Vertices[i] = new Vertex3DNoTex2(
+					mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z,
+					mesh.normals[i].x, mesh.normals[i].y, mesh.normals[i].z,
+					mesh.uv[i].x, mesh.uv[i].y
+				);
+			}
+			vpMesh.Indices = mesh.triangles;
+		}
+
 		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, Mesh mesh)
 		{
 			if (vpMesh.Indices.Length > 65535) {
@@ -100,7 +113,7 @@ namespace VisualPinball.Unity
 			mesh.vertices = vertices;
 			mesh.normals = normals;
 			mesh.uv = uv;
-			//mesh.RecalculateBounds(); // redundant if setting tringles
+			//mesh.RecalculateBounds(); // redundant if setting triangles
 
 			// faces
 			mesh.triangles = vpMesh.Indices;

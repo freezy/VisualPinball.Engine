@@ -80,6 +80,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public override void FillBinaryData()
+		{
+			var meshAuth = GetComponent<PrimitiveMeshAuthoring>();
+			if (!meshAuth) {
+				meshAuth = GetComponentInChildren<PrimitiveMeshAuthoring>();
+			}
+
+			var meshGo = meshAuth ? meshAuth.gameObject : gameObject;
+			var mf = meshGo.GetComponent<MeshFilter>();
+			if (mf) {
+				mf.sharedMesh.ApplyToVpMesh(Data.Mesh);
+			}
+		}
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();
 		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
