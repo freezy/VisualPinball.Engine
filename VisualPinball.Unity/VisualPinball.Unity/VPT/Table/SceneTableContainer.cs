@@ -80,7 +80,15 @@ namespace VisualPinball.Unity
 			Logger.Info($"Refreshed {GameItems.Count()} game items in {stopWatch.ElapsedMilliseconds}ms.");
 		}
 
-		public void PrepareForExport()
+		public override void Save(string fileName)
+		{
+			RepopulateBinaryData();
+			PrepareForExport();
+			base.Save(fileName);
+			FreeBinaryData();
+		}
+
+		private void PrepareForExport()
 		{
 			// refresh first
 			Refresh();
@@ -132,6 +140,16 @@ namespace VisualPinball.Unity
 			}
 			#endif
 			Table.Data.NumMaterials = _materials.Count;
+		}
+
+		private void RepopulateBinaryData()
+		{
+
+		}
+
+		private void FreeBinaryData()
+		{
+
 		}
 
 		protected override void Clear()
