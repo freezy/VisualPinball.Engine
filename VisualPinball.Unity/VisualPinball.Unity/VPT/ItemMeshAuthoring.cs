@@ -165,7 +165,7 @@ namespace VisualPinball.Unity
 			Gizmos.matrix = Matrix4x4.identity;
 			foreach (var mf in mfs) {
 				var t = mf.transform;
-				if(mf.sharedMesh != null && mf.sharedMesh.vertexCount > 0)
+				if (mf.sharedMesh != null && mf.sharedMesh.vertexCount > 0) {
 					Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 				}
 			}
