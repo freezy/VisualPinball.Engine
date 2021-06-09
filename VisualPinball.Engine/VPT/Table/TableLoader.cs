@@ -19,6 +19,7 @@ using System.IO;
 using NLog;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT.Collection;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -282,8 +283,7 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 				using (var stream = new MemoryStream(collectionStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var collection = new Collection.Collection(reader, collectionName);
-					tableContainer.Collections[collection.Name.ToLower()] = collection;
+					tableContainer.Collections.Add(new CollectionData(reader, collectionName));
 				}
 			}
 		}
@@ -327,7 +327,7 @@ namespace VisualPinball.Engine.VPT.Table
 			if (citStream != null) {
 				using (var stream = new MemoryStream(citStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					tableContainer.CustomInfoTags = new CustomInfoTags(reader);
+					tableContainer.CustomInfoTags.Load(reader);
 				}
 			}
 

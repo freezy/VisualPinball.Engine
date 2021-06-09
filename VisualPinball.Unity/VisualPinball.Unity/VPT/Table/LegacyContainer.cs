@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
-using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 
@@ -35,9 +30,6 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class LegacyContainer : ScriptableObject
 	{
-		[HideInInspector] public Dictionary<string, string> tableInfo = new SerializableDictionary<string, string>();
-		[HideInInspector] public CustomInfoTags customInfoTags;
-		[HideInInspector] public List<CollectionData> collections;
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
 		[HideInInspector] public FlasherData[] flashers;

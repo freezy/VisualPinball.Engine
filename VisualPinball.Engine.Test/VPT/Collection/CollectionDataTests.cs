@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -28,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		public void ShouldReadCollectionData()
 		{
 			var th = FileTableContainer.Load(VpxPath.Collection);
-			var data = th.Collections["flippers"].Data;
+			var data = th.Collections.First(c => c.Name == "flippers");
 			ValidateTableData(data);
 		}
 
@@ -39,7 +40,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 			var th = FileTableContainer.Load(VpxPath.Collection);
 			th.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
-			ValidateTableData(writtenTable.Collections["flippers"].Data);
+			ValidateTableData(writtenTable.Collections.First(c => c.Name == "flippers"));
 		}
 
 		private static void ValidateTableData(CollectionData data)
