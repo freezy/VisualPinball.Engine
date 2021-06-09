@@ -14,29 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.Decal;
+using VisualPinball.Engine.VPT.DispReel;
+using VisualPinball.Engine.VPT.Flasher;
+using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.TextBox;
+using VisualPinball.Engine.VPT.Timer;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {
-	[Serializable]
 	public class SceneTableContainer : TableContainer
 	{
-		public new Table Table => _tableAuthoring.Table;
+		public override Table Table => _tableAuthoring.Table;
+		public override Dictionary<string, string> TableInfo => _tableAuthoring.TableInfo;
+		public override List<CollectionData> Collections => _tableAuthoring.Collections;
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
+		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 
 		public const int ChildObjectsLayer = 16;
 
-		[NonSerialized] private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
+		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 
 		public override Material GetMaterial(string name)
 		{
@@ -48,7 +57,7 @@ namespace VisualPinball.Unity
 
 		public override Texture GetTexture(string name)
 		{
-			throw new NotImplementedException();
+			return null;
 		}
 
 		private readonly TableAuthoring _tableAuthoring;
@@ -69,6 +78,60 @@ namespace VisualPinball.Unity
 			}
 
 			Logger.Info($"Refreshed {GameItems.Count()} game items in {stopWatch.ElapsedMilliseconds}ms.");
+		}
+
+		public void PrepareForExport()
+		{
+			// refresh first
+			Refresh();
+
+			// fetch legacy items from container (because they are not in the scene)
+			foreach (var decal in _tableAuthoring.LegacyContainer.decals) {
+				_decals.Add(new Decal(decal));
+			}
+			foreach (var dispReel in _tableAuthoring.LegacyContainer.dispReels) {
+				_dispReels[dispReel.Name] = new DispReel(dispReel);
+			}
+			foreach (var flasher in _tableAuthoring.LegacyContainer.flashers) {
+				_flashers[flasher.Name] = new Flasher(flasher);
+			}
+			foreach (var lightSeq in _tableAuthoring.LegacyContainer.lightSeqs) {
+				_lightSeqs[lightSeq.Name] = new LightSeq(lightSeq);
+			}
+			foreach (var textBox in _tableAuthoring.LegacyContainer.textBoxes) {
+				_textBoxes[textBox.Name] = new TextBox(textBox);
+			}
+			foreach (var timer in _tableAuthoring.LegacyContainer.timers) {
+				_timers[timer.Name] = new Timer(timer);
+			}
+
+			// count stuff and update table data counters
+			Table.Data.NumCollections = Collections.Count;
+			Table.Data.NumFonts = 0; // todo handle fonts?
+			Table.Data.NumGameItems = ItemDatas.Count();
+
+			// todo both!
+			Table.Data.NumSounds = 0;
+			Table.Data.NumTextures = 0;
+
+			// add/merge physical materials from asset folder
+			#if UNITY_EDITOR
+			var guids = UnityEditor.AssetDatabase.FindAssets("t:PhysicsMaterial", null);
+			foreach (var guid in guids) {
+				var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+				var matAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(assetPath);
+				var name = Path.GetFileNameWithoutExtension(assetPath);
+				if (!_materials.ContainsKey(name.ToLower())) {
+					_materials[name.ToLower()] = new Material();
+				}
+				var matTable = _materials[name.ToLower()];
+				matTable.Elasticity = matAsset.Elasticity;
+				matTable.ElasticityFalloff = matAsset.ElasticityFalloff;
+				matTable.Friction = matAsset.Friction;
+				matTable.ScatterAngle = matAsset.ScatterAngle;
+			}
+			#endif
+			Table.Data.NumMaterials = _materials.Count;
 		}
 
 		protected override void Clear()

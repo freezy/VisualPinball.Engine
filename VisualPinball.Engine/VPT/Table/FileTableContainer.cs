@@ -17,14 +17,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using NLog;
+using VisualPinball.Engine.VPT.Collection;
 
 namespace VisualPinball.Engine.VPT.Table
 {
 	public class FileTableContainer : TableContainer
 	{
+		public override Table Table { get; }
+		public override Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
+		public override List<CollectionData> Collections { get; } = new List<CollectionData>();
 		public override Mappings.Mappings Mappings => _mappings;
+		public override CustomInfoTags CustomInfoTags { get; } = new CustomInfoTags();
+
 		private Mappings.Mappings _mappings = new Mappings.Mappings();
 
 		public FileTableContainer(string name = "Table1")
@@ -110,7 +115,6 @@ namespace VisualPinball.Engine.VPT.Table
 		}
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 	}
 }
 

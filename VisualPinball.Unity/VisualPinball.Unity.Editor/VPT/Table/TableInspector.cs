@@ -18,7 +18,6 @@
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedType.Global
 
-using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -38,15 +37,16 @@ namespace VisualPinball.Unity.Editor
 			if (!EditorApplication.isPlaying) {
 				DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {
-					var th = tableComponent.TableContainer;
+					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
 						"Export table as VPX",
 						"",
-						th.Table.Name + ".vpx",
+						tableContainer.Table.Name + ".vpx",
 						"vpx");
 
 					if (!string.IsNullOrEmpty(path)) {
-						th.Save(path);
+						tableContainer.PrepareForExport();
+						tableContainer.Save(path);
 					}
 				}
 

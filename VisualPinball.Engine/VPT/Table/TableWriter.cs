@@ -119,8 +119,8 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 3. Collections
-			var collections = _tableContainer.Collections.Values;
-			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
+			var collections = _tableContainer.Collections;
+			foreach (var collection in collections.OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 

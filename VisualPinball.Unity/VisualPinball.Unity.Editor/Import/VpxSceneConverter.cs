@@ -124,18 +124,15 @@ namespace VisualPinball.Unity.Editor
 		private void SaveData()
 		{
 			_tableAuthoring.Mappings = _tableContainer.Mappings.Data;
+			foreach (var key in _tableContainer.TableInfo.Keys) {
+				_tableAuthoring.TableInfo[key] = _tableContainer.TableInfo[key];
+			}
+			_tableAuthoring.CustomInfoTags = _tableContainer.CustomInfoTags;
 		}
 
 		private void SaveLegacyData()
 		{
 			var legacyContainer = _tableAuthoring.GetOrCreateLegacyContainer();
-
-			foreach (var key in _tableContainer.TableInfo.Keys) {
-				legacyContainer.tableInfo[key] = _tableContainer.TableInfo[key];
-			}
-
-			legacyContainer.customInfoTags = _tableContainer.CustomInfoTags;
-			legacyContainer.collections = _tableContainer.Collections.Values.Select(c => c.Data).ToList();
 
 			legacyContainer.decals = _tableContainer.GetAllData<Decal, DecalData>();
 			legacyContainer.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
@@ -143,11 +140,6 @@ namespace VisualPinball.Unity.Editor
 			legacyContainer.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
 			legacyContainer.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
 			legacyContainer.timers = _tableContainer.GetAllData<Timer, TimerData>();
-
-			Logger.Info("Collections saved: [ {0} ] [ {1} ]",
-				string.Join(", ", _tableContainer.Collections.Keys),
-				string.Join(", ", legacyContainer.collections.Select(c => c.Name))
-			);
 		}
 
 		private void ConvertGameItems()
