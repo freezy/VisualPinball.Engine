@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
@@ -71,7 +74,7 @@ namespace VisualPinball.Unity
 		{
 			var stopWatch = Stopwatch.StartNew();
 			Clear();
-			WalkChildren(_tableAuthoring.transform);
+			WalkChildren(_tableAuthoring.transform, RefreshChild);
 
 			foreach (var material in _tableAuthoring.Data.Materials) {
 				_materials[material.Name.ToLower()] = material;
@@ -82,17 +85,17 @@ namespace VisualPinball.Unity
 
 		public override void Save(string fileName)
 		{
-			RepopulateBinaryData();
+			Refresh();
+			FillBinaryData();
 			PrepareForExport();
+
 			base.Save(fileName);
+
 			FreeBinaryData();
 		}
 
 		private void PrepareForExport()
 		{
-			// refresh first
-			Refresh();
-
 			// fetch legacy items from container (because they are not in the scene)
 			foreach (var decal in _tableAuthoring.LegacyContainer.decals) {
 				_decals.Add(new Decal(decal));
@@ -116,7 +119,7 @@ namespace VisualPinball.Unity
 			// count stuff and update table data counters
 			Table.Data.NumCollections = Collections.Count;
 			Table.Data.NumFonts = 0; // todo handle fonts?
-			Table.Data.NumGameItems = ItemDatas.Count();
+			Table.Data.NumGameItems = ItemDatas.Count(); // todo set storage indices
 
 			// todo both!
 			Table.Data.NumSounds = 0;
@@ -142,14 +145,26 @@ namespace VisualPinball.Unity
 			Table.Data.NumMaterials = _materials.Count;
 		}
 
-		private void RepopulateBinaryData()
+		private void FillBinaryData()
 		{
-
+			WalkChildren(_tableAuthoring.transform, FillBinaryData);
 		}
 
 		private void FreeBinaryData()
 		{
+			WalkChildren(_tableAuthoring.transform, FreeBinaryData);
+		}
 
+		private static void FillBinaryData(Transform transform)
+		{
+			var comp = transform.GetComponent<IItemMainAuthoring>();
+			comp?.FillBinaryData();
+		}
+
+		private static void FreeBinaryData(Transform transform)
+		{
+			var comp = transform.GetComponent<IItemMainAuthoring>();
+			comp?.FreeBinaryData();
 		}
 
 		protected override void Clear()
@@ -158,11 +173,11 @@ namespace VisualPinball.Unity
 			_materials.Clear();
 		}
 
-		private void WalkChildren(IEnumerable node)
+		private void WalkChildren(IEnumerable node, Action<Transform> action)
 		{
 			foreach (Transform childTransform in node) {
-				RefreshChild(childTransform);
-				WalkChildren(childTransform);
+				action(childTransform);
+				WalkChildren(childTransform, action);
 			}
 		}
 
