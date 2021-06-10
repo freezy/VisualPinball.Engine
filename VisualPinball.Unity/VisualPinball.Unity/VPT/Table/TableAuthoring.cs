@@ -16,6 +16,8 @@
 
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable InconsistentNaming
+// ReSharper disable CheckNamespace
 
 using System;
 using System.Collections.Generic;
@@ -41,7 +43,7 @@ namespace VisualPinball.Unity
 		[SerializeField] public MappingsData Mappings;
 		[SerializeField] public Dictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
-		[SerializeField] public LegacyContainer LegacyContainer;
+		[SerializeField] public LegacyContainer LegacyContainer = new LegacyContainer();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
 
 		#endregion
@@ -102,19 +104,6 @@ namespace VisualPinball.Unity
 		{
 			// do nothing, base class draws all child meshes for ease of selection, but
 			// that would just be everything at this level
-		}
-
-		public LegacyContainer GetOrCreateLegacyContainer()
-		{
-			if (LegacyContainer == null) {
-				LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
-			}
-			return LegacyContainer;
-		}
-
-		public void AddTexture(string name, Texture2D texture)
-		{
-			_unityTextures[name.ToLower()] = texture;
 		}
 
 		public void RestoreCollections(List<CollectionData> collections)

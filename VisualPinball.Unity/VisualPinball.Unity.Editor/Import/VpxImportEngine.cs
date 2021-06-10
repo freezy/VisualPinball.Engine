@@ -32,10 +32,10 @@ namespace VisualPinball.Unity.Editor
 			var sw = Stopwatch.StartNew();
 
 			// load table
-			var th = TableLoader.LoadTable(path);
+			var tableContainer = TableLoader.LoadTable(path);
 			var loadedIn = sw.ElapsedMilliseconds;
 
-			var converter = new VpxSceneConverter(th, Path.GetFileName(path));
+			var converter = new VpxSceneConverter(tableContainer, Path.GetFileName(path));
 
 			var tableGameObject = converter.Convert(applyPatch, tableName);
 			var convertedIn = sw.ElapsedMilliseconds;

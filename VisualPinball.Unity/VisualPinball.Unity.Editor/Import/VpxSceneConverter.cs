@@ -128,18 +128,17 @@ namespace VisualPinball.Unity.Editor
 				_tableAuthoring.TableInfo[key] = _tableContainer.TableInfo[key];
 			}
 			_tableAuthoring.CustomInfoTags = _tableContainer.CustomInfoTags;
+			_tableAuthoring.Collections = _tableContainer.Collections;
 		}
 
 		private void SaveLegacyData()
 		{
-			var legacyContainer = _tableAuthoring.GetOrCreateLegacyContainer();
-
-			legacyContainer.decals = _tableContainer.GetAllData<Decal, DecalData>();
-			legacyContainer.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
-			legacyContainer.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
-			legacyContainer.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
-			legacyContainer.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
-			legacyContainer.timers = _tableContainer.GetAllData<Timer, TimerData>();
+			_tableAuthoring.LegacyContainer.decals = _tableContainer.GetAllData<Decal, DecalData>();
+			_tableAuthoring.LegacyContainer.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
+			_tableAuthoring.LegacyContainer.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
+			_tableAuthoring.LegacyContainer.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
+			_tableAuthoring.LegacyContainer.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
+			_tableAuthoring.LegacyContainer.timers = _tableContainer.GetAllData<Timer, TimerData>();
 		}
 
 		private void ConvertGameItems()

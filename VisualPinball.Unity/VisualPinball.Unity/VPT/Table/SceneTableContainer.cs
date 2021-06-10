@@ -21,9 +21,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
@@ -86,12 +84,12 @@ namespace VisualPinball.Unity
 		public override void Save(string fileName)
 		{
 			Refresh();
-			FillBinaryData();
+			//FillBinaryData();
 			PrepareForExport();
 
 			base.Save(fileName);
 
-			FreeBinaryData();
+			//FreeBinaryData();
 		}
 
 		private void PrepareForExport()
@@ -118,7 +116,7 @@ namespace VisualPinball.Unity
 
 			// count stuff and update table data counters
 			Table.Data.NumCollections = Collections.Count;
-			Table.Data.NumFonts = 0; // todo handle fonts?
+			Table.Data.NumFonts = 0;                     // todo handle fonts?
 			Table.Data.NumGameItems = ItemDatas.Count(); // todo set storage indices
 
 			// todo both!
@@ -173,7 +171,7 @@ namespace VisualPinball.Unity
 			_materials.Clear();
 		}
 
-		private void WalkChildren(IEnumerable node, Action<Transform> action)
+		private static void WalkChildren(IEnumerable node, Action<Transform> action)
 		{
 			foreach (Transform childTransform in node) {
 				action(childTransform);
