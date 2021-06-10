@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Math;
@@ -82,15 +83,21 @@ namespace VisualPinball.Unity
 
 		public static void ApplyToVpMesh(this Mesh mesh, Engine.VPT.Mesh vpMesh)
 		{
-			vpMesh.Vertices = new Vertex3DNoTex2[mesh.vertices.Length];
-			for (var i = 0; i < mesh.vertices.Length; i++) {
+			var vertices = mesh.vertices;
+			var normals = mesh.normals;
+			var uv = mesh.uv;
+			var triangles = mesh.triangles;
+			Debug.Log($"Copying {vertices.Length} vertices back to {mesh.name}");
+			vpMesh.Vertices = new Vertex3DNoTex2[vertices.Length];
+			for (var i = 0; i < vertices.Length; i++) {
 				vpMesh.Vertices[i] = new Vertex3DNoTex2(
-					mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z,
-					mesh.normals[i].x, mesh.normals[i].y, mesh.normals[i].z,
-					mesh.uv[i].x, mesh.uv[i].y
+					vertices[i].x, vertices[i].y, vertices[i].z,
+					normals[i].x, normals[i].y, normals[i].z,
+					uv[i].x, uv[i].y
 				);
 			}
-			vpMesh.Indices = mesh.triangles;
+			vpMesh.Indices = new int[triangles.Length];
+			Buffer.BlockCopy(triangles, 0, vpMesh.Indices, 0, triangles.Length);
 		}
 
 		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, Mesh mesh)
