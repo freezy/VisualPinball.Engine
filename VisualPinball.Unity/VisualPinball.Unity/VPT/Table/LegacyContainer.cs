@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
@@ -28,7 +29,8 @@ namespace VisualPinball.Unity
 	/// Legacy in VPE is data from Visual Pinball 10 that isn't used in VPE,
 	/// but still available to export.
 	/// </summary>
-	public class LegacyContainer : ScriptableObject
+	[Serializable]
+	public class LegacyContainer
 	{
 		[HideInInspector] public DecalData[] decals;
 		[HideInInspector] public DispReelData[] dispReels;
