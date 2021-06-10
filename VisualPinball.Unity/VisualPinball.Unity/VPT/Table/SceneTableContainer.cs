@@ -84,12 +84,12 @@ namespace VisualPinball.Unity
 		public override void Save(string fileName)
 		{
 			Refresh();
-			//FillBinaryData();
+			FillBinaryData();
 			PrepareForExport();
 
 			base.Save(fileName);
 
-			//FreeBinaryData();
+			FreeBinaryData();
 		}
 
 		private void PrepareForExport()
