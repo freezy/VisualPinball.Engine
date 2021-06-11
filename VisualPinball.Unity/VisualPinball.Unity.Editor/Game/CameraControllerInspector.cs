@@ -134,6 +134,67 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 			EditorGUILayout.PropertyField(_cameraPresetsProp);
+
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+
+			//Editor Play Mode Camera Controls 
+			EditorGUILayout.LabelField("Runtime Motion Controls", EditorStyles.boldLabel);
+			EditorGUILayout.Space();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Horizontal Speed", EditorStyles.boldLabel);
+			_cameraController.mouseSpeedH = EditorGUILayout.Slider("", _cameraController.mouseSpeedH, 0f, 5f);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Vertical Speed", EditorStyles.boldLabel);
+			_cameraController.mouseSpeedV = EditorGUILayout.Slider("", _cameraController.mouseSpeedV, 0f, 5f);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Translation Speed", EditorStyles.boldLabel);
+			_cameraController.mouseSpeedT = EditorGUILayout.Slider("", _cameraController.mouseSpeedT, 0f, 5f);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+
+			/*
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Distance Change Multiplier", EditorStyles.boldLabel);
+			_cameraController.mouseSpeedD = EditorGUILayout.Slider("", _cameraController.mouseSpeedD, 0f, 2f);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("FOV Change Multiplier", EditorStyles.boldLabel);
+			_cameraController.mouseSpeedZ = EditorGUILayout.Slider("", _cameraController.mouseSpeedZ, 0f, 2f);
+			EditorGUILayout.EndHorizontal();
+			*/
+
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+
+			EditorGUILayout.BeginHorizontal(); 
+			EditorGUILayout.LabelField("Invert Horizontal Axis", EditorStyles.boldLabel);
+			_cameraController.invertX = EditorGUILayout.Toggle(_cameraController.invertX);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Invert Vertical Axis", EditorStyles.boldLabel);
+			_cameraController.invertY = EditorGUILayout.Toggle(_cameraController.invertY);
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.Space();
+			EditorGUILayout.Separator();
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Use Inertia", EditorStyles.boldLabel);
+			_cameraController.useInertia = EditorGUILayout.Toggle(_cameraController.useInertia);
+			EditorGUILayout.EndHorizontal();
+
+
+
 		}
 
 		private void ApplySetting()

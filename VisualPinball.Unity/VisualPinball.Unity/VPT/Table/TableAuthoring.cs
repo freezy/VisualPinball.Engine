@@ -85,8 +85,20 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		//Private runtime values needed for camera adjustments.  
+		[HideInInspector] [SerializeField] public  Bounds _tableBounds;
+		[HideInInspector] [SerializeField] public  Vector3 _tableCenter;
+
+		public void Awake()
+		{
+			//Store table information 
+			_tableBounds = GetTableBounds();
+			_tableCenter = GetTableCenter();
+		}
+
 		protected virtual void Start()
 		{
+		
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(this);
 			}
@@ -266,13 +278,15 @@ namespace VisualPinball.Unity
 
 		public Bounds GetTableBounds()
 		{
+
 			var tableBounds = new Bounds();
+
 			var mrs = GetComponentsInChildren<Renderer>();
-			foreach(var mr in mrs) {
-				tableBounds.Encapsulate(mr.bounds.max);
-				tableBounds.Encapsulate(mr.bounds.min);
-				tableBounds.Encapsulate(mr.bounds.center);
+			foreach(var mr in mrs) 
+			{
+				tableBounds.Encapsulate(mr.bounds);
 			}
+
 			return tableBounds;
 		}
 
