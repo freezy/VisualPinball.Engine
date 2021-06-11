@@ -101,6 +101,7 @@ namespace VisualPinball.Unity
 			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
 			mData.EnableRotateEvent = 1;
 			mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
+			mData.AngleAtRotateToEndTime = mData.Angle;
 			_entityManager.SetComponentData(entity, mData);
 			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
 		}

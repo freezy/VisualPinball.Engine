@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
 	internal struct FlipperStaticData : IComponentData
 	{
+		public float3 Position;
 		public float Inertia;
 		public float AngleStart;
 		public float AngleEnd;
