@@ -89,14 +89,49 @@ namespace VisualPinball.Unity
 
 					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
 					root.FlipperEntity = entity;
+					root.TimeDelayMs = correctionAuthoring.TimeDelayMs;
+					// Discretize the curves
 
-					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.Polarities.Length);
-					for (var i = 0; i < correctionAuthoring.Polarities.Length; i++) {
-						polarities[i] = correctionAuthoring.Polarities[i];
+					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.polaritiesCurveSlicingCount+1);
+					if (correctionAuthoring?.Polarities?.curve != null && correctionAuthoring.polaritiesCurveSlicingCount >= 0)
+					{
+						var curve = correctionAuthoring.Polarities.curve;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+						int i = 0;
+						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
+						{
+							polarities[i].x = t;
+							polarities[i++].y = curve.Evaluate(t);
+						}
 					}
-					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.Velocities.Length);
-					for (var i = 0; i < correctionAuthoring.Velocities.Length; i++) {
-						velocities[i] = correctionAuthoring.Velocities[i];
+					else
+					{
+						for (int i = 0; i < correctionAuthoring.polaritiesCurveSlicingCount + 1; i++)
+						{
+							polarities[i].x = (float)i / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+							polarities[i].y = 0F;
+						}
+					}
+
+					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.velocitiesCurveSlicingCount + 1);
+					if (correctionAuthoring?.Velocities?.curve != null && correctionAuthoring.velocitiesCurveSlicingCount >= 0)
+					{
+						var curve = correctionAuthoring.Velocities.curve;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.velocitiesCurveSlicingCount;
+						int i = 0;
+						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
+						{
+							velocities[i].x = t;
+							velocities[i++].y = curve.Evaluate(t);
+						}
+					}
+					else
+					{
+						for (int i = 0; i < correctionAuthoring.velocitiesCurveSlicingCount + 1; i++)
+						{
+							velocities[i].x = (float)i / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+							velocities[i].y = 1F;
+						}
 					}
 
 					var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
@@ -312,6 +347,7 @@ namespace VisualPinball.Unity
 			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
 
 			return new FlipperStaticData {
+				Position = new float3(Data.Center.X, Data.Center.Y, 0F), // TODO: surface height?
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,

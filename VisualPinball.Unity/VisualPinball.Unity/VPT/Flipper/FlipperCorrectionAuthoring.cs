@@ -23,7 +23,19 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class FlipperCorrectionAuthoring : MonoBehaviour
 	{
-		public Vector2[] Polarities;
-		public Vector2[] Velocities;
+		public AnimationCurveAsset Polarities;
+
+		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
+		[Min(1)]
+		public int polaritiesCurveSlicingCount = 256;
+
+		public AnimationCurveAsset Velocities;
+
+		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
+		[Min(1)]
+		public int velocitiesCurveSlicingCount = 256;
+
+		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applyied anymore.")]
+		public uint TimeDelayMs = 60;
 	}
 }
