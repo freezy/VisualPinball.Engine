@@ -114,12 +114,7 @@ namespace VisualPinball.Unity
 				Camera = UnityEngine.Camera.current;  //Get the current active camera if not on the camera component.  
 			}
 
-			if(Camera == null)
-			{
-				return false;
-			}
-
-			return true; 
+			return Camera != null;
 		}
 		
 		/// <summary>
