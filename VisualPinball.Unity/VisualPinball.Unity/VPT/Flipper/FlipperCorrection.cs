@@ -43,18 +43,11 @@ namespace VisualPinball.Unity
 			var uncorrectedVel = ballVelocity;
 			if (ballVelocity.y > -8F) // ball going down
 			{
-				//Debug.Log("ball going down");
 				return;
 			}
 			
-			
 
 			var angleAtFire = flipperMovementData.AngleAtRotateToEndTime;
-			//var flipperBase = _hitCircleBase.Center;
-			//var feRadius = matData.EndRadius;
-
-			//var angleMin = math.min(flipperStaticData.AngleStart, flipperStaticData.AngleEnd);
-			//var angleMax = math.max(flipperStaticData.AngleStart, flipperStaticData.AngleEnd);
 			var angleStart = flipperStaticData.AngleStart;
 			var angleEnd = flipperStaticData.AngleEnd;
 
@@ -70,15 +63,7 @@ namespace VisualPinball.Unity
 
 			// Safety coeffcient: has been disabled in all curves of nFozzy. Not using;
 			float Ycoef = 1F;
-
-			//'Find balldata. BallPos = % on Flipper
-			//for x = 0 to uBound(Balls)
-			//	if aBall.id = BallData(x).id AND not isempty(BallData(x).id) then
-			//		idx = x
-			//		BallPos = PSlope(BallData(x).x, FlipperStart, 0, FlipperEnd, 1)
-			//		if ballpos > 0.65 then Ycoef = LinearEnvelope(BallData(x).Y, YcoefIn, YcoefOut)                'find safety coefficient 'ycoef' data
-			//	end if
-			//Next
+			
 
 			// Normalized flipper course since fire (can be > 1 if rebounding...)
 			float partialFlipCoef = ((angleStart - angleAtFire) / (angleStart - angleEnd));
@@ -106,31 +91,6 @@ namespace VisualPinball.Unity
 
 			// Apply all corrections
 			ballData.Velocity = ballVelocity;
-			//ballData.IsFrozen = true;
-
-#if UNITY_EDITOR
-			Global.FlipperCorrectionDebug.flipPos = flipPos;
-			Global.FlipperCorrectionDebug.flipEnd = flipEnd;
-			Global.FlipperCorrectionDebug.endRadius = flipperStaticData.EndRadius;
-			Global.FlipperCorrectionDebug.outPos = ballPosition;
-			Global.FlipperCorrectionDebug.uncorrectedVel = uncorrectedVel;
-			Global.FlipperCorrectionDebug.outVel = ballVelocity;
-			Global.FlipperCorrectionDebug.ballPos = ballPos;
-			Global.FlipperCorrectionDebug.justOut = true;
-			DebugInfo("Normalized angle:"+ partialFlipCoef+" Velocity coef:"+velCoefInit+" => "+ velCoef+ " Polarity correction:"+ AddX+ " Time Since Power:"+timeSinceFlipperStartedRotatingToEndMs, true);
-#endif
-		}
-
-		[BurstDiscard]
-		public static void DebugInfo(string message = "", bool aditionnal = false)
-		{
-			if(message != "")
-				Debug.Log("<b> <size=13> <color=#9DF155>Debug : " + message + "</color> </size> </b>");
-			if (aditionnal)
-			{
-				Debug.Log("<b> <size=13> <color=#9DF155>Debug : OnBallLeaveFlipper.</color> </size> </b>" + Global.FlipperCorrectionDebug.outPos + " " + Global.FlipperCorrectionDebug.outVel);
-				Debug.Log("<b> <size=13> <color=#9DF155>Debug : BallPos :" + Global.FlipperCorrectionDebug.ballPos + "</color> </size> </b>");
-			}
 		}
 
 		// awefull linear interpolations : TODO: replace by AnimationCurve equivalent...
