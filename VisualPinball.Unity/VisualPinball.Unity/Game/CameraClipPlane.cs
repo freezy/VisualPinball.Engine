@@ -130,7 +130,9 @@ namespace VisualPinball.Unity
 		/// <returns>False when no camera could be found.</returns>
 		public bool SetClipPlanes(float near, float far)
 		{
-			if(Camera == null) return false; 
+			if (Camera == null) {
+				return false;
+			}
 			Camera.nearClipPlane = math.max(0.001f, near);
 			Camera.farClipPlane = math.max(0.01f, far); 
 
