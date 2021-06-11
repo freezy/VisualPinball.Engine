@@ -24,5 +24,6 @@ namespace VisualPinball.Unity
 		public Entity FlipperEntity;
 		public BlobArray<float2> Polarities;
 		public BlobArray<float2> Velocities;
+		public uint TimeDelayMs;
 	}
 }
