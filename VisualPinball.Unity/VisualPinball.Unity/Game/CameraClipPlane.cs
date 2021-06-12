@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	public class CameraClipPlane : MonoBehaviour
 	{
-		
+
 		[NonSerialized]
 		public Camera Camera;
 
@@ -34,43 +34,51 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			SetClipPlanes(0.001f, 9f); 
+			SetClipPlanes(0.001f, 9f);
+		}
+
+		private void Awake()
+		{
+			RetrieveCameraComponent(); 
 		}
 
 		private void Update()
 		{
-			if(!GetCameraComponent())
+			if(Camera == null)
 			{
-				return;
+				RetrieveCameraComponent(); 
 			}
-
-			if(previousCameraPosition != Camera.transform.position)
+			
+			if(Camera != null)
 			{
-				UpdateClipPlanes();
-				previousCameraPosition = Camera.transform.position; 
+				if(previousCameraPosition != Camera.transform.position)
+				{
+					UpdateClipPlanes();
+					previousCameraPosition = Camera.transform.position;
+				}
 			}
 		}
 
 		/// <summary>
 		/// Updates the camera clipping planes based on the table bounds.
 		/// </summary>
-		public bool UpdateClipPlanes()
+		public void UpdateClipPlanes()
 		{
 
 			//Early out if no table is selected.  
 			if(!TableSelector.Instance.HasSelectedTable)
 			{
-				return false;
+				return;
 			}
 
 			//Early out if we don't have a camera to work on. 
-			if(!GetCameraComponent())
+			if(Camera == null)
 			{
-				return false;
+				return;
 			}
 
 			//Get selected table reference. 
-			var table = TableSelector.Instance.SelectedTable; 
+			var table = TableSelector.Instance.SelectedTable;
 
 			if(Application.isPlaying)
 			{
@@ -96,16 +104,14 @@ namespace VisualPinball.Unity
 
 			}
 
-			SetClipPlanes(nearPlane, farPlane); 
+			SetClipPlanes(nearPlane, farPlane);
 
-			return true; 
 		}
 
 		/// <summary>
 		/// Gets the currently active or attached camera component. 
 		/// </summary>
-		/// <returns>False when no camera can be found.</returns>
-		private bool GetCameraComponent()
+		private void RetrieveCameraComponent()
 		{
 			Camera = GetComponent<Camera>(); //Get the camera component we are attached to if present.  
 
@@ -114,24 +120,24 @@ namespace VisualPinball.Unity
 				Camera = UnityEngine.Camera.current;  //Get the current active camera if not on the camera component.  
 			}
 
-			return Camera != null;
 		}
-		
+
 		/// <summary>
 		/// Sets the camera clipping planes based on manually derived values. 
 		/// </summary>
 		/// <param name="near">The near clip plane value</param>
 		/// <param name="far">The far clip plane value</param>
 		/// <returns>False when no camera could be found.</returns>
-		public bool SetClipPlanes(float near, float far)
-		{
-			if (Camera == null) {
-				return false;
+		public void SetClipPlanes(float near, float far)
+		{ 
+			if(Camera == null)
+			{
+				return;
 			}
+			
 			Camera.nearClipPlane = math.max(0.001f, near);
 			Camera.farClipPlane = math.max(0.01f, far); 
 
-			return true; 
 		}
 		
 
