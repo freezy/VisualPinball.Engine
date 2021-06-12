@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 			bool isLeft = angleEnd < angleStart; // TODO: better if not classic flippers (trigonometry problems)
 
 			float AddX = LinearEnvelopeEven(ballPos, ref polarities, 0F);
-			if(isLeft) {
+			if(!isLeft) {
 				AddX = -AddX;
 			}
 			ballVelocity.x += (AddX * Ycoef * partialFlipCoef);
