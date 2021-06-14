@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		}
 		public static implicit operator AnimationCurveAsset(AnimationCurve curve)
 		{
-			AnimationCurveAsset asset = ScriptableObject.CreateInstance<AnimationCurveAsset>();
+			AnimationCurveAsset asset = CreateInstance<AnimationCurveAsset>();
 			asset.curve = curve;
 			return asset;
 		}
