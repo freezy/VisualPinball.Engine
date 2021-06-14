@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -27,13 +29,13 @@ namespace VisualPinball.Unity
 
 		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
 		[Min(1)]
-		public int polaritiesCurveSlicingCount = 256;
+		public int PolaritiesCurveSlicingCount = 256;
 
 		public AnimationCurveAsset Velocities;
 
 		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
 		[Min(1)]
-		public int velocitiesCurveSlicingCount = 256;
+		public int VelocitiesCurveSlicingCount = 256;
 
 		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applied anymore.")]
 		public uint TimeThresholdMs = 60;

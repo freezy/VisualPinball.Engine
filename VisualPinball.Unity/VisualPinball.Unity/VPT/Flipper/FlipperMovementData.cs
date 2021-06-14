@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		public quaternion BaseRotation;
 		public uint LastHitTime;
 		public uint StartRotateToEndTime;
-		public float AngleAtRotateToEndTime;
+		public float AngleAtRotateToEnd;
 
 		public override string ToString()
 		{
