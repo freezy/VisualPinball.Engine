@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 927b6f60022ae314c9f37c8ffd39c67b, type: 3}
-  m_Name: 90s and earlier - Polarities
+  m_Name: Late 80s to early 90s - Polarities
   m_EditorClassIdentifier: VisualPinball.Unity::AnimationCurveAsset
   curve:
     serializedVersion: 2
@@ -35,42 +35,33 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.4
-      value: -5.5
-      inSlope: 0
-      outSlope: 0
+      value: -5
+      inSlope: 1.5574826
+      outSlope: 1.5574826
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.56028914
     - serializedVersion: 3
       time: 0.6
-      value: -5
-      inSlope: 6.250005
-      outSlope: 6.250005
-      tangentMode: 34
+      value: -4.5
+      inSlope: 4.3247
+      outSlope: 4.3247
+      tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
+      inWeight: 0.37700978
+      outWeight: 1
     - serializedVersion: 3
       time: 0.65
-      value: -4.5
-      inSlope: 10.000004
-      outSlope: 10.000004
-      tangentMode: 34
+      value: -4
+      inSlope: 9.608398
+      outSlope: 9.608398
+      tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
+      inWeight: 1
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.7
-      value: -4
-      inSlope: 9.999998
-      outSlope: 9.999998
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.75
       value: -3.5
       inSlope: 9.999998
       outSlope: 9.999998
@@ -79,7 +70,7 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.8
+      time: 0.75
       value: -3
       inSlope: 9.999998
       outSlope: 9.999998
@@ -88,16 +79,16 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.85
+      time: 0.8
       value: -2.5
-      inSlope: 10.000004
-      outSlope: 10.000004
+      inSlope: 9.999998
+      outSlope: 9.999998
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.9
+      time: 0.85
       value: -2
       inSlope: 10.000004
       outSlope: 10.000004
@@ -106,8 +97,17 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.95
+      time: 0.9
       value: -1.5
+      inSlope: 10.000004
+      outSlope: 10.000004
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.95
+      value: -1
       inSlope: 9.999998
       outSlope: 9.999998
       tangentMode: 34
@@ -116,40 +116,31 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: -1
-      inSlope: 10.000004
-      outSlope: 10.000004
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1.05
       value: -0.5
-      inSlope: 9.999998
-      outSlope: 9.999998
-      tangentMode: 34
+      inSlope: 10.42706
+      outSlope: 10.42706
+      tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.49196112
     - serializedVersion: 3
       time: 1.1
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 0.08466794
+      outSlope: 0.08466794
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
+      inWeight: 1
+      outWeight: 0.57154316
     - serializedVersion: 3
       time: 1.3
       value: 0
-      inSlope: 0
-      outSlope: 0
+      inSlope: 0.000007556099
+      outSlope: 0.000007556099
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0
+      inWeight: 0.49115735
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4

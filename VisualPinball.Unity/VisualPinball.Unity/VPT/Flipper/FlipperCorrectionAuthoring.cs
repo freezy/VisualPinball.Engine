@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		[Min(1)]
 		public int velocitiesCurveSlicingCount = 256;
 
-		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applyied anymore.")]
-		public uint TimeDelayMs = 60;
+		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applied anymore.")]
+		public uint TimeThresholdMs = 60;
 	}
 }

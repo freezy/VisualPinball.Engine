@@ -16,12 +16,11 @@
 
 using UnityEngine;
 
-/// <summary>
-/// Simple class to encapsulate Curves as assets
-/// </summary>
-
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Simple class to encapsulate Curves as assets
+	/// </summary>
 	[CreateAssetMenu]
 	public class AnimationCurveAsset : ScriptableObject
 	{

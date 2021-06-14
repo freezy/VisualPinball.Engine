@@ -23,11 +23,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mpf.Vpe;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
@@ -89,7 +87,7 @@ namespace VisualPinball.Unity
 
 					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
 					root.FlipperEntity = entity;
-					root.TimeDelayMs = correctionAuthoring.TimeDelayMs;
+					root.TimeDelayMs = correctionAuthoring.TimeThresholdMs;
 					// Discretize the curves
 
 					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.polaritiesCurveSlicingCount+1);

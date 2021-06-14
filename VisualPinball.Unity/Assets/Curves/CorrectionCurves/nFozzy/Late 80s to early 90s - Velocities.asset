@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 927b6f60022ae314c9f37c8ffd39c67b, type: 3}
-  m_Name: 90s and earlier - Velocities
+  m_Name: Late 80s to early 90s - Velocities
   m_EditorClassIdentifier: VisualPinball.Unity::AnimationCurveAsset
   curve:
     serializedVersion: 2
@@ -26,7 +26,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 0.16
-      value: 1.061
+      value: 1.06
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -35,7 +35,7 @@ MonoBehaviour:
       outWeight: 0
     - serializedVersion: 3
       time: 0.41
-      value: 1.051
+      value: 1.05
       inSlope: -0.080546916
       outSlope: -0.080546916
       tangentMode: 0
@@ -45,8 +45,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.53
       value: 1
-      inSlope: -0.30552328
-      outSlope: -0.30552328
+      inSlope: -0.30135643
+      outSlope: -0.30135643
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
