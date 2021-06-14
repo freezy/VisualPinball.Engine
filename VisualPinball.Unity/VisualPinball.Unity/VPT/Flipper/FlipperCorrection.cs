@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 			in FlipperMovementData flipperMovementData, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
 			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementData.StartRotateToEndTime;
-			
+
 			// Time delay overrun test
 			if (timeSinceFlipperStartedRotatingToEndMs > flipperCorrectionBlob.TimeDelayMs)
 				return;
@@ -45,9 +45,9 @@ namespace VisualPinball.Unity
 			{
 				return;
 			}
-			
 
-			var angleAtFire = flipperMovementData.AngleAtRotateToEndTime;
+
+			var angleAtFire = flipperMovementData.AngleAtRotateToEnd;
 			var angleStart = flipperStaticData.AngleStart;
 			var angleEnd = flipperStaticData.AngleEnd;
 
@@ -63,10 +63,9 @@ namespace VisualPinball.Unity
 
 			// Safety coeffcient: has been disabled in all curves of nFozzy. Not using;
 			float Ycoef = 1F;
-			
 
 			// Normalized flipper course since fire (can be > 1 if rebounding...)
-			float partialFlipCoef = ((angleStart - angleAtFire) / (angleStart - angleEnd));
+			float partialFlipCoef = (angleStart - angleAtFire) / (angleStart - angleEnd);
 			partialFlipCoef = math.abs(partialFlipCoef - 1F);
 
 			// Velocity correction
@@ -85,7 +84,7 @@ namespace VisualPinball.Unity
 			if(!isLeft) {
 				AddX = -AddX;
 			}
-			ballVelocity.x += (AddX * Ycoef * partialFlipCoef);
+			ballVelocity.x += AddX * Ycoef * partialFlipCoef;
 
 
 
@@ -93,7 +92,7 @@ namespace VisualPinball.Unity
 			ballData.Velocity = ballVelocity;
 		}
 
-		// awefull linear interpolations : TODO: replace by AnimationCurve equivalent...
+		// awful linear interpolations : TODO: replace by AnimationCurve equivalent...
 		private static float PSlope(float x, float x1, float y1, float x2, float y2)  //Set up line via two points, no clamping. Input X, output Y
 		{
 			float m = (y2 - y1) / (y2 - x1);

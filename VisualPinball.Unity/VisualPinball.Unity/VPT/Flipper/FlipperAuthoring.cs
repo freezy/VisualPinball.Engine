@@ -88,13 +88,13 @@ namespace VisualPinball.Unity
 					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
 					root.FlipperEntity = entity;
 					root.TimeDelayMs = correctionAuthoring.TimeThresholdMs;
-					// Discretize the curves
 
-					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.polaritiesCurveSlicingCount+1);
-					if (correctionAuthoring?.Polarities?.curve != null && correctionAuthoring.polaritiesCurveSlicingCount >= 0)
+					// Discretize the curves
+					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.PolaritiesCurveSlicingCount+1);
+					if (correctionAuthoring.Polarities && correctionAuthoring.Polarities.curve != null)
 					{
 						var curve = correctionAuthoring.Polarities.curve;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
 						int i = 0;
 						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
 						{
@@ -104,18 +104,18 @@ namespace VisualPinball.Unity
 					}
 					else
 					{
-						for (int i = 0; i < correctionAuthoring.polaritiesCurveSlicingCount + 1; i++)
+						for (int i = 0; i < correctionAuthoring.PolaritiesCurveSlicingCount + 1; i++)
 						{
-							polarities[i].x = (float)i / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+							polarities[i].x = (float)i / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
 							polarities[i].y = 0F;
 						}
 					}
 
-					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.velocitiesCurveSlicingCount + 1);
-					if (correctionAuthoring?.Velocities?.curve != null && correctionAuthoring.velocitiesCurveSlicingCount >= 0)
+					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.VelocitiesCurveSlicingCount + 1);
+					if (correctionAuthoring.Velocities && correctionAuthoring.Velocities.curve != null)
 					{
 						var curve = correctionAuthoring.Velocities.curve;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.velocitiesCurveSlicingCount;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.VelocitiesCurveSlicingCount;
 						int i = 0;
 						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
 						{
@@ -125,9 +125,9 @@ namespace VisualPinball.Unity
 					}
 					else
 					{
-						for (int i = 0; i < correctionAuthoring.velocitiesCurveSlicingCount + 1; i++)
+						for (int i = 0; i < correctionAuthoring.VelocitiesCurveSlicingCount + 1; i++)
 						{
-							velocities[i].x = (float)i / (float)correctionAuthoring.polaritiesCurveSlicingCount;
+							velocities[i].x = (float)i / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
 							velocities[i].y = 1F;
 						}
 					}
