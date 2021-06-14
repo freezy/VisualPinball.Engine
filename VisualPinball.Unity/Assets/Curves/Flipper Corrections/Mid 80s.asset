@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 927b6f60022ae314c9f37c8ffd39c67b, type: 3}
-  m_Name: Mid 80s - Polarities
-  m_EditorClassIdentifier: VisualPinball.Unity::AnimationCurveAsset
-  curve:
+  m_Script: {fileID: 11500000, guid: 6685e224cafd61b45997dd5e687a3a13, type: 3}
+  m_Name: Mid 80s
+  m_EditorClassIdentifier: 
+  Polarities:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -126,3 +126,75 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  PolaritiesCurveSlicingCount: 256
+  Velocities:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.16
+      value: 1.06
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.41
+      value: 1.05
+      inSlope: -0.080546916
+      outSlope: -0.080546916
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.19800007
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.53
+      value: 1
+      inSlope: -0.30135643
+      outSlope: -0.30135643
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.702
+      value: 0.968
+      inSlope: 0.0005121914
+      outSlope: 0.0005121914
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.54385066
+    - serializedVersion: 3
+      time: 0.95
+      value: 0.968
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1.03
+      value: 0.945
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  VelocitiesCurveSlicingCount: 256
+  TimeThresholdMs: 60

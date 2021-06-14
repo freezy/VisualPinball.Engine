@@ -236,6 +236,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void ItemDataField<T>(string label, ref T field, bool dirtyMesh = true, string tooltip = "") where T : ScriptableObject
+		{
+			EditorGUI.BeginChangeCheck();
+			var val = EditorGUILayout.ObjectField(new GUIContent(label, tooltip), field, typeof(T), false) as T;
+			if (EditorGUI.EndChangeCheck()) {
+				FinishEdit(label, dirtyMesh);
+				field = val;
+			}
+		}
+
 		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, string cacheKey, ref string field, bool dirtyMesh = true)
 			where TItemAuthoring : ItemAuthoring<TItem, TData>
 			where TData : ItemData where TItem : Item<TData>, IRenderable

@@ -21,20 +21,22 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Simple class to encapsulate Curves as assets
 	/// </summary>
-	[CreateAssetMenu]
-	public class AnimationCurveAsset : ScriptableObject
+	[CreateAssetMenu(menuName = "Visual Pinball/Flipper Correction", order = 101)]
+	public class FlipperCorrectionAsset : ScriptableObject
 	{
-		public AnimationCurve curve = AnimationCurve.Linear(0, 0, 1, 1);
+		public AnimationCurve Polarities = AnimationCurve.Linear(0, 0, 1, 1);
+		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
+		[Min(1)]
+		public int PolaritiesCurveSlicingCount = 256;
 
-		public static implicit operator AnimationCurve(AnimationCurveAsset me)
-		{
-			return me.curve;
-		}
-		public static implicit operator AnimationCurveAsset(AnimationCurve curve)
-		{
-			AnimationCurveAsset asset = CreateInstance<AnimationCurveAsset>();
-			asset.curve = curve;
-			return asset;
-		}
+		public AnimationCurve Velocities = AnimationCurve.Linear(0, 0, 1, 1);
+		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
+		[Min(1)]
+		public int VelocitiesCurveSlicingCount = 256;
+
+
+		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applied anymore.")]
+		public uint TimeThresholdMs = 60;
+
 	}
 }
