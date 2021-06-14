@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionBlob flipperCorrectionBlob,
 			in FlipperMovementData flipperMovementData, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
+
 			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementData.StartRotateToEndTime;
 
 			// Time delay overrun test

@@ -40,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 			ItemDataField("Scatter Angle", ref Data.Scatter, false);
 			ItemDataField("EOS Torque", ref Data.TorqueDamping, false);
 			ItemDataField("EOS Torque Angle", ref Data.TorqueDampingAngle, false);
+			ItemDataField("Flipper Correction", ref ColliderAuthoring.FlipperCorrection, false, "Apply flipper corrections, a.k.a nFozzy flipper physics.");
 
 			base.OnInspectorGUI();
 		}

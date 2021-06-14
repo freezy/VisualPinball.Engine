@@ -29,5 +29,10 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
 			=> new FlipperApi(Item, entity, parentEntity, player);
+
+		/// <summary>
+		/// If set, apply flipper correction (aka nFozzy)
+		/// </summary>
+		public FlipperCorrectionAsset FlipperCorrection;
 	}
 }

@@ -72,8 +72,10 @@ namespace VisualPinball.Unity
 
 			var player = transform.GetComponentInParent<Player>();
 
-			var correctionAuthoring = gameObject.GetComponent<FlipperCorrectionAuthoring>();
-			if (correctionAuthoring) {
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			if (colliderAuthoring && colliderAuthoring.FlipperCorrection) {
+
+				var fc = colliderAuthoring.FlipperCorrection;
 
 				// create trigger
 				var trigger = CreateCorrectionTrigger();
@@ -87,14 +89,14 @@ namespace VisualPinball.Unity
 
 					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
 					root.FlipperEntity = entity;
-					root.TimeDelayMs = correctionAuthoring.TimeThresholdMs;
+					root.TimeDelayMs = fc.TimeThresholdMs;
 
 					// Discretize the curves
-					var polarities = builder.Allocate(ref root.Polarities, correctionAuthoring.PolaritiesCurveSlicingCount+1);
-					if (correctionAuthoring.Polarities && correctionAuthoring.Polarities.curve != null)
+					var polarities = builder.Allocate(ref root.Polarities, fc.PolaritiesCurveSlicingCount + 1);
+					if (fc.Polarities != null)
 					{
-						var curve = correctionAuthoring.Polarities.curve;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
+						var curve = fc.Polarities;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
 						int i = 0;
 						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
 						{
@@ -104,18 +106,18 @@ namespace VisualPinball.Unity
 					}
 					else
 					{
-						for (int i = 0; i < correctionAuthoring.PolaritiesCurveSlicingCount + 1; i++)
+						for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
 						{
-							polarities[i].x = (float)i / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
+							polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
 							polarities[i].y = 0F;
 						}
 					}
 
-					var velocities = builder.Allocate(ref root.Velocities, correctionAuthoring.VelocitiesCurveSlicingCount + 1);
-					if (correctionAuthoring.Velocities && correctionAuthoring.Velocities.curve != null)
+					var velocities = builder.Allocate(ref root.Velocities, fc.VelocitiesCurveSlicingCount + 1);
+					if (fc.Velocities != null)
 					{
-						var curve = correctionAuthoring.Velocities.curve;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / (float)correctionAuthoring.VelocitiesCurveSlicingCount;
+						var curve = fc.Velocities;
+						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
 						int i = 0;
 						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
 						{
@@ -125,9 +127,9 @@ namespace VisualPinball.Unity
 					}
 					else
 					{
-						for (int i = 0; i < correctionAuthoring.VelocitiesCurveSlicingCount + 1; i++)
+						for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
 						{
-							velocities[i].x = (float)i / (float)correctionAuthoring.PolaritiesCurveSlicingCount;
+							velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
 							velocities[i].y = 1F;
 						}
 					}
