@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 927b6f60022ae314c9f37c8ffd39c67b, type: 3}
+  m_Name: Mid 80s - Polarities
+  m_EditorClassIdentifier: VisualPinball.Unity::AnimationCurveAsset
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: -74
+      outSlope: -74
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.05
+      value: -3.7
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.33
+      value: -3.7
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.37
+      value: -3.7
+      inSlope: 0.023671044
+      outSlope: 0.023671044
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.49242085
+    - serializedVersion: 3
+      time: 0.41
+      value: -3.7
+      inSlope: 0.027969535
+      outSlope: 0.027969535
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.40237278
+    - serializedVersion: 3
+      time: 0.45
+      value: -3.7
+      inSlope: 0.030804683
+      outSlope: 0.030804683
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.35316187
+    - serializedVersion: 3
+      time: 0.576
+      value: -3.7
+      inSlope: 0.029239332
+      outSlope: 0.029239332
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.70652777
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.66
+      value: -2.3
+      inSlope: 16.059673
+      outSlope: 16.059673
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.36786118
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.743
+      value: -1.5
+      inSlope: 8.550622
+      outSlope: 8.550622
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.81
+      value: -1
+      inSlope: 8.777506
+      outSlope: 8.777506
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.7597609
+    - serializedVersion: 3
+      time: 0.88
+      value: 0
+      inSlope: 0.12312294
+      outSlope: 0.12312294
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1.3
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
