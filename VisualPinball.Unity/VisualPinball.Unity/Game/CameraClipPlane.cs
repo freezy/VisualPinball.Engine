@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System; 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
-
 
 namespace VisualPinball.Unity
 {
@@ -26,11 +25,11 @@ namespace VisualPinball.Unity
 	{
 
 		[NonSerialized]
-		public Camera Camera;
+		private Camera _camera;
 
-		//Stores the table bounds. 
-		private Bounds tableBounds;
-		private Vector3 previousCameraPosition = Vector3.zero;
+		//Stores the table bounds.
+		private Bounds _tableBounds;
+		private Vector3 _previousCameraPosition = Vector3.zero;
 
 		private void OnEnable()
 		{
@@ -39,22 +38,22 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			RetrieveCameraComponent(); 
+			RetrieveCameraComponent();
 		}
 
 		private void Update()
 		{
-			if(Camera == null)
+			if(_camera == null)
 			{
-				RetrieveCameraComponent(); 
+				RetrieveCameraComponent();
 			}
-			
-			if(Camera != null)
+
+			if(_camera != null)
 			{
-				if(previousCameraPosition != Camera.transform.position)
+				if(_previousCameraPosition != _camera.transform.position)
 				{
 					UpdateClipPlanes();
-					previousCameraPosition = Camera.transform.position;
+					_previousCameraPosition = _camera.transform.position;
 				}
 			}
 		}
@@ -62,45 +61,45 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Updates the camera clipping planes based on the table bounds.
 		/// </summary>
-		public void UpdateClipPlanes()
+		private void UpdateClipPlanes()
 		{
 
-			//Early out if no table is selected.  
+			//Early out if no table is selected.
 			if(!TableSelector.Instance.HasSelectedTable)
 			{
 				return;
 			}
 
-			//Early out if we don't have a camera to work on. 
-			if(Camera == null)
+			//Early out if we don't have a camera to work on.
+			if(_camera == null)
 			{
 				return;
 			}
 
-			//Get selected table reference. 
+			//Get selected table reference.
 			var table = TableSelector.Instance.SelectedTable;
 
 			if(Application.isPlaying)
 			{
-				tableBounds = table._tableBounds;  //When playing at runtime, get the stored table bounds value instead of calculating. 
+				_tableBounds = table._tableBounds;  //When playing at runtime, get the stored table bounds value instead of calculating.
 			}
 			else
 			{
-				tableBounds = table.GetTableBounds();  //When in editor, calculate the bounds in case things have changed.  
+				_tableBounds = table.GetTableBounds();  //When in editor, calculate the bounds in case things have changed.
 			}
 
-			var trans = Camera.transform;
+			var trans = _camera.transform;
 
-			var cameraPos = trans.position; // camera position. 
-			var sphereExtent = tableBounds.extents.magnitude; //sphere radius of the bounds. 
-			float cameraToCenter = Vector3.Distance(cameraPos, tableBounds.center);
-			var nearPlane = math.max(cameraPos.magnitude - sphereExtent, 0.001f); //Assign initial near plane used when camera is not in the sphere. 
-			var farPlane = math.max(1f, nearPlane + sphereExtent * 2f); //initial far bounds 
+			var cameraPos = trans.position; // camera position.
+			var sphereExtent = _tableBounds.extents.magnitude; //sphere radius of the bounds.
+			float cameraToCenter = Vector3.Distance(cameraPos, _tableBounds.center);
+			var nearPlane = math.max(cameraPos.magnitude - sphereExtent, 0.001f); //Assign initial near plane used when camera is not in the sphere.
+			var farPlane = math.max(1f, nearPlane + sphereExtent * 2f); //initial far bounds
 
 			if(cameraToCenter < sphereExtent)
 			{
-				nearPlane = 0.01f; //camera is in the bounds so drop the near plane to very low. 
-				farPlane = math.max(0.01f, sphereExtent + Vector3.Distance(cameraPos, tableBounds.center)); //set far plane to delta between camera and furthest bound. 
+				nearPlane = 0.01f; //camera is in the bounds so drop the near plane to very low.
+				farPlane = math.max(0.01f, sphereExtent + Vector3.Distance(cameraPos, _tableBounds.center)); //set far plane to delta between camera and furthest bound.
 
 			}
 
@@ -109,37 +108,34 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Gets the currently active or attached camera component. 
+		/// Gets the currently active or attached camera component.
 		/// </summary>
 		private void RetrieveCameraComponent()
 		{
-			Camera = GetComponent<Camera>(); //Get the camera component we are attached to if present.  
+			_camera = GetComponent<Camera>(); //Get the camera component we are attached to if present.
 
-			if(Camera == null)
+			if(_camera == null)
 			{
-				Camera = UnityEngine.Camera.current;  //Get the current active camera if not on the camera component.  
+				_camera = UnityEngine.Camera.current;  //Get the current active camera if not on the camera component.
 			}
 
 		}
 
 		/// <summary>
-		/// Sets the camera clipping planes based on manually derived values. 
+		/// Sets the camera clipping planes based on manually derived values.
 		/// </summary>
 		/// <param name="near">The near clip plane value</param>
 		/// <param name="far">The far clip plane value</param>
 		/// <returns>False when no camera could be found.</returns>
-		public void SetClipPlanes(float near, float far)
-		{ 
-			if(Camera == null)
+		private void SetClipPlanes(float near, float far)
+		{
+			if(_camera == null)
 			{
 				return;
 			}
-			
-			Camera.nearClipPlane = math.max(0.001f, near);
-			Camera.farClipPlane = math.max(0.01f, far); 
 
+			_camera.nearClipPlane = math.max(0.001f, near);
+			_camera.farClipPlane = math.max(0.01f, far);
 		}
-		
-
 	}
 }

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.InputSystem; 
+using UnityEngine.InputSystem;
 
 namespace VisualPinball.Unity
 {
@@ -29,38 +29,37 @@ namespace VisualPinball.Unity
 
 		public List<CameraSetting> cameraPresets;
 
-
-		public float mouseSpeedH = 1f;	//Horizontal Mouse Speed 
-		public float mouseSpeedV = 1f;	//Vertical Mouse Speed 
-		public float mouseSpeedT =1f;	//Translation Speed 
+		public float mouseSpeedH = 1f;	//Horizontal Mouse Speed
+		public float mouseSpeedV = 1f;	//Vertical Mouse Speed
+		public float mouseSpeedT =1f;	//Translation Speed
 		//public float mouseSpeedD = 1f;		//Distance Increment Speed.  Disabled Temporarily
-		//public float mouseSpeedZ = 1f;      //FOV Change Speed			 Disabled Temporarily 
+		//public float mouseSpeedZ = 1f;      //FOV Change Speed			 Disabled Temporarily
 		public bool useInertia = true;      //Enables inertia on orientation change
-		public bool invertX = false;        //Inverts the horizontal movement 
+		public bool invertX = false;        //Inverts the horizontal movement
 		public bool invertY = false;		//Inverts the vertical movement
 
 		[NonSerialized]
 		public Camera Camera;
 
 
-		//Private variables used for motion functions. 
-		private Vector3 tableCenter = Vector3.zero;		//Stored table center for offset
-		private float hAccum = 0f;						//Accumulated horizontal value 
-		private float vAccum = 0f;						//Accumulated vertical value 
-		private Vector3 tAccum = Vector3.zero;			//Translation accumulation 
-		private float cDistance = 0f;					//Current camera local Z distance 
-		private float hInertial = 0f;					//Horizontal inertia value 
-		private float vInertial = 0f;					//Vertical inertia value 
-		private bool inertia = false;					//Current inertia state 
-		private Vector2 lastAngularVector;				//Last vector for motion from camera angle shift. 
-		private Vector2 prevLMBPosition = Vector2.zero;	//Previous LMB Position 
-		private Vector2 prevRMBPosition = Vector2.zero; //Previous RMB Position 
-		private float cFOV;								//Current FOV
+		//Private variables used for motion functions.
+		private Vector3 _tableCenter = Vector3.zero;	//Stored table center for offset
+		private float _hAccum = 0f;						//Accumulated horizontal value
+		private float _vAccum = 0f;						//Accumulated vertical value
+		private Vector3 _tAccum = Vector3.zero;			//Translation accumulation
+		private float _cDistance = 0f;					//Current camera local Z distance
+		private float _hInertial = 0f;					//Horizontal inertia value
+		private float _vInertial = 0f;					//Vertical inertia value
+		private bool _inertia = false;					//Current inertia state
+		private Vector2 _lastAngularVector;				//Last vector for motion from camera angle shift.
+		private Vector2 _prevLmbPosition = Vector2.zero;//Previous LMB Position
+		private Vector2 _prevRmbPosition = Vector2.zero; //Previous RMB Position
+		private float _cFOV;							//Current FOV
 
 		private void OnEnable()
 		{
 			Camera = GetComponentInChildren<Camera>();
-			 
+
 			// validate structure
 			var trans = Camera.transform;
 			var altitude = trans.transform.parent;
@@ -77,22 +76,19 @@ namespace VisualPinball.Unity
 			if (offset == null) {
 				Camera = null;
 			}
-
-		
 		}
 
 		private void Start()
 		{
 			//Initialize values from active settings
-			hAccum = activeSetting.orbit;
-			vAccum = activeSetting.angle;
-			cDistance = activeSetting.distance;
-			cFOV = activeSetting.fov; 
-			
+			_hAccum = activeSetting.orbit;
+			_vAccum = activeSetting.angle;
+			_cDistance = activeSetting.distance;
+			_cFOV = activeSetting.fov;
 		}
 
 		/// <summary>
-		/// Applies the current controller settings to the camera. 
+		/// Applies the current controller settings to the camera.
 		/// </summary>
 		public void ApplySetting()
 		{
@@ -119,25 +115,23 @@ namespace VisualPinball.Unity
 
 			Camera.fieldOfView = activeSetting.fov;
 
-
 			if(Application.isPlaying)
 			{
-				tableCenter = table._tableCenter;
+				_tableCenter = table._tableCenter;
 			}
 			else
 			{
-				tableCenter = table.GetTableCenter();
+				_tableCenter = table.GetTableCenter();
 			}
 
-			offset.localPosition = tableCenter + activeSetting.offset;
-
+			offset.localPosition = _tableCenter + activeSetting.offset;
 		}
 
 		public void FixedUpdate()
 		{
 			if(!Application.isPlaying)
 			{
-				return; 
+				return;
 			}
 
 			if(Mouse.current != null)
@@ -153,75 +147,75 @@ namespace VisualPinball.Unity
 				//LMB Initialization
 				if(Mouse.current.leftButton.wasPressedThisFrame)
 				{
-					prevLMBPosition = Mouse.current.position.ReadValueFromPreviousFrame();
-					float deltaMagnitude = Vector2.Distance(Mouse.current.position.ReadValue(), prevLMBPosition);
+					_prevLmbPosition = Mouse.current.position.ReadValueFromPreviousFrame();
+					float deltaMagnitude = Vector2.Distance(Mouse.current.position.ReadValue(), _prevLmbPosition);
 
-					//Assume that a large magnitude means they clicked on another part of the screen and give it a default value. 
+					//Assume that a large magnitude means they clicked on another part of the screen and give it a default value.
 					if(deltaMagnitude > 10)
 					{
-						prevLMBPosition = Mouse.current.position.ReadValue();
+						_prevLmbPosition = Mouse.current.position.ReadValue();
 
 					}
-					
-					cDistance = Camera.transform.localPosition.z;
+
+					_cDistance = Camera.transform.localPosition.z;
 				}
 
-				//LMB Hold Behavior:  Azimuth and Elevation adjustment. 
+				//LMB Hold Behavior:  Azimuth and Elevation adjustment.
 				if(Mouse.current.leftButton.isPressed)
 				{
 					var curPos = Mouse.current.position.ReadValue();
-					float h = curPos.x - prevLMBPosition.x;
-					float v = curPos.y - prevLMBPosition.y;
+					float h = curPos.x - _prevLmbPosition.x;
+					float v = curPos.y - _prevLmbPosition.y;
 
-					prevLMBPosition = curPos;
+					_prevLmbPosition = curPos;
 
 					if(invertX) h = -h;
-					if(invertY) v = -v; 
+					if(invertY) v = -v;
 
-					hAccum = math.lerp(hAccum, hAccum + h, Time.deltaTime * (3f * mouseSpeedH)); 
-					vAccum = math.lerp(vAccum, vAccum - v, Time.deltaTime * (3f * mouseSpeedV)); 
+					_hAccum = math.lerp(_hAccum, _hAccum + h, Time.deltaTime * (3f * mouseSpeedH));
+					_vAccum = math.lerp(_vAccum, _vAccum - v, Time.deltaTime * (3f * mouseSpeedV));
 
-					azimuth.localRotation = Quaternion.Euler(new Vector3(0, hAccum, 0));
-					altitude.localRotation = Quaternion.Euler(new Vector3(vAccum, 0, 0));
+					azimuth.localRotation = Quaternion.Euler(new Vector3(0, _hAccum, 0));
+					altitude.localRotation = Quaternion.Euler(new Vector3(_vAccum, 0, 0));
 
 
-					lastAngularVector = Mouse.current.position.ReadValue() - Mouse.current.position.ReadValueFromPreviousFrame();
-					lastAngularVector.Normalize(); 
-					hInertial = lastAngularVector.x * mouseSpeedH;
-					vInertial = lastAngularVector.y * mouseSpeedV;
+					_lastAngularVector = Mouse.current.position.ReadValue() - Mouse.current.position.ReadValueFromPreviousFrame();
+					_lastAngularVector.Normalize();
+					_hInertial = _lastAngularVector.x * mouseSpeedH;
+					_vInertial = _lastAngularVector.y * mouseSpeedV;
 
 				}
 
-				//Scroll Behavior: Distance to pivot adjustment 
+				//Scroll Behavior: Distance to pivot adjustment
 				if(Mouse.current.scroll.IsActuated() && !Keyboard.current.ctrlKey.isPressed)
 				{
 					var scrollDist = Mouse.current.scroll.ReadValue();
-					cDistance += 0.002f * scrollDist.y - Mouse.current.scroll.ReadValueFromPreviousFrame().y;
-					Camera.transform.localPosition = new Vector3(0, 0, math.clamp(cDistance, -8f, -0.1f));
+					_cDistance += 0.002f * scrollDist.y - Mouse.current.scroll.ReadValueFromPreviousFrame().y;
+					Camera.transform.localPosition = new Vector3(0, 0, math.clamp(_cDistance, -8f, -0.1f));
 
 				}
 
-				//LMB Release 
+				//LMB Release
 				if(Mouse.current.leftButton.wasReleasedThisFrame)
 				{
-					inertia = useInertia;
+					_inertia = useInertia;
 				}
 
 
-				//RMB Initialization 
+				//RMB Initialization
 				if(Mouse.current.rightButton.wasPressedThisFrame)
 				{
-					//tAccum = Vector3.zero; // offset.localPosition; 
-					prevRMBPosition = Mouse.current.position.ReadValue();
-					
+					//tAccum = Vector3.zero; // offset.localPosition;
+					_prevRmbPosition = Mouse.current.position.ReadValue();
+
 				}
 
-				//RMB Hold Behavior:  Pivot translation adjustment 
+				//RMB Hold Behavior:  Pivot translation adjustment
 				if(Mouse.current.rightButton.isPressed)
 				{
 					var curTPos = Mouse.current.position.ReadValue();
-					float h = curTPos.x - prevRMBPosition.x;
-					float v = curTPos.y - prevRMBPosition.y;
+					float h = curTPos.x - _prevRmbPosition.x;
+					float v = curTPos.y - _prevRmbPosition.y;
 
 					//Angle correction based on current azimuth
 					var theta = math.radians(-azimuth.localRotation.eulerAngles.y);
@@ -230,48 +224,48 @@ namespace VisualPinball.Unity
 
 					if(invertX) h = -h;
 					if(invertY) v = -v;
-					
+
 					h = -h;
 					v = -v;
-					
+
 					var newh = h * cos - v * sin;
-					var newv = h * sin + v * cos; 
+					var newv = h * sin + v * cos;
 
-					var posDelta = new Vector3(newh*0.03f, 0, newv*0.03f); 
-					prevRMBPosition = curTPos;
-					
-					tAccum = Vector3.Lerp(tAccum, tAccum + posDelta, Time.deltaTime * (3f * mouseSpeedT));
+					var posDelta = new Vector3(newh*0.03f, 0, newv*0.03f);
+					_prevRmbPosition = curTPos;
+
+					_tAccum = Vector3.Lerp(_tAccum, _tAccum + posDelta, Time.deltaTime * (3f * mouseSpeedT));
 
 
-					offset.localPosition = tableCenter + tAccum;
+					offset.localPosition = _tableCenter + _tAccum;
 
 				}
 
-				//FOV Control 
+				//FOV Control
 				if(Mouse.current.scroll.IsActuated() && Keyboard.current.ctrlKey.isPressed)
 				{
 					var scrollDist = Mouse.current.scroll.ReadValue();
-					cFOV += 0.002f * scrollDist.y - Mouse.current.scroll.ReadValueFromPreviousFrame().y;
-					Camera.fieldOfView = cFOV;
+					_cFOV += 0.002f * scrollDist.y - Mouse.current.scroll.ReadValueFromPreviousFrame().y;
+					Camera.fieldOfView = _cFOV;
 
 				}
 
-				//Inertia 
-				if(inertia == true)
+				//Inertia
+				if(_inertia == true)
 				{
-					hInertial *= 0.8f;
-					vInertial *= 0.8f;
+					_hInertial *= 0.8f;
+					_vInertial *= 0.8f;
 
-					hAccum += hInertial * mouseSpeedH;
-					vAccum += -vInertial * mouseSpeedV;
+					_hAccum += _hInertial * mouseSpeedH;
+					_vAccum += -_vInertial * mouseSpeedV;
 
-					azimuth.localRotation = Quaternion.Euler(new Vector3(0, hAccum, 0));
-					altitude.localRotation = Quaternion.Euler(new Vector3(vAccum, 0, 0));
+					azimuth.localRotation = Quaternion.Euler(new Vector3(0, _hAccum, 0));
+					altitude.localRotation = Quaternion.Euler(new Vector3(_vAccum, 0, 0));
 
 
-					if(hInertial <= 0.01f && vInertial <= 0.01f)
+					if(_hInertial <= 0.01f && _vInertial <= 0.01f)
 					{
-						inertia = false; 
+						_inertia = false;
 					}
 				}
 			}
@@ -281,11 +275,11 @@ namespace VisualPinball.Unity
 		public void AdjustCameraHorizontal(float amount)
 		{
 			activeSetting.orbit += amount;
-			ApplySetting(); 
+			ApplySetting();
 		}
 
 
 
-		
+
 	}
 }
