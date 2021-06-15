@@ -19,9 +19,9 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Simple class to encapsulate Curves as assets
+	/// An asset containing the flipper correction parameters (aka nFozzy).
 	/// </summary>
-	[CreateAssetMenu(menuName = "Visual Pinball/Flipper Correction", order = 101)]
+	[CreateAssetMenu(fileName = "Flipper Correction", menuName = "Visual Pinball/Flipper Correction", order = 101)]
 	public class FlipperCorrectionAsset : ScriptableObject
 	{
 		public AnimationCurve Polarities = AnimationCurve.Linear(0, 0, 1, 1);
@@ -33,7 +33,6 @@ namespace VisualPinball.Unity
 		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
 		[Min(1)]
 		public int VelocitiesCurveSlicingCount = 256;
-
 
 		[Tooltip("Time since flipper fire, in ms, after which the corrections are not applied anymore.")]
 		public uint TimeThresholdMs = 60;
