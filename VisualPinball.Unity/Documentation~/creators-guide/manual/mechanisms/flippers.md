@@ -96,7 +96,7 @@ When applying one of default profiles, you'll also need to adapt the flipper par
 | Strength           | 1400-1600 (1500)    | 2000-2600            | 3200-3300 (3250)  | 500-1000 (750) |
 | Elasticity         | 0.88                | 0.88                 | 0.88              | 0.88           |
 | Elasticity Falloff | 0.15                | 0.15                 | 0.15              | 0.15           |
-| Fricition          | 0.9                 | 0.9                  | 0.9               | 0.8-0.9        |
+| Friction           | 0.9                 | 0.9                  | 0.9               | 0.8-0.9        |
 | Return Strength    | 0.09                | 0.07                 | 0.055             | 0.11           |
 | Coil Ramp Up       | 2.5                 | 2.5                  | 2.5               | 2.5            |
 | Scatter Angle      | 0                   | 0                    | 0                 | 0              |
