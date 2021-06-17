@@ -25,11 +25,13 @@ namespace VisualPinball.Unity
 	public class FlipperCorrectionAsset : ScriptableObject
 	{
 		public AnimationCurve Polarities = AnimationCurve.Linear(0, 0, 1, 1);
+		[HideInInspector]
 		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
 		[Min(1)]
 		public int PolaritiesCurveSlicingCount = 256;
 
 		public AnimationCurve Velocities = AnimationCurve.Linear(0, 0, 1, 1);
+		[HideInInspector]
 		[Tooltip("The curve will be sliced in smaller straight lines. The bigger, the more precise, but at memory cost.")]
 		[Min(1)]
 		public int VelocitiesCurveSlicingCount = 256;
