@@ -18,11 +18,11 @@ VPE provides a procedurally generated flipper mesh. It consist of a *base mesh* 
 
 It's possible to provide a custom mesh for the flipper by replacing the game objects that generate the procedural meshes with others. However, the physics simulation will still use the original colliders, so make sure to adapt the parameters to match the custom flipper's dimensions.
 
-### Colliders
+### Physics
 
-<img src="flipper-collider-inspector.png" width="438" alt="Add display component" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="flipper-collider-inspector.png" width="438" alt="Flipper Collider" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-Adding the collider component to the flipper makes it part of the physics simulation. Here you can tweak the various parameters. Most of the following is taken directly from [Mukuste's Wiki](https://github.com/c-f-h/vpinball/wiki/VP10-Physics#flipper-parameters).
+Adding the *Flipper Collider* component to the flipper makes it part of the physics simulation. Here you can tweak the various parameters. Most of the following is taken directly from [Mukuste's Wiki](https://github.com/c-f-h/vpinball/wiki/VP10-Physics#flipper-parameters).
 
 #### Mass
 
@@ -42,21 +42,17 @@ A reasonable range for this is 1000-3000, obviously depending a lot on the era o
 
 This is basically the bounciness of the flipper rubber. Since real rubber is less bouncy when it is hit at a higher velocity, the Falloff parameter allows decreasing the elasticity for faster impacts. A value of 0 for falloff means no falloff, i.e., elasticity does not depend on velocity, and a value of 1.0 means that elasticity is halved at an impact velocity of 1 m/s.
 
-Good defaults for elasticity seem to be 0.8-0.9, with a falloff of 0.3.
 
 #### Friction
 
 This describes how much the rubber "grips" the ball. This value is very important for enabling center shots on the playfield with a moving ball, as well as backhands. In general it affects the aiming on all shots, but also makes a spinning ball deflect off the flipper in the proper direction.
 
-A good default seems to be 0.8.
 
 #### Return Strength Ratio
 
 This is the force of the return spring which pulls the flipper back down, relative to the solenoid force which pulls the flipper forward. For instance, at 0.10, the force of the return spring will be 1/10th of that of the solenoid. Due to how acceleration and velocity work, the time the flipper needs to return to its home position is about three times longer than that for the forward stroke in this example (square root of 10, to be precise).
 
 If you make this smaller, not only will the flipper return slower, but it will also pick up less speed if you briefly release the flipper and then press it again since it has less time to accelerate. A smaller value therefore makes it easier to do flipper tricks which involve light taps, such as cradle separations and flick passes.
-
-Try the range 0.07-0.10 to start with and experiment from there.
 
 #### Coil Ramp Up
 
@@ -68,7 +64,52 @@ Gameplay-wise, the effect of this parameter is most strongly felt in situations 
 
 Note that increasing this setting will decrease the speed of the flipper a bit and may need to be compensated with a higher Strength setting. Also, if this parameter is chosen too high, the flipper may feel sluggish and laggy.
 
-That's why per default, we recommend setting this value to 0.
+#### EOS Torque and Angle
+
+The "end of stroke" torque is the force that holds the flipper up once it reached the end position. The angle defines how many degrees before the end position that force is applied.
+
+#### Flipper Correction
+
+This is where you can set a profile for nFozzy's flipper physics. Profiles are files in your asset folder that you can create and modify. VPE ships with three profiles based on nFozzy's measurements that cover the solid state era of pinball machines. EM machines usually don't need flipper correction.
+
+Clicking on a flipper correction profile in your project window shows this in the inspector:
+
+<img src="flipper-correction-asset.png" width="376" alt="Flipper Correction" />
+
+You see that it consists of two curves, one describing the corrected velocity, and one the corrected angle. Both curves are relative ball position on the flipper. Additionally, there is a threshold which defines after how many milliseconds since the flipper was fired, no corrections will be applied.
+
+You can tweak these curves by clicking on them in the inspector. However, you cannot edit VPE's default profiles directly, so you need to copy it to the table's asset folder first (and of course, assign the new copy to your flippers).
+
+<img src="flipper-correction-polarities.png" width="431" alt="Flipper Correction: Polarities" />
+
+<small><i>Polarity Correction Curve</i></small>
+
+<img src="flipper-correction-velocities.png" width="431" alt="Flipper Correction: Velocities" />
+
+<small><i>Velocity Correction Curve</i></small>
+
+When applying one of default profiles, you'll also need to adapt the flipper parameters in order to obtain realistic ball behavior. We've also added a column with good values for EM machines that don't need correction.
+
+|                    | Late 70s to mid 80s | Mid 80s to early 90s | Mid 90s and later | EMs            |
+|--------------------|---------------------|----------------------|-------------------|----------------|
+| Mass               | 1                   | 1                    | 1                 | 1              |
+| Strength           | 1400-1600 (1500)    | 2000-2600            | 3200-3300 (3250)  | 500-1000 (750) |
+| Elasticity         | 0.88                | 0.88                 | 0.88              | 0.88           |
+| Elasticity Falloff | 0.15                | 0.15                 | 0.15              | 0.15           |
+| Fricition          | 0.9                 | 0.9                  | 0.9               | 0.8-0.9        |
+| Return Strength    | 0.09                | 0.07                 | 0.055             | 0.11           |
+| Coil Ramp Up       | 2.5                 | 2.5                  | 2.5               | 2.5            |
+| Scatter Angle      | 0                   | 0                    | 0                 | 0              |
+| EOS Torque         | 0.3                 | 0.275                | 0.275             | 0.3            |
+| EOS Torque Angle   | 4                   | 6                    | 6                 | 4              |
+
+
+## Common Gotchas
+
+### Flipper Length
+
+A common mistake is incorrect flipper length. A 3-inch flipper with rubbers will be about 3.125 inches long. This translates to about 147 VP units. Therefore, the flipper start radius + the flipper length + the flipper end radius should equal approximately 147 VP units.
+
 
 ---
 
