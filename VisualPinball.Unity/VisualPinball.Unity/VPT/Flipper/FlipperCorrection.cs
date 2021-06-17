@@ -37,7 +37,6 @@ namespace VisualPinball.Unity
 			ref var velocities = ref flipperCorrectionBlob.Velocities;
 			ref var polarities = ref flipperCorrectionBlob.Polarities;
 			var angleCur = flipperMovementData.Angle;
-			var flipperStrength = flipperStaticData.Strength;
 
 			var ballPosition = ballData.Position;
 			var ballVelocity = ballData.Velocity;
@@ -46,7 +45,6 @@ namespace VisualPinball.Unity
 			{
 				return;
 			}
-
 
 			var angleAtFire = flipperMovementData.AngleAtRotateToEnd;
 			var angleStart = flipperStaticData.AngleStart;
