@@ -28,14 +28,10 @@ Adding the *Flipper Collider* component to the flipper makes it part of the phys
 
 This is the mass of the flipper (where 1 corresponds to standard ball mass, 80g). It basically describes how much the flipper interacts with the ball. A very heavy flipper will barely feel the impact of the ball and keep moving at almost the same velocity as it was before the hit. A very light flipper, on the other hand, will move much slower with the ball on it than it does without the ball, and will be deflected by the impact of the ball significantly.
 
-A good default value for this parameter is 1 - 1.25.
-
 
 #### Strength
 
 This is the force (actually, torque) with which the solenoid accelerates the flipper. The higher this value, the faster the flipper will move. But be aware that this is directly linked to flipper mass: if the flipper is twice as heavy, it also needs twice the force to get it to move at the same speed.
-
-A reasonable range for this is 1000-3000, obviously depending a lot on the era of flippers being simulated and the desired speed of the game.
 
 
 #### Elasticity and Elasticity Falloff
