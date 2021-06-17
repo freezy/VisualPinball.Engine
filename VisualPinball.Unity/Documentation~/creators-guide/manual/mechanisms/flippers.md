@@ -1,22 +1,22 @@
 # Flipper
 
-How flippers interact with the ball is what makes or breaks a pinball simulation. A few years ago, a community member named Mukuste spent time on improving Visual Pinball's flipper mechanics. The result was what has become known as the *physmod*, which provided a much more realistic simulation, and which was later merged into Visual Pinball's mainline. In his [own words](https://github.com/c-f-h/vpinball/wiki/VP10-Physics):
+How flippers interact with the ball is what makes or breaks a pinball simulation. A few years ago, a community member named Mukuste spent time on improving Visual Pinball's flipper mechanics. The result was what has become known as the *physmod*, which provided a much more realistic simulation, and was later merged into Visual Pinball's main branch. In his [own words](https://github.com/c-f-h/vpinball/wiki/VP10-Physics):
 
 > Flippers are now simulated as true dynamic rigid bodies which have forces from the solenoid, the return spring and the ball acting on them and accelerate accordingly. They will also properly bounce off their stoppers instead of just moving to maximum extension and then stopping. In practice, this means that flipper/ball interaction is now much more realistic and less binary. Post passes, light taps, cradle separations, drop and live catches are now all possible. Furthermore, the simulation of the friction of the flipper rubbers greatly improves aiming.
 
-Later, another member of the community named nFozzy managed to measure ball trajectory angles of real pinball machines, and developed a script where authors could provide a profile that would then slightly correct the ball trajectories during game play to match his measurements. This resulted in tables with the most realistic flipper behavior the community has produced yet.
+Later, another member of the community named nFozzy managed to measure ball trajectory angles on real pinball machines, and developed a script where authors could provide a profile that would slightly adjust the ball trajectories during game play to match his measurements. This resulted in tables with the most realistic flipper behavior the community has produced yet.
 
-VPE's flipper behavior is identical to Visual Pinball's. However, VPE also provides native support for the nFozzy corrections.
+VPE's default flipper behavior is identical to Visual Pinball's. However, VPE also provides native support for the nFozzy adjustments.
 
 ## Setup
 
-The easiest way to create a flipper is clicking on the flipper icon in the toolbar. This will instantiate the prefab and place it on the playfield. 
+The easiest way to create a flipper is clicking on the flipper icon in the toolbar. This will instantiate a flipper prefab and place it on the playfield. 
 
 ### Mesh
 
-VPE provides a procedurally generated flipper mesh. It consist of a *base mesh* (the plastic), and a *rubber mesh*.
+VPE provides a procedurally generated flipper mesh. It consist of a *base mesh* (the plastic bat), and a *rubber mesh*.
 
-It's possible to provide a custom mesh for the flipper by replacing the game objects that generate the procedural meshes with others. However, the physics simulation will still use the original colliders, so make sure to adapt the parameters to match the custom flipper's dimensions.
+It's possible to provide a custom mesh for the flipper by replacing the game objects used to generate the procedural meshes. However, the physics simulation will still use the original colliders, so make sure to adapt the parameters to match the custom flipper's dimensions.
 
 ### Physics
 
@@ -26,17 +26,17 @@ Adding the *Flipper Collider* component to the flipper makes it part of the phys
 
 #### Mass
 
-This is the mass of the flipper (where 1 corresponds to standard ball mass, 80g). It basically describes how much the flipper interacts with the ball. A very heavy flipper will barely feel the impact of the ball and keep moving at almost the same velocity as it was before the hit. A very light flipper, on the other hand, will move much slower with the ball on it than it does without the ball, and will be deflected by the impact of the ball significantly.
+This is the mass of the flipper (where 1 corresponds to standard ball mass, 80g). It basically describes how much the flipper interacts with the ball. A very heavy flipper will barely feel the impact of the ball and keep moving at almost the same velocity as it was before the contact. A very light flipper, on the other hand, will move more slowly with the ball on it than it does without, and will be significantly deflected by the impact of a ball.
 
 
 #### Strength
 
-This is the force (actually, torque) with which the solenoid accelerates the flipper. The higher this value, the faster the flipper will move. But be aware that this is directly linked to flipper mass: if the flipper is twice as heavy, it also needs twice the force to get it to move at the same speed.
+This is the force (actually torque) with which the solenoid accelerates the flipper. The higher this value, the faster the flipper will move. Be aware that this is directly linked to flipper mass; if the flipper is twice as heavy, it also needs twice the force to get it to accelerate at the same rate.
 
 
 #### Elasticity and Elasticity Falloff
 
-This is basically the bounciness of the flipper rubber. Since real rubber is less bouncy when it is hit at a higher velocity, the Falloff parameter allows decreasing the elasticity for faster impacts. A value of 0 for falloff means no falloff, i.e., elasticity does not depend on velocity, and a value of 1.0 means that elasticity is halved at an impact velocity of 1 m/s.
+This is basically the bounciness of the flipper rubber. Since real rubber is less bouncy when it is hit at a higher velocity, the Falloff parameter allows decreasing the elasticity for fast impacts. A value of 0 for falloff means no falloff, i.e. elasticity is independant of velocity, and a value of 1.0 means that elasticity is halved at an impact velocity of 1 m/s.
 
 
 #### Friction
@@ -54,15 +54,15 @@ If you make this smaller, not only will the flipper return slower, but it will a
 
 This simulates the fact that the magnetic field in the flipper solenoid takes a while to build up when the flipper button is pressed, and to fall off again when the button is released (also known as hysteresis). This means that the flipper will not have its full acceleration immediately as the coil needs some time to ramp up to the full magnetic field.
 
-At a value of 0, there is no ramp up, and the full acceleration takes effect immediately. At a nonzero value, this is the approximate time the solenoid needs to reach its full acceleration. For instance, if set to 3, the flipper coil will take around 30 ms to ramp up to full force.
+At a value of 0, there is no ramp up, and the full acceleration takes effect immediately. At a nonzero value, this is the relative time the solenoid needs to reach its full acceleration. For instance, if set to 3, the flipper coil will take around 30 ms to ramp up to full force.
 
 Gameplay-wise, the effect of this parameter is most strongly felt in situations where the flipper button is pressed only for a very short time, or released for a short time and then pressed again. In other words, it will make light taps much easier and therefore help with moves such as cradle separations and flick passes. Even tap passes can be achieved with the proper setting.
 
-Note that increasing this setting will decrease the speed of the flipper a bit and may need to be compensated with a higher Strength setting. Also, if this parameter is chosen too high, the flipper may feel sluggish and laggy.
+Note that increasing this setting will decrease the speed of the flipper a bit and may need to be compensated with a higher Strength setting. Also, if this parameter is set too high, the flipper may feel sluggish and laggy.
 
 #### EOS Torque and Angle
 
-The "end of stroke" torque is the force that holds the flipper up once it reached the end position. The angle defines how many degrees before the end position that force is applied.
+The "end of stroke" torque is the force that holds the flipper up once it reached the end position. The angle defines how many degrees from the end position that force is applied.
 
 #### Flipper Correction
 
@@ -72,9 +72,9 @@ Clicking on a flipper correction profile in your project window shows this in th
 
 <img src="flipper-correction-asset.png" width="376" alt="Flipper Correction" />
 
-You see that it consists of two curves, one describing the corrected velocity magnitude, and one the corrected x-axis of the velocity. Both curves are relative ball position on the flipper, normalized to the flipper length. Additionally, there is a threshold which defines after how many milliseconds since the flipper was fired, no corrections will be applied.
+You can see that it consists of two curves, one describing the corrected velocity magnitude, and one the corrected x-axis of the velocity. Both curves are relative to ball position on the flipper, and normalized to the flipper length. Additionally, there is a threshold in milliseconds since the flipper was fired, after which no corrections will be applied.
 
-You can tweak these curves by clicking on them in the inspector. However, you cannot edit VPE's default profiles directly, so you need to copy it to the table's asset folder first (and of course, assign the new copy to your flippers).
+You can tweak these curves by clicking on them in the inspector. However you cannot edit VPE's default profiles directly, you must copy it to the table's asset folder first (and of course, assign the new copy to your flippers).
 
 <img src="flipper-correction-polarities.png" width="431" alt="Flipper Correction: Polarities" />
 
@@ -84,7 +84,7 @@ You can tweak these curves by clicking on them in the inspector. However, you ca
 
 <small><i>Velocity Correction Curve</i></small>
 
-When applying one of default profiles, you'll also need to adapt the flipper parameters in order to obtain realistic ball behavior. We've also added a column with good values for EM machines that don't need correction.
+When applying one of default profiles, you should also adjust the flipper parameters in order to obtain realistic ball behavior. We've also added a column with good values for EM machines that don't need correction.
 
 |                    | Late 70s to mid 80s | Mid 80s to early 90s | Mid 90s and later | EMs            |
 |--------------------|---------------------|----------------------|-------------------|----------------|
