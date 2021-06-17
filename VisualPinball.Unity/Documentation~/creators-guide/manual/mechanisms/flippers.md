@@ -76,7 +76,7 @@ Clicking on a flipper correction profile in your project window shows this in th
 
 <img src="flipper-correction-asset.png" width="376" alt="Flipper Correction" />
 
-You see that it consists of two curves, one describing the corrected velocity, and one the corrected angle. Both curves are relative ball position on the flipper. Additionally, there is a threshold which defines after how many milliseconds since the flipper was fired, no corrections will be applied.
+You see that it consists of two curves, one describing the corrected velocity magnitude, and one the corrected x-axis of the velocity. Both curves are relative ball position on the flipper, normalized to the flipper length. Additionally, there is a threshold which defines after how many milliseconds since the flipper was fired, no corrections will be applied.
 
 You can tweak these curves by clicking on them in the inspector. However, you cannot edit VPE's default profiles directly, so you need to copy it to the table's asset folder first (and of course, assign the new copy to your flippers).
 
