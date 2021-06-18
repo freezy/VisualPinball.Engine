@@ -74,9 +74,7 @@ namespace VisualPinball.Unity
 				var trigger = CreateCorrectionTrigger();
 				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
 				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-
-				// todo create special registration method since we don't need all the api stuff.
-				player.RegisterTrigger(trigger, triggerEntity, Entity.Null);
+				player.RegisterTrigger(trigger, triggerEntity);
 
 				using (var builder = new BlobBuilder(Allocator.Temp)) {
 
