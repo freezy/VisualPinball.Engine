@@ -65,21 +65,21 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Destroys the game item inclusively all children.
 		/// </summary>
-		public void Destroy();
+		void Destroy();
 
 		/// <summary>
 		/// Destroys the game items of all mesh components. Should only be
 		/// called when the mesh component sits on a different game object
 		/// than the main component.
 		/// </summary>
-		public void DestroyMeshComponents();
+		void DestroyMeshComponents();
 
 		/// <summary>
 		/// Destroys the collider component. If the collider component sits on
 		/// a different game object than the main component, the game object
 		/// is destroyed as well.
 		/// </summary>
-		public void DestroyColliderComponent();
+		void DestroyColliderComponent();
 	}
 
 	/// <summary>
