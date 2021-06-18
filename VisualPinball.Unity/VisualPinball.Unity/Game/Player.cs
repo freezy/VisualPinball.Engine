@@ -360,7 +360,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
 		}
 
-		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity)
+		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<TriggerColliderAuthoring>();
 			var triggerApi = new TriggerApi(trigger, entity, parentEntity, this);
@@ -371,6 +371,17 @@ namespace VisualPinball.Unity
 				_colliderGenerators.Add(triggerApi);
 				_hittables[entity] = triggerApi;
 			}
+			_switchPlayer.RegisterSwitch(trigger, triggerApi);
+		}
+
+		public void RegisterTrigger(Trigger trigger, Entity entity)
+		{
+			var triggerApi = new TriggerApi(trigger, entity, Entity.Null, this);
+			TableApi.Triggers[trigger.Name] = triggerApi;
+			_apis.Add(triggerApi);
+			_initializables.Add(triggerApi);
+			_colliderGenerators.Add(triggerApi);
+			_hittables[entity] = triggerApi;
 			_switchPlayer.RegisterSwitch(trigger, triggerApi);
 		}
 
