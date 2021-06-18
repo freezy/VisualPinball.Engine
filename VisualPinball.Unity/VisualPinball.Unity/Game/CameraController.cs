@@ -80,11 +80,14 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			//Initialize values from active settings
-			_hAccum = activeSetting.orbit;
-			_vAccum = activeSetting.angle;
-			_cDistance = activeSetting.distance;
-			_cFOV = activeSetting.fov;
+			if(Application.isPlaying)
+			{
+				//Initialize values from active settings
+				_hAccum = activeSetting.orbit;
+				_vAccum = activeSetting.angle;
+				_cDistance = activeSetting.distance;
+				_cFOV = activeSetting.fov;
+			}
 		}
 
 		/// <summary>
