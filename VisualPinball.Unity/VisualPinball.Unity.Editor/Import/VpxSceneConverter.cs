@@ -356,9 +356,9 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
-			// todo lazy load
+			// todo lazy load and don't import local textures once they are in the prefabs
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _tableContainer.Textures) {
+			foreach (var texture in _tableContainer.Textures.Concat(VisualPinball.Engine.VPT.Texture.LocalTextures)) {
 				var path = texture.GetUnityFilename(_assetsTextures);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
