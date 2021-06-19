@@ -45,9 +45,11 @@ namespace VisualPinball.Engine.VPT
 		public int Height => Data.Height;
 		public bool IsHdr => (Data.Path?.ToLower().EndsWith(".hdr") ?? false) || (Data.Path?.ToLower().EndsWith(".exr") ?? false);
 
+		public bool ConvertToPng => Data.Bitmap != null;
+
 		public string FileExtension {
 			get {
-				if (Data.Path == null) {
+				if (Data.Path == null || ConvertToPng) {
 					return ".png";
 				}
 				var ext = Path.GetExtension(Data.Path).ToLower();
@@ -149,7 +151,7 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		private Image GetImage()
+		public Image GetImage()
 		{
 			try {
 				return Data.Binary != null
