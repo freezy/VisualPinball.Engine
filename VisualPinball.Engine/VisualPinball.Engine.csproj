@@ -10,7 +10,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8</LangVersion>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
     <PackageIconUrl>https://user-images.githubusercontent.com/70426/101756172-0965a200-3ad6-11eb-8c71-edb751f0f5d5.png</PackageIconUrl>
