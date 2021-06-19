@@ -28,8 +28,8 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		[Test]
 		public void ShouldReadCollectionData()
 		{
-			var th = FileTableContainer.Load(VpxPath.Collection);
-			var data = th.Collections.First(c => c.Name == "flippers");
+			var tableContainer = FileTableContainer.Load(VpxPath.Collection);
+			var data = tableContainer.Collections.First(c => c.Name == "Flippers");
 			ValidateTableData(data);
 		}
 
@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 			var th = FileTableContainer.Load(VpxPath.Collection);
 			th.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
-			ValidateTableData(writtenTable.Collections.First(c => c.Name == "flippers"));
+			ValidateTableData(writtenTable.Collections.First(c => c.Name == "Flippers"));
 		}
 
 		private static void ValidateTableData(CollectionData data)
