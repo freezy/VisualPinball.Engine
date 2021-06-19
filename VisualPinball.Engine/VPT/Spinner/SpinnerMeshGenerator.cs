@@ -99,7 +99,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		protected override float BaseHeight(Table.Table table)
 		{
-			return table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			return table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f;
 		}
 
 		#region Mesh Imports
