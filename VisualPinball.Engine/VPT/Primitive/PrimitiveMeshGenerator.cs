@@ -79,7 +79,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		protected override float BaseHeight(Table.Table table)
 		{
-			return table.TableHeight;
+			return table?.TableHeight ?? 0f;
 		}
 
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
@@ -90,7 +90,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z + table.TableHeight);
+			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z + table?.TableHeight ?? 0f);
 
 			// translation + rotation matrix
 			var rotTransMatrix = new Matrix3D();
@@ -114,7 +114,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var fullMatrix = scaleMatrix.Clone();
 			fullMatrix.Multiply(rotTransMatrix);
 			fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			scaleMatrix.SetScaling(1.0f, 1.0f, table?.GetScaleZ() ?? 1f);
 			fullMatrix.Multiply(scaleMatrix);
 
 			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
