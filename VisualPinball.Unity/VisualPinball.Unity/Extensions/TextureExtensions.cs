@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		{
 			var fileName = $"{vpTex.Name.ToNormalizedName()}{vpTex.FileExtension}";
 			return folderName != null
-				? $"{folderName}/{fileName}"
+				? $"{folderName}{fileName}"
 				: $"{fileName}";
 		}
 

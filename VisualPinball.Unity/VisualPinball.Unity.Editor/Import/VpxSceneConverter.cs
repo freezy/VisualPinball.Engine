@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NetVips;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -346,8 +347,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				foreach (var texture in _tableContainer.Textures) {
-					var path = texture.GetUnityFilename(_assetsTextures);
-					File.WriteAllBytes(path, texture.Content);
+					texture.WriteAsAsset(_assetsTextures);
 				}
 
 			} finally {
