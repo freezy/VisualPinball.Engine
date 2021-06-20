@@ -27,7 +27,8 @@ namespace VisualPinball.Unity.Editor
 			// convert if bmp
 			if (texture.ConvertToPng) {
 				var path = texture.GetUnityFilename(folder);
-				File.WriteAllBytes(path, texture.ToUnityTexture().EncodeToPNG());
+				using var im = texture.GetImage();
+				im.Pngsave(path);
 
 			} else { // might need to convert other formats like webp
 				var path = texture.GetUnityFilename(folder);
