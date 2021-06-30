@@ -145,7 +145,7 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
 					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (_gleLamps.Exists(entry => entry.Id == newId)) {
+						if (!_gleLamps.Exists(entry => entry.Id == newId)) {
 							_gleLamps.Add(new GamelogicEngineLamp(newId));
 						}
 
