@@ -143,7 +143,7 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
 					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (_gleCoils.Exists(entry => entry.Id == newId)) {
+						if (!_gleCoils.Exists(entry => entry.Id == newId)) {
 							_gleCoils.Add(new GamelogicEngineCoil(newId));
 						}
 

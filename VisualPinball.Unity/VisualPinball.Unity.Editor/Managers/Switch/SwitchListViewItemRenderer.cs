@@ -133,8 +133,10 @@ namespace VisualPinball.Unity.Editor
 			var index = EditorGUI.Popup(dropdownRect, options.IndexOf(switchListData.Id), options.ToArray());
 			if (EditorGUI.EndChangeCheck()) {
 				if (index == options.Count - 1) {
+					// "Add..." pressed
 					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", (newId) => {
-						if (_gleSwitches.Exists(entry => entry.Id == newId)) {
+						// "Save" pressed
+						if (!_gleSwitches.Exists(entry => entry.Id == newId)) {
 							_gleSwitches.Add(new GamelogicEngineSwitch(newId));
 						}
 						switchListData.Id = newId;
