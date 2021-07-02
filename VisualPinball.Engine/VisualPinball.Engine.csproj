@@ -66,6 +66,8 @@
 
       <Plugins Include="$(OutDir)NetVips.dll" />
       <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\runtimes\$(RuntimeIdentifier)\native\*" />
+
+      <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins)" />
     <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
