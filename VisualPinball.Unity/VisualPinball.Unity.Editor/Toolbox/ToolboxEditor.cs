@@ -185,7 +185,7 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IItem item)
 		{
-			var converter = new VpxSceneConverter(_tableAuthoring.TableContainer);
+			var converter = new VpxSceneConverter(_tableAuthoring);
 			_tableAuthoring.TableContainer.Refresh();
 			var convertedItem = converter.CreateGameObjects(item);
 			return convertedItem.MainAuthoring.gameObject;
