@@ -3,8 +3,8 @@
   "version": "0.0.1-preview.53",
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
-  "unity": "2020.2",
-  "unityRelease": "1f1",
+  "unity": "2020.3",
+  "unityRelease": "12f1",
   "dependencies": {
     "com.unity.burst": "1.4.4",
     "com.unity.collections": "0.15.0-preview.21",
