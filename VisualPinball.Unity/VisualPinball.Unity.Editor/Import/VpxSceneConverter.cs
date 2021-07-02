@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NetVips;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -78,6 +77,11 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		/// <summary>
+		/// Creates a new converter for a new table
+		/// </summary>
+		/// <param name="tableContainer">Source table container</param>
+		/// <param name="fileName">File name of the file being imported</param>
 		public VpxSceneConverter(TableContainer tableContainer, string fileName = "")
 		{
 			_tableContainer = tableContainer;
@@ -87,6 +91,21 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				_patcher = null;
 			}
+		}
+
+		/// <summary>
+		/// Creates a converter based on an existing table in the scene.
+		/// </summary>
+		/// <param name="tableAuthoring">Existing component</param>
+		public VpxSceneConverter(TableAuthoring tableAuthoring)
+		{
+			_tableGo = tableAuthoring.gameObject;
+			var tablePlayfieldAuthoring = _tableGo.GetComponentInChildren<TablePlayfieldAuthoring>();
+			if (!tablePlayfieldAuthoring) {
+				throw new InvalidOperationException("Cannot find playfield hierarchy.");
+			}
+			_playfieldGo = tablePlayfieldAuthoring.gameObject;
+			_tableAuthoring = tableAuthoring;
 		}
 
 		public GameObject Convert(bool applyPatch = true, string tableName = null)
@@ -327,7 +346,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private string SavePhysicsMaterial(VisualPinball.Engine.VPT.Material material)
+		private string SavePhysicsMaterial(Engine.VPT.Material material)
 		{
 			var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
 			mat.Elasticity = material.Elasticity;
@@ -358,7 +377,7 @@ namespace VisualPinball.Unity.Editor
 
 			// todo lazy load and don't import local textures once they are in the prefabs
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _tableContainer.Textures.Concat(VisualPinball.Engine.VPT.Texture.LocalTextures)) {
+			foreach (var texture in _tableContainer.Textures.Concat(Engine.VPT.Texture.LocalTextures)) {
 				var path = texture.GetUnityFilename(_assetsTextures);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
