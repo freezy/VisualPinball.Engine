@@ -366,3 +366,5 @@ MigrationBackup/
 
 # Vi swap files
 *.swp
+
+**/Plugins/**

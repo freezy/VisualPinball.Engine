@@ -1,12 +1,10 @@
 name: Documentation
-on:
-  push:
-    branches:
-      - master
+on: [push]
 
 jobs:
   build-and-publish-docfx:
     runs-on: ubuntu-latest
+    if: github.repository == 'freezy/VisualPinball.Engine' && github.ref == 'refs/heads/master' 
     name: Build and publish documentation
     steps:
       - uses: actions/checkout@v2

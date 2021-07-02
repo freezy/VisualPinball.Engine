@@ -24,13 +24,13 @@
     <None Remove="Fixtures*/*" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="2.9.0">
+    <PackageReference Include="coverlet.msbuild" Version="3.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" ExcludeAssets="Compile" />
     <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
   </ItemGroup>
@@ -48,6 +48,6 @@
       <Plugins Include="$(OutDir)JeremyAnsel.Media.WavefrontObj.dll" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins)" />
-    <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
   </Target>
 </Project>
