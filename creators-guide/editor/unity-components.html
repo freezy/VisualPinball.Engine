@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Unity Components | VPE Documentation </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Unity Components | VPE Documentation ">
+    <meta name="description" content="Working with mesh, collider and animation components.">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+  
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+  
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.visualpinball.org/">
+    <meta property="og:title" content="Unity Components | VPE Documentation ">
+    <meta property="og:description" content="Working with mesh, collider and animation components.">
+    <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.visualpinball.org/">
+    <meta property="twitter:title" content="Unity Components | VPE Documentation ">
+    <meta property="twitter:description" content="Working with mesh, collider and animation components.">
+    <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+  
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+  
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript">
+    var _paq = window._paq || [];
+    _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//count.vpdb.io/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '2']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+    </script>
+  </head>  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../../index.html">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="43.38" height="37.61" xml:space="preserve"><style>.st0{fill:#ddd}</style><path class="st0" d="M43.21 0H.17C.02 0-.04.11.03.24l21.52 37.28c.08.13.2.13.28 0L43.35.24c.08-.13.01-.24-.14-.24zm-3.62 2.41l-8.43 14.6a.54.54 0 01-.41.24h-4.83a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-1.79 3.1a.6.6 0 01-.42.23H22.6a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-4.48 7.76c-.08.13-.2.13-.28 0L3.8 2.41c-.08-.13-.02-.24.13-.24h35.51c.16 0 .22.11.15.24z"></path><path class="st0" d="M33.26 5.75H10.13c-.15 0-.21.11-.14.24l8.24 14.28c.08.13.2.13.28 0l3.67-6.36a.54.54 0 01.41-.24h6.09c.15 0 .34-.11.41-.24l4.3-7.44c.08-.13.02-.24-.13-.24zm-3.63 2.41l-1.79 3.1a.54.54 0 01-.41.24h-6.09a.52.52 0 00-.41.24l-2.42 4.18c-.08.13-.2.13-.28 0l-4.48-7.76c-.08-.13-.01-.24.14-.24h15.6c.15 0 .21.11.14.24z"></path></svg>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <a title="VPE is open source!" class="navbar-github pull-right" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="unity-components">Unity Components</h1>
+
+<p>When loading or creating a table in Unity, what you're creating is a hierarchy of <a href="https://docs.unity3d.com/Manual/GameObjects.html">GameObjects</a>, the basic building blocks of Unity scenes. By default we group game items by their type when importing, but you can arrange them however you want.</p>
+<p>To give the GameObjects behavior during gameplay, we add <a href="https://docs.unity3d.com/Manual/Components.html">components</a> onto them. VPE comes with large number of components that are used to set up and control the game mechanisms of the table, and advanced programmers can contibute new ones.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>During runtime, VPE converts the GameObjects and components into entities in Unity's <a href="https://unity.com/dots">DOTS workflow</a>. There are special components used to control this conversion which we call <em>Authoring Components</em>.</p>
+</div>
+<p>If you've never heard about GameObjects or components, we recommmend you read through the links in the first two paragraphs. They are short, to the point, and a much better introduction than we could provide here.</p>
+<h2 id="components-vs-game-items">Components vs Game Items</h2>
+<p>In <em>Visual Pinball</em>, components are what you see in the options panel when you click on a game item. You'll typically find sections for adjusting physical behavior, visual display, and geometric shape of the game item you're editing. Internally, all of these sections belong to the same game item.</p>
+<p>In <em>VPE</em>, we have separate components for each of these sections. There are four different types of components:</p>
+<ol>
+<li>The <strong>Main Component</strong> represents the actual game item.</li>
+<li>A <strong>Collider Component</strong> adds physical behavior to the game item. It defines how the item interacts with other objects, for example what bounciness, friction and randomness is applied to a pinball hitting the item.</li>
+<li><strong>Mesh Components</strong> generate meshes, i.e. the geometry used to render the object on the playfield. The results are the procedurally generated 3d objects rendered in the scene.</li>
+<li><strong>Animation components</strong> apply movement to the game item. If the entire object is moving (for example a flipper), that is handled by the collision component, but for items where only parts move (e.g. the plate of a gate, or the ring of a bumper) these components apply the movement to the GameObject.</li>
+</ol>
+<p>Let's look at a flipper:</p>
+<p><img src="properties-vpe-vs-vp.png" alt="VPE vs VP"></p>
+<p>Here, we see the main component (<em>Flipper</em>), the collider component (<em>Flipper Collider</em>), and two mesh components (<em>Flipper Base Mesh</em> and <em>Flipper Rubber Mesh</em>) inside VPE compared to Visual Pinball. While the main and collider component sit on the base GameObject, each mesh component is on its own child GameObject. This is how Unity works - a GameObject only contains one component of each type.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Internally, VPE still keeps a single set of data. That's why you see the collapsed <em>Base Mesh</em>, <em>Rubber Mesh</em> and <em>Physics</em> sections in the main component. When you change values there, the corresponding values in the other components will update at the same time. In general, you don't have to manually manage all this. When creating game items via the toolbox, the new GameObject will already have all the necessary components, as will the items created when importing a <code>.vpx</code> file.</p>
+</div>
+<p>This separation of logic has a few advantages. First, it's more obvious how a game item behaves. No collider component? That means the game item is not collidable. No mesh component? It's (permanently) invisible. But there are other advantages, as you will see in the next section.</p>
+<h2 id="combining-components">Combining Components</h2>
+<p>VPE allows you to mix and match components onto game items. For example, for a given game item, you could assign a collider or mesh from another type. The most common use case is replacing built-in meshes with primitives, removing the original mesh component and replacing it with a generated version. But there are other usages, like using a primitive collider on a rubber. You can also add <em>multiple</em> children with colliders (or meshes) for a game item.</p>
+<p>We call this <strong>parenting</strong>. The game item that overrides a given behavior is still created, but serves as a <em>parent</em> container to other game items.</p>
+<p>The advantage compared to Visual Pinball, where you would create individual game items, is that VPE treats them as one single logical entity. For example, VPE will automatically rotate a primitive flipper item when it's parented under a flipper, and events from multiple colliders will be emitted from the same parent object.</p>
+<h3 id="supported-combinations">Supported Combinations</h3>
+<p>Not every game item can be parented to any other game item. It doesn't make much sense to use a flipper collider for a bumper. In fact, most of the combinations are unsupported. Here's what VPE does support so far:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Supported Meshes</th>
+<th>Supported Colliders</th>
+<th>Supported Animators</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bumper</strong></td>
+<td>Bumper Base, Bumper Cap, Bumper Ring, Bumper Skirt, Primitive</td>
+<td>Bumper</td>
+<td>Bumper Ring, Bumper Skirt</td>
+</tr>
+<tr>
+<td><strong>Flipper</strong></td>
+<td>Flipper Base, Flipper Rubber, Primitive</td>
+<td>Flipper</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Gate</strong></td>
+<td>Gate Bracket, Gate Wire, Primitive</td>
+<td>Gate</td>
+<td>Gate Wire</td>
+</tr>
+<tr>
+<td><strong>Hit Target</strong></td>
+<td>Hit Target, Primitive</td>
+<td>Hit Target</td>
+<td>Hit Target, Drop Target</td>
+</tr>
+<tr>
+<td><strong>Kicker</strong></td>
+<td>Kicker, Primitive</td>
+<td>Kicker</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Light</strong></td>
+<td>Light, Primitive</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Plunger</strong></td>
+<td>Flat Plunger, Plunger Rod, Plunger Spring</td>
+<td>Plunger</td>
+<td>Plunger</td>
+</tr>
+<tr>
+<td><strong>Primitive</strong></td>
+<td>Primitive</td>
+<td>Primitive, Ramp, Wall</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Ramp</strong></td>
+<td>Ramp, Primitive</td>
+<td>Ramp</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Rubber</strong></td>
+<td>Rubber, Primitive</td>
+<td>Rubber, Surface, Primitive</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Spinner</strong></td>
+<td>Spinner Bracket, Spinner Plate, Primitive</td>
+<td>Spinner</td>
+<td>Spinner Plate</td>
+</tr>
+<tr>
+<td><strong>Surface</strong></td>
+<td>Surface, Primitive</td>
+<td>Surface, Primitive</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>Trigger, Primitive</td>
+<td>Trigger</td>
+<td>Trigger</td>
+</tr>
+</tbody>
+</table>
+<h2 id="naming-conventions">Naming Conventions</h2>
+<p>In order to maintain backward compatibility with Visual Pinball, VPE relies on naming conventions to parent one game item to another.</p>
+<p>There are two suffixes that have special meaning for VPE:</p>
+<ul>
+<li><code>_Mesh</code> applies the game item's mesh to its parent</li>
+<li><code>_Collider</code> applies the game item's collider to its parent</li>
+</ul>
+<p>For example, if in Visual Pinball you name a primitive <code>LeftFlipper_Mesh</code>, VPE will look for a <code>LeftFlipper</code> game item and replace its mesh with the mesh of that primitive. In other words, it will <em>parent</em> <code>LeftFlipper_Mesh</code> to <code>LeftFlipper</code> and disable <code>LeftFlipper</code>'s original mesh.</p>
+<p>Another example: If in Visual Pinball you name a rubber <code>LeftSlingshot</code> and two primitives <code>LeftSlingshot_Collider_Soft</code> and  <code>LeftSlingshot_Collider_Hard</code>, VPE will disable the collider of <code>LeftSlingshot</code> and use both the other colliders instead. During gameplay when the ball hits either <code>LeftSlingshot_Collider_Soft</code> or <code>LeftSlingshot_Collider_Hard</code>, the <code>Hit</code> event will be emitted on <code>LeftSlingshot</code>.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>When you <em>export</em> to <code>.vpx</code> and you have parented items that don't follow the naming convention, the parenting will get lost when re-importing the table into VPE. In the future, VPE may offer to (or even automatically) rename the parented children on export, but that's still on our TODO list.</p>
+</div>
+<h2 id="visibility">Visibility</h2>
+<p>In order to determine whether a game item is visible, VPE looks at the hierarchy and the mesh components of its GameObject. If a game item has no mesh component, its automatically set to <em>invisible</em>. It's also invisible if the GameObject is set to inactive (the checkbox at the top left in the Inspector).</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/unity-components.md/#L1" class="contribution-link btn btn-default">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            <span>Copyright © 2021 VPE Team</span>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+    <script src="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="../../styles/plugin-featherlight.js"></script>
+  </body>
+</html>

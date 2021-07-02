@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Troughs / Ball Drains | VPE Documentation </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Troughs / Ball Drains | VPE Documentation ">
+    <meta name="description" content="">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+  
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+  
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.visualpinball.org/">
+    <meta property="og:title" content="Troughs / Ball Drains | VPE Documentation ">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.visualpinball.org/">
+    <meta property="twitter:title" content="Troughs / Ball Drains | VPE Documentation ">
+    <meta property="twitter:description" content="">
+    <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+  
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+  
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript">
+    var _paq = window._paq || [];
+    _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//count.vpdb.io/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '2']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+    </script>
+  </head>  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../../../index.html">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="43.38" height="37.61" xml:space="preserve"><style>.st0{fill:#ddd}</style><path class="st0" d="M43.21 0H.17C.02 0-.04.11.03.24l21.52 37.28c.08.13.2.13.28 0L43.35.24c.08-.13.01-.24-.14-.24zm-3.62 2.41l-8.43 14.6a.54.54 0 01-.41.24h-4.83a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-1.79 3.1a.6.6 0 01-.42.23H22.6a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-4.48 7.76c-.08.13-.2.13-.28 0L3.8 2.41c-.08-.13-.02-.24.13-.24h35.51c.16 0 .22.11.15.24z"></path><path class="st0" d="M33.26 5.75H10.13c-.15 0-.21.11-.14.24l8.24 14.28c.08.13.2.13.28 0l3.67-6.36a.54.54 0 01.41-.24h6.09c.15 0 .34-.11.41-.24l4.3-7.44c.08-.13.02-.24-.13-.24zm-3.63 2.41l-1.79 3.1a.54.54 0 01-.41.24h-6.09a.52.52 0 00-.41.24l-2.42 4.18c-.08.13-.2.13-.28 0l-4.48-7.76c-.08-.13-.01-.24.14-.24h15.6c.15 0 .21.11.14.24z"></path></svg>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <a title="VPE is open source!" class="navbar-github pull-right" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="troughs--ball-drains">Troughs / Ball Drains</h1>
+
+<p>If you are unfamiliar with ball troughs, have a quick look at <a href="https://mpf-docs.readthedocs.io/en/latest/mechs/troughs/">MPF's documentation</a>, which does an excellent job explaining them.</p>
+<p>VPE comes with a trough mechanism that simulates the behavior of a real-world ball trough. This is especially important when emulating existing games, since the <a href="../gamelogic-engine.html">gamelogic engine</a> expects the trough's switches to be in a plausible state, or else it may have errors.</p>
+<h2 id="creating-a-trough">Creating a Trough</h2>
+<p>When importing a <code>.vpx</code> file that doesn't have any troughs (which is likely, because Visual Pinball doesn't currently handle them in the same way as VPE) or creating a new table, VPE will automatically add a main trough to the root of the table. In order to create a trough manually, click on the <em>Trough</em> button in the toolbox.</p>
+<h2 id="linking-to-the-playfield">Linking to the Playfield</h2>
+<img src="trough-inspector.png" width="343" class="img-responsive pull-right" style="margin-left: 15px">
+<p>To interact with the game, you must set up an <strong>input switch</strong> to drain the ball into the trough, and an <strong>exit kicker</strong> to release a new ball from the trough. This terminology may seem weird, since the ball <em>exits</em> the playfield when draining, but from the trough's perspective, that's where the ball <em>enters</em>.</p>
+<p>You can setup these links under <em>Playfield Links</em> by selecting the trough in the hierarchy panel and linking them to the desired items using the inspector.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Both the input switch and the exit kicker are not related to the gamelogic engine. Their goal is purely to link the physics simulation to the trough logic, whose behavior is not physically simulated.</p>
+<p>Many games <em>do</em> have an input switch (which we call <em>drain switch</em>) and an exit kicker (we that one <em>eject coil</em>).  They are simulated by the trough itself and show up in the switch- and coil manager under the trough device.</p>
+</div>
+<p>The inspector also lets you configure other options:</p>
+<ul>
+<li><strong>Ball Count</strong> defines how many balls the trough holds when the game starts.</li>
+<li><strong>Switch Count</strong> sets how many ball switches are available. This is usually the same number as the ball count.  The drain switch and the jam switch are excluded from this count.</li>
+<li><strong>Has Jam Switch</strong> defines if the trough has a jam switch. This switch is often called <em>eject switch</em> as well.</li>
+<li><strong>Roll Time</strong> sets how long it takes the ball to roll from one switch to the next.</li>
+<li><strong>Kick Time</strong> defines how long it takes the ball to get kicked from the drain into the trough.</li>
+<li><strong>Transition Time</strong> is only relevant for opto switches and defines how long the switch closes between balls.</li>
+</ul>
+<h2 id="trough-types">Trough Types</h2>
+<p>VPE supports several variants of troughs found on real machines. You can configure the behavior of the trough by changing the <em>Type</em> in the inspector when the trough is selected in the hierarchy.</p>
+<p>In this section we'll again link to the excellent MPF documentation explaining each of the different types. We'll also provide an animation of the trough inspector during gameplay showing how the switches and coils behave in real time.</p>
+<h3 id="modern-mechanical">Modern Mechanical</h3>
+<img src="trough-mechanical.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
+<p><a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-2-modern-trough-with-mechanical-switches">Modern troughs with mechanical switches</a> are covered by this type.</p>
+<p>The ball drains from the playfield directly into the ball stack, and every ball slot has an associated switch. When a ball gets ejected, the remaining balls move down simultaneously to the next position. During that movement, their switches get first opened and then closed again when they reach the next position. The time of this movement is defined by <em>Roll Time</em>.</p>
+<p><em>The animation on the right shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball, rolling back onto the stack.</em></p>
+<h3 id="modern-opto">Modern Opto</h3>
+<img src="trough-opto.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
+<p><a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-1-modern-trough-with-opto-sensors">Modern troughs with optical switches</a> work similar similar to their mechanical counterparts. However there are two differences:</p>
+<ol>
+<li>Opto switches have the inverse value of mechanical switches. That means per default, an opto switch is <em>closed</em>, and when a ball rolls through, it opens. It's kind of logical, because the ball <em>blocks</em> the beam of light thus <em>opening</em> the circuit, while a mechanical switch gets <em>closed</em> by the ball's weight.</li>
+<li>Timings are different. When a ball approaches an opto switch, the switch gets triggered as soon as the ball's <em>front</em> hits the beam, while a mechanical switch gets triggered when the ball's <em>center</em> is over it. This results in very short closing times when the ball stack moves to the next position after a ball eject.</li>
+</ol>
+<p>We call this closing time the <em>transition time</em> - it's the time during stack transition when all switches briefly close.</p>
+<p><em>Like before, the animation shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball, rolling back onto the stack.</em></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>When a transition time is set to <code>0</code>, only the first and the last switch of the stack change value (as opposed to each position opening and closing immediately).</p>
+</div>
+<h3 id="two-coils-and-multiple-switches">Two coils and multiple switches</h3>
+<img src="trough-2cns.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
+<p><a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-3-older-style-with-two-coils-and-switches-for-each-ball">Troughs of this type</a> can be found in older machines from the 80s and early 90s. They consist of two parts:</p>
+<ol>
+<li>A drain, the ball rolls into when leaving the playfield</li>
+<li>A ball stack, where the out of play balls are held.</li>
+</ol>
+<p>In terms of switches, they still include a switch per ball in the stack, but also an additional drain switch to trigger kicking the ball from the drain into the stack.</p>
+<p><em>The animation shows a 6-ball trough filled with three balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain until the entry coil activates, which makes the ball roll over to the ball stack.</em></p>
+<h3 id="two-coils-and-one-switch">Two coils and one switch</h3>
+<img src="trough-2c1s.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
+<p>A trough can also have <a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-4-older-style-with-two-coils-and-only-one-ball-switch">only one switch</a> in the ball stack.</p>
+<p>Instead of a <em>Switch Count</em> like the previous types, you select a <em>Switch Position</em>, which is the position in the ball stack at which the ball farthest away from the eject coil sits.</p>
+<p><em>The animation shows a 6-ball trough filled with six balls. It starts by ejecting a ball, followed by draining that ball. The ball stays in the drain until the entry coil activates, which makes the ball roll over to the ball stack.</em></p>
+<h3 id="classic-single-ball">Classic single ball</h3>
+<img src="trough-single-ball.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
+<p>A single ball trough may work <a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-5-classic-single-ball-single-coil">with</a> or <a href="https://docs.missionpinball.org/en/latest/mechs/troughs/#option-6-classic-single-ball-single-coil-no-shooter-lane">without</a> a shooter lane. The principle is simple: After draining, the ball is kept on the drain coil, which ejects the ball either directly into the plunger lane or back onto the playfield.</p>
+<p><em>The animation shows single ball trough that ejects a ball and drains it a few seconds later.</em></p>
+<h2 id="switch-setup">Switch Setup</h2>
+<p>The number of simulated switches in the trough depends on the type of trough and the <em>Switch Count</em> property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.</p>
+<p>To configure the switches, open the <a href="../../editor/switch-manager.html">switch manager</a> and add the trough switches if they're not already there. For <em>Destination</em> select &quot;Device&quot;, under <em>Element</em>, select the trough you've created and which switch to connect. For a modern five-ball trough, it will look something like this:</p>
+<p><img src="trough-switches.png" alt="Switch Manager"></p>
+<h2 id="coil-setup">Coil Setup</h2>
+<p>VPE's trough supports up to two coils, an entry coil which drains the ball from the outhole into the trough, and an eject coil which pushes a new ball into the plunger lane. To configure the coils, open the <a href="../../editor/coil-manager.html">coil manager</a>, find or add the coils, and link them to the trough like you did with the switches:</p>
+<p><img src="trough-coils.png" alt="Coil Manager"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Depending on which trough type is set, different coils and switches show up under the trough device.</p>
+</div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/troughs.md/#L1" class="contribution-link btn btn-default">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            <span>Copyright © 2021 VPE Team</span>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+    <script src="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="../../../styles/plugin-featherlight.js"></script>
+  </body>
+</html>

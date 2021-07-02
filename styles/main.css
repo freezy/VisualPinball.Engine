@@ -1,0 +1,56 @@
+﻿html,
+body {
+	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
+    font-size: 100%;
+
+}
+
+.btn.btn-default.active, .btn.btn-default:active {
+	outline: 0;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	background-color: rgba(1,1,1,0.08);
+}
+
+.navbar-brand > svg {
+	margin-top: 6px;
+}
+
+.navbar-github > svg {
+	margin-top: 8px;
+	fill: #ccc;
+}
+
+.navbar-default {
+	background-color: rgba(1,1,1,0.05);
+	border-color: rgba(1,1,1,0.1);
+}
+
+#sidetoc .sidefilter {
+	top: 94px;
+}
+
+#sidetoc .sidetoc.shiftup {
+  bottom: 0;
+}
+
+img[alt="Visual Pinball Engine"] {
+	margin-top: 15px;
+}
+
+h1, h2 {
+	font-weight: bold;
+}
+
+.table-bordered, 
+.table-bordered>tbody>tr>td,
+.table-bordered>tbody>tr>th,
+.table-bordered>tfoot>tr>td,
+.table-bordered>tfoot>tr>th,
+.table-bordered>thead>tr>td,
+.table-bordered>thead>tr>th {
+	border-color: rgba(1,1,1,0.15);
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(1,1,1,0.03)
+}

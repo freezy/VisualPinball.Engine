@@ -1,0 +1,1136 @@
+{
+  "sitemap": {
+    "baseUrl": "https://docs.visualpinball.org/",
+    "changefreq": "weekly",
+    "priority": 0.5
+  },
+  "homepages": [],
+  "source_base_path": "/github/workspace/VisualPinball.Unity/Documentation~",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      },
+      "is_incremental": false
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "../../CHANGELOG.md",
+      "output": {
+        ".html": {
+          "relative_path": "CHANGELOG.html",
+          "hash": "pzr5kWlaN0fGoK5ub24QZw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "CNAME",
+      "output": {
+        "resource": {
+          "relative_path": "CNAME"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "android-chrome-192x192.png",
+      "output": {
+        "resource": {
+          "relative_path": "android-chrome-192x192.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "android-chrome-256x256.png",
+      "output": {
+        "resource": {
+          "relative_path": "android-chrome-256x256.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/VisualPinball.Unity.DeviceSwitch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/VisualPinball.Unity.DeviceSwitch.html",
+          "hash": "6THurDqBY7mpfkBwQNxokg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/VisualPinball.Unity.FlipperApi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/VisualPinball.Unity.FlipperApi.html",
+          "hash": "SpMe6aIqx3MjQSiSadgZjA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/VisualPinball.Unity.ItemApi-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/VisualPinball.Unity.ItemApi-2.html",
+          "hash": "to/68m5ThNibySje+qrNaw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/VisualPinball.Unity.TroughApi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/VisualPinball.Unity.TroughApi.html",
+          "hash": "drVaKq4vgYr15nEDu+0zgQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/VisualPinball.Unity.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/VisualPinball.Unity.html",
+          "hash": "GnD+oqv3nM2Mn9LMn8djfw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "ji+EI2RMu4XdV6f1/uMTwQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "KtkUnf7iYuKAWy749rfQZQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "apple-touch-icon.png",
+      "output": {
+        "resource": {
+          "relative_path": "apple-touch-icon.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/advanced/camera-settings.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/advanced/camera-settings.html",
+          "hash": "eIfQJoJHrquFoUFB/pcp9g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/advanced/camera-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/advanced/camera-settings.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/coil-manager-lamp.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/coil-manager-lamp.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/coil-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/coil-manager.html",
+          "hash": "5BSJQTwdezAyJnmc7zq8dA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/coil-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/coil-manager.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/dual-wound-coils.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/dual-wound-coils.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager-coil.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager-coil.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager-gameplay.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager-gameplay.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/lamp-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/lamp-manager.html",
+          "hash": "odZGPJooSF01zSWyIHd6Ew=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/multiple-tables-lock.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/multiple-tables-lock.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/multiple-tables.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/multiple-tables.html",
+          "hash": "43eHnuYtbSMj7fOf9en33w=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/properties-vpe-vs-vp.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/properties-vpe-vs-vp.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/switch-manager-dual-wound.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/switch-manager-dual-wound.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/switch-manager-ids.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/switch-manager-ids.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/switch-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/switch-manager.html",
+          "hash": "2OenqB8H04aASJvs1TRtTQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/switch-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/switch-manager.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/unity-components.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/unity-components.html",
+          "hash": "RLXdEIlB4e2qOHIh7gVYLA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/wire-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/wire-manager.html",
+          "hash": "0Osqy9AMFNumkJVqClrONQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/wire-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/wire-manager.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/comparison-vpx-vpe.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/comparison-vpx-vpe.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/introduction/features.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/introduction/features.html",
+          "hash": "RPWrDquQljuLXywwSyyaiQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/jp-header.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/jp-header.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/mesh-example.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/mesh-example.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/introduction/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/introduction/overview.html",
+          "hash": "0++pURqmzL4uTK3lAm9TXg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-colliders.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-colliders.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-drag-points.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-drag-points.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-editor.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-editor.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/display-add-component.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/display-add-component.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/display-dmd-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/display-dmd-inspector.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/displays.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/displays.html",
+          "hash": "ZFcR8Y1ehTtFwV8xIkk/SA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/dmd-game_over.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/dmd-game_over.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/gamelogic-engine.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/gamelogic-engine.html",
+          "hash": "uQW+vOo/kXg7Ga4O/JI3fQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/manual.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/manual.html",
+          "hash": "1XUGCFZqWJzCplxUklmMkQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-collider-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-collider-inspector.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-asset.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-asset.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-polarities.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-polarities.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-velocities.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-velocities.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/flippers.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/flippers.html",
+          "hash": "OFlBMkOflV+vsIkHyCVnng=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-2c1s.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-2c1s.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-2cns.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-2cns.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-coils.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-coils.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-inspector.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-mechanical.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-mechanical.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-opto.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-opto.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-single-ball.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-single-ball.gif"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-switches.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-switches.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/troughs.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/troughs.html",
+          "hash": "VzGev+UtyEd78FqgufrEgw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/setup/installing-vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/setup/installing-vpe.html",
+          "hash": "0TIbJCf0bVh7fc18ms6Qgw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/setup/running-vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/setup/running-vpe.html",
+          "hash": "vX06LQPSlgASQAWHV74svQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-create-new-project.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-create-new-project.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-first-play.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-first-play.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-hdrp-default-scene.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-hdrp-default-scene.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-hdrp-test-scene.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-hdrp-test-scene.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table-aligned.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table-aligned.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table-ugly-gizmos.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table-ugly-gizmos.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-input-system-warning.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-input-system-warning.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-package-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-package-manager.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-packages-after-installation.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-packages-after-installation.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-scoped-registry.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-scoped-registry.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-settings-hybridv2.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-settings-hybridv2.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "creators-guide/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/toc.html",
+          "hash": "oGfCBsRGPQ6KyLKy7tb4rg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/vpe.html",
+          "hash": "MHlKzfnKuWuK9M0kb95OYw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon-16x16.png",
+      "output": {
+        "resource": {
+          "relative_path": "favicon-16x16.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon-32x32.png",
+      "output": {
+        "resource": {
+          "relative_path": "favicon-32x32.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon.ico",
+      "output": {
+        "resource": {
+          "relative_path": "favicon.ico"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon.png",
+      "output": {
+        "resource": {
+          "relative_path": "favicon.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/social-poster.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "images/social-poster.jpg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "eWWdqtL42n3IEfhE2/HtgQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "log_codes": [
+        "InvalidFileLink"
+      ],
+      "type": "Conceptual",
+      "source_relative_path": "plugins/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/index.html",
+          "hash": "RXrVxmMWhZSTMIdiNjiimQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/index.html",
+          "hash": "WA2ruLQAqJ+tVjE3ybwV+g=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/setup.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/setup.html",
+          "hash": "HJYpawGbk/g4DXgMjMDQlA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/unity-add-component.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/unity-add-component.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/usage.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/usage.html",
+          "hash": "iJC2wbt26JbItfkJBv2nMQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "plugins/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/toc.html",
+          "hash": "WEzovxt7cbTz2K2zfXj9ig=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "safari-pinned-tab.svg",
+      "output": {
+        "resource": {
+          "relative_path": "safari-pinned-tab.svg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "site.webmanifest",
+      "output": {
+        "resource": {
+          "relative_path": "site.webmanifest"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "template/vpe/logo.svg",
+      "output": {
+        "resource": {
+          "relative_path": "template/vpe/logo.svg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "qdE+e0K+mKDluulUsTFmFQ=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "vpe.svg",
+      "output": {
+        "resource": {
+          "relative_path": "vpe.svg"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot build incrementally because last build info is missing.",
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0,
+        "full_build_reason_code": "NoAvailableBuildCache"
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build",
+          "total_file_count": 24,
+          "skipped_file_count": 0
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": false,
+          "incrementalPhase": "build",
+          "total_file_count": 5,
+          "skipped_file_count": 0
+        },
+        "ResourceDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor ResourceDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: should not trace intermediate info.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

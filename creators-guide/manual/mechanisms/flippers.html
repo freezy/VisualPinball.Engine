@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Flipper | VPE Documentation </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Flipper | VPE Documentation ">
+    <meta name="description" content="">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+  
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+  
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.visualpinball.org/">
+    <meta property="og:title" content="Flipper | VPE Documentation ">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.visualpinball.org/">
+    <meta property="twitter:title" content="Flipper | VPE Documentation ">
+    <meta property="twitter:description" content="">
+    <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+  
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+  
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript">
+    var _paq = window._paq || [];
+    _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//count.vpdb.io/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '2']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+    </script>
+  </head>  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../../../index.html">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="43.38" height="37.61" xml:space="preserve"><style>.st0{fill:#ddd}</style><path class="st0" d="M43.21 0H.17C.02 0-.04.11.03.24l21.52 37.28c.08.13.2.13.28 0L43.35.24c.08-.13.01-.24-.14-.24zm-3.62 2.41l-8.43 14.6a.54.54 0 01-.41.24h-4.83a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-1.79 3.1a.6.6 0 01-.42.23H22.6a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-4.48 7.76c-.08.13-.2.13-.28 0L3.8 2.41c-.08-.13-.02-.24.13-.24h35.51c.16 0 .22.11.15.24z"></path><path class="st0" d="M33.26 5.75H10.13c-.15 0-.21.11-.14.24l8.24 14.28c.08.13.2.13.28 0l3.67-6.36a.54.54 0 01.41-.24h6.09c.15 0 .34-.11.41-.24l4.3-7.44c.08-.13.02-.24-.13-.24zm-3.63 2.41l-1.79 3.1a.54.54 0 01-.41.24h-6.09a.52.52 0 00-.41.24l-2.42 4.18c-.08.13-.2.13-.28 0l-4.48-7.76c-.08-.13-.01-.24.14-.24h15.6c.15 0 .21.11.14.24z"></path></svg>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <a title="VPE is open source!" class="navbar-github pull-right" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="flipper">Flipper</h1>
+
+<p>How flippers interact with the ball is what makes or breaks a pinball simulation. A few years ago, a community member named Mukuste spent time on improving Visual Pinball's flipper mechanics. The result was what has become known as the <em>physmod</em>, which provided a much more realistic simulation, and was later merged into Visual Pinball's main branch. In his <a href="https://github.com/c-f-h/vpinball/wiki/VP10-Physics">own words</a>:</p>
+<blockquote>
+<p>Flippers are now simulated as true dynamic rigid bodies which have forces from the solenoid, the return spring and the ball acting on them and accelerate accordingly. They will also properly bounce off their stoppers instead of just moving to maximum extension and then stopping. In practice, this means that flipper/ball interaction is now much more realistic and less binary. Post passes, light taps, cradle separations, drop and live catches are now all possible. Furthermore, the simulation of the friction of the flipper rubbers greatly improves aiming.</p>
+</blockquote>
+<p>Later, another member of the community named nFozzy managed to measure ball trajectory angles on real pinball machines, and developed a script where authors could provide a profile that would slightly adjust the ball trajectories during game play to match his measurements. This resulted in tables with the most realistic flipper behavior the community has produced yet.</p>
+<p>VPE's default flipper behavior is identical to Visual Pinball's. However, VPE also provides native support for the nFozzy adjustments.</p>
+<h2 id="setup">Setup</h2>
+<p>The easiest way to create a flipper is clicking on the flipper icon in the toolbar. This will instantiate a flipper prefab and place it on the playfield.</p>
+<h3 id="mesh">Mesh</h3>
+<p>VPE provides a procedurally generated flipper mesh. It consist of a <em>base mesh</em> (the plastic bat), and a <em>rubber mesh</em>.</p>
+<p>It's possible to provide a custom mesh for the flipper by replacing the game objects used to generate the procedural meshes. However, the physics simulation will still use the original colliders, so make sure to adapt the parameters to match the custom flipper's dimensions.</p>
+<h3 id="physics">Physics</h3>
+<img src="flipper-collider-inspector.png" width="438" alt="Flipper Collider" class="img-responsive pull-right" style="margin-left: 15px">
+<p>Adding the <em>Flipper Collider</em> component to the flipper makes it part of the physics simulation. Here you can tweak the various parameters. Most of the following is taken directly from <a href="https://github.com/c-f-h/vpinball/wiki/VP10-Physics#flipper-parameters">Mukuste's Wiki</a>.</p>
+<h4 id="mass">Mass</h4>
+<p>This is the mass of the flipper (where 1 corresponds to standard ball mass, 80g). It basically describes how much the flipper interacts with the ball. A very heavy flipper will barely feel the impact of the ball and keep moving at almost the same velocity as it was before the contact. A very light flipper, on the other hand, will move more slowly with the ball on it than it does without, and will be significantly deflected by the impact of a ball.</p>
+<h4 id="strength">Strength</h4>
+<p>This is the force (actually torque) with which the solenoid accelerates the flipper. The higher this value, the faster the flipper will move. Be aware that this is directly linked to flipper mass; if the flipper is twice as heavy, it also needs twice the force to get it to accelerate at the same rate.</p>
+<h4 id="elasticity-and-elasticity-falloff">Elasticity and Elasticity Falloff</h4>
+<p>This is basically the bounciness of the flipper rubber. Since real rubber is less bouncy when it is hit at a higher velocity, the Falloff parameter allows decreasing the elasticity for fast impacts. A value of 0 for falloff means no falloff, i.e. elasticity is independant of velocity, and a value of 1.0 means that elasticity is halved at an impact velocity of 1 m/s.</p>
+<h4 id="friction">Friction</h4>
+<p>This describes how much the rubber &quot;grips&quot; the ball. This value is very important for enabling center shots on the playfield with a moving ball, as well as backhands. In general it affects the aiming on all shots, but also makes a spinning ball deflect off the flipper in the proper direction.</p>
+<h4 id="return-strength-ratio">Return Strength Ratio</h4>
+<p>This is the force of the return spring which pulls the flipper back down, relative to the solenoid force which pulls the flipper forward. For instance, at 0.10, the force of the return spring will be 1/10th of that of the solenoid. Due to how acceleration and velocity work, the time the flipper needs to return to its home position is about three times longer than that for the forward stroke in this example (square root of 10, to be precise).</p>
+<p>If you make this smaller, not only will the flipper return slower, but it will also pick up less speed if you briefly release the flipper and then press it again since it has less time to accelerate. A smaller value therefore makes it easier to do flipper tricks which involve light taps, such as cradle separations and flick passes.</p>
+<h4 id="coil-ramp-up">Coil Ramp Up</h4>
+<p>This simulates the fact that the magnetic field in the flipper solenoid takes a while to build up when the flipper button is pressed, and to fall off again when the button is released (also known as hysteresis). This means that the flipper will not have its full acceleration immediately as the coil needs some time to ramp up to the full magnetic field.</p>
+<p>At a value of 0, there is no ramp up, and the full acceleration takes effect immediately. At a nonzero value, this is the relative time the solenoid needs to reach its full acceleration. For instance, if set to 3, the flipper coil will take around 30 ms to ramp up to full force.</p>
+<p>Gameplay-wise, the effect of this parameter is most strongly felt in situations where the flipper button is pressed only for a very short time, or released for a short time and then pressed again. In other words, it will make light taps much easier and therefore help with moves such as cradle separations and flick passes. Even tap passes can be achieved with the proper setting.</p>
+<p>Note that increasing this setting will decrease the speed of the flipper a bit and may need to be compensated with a higher Strength setting. Also, if this parameter is set too high, the flipper may feel sluggish and laggy.</p>
+<h4 id="eos-torque-and-angle">EOS Torque and Angle</h4>
+<p>The &quot;end of stroke&quot; torque is the force that holds the flipper up once it reached the end position. The angle defines how many degrees from the end position that force is applied.</p>
+<h4 id="flipper-correction">Flipper Correction</h4>
+<p>This is where you can set a profile for nFozzy's flipper physics. Profiles are files in your asset folder that you can create and modify. VPE ships with three profiles based on nFozzy's measurements that cover the solid state era of pinball machines. EM machines usually don't need flipper correction.</p>
+<p>Clicking on a flipper correction profile in your project window shows this in the inspector:</p>
+<img src="flipper-correction-asset.png" width="376" alt="Flipper Correction">
+<p>You can see that it consists of two curves, one describing the corrected velocity magnitude, and one the corrected x-axis of the velocity. Both curves are relative to ball position on the flipper, and normalized to the flipper length. Additionally, there is a threshold in milliseconds since the flipper was fired, after which no corrections will be applied.</p>
+<p>You can tweak these curves by clicking on them in the inspector. However you cannot edit VPE's default profiles directly, you must copy it to the table's asset folder first (and of course, assign the new copy to your flippers).</p>
+<img src="flipper-correction-polarities.png" width="431" alt="Flipper Correction: Polarities">
+<p><small><i>Polarity Correction Curve</i></small></p>
+<img src="flipper-correction-velocities.png" width="431" alt="Flipper Correction: Velocities">
+<p><small><i>Velocity Correction Curve</i></small></p>
+<p>When applying one of default profiles, you should also adjust the flipper parameters in order to obtain realistic ball behavior. We've also added a column with good values for EM machines that don't need correction.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Late 70s to mid 80s</th>
+<th>Mid 80s to early 90s</th>
+<th>Mid 90s and later</th>
+<th>EMs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Strength</td>
+<td>1400-1600 (1500)</td>
+<td>2000-2600</td>
+<td>3200-3300 (3250)</td>
+<td>500-1000 (750)</td>
+</tr>
+<tr>
+<td>Elasticity</td>
+<td>0.88</td>
+<td>0.88</td>
+<td>0.88</td>
+<td>0.88</td>
+</tr>
+<tr>
+<td>Elasticity Falloff</td>
+<td>0.15</td>
+<td>0.15</td>
+<td>0.15</td>
+<td>0.15</td>
+</tr>
+<tr>
+<td>Friction</td>
+<td>0.9</td>
+<td>0.9</td>
+<td>0.9</td>
+<td>0.8-0.9</td>
+</tr>
+<tr>
+<td>Return Strength</td>
+<td>0.09</td>
+<td>0.07</td>
+<td>0.055</td>
+<td>0.11</td>
+</tr>
+<tr>
+<td>Coil Ramp Up</td>
+<td>2.5</td>
+<td>2.5</td>
+<td>2.5</td>
+<td>2.5</td>
+</tr>
+<tr>
+<td>Scatter Angle</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>EOS Torque</td>
+<td>0.3</td>
+<td>0.275</td>
+<td>0.275</td>
+<td>0.3</td>
+</tr>
+<tr>
+<td>EOS Torque Angle</td>
+<td>4</td>
+<td>6</td>
+<td>6</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-gotchas">Common Gotchas</h2>
+<h3 id="flipper-length">Flipper Length</h3>
+<p>A common mistake is incorrect flipper length. A 3-inch flipper with rubbers will be about 3.125 inches long. This translates to about 147 VP units. Therefore, the flipper start radius + the flipper length + the flipper end radius should equal approximately 147 VP units.</p>
+<hr>
+<p>-&gt; <a class="xref" href="../../../api/VisualPinball.Unity.FlipperApi.html">API Reference</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/flippers.md/#L1" class="contribution-link btn btn-default">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            <span>Copyright © 2021 VPE Team</span>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+    <script src="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="../../../styles/plugin-featherlight.js"></script>
+  </body>
+</html>

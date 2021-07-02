@@ -1,0 +1,467 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class DeviceSwitch
+   | VPE Documentation </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class DeviceSwitch
+   | VPE Documentation ">
+    <meta name="description" content="">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+  
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+  
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.visualpinball.org/">
+    <meta property="og:title" content="Class DeviceSwitch
+   | VPE Documentation ">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.visualpinball.org/">
+    <meta property="twitter:title" content="Class DeviceSwitch
+   | VPE Documentation ">
+    <meta property="twitter:description" content="">
+    <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+  
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+  
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript">
+    var _paq = window._paq || [];
+    _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//count.vpdb.io/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '2']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+    </script>
+  </head>  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="43.38" height="37.61" xml:space="preserve"><style>.st0{fill:#ddd}</style><path class="st0" d="M43.21 0H.17C.02 0-.04.11.03.24l21.52 37.28c.08.13.2.13.28 0L43.35.24c.08-.13.01-.24-.14-.24zm-3.62 2.41l-8.43 14.6a.54.54 0 01-.41.24h-4.83a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-1.79 3.1a.6.6 0 01-.42.23H22.6a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-4.48 7.76c-.08.13-.2.13-.28 0L3.8 2.41c-.08-.13-.02-.24.13-.24h35.51c.16 0 .22.11.15.24z"></path><path class="st0" d="M33.26 5.75H10.13c-.15 0-.21.11-.14.24l8.24 14.28c.08.13.2.13.28 0l3.67-6.36a.54.54 0 01.41-.24h6.09c.15 0 .34-.11.41-.24l4.3-7.44c.08-.13.02-.24-.13-.24zm-3.63 2.41l-1.79 3.1a.54.54 0 01-.41.24h-6.09a.52.52 0 00-.41.24l-2.42 4.18c-.08.13-.2.13-.28 0l-4.48-7.76c-.08-.13-.01-.24.14-.24h15.6c.15 0 .21.11.14.24z"></path></svg>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <a title="VPE is open source!" class="navbar-github pull-right" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="VisualPinball.Unity.DeviceSwitch">
+  
+  
+  <h1 id="VisualPinball_Unity_DeviceSwitch" data-uid="VisualPinball.Unity.DeviceSwitch" class="text-break">Class DeviceSwitch
+  </h1>
+  <div class="markdown level0 summary"><p>Devices switches are switches within a device that are not directly linked to any game item.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">DeviceSwitch</span></div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="VisualPinball.Unity.html">VisualPinball.Unity</a></h6>
+  <h6><strong>Assembly</strong>: VisualPinball.Unity.dll</h6>
+  <h5 id="VisualPinball_Unity_DeviceSwitch_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class DeviceSwitch : object, IApiSwitch</code></pre>
+  </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch__ctor_System_String_System_Boolean_VisualPinball_Unity_SwitchDefault_VisualPinball_Unity_Player_.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.%23ctor(System.String%2CSystem.Boolean%2CVisualPinball.Unity.SwitchDefault%2CVisualPinball.Unity.Player)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L53">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch__ctor_" data-uid="VisualPinball.Unity.DeviceSwitch.#ctor*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch__ctor_System_String_System_Boolean_VisualPinball_Unity_SwitchDefault_VisualPinball_Unity_Player_" data-uid="VisualPinball.Unity.DeviceSwitch.#ctor(System.String,System.Boolean,VisualPinball.Unity.SwitchDefault,VisualPinball.Unity.Player)">DeviceSwitch(String, Boolean, SwitchDefault, Player)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DeviceSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault, Player player)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">isPulseSwitch</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">VisualPinball.Unity.SwitchDefault</span></td>
+        <td><span class="parametername">switchDefault</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">VisualPinball.Unity.Player</span></td>
+        <td><span class="parametername">player</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_IsEnabled.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.IsEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L36">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_IsEnabled_" data-uid="VisualPinball.Unity.DeviceSwitch.IsEnabled*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_IsEnabled" data-uid="VisualPinball.Unity.DeviceSwitch.IsEnabled">IsEnabled</h4>
+  <div class="markdown level1 summary"><p>Indicates whether the switch is currently opened or closed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsEnabled { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_IsSwitchClosed.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.IsSwitchClosed%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L47">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_IsSwitchClosed_" data-uid="VisualPinball.Unity.DeviceSwitch.IsSwitchClosed*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_IsSwitchClosed" data-uid="VisualPinball.Unity.DeviceSwitch.IsSwitchClosed">IsSwitchClosed</h4>
+  <div class="markdown level1 summary"><p>Guesses whether the switch is closed or not.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsSwitchClosed { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 id="VisualPinball_Unity_DeviceSwitch_IsSwitchClosed_remarks">Remarks</h5>
+  <div class="markdown level1 remarks"><p>This is used in the trough inspector to render the switch states. We &quot;guess&quot;, because
+in case the switch default is configurable, we don't actually know, because then it depends
+on each individual mapping.</p>
+</div>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_AddWireDest_VisualPinball_Unity_WireDestConfig_.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.AddWireDest(VisualPinball.Unity.WireDestConfig)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L62">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_AddWireDest_" data-uid="VisualPinball.Unity.DeviceSwitch.AddWireDest*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_AddWireDest_VisualPinball_Unity_WireDestConfig_" data-uid="VisualPinball.Unity.DeviceSwitch.AddWireDest(VisualPinball.Unity.WireDestConfig)">AddWireDest(WireDestConfig)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AddWireDest(WireDestConfig wireConfig)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">VisualPinball.Unity.WireDestConfig</span></td>
+        <td><span class="parametername">wireConfig</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_DestroyBall_Unity_Entities_Entity_.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.DestroyBall(Unity.Entities.Entity)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L64">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_DestroyBall_" data-uid="VisualPinball.Unity.DeviceSwitch.DestroyBall*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_DestroyBall_Unity_Entities_Entity_" data-uid="VisualPinball.Unity.DeviceSwitch.DestroyBall(Unity.Entities.Entity)">DestroyBall(Entity)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DestroyBall(Entity ballEntity)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Unity.Entities.Entity</span></td>
+        <td><span class="parametername">ballEntity</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_ScheduleSwitch_System_Boolean_System_Int32_.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.ScheduleSwitch(System.Boolean%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L81">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_ScheduleSwitch_" data-uid="VisualPinball.Unity.DeviceSwitch.ScheduleSwitch*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_ScheduleSwitch_System_Boolean_System_Int32_" data-uid="VisualPinball.Unity.DeviceSwitch.ScheduleSwitch(System.Boolean,System.Int32)">ScheduleSwitch(Boolean, Int32)</h4>
+  <div class="markdown level1 summary"><p>Schedules the switch to be enabled or disabled.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ScheduleSwitch(bool enabled, int delay)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">enabled</span></td>
+        <td><p>If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">delay</span></td>
+        <td><p>Delay in milliseconds</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_SetSwitch_System_Boolean_.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.SetSwitch(System.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L70">View Source</a>
+  </span>
+  <a id="VisualPinball_Unity_DeviceSwitch_SetSwitch_" data-uid="VisualPinball.Unity.DeviceSwitch.SetSwitch*"></a>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_SetSwitch_System_Boolean_" data-uid="VisualPinball.Unity.DeviceSwitch.SetSwitch(System.Boolean)">SetSwitch(Boolean)</h4>
+  <div class="markdown level1 summary"><p>Enables or disables the switch.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetSwitch(bool enabled)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">enabled</span></td>
+        <td><p>If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="events">Events
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch_Switch.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch.Switch%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L31">View Source</a>
+  </span>
+  <h4 id="VisualPinball_Unity_DeviceSwitch_Switch" data-uid="VisualPinball.Unity.DeviceSwitch.Switch">Switch</h4>
+  <div class="markdown level1 summary"><p>Event emitted when the switch opens or closes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public event EventHandler&lt;SwitchEventArgs&gt; Switch</code></pre>
+  </div>
+  <h5 class="eventType">Event Type</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">EventHandler</span>&lt;<span class="xref">VisualPinball.Unity.SwitchEventArgs</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/new/master/apiSpec/new?filename=VisualPinball_Unity_DeviceSwitch.md&amp;value=---%0Auid%3A%20VisualPinball.Unity.DeviceSwitch%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link btn btn-default">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Game/DeviceSwitch.cs/#L25" class="contribution-link btn btn-default" style="margin-top: 15px">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            <span>Copyright © 2021 VPE Team</span>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+    <script src="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="../styles/plugin-featherlight.js"></script>
+  </body>
+</html>

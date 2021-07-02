@@ -1,0 +1,255 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Switch Manager | VPE Documentation </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Switch Manager | VPE Documentation ">
+    <meta name="description" content="VPE's switch manager lets you hook up the switches of the playfield to the gamelogic engine.">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+  
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+  
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://docs.visualpinball.org/">
+    <meta property="og:title" content="Switch Manager | VPE Documentation ">
+    <meta property="og:description" content="VPE's switch manager lets you hook up the switches of the playfield to the gamelogic engine.">
+    <meta property="og:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://docs.visualpinball.org/">
+    <meta property="twitter:title" content="Switch Manager | VPE Documentation ">
+    <meta property="twitter:description" content="VPE's switch manager lets you hook up the switches of the playfield to the gamelogic engine.">
+    <meta property="twitter:image" content="https://docs.visualpinball.org/images/social-poster.jpg">
+  
+  
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+  
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript">
+    var _paq = window._paq || [];
+    _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u="//count.vpdb.io/";
+      _paq.push(['setTrackerUrl', u+'matomo.php']);
+      _paq.push(['setSiteId', '2']);
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+    </script>
+  </head>  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../../index.html">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="43.38" height="37.61" xml:space="preserve"><style>.st0{fill:#ddd}</style><path class="st0" d="M43.21 0H.17C.02 0-.04.11.03.24l21.52 37.28c.08.13.2.13.28 0L43.35.24c.08-.13.01-.24-.14-.24zm-3.62 2.41l-8.43 14.6a.54.54 0 01-.41.24h-4.83a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-1.79 3.1a.6.6 0 01-.42.23H22.6a.52.52 0 00-.41.24l-.98 1.7c-.08.13-.01.24.14.24h4.83c.15 0 .21.11.14.24l-4.48 7.76c-.08.13-.2.13-.28 0L3.8 2.41c-.08-.13-.02-.24.13-.24h35.51c.16 0 .22.11.15.24z"></path><path class="st0" d="M33.26 5.75H10.13c-.15 0-.21.11-.14.24l8.24 14.28c.08.13.2.13.28 0l3.67-6.36a.54.54 0 01.41-.24h6.09c.15 0 .34-.11.41-.24l4.3-7.44c.08-.13.02-.24-.13-.24zm-3.63 2.41l-1.79 3.1a.54.54 0 01-.41.24h-6.09a.52.52 0 00-.41.24l-2.42 4.18c-.08.13-.2.13-.28 0l-4.48-7.76c-.08-.13-.01-.24.14-.24h15.6c.15 0 .21.11.14.24z"></path></svg>
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <a title="VPE is open source!" class="navbar-github pull-right" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="switch-manager">Switch Manager</h1>
+
+<p>During gameplay, the <a href="../manual/gamelogic-engine.html">gamelogic engine</a> needs to know what is happening on the playfield. For that, real pinball tables have switches on the playfield that signal when a ball rolls over or settles in a certain position. These switches are also built into targets, bumpers, kickers, and other mechanisms (see <em><a href="#supported-game-mechanisms">Supported Game Mechanisms</a></em> below).</p>
+<p>Wiring these switches up to the gamelogic engine with code can be a tedious process, so VPE provides a graphical interface where you can do it easily. If you've named them appropriately it can even guess which switch maps to which game item.</p>
+<p>You can open the switch manager under <em>Visual Pinball -&gt; Switch Manager</em>.</p>
+<p><img src="switch-manager.png" alt="Switch Manager">
+<small>Switch matrix from <em>Medieval Madness</em>.</small></p>
+<h2 id="setup">Setup</h2>
+<p>Imagine every row as a wire connecting the physical switch to the gamelogic engine. The relation between the two is <em>0..n -&gt; 0..n</em>, meaning you can link multiple switches to one input or a single switch to multiple inputs.</p>
+<h3 id="ids">IDs</h3>
+<p>The first column <strong>ID</strong> shows the names of each switch that the gamelogic engine is aware of. There are two values to fill out here:</p>
+<ol>
+<li>The first, the dropdown value, is the ID that <em>VPE</em> will use to identify the switch.</li>
+<li>The second, an integer value, is the ID the <em>gamelogic engine</em> is using.</li>
+</ol>
+<p>This allows the gamelogic engine to make certain switches more explicit. For example, PinMAME has the same switch mapping all ROMs of a given game. These switches have a readable ID, which then translates into the numeric &quot;magic value&quot; that PinMAME uses internally.</p>
+<p><img src="switch-manager-ids.png" alt="Switch Manager">
+<small>Global PinMAME switches of WPC games.</small></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>As we cannot be 100% sure that the gamelogic engine has accurate data about the switch names, you can also add switch IDs yourself, but those should be the exception.</p>
+</div>
+<h3 id="nc">NC</h3>
+<p>The &quot;NC&quot; stands for <strong>Normally Closed</strong>. In short, enabling this inverts the value sent to the gamelogic engine.</p>
+<p>As for the long explanation, think about how switches work. Mechanical switches are usually <em>normally open (NO)</em>, meaning they are open by default and close when the ball rolls over them (or, if it's a button, when the button is pressed).</p>
+<p>But some switches behave differently. In opto-switches for instance, the light beam closes the circuit by default, and a ball rolling through it (and thus blocking the light) opens the switch. These type of switches are <em>normally closed (NC)</em>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>In the very first screenshot, you'll notice that the trough switches are normally closed. This is because MM uses a modern trough with opto-switches. There is also the coin door we'd like to have closed by default and open the switch when the coin door is open.</p>
+</div>
+<h3 id="description">Description</h3>
+<p>The <strong>Description</strong> column is optional. If you're setting up a re-creation, you would typically use this for the switch name from the game manual. It's purely for your own benefit, and you can keep this empty if you want.</p>
+<h3 id="source">Source</h3>
+<p>The <strong>Source</strong> column defines where the element in the following column originates. There are four options:</p>
+<ul>
+<li><em>Playfield</em> lets you choose a game item from the playfield</li>
+<li><em>Input System</em> lets you choose an input action from a pre-defined list, e.g. cabinet switches</li>
+<li><em>Constant</em> sets the switch once at the beginning of the game to the given value.</li>
+<li><em>Device</em> lets you choose a switch device containing the switch. Switch devices are mechanisms that include multiple switches, for example <a href="../manual/mechanisms/troughs.html">troughs</a>.</li>
+</ul>
+<h3 id="element">Element</h3>
+<p>The <strong>Element</strong> column is where you choose which element triggers the switch.</p>
+<p>For <strong>Playfield</strong> sources, you can choose a game item that triggers switch events. Currently, VPE only emits switch events for items that would do so in real life, i.e. bumpers, flippers, gates, targets, kickers, spinners and triggers.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>We realize that you might want to use other game items like ramps and walls to emit switch events as well, and we will address this at some point, but for now we're keeping it simple.</p>
+</div>
+<p>If <strong>Input System</strong> is selected, you choose which input action to use (it's an &quot;action&quot;, because it's not an permanent key binding). Actions may have default key bindings, but the final bindings to a key or other input will be defined in the host application (the VPE player).</p>
+<p>If the source is a <strong>Device</strong>, then there are two values to select. The actual switch device, and which switch of that device should be connected to the gamelogic engine.</p>
+<p>Finally, if <strong>Constant</strong> is selected, you choose the value that will be permanently set at the beginning of the game.</p>
+<h3 id="pulse-delay">Pulse Delay</h3>
+<p>Internally, VPE connects switches to events. For example, a trigger on the playfield has a <code>Hit</code> event, which occurs when the ball rolls into the trigger's collision zone, and an <code>UnHit</code> event when the ball leaves that zone. These two events close and open the trigger's switch.</p>
+<p>However, not all mechanisms behave like that. For example a spinner emits a single <code>Spin</code> event. So to prevent the switch from being closed indefinitely VPE automatically re-opens it after a given delay.</p>
+<p>We call that the <strong>Pulse Delay</strong>. &quot;Pulse&quot;, because it gets triggered by one event and reopens after a brief delay.</p>
+<p>In most cases, you can leave the default delay of 250ms. What's important is that the gamelogic engine gets notified not too long after the switch was closed. Note that if pulse delay is set to 0, the switch will stay closed.</p>
+<h2 id="supported-game-mechanisms">Supported Game Mechanisms</h2>
+<p>Below a list of game mechanisms that contain built-in switches.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Closes</th>
+<th>Opens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bumper</strong></td>
+<td>On ball collision</td>
+<td><em>After pulse delay</em></td>
+</tr>
+<tr>
+<td><strong>Flipper</strong></td>
+<td>On EOS, i.e. when the flipper reaches its end position</td>
+<td>When the flipper switch is opened, i.e. the flipper starts moving down again</td>
+</tr>
+<tr>
+<td><strong>Gate</strong></td>
+<td>When ball is passing through the gate</td>
+<td>When ball has passed through</td>
+</tr>
+<tr>
+<td><strong>Target</strong></td>
+<td>On collision</td>
+<td><em>After pulse delay</em></td>
+</tr>
+<tr>
+<td><strong>Kicker</strong></td>
+<td>When ball enters the kicker</td>
+<td>When ball's outside the kicker</td>
+</tr>
+<tr>
+<td><strong>Spinner</strong></td>
+<td>On each spin</td>
+<td><em>After pulse delay</em></td>
+</tr>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>When the ball rolls over the trigger</td>
+<td>When the ball is outside of the trigger</td>
+</tr>
+</tbody>
+</table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/switch-manager.md/#L1" class="contribution-link btn btn-default">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            <span>Copyright © 2021 VPE Team</span>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+    <script src="//cdn.rawgit.com/noelboss/featherlight/1.7.6/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="../../styles/plugin-featherlight.js"></script>
+  </body>
+</html>

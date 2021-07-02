@@ -1,0 +1,455 @@
+### YamlMime:XRefMap
+sorted: true
+references:
+- uid: features
+  name: Features
+  href: creators-guide/introduction/features.html
+- uid: VisualPinball.Unity
+  name: VisualPinball.Unity
+  href: api/VisualPinball.Unity.html
+  commentId: N:VisualPinball.Unity
+  fullName: VisualPinball.Unity
+  nameWithType: VisualPinball.Unity
+- uid: VisualPinball.Unity.DeviceSwitch
+  name: DeviceSwitch
+  href: api/VisualPinball.Unity.DeviceSwitch.html
+  commentId: T:VisualPinball.Unity.DeviceSwitch
+  fullName: VisualPinball.Unity.DeviceSwitch
+  nameWithType: DeviceSwitch
+- uid: VisualPinball.Unity.DeviceSwitch.#ctor(System.String,System.Boolean,VisualPinball.Unity.SwitchDefault,VisualPinball.Unity.Player)
+  name: DeviceSwitch(String, Boolean, SwitchDefault, Player)
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch__ctor_System_String_System_Boolean_VisualPinball_Unity_SwitchDefault_VisualPinball_Unity_Player_
+  commentId: M:VisualPinball.Unity.DeviceSwitch.#ctor(System.String,System.Boolean,VisualPinball.Unity.SwitchDefault,VisualPinball.Unity.Player)
+  fullName: VisualPinball.Unity.DeviceSwitch.DeviceSwitch(System.String, System.Boolean, VisualPinball.Unity.SwitchDefault, VisualPinball.Unity.Player)
+  nameWithType: DeviceSwitch.DeviceSwitch(String, Boolean, SwitchDefault, Player)
+- uid: VisualPinball.Unity.DeviceSwitch.#ctor*
+  name: DeviceSwitch
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch__ctor_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.#ctor
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.DeviceSwitch
+  nameWithType: DeviceSwitch.DeviceSwitch
+- uid: VisualPinball.Unity.DeviceSwitch.AddWireDest(VisualPinball.Unity.WireDestConfig)
+  name: AddWireDest(WireDestConfig)
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_AddWireDest_VisualPinball_Unity_WireDestConfig_
+  commentId: M:VisualPinball.Unity.DeviceSwitch.AddWireDest(VisualPinball.Unity.WireDestConfig)
+  fullName: VisualPinball.Unity.DeviceSwitch.AddWireDest(VisualPinball.Unity.WireDestConfig)
+  nameWithType: DeviceSwitch.AddWireDest(WireDestConfig)
+- uid: VisualPinball.Unity.DeviceSwitch.AddWireDest*
+  name: AddWireDest
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_AddWireDest_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.AddWireDest
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.AddWireDest
+  nameWithType: DeviceSwitch.AddWireDest
+- uid: VisualPinball.Unity.DeviceSwitch.DestroyBall(Unity.Entities.Entity)
+  name: DestroyBall(Entity)
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_DestroyBall_Unity_Entities_Entity_
+  commentId: M:VisualPinball.Unity.DeviceSwitch.DestroyBall(Unity.Entities.Entity)
+  fullName: VisualPinball.Unity.DeviceSwitch.DestroyBall(Unity.Entities.Entity)
+  nameWithType: DeviceSwitch.DestroyBall(Entity)
+- uid: VisualPinball.Unity.DeviceSwitch.DestroyBall*
+  name: DestroyBall
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_DestroyBall_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.DestroyBall
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.DestroyBall
+  nameWithType: DeviceSwitch.DestroyBall
+- uid: VisualPinball.Unity.DeviceSwitch.IsEnabled
+  name: IsEnabled
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_IsEnabled
+  commentId: P:VisualPinball.Unity.DeviceSwitch.IsEnabled
+  fullName: VisualPinball.Unity.DeviceSwitch.IsEnabled
+  nameWithType: DeviceSwitch.IsEnabled
+- uid: VisualPinball.Unity.DeviceSwitch.IsEnabled*
+  name: IsEnabled
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_IsEnabled_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.IsEnabled
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.IsEnabled
+  nameWithType: DeviceSwitch.IsEnabled
+- uid: VisualPinball.Unity.DeviceSwitch.IsSwitchClosed
+  name: IsSwitchClosed
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_IsSwitchClosed
+  commentId: P:VisualPinball.Unity.DeviceSwitch.IsSwitchClosed
+  fullName: VisualPinball.Unity.DeviceSwitch.IsSwitchClosed
+  nameWithType: DeviceSwitch.IsSwitchClosed
+- uid: VisualPinball.Unity.DeviceSwitch.IsSwitchClosed*
+  name: IsSwitchClosed
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_IsSwitchClosed_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.IsSwitchClosed
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.IsSwitchClosed
+  nameWithType: DeviceSwitch.IsSwitchClosed
+- uid: VisualPinball.Unity.DeviceSwitch.ScheduleSwitch(System.Boolean,System.Int32)
+  name: ScheduleSwitch(Boolean, Int32)
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_ScheduleSwitch_System_Boolean_System_Int32_
+  commentId: M:VisualPinball.Unity.DeviceSwitch.ScheduleSwitch(System.Boolean,System.Int32)
+  fullName: VisualPinball.Unity.DeviceSwitch.ScheduleSwitch(System.Boolean, System.Int32)
+  nameWithType: DeviceSwitch.ScheduleSwitch(Boolean, Int32)
+- uid: VisualPinball.Unity.DeviceSwitch.ScheduleSwitch*
+  name: ScheduleSwitch
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_ScheduleSwitch_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.ScheduleSwitch
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.ScheduleSwitch
+  nameWithType: DeviceSwitch.ScheduleSwitch
+- uid: VisualPinball.Unity.DeviceSwitch.SetSwitch(System.Boolean)
+  name: SetSwitch(Boolean)
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_SetSwitch_System_Boolean_
+  commentId: M:VisualPinball.Unity.DeviceSwitch.SetSwitch(System.Boolean)
+  fullName: VisualPinball.Unity.DeviceSwitch.SetSwitch(System.Boolean)
+  nameWithType: DeviceSwitch.SetSwitch(Boolean)
+- uid: VisualPinball.Unity.DeviceSwitch.SetSwitch*
+  name: SetSwitch
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_SetSwitch_
+  commentId: Overload:VisualPinball.Unity.DeviceSwitch.SetSwitch
+  isSpec: "True"
+  fullName: VisualPinball.Unity.DeviceSwitch.SetSwitch
+  nameWithType: DeviceSwitch.SetSwitch
+- uid: VisualPinball.Unity.DeviceSwitch.Switch
+  name: Switch
+  href: api/VisualPinball.Unity.DeviceSwitch.html#VisualPinball_Unity_DeviceSwitch_Switch
+  commentId: E:VisualPinball.Unity.DeviceSwitch.Switch
+  fullName: VisualPinball.Unity.DeviceSwitch.Switch
+  nameWithType: DeviceSwitch.Switch
+- uid: VisualPinball.Unity.FlipperApi
+  name: FlipperApi
+  href: api/VisualPinball.Unity.FlipperApi.html
+  commentId: T:VisualPinball.Unity.FlipperApi
+  fullName: VisualPinball.Unity.FlipperApi
+  nameWithType: FlipperApi
+- uid: VisualPinball.Unity.FlipperApi.Collide
+  name: Collide
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_Collide
+  commentId: E:VisualPinball.Unity.FlipperApi.Collide
+  fullName: VisualPinball.Unity.FlipperApi.Collide
+  nameWithType: FlipperApi.Collide
+- uid: VisualPinball.Unity.FlipperApi.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  name: GetPhysicsMaterial(Table)
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_GetPhysicsMaterial_VisualPinball_Engine_VPT_Table_Table_
+  commentId: M:VisualPinball.Unity.FlipperApi.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  fullName: VisualPinball.Unity.FlipperApi.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  nameWithType: FlipperApi.GetPhysicsMaterial(Table)
+- uid: VisualPinball.Unity.FlipperApi.GetPhysicsMaterial*
+  name: GetPhysicsMaterial
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_GetPhysicsMaterial_
+  commentId: Overload:VisualPinball.Unity.FlipperApi.GetPhysicsMaterial
+  isSpec: "True"
+  fullName: VisualPinball.Unity.FlipperApi.GetPhysicsMaterial
+  nameWithType: FlipperApi.GetPhysicsMaterial
+- uid: VisualPinball.Unity.FlipperApi.Hit
+  name: Hit
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_Hit
+  commentId: E:VisualPinball.Unity.FlipperApi.Hit
+  fullName: VisualPinball.Unity.FlipperApi.Hit
+  nameWithType: FlipperApi.Hit
+- uid: VisualPinball.Unity.FlipperApi.Init
+  name: Init
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_Init
+  commentId: E:VisualPinball.Unity.FlipperApi.Init
+  fullName: VisualPinball.Unity.FlipperApi.Init
+  nameWithType: FlipperApi.Init
+- uid: VisualPinball.Unity.FlipperApi.LimitBos
+  name: LimitBos
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_LimitBos
+  commentId: E:VisualPinball.Unity.FlipperApi.LimitBos
+  fullName: VisualPinball.Unity.FlipperApi.LimitBos
+  nameWithType: FlipperApi.LimitBos
+- uid: VisualPinball.Unity.FlipperApi.LimitEos
+  name: LimitEos
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_LimitEos
+  commentId: E:VisualPinball.Unity.FlipperApi.LimitEos
+  fullName: VisualPinball.Unity.FlipperApi.LimitEos
+  nameWithType: FlipperApi.LimitEos
+- uid: VisualPinball.Unity.FlipperApi.RotateToEnd
+  name: RotateToEnd()
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_RotateToEnd
+  commentId: M:VisualPinball.Unity.FlipperApi.RotateToEnd
+  fullName: VisualPinball.Unity.FlipperApi.RotateToEnd()
+  nameWithType: FlipperApi.RotateToEnd()
+- uid: VisualPinball.Unity.FlipperApi.RotateToEnd*
+  name: RotateToEnd
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_RotateToEnd_
+  commentId: Overload:VisualPinball.Unity.FlipperApi.RotateToEnd
+  isSpec: "True"
+  fullName: VisualPinball.Unity.FlipperApi.RotateToEnd
+  nameWithType: FlipperApi.RotateToEnd
+- uid: VisualPinball.Unity.FlipperApi.RotateToStart
+  name: RotateToStart()
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_RotateToStart
+  commentId: M:VisualPinball.Unity.FlipperApi.RotateToStart
+  fullName: VisualPinball.Unity.FlipperApi.RotateToStart()
+  nameWithType: FlipperApi.RotateToStart()
+- uid: VisualPinball.Unity.FlipperApi.RotateToStart*
+  name: RotateToStart
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_RotateToStart_
+  commentId: Overload:VisualPinball.Unity.FlipperApi.RotateToStart
+  isSpec: "True"
+  fullName: VisualPinball.Unity.FlipperApi.RotateToStart
+  nameWithType: FlipperApi.RotateToStart
+- uid: VisualPinball.Unity.FlipperApi.Switch
+  name: Switch
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_Switch
+  commentId: E:VisualPinball.Unity.FlipperApi.Switch
+  fullName: VisualPinball.Unity.FlipperApi.Switch
+  nameWithType: FlipperApi.Switch
+- uid: VisualPinball.Unity.FlipperApi.Timer
+  name: Timer
+  href: api/VisualPinball.Unity.FlipperApi.html#VisualPinball_Unity_FlipperApi_Timer
+  commentId: E:VisualPinball.Unity.FlipperApi.Timer
+  fullName: VisualPinball.Unity.FlipperApi.Timer
+  nameWithType: FlipperApi.Timer
+- uid: VisualPinball.Unity.ItemApi`2
+  name: ItemApi<TItem, TData>
+  href: api/VisualPinball.Unity.ItemApi-2.html
+  commentId: T:VisualPinball.Unity.ItemApi`2
+  name.vb: ItemApi(Of TItem, TData)
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData)
+  nameWithType: ItemApi<TItem, TData>
+  nameWithType.vb: ItemApi(Of TItem, TData)
+- uid: VisualPinball.Unity.ItemApi`2.#ctor(`0,Unity.Entities.Entity,Unity.Entities.Entity,VisualPinball.Unity.Player)
+  name: ItemApi(TItem, Entity, Entity, Player)
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2__ctor__0_Unity_Entities_Entity_Unity_Entities_Entity_VisualPinball_Unity_Player_
+  commentId: M:VisualPinball.Unity.ItemApi`2.#ctor(`0,Unity.Entities.Entity,Unity.Entities.Entity,VisualPinball.Unity.Player)
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.ItemApi(TItem, Unity.Entities.Entity, Unity.Entities.Entity, VisualPinball.Unity.Player)
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).ItemApi(TItem, Unity.Entities.Entity, Unity.Entities.Entity, VisualPinball.Unity.Player)
+  nameWithType: ItemApi<TItem, TData>.ItemApi(TItem, Entity, Entity, Player)
+  nameWithType.vb: ItemApi(Of TItem, TData).ItemApi(TItem, Entity, Entity, Player)
+- uid: VisualPinball.Unity.ItemApi`2.#ctor(`0,VisualPinball.Unity.Player)
+  name: ItemApi(TItem, Player)
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2__ctor__0_VisualPinball_Unity_Player_
+  commentId: M:VisualPinball.Unity.ItemApi`2.#ctor(`0,VisualPinball.Unity.Player)
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.ItemApi(TItem, VisualPinball.Unity.Player)
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).ItemApi(TItem, VisualPinball.Unity.Player)
+  nameWithType: ItemApi<TItem, TData>.ItemApi(TItem, Player)
+  nameWithType.vb: ItemApi(Of TItem, TData).ItemApi(TItem, Player)
+- uid: VisualPinball.Unity.ItemApi`2.#ctor*
+  name: ItemApi
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2__ctor_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.#ctor
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.ItemApi
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).ItemApi
+  nameWithType: ItemApi<TItem, TData>.ItemApi
+  nameWithType.vb: ItemApi(Of TItem, TData).ItemApi
+- uid: VisualPinball.Unity.ItemApi`2.Data
+  name: Data
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_Data
+  commentId: P:VisualPinball.Unity.ItemApi`2.Data
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.Data
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).Data
+  nameWithType: ItemApi<TItem, TData>.Data
+  nameWithType.vb: ItemApi(Of TItem, TData).Data
+- uid: VisualPinball.Unity.ItemApi`2.Data*
+  name: Data
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_Data_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.Data
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.Data
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).Data
+  nameWithType: ItemApi<TItem, TData>.Data
+  nameWithType.vb: ItemApi(Of TItem, TData).Data
+- uid: VisualPinball.Unity.ItemApi`2.FireHitEvents
+  name: FireHitEvents
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_FireHitEvents
+  commentId: P:VisualPinball.Unity.ItemApi`2.FireHitEvents
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.FireHitEvents
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).FireHitEvents
+  nameWithType: ItemApi<TItem, TData>.FireHitEvents
+  nameWithType.vb: ItemApi(Of TItem, TData).FireHitEvents
+- uid: VisualPinball.Unity.ItemApi`2.FireHitEvents*
+  name: FireHitEvents
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_FireHitEvents_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.FireHitEvents
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.FireHitEvents
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).FireHitEvents
+  nameWithType: ItemApi<TItem, TData>.FireHitEvents
+  nameWithType.vb: ItemApi(Of TItem, TData).FireHitEvents
+- uid: VisualPinball.Unity.ItemApi`2.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  name: GetPhysicsMaterial(Table)
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_GetPhysicsMaterial_VisualPinball_Engine_VPT_Table_Table_
+  commentId: M:VisualPinball.Unity.ItemApi`2.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).GetPhysicsMaterial(VisualPinball.Engine.VPT.Table.Table)
+  nameWithType: ItemApi<TItem, TData>.GetPhysicsMaterial(Table)
+  nameWithType.vb: ItemApi(Of TItem, TData).GetPhysicsMaterial(Table)
+- uid: VisualPinball.Unity.ItemApi`2.GetPhysicsMaterial*
+  name: GetPhysicsMaterial
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_GetPhysicsMaterial_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.GetPhysicsMaterial
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.GetPhysicsMaterial
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).GetPhysicsMaterial
+  nameWithType: ItemApi<TItem, TData>.GetPhysicsMaterial
+  nameWithType.vb: ItemApi(Of TItem, TData).GetPhysicsMaterial
+- uid: VisualPinball.Unity.ItemApi`2.HitThreshold
+  name: HitThreshold
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_HitThreshold
+  commentId: P:VisualPinball.Unity.ItemApi`2.HitThreshold
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.HitThreshold
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).HitThreshold
+  nameWithType: ItemApi<TItem, TData>.HitThreshold
+  nameWithType.vb: ItemApi(Of TItem, TData).HitThreshold
+- uid: VisualPinball.Unity.ItemApi`2.HitThreshold*
+  name: HitThreshold
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_HitThreshold_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.HitThreshold
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.HitThreshold
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).HitThreshold
+  nameWithType: ItemApi<TItem, TData>.HitThreshold
+  nameWithType.vb: ItemApi(Of TItem, TData).HitThreshold
+- uid: VisualPinball.Unity.ItemApi`2.IsColliderEnabled
+  name: IsColliderEnabled
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_IsColliderEnabled
+  commentId: P:VisualPinball.Unity.ItemApi`2.IsColliderEnabled
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.IsColliderEnabled
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).IsColliderEnabled
+  nameWithType: ItemApi<TItem, TData>.IsColliderEnabled
+  nameWithType.vb: ItemApi(Of TItem, TData).IsColliderEnabled
+- uid: VisualPinball.Unity.ItemApi`2.IsColliderEnabled*
+  name: IsColliderEnabled
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_IsColliderEnabled_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.IsColliderEnabled
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.IsColliderEnabled
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).IsColliderEnabled
+  nameWithType: ItemApi<TItem, TData>.IsColliderEnabled
+  nameWithType.vb: ItemApi(Of TItem, TData).IsColliderEnabled
+- uid: VisualPinball.Unity.ItemApi`2.Name
+  name: Name
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_Name
+  commentId: P:VisualPinball.Unity.ItemApi`2.Name
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.Name
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).Name
+  nameWithType: ItemApi<TItem, TData>.Name
+  nameWithType.vb: ItemApi(Of TItem, TData).Name
+- uid: VisualPinball.Unity.ItemApi`2.Name*
+  name: Name
+  href: api/VisualPinball.Unity.ItemApi-2.html#VisualPinball_Unity_ItemApi_2_Name_
+  commentId: Overload:VisualPinball.Unity.ItemApi`2.Name
+  isSpec: "True"
+  fullName: VisualPinball.Unity.ItemApi<TItem, TData>.Name
+  fullName.vb: VisualPinball.Unity.ItemApi(Of TItem, TData).Name
+  nameWithType: ItemApi<TItem, TData>.Name
+  nameWithType.vb: ItemApi(Of TItem, TData).Name
+- uid: VisualPinball.Unity.TroughApi
+  name: TroughApi
+  href: api/VisualPinball.Unity.TroughApi.html
+  commentId: T:VisualPinball.Unity.TroughApi
+  fullName: VisualPinball.Unity.TroughApi
+  nameWithType: TroughApi
+- uid: VisualPinball.Unity.TroughApi.EjectBall
+  name: EjectBall()
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_EjectBall
+  commentId: M:VisualPinball.Unity.TroughApi.EjectBall
+  fullName: VisualPinball.Unity.TroughApi.EjectBall()
+  nameWithType: TroughApi.EjectBall()
+- uid: VisualPinball.Unity.TroughApi.EjectBall*
+  name: EjectBall
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_EjectBall_
+  commentId: Overload:VisualPinball.Unity.TroughApi.EjectBall
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.EjectBall
+  nameWithType: TroughApi.EjectBall
+- uid: VisualPinball.Unity.TroughApi.EntryCoil
+  name: EntryCoil
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_EntryCoil
+  commentId: F:VisualPinball.Unity.TroughApi.EntryCoil
+  fullName: VisualPinball.Unity.TroughApi.EntryCoil
+  nameWithType: TroughApi.EntryCoil
+- uid: VisualPinball.Unity.TroughApi.EntrySwitch
+  name: EntrySwitch
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_EntrySwitch
+  commentId: P:VisualPinball.Unity.TroughApi.EntrySwitch
+  fullName: VisualPinball.Unity.TroughApi.EntrySwitch
+  nameWithType: TroughApi.EntrySwitch
+- uid: VisualPinball.Unity.TroughApi.EntrySwitch*
+  name: EntrySwitch
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_EntrySwitch_
+  commentId: Overload:VisualPinball.Unity.TroughApi.EntrySwitch
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.EntrySwitch
+  nameWithType: TroughApi.EntrySwitch
+- uid: VisualPinball.Unity.TroughApi.ExitCoil
+  name: ExitCoil
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_ExitCoil
+  commentId: F:VisualPinball.Unity.TroughApi.ExitCoil
+  fullName: VisualPinball.Unity.TroughApi.ExitCoil
+  nameWithType: TroughApi.ExitCoil
+- uid: VisualPinball.Unity.TroughApi.Init
+  name: Init
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_Init
+  commentId: E:VisualPinball.Unity.TroughApi.Init
+  fullName: VisualPinball.Unity.TroughApi.Init
+  nameWithType: TroughApi.Init
+- uid: VisualPinball.Unity.TroughApi.JamSwitch
+  name: JamSwitch
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_JamSwitch
+  commentId: F:VisualPinball.Unity.TroughApi.JamSwitch
+  fullName: VisualPinball.Unity.TroughApi.JamSwitch
+  nameWithType: TroughApi.JamSwitch
+- uid: VisualPinball.Unity.TroughApi.NumStackSwitches
+  name: NumStackSwitches
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_NumStackSwitches
+  commentId: P:VisualPinball.Unity.TroughApi.NumStackSwitches
+  fullName: VisualPinball.Unity.TroughApi.NumStackSwitches
+  nameWithType: TroughApi.NumStackSwitches
+- uid: VisualPinball.Unity.TroughApi.NumStackSwitches*
+  name: NumStackSwitches
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_NumStackSwitches_
+  commentId: Overload:VisualPinball.Unity.TroughApi.NumStackSwitches
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.NumStackSwitches
+  nameWithType: TroughApi.NumStackSwitches
+- uid: VisualPinball.Unity.TroughApi.StackSwitch
+  name: StackSwitch()
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_StackSwitch
+  commentId: M:VisualPinball.Unity.TroughApi.StackSwitch
+  fullName: VisualPinball.Unity.TroughApi.StackSwitch()
+  nameWithType: TroughApi.StackSwitch()
+- uid: VisualPinball.Unity.TroughApi.StackSwitch(System.Int32)
+  name: StackSwitch(Int32)
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_StackSwitch_System_Int32_
+  commentId: M:VisualPinball.Unity.TroughApi.StackSwitch(System.Int32)
+  fullName: VisualPinball.Unity.TroughApi.StackSwitch(System.Int32)
+  nameWithType: TroughApi.StackSwitch(Int32)
+- uid: VisualPinball.Unity.TroughApi.StackSwitch*
+  name: StackSwitch
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_StackSwitch_
+  commentId: Overload:VisualPinball.Unity.TroughApi.StackSwitch
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.StackSwitch
+  nameWithType: TroughApi.StackSwitch
+- uid: VisualPinball.Unity.TroughApi.UncountedDrainBalls
+  name: UncountedDrainBalls
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_UncountedDrainBalls
+  commentId: P:VisualPinball.Unity.TroughApi.UncountedDrainBalls
+  fullName: VisualPinball.Unity.TroughApi.UncountedDrainBalls
+  nameWithType: TroughApi.UncountedDrainBalls
+- uid: VisualPinball.Unity.TroughApi.UncountedDrainBalls*
+  name: UncountedDrainBalls
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_UncountedDrainBalls_
+  commentId: Overload:VisualPinball.Unity.TroughApi.UncountedDrainBalls
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.UncountedDrainBalls
+  nameWithType: TroughApi.UncountedDrainBalls
+- uid: VisualPinball.Unity.TroughApi.UncountedStackBalls
+  name: UncountedStackBalls
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_UncountedStackBalls
+  commentId: P:VisualPinball.Unity.TroughApi.UncountedStackBalls
+  fullName: VisualPinball.Unity.TroughApi.UncountedStackBalls
+  nameWithType: TroughApi.UncountedStackBalls
+- uid: VisualPinball.Unity.TroughApi.UncountedStackBalls*
+  name: UncountedStackBalls
+  href: api/VisualPinball.Unity.TroughApi.html#VisualPinball_Unity_TroughApi_UncountedStackBalls_
+  commentId: Overload:VisualPinball.Unity.TroughApi.UncountedStackBalls
+  isSpec: "True"
+  fullName: VisualPinball.Unity.TroughApi.UncountedStackBalls
+  nameWithType: TroughApi.UncountedStackBalls
+- uid: vpe-overview
+  name: Overview
+  href: creators-guide/introduction/overview.html
