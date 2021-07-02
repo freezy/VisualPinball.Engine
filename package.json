@@ -1,6 +1,6 @@
 {
   "name": "org.visualpinball.engine.unity",
-  "version": "0.0.1-preview.52",
+  "version": "0.0.1-preview.53",
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
   "unity": "2020.2",
