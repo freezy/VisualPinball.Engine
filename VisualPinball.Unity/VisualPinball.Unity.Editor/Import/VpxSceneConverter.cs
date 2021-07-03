@@ -106,6 +106,18 @@ namespace VisualPinball.Unity.Editor
 			}
 			_playfieldGo = tablePlayfieldAuthoring.gameObject;
 			_tableAuthoring = tableAuthoring;
+			_tableContainer = _tableAuthoring.TableContainer;
+
+			// get materials in scene
+			var guids = AssetDatabase.FindAssets("t:Material");
+			foreach (var guid in guids) {
+				var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				var material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+				if (material != null) {
+					_materials[material.name] = material;
+				}
+			}
+
 		}
 
 		public GameObject Convert(bool applyPatch = true, string tableName = null)
