@@ -118,6 +118,15 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			// get group parents in scene
+			for (var i = 0; i < _playfieldGo.transform.childCount; i++) {
+				var child = _playfieldGo.transform.GetChild(i);
+				var childGo = child.gameObject;
+				_groupParents[childGo.name] = childGo;
+			}
+
+			CreateFileHierarchy();
+
 		}
 
 		public GameObject Convert(bool applyPatch = true, string tableName = null)
@@ -517,7 +526,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void CreateRootHierarchy(string tableName)
+		private void CreateRootHierarchy(string tableName = null)
 		{
 			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
 			if (string.IsNullOrEmpty(tableName)) {
