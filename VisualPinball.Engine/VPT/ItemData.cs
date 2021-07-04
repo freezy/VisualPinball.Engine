@@ -30,6 +30,8 @@ namespace VisualPinball.Engine.VPT
 	[Serializable]
 	public abstract class ItemData : BiffData
 	{
+		public virtual bool IsVpCompatible => true;
+
 		[BiffBool("LOCK", Pos = 1000)]
 		public bool IsLocked;
 

@@ -115,7 +115,13 @@ namespace VisualPinball.Engine.VPT.Table
 
 				#endif
 
-				writeable.WriteData(_gameStorage);
+				#if !WRITE_VP106 && !WRITE_VP107
+					writeable.WriteData(_gameStorage);
+				#else
+					if (writeable.IsVpCompatible) {
+						writeable.WriteData(_gameStorage);
+					}
+				#endif
 			}
 
 			// 3. Collections
