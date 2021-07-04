@@ -115,9 +115,10 @@ namespace VisualPinball.Unity
 			}
 
 			// count stuff and update table data counters
+
 			Table.Data.NumCollections = Collections.Count;
 			Table.Data.NumFonts = 0;                     // todo handle fonts?
-			Table.Data.NumGameItems = ItemDatas.Count(); // todo set storage indices
+			Table.Data.NumGameItems = RecomputeGameItemStorageIDs();
 
 			// todo both!
 			Table.Data.NumSounds = 0;
@@ -141,6 +142,18 @@ namespace VisualPinball.Unity
 			}
 			#endif
 			Table.Data.NumMaterials = _materials.Count;
+		}
+
+		private int RecomputeGameItemStorageIDs()
+		{
+			var itemDatas = ItemDatas.ToArray();
+			var unassignedItems = new List<ItemData>();
+
+			foreach (var itemData in itemDatas) {
+
+			}
+
+			return itemDatas.Length;
 		}
 
 		private void FillBinaryData()
