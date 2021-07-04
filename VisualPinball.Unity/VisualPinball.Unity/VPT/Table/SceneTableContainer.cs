@@ -147,13 +147,19 @@ namespace VisualPinball.Unity
 		private int RecomputeGameItemStorageIDs()
 		{
 			var itemDatas = ItemDatas.ToArray();
-			var unassignedItems = new List<ItemData>();
+			var assignedItems = from d in itemDatas where d.StorageIndex > -1 orderby d.StorageIndex select d;
+			var unassignedItems = from d in itemDatas where d.StorageIndex == -1 select d;
+			var orderedItems = assignedItems.Concat(unassignedItems).ToArray();
 
-			foreach (var itemData in itemDatas) {
-
+			if (orderedItems.Length != itemDatas.Length) {
+				throw new Exception($"Internal error, orderedItems.Length = {orderedItems.Length}, while itemDatas.Length = {itemDatas.Length}.");
 			}
 
-			return itemDatas.Length;
+			for (var i = 0; i < orderedItems.Length; i++) {
+				orderedItems[i].StorageIndex = i;
+			}
+
+			return orderedItems.Length;
 		}
 
 		private void FillBinaryData()
