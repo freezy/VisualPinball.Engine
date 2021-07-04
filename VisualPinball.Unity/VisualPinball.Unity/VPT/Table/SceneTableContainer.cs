@@ -146,7 +146,11 @@ namespace VisualPinball.Unity
 
 		private int RecomputeGameItemStorageIDs()
 		{
-			var itemDatas = ItemDatas.ToArray();
+			#if !WRITE_VP106 && !WRITE_VP107
+				var itemDatas = ItemDatas.ToArray();
+			#else
+				var itemDatas = ItemDatas.Where(d => d.IsVpCompatible).ToArray();
+			#endif
 			var assignedItems = from d in itemDatas where d.StorageIndex > -1 orderby d.StorageIndex select d;
 			var unassignedItems = from d in itemDatas where d.StorageIndex == -1 select d;
 			var orderedItems = assignedItems.Concat(unassignedItems).ToArray();
