@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NLog;
 using VisualPinball.Engine.VPT.Collection;
 
@@ -45,6 +46,47 @@ namespace VisualPinball.Engine.VPT.Table
 		public void SetMappings(Mappings.Mappings mappings)
 		{
 			_mappings = mappings;
+		}
+		
+		/// <summary>
+		/// Adds a game item to the table.
+		/// </summary>
+		/// <param name="item">Game item instance</param>
+		/// <param name="updateStorageIndices">If set, re-computes the storage indices. Only needed when adding game items via the editor.</param>
+		/// <typeparam name="T">Game item type</typeparam>
+		/// <exception cref="ArgumentException">Whe type of game item is unknown</exception>
+		public void Add<T>(T item, bool updateStorageIndices = false) where T : IItem
+		{
+			var dict = GetItemDictionary<T>();
+			if (dict != null) {
+				AddItem(item.Name, item, dict, updateStorageIndices);
+
+			} else {
+				var list = GetItemList<T>();
+				if (list != null) {
+					AddItem(item, list, updateStorageIndices);
+
+				} else {
+					throw new ArgumentException("Unknown item type " + typeof(T) + ".");
+				}
+			}
+		}
+
+		private void AddItem<TItem>(string name, TItem item, IDictionary<string, TItem> d, bool updateStorageIndices) where TItem : IItem
+		{
+			if (updateStorageIndices) {
+				item.StorageIndex = ItemDatas.Count();
+				Table.Data.NumGameItems = item.StorageIndex + 1;
+			}
+			d[name] = item;
+		}
+
+		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
+		{
+			if (updateStorageIndices) {
+				item.StorageIndex = ItemDatas.Count();
+			}
+			d.Add(item);
 		}
 
 		/// <summary>

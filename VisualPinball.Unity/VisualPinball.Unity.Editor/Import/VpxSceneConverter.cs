@@ -478,8 +478,9 @@ namespace VisualPinball.Unity.Editor
 			if (_tableContainer.Has<Kicker>("Drain")) {
 				troughData.PlayfieldEntrySwitch = "Drain";
 			}
-			var item = new Trough(troughData);
-			_tableContainer.Add(item, true);
+			var item = new Trough(troughData) {
+				StorageIndex = _tableContainer.ItemDatas.Count()
+			};
 			CreateGameObjects(item);
 		}
 
