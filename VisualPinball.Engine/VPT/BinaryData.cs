@@ -63,6 +63,11 @@ namespace VisualPinball.Engine.VPT
 			Data = res.Data;
 		}
 
+		public BinaryData(byte[] data) : base(string.Empty)
+		{
+			Data = data;
+		}
+
 		public void FreeBinaryData()
 		{
 			Data = new byte[0];

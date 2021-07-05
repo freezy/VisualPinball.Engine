@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 
-		public override IEnumerable<Texture> Textures => RetrieveTextures();
+		public override IEnumerable<Texture> Textures => _tableAuthoring.LegacyContainer.textures.Select(texture => texture.ToTexture());
 		public override IEnumerable<Sound> Sounds => RetrieveSounds();
 
 		public const int ChildObjectsLayer = 16;
@@ -192,14 +192,9 @@ namespace VisualPinball.Unity
 			comp?.FreeBinaryData();
 		}
 
-		private IEnumerable<Texture> RetrieveTextures()
-		{
-			throw new NotImplementedException();
-		}
-
 		private IEnumerable<Sound> RetrieveSounds()
 		{
-			throw new NotImplementedException();
+			return new Sound[0];
 		}
 
 		protected override void Clear()
