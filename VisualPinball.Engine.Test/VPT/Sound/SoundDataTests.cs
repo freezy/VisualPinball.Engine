@@ -29,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Sound
 		public void ShouldReadSoundData()
 		{
 			var th = FileTableContainer.Load(VpxPath.Sound);
-			ValidateSoundData(th.Sounds["fx_bumper3"].Data);
+			ValidateSoundData(th.GetSound("fx_bumper3").Data);
 		}
 
 		[Test]
@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Sound
 			var table = FileTableContainer.Load(VpxPath.Sound);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
-			ValidateSoundData(writtenTable.Sounds["fx_bumper3"].Data);
+			ValidateSoundData(writtenTable.GetSound("fx_bumper3").Data);
 		}
 
 		private static void ValidateSoundData(SoundData data)

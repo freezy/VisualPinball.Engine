@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeAnOpaqueTexture()
 		{
-			var texture = _tc.Textures["test_pattern_png"];
+			var texture = _tc.GetTexture("test_pattern_png");
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeAnotherOpaqueTexture()
 		{
-			var texture = _tc.Textures["test_pattern_argb"];
+			var texture = _tc.GetTexture("test_pattern_argb");
 			var stats = texture.GetStats();
 
 			stats.Opaque.Should().Be(1f);
@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldAnalyzeATransparentTexture()
 		{
-			var texture = _tc.Textures["test_pattern_transparent"];
+			var texture = _tc.GetTexture("test_pattern_transparent");
 			texture.Analyze();
 			var stats = texture.GetStats();
 
