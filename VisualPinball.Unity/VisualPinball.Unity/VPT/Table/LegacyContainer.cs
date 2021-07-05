@@ -15,13 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using UnityEngine;
+using System.Collections.Generic;
+using System.IO;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
+using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity
 {
@@ -32,11 +35,47 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyContainer
 	{
-		[HideInInspector] public DecalData[] decals;
-		[HideInInspector] public DispReelData[] dispReels;
-		[HideInInspector] public FlasherData[] flashers;
-		[HideInInspector] public LightSeqData[] lightSeqs;
-		[HideInInspector] public TextBoxData[] textBoxes;
-		[HideInInspector] public TimerData[] timers;
+		public DecalData[] decals;
+		public DispReelData[] dispReels;
+		public FlasherData[] flashers;
+		public LightSeqData[] lightSeqs;
+		public TextBoxData[] textBoxes;
+		public TimerData[] timers;
+		public List<LegacyTexture> textures = new List<LegacyTexture>();
+	}
+
+	[Serializable]
+	public class LegacyTexture
+	{
+		public string InternalName;
+		public string Path;
+		public float AlphaTestValue;
+		public Texture Texture;
+
+		public LegacyTexture(TextureData data, Texture texture)
+		{
+			InternalName = data.InternalName;
+			Path = data.Path;
+			AlphaTestValue = data.AlphaTestValue;
+			Texture = texture;
+		}
+
+		public Engine.VPT.Texture ToTexture()
+		{
+			var data = new TextureData(Texture.name) {
+				InternalName = InternalName,
+				Path = Path,
+				AlphaTestValue = AlphaTestValue
+			};
+
+			#if UNITY_EDITOR
+			var path = UnityEditor.AssetDatabase.GetAssetPath(Texture);
+			if (!string.IsNullOrEmpty(path)) {
+				data.Binary = new BinaryData(File.ReadAllBytes(path));
+			}
+			#endif
+
+			return new Engine.VPT.Texture(data);
+		}
 	}
 }
