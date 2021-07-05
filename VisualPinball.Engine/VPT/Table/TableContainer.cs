@@ -47,8 +47,8 @@ namespace VisualPinball.Engine.VPT.Table
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
 
-		public ITableResourceContainer<Texture> Textures { get; protected set; } = new DefaultTableResourceContainer<Texture>();
-		public ITableResourceContainer<Sound.Sound> Sounds { get; protected set; } = new DefaultTableResourceContainer<Sound.Sound>();
+		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
+		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
 
 		public bool HasTrough => _troughs.Count > 0;
 		public int NumTextures => Table.Data.NumTextures;
