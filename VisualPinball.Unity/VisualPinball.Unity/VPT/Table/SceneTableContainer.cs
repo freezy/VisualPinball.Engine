@@ -119,7 +119,6 @@ namespace VisualPinball.Unity
 			}
 
 			// count stuff and update table data counters
-
 			Table.Data.NumCollections = Collections.Count;
 			Table.Data.NumFonts = 0;                     // todo handle fonts?
 			Table.Data.NumGameItems = RecomputeGameItemStorageIDs();

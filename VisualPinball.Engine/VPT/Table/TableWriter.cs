@@ -44,6 +44,14 @@ namespace VisualPinball.Engine.VPT.Table
 				_cf = new CompoundFile();
 				_gameStorage = _cf.RootStorage.AddStorage("GameStg");
 
+				// compute data we need at more than one place
+				var textures = _tableContainer.Textures.ToArray();
+				var sounds = _tableContainer.Sounds.ToArray();
+
+				// update
+				_tableContainer.Table.Data.NumTextures = textures.Length;
+				_tableContainer.Table.Data.NumSounds = sounds.Length;
+
 				// 1. version
 				WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
 
@@ -54,8 +62,8 @@ namespace VisualPinball.Engine.VPT.Table
 				WriteGameItems(hashWriter);
 
 				// 4. the rest, which isn't hashed.
-				WriteImages();
-				WriteSounds();
+				WriteImages(textures);
+				WriteSounds(sounds);
 
 				// finally write hash
 				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
@@ -105,7 +113,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_tableContainer.Table.Data.WriteData(_gameStorage, hashWriter);
 
 			// 2. game items
-			foreach (var writeable in _tableContainer.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
+			foreach (var gameItem in _tableContainer.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
 
 				#if !WRITE_VP106
 
@@ -118,8 +126,8 @@ namespace VisualPinball.Engine.VPT.Table
 				#if !WRITE_VP106 && !WRITE_VP107
 					writeable.WriteData(_gameStorage);
 				#else
-					if (writeable.IsVpCompatible) {
-						writeable.WriteData(_gameStorage);
+					if (gameItem.IsVpCompatible) {
+						gameItem.WriteData(_gameStorage);
 					}
 				#endif
 			}
@@ -136,7 +144,7 @@ namespace VisualPinball.Engine.VPT.Table
 			#endif
 		}
 
-		private void WriteImages()
+		private void WriteImages(Texture[] textures)
 		{
 			int i = 0;
 			foreach (var texture in _tableContainer.Textures) {
@@ -145,7 +153,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private void WriteSounds()
+		private void WriteSounds(Sound.Sound[] sounds)
 		{
 			int i = 0;
 			foreach (var sound in _tableContainer.Sounds) {

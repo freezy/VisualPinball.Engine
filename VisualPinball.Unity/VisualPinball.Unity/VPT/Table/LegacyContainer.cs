@@ -65,13 +65,20 @@ namespace VisualPinball.Unity
 			var data = new TextureData(Texture.name) {
 				InternalName = InternalName,
 				Path = Path,
-				AlphaTestValue = AlphaTestValue
+				AlphaTestValue = AlphaTestValue,
+				Width = Texture.width,
+				Height = Texture.height
 			};
 
 			#if UNITY_EDITOR
 			var path = UnityEditor.AssetDatabase.GetAssetPath(Texture);
 			if (!string.IsNullOrEmpty(path)) {
-				data.Binary = new BinaryData(File.ReadAllBytes(path));
+				var bytes = File.ReadAllBytes(path);
+				data.Binary = new BinaryData(Texture.name, bytes) {
+					InternalName = InternalName,
+					Path = Path,
+					Size = bytes.Length,
+				};
 			}
 			#endif
 

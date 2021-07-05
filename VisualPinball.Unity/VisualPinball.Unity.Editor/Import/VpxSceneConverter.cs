@@ -138,6 +138,7 @@ namespace VisualPinball.Unity.Editor
 			ExtractPhysicsMaterials();
 			ExtractTextures();
 			FreeTextures();
+
 			//ExtractSounds();
 
 			try {
