@@ -138,11 +138,6 @@ namespace VisualPinball.Engine.VPT.Table
 			return null;
 		}
 
-		public void SetTextureContainer(ITableResourceContainer<Texture> container)
-		{
-			Textures = container;
-		}
-
 		public override Texture GetTexture(string name)
 		{
 			var tex = name == null
@@ -150,13 +145,6 @@ namespace VisualPinball.Engine.VPT.Table
 				: Textures[name.ToLower()];
 			return tex;
 		}
-
-		public void SetSoundContainer(ITableResourceContainer<Sound.Sound> container)
-		{
-			Sounds = container;
-		}
-
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 	}
 }
 

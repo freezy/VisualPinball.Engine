@@ -31,6 +31,17 @@ namespace VisualPinball.Engine.VPT.Table
 		public abstract Mappings.Mappings Mappings { get; }
 		public abstract CustomInfoTags CustomInfoTags { get; }
 		public abstract Material GetMaterial(string name);
+
+		/// <summary>
+		/// Returns a texture for a given name.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This is mainly used by the mesh generators that create a material.
+		/// </remarks>
+		///
+		/// <param name="name">Name of the texture, case insensitive.</param>
+		/// <returns>Texture or <c>null</c>.</returns>
 		public abstract Texture GetTexture(string name);
 
 		public int FileVersion { get; set; }
