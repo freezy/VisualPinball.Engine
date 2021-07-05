@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		#region Table Data
 
 		[SerializeField] public MappingsData Mappings;
-		[SerializeField] public Dictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
+		[SerializeField] public SerializableDictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
 		[SerializeField] public LegacyContainer LegacyContainer = new LegacyContainer();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
@@ -81,20 +81,20 @@ namespace VisualPinball.Unity
 			_tableContainer ??= new SceneTableContainer(this);
 		}
 
-		//Private runtime values needed for camera adjustments.  
+		//Private runtime values needed for camera adjustments.
 		[HideInInspector] [SerializeField] public  Bounds _tableBounds;
 		[HideInInspector] [SerializeField] public  Vector3 _tableCenter;
 
 		public void Awake()
 		{
-			//Store table information 
+			//Store table information
 			_tableBounds = GetTableBounds();
 			_tableCenter = GetTableCenter();
 		}
 
 		protected virtual void Start()
 		{
-		
+
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(this);
 			}
@@ -201,7 +201,7 @@ namespace VisualPinball.Unity
 			var tableBounds = new Bounds();
 
 			var mrs = GetComponentsInChildren<Renderer>();
-			foreach(var mr in mrs) 
+			foreach(var mr in mrs)
 			{
 				tableBounds.Encapsulate(mr.bounds);
 			}
