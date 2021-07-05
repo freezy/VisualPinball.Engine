@@ -54,7 +54,9 @@ namespace VisualPinball.Unity.Editor
 {
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
 	{
-		private readonly TableContainer _tableContainer;
+		private readonly FileTableContainer _tableContainer;
+		private readonly Table _table;
+
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
 
@@ -82,15 +84,12 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="tableContainer">Source table container</param>
 		/// <param name="fileName">File name of the file being imported</param>
-		public VpxSceneConverter(TableContainer tableContainer, string fileName = "")
+		public VpxSceneConverter(FileTableContainer tableContainer, string fileName = "")
 		{
 			_tableContainer = tableContainer;
-			if (tableContainer is FileTableContainer fileTableContainer) {
-				_patcher = PatcherManager.GetPatcher();
-				_patcher?.Set(fileTableContainer, fileName);
-			} else {
-				_patcher = null;
-			}
+			_table = tableContainer.Table;
+			_patcher = PatcherManager.GetPatcher();
+			_patcher?.Set(tableContainer, fileName);
 		}
 
 		/// <summary>
@@ -106,7 +105,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_playfieldGo = tablePlayfieldAuthoring.gameObject;
 			_tableAuthoring = tableAuthoring;
-			_tableContainer = _tableAuthoring.TableContainer;
+			_table = tableAuthoring.Table;
 
 			// get materials in scene
 			var guids = AssetDatabase.FindAssets("t:Material");
@@ -282,7 +281,7 @@ namespace VisualPinball.Unity.Editor
 
 			// apply transformation
 			if (item is IRenderable renderable) {
-				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_tableContainer.Table, Origin.Original).ToUnityMatrix());
+				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 
 			CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
@@ -347,7 +346,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var material in _tableContainer.Table.Data.Materials) {
+				foreach (var material in _table.Data.Materials) {
 
 					// skip material if physics aren't set.
 					if (material.Elasticity == 0 && material.ElasticityFalloff == 0 && material.ScatterAngle == 0 && material.Friction == 0) {
@@ -362,7 +361,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
-			foreach (var material in _tableContainer.Table.Data.Materials) {
+			foreach (var material in _table.Data.Materials) {
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
 		}
@@ -491,7 +490,7 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory("Assets/Tables/");
 			}
 
-			var assetsTableRoot = $"Assets/Tables/{_tableContainer.Table.Name}/";
+			var assetsTableRoot = $"Assets/Tables/{_table.Name}/";
 			if (!Directory.Exists(assetsTableRoot)) {
 				Directory.CreateDirectory(assetsTableRoot);
 			}
@@ -531,11 +530,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
 			if (string.IsNullOrEmpty(tableName)) {
-				tableName = _tableContainer.Table.Name;
+				tableName = _table.Name;
 
 			} else {
 				tableName = tableName
-					.Replace("%TABLENAME%", _tableContainer.Table.Name)
+					.Replace("%TABLENAME%", _table.Name)
 					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
@@ -545,7 +544,7 @@ namespace VisualPinball.Unity.Editor
 			var cabinetGo = new GameObject("Cabinet");
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetItem(_tableContainer.Table);
+			_tableAuthoring.SetItem(_table);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);
@@ -553,7 +552,7 @@ namespace VisualPinball.Unity.Editor
 
 			_playfieldGo.AddComponent<TablePlayfieldAuthoring>();
 			_playfieldGo.transform.localRotation = TablePlayfieldAuthoring.GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_tableContainer.Table.Width / 2 * TablePlayfieldAuthoring.GlobalScale, 0f, _tableContainer.Table.Height / 2 * TablePlayfieldAuthoring.GlobalScale);
+			_playfieldGo.transform.localPosition = new Vector3(-_table.Width / 2 * TablePlayfieldAuthoring.GlobalScale, 0f, _table.Height / 2 * TablePlayfieldAuthoring.GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale);
 		}
 
