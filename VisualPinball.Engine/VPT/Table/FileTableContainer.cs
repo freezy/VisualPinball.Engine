@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			_mappings = mappings;
 		}
-		
+
 		/// <summary>
 		/// Adds a game item to the table.
 		/// </summary>
@@ -140,7 +140,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override Texture GetTexture(string name)
 		{
-			var tex = name == null
+			var tex = name == null || !Textures.ContainsKey(name.ToLower())
 				? null
 				: Textures[name.ToLower()];
 			return tex;
