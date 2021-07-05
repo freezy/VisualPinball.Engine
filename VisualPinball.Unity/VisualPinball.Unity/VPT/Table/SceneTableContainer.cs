@@ -28,6 +28,7 @@ using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
+using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
@@ -43,6 +44,9 @@ namespace VisualPinball.Unity
 		public override List<CollectionData> Collections => _tableAuthoring.Collections;
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
+
+		public override IEnumerable<Texture> Textures => RetrieveTextures();
+		public override IEnumerable<Sound> Sounds => RetrieveSounds();
 
 		public const int ChildObjectsLayer = 16;
 
@@ -186,6 +190,16 @@ namespace VisualPinball.Unity
 		{
 			var comp = transform.GetComponent<IItemMainAuthoring>();
 			comp?.FreeBinaryData();
+		}
+
+		private IEnumerable<Texture> RetrieveTextures()
+		{
+			throw new NotImplementedException();
+		}
+
+		private IEnumerable<Sound> RetrieveSounds()
+		{
+			throw new NotImplementedException();
 		}
 
 		protected override void Clear()

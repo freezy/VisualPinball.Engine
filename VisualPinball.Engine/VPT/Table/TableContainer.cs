@@ -30,6 +30,9 @@ namespace VisualPinball.Engine.VPT.Table
 		public abstract List<CollectionData> Collections { get; }
 		public abstract Mappings.Mappings Mappings { get; }
 		public abstract CustomInfoTags CustomInfoTags { get; }
+		public abstract IEnumerable<Texture> Textures { get; }
+		public abstract IEnumerable<Sound.Sound> Sounds { get; }
+		
 		public abstract Material GetMaterial(string name);
 
 		/// <summary>
@@ -46,9 +49,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public int FileVersion { get; set; }
 		public byte[] FileHash { get; set; }
-
-		public readonly Dictionary<string, Texture> Textures = new Dictionary<string, Texture>();
-		public readonly Dictionary<string, Sound.Sound> Sounds = new Dictionary<string, Sound.Sound>();
 
 		public bool HasTrough => _troughs.Count > 0;
 		public int NumTextures => Table.Data.NumTextures;

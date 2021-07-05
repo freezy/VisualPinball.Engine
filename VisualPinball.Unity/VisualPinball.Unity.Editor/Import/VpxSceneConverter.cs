@@ -385,7 +385,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var texture in _tableContainer.Textures.Values) {
+				foreach (var texture in _tableContainer.Textures) {
 					texture.WriteAsAsset(_assetsTextures);
 				}
 
@@ -397,7 +397,7 @@ namespace VisualPinball.Unity.Editor
 
 			// todo lazy load and don't import local textures once they are in the prefabs
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _tableContainer.Textures.Values.Concat(Engine.VPT.Texture.LocalTextures)) {
+			foreach (var texture in _tableContainer.Textures.Concat(Engine.VPT.Texture.LocalTextures)) {
 				var path = texture.GetUnityFilename(_assetsTextures);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
@@ -408,7 +408,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FreeTextures()
 		{
-			foreach (var texture in _tableContainer.Textures.Values) {
+			foreach (var texture in _tableContainer.Textures) {
 				texture.Data.FreeBinaryData();
 			}
 		}
@@ -419,7 +419,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var sound in _tableContainer.Sounds.Values) {
+				foreach (var sound in _tableContainer.Sounds) {
 					var fileName = Path.GetFileName(sound.Data.Path).ToNormalizedName();
 					var path = $"{_assetsSounds}/{fileName}";
 					File.WriteAllBytes(path, sound.Data.GetWavData());

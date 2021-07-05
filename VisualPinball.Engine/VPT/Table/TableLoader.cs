@@ -267,7 +267,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
-					tableContainer.Textures[texture.Name.ToLower()] = texture;
+					tableContainer.AddTexture(texture);
 				}
 			}
 		}
@@ -314,7 +314,7 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
 					var sound = new Sound.Sound(reader, soundName, fileVersion);
-					tableContainer.Sounds[sound.Name.ToLower()] = sound;
+					tableContainer.AddSound(sound);
 				}
 			}
 		}

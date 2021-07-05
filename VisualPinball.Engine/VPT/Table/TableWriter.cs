@@ -139,7 +139,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void WriteImages()
 		{
 			int i = 0;
-			foreach (var texture in _tableContainer.Textures.Values) {
+			foreach (var texture in _tableContainer.Textures) {
 				texture.Data.StorageIndex = i++;
 				texture.Data.WriteData(_gameStorage);
 			}
@@ -148,7 +148,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void WriteSounds()
 		{
 			int i = 0;
-			foreach (var sound in _tableContainer.Sounds.Values) {
+			foreach (var sound in _tableContainer.Sounds) {
 				sound.Data.StorageIndex = i++;
 				sound.Data.WriteData(_gameStorage);
 			}

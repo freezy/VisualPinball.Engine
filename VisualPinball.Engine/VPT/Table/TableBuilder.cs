@@ -64,9 +64,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public TableBuilder AddTexture(string name)
 		{
-			_tableContainer.Textures[name.ToLower()] = new Texture(name);
-			_tableContainer.Table.Data.NumTextures = _tableContainer.Textures.Count;
-
+			_tableContainer.Table.Data.NumTextures = _tableContainer.AddTexture(new Texture(name));
 			return this;
 		}
 

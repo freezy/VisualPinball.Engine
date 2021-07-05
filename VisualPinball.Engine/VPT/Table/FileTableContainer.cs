@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NLog;
 using VisualPinball.Engine.VPT.Collection;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -30,6 +29,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public override List<CollectionData> Collections { get; } = new List<CollectionData>();
 		public override Mappings.Mappings Mappings => _mappings;
 		public override CustomInfoTags CustomInfoTags { get; } = new CustomInfoTags();
+		public override IEnumerable<Texture> Textures => _textures.Values;
+		public override IEnumerable<Sound.Sound> Sounds => _sounds.Values;
+
+		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
+		private readonly Dictionary<string, Sound.Sound> _sounds = new Dictionary<string, Sound.Sound>();
 
 		private Mappings.Mappings _mappings = new Mappings.Mappings();
 
@@ -140,10 +144,29 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public override Texture GetTexture(string name)
 		{
-			var tex = name == null || !Textures.ContainsKey(name.ToLower())
+			var tex = name == null || !_textures.ContainsKey(name.ToLower())
 				? null
-				: Textures[name.ToLower()];
+				: _textures[name.ToLower()];
 			return tex;
+		}
+
+		public int AddTexture(Texture texture)
+		{
+			_textures[texture.Name.ToLower()] = texture;
+			return _textures.Count;
+		}
+
+		public Sound.Sound GetSound(string name)
+		{
+			var snd = name == null || !_sounds.ContainsKey(name.ToLower())
+				? null
+				: _sounds[name.ToLower()];
+			return snd;
+		}
+
+		public void AddSound(Sound.Sound sound)
+		{
+			_sounds[sound.Name.ToLower()] = sound;
 		}
 	}
 }
