@@ -118,13 +118,13 @@ namespace VisualPinball.Engine.VPT.Table
 				#if !WRITE_VP106
 
 				// clean material and texture references
-				CleanInvalidReferences<MaterialReferenceAttribute, Material>(writeable, v => _tableContainer.GetMaterial(v));
-				CleanInvalidReferences<TextureReferenceAttribute, Texture>(writeable, v => _tableContainer.GetTexture(v));
+				CleanInvalidReferences<MaterialReferenceAttribute, Material>(gameItem, v => _tableContainer.GetMaterial(v));
+				CleanInvalidReferences<TextureReferenceAttribute, Texture>(gameItem, v => _tableContainer.GetTexture(v));
 
 				#endif
 
 				#if !WRITE_VP106 && !WRITE_VP107
-					writeable.WriteData(_gameStorage);
+				gameItem.WriteData(_gameStorage);
 				#else
 					if (gameItem.IsVpCompatible) {
 						gameItem.WriteData(_gameStorage);
