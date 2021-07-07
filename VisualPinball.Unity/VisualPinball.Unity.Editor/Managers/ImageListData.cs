@@ -14,27 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
+
 namespace VisualPinball.Unity.Editor
 {
 	public class ImageListData : IManagerListData
 	{
 		[ManagerListColumn(Order = 0, Width = 200)]
-		public string Name => TextureData?.Name ?? "";
-		[ManagerListColumn(Order = 1, Width = 200)]
-		public string Path => TextureData?.Path ?? "";
+		public string Name => LegacyTexture.Name;
+
+		[ManagerListColumn(Order = 1, Width = 300)]
+		public string Path => LegacyTexture.IsSet ? UnityEditor.AssetDatabase.GetAssetPath(LegacyTexture.Texture) : string.Empty;
+
 		[ManagerListColumn(Order = 2, HeaderName = "Image Size", Width = 100)]
-		public string ImageSize => TextureData == null ? "" : $"{TextureData.Width}x{TextureData.Height}";
+		public string ImageSize => LegacyTexture.IsSet ? $"{LegacyTexture.Texture.width}x{LegacyTexture.Texture.height}" : string.Empty;
+
 		[ManagerListColumn(Order = 3, HeaderName = "In Use", Width = 50)]
 		public bool InUse;
-		[ManagerListColumn(Order = 4, HeaderName = "Raw Size", Width = 100)]
-		public int RawSize { get {
-				if (TextureData == null) { return 0; }
-				if (TextureData.HasBitmap) {
-					return TextureData.Bitmap.Data.Length;
-				}
-				return TextureData.Binary.Bytes?.Length ?? 0;
-			} }
 
-		public Engine.VPT.TextureData TextureData;
+		[ManagerListColumn(Order = 4, HeaderName = "Raw Size", Width = 100)]
+		public long RawSize => LegacyTexture.IsSet ? LegacyTexture.Texture.width * LegacyTexture.Texture.height * 4 : 0;
+
+		public readonly LegacyTexture LegacyTexture;
+
+		public ImageListData(LegacyTexture legacyTexture, bool inUse)
+		{
+			LegacyTexture = legacyTexture;
+			InUse = inUse;
+		}
+
 	}
 }

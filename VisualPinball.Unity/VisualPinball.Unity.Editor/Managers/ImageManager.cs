@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
@@ -33,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 		protected override string DataTypeName => "Image";
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly int NormalMap = Shader.PropertyToID("_NormalMap");
 
 		[MenuItem("Visual Pinball/Image Manager", false, 401)]
 		public static void ShowWindow()
@@ -47,205 +46,91 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected override void OnButtonBarGUI() {
-			if (GUILayout.Button("Update All", GUILayout.ExpandWidth(false))) {
-				UpdateAllImages();
+			if (GUILayout.Button("Add Textures Referenced in Scene", GUILayout.ExpandWidth(false))) {
+				AddReferenced();
 			}
 		}
 
 		protected override void OnDataDetailGUI()
 		{
-			SliderField("Alpha Mask", ref _selectedItem.TextureData.AlphaTestValue, 0, 255);
+			SliderField("Alpha Mask", ref _selectedItem.LegacyTexture.AlphaTestValue, 0, 255);
 
-			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.PrefixLabel("Replace Image");
-			var tex = (Texture2D)EditorGUILayout.ObjectField(null, typeof(Texture2D), false);
-			EditorGUILayout.EndHorizontal();
-			if (EditorGUI.EndChangeCheck() && tex != null) {
-				ReplaceImageFromAsset(_selectedItem.TextureData, tex);
-			}
-			if (GUILayout.Button("Export Image")) {
-				ExportImage();
-			}
-			if (GUILayout.Button("Export Image as PNG")) {
-				ExportImageAsPng();
-			}
+			if (_selectedItem.LegacyTexture.Texture != null) {
 
-			var unityTex = _tableAuthoring.GetTexture(_selectedItem.Name);
-			if (unityTex != null) {
+				if (GUILayout.Button("Locate")) {
+					EditorGUIUtility.PingObject(_selectedItem.LegacyTexture.Texture);
+				}
+
+				const float padding = 4f;
 				var rect = GUILayoutUtility.GetRect(new GUIContent(""), GUIStyle.none);
-				float aspect = (float)unityTex.height / unityTex.width;
-				rect.width = Mathf.Min(unityTex.width, rect.width);
+				var aspect = (float)_selectedItem.LegacyTexture.Texture.height / _selectedItem.LegacyTexture.Texture.width;
+				rect.yMin += padding;
+				rect.xMin += padding;
+				rect.width = Mathf.Min(_selectedItem.LegacyTexture.Texture.width, rect.width) - padding;
 				rect.height = rect.width * aspect;
-				GUI.DrawTexture(rect, unityTex);
+				GUI.DrawTexture(rect, _selectedItem.LegacyTexture.Texture);
+
+			} else {
+				_selectedItem.LegacyTexture.Texture = (Texture)EditorGUILayout.ObjectField(_selectedItem.LegacyTexture.Texture, typeof(Texture), false);
 			}
-		}
-
-		protected override void RenameExistingItem(ImageListData data, string newName)
-		{
-			string oldName = data.TextureData.Name;
-
-			// give each editable item a chance to update its fields
-			string undoName = "Rename Image";
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				RenameReflectedFields(undoName, item, item.TextureRefs, oldName, newName);
-			}
-			RecordUndo(undoName, data.TextureData);
-
-			data.TextureData.Name = newName;
 		}
 
 		protected override List<ImageListData> CollectData()
 		{
-			List<ImageListData> data = new List<ImageListData>();
+			var data = new List<ImageListData>();
 
 			// collect list of in use textures
-			// List<string> inUseTextures = new List<string>();
-			// foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-			// 	var texRefs = item.TextureRefs;
-			// 	if (texRefs == null) { continue; }
-			// 	foreach (var texRef in texRefs) {
-			// 		var texName = GetMemberValue(texRef, item.ItemData);
-			// 		if (!string.IsNullOrEmpty(texName)) {
-			// 			inUseTextures.Add(texName);
-			// 		}
-			// 	}
-			// }
-			//
-			// foreach (var t in _tableAuthoring.Textures) {
-			// 	var texData = t.Data;
-			// 	data.Add(new ImageListData { TextureData = texData, InUse = inUseTextures.Contains(texData.Name)});
-			// }
+			var inUseTextures = new HashSet<string>(GetReferenced().Select(AssetDatabase.GetAssetPath));
+
+			foreach (var t in _tableAuthoring.LegacyContainer.textures) {
+				var inUse = false;
+				if (t.Texture != null) {
+					inUse = inUseTextures.Contains(AssetDatabase.GetAssetPath(t.Texture));
+				}
+				data.Add(new ImageListData(t, inUse));
+			}
 
 			return data;
 		}
 
-		protected override void OnDataChanged(string undoName, ImageListData data)
+		private void AddReferenced()
 		{
-			OnDataChanged(undoName, data.TextureData);
+			var inList = new HashSet<string>(_tableAuthoring.LegacyContainer.textures.Select(t => AssetDatabase.GetAssetPath(t.Texture)));
+
+			Undo.RecordObject(_tableAuthoring, "Add referenced textures");
+			foreach (var refTexture in GetReferenced()) {
+				if (!inList.Contains(AssetDatabase.GetAssetPath(refTexture))) {
+					_tableAuthoring.LegacyContainer.textures.Add(new LegacyTexture(refTexture));
+				}
+			}
+			Reload();
+		}
+
+		private IEnumerable<Texture> GetReferenced()
+		{
+			var referenced = new HashSet<Texture>();
+			foreach (var mr in _tableAuthoring.GetComponentsInChildren<MeshRenderer>()) {
+				var mainTex = mr.sharedMaterial.mainTexture;
+				var normalTex = mr.sharedMaterial.GetTexture(NormalMap);
+				if (mainTex != null && !referenced.Contains(mainTex)) {
+					referenced.Add(mainTex);
+				}
+				if (normalTex != null && !referenced.Contains(normalTex)) {
+					referenced.Add(normalTex);
+				}
+			}
+			return referenced;
 		}
 
 		protected override void AddNewData(string undoName, string newName) {
-			// Undo.RecordObject(_tableAuthoring, undoName);
-			//
-			// var newTex = new Engine.VPT.Texture(newName);
-			// _tableAuthoring.Textures.Add(newTex);
-			// _tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
+			Undo.RecordObject(_tableAuthoring, undoName);
+			_tableAuthoring.LegacyContainer.textures.Add(new LegacyTexture());
 		}
 
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
-			// Undo.RecordObject(_tableAuthoring, undoName);
-			//
-			// _tableAuthoring.Textures.Remove(data.Name);
-			// _tableAuthoring.Item.Data.NumTextures = _tableAuthoring.Textures.Count;
-		}
-
-		private void OnDataChanged(string undoName, TextureData textureData)
-		{
-			RecordUndo(undoName, textureData);
-
-			// update any items using this tex
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				if (IsReferenced(item.TextureRefs, item.ItemData, textureData.Name)) {
-					item.MeshDirty = true;
-					Undo.RecordObject(item as UnityEngine.Object, undoName);
-				}
-			}
-		}
-
-		private void RecordUndo(string undoName, TextureData textureData)
-		{
-			// if (_tableAuthoring == null) { return; }
-			//
-			// // Run over table's texture scriptable object wrappers to find the one being edited and add to the undo stack
-			// foreach (var tableTex in _tableAuthoring.Textures.SerializedObjects) {
-			// 	if (tableTex.Data == textureData) {
-			// 		Undo.RecordObject(tableTex, undoName);
-			// 		break;
-			// 	}
-			// }
-		}
-
-		private void UpdateAllImages()
-		{
-			// int countFound = 0;
-			// foreach (var t in _tableAuthoring.Textures) {
-			// 	if (File.Exists(t.Data.Path)) {
-			// 		countFound++;
-			// 		ReplaceImageFromPath(t.Data, t.Data.Path);
-			// 	}
-			// }
-			// Logger.Info($"Update all images complete. Found files for {countFound} / {_tableAuthoring.Textures.Count}");
-		}
-
-		private void ReplaceImageFromPath(TextureData textureData, string path) {
-			if (_tableAuthoring == null || textureData == null || string.IsNullOrEmpty(path)) { return; }
-
-			byte[] newBytes = null;
-			try {
-				newBytes = File.ReadAllBytes(path);
-			} catch (Exception ex) {
-				Logger.Error(ex);
-			}
-			if (newBytes == null) { return; }
-
-			string undoName = "Replace Image";
-
-			_tableAuthoring.MarkDirty<Engine.VPT.Texture>(textureData.Name);
 			Undo.RecordObject(_tableAuthoring, undoName);
-			OnDataChanged(undoName, textureData);
-
-			textureData.Binary.Data = newBytes;
-			textureData.Binary.Size = newBytes.Length;
-			textureData.Path = path;
-
-			// update size values assuming we loaded alright
-			var unityTex = _tableAuthoring.GetTexture(textureData.Name);
-			if (unityTex != null) {
-				textureData.Width = unityTex.width;
-				textureData.Height = unityTex.height;
-			}
-		}
-
-		private void ReplaceImageFromAsset(TextureData textureData, Texture2D tex)
-		{
-			string path = AssetDatabase.GetAssetPath(tex);
-			if (!string.IsNullOrEmpty(path)) {
-				ReplaceImageFromPath(textureData, path);
-			}
-		}
-
-		private void ExportImage()
-		{
-			if (_tableAuthoring == null || _selectedItem == null) { return; }
-
-			var unityTex = _tableAuthoring.GetTexture(_selectedItem.TextureData.Name);
-			if (unityTex != null) {
-				string fileExt = Path.GetExtension(_selectedItem.TextureData.Path).TrimStart('.');
-				if (string.IsNullOrEmpty(fileExt)) {
-					Logger.Error("Could not determine filetype from path");
-				}
-				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, fileExt, "Export Image");
-				if (!string.IsNullOrEmpty(savePath)) {
-					File.WriteAllBytes(savePath, _selectedItem.TextureData.Binary.Data);
-					AssetDatabase.ImportAsset(savePath);
-				}
-			}
-		}
-
-		private void ExportImageAsPng()
-		{
-			if (_tableAuthoring == null || _selectedItem == null) { return; }
-
-			var unityTex = _tableAuthoring.GetTexture(_selectedItem.TextureData.Name);
-			if (unityTex != null) {
-				string savePath = EditorUtility.SaveFilePanelInProject("Export Image", unityTex.name, "png", "Export Image");
-				if (!string.IsNullOrEmpty(savePath)) {
-					File.WriteAllBytes(savePath, unityTex.EncodeToPNG());
-					AssetDatabase.ImportAsset(savePath);
-				}
-			}
+			_tableAuthoring.LegacyContainer.textures.Remove(data.LegacyTexture);
 		}
 	}
 }
