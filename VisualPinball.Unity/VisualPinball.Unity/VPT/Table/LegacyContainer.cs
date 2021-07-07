@@ -47,10 +47,17 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyTexture
 	{
+		public string Name => Texture == null ? "<unset>" : Texture.name;
 		public string InternalName;
 		public string Path;
 		public float AlphaTestValue;
 		public Texture Texture;
+
+		public bool IsSet => Texture != null;
+
+		public LegacyTexture()
+		{
+		}
 
 		public LegacyTexture(TextureData data, Texture texture)
 		{
@@ -60,8 +67,17 @@ namespace VisualPinball.Unity
 			Texture = texture;
 		}
 
+		public LegacyTexture(Texture texture)
+		{
+			Texture = texture;
+			InternalName = texture.name;
+		}
+
 		public Engine.VPT.Texture ToTexture()
 		{
+			if (Texture == null) {
+				throw new InvalidOperationException("Cannot convert to texture without texture!");
+			}
 			var data = new TextureData(Texture.name) {
 				InternalName = InternalName,
 				Path = Path,
@@ -76,7 +92,7 @@ namespace VisualPinball.Unity
 				var bytes = File.ReadAllBytes(path);
 				data.Binary = new BinaryData(Texture.name, bytes) {
 					InternalName = InternalName,
-					Path = Path,
+					Path = path,
 					Size = bytes.Length,
 				};
 			}
