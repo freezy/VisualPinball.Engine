@@ -22,6 +22,7 @@ namespace VisualPinball.Engine.Test.Test
 	public static class VpxPath
 	{
 		public static readonly string Bumper = PathHelper.GetFixturePath("BumperTest.vpx");
+
 		public static readonly string BumperVPX1070 = PathHelper.GetFixturePath("BumperTestVPX1070.vpx");
 		public static readonly string Collection = PathHelper.GetFixturePath("CollectionTest.vpx");
 		public static readonly string Mappings = PathHelper.GetFixturePath("MappingsTest.vpx");
@@ -101,22 +102,18 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		public static string GetFixturePath(string filename)
 		{
-			return Path.GetFullPath(Path.Combine(GetTestPath(),
-				"Fixtures~" + Path.DirectorySeparatorChar,
-				filename));
+			return Path.GetFullPath(Path.Combine(GetTestPath(), "Fixtures~", filename));
 		}
 
 		private static string GetTestPath()
 		{
-			var codeBase = new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+			var codeBase = new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath.Replace('\\', '/');
 
-			if (codeBase.Contains("/Library/ScriptAssemblies/"))
-			{
-				return Path.GetFullPath(
-					"Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test");
+			if (codeBase.Contains("/Library/ScriptAssemblies/")) {
+				return Path.GetFullPath("Packages/org.visualpinball.engine.unity/VisualPinball.Engine.Test");
 			}
-			else if (codeBase.Contains("VisualPinball.Unity.Test"))
-			{
+
+			if (codeBase.Contains("VisualPinball.Unity.Test")) {
 				return Path.GetFullPath(
 					Path.Combine(
 						Path.GetDirectoryName(codeBase),
