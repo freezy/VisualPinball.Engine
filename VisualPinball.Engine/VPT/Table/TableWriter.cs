@@ -44,14 +44,6 @@ namespace VisualPinball.Engine.VPT.Table
 				_cf = new CompoundFile();
 				_gameStorage = _cf.RootStorage.AddStorage("GameStg");
 
-				// compute data we need at more than one place
-				var textures = _tableContainer.Textures.ToArray();
-				var sounds = _tableContainer.Sounds.ToArray();
-
-				// update
-				_tableContainer.Table.Data.NumTextures = textures.Length;
-				_tableContainer.Table.Data.NumSounds = sounds.Length;
-
 				// 1. version
 				WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
 
@@ -62,8 +54,8 @@ namespace VisualPinball.Engine.VPT.Table
 				WriteGameItems(hashWriter);
 
 				// 4. the rest, which isn't hashed.
-				WriteImages(textures);
-				WriteSounds(sounds);
+				WriteTextures();
+				WriteSounds();
 
 				// finally write hash
 				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
@@ -144,7 +136,7 @@ namespace VisualPinball.Engine.VPT.Table
 			#endif
 		}
 
-		private void WriteImages(Texture[] textures)
+		private void WriteTextures()
 		{
 			int i = 0;
 			foreach (var texture in _tableContainer.Textures) {
@@ -153,7 +145,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private void WriteSounds(Sound.Sound[] sounds)
+		private void WriteSounds()
 		{
 			int i = 0;
 			foreach (var sound in _tableContainer.Sounds) {
