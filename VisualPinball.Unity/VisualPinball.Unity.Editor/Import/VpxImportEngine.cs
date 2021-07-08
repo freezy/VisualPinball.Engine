@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static void ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null)
+		public static GameObject ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null)
 		{
 			var sw = Stopwatch.StartNew();
 
@@ -52,6 +52,8 @@ namespace VisualPinball.Unity.Editor
 			Selection.activeObject = tableGameObject;
 
 			Logger.Info($"Imported {path} in {convertedIn}ms (loaded after {loadedIn}ms).");
+
+			return tableGameObject;
 		}
 	}
 }
