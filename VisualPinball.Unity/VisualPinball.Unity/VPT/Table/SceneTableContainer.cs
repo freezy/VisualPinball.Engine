@@ -32,6 +32,7 @@ using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
+using VisualPinball.Unity.Playfield;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
@@ -45,7 +46,9 @@ namespace VisualPinball.Unity
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 
-		public override IEnumerable<Texture> Textures => _tableAuthoring.LegacyContainer.textures.Select(texture => texture.ToTexture());
+		public override IEnumerable<Texture> Textures => _tableAuthoring.LegacyContainer.textures
+			.Where(texture => texture.IsSet)
+			.Select(texture => texture.ToTexture());
 		public override IEnumerable<Sound> Sounds => RetrieveSounds();
 
 		public const int ChildObjectsLayer = 16;
@@ -66,6 +69,7 @@ namespace VisualPinball.Unity
 		}
 
 		private readonly TableAuthoring _tableAuthoring;
+		private static readonly int NormalMap = Shader.PropertyToID("_NormalMap");
 
 		public SceneTableContainer(TableAuthoring ta)
 		{
@@ -118,14 +122,15 @@ namespace VisualPinball.Unity
 				_timers[timer.Name] = new Timer(timer);
 			}
 
-			// count stuff and update table data counters
+			// count stuff and update table data
 			Table.Data.NumCollections = Collections.Count;
-			Table.Data.NumFonts = 0;                     // todo handle fonts?
+			Table.Data.NumFonts = 0;                     // todo handle fonts
 			Table.Data.NumGameItems = RecomputeGameItemStorageIDs();
+			Table.Data.NumTextures = _tableAuthoring.LegacyContainer.textures.Count(t => t.IsSet);
+			Table.Data.NumSounds = 0; // todo
 
-			// todo both!
-			Table.Data.NumSounds = 0;
-			Table.Data.NumTextures = 0;
+			// update texture references
+			WalkChildren(_tableAuthoring.transform, SetTextureReference);
 
 			// add/merge physical materials from asset folder
 			#if UNITY_EDITOR
@@ -145,6 +150,86 @@ namespace VisualPinball.Unity
 			}
 			#endif
 			Table.Data.NumMaterials = _materials.Count;
+		}
+
+		private static void SetTextureReference(Component node)
+		{
+			var mr = node.GetComponent<MeshRenderer>();
+			if (!mr) {
+				return;
+			}
+			var meshAuthoring = node.GetComponent<IItemMeshAuthoring>();
+			if (meshAuthoring == null) {
+				return;
+			}
+			switch (meshAuthoring) {
+				case FlipperBaseMeshAuthoring flipperBase: {
+					flipperBase.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case HitTargetMeshAuthoring hitTarget: {
+					hitTarget.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case PlungerMeshAuthoring plunger: {
+					plunger.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case PrimitiveMeshAuthoring primitive: {
+					primitive.MainAuthoring.Data.Image = GetTextureName(mr);
+					primitive.MainAuthoring.Data.NormalMap = GetNormalTextureName(mr);
+					break;
+				}
+				case RampFloorMeshAuthoring rampFloor: {
+					rampFloor.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case RampWallMeshAuthoring rampWall: {
+					rampWall.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case RubberMeshAuthoring rubber: {
+					rubber.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case SpinnerBracketMeshAuthoring spinnerBracket: {
+					spinnerBracket.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case SpinnerPlateMeshAuthoring spinnerPlate: {
+					spinnerPlate.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case SurfaceSideMeshAuthoring surfaceSide: {
+					surfaceSide.MainAuthoring.Data.SideImage = GetTextureName(mr);
+					break;
+				}
+				case SurfaceTopMeshAuthoring surfaceTop: {
+					surfaceTop.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+				case PlayfieldMeshAuthoring playfield: {
+					playfield.MainAuthoring.Data.Image = GetTextureName(mr);
+					break;
+				}
+			}
+		}
+
+		private static string GetTextureName(Renderer mr)
+		{
+			if (mr == null || mr.sharedMaterial == null || mr.sharedMaterial.mainTexture == null) {
+				return string.Empty;
+			}
+			return mr.sharedMaterial.mainTexture.name;
+		}
+
+		private static string GetNormalTextureName(Renderer mr)
+		{
+			if (mr == null || mr.sharedMaterial == null) {
+				return string.Empty;
+			}
+			var tex = mr.sharedMaterial.GetTexture(NormalMap);
+			return tex == null ? string.Empty : tex.name;
 		}
 
 		private int RecomputeGameItemStorageIDs()
