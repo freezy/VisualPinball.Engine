@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 		}
 
-		private static void ValidateTableData(BumperData data)
+		public static void ValidateTableData(BumperData data)
 		{
 			data.BaseMaterial.Should().Be("Material2");
 			data.CapMaterial.Should().Be("Material1");
