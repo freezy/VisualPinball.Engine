@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Table;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
@@ -30,12 +32,17 @@ namespace VisualPinball.Unity.Editor
 		public static GameObject ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null)
 		{
 			var sw = Stopwatch.StartNew();
+			return ImportIntoScene(TableLoader.LoadTable(path), Path.GetFileName(path), parent, applyPatch, tableName, sw);
+		}
+
+		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, bool applyPatch = true, string tableName = null, Stopwatch sw = null)
+		{
+			sw ??= Stopwatch.StartNew();
 
 			// load table
-			var tableContainer = TableLoader.LoadTable(path);
 			var loadedIn = sw.ElapsedMilliseconds;
 
-			var converter = new VpxSceneConverter(tableContainer, Path.GetFileName(path));
+			var converter = new VpxSceneConverter(tableContainer, filename);
 
 			var tableGameObject = converter.Convert(applyPatch, tableName);
 			var convertedIn = sw.ElapsedMilliseconds;
@@ -51,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 			// select imported object
 			Selection.activeObject = tableGameObject;
 
-			Logger.Info($"Imported {path} in {convertedIn}ms (loaded after {loadedIn}ms).");
+			Logger.Info($"Imported {filename} in {convertedIn}ms (loaded after {loadedIn}ms).");
 
 			return tableGameObject;
 		}

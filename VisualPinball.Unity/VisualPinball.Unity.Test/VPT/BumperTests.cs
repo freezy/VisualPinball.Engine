@@ -17,6 +17,7 @@
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -38,6 +39,7 @@ namespace VisualPinball.Unity.Test
 			BumperDataTests.ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 
 			File.Delete(tmpFileName);
+			Object.DestroyImmediate(go);
 		}
 
 		[Test]
@@ -61,6 +63,33 @@ namespace VisualPinball.Unity.Test
 			Assert.AreEqual(255f, writtenBumperData.Center.Y);
 
 			File.Delete(tmpFileName);
+			Object.DestroyImmediate(go);
+		}
+
+		[Test]
+		public void ShouldOnlyImportRing()
+		{
+			var table = new TableBuilder()
+				.AddBumper("Bumper")
+				.Build();
+
+			table.Bumper("Bumper").Data.IsBaseVisible = false;
+			table.Bumper("Bumper").Data.IsCapVisible = false;
+			table.Bumper("Bumper").Data.IsSocketVisible = false;
+
+			var go = VpxImportEngine.ImportIntoScene(table);
+
+			var baseGo = go.transform.Find("Playfield/Bumpers/Bumper/Base");
+			var capGo = go.transform.Find("Playfield/Bumpers/Bumper/Cap");
+			var socketGo = go.transform.Find("Playfield/Bumpers/Bumper/Skirt");
+			var ringGo = go.transform.Find("Playfield/Bumpers/Bumper/Ring");
+
+			Assert.IsFalse(baseGo.GetComponent<BumperBaseMeshAuthoring>().enabled);
+			Assert.IsFalse(capGo.GetComponent<BumperCapMeshAuthoring>().enabled);
+			Assert.IsFalse(socketGo.GetComponent<BumperSkirtMeshAuthoring>().enabled);
+			Assert.IsTrue(ringGo.GetComponent<BumperRingMeshAuthoring>().enabled);
+
+			Object.DestroyImmediate(go);
 		}
 	}
 }
