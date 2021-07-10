@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 			ValidateTriggerData(writtenTable.Trigger("Data").Data);
 		}
 
-		private static void ValidateTriggerData(TriggerData data)
+		public static void ValidateTriggerData(TriggerData data)
 		{
 			data.AnimSpeed.Should().Be(12.432f);
 			data.Center.X.Should().Be(542.732f);

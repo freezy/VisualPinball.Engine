@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			ValidateKickerData(writtenTable.Kicker("Data").Data);
 		}
 
-		private static void ValidateKickerData(KickerData data)
+		public static void ValidateKickerData(KickerData data)
 		{
 			data.Center.X.Should().Be(781.6662f);
 			data.Center.Y.Should().Be(1585f);

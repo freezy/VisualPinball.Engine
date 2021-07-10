@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			ValidateGateData(writtenTable.Gate("Data").Data);
 		}
 
-		private static void ValidateGateData(GateData data)
+		public static void ValidateGateData(GateData data)
 		{
 			MathF.RadToDeg(data.AngleMax).Should().Be(90f);
 			MathF.RadToDeg(data.AngleMin).Should().Be(0f);

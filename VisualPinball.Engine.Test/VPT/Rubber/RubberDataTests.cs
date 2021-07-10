@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Rubber
 {
-	public class RubberDataTest
+	public class RubberDataTests
 	{
 		[Test]
 		public void ShouldReadRubberData()
@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
 		}
 
-		private static void ValidateRubberData1(RubberData data)
+		public static void ValidateRubberData1(RubberData data)
 		{
 			data.DragPoints.Length.Should().Be(3);
 			data.Elasticity.Should().Be(0.832f);
@@ -69,7 +69,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			data.Points.Should().Be(true);
 		}
 
-		private static void ValidateRubberData2(RubberData data)
+		public static void ValidateRubberData2(RubberData data)
 		{
 			data.DragPoints.Length.Should().Be(3);
 			data.Elasticity.Should().Be(0.8f);

@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 			ValidateSpinnerData(writtenTable.Spinner("Data").Data);
 		}
 
-		private static void ValidateSpinnerData(SpinnerData data)
+		public static void ValidateSpinnerData(SpinnerData data)
 		{
 			data.AngleMax.Should().Be(50.698f);
 			data.AngleMin.Should().Be(-12.87f);

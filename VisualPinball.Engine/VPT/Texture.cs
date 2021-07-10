@@ -154,9 +154,13 @@ namespace VisualPinball.Engine.VPT
 		public Image GetImage()
 		{
 			try {
+				var data = Data.Binary != null ? Data.Binary.Data : Data.Bitmap.Bytes;
+				if (data.Length == 0) {
+					throw new InvalidDataException("Image data is empty.");
+				}
 				return Data.Binary != null
-					? Image.NewFromBuffer(Data.Binary.Data)
-					: Image.NewFromMemory(Data.Bitmap.Bytes, Width, Height, 4, Enums.BandFormat.Uchar);
+					? Image.NewFromBuffer(data)
+					: Image.NewFromMemory(data, Width, Height, 4, Enums.BandFormat.Uchar);
 
 			} catch (Exception e) {
 				Logger.Warn(e, "Error reading {0} ({1}) with libvips.", Name, Path.GetFileName(Data.Path));

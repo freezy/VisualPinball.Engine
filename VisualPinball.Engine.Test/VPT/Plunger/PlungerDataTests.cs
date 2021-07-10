@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);
 		}
 
-		private static void ValidatePlungerData1(PlungerData data)
+		public static void ValidatePlungerData1(PlungerData data, bool validateTexture = true)
 		{
 			data.AnimFrames.Should().Be(7);
 			data.AnimFrames.Should().Be(7);
@@ -52,7 +52,9 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			data.Center.X.Should().Be(477f);
 			data.Center.Y.Should().Be(983.2f);
 			data.Height.Should().Be(20f);
-			data.Image.Should().Be("alphatest_100_50_0");
+			if (validateTexture) {
+				data.Image.Should().Be("alphatest_100_50_0");
+			}
 			data.IsLocked.Should().Be(true);
 			data.IsMechPlunger.Should().Be(true);
 			data.IsReflectionEnabled.Should().Be(true);
@@ -82,7 +84,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			data.ZAdjust.Should().Be(1.223f);
 		}
 
-		private static void ValidatePlungerData2(PlungerData data)
+		public static void ValidatePlungerData2(PlungerData data)
 		{
 			data.AnimFrames.Should().Be(1);
 			data.AutoPlunger.Should().Be(false);
