@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
 		}
 
-		private static void ValidateHitTargetData(HitTargetData data)
+		public static void ValidateHitTargetData(HitTargetData data)
 		{
 			data.DepthBias.Should().Be(0.651f);
 			data.DisableLightingBelow.Should().Be(0.1932f);

@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 			ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);
 		}
 
-		private static void ValidateSurfaceData(SurfaceData data)
+		public static void ValidateSurfaceData(SurfaceData data)
 		{
 			data.DisableLightingBelow.Should().Be(0.6985f);
 			data.DisableLightingTop.Should().BeInRange(0.129f, 0.13f);

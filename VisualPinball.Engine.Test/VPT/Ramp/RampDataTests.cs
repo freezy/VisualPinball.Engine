@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			ValidateRampData(writtenTable.Ramp("FlatL").Data);
 		}
 
-		private static void ValidateRampData(RampData data)
+		public static void ValidateRampData(RampData data)
 		{
 			data.DepthBias.Should().Be(0.11254f);
 			data.DragPoints.Length.Should().Be(3);

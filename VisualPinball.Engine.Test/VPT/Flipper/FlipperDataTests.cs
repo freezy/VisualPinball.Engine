@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
 		}
 
-		private static void ValidateFlipper(FlipperData data)
+		public static void ValidateFlipper(FlipperData data)
 		{
 			data.BaseRadius.Should().Be(30.0303f);
 			data.Center.X.Should().Be(269.287f);

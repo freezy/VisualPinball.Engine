@@ -137,7 +137,6 @@ namespace VisualPinball.Unity.Editor
 
 			ExtractPhysicsMaterials();
 			ExtractTextures();
-			FreeTextures();
 
 			//ExtractSounds();
 
@@ -157,6 +156,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
+			FreeTextures();
 			ConfigurePlayer();
 
 			return _tableGo;

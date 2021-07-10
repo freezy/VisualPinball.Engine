@@ -107,14 +107,6 @@ namespace VisualPinball.Engine.VPT.Table
 			// 2. game items
 			foreach (var gameItem in _tableContainer.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
 
-				#if !WRITE_VP106
-
-				// clean material and texture references
-				CleanInvalidReferences<MaterialReferenceAttribute, Material>(gameItem, v => _tableContainer.GetMaterial(v));
-				CleanInvalidReferences<TextureReferenceAttribute, Texture>(gameItem, v => _tableContainer.GetTexture(v));
-
-				#endif
-
 				#if !WRITE_VP106 && !WRITE_VP107
 				gameItem.WriteData(_gameStorage);
 				#else
@@ -158,17 +150,6 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			storage.AddStream(streamName).SetData(data);
 			hashWriter?.Write(data);
-		}
-
-		private static void CleanInvalidReferences<TAttr, TRef>(ItemData data, Func<string, TRef> getter) where TAttr: Attribute
-		{
-			var refs = GetMembersWithAttribute<TAttr>(data);
-			foreach (var r in refs) {
-				var value = GetValue<string>(r, data);
-				if (getter(value) == null) {
-					SetValue(r, data, string.Empty);
-				}
-			}
 		}
 
 		private static IEnumerable<MemberInfo> GetMembersWithAttribute<TAttr>(ItemData data) where TAttr: Attribute

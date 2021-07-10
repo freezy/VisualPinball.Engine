@@ -28,12 +28,12 @@ namespace VisualPinball.Unity.Test
 	public class BumperTests
 	{
 		[Test]
-		public void ShouldWriteOriginalBumperData()
+		public void ShouldWriteImportedBumperData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper);
-			var t = go.GetComponent<TableAuthoring>();
-			t.TableContainer.Save(tmpFileName);
+			var ta = go.GetComponent<TableAuthoring>();
+			ta.TableContainer.Save(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			BumperDataTests.ValidateTableData(writtenTable.Bumper("Bumper1").Data);
