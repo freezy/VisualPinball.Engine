@@ -42,6 +42,7 @@ jobs:
           path: tmp
 
   test:
+    name: Unit Test
     needs: [ build ]
     runs-on: ubuntu-latest
     steps:
@@ -70,7 +71,7 @@ jobs:
           unityVersion: '2020.3.13f1'
           projectPath: TestProject
           testMode: all
-          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.*;pathFilters:-**/VisualPinball.Engine/VisualPinball.Engine.Test/**,-**/VisualPinball.Engine/VisualPinball.Unity/VisualPinball.Unity.Test/**,-**/VisualPinball.Unity/VisualPinball.Unity.Editor/**,-**/VisualPinball.Unity/VisualPinball.Unity.Patcher/** -coverageResultsPath ../artifacts
+          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.*;pathFilters:-**/VisualPinball.Engine/VisualPinball.Engine.Test/**,-**/VisualPinball.Engine/VisualPinball.Unity/VisualPinball.Unity.Test/**,-**/VisualPinball.Unity/VisualPinball.Unity.Editor/**,-**/VisualPinball.Unity/VisualPinball.Unity.Patcher/**,-**/VisualPinball.Engine/Math/Triangulator/** -coverageResultsPath ../artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v2
         if: always()
