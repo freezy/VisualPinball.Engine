@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.IO;
 using VisualPinball.Engine.Common;
@@ -217,6 +218,7 @@ namespace VisualPinball.Engine.VPT
 			return tri.ToArray();
 		}
 
+		[ExcludeFromCodeCoverage]
 		public static void ClosestPointOnPolygon(RenderVertex3D[] rgv, Vertex2D pvin, bool fClosed, out Vertex2D pvOut, out int piSeg)
 		{
 			var count = rgv.Length;
@@ -456,6 +458,7 @@ namespace VisualPinball.Engine.VPT
 				return vertex;
 			}
 
+			[ExcludeFromCodeCoverage]
 			public override string ToString()
 			{
 				return $"VertData({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz})";
