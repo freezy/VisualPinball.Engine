@@ -18,7 +18,6 @@ jobs:
         include:
           - os: windows-latest
             rid: win-x64
-            coverage: true
           - os: windows-latest
             rid: win-x86
           - os: macos-latest
@@ -37,23 +36,6 @@ jobs:
       - run: |
           mkdir tmp
           cp -r VisualPinball.Unity/Plugins/${{ matrix.rid }} tmp
-      - name: Test
-        run: |
-          if [[ "${{ matrix.coverage }}" == "true" ]]; then
-             dotnet test -c Release --runtime ${{ matrix.rid }} -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=../lcov -p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" -p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
-          else
-             dotnet test -c Release --runtime ${{ matrix.rid }}
-          fi
-
-          # local report:
-          #  dotnet test -c Release --runtime win-x64 -p:CollectCoverage=true -p:CoverletOutputFormat=lcov -p:CoverletOutput=../lcov -p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" -p:Exclude=\"[*]VisualPinball.Engine.Math.Triangulator.*,[VisualPinball.Resources]*,[*]VisualPinball.Engine.VPT.Plunger.*\"
-          #  dotnet tool install -g dotnet-reportgenerator-globaltool
-          #  reportgenerator -reports:lcov.opencover.xml -targetdir:coveragereport -reporttypes:Html
-
-      - name: Publish Coverage
-        if: ${{ matrix.coverage }}
-        run: |
-          bash <(curl -s https://codecov.io/bash)
       - uses: actions/upload-artifact@v2
         with:
           name: Plugins
@@ -90,13 +72,19 @@ jobs:
           unityVersion: '2020.3.13f1'
           projectPath: TestProject
           testMode: all
-          customParameters: "-nographics"
+          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.* -coverageResultsPath ../artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - if: always()
+        run: |
+          ls -laR artifacts
       - uses: actions/upload-artifact@v2
         if: always()
         with:
           name: Test results
           path: ${{ steps.test.outputs.artifactsPath }}
+      - if: always()
+        run: |
+          curl -s https://codecov.io/bash | bash -s - -f ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml
 
   dispatch:
     runs-on: ubuntu-latest
