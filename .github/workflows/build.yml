@@ -78,10 +78,10 @@ jobs:
         with:
           name: Test results
           path: ${{ steps.test.outputs.artifactsPath }}
-      - if: always()
-        run: |
-          sed -i 's/fullPath="\/github\/workspace\/VisualPinball.Engine/fullPath="\/github\/workspace/g' ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml
-          curl -s https://codecov.io/bash | bash -s - -f ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml
+      - run: |
+          cp ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml coverage.xml
+          sed -i 's/fullPath="\/github\/workspace\/VisualPinball.Engine/fullPath="\/github\/workspace/g' coverage.xml
+          curl -s https://codecov.io/bash | bash -s - -f coverage.xml
 
   dispatch:
     runs-on: ubuntu-latest
