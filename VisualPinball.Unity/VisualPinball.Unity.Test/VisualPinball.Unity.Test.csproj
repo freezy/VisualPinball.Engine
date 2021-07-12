@@ -20,8 +20,10 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="**/*.meta" Visible="false" />
+    <None Remove="TestProject~\**" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj" />
     <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
     <ProjectReference Include="..\..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj" />
@@ -47,5 +49,11 @@
     <Reference Include="Unity.Burst">
       <HintPath>..\Plugins\.unity\Unity.Burst.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="TestProject~\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="TestProject~\**" />
   </ItemGroup>
 </Project>

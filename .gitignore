@@ -368,3 +368,18 @@ MigrationBackup/
 *.swp
 
 **/Plugins/**
+
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/*.vpx
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Assets/Tables.meta
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Assets/Tables/
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/CodeCoverage/
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Library/
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/TestProject~.sln
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/UserSettings/
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Engine.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Engine.Test.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.Editor.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.Patcher.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.Test.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.csproj
+VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/editmode-results.xml
