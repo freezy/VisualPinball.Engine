@@ -53,8 +53,6 @@ jobs:
           name: Plugins
           path: VisualPinball.Engine/VisualPinball.Unity/Plugins
       - run: |
-          ls -laR VisualPinball.Engine/VisualPinball.Unity/Plugins
-      - run: |
           mv VisualPinball.Engine/VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~ TestProject
           cd TestProject/Packages
           jq '.dependencies."org.visualpinball.engine.unity" = "file:../../VisualPinball.Engine"' manifest.json > manifest.json.tmp
@@ -72,11 +70,8 @@ jobs:
           unityVersion: '2020.3.13f1'
           projectPath: TestProject
           testMode: all
-          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.* -coverageResultsPath ../artifacts
+          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.*;pathFilters:-**/VisualPinball.Engine/VisualPinball.Engine.Test/**,-**/VisualPinball.Engine/VisualPinball.Unity/VisualPinball.Unity.Test/**,-**/VisualPinball.Unity/VisualPinball.Unity.Editor/**,-**/VisualPinball.Unity/VisualPinball.Unity.Patcher/** -coverageResultsPath ../artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-      - if: always()
-        run: |
-          ls -laR artifacts
       - uses: actions/upload-artifact@v2
         if: always()
         with:
