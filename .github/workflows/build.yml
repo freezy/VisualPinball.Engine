@@ -80,10 +80,12 @@ jobs:
           path: ${{ steps.test.outputs.artifactsPath }}
       - run: |
           cp ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml coverage.xml
+          sed -i 's/<ModuleName>VisualPinball.Engine<\/ModuleName>//g' coverage.xml
           sed -i 's/fullPath="\/github\/workspace\/VisualPinball.Engine/fullPath="\/github\/workspace/g' coverage.xml
           curl -s https://codecov.io/bash | bash -s - -f coverage.xml
 
   dispatch:
+    name: Dispatch
     runs-on: ubuntu-latest
     needs: [ test ]
     if: github.repository == 'freezy/VisualPinball.Engine' && github.ref == 'refs/heads/master' && github.event_name == 'push'
