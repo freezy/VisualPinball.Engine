@@ -12,7 +12,8 @@ jobs:
         with:
           workflow: build
           run_id: ${{ github.event.client_payload.artifacts_run_id }}
-          path: VisualPinball.Unity
+          name: Plugins
+          path: VisualPinball.Unity/Plugins
       - run: |
           ls -laR VisualPinball.Unity/Plugins
       - name: Add Meta Files
