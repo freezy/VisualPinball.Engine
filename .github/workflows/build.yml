@@ -47,42 +47,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-           path: VisualPinball.Engine
       - uses: actions/download-artifact@v2
         with:
           name: Plugins
-          path: VisualPinball.Engine/VisualPinball.Unity/Plugins
-      - run: |
-          mv VisualPinball.Engine/VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~ TestProject
-          cd TestProject/Packages
-          jq '.dependencies."org.visualpinball.engine.unity" = "file:../../VisualPinball.Engine"' manifest.json > manifest.json.tmp
-          mv manifest.json.tmp manifest.json
+          path: VisualPinball.Unity/Plugins
       - uses: actions/cache@v2
         with:
-         path: TestProject/Library
-         key: Library-test-project
+         path: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Library
+         key: Library-Test-Project
          restore-keys: |
-           Library-test-project
+           Library-Test-Project
            Library
-      - uses: game-ci/unity-test-runner@v2.0-alpha-5
+      - uses: jsm174/unity-test-runner@v2.0.1
         id: test
         with:
           unityVersion: '2020.3.13f1'
-          projectPath: TestProject
+          projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
+          artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
-          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.Engine;pathFilters:-**/VisualPinball.Engine/Math/Triangulator/** -coverageResultsPath ../artifacts
+          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.Engine;pathFilters:-**/VisualPinball.Engine/Math/Triangulator/** -coverageResultsPath artifacts
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          curl -s https://codecov.io/bash | bash -s - -f ${{ steps.test.outputs.artifactsPath }}/TestProject~-opencov/EditMode/TestCoverageResults_0000.xml
       - uses: actions/upload-artifact@v2
         if: always()
         with:
           name: Test results
           path: ${{ steps.test.outputs.artifactsPath }}
-      - run: |
-          cp ${{ steps.test.outputs.artifactsPath }}/TestProject-opencov/EditMode/TestCoverageResults_0000.xml coverage.xml
-          sed -i 's/<ModuleName>VisualPinball.Engine<\/ModuleName>//g' coverage.xml
-          sed -i 's/fullPath="\/github\/workspace\/VisualPinball.Engine/fullPath="\/github\/workspace/g' coverage.xml
-          curl -s https://codecov.io/bash | bash -s - -f coverage.xml
 
   dispatch:
     name: Dispatch
