@@ -87,17 +87,18 @@ namespace VisualPinball.Unity
 			var normals = mesh.normals;
 			var uv = mesh.uv;
 			var triangles = mesh.triangles;
-			Debug.Log($"Copying {vertices.Length} vertices back to {mesh.name}");
 			vpMesh.Vertices = new Vertex3DNoTex2[vertices.Length];
 			for (var i = 0; i < vertices.Length; i++) {
 				vpMesh.Vertices[i] = new Vertex3DNoTex2(
 					vertices[i].x, vertices[i].y, vertices[i].z,
 					normals[i].x, normals[i].y, normals[i].z,
-					uv[i].x, uv[i].y
+					uv[i].x, -uv[i].y
 				);
 			}
 			vpMesh.Indices = new int[triangles.Length];
-			Buffer.BlockCopy(triangles, 0, vpMesh.Indices, 0, triangles.Length);
+			for (var i = 0; i < triangles.Length; i++) {
+				vpMesh.Indices[i] = triangles[i];
+			}
 		}
 
 		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, Mesh mesh)

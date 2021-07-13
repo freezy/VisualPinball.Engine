@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldWriteImportedMesh()
 		{
-			const string primitiveName = "Triangle";
+			const string primitiveName = "Books";
 			const string tmpFileName = "ShouldWriteImportedMesh.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive);
 			var ta = go.GetComponent<TableAuthoring>();
