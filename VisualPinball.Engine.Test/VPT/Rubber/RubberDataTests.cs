@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -41,6 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);
 			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
+			File.Delete(tmpFileName);
 		}
 
 		public static void ValidateRubberData1(RubberData data)

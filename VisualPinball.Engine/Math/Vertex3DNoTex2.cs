@@ -21,7 +21,7 @@ using System.IO;
 namespace VisualPinball.Engine.Math
 {
 	[Serializable]
-	public struct Vertex3DNoTex2
+	public struct Vertex3DNoTex2 : IEquatable<Vertex3DNoTex2>
 	{
 		public const int Size = 32;
 
@@ -122,6 +122,20 @@ namespace VisualPinball.Engine.Math
 			X = v.X;
 			Y = v.Y;
 			Z = v.Z;
+		}
+
+		public bool Equals(Vertex3DNoTex2 other)
+		{
+			return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && Nx.Equals(other.Nx) && Ny.Equals(other.Ny) && Nz.Equals(other.Nz) && Tu.Equals(other.Tu) && Tv.Equals(other.Tv);
+		}
+		public override bool Equals(object obj)
+		{
+			return obj is Vertex3DNoTex2 other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			return (X, Y, Z, Nx, Ny, Nz, Tu, Tv).GetHashCode();
 		}
 	}
 }

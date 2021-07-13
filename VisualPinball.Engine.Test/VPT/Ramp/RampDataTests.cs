@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -40,6 +41,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateRampData(writtenTable.Ramp("FlatL").Data);
+			File.Delete(tmpFileName);
 		}
 
 		public static void ValidateRampData(RampData data)

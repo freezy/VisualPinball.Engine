@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -41,6 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Mappings.Data);
+			File.Delete(tmpFileName);
 		}
 
 		[Test]

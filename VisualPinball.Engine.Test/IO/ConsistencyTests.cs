@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.VPT;
@@ -40,6 +41,8 @@ namespace VisualPinball.Engine.Test.IO
 
 			th.Bumper("Bumper1").Data.BaseMaterial.Should().Be("DoesExist");
 			th.Bumper("Bumper1").Data.CapMaterial.Should().BeEmpty();
+
+			File.Delete(tmpFileName);
 		}
 
 		//todo renable[Test]
@@ -59,6 +62,8 @@ namespace VisualPinball.Engine.Test.IO
 			table.Flipper("Flipper").Data.Image = "DoesNotExist";
 			table.Save(tmpFileName);
 			table.Flipper("Flipper").Data.Image.Should().BeEmpty();
+
+			File.Delete(tmpFileName);
 		}
 	}
 }

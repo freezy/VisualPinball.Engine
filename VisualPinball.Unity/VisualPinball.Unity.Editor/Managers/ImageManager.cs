@@ -31,7 +31,6 @@ namespace VisualPinball.Unity.Editor
 		protected override string DataTypeName => "Image";
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly int NormalMap = Shader.PropertyToID("_NormalMap");
 
 		[MenuItem("Visual Pinball/Image Manager", false, 401)]
 		public static void ShowWindow()
@@ -111,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 			var referenced = new HashSet<Texture>();
 			foreach (var mr in _tableAuthoring.GetComponentsInChildren<MeshRenderer>()) {
 				var mainTex = mr.sharedMaterial.mainTexture;
-				var normalTex = mr.sharedMaterial.GetTexture(NormalMap);
+				var normalTex = mr.sharedMaterial.GetTexture(RenderPipeline.Current.MaterialConverter.NormalMapProperty);
 				if (mainTex != null && !referenced.Contains(mainTex)) {
 					referenced.Add(mainTex);
 				}

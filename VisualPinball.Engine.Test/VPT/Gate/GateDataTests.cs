@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Math;
@@ -41,6 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateGateData(writtenTable.Gate("Data").Data);
+			File.Delete(tmpFileName);
 		}
 
 		public static void ValidateGateData(GateData data)
