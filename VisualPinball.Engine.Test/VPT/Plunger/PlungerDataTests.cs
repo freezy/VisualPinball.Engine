@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -42,6 +43,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data);
 			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);
+			File.Delete(tmpFileName);
 		}
 
 		public static void ValidatePlungerData1(PlungerData data, bool validateTexture = true)

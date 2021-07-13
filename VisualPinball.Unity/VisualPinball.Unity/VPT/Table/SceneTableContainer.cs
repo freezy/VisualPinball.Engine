@@ -69,7 +69,6 @@ namespace VisualPinball.Unity
 		}
 
 		private readonly TableAuthoring _tableAuthoring;
-		private static readonly int NormalMap = Shader.PropertyToID("_NormalMap");
 
 		public SceneTableContainer(TableAuthoring ta)
 		{
@@ -228,7 +227,7 @@ namespace VisualPinball.Unity
 			if (mr == null || mr.sharedMaterial == null) {
 				return string.Empty;
 			}
-			var tex = mr.sharedMaterial.GetTexture(NormalMap);
+			var tex = mr.sharedMaterial.GetTexture(RenderPipeline.Current.MaterialConverter.NormalMapProperty);
 			return tex == null ? string.Empty : tex.name;
 		}
 

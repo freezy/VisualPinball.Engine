@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -42,6 +43,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateDecal0(writtenTable.Decal(0).Data);
 			ValidateDecal1(writtenTable.Decal(1).Data);
+			File.Delete(tmpFileName);
 		}
 
 		private static void ValidateDecal0(DecalData data)

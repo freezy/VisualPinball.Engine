@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -39,6 +40,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
+			File.Delete(tmpFileName);
 		}
 
 		public static void ValidateFlipper(FlipperData data)

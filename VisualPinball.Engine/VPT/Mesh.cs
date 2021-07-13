@@ -34,7 +34,7 @@ namespace VisualPinball.Engine.VPT
 	/// coordinates.
 	/// </summary>
 	[Serializable]
-	public class Mesh
+	public class Mesh : IEquatable<Mesh>
 	{
 		public string Name;
 		public Vertex3DNoTex2[] Vertices;
@@ -375,7 +375,7 @@ namespace VisualPinball.Engine.VPT
 		/// It is used primarily for storing animation frames.
 		/// </summary>
 		[Serializable]
-		public struct VertData
+		public struct VertData : IEquatable<VertData>
 		{
 			public const int Size = 24;
 
@@ -468,7 +468,85 @@ namespace VisualPinball.Engine.VPT
 			{
 				return new Vertex3DNoTex2(X, Y, Z, Nx, Ny, Nz, 0f, 0f);
 			}
+
+			#region IEquatable
+
+			public bool Equals(VertData other)
+			{
+				return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && Nx.Equals(other.Nx) && Ny.Equals(other.Ny) && Nz.Equals(other.Nz);
+			}
+
+			public override bool Equals(object obj)
+			{
+				return obj is VertData other && Equals(other);
+			}
+
+			public override int GetHashCode()
+			{
+				return (X, Y, Z, Nx, Ny, Nz).GetHashCode();
+			}
+
+			#endregion
+
 		}
+		#endregion
+
+		#region IEquatable
+
+		public bool Equals(Mesh other)
+		{
+			if (ReferenceEquals(null, other)) {
+				return false;
+			}
+			if (ReferenceEquals(this, other)) {
+				return true;
+			}
+			if (!Name.Equals(other.Name) || Vertices.Length != other.Vertices.Length
+			                             || Indices.Length != other.Indices.Length
+			                             || AnimationFrames.Count != other.AnimationFrames.Count
+			                             || !AnimationDefaultPosition.Equals(other.AnimationDefaultPosition)) {
+				return false;
+			}
+
+			for (var i = 0; i < Vertices.Length; i++) {
+				if (!Vertices[i].Equals(other.Vertices[i])) {
+					return false;
+				}
+			}
+
+			for (var i = 0; i < Indices.Length; i++) {
+				if (!Indices[i].Equals(other.Indices[i])) {
+					return false;
+				}
+			}
+
+			for (var i = 0; i < AnimationFrames.Count; i++) {
+				for (var j = 0; j < AnimationFrames[i].Length; j++) {
+					if (!AnimationFrames[i][j].Equals(other.AnimationFrames[i][j])) {
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj)) {
+				return false;
+			}
+			if (ReferenceEquals(this, obj)) {
+				return true;
+			}
+			return obj.GetType() == GetType() && Equals((Mesh)obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return (Name, Vertices, Indices, AnimationFrames, AnimationDefaultPosition).GetHashCode();
+		}
+
 		#endregion
 	}
 

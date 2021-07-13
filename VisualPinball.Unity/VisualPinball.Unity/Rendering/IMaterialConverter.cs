@@ -46,5 +46,7 @@ namespace VisualPinball.Unity
 		/// <param name="debug"></param>
 		/// <returns></returns>
 		Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null);
+
+		int NormalMapProperty { get; }
 	}
 }

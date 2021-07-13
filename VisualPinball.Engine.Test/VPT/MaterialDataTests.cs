@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Math;
@@ -40,6 +41,7 @@ namespace VisualPinball.Engine.Test.VPT
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
@@ -106,6 +108,7 @@ namespace VisualPinball.Engine.Test.VPT
 			material.ScatterAngle.Should().Be(12.2f);
 			material.Thickness.Should().BeApproximately(0.74f, 0.003f);
 			material.WrapLighting.Should().Be(0.68f);
+			File.Delete(tmpFileName);
 		}
 
 		private void ValidateMaterial1(Material material)

@@ -41,7 +41,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			ValidatePrimitiveData(writtenTable.Primitive("Cube").Data);
 		}
 
-		private static void ValidatePrimitiveData(PrimitiveData data)
+		public static void ValidatePrimitiveData(PrimitiveData data)
 		{
 			data.BackfacesEnabled.Should().Be(false);
 			data.CollisionReductionFactor.Should().Be(0.6119f);

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -50,6 +51,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 			table.Save(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableDataVPX1070(writtenTable.Bumper("Bumper1").Data);
+			File.Delete(tmpFileName);
 		}
 
 		private static void ValidateTableDataVPX1060(BumperData data)

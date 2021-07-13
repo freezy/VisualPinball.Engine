@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -41,6 +42,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
 			ValidateTimerData2(writtenTable.Timer("Timer2").Data);
+			File.Delete(tmpFileName);
 		}
 
 		private static void ValidateTimerData1(TimerData data)
