@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -23,13 +24,13 @@ using VisualPinball.Engine.VPT.TextBox;
 
 namespace VisualPinball.Engine.Test.VPT.TextBox
 {
-	public class TextBoxDataTest : BaseTests
+	public class TextBoxDataTests : BaseTests
 	{
 		[Test]
 		public void ShouldReadTextBoxData()
 		{
 			var table = FileTableContainer.Load(VpxPath.TextBox);
-			ValidateTableData(table.TextBox("TextBox001").Data);
+			ValidateTextBoxData(table.TextBox("TextBox001").Data);
 		}
 
 		[Test]
@@ -39,10 +40,12 @@ namespace VisualPinball.Engine.Test.VPT.TextBox
 			var table = FileTableContainer.Load(VpxPath.TextBox);
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
-			ValidateTableData(writtenTable.TextBox("TextBox001").Data);
+			ValidateTextBoxData(writtenTable.TextBox("TextBox001").Data);
+
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTableData(TextBoxData data)
+		public static void ValidateTextBoxData(TextBoxData data)
 		{
 			data.Align.Should().Be(TextAlignment.TextAlignCenter);
 			data.BackColor.Red.Should().Be(0);

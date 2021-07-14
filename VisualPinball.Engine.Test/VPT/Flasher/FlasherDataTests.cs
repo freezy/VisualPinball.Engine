@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateFlasher(FlasherData data)
+		public static void ValidateFlasher(FlasherData data)
 		{
 			data.AddBlend.Should().Be(false);
 			data.Alpha.Should().Be(69);

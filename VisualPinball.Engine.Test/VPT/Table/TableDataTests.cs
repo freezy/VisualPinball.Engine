@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Common;
@@ -47,6 +48,8 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			new TableWriter(table).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Table.Data);
+
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
@@ -58,6 +61,8 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 
 			writtenTable.FileHash.Should().Equal(table.FileHash);
+
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
