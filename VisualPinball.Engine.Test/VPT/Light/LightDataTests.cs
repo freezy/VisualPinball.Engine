@@ -44,7 +44,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateLightData(LightData data)
+		public static void ValidateLightData(LightData data)
 		{
 			data.BlinkInterval.Should().Be(126);
 			data.BlinkPattern.Should().Be("10011");

@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Decal
 {
-	public class DecalDataTest : BaseTests
+	public class DecalDataTests : BaseTests
 	{
 		[Test]
 		public void ShouldReadDecalData()
@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateDecal0(DecalData data)
+		public static void ValidateDecal0(DecalData data)
 		{
 			data.Backglass.Should().Be(false);
 			data.Center.X.Should().Be(205.4f);
@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 			data.IsLocked.Should().Be(false);
 		}
 
-		private static void ValidateDecal1(DecalData data)
+		public static void ValidateDecal1(DecalData data)
 		{
 			data.Backglass.Should().Be(true);
 			data.Center.X.Should().Be(509f);

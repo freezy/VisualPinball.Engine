@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTimerData1(TimerData data)
+		public static void ValidateTimerData1(TimerData data)
 		{
 			data.Backglass.Should().Be(false);
 			data.Center.X.Should().Be(471.160583f);
@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			data.TimerInterval.Should().Be(233);
 		}
 
-		private static void ValidateTimerData2(TimerData data)
+		public static void ValidateTimerData2(TimerData data)
 		{
 			data.Backglass.Should().Be(true);
 		}

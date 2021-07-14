@@ -43,7 +43,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateLightSeqData(LightSeqData data)
+		public static void ValidateLightSeqData(LightSeqData data)
 		{
 			data.Backglass.Should().Be(false);
 			data.Center.X.Should().Be(21.23f);

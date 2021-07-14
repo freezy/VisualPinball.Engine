@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.DispReel
 {
-	public class DispReelDataTest : BaseTests
+	public class DispReelDataTests : BaseTests
 	{
 		[Test]
 		public void ShouldReadDispReelData()
@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateDispReel1(DispReelData data)
+		public static void ValidateDispReel1(DispReelData data)
 		{
 			data.BackColor.Red.Should().Be(204);
 			data.BackColor.Green.Should().Be(149);
@@ -76,7 +76,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 			data.IsTimerEnabled.Should().Be(true);
 		}
 
-		private static void ValidateDispReel2(DispReelData data)
+		public static void ValidateDispReel2(DispReelData data)
 		{
 			data.BackColor.Red.Should().Be(0);
 			data.BackColor.Green.Should().Be(0);

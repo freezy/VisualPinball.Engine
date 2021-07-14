@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTableData(CollectionData data)
+		public static void ValidateTableData(CollectionData data)
 		{
 			data.Name.Should().Be("Flippers");
 			data.FireEvents.Should().Be(false);

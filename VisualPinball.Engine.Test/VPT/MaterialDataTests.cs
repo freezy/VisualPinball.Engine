@@ -63,6 +63,8 @@ namespace VisualPinball.Engine.Test.VPT
 			writtenTable.GetMaterial("test_mat").BaseColor.Green.Should().Be(0);
 			writtenTable.GetMaterial("test_mat").BaseColor.Blue.Should().Be(0);
 			writtenTable.GetMaterial("test_mat").Elasticity.Should().Be(0.666f);
+
+			File.Delete(tmpFileName);
 		}
 
 		[Test]

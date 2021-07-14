@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Data;
 using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
@@ -152,6 +153,8 @@ namespace VisualPinball.Engine.Test.VPT
 			new TableWriter(_table).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			writtenTable.GetTexture("test_pattern_jpg").Data.Binary.Data.Should().Equal(_table.GetTexture("test_pattern_jpg").Data.Binary.Data);
+
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
@@ -161,6 +164,7 @@ namespace VisualPinball.Engine.Test.VPT
 			new TableWriter(_table).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			writtenTable.GetTexture("test_pattern_bmp").Data.Bitmap.Bytes.Should().Equal(_table.GetTexture("test_pattern_bmp").Data.Bitmap.Bytes);
+			File.Delete(tmpFileName);
 		}
 	}
 }
