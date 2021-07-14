@@ -14,34 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
-using VisualPinball.Engine.VPT.Sound;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Editor.Utils;
 
 namespace VisualPinball.Unity.Editor
 {
-	class SoundManager : ManagerWindow<SoundListData>
+	internal class SoundManager : ManagerWindow<SoundListData>
 	{
 		protected override string DataTypeName => "Sound";
 		protected override float DetailsMaxWidth => 500.0f;
-
-		private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
 		/// Sound positions display
 		/// </summary>
 		private bool _displaySoundPosition = true;
-		private bool _displayAllSounds = false;
+		private bool _displayAllSounds;
 
 		/// <summary>
 		/// Auto framing, going to Top view and frame on whole table when focused to ease sound position visualization
 		/// </summary>
 		private bool _autoFrame = true;
-		private bool _needFraming = false;
+		private bool _needFraming;
 
 		/// <summary>
 		/// Table & selected sound position & size used for display
@@ -49,7 +45,6 @@ namespace VisualPinball.Unity.Editor
 		private Vector3 _tableCenter = Vector3.zero;
 		private Vector3 _tableSize = Vector3.zero;
 		private Vector3 _selectedSoundPos = Vector3.zero;
-		private float  _selectedSoundSize = 0.0f;
 
 		private readonly Color _selectedColor = Color.yellow;
 		private readonly Color _unselectedColor = new Color(0.25f, 0.25f, 0.25f, 0.75f);
@@ -60,23 +55,17 @@ namespace VisualPinball.Unity.Editor
 		/// Audio Data Playback & Visualization
 		/// </summary>
 		private float[] _audioSamples;
-		private AudioClip _audioCLip;
 		private GameObject _audioSource;
 		private AudioSource _audioSourceComp;
 
-		/// <summary>
-		/// DetailGui
-		/// </summary>
-		private static string[] _soundOutTypeStrings = {
+		private static readonly string[] SoundOutTypeStrings = {
 			"Table",
 			"Backglass",
 		};
-		private static byte[] _soundOutTypeValues = {
+		private static readonly byte[] SoundOutTypeValues = {
 			SoundOutTypes.Table,
 			SoundOutTypes.Backglass,
 		};
-
-
 
 		[MenuItem("Visual Pinball/Sound Manager", false, 404)]
 		public static void ShowWindow()
@@ -106,8 +95,9 @@ namespace VisualPinball.Unity.Editor
 		private void InitAudioSource()
 		{
 			if (_audioSource == null) {
-				_audioSource = new GameObject("SoundManager AudioSource");
-				_audioSource.hideFlags = HideFlags.HideAndDontSave;
+				_audioSource = new GameObject("SoundManager AudioSource") {
+					hideFlags = HideFlags.HideAndDontSave
+				};
 				_audioSource.AddComponent<AudioSource>();
 				_audioSourceComp = _audioSource.GetComponent<AudioSource>();
 			}
@@ -132,7 +122,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnDisable()
 		{
-			GameObject.DestroyImmediate(_audioSource);
+			DestroyImmediate(_audioSource);
 			_audioSource = null;
 			_audioSourceComp = null;
 			SceneView.duringSceneGui -= OnSceneGUI;
@@ -143,30 +133,38 @@ namespace VisualPinball.Unity.Editor
 		{
 			InitAudioSource();
 
-			DropDownField("Output Target", ref _selectedItem.SoundData.OutputTarget, _soundOutTypeStrings, _soundOutTypeValues);
-			SliderField("Volume", ref _selectedItem.SoundData.Volume, -100, 100);
-			SliderField("Balance", ref _selectedItem.SoundData.Balance, -100, 100);
-			SliderField("Fade (Rear->Front)", ref _selectedItem.SoundData.Fade, -100, 100);
+			DropDownField("Output Target", ref _selectedItem.LegacySound.OutputTarget, SoundOutTypeStrings, SoundOutTypeValues);
+			SliderField("Volume", ref _selectedItem.LegacySound.Volume, -100, 100);
+			SliderField("Balance", ref _selectedItem.LegacySound.Balance, -100, 100);
+			SliderField("Fade (Rear->Front)", ref _selectedItem.LegacySound.Fade, -100, 100);
 
 			EditorGUILayout.Space();
-			var wfx = _selectedItem.SoundData.Wfx;
-			GUILayout.Label($"Length : {_audioCLip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
+			var wfx = _selectedItem.LegacySound.Wfx;
+			if (_selectedItem.LegacySound.AudioClip != null) {
+				GUILayout.Label($"Length : {_selectedItem.LegacySound.AudioClip.length} s,  Channels : {wfx.Channels}, BPS : {wfx.BitsPerSample}, Freq : {wfx.SamplesPerSec}");
 
-			if (GUILayout.Button(new GUIContent() { image = EditorGUIUtility.IconContent("PlayButton").image })) {
-				_audioSource.transform.position = _selectedSoundPos;
-				_audioSourceComp.volume = (_selectedItem.SoundData.Volume + 100) / 200.0f;
-				_audioSourceComp.panStereo = _selectedItem.SoundData.Balance / 100.0f;
-				_audioSourceComp.clip = _audioCLip;
-				_audioSourceComp.Play();
+				if (GUILayout.Button(new GUIContent() { image = EditorGUIUtility.IconContent("PlayButton").image })) {
+					_audioSource.transform.position = _selectedSoundPos;
+					_audioSourceComp.volume = (_selectedItem.LegacySound.Volume + 100) / 200.0f;
+					_audioSourceComp.panStereo = _selectedItem.LegacySound.Balance / 100.0f;
+					_audioSourceComp.clip = _selectedItem.LegacySound.AudioClip;
+					_audioSourceComp.Play();
+				}
+
+				EditorGUILayout.Space();
+				Rect curveRect = GUILayoutUtility.GetLastRect();
+				curveRect.x += 10.0f;
+				curveRect.y += curveRect.height;
+				curveRect.width -= 20.0f;
+				curveRect.height = 100.0f;
+				Rect r = AudioCurveRendering.BeginCurveFrame(curveRect);
+				AudioCurveRendering.DrawCurve(r, x => _audioSamples[(int)((_audioSamples.Length - 1) * x + 0.5f)], Color.green);
+				AudioCurveRendering.EndCurveFrame();
+
+			} else {
+				_selectedItem.LegacySound.AudioClip = (AudioClip)EditorGUILayout.ObjectField(_selectedItem.LegacySound.AudioClip, typeof(AudioClip), false);
 			}
-			Rect curveRect = GUILayoutUtility.GetLastRect();
-			curveRect.x += 10.0f;
-			curveRect.y += curveRect.height;
-			curveRect.width -= 20.0f;
-			curveRect.height = 100.0f;
-			Rect r = AudioCurveRendering.BeginCurveFrame(curveRect);
-			AudioCurveRendering.DrawCurve(r, x => _audioSamples[(int)(((_audioSamples.Length - 1) * x) + 0.5f)], Color.green);
-			AudioCurveRendering.EndCurveFrame();
+
 		}
 
 		private void OnFocus()
@@ -197,25 +195,20 @@ namespace VisualPinball.Unity.Editor
 				if (_audioSource != null && _audioSourceComp.isPlaying) {
 					_audioSourceComp.Stop();
 				}
-				_audioCLip = AudioClip.Create(_selectedItem.Name, _selectedItem.SoundData.Data.Length * 8 / _selectedItem.SoundData.Wfx.BitsPerSample, _selectedItem.SoundData.Wfx.Channels, (int)_selectedItem.SoundData.Wfx.SamplesPerSec, false);
-				_audioSamples = _selectedItem.SoundData.ToFloats();
-				if (_audioSamples != null && _audioSamples.Length > 0) {
-					_audioCLip.SetData(_audioSamples, 0);
+				if (_selectedItem.LegacySound.AudioClip) {
+					_audioSamples = new float[_selectedItem.LegacySound.AudioClip.samples * _selectedItem.LegacySound.AudioClip.channels];
+					_selectedItem.LegacySound.AudioClip.GetData(_audioSamples, 0);
 				}
 			}
 		}
 
-
-		private bool _shouldDisplaySoundPosition => (	_tableAuthoring != null &&
-														Event.current.type == EventType.Repaint &&
-														(EditorWindow.focusedWindow == this || (EditorWindow.focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)) &&
-														_displaySoundPosition &&
-														_selectedItem != null &&
-														_selectedItem.SoundData.OutputTarget == SoundOutTypes.Table);
+		private bool ShouldDisplaySoundPosition => _tableAuthoring != null && Event.current.type == EventType.Repaint
+		     && (focusedWindow == this || focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)
+		     && _displaySoundPosition && _selectedItem != null && _selectedItem.LegacySound.OutputTarget == SoundOutTypes.Table;
 
 
 		//Draw the sound position based on Balance/Fade data
-		private void RenderSound(SoundData data, bool selected)
+		private void RenderSound(LegacySound data, bool selected)
 		{
 			var sndPos = _tableCenter;
 			sndPos.x += _tableSize.x * 0.5f * data.Balance.PercentageToRatio();
@@ -229,7 +222,7 @@ namespace VisualPinball.Unity.Editor
 
 			//Volume goes from -100 to 100 -> ratio
 			var sphereSizeRatio = (data.Volume + 100) * 0.005f;
-			var sphereSize = (sphereSizeRatio * (maxSphereSize - minSphereSize));
+			var sphereSize = sphereSizeRatio * (maxSphereSize - minSphereSize);
 			col.a = 0.05f;
 			Handles.color = col;
 			Handles.DrawSolidDisc(sndPos, Vector3.up, sphereSize);
@@ -241,28 +234,29 @@ namespace VisualPinball.Unity.Editor
 
 			if (selected) {
 				_selectedSoundPos = sndPos;
-				_selectedSoundSize = sphereSize;
 			}
 		}
 
 		private void OnSceneGUI(SceneView sceneView)
 		{
-			if (_tableAuthoring == null) return;
+			if (_tableAuthoring == null || _selectedItem == null) {
+				return;
+			}
 
 			var bb = _tableAuthoring.Item.BoundingBox;
-			var sndData = _selectedItem.SoundData;
+			var sndData = _selectedItem.LegacySound;
 			_tableCenter = new Vector3((bb.Right - bb.Left) * 0.5f, (bb.Bottom - bb.Top) * 0.5f, (bb.ZHigh - bb.ZLow) * 0.5f);
 			_tableCenter = _tableAuthoring.gameObject.transform.TransformPoint(_tableCenter);
 			_tableSize = new Vector3(bb.Width, bb.Height, bb.Depth);
 			_tableSize = _tableAuthoring.gameObject.transform.TransformVector(_tableSize);
 
-			if (_shouldDisplaySoundPosition) {
+			if (ShouldDisplaySoundPosition) {
 				if (_displayAllSounds) {
-					// foreach (var snd in _tableAuthoring.Sounds) {
-					// 	if (snd.Data != sndData) {
-					// 		RenderSound(snd.Data, false);
-					// 	}
-					// }
+					foreach (var snd in _tableAuthoring.LegacyContainer.Sounds) {
+						if (snd != sndData) {
+							RenderSound(snd, false);
+						}
+					}
 				}
 
 				RenderSound(sndData, true);
@@ -281,66 +275,24 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected override void OnDataChanged(string undoName, SoundListData data)
-		{
-			OnDataChanged(undoName, data.SoundData);
-		}
-
-		private void OnDataChanged(string undoName, SoundData data)
-		{
-			RecordUndo(undoName, data);
-		}
-
-		private void RecordUndo(string undoName, SoundData data)
-		{
-			// if (_tableAuthoring == null) { return; }
-			//
-			// // Run over table's sound scriptable object wrappers to find the one being edited and add to the undo stack
-			// foreach (var tableTex in _tableAuthoring.Sounds.SerializedObjects) {
-			// 	if (tableTex.Data == data) {
-			// 		Undo.RecordObject(tableTex, undoName);
-			// 		break;
-			// 	}
-			// }
-		}
-
 		protected override void AddNewData(string undoName, string newName)
 		{
-			// Undo.RecordObject(_tableAuthoring, undoName);
-			//
-			// var newSnd = new Sound(newName);
-			// _tableAuthoring.Sounds.Add(newSnd);
-			// _tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
+			Undo.RecordObject(_tableAuthoring, undoName);
+			_tableAuthoring.LegacyContainer.Sounds.Add(new LegacySound());
 		}
 
 		protected override void RemoveData(string undoName, SoundListData data)
 		{
-			// Undo.RecordObject(_tableAuthoring, undoName);
-			//
-			// _tableAuthoring.Sounds.Remove(data.Name);
-			// _tableAuthoring.Item.Data.NumSounds = _tableAuthoring.Sounds.Count;
-		}
-
-		protected override void RenameExistingItem(SoundListData data, string newName)
-		{
-			string oldName = data.SoundData.Name;
-
-			// give each editable item a chance to update its fields
-			string undoName = "Rename Sound";
-			RecordUndo(undoName, data.SoundData);
-
-			data.SoundData.Name = newName;
+			Undo.RecordObject(_tableAuthoring, undoName);
+			_tableAuthoring.LegacyContainer.Sounds.Remove(data.LegacySound);
 		}
 
 		protected override List<SoundListData> CollectData()
 		{
-			List<SoundListData> data = new List<SoundListData>();
-			//
-			// foreach (var snd in _tableAuthoring.Sounds) {
-			// 	var sndData = snd.Data;
-			// 	data.Add(new SoundListData { SoundData = sndData });
-			// }
-			//
+			var data = new List<SoundListData>();
+			foreach (var s in _tableAuthoring.LegacyContainer.Sounds) {
+				data.Add(new SoundListData(s));
+			}
 			return data;
 		}
 	}

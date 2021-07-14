@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Sound;
@@ -23,49 +22,6 @@ namespace VisualPinball.Unity
 {
 	public static class SoundExtensions
 	{
-		/// <summary>
-		/// Convert SoundData samples to -1.0/1.0 range floats
-		/// </summary>
-		/// <param name="sndData"></param>
-		/// <returns></returns>
-		public static float[] ToFloats(this SoundData sndData)
-		{
-			var wfx = sndData.Wfx;
-			var samples = new List<float>();
-
-			switch (wfx.BitsPerSample) {
-				case 8: {
-					foreach (var data in sndData.Data) {
-						samples.Add((data - 128) / 128.0f);
-					}
-					break;
-				}
-
-				case 16: {
-					for (var i = 0; i < sndData.Data.Length; i += 2) {
-						var data2 = sndData.Data[i + 1];
-						var sndVal = sndData.Data[i] | (data2 < 128 ? (data2 << 8) : ((data2 - 256) << 8));
-						samples.Add(sndVal / 32768.0f);
-					}
-					break;
-				}
-
-				case 24: {
-					for (var i = 0; i < sndData.Data.Length; i += 3) {
-						var data3 = sndData.Data[i + 2];
-						var sndVal = sndData.Data[i] | (sndData.Data[i + 1] << 8) | (data3 < 128 ? (data3 << 16) : ((data3 - 256) << 16));
-						samples.Add(sndVal / 8388608.0f);
-					}
-					break;
-				}
-
-				default:
-					break;
-			}
-
-			return samples.ToArray();
-		}
-
 		public static string GetUnityFilename(this Sound vpSound, string folderName = null)
 		{
 			var fileName = vpSound.Name.ToNormalizedName() + vpSound.FileExtension;
