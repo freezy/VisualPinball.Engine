@@ -60,8 +60,10 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 			data.Scatter.Should().Be(4.98f);
 			data.Surface.Should().Be("");
 
+			#if !WRITE_VP106 && !WRITE_VP107
 			data.Angle.Should().Be(65.5f);
 			data.Speed.Should().Be(5.8f);
+			#endif
 		}
 	}
 }
