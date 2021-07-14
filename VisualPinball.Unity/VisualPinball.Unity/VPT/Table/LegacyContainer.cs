@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using Texture = UnityEngine.Texture;
@@ -35,13 +40,87 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyContainer
 	{
-		public DecalData[] decals;
-		public DispReelData[] dispReels;
-		public FlasherData[] flashers;
-		public LightSeqData[] lightSeqs;
-		public TextBoxData[] textBoxes;
-		public TimerData[] timers;
-		public List<LegacyTexture> textures = new List<LegacyTexture>();
+		public DecalData[] Decals;
+		public DispReelData[] DispReels;
+		public FlasherData[] Flashers;
+		public LightSeqData[] LightSeqs;
+		public TextBoxData[] TextBoxes;
+		public TimerData[] Timers;
+		public List<LegacyTexture> Textures = new List<LegacyTexture>();
+		public List<LegacySound> Sounds = new List<LegacySound>();
+	}
+
+	[Serializable]
+	public class LegacySound
+	{
+		public string Name => AudioClip == null ? "<unset>" : AudioClip.name;
+		public string InternalName;
+		public string Path;
+		public WaveFormat Wfx;
+		public byte OutputTarget;
+		public int Volume;
+		public int Balance;
+		public int Fade;
+
+		public AudioClip AudioClip;
+
+		public bool IsSet => AudioClip != null;
+
+		public LegacySound()
+		{
+		}
+
+		public LegacySound(SoundData data, AudioClip audioClip)
+		{
+			AudioClip = audioClip;
+			InternalName = data.InternalName;
+			Path = data.Path;
+			Wfx = data.Wfx;
+			OutputTarget = data.OutputTarget;
+			Volume = data.Volume;
+			Balance = data.Balance;
+			Fade = data.Fade;
+		}
+
+		public LegacySound(AudioClip audioClip)
+		{
+			AudioClip = audioClip;
+			InternalName = audioClip.name;
+		}
+
+		public Sound ToSound()
+		{
+			if (AudioClip == null) {
+				throw new InvalidOperationException("Cannot convert to sound without audio clip!");
+			}
+			var data = new SoundData(AudioClip.name) {
+				InternalName = InternalName,
+				Path = Path,
+				Wfx = Wfx,
+				OutputTarget = OutputTarget,
+				Volume = Volume,
+				Balance = Balance,
+				Fade = Fade
+			};
+			data.Wfx.FormatTag = 1;
+			data.Wfx.Channels = (ushort)(AudioClip.channels == 2 ? 2 : 1);
+			data.Wfx.SamplesPerSec = (uint)AudioClip.frequency;
+			data.Wfx.BitsPerSample = 16;
+			data.Wfx.BlockAlign = (ushort)(data.Wfx.BitsPerSample / 8 * data.Wfx.Channels);
+			data.Wfx.AvgBytesPerSec = data.Wfx.SamplesPerSec * data.Wfx.BlockAlign;
+
+			#if UNITY_EDITOR
+			var path = UnityEditor.AssetDatabase.GetAssetPath(AudioClip);
+			if (!string.IsNullOrEmpty(path)) {
+				var bytes = File.ReadAllBytes(path);
+				data.Data = path.ToLower().EndsWith(".wav")
+					? bytes.Skip(44).ToArray()
+					: bytes;
+			}
+			#endif
+
+			return new Sound(data);
+		}
 	}
 
 	[Serializable]

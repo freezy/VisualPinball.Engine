@@ -23,7 +23,6 @@ using VisualPinball.Engine.Test.VPT.Collection;
 using VisualPinball.Engine.Test.VPT.Decal;
 using VisualPinball.Engine.Test.VPT.DispReel;
 using VisualPinball.Engine.Test.VPT.Flasher;
-using VisualPinball.Engine.Test.VPT.Light;
 using VisualPinball.Engine.Test.VPT.LightSeq;
 using VisualPinball.Engine.Test.VPT.TextBox;
 using VisualPinball.Engine.Test.VPT.Timer;
@@ -143,7 +142,5 @@ namespace VisualPinball.Unity.Test
 			File.Delete(tmpFileName);
 			Object.DestroyImmediate(go);
 		}
-
-
 	}
 }

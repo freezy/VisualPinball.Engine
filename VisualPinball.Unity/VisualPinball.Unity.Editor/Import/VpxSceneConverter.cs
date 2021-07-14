@@ -137,8 +137,7 @@ namespace VisualPinball.Unity.Editor
 
 			ExtractPhysicsMaterials();
 			ExtractTextures();
-
-			//ExtractSounds();
+			ExtractSounds();
 
 			try {
 				// pause asset database refreshing
@@ -174,12 +173,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void SaveLegacyData()
 		{
-			_tableAuthoring.LegacyContainer.decals = _tableContainer.GetAllData<Decal, DecalData>();
-			_tableAuthoring.LegacyContainer.dispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
-			_tableAuthoring.LegacyContainer.flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
-			_tableAuthoring.LegacyContainer.lightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
-			_tableAuthoring.LegacyContainer.textBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
-			_tableAuthoring.LegacyContainer.timers = _tableContainer.GetAllData<Timer, TimerData>();
+			_tableAuthoring.LegacyContainer.Decals = _tableContainer.GetAllData<Decal, DecalData>();
+			_tableAuthoring.LegacyContainer.DispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
+			_tableAuthoring.LegacyContainer.Flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
+			_tableAuthoring.LegacyContainer.LightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
+			_tableAuthoring.LegacyContainer.TextBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
+			_tableAuthoring.LegacyContainer.Timers = _tableContainer.GetAllData<Timer, TimerData>();
 		}
 
 		private void ConvertGameItems()
@@ -403,7 +402,7 @@ namespace VisualPinball.Unity.Editor
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
 					: AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 				_textures[texture.Name.ToLower()] = unityTexture;
-				_tableAuthoring.LegacyContainer.textures.Add(new LegacyTexture(texture.Data, unityTexture));
+				_tableAuthoring.LegacyContainer.Textures.Add(new LegacyTexture(texture.Data, unityTexture));
 			}
 
 			// todo lazy load and don't import local textures once they are in the prefabs
@@ -428,15 +427,21 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				foreach (var sound in _tableContainer.Sounds) {
-					var fileName = Path.GetFileName(sound.Data.Path).ToNormalizedName();
-					var path = $"{_assetsSounds}/{fileName}";
+					var path = sound.GetUnityFilename(_assetsSounds);
 					File.WriteAllBytes(path, sound.Data.GetWavData());
+					sound.Data.Path = path;
 				}
 
 			} finally {
 				// resume asset database refreshing
 				AssetDatabase.StopAssetEditing();
 				AssetDatabase.Refresh();
+			}
+
+			// now they are in the asset database, we can load them.
+			foreach (var sound in _tableContainer.Sounds) {
+				var unitySound = AssetDatabase.LoadAssetAtPath<AudioClip>(sound.Data.Path);
+				_tableAuthoring.LegacyContainer.Sounds.Add(new LegacySound(sound.Data, unitySound));
 			}
 		}
 
