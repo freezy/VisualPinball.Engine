@@ -46,10 +46,12 @@ namespace VisualPinball.Unity
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 
-		public override IEnumerable<Texture> Textures => _tableAuthoring.LegacyContainer.textures
+		public override IEnumerable<Texture> Textures => _tableAuthoring.LegacyContainer.Textures
 			.Where(texture => texture.IsSet)
 			.Select(texture => texture.ToTexture());
-		public override IEnumerable<Sound> Sounds => RetrieveSounds();
+		public override IEnumerable<Sound> Sounds => _tableAuthoring.LegacyContainer.Sounds
+			.Where(sound => sound.IsSet)
+			.Select(sound => sound.ToSound());
 
 		public const int ChildObjectsLayer = 16;
 
@@ -102,22 +104,22 @@ namespace VisualPinball.Unity
 		private void PrepareForExport()
 		{
 			// fetch legacy items from container (because they are not in the scene)
-			foreach (var decal in _tableAuthoring.LegacyContainer.decals) {
+			foreach (var decal in _tableAuthoring.LegacyContainer.Decals) {
 				_decals.Add(new Decal(decal));
 			}
-			foreach (var dispReel in _tableAuthoring.LegacyContainer.dispReels) {
+			foreach (var dispReel in _tableAuthoring.LegacyContainer.DispReels) {
 				_dispReels[dispReel.Name] = new DispReel(dispReel);
 			}
-			foreach (var flasher in _tableAuthoring.LegacyContainer.flashers) {
+			foreach (var flasher in _tableAuthoring.LegacyContainer.Flashers) {
 				_flashers[flasher.Name] = new Flasher(flasher);
 			}
-			foreach (var lightSeq in _tableAuthoring.LegacyContainer.lightSeqs) {
+			foreach (var lightSeq in _tableAuthoring.LegacyContainer.LightSeqs) {
 				_lightSeqs[lightSeq.Name] = new LightSeq(lightSeq);
 			}
-			foreach (var textBox in _tableAuthoring.LegacyContainer.textBoxes) {
+			foreach (var textBox in _tableAuthoring.LegacyContainer.TextBoxes) {
 				_textBoxes[textBox.Name] = new TextBox(textBox);
 			}
-			foreach (var timer in _tableAuthoring.LegacyContainer.timers) {
+			foreach (var timer in _tableAuthoring.LegacyContainer.Timers) {
 				_timers[timer.Name] = new Timer(timer);
 			}
 
@@ -125,8 +127,8 @@ namespace VisualPinball.Unity
 			Table.Data.NumCollections = Collections.Count;
 			Table.Data.NumFonts = 0;                     // todo handle fonts
 			Table.Data.NumGameItems = RecomputeGameItemStorageIDs();
-			Table.Data.NumTextures = _tableAuthoring.LegacyContainer.textures.Count(t => t.IsSet);
-			Table.Data.NumSounds = 0; // todo
+			Table.Data.NumTextures = _tableAuthoring.LegacyContainer.Textures.Count(t => t.IsSet);
+			Table.Data.NumSounds = _tableAuthoring.LegacyContainer.Sounds.Count(t => t.IsSet);
 
 			// update texture references
 			WalkChildren(_tableAuthoring.transform, SetTextureReference);

@@ -171,7 +171,11 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			data.NudgeTime.Should().Be(6.2931f);
 			data.NumCollections.Should().Be(0);
 			data.NumFonts.Should().Be(0);
+			#if !WRITE_VP106 && !WRITE_VP107
+			data.NumGameItems.Should().Be(2);
+			#else
 			data.NumGameItems.Should().Be(1);
+			#endif
 			data.NumMaterials.Should().Be(1);
 			data.NumSounds.Should().Be(0);
 			data.NumTextures.Should().Be(1);

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.IO;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Sound;
 
 namespace VisualPinball.Unity
@@ -62,6 +64,14 @@ namespace VisualPinball.Unity
 			}
 
 			return samples.ToArray();
+		}
+
+		public static string GetUnityFilename(this Sound vpSound, string folderName = null)
+		{
+			var fileName = vpSound.Name.ToNormalizedName() + vpSound.FileExtension;
+			return folderName != null
+				? Path.Combine(folderName, fileName)
+				: fileName;
 		}
 	}
 }

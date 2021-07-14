@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 			// collect list of in use textures
 			var inUseTextures = new HashSet<string>(GetReferenced().Select(AssetDatabase.GetAssetPath));
 
-			foreach (var t in _tableAuthoring.LegacyContainer.textures) {
+			foreach (var t in _tableAuthoring.LegacyContainer.Textures) {
 				var inUse = false;
 				if (t.Texture != null) {
 					inUse = inUseTextures.Contains(AssetDatabase.GetAssetPath(t.Texture));
@@ -94,12 +94,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void AddReferenced()
 		{
-			var inList = new HashSet<string>(_tableAuthoring.LegacyContainer.textures.Select(t => AssetDatabase.GetAssetPath(t.Texture)));
+			var inList = new HashSet<string>(_tableAuthoring.LegacyContainer.Textures.Select(t => AssetDatabase.GetAssetPath(t.Texture)));
 
 			Undo.RecordObject(_tableAuthoring, "Add referenced textures");
 			foreach (var refTexture in GetReferenced()) {
 				if (!inList.Contains(AssetDatabase.GetAssetPath(refTexture))) {
-					_tableAuthoring.LegacyContainer.textures.Add(new LegacyTexture(refTexture));
+					_tableAuthoring.LegacyContainer.Textures.Add(new LegacyTexture(refTexture));
 				}
 			}
 			Reload();
@@ -123,13 +123,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName) {
 			Undo.RecordObject(_tableAuthoring, undoName);
-			_tableAuthoring.LegacyContainer.textures.Add(new LegacyTexture());
+			_tableAuthoring.LegacyContainer.Textures.Add(new LegacyTexture());
 		}
 
 		protected override void RemoveData(string undoName, ImageListData data)
 		{
 			Undo.RecordObject(_tableAuthoring, undoName);
-			_tableAuthoring.LegacyContainer.textures.Remove(data.LegacyTexture);
+			_tableAuthoring.LegacyContainer.Textures.Remove(data.LegacyTexture);
 		}
 	}
 }
