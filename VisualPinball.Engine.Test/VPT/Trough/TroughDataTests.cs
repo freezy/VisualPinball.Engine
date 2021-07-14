@@ -26,6 +26,8 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 {
 	public class TroughDataTests
 	{
+		#if !WRITE_VP106 && !WRITE_VP107
+
 		[Test]
 		public void ShouldReadTroughData()
 		{
@@ -56,5 +58,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 			data.PlayfieldEntrySwitch.Should().Be("BallDrain");
 			data.PlayfieldExitKicker.Should().Be("BallRelease");
 		}
+
+		#endif
 	}
 }

@@ -36,17 +36,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		public void ShouldReadTableInfo()
 		{
 			var table = FileTableContainer.Load(VpxPath.Table);
-
-			table.InfoAuthorEmail.Should().Be("test@vpdb.io");
-			table.InfoAuthorName.Should().Be("Table Author");
-			table.InfoAuthorWebsite.Should().Be("https://vpdb.io");
-			table.InfoReleaseDate.Should().Be("2019-04-14");
-			table.InfoBlurb.Should().Be("Short Blurb");
-			table.InfoDescription.Should().Be("Description");
-			table.InfoName.Should().Be("Table Name");
-			table.InfoRules.Should().Be("Rules");
-			table.InfoVersion.Should().Be("Version");
-			table.TableInfo["customdata1"].Should().Be("customvalue1");
+			ValidateTableInfo(table);
 		}
 
 		[Test]
@@ -78,7 +68,21 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			table.CustomInfoTags.TagNames[1].Should().Be("foo");
 		}
 
-		private static void ValidateTableData(TableData data)
+		public static void ValidateTableInfo(FileTableContainer table)
+		{
+			table.InfoAuthorEmail.Should().Be("test@vpdb.io");
+			table.InfoAuthorName.Should().Be("Table Author");
+			table.InfoAuthorWebsite.Should().Be("https://vpdb.io");
+			table.InfoReleaseDate.Should().Be("2019-04-14");
+			table.InfoBlurb.Should().Be("Short Blurb");
+			table.InfoDescription.Should().Be("Description");
+			table.InfoName.Should().Be("Table Name");
+			table.InfoRules.Should().Be("Rules");
+			table.InfoVersion.Should().Be("Version");
+			table.TableInfo["customdata1"].Should().Be("customvalue1");
+		}
+
+		public static void ValidateTableData(TableData data)
 		{
 			data.AngleTiltMax.Should().Be(0.60606f);
 			data.AngleTiltMin.Should().Be(0.2033f);
@@ -124,7 +128,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			data.BgOffsetZ[BackglassIndex.FullSingleScreen].Should().Be(-50.223f);
 			data.BloomStrength.Should().Be(1.5055f);
 			data.Bottom.Should().Be(2224);
-			data.Code.Should().Be("Option Explicit\r\n");
+			data.Code.Trim().Should().Be("Option Explicit");
 			data.ColorBackdrop.Red.Should().Be(31);
 			data.ColorBackdrop.Green.Should().Be(32);
 			data.ColorBackdrop.Blue.Should().Be(33);

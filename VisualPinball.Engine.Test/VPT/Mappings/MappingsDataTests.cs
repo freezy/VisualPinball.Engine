@@ -24,6 +24,8 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Mappings
 {
+	#if !WRITE_VP106 && !WRITE_VP107
+
 	public class MappingsDataTests
 	{
 		[Test]
@@ -147,4 +149,5 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Wires[1].PulseDelay.Should().Be(200);
 		}
 	}
+	#endif
 }
