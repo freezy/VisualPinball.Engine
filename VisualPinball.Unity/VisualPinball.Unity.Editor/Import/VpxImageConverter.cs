@@ -22,16 +22,19 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class VpxImageConverter
 	{
-		public static void WriteAsAsset(this Texture texture, string folder)
+		public static void WriteAsAsset(this Texture texture, string folder, bool skipIfExists)
 		{
+			var path = texture.GetUnityFilename(folder);
+			if (skipIfExists && File.Exists(folder)) {
+				return;
+			}
+
 			// convert if bmp
 			if (texture.ConvertToPng) {
-				var path = texture.GetUnityFilename(folder);
 				using var im = texture.GetImage();
 				im.Pngsave(path);
 
 			} else { // might need to convert other formats like webp
-				var path = texture.GetUnityFilename(folder);
 				File.WriteAllBytes(path, texture.Content);
 			}
 		}
