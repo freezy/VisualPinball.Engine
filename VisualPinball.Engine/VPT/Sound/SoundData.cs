@@ -40,6 +40,8 @@ namespace VisualPinball.Engine.VPT.Sound
 		public int Balance;
 		public int Fade;
 
+		public bool IsWav => Path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase);
+
 		public SoundData(string name) : base(IO.StoragePrefix.Sound)
 		{
 			Name = name;
@@ -54,11 +56,13 @@ namespace VisualPinball.Engine.VPT.Sound
 			Load(reader, fileVersion);
 		}
 
-		public byte[] GetWavData()
+		public byte[] GetFileData()
 		{
 			using (var stream = new MemoryStream())
 			using (var writer = new BinaryWriter(stream)) {
-				WriteHeader(writer);
+				if (IsWav) {
+					WriteHeader(writer);
+				}
 				writer.Write(Data);
 				return stream.ToArray();
 			}
@@ -109,7 +113,11 @@ namespace VisualPinball.Engine.VPT.Sound
 						len = reader.ReadInt32();
 						InternalName = Encoding.Default.GetString(reader.ReadBytes(len));
 						break;
-					case 3: Wfx = new WaveFormat(reader); break;
+					case 3:
+						if (IsWav) {
+							Wfx = new WaveFormat(reader);
+						}
+						break;
 					case 4:
 						len = reader.ReadInt32();
 						Data = reader.ReadBytes(len);

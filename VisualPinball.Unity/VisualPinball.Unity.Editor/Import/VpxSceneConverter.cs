@@ -444,7 +444,7 @@ namespace VisualPinball.Unity.Editor
 					if (_options.SkipExistingSounds && File.Exists(path)) {
 						continue;
 					}
-					File.WriteAllBytes(path, sound.Data.GetWavData());
+					File.WriteAllBytes(path, sound.Data.GetFileData());
 					sound.Data.Path = path;
 				}
 
