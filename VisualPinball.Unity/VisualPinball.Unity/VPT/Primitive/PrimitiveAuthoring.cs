@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
@@ -90,7 +91,7 @@ namespace VisualPinball.Unity
 			var meshGo = meshAuth ? meshAuth.gameObject : gameObject;
 			var mf = meshGo.GetComponent<MeshFilter>();
 			if (mf) {
-				mf.sharedMesh.ApplyToVpMesh(Data.Mesh);
+				Data.Mesh = mf.sharedMesh.ToVpMesh();
 			}
 		}
 
