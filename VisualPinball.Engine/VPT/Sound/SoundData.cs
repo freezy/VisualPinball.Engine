@@ -142,7 +142,9 @@ namespace VisualPinball.Engine.VPT.Sound
 			writer.Write(Encoding.Default.GetBytes(InternalName).Length);
 			writer.Write(Encoding.Default.GetBytes(InternalName));
 
-			Wfx.Write(writer);
+			if (IsWav) {
+				Wfx.Write(writer);
+			}
 
 			writer.Write(Data.Length);
 			writer.Write(Data);
