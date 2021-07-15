@@ -109,6 +109,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			var referenced = new HashSet<Texture>();
 			foreach (var mr in _tableAuthoring.GetComponentsInChildren<MeshRenderer>()) {
+				if (!mr.sharedMaterial) {
+					continue;
+				}
 				var mainTex = mr.sharedMaterial.mainTexture;
 				var normalTex = mr.sharedMaterial.GetTexture(RenderPipeline.Current.MaterialConverter.NormalMapProperty);
 				if (mainTex != null && !referenced.Contains(mainTex)) {
