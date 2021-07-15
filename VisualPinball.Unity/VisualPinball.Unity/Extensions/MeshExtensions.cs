@@ -27,8 +27,9 @@ namespace VisualPinball.Unity
 
 		public static Mesh ToVpMesh(this UnityEngine.Mesh unityMesh)
 		{
-			var vpMesh = new Mesh(unityMesh.name);
-			vpMesh.Vertices = new Vertex3DNoTex2[unityMesh.vertexCount];
+			var vpMesh = new Mesh(unityMesh.name) {
+				Vertices = new Vertex3DNoTex2[unityMesh.vertexCount]
+			};
 			var unityVertices = unityMesh.vertices;
 			var unityNormals = unityMesh.normals;
 
@@ -79,26 +80,6 @@ namespace VisualPinball.Unity
 			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
 			vpMesh.ApplyToUnityMesh(mesh);
 			return mesh;
-		}
-
-		public static void ApplyToVpMesh(this UnityEngine.Mesh mesh, Mesh vpMesh)
-		{
-			var vertices = mesh.vertices;
-			var normals = mesh.normals;
-			var uv = mesh.uv;
-			var triangles = mesh.triangles;
-			vpMesh.Vertices = new Vertex3DNoTex2[vertices.Length];
-			for (var i = 0; i < vertices.Length; i++) {
-				vpMesh.Vertices[i] = new Vertex3DNoTex2(
-					vertices[i].x, vertices[i].y, vertices[i].z,
-					normals[i].x, normals[i].y, normals[i].z,
-					uv[i].x, -uv[i].y
-				);
-			}
-			vpMesh.Indices = new int[triangles.Length];
-			for (var i = 0; i < triangles.Length; i++) {
-				vpMesh.Indices[i] = triangles[i];
-			}
 		}
 
 		public static void ApplyToUnityMesh(this Mesh vpMesh, UnityEngine.Mesh mesh)
