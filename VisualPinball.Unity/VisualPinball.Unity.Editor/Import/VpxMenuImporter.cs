@@ -19,9 +19,7 @@
 // ReSharper disable UnusedMember.Global
 
 using System.IO;
-using Codice.Utils;
 using UnityEditor;
-using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
