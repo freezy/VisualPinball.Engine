@@ -503,7 +503,7 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory("Assets/Tables/");
 			}
 
-			var assetsTableRoot = $"Assets/Tables/{_table.Name}/";
+			var assetsTableRoot = $"Assets/Tables/{_tableGo.name}/";
 			if (!Directory.Exists(assetsTableRoot)) {
 				Directory.CreateDirectory(assetsTableRoot);
 			}
@@ -551,13 +551,13 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
-			_tableGo = new GameObject(tableName);
+			_tableGo = new GameObject();
 			_playfieldGo = new GameObject("Playfield");
 			var backglassGo = new GameObject("Backglass");
 			var cabinetGo = new GameObject("Cabinet");
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetItem(_table);
+			_tableAuthoring.SetItem(_table, tableName);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);

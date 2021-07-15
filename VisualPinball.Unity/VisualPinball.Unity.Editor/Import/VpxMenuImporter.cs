@@ -18,6 +18,8 @@
 // ReSharper disable UnusedType.Global
 // ReSharper disable UnusedMember.Global
 
+using System.IO;
+using Codice.Utils;
 using UnityEditor;
 using UnityEngine;
 
@@ -34,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			VpxImportEngine.ImportIntoScene(vpxPath);
+			VpxImportEngine.ImportIntoScene(vpxPath, tableName: Path.GetFileNameWithoutExtension(vpxPath));
 		}
 	}
 }
