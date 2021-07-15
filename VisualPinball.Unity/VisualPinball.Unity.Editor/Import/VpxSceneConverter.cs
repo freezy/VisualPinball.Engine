@@ -56,6 +56,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private readonly FileTableContainer _tableContainer;
 		private readonly Table _table;
+		private readonly ConvertOptions _options;
 
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
@@ -84,12 +85,14 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="tableContainer">Source table container</param>
 		/// <param name="fileName">File name of the file being imported</param>
-		public VpxSceneConverter(FileTableContainer tableContainer, string fileName = "")
+		/// <param name="options">Optional convert options</param>
+		public VpxSceneConverter(FileTableContainer tableContainer, string fileName = "", ConvertOptions options = null)
 		{
 			_tableContainer = tableContainer;
 			_table = tableContainer.Table;
 			_patcher = PatcherManager.GetPatcher();
 			_patcher?.Set(tableContainer, fileName);
+			_options = options ?? new ConvertOptions();
 		}
 
 		/// <summary>
@@ -299,6 +302,9 @@ namespace VisualPinball.Unity.Editor
 					var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
 					var meshFilename = $"{name}{suffix}.mesh";
 					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+					if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
+						continue;
+					}
 					if (File.Exists(meshPath)) {
 						AssetDatabase.DeleteAsset(meshPath);
 					}
@@ -309,7 +315,10 @@ namespace VisualPinball.Unity.Editor
 			if (mfs.Length > 0) {
 				// Make sure the file name is unique, in case an existing Prefab has the same name.
 				var prefabPath = Path.Combine(_assetsPrefabs, $"{name}.prefab");
-				//prefabPath = AssetDatabase.GenerateUniqueAssetPath(prefabPath);
+
+				if (_options.SkipExistingPrefabs && File.Exists(prefabPath)) {
+					return;
+				}
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
 				}
@@ -368,12 +377,16 @@ namespace VisualPinball.Unity.Editor
 
 		private string SavePhysicsMaterial(Engine.VPT.Material material)
 		{
+			var path = $"{_assetsPhysicsMaterials}/{material.Name}.asset";
+			if (_options.SkipExistingMaterials && File.Exists(path)) {
+				return path;
+			}
+
 			var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
 			mat.Elasticity = material.Elasticity;
 			mat.ElasticityFalloff = material.ElasticityFalloff;
 			mat.ScatterAngle = material.ScatterAngle;
 			mat.Friction = material.Friction;
-			var path = $"{_assetsPhysicsMaterials}/{material.Name}.asset";
 			AssetDatabase.CreateAsset(mat, path);
 
 			return path;
@@ -386,7 +399,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				foreach (var texture in _tableContainer.Textures) {
-					texture.WriteAsAsset(_assetsTextures);
+					texture.WriteAsAsset(_assetsTextures, _options.SkipExistingTextures);
 				}
 
 			} finally {
@@ -428,6 +441,9 @@ namespace VisualPinball.Unity.Editor
 
 				foreach (var sound in _tableContainer.Sounds) {
 					var path = sound.GetUnityFilename(_assetsSounds);
+					if (_options.SkipExistingSounds && File.Exists(path)) {
+						continue;
+					}
 					File.WriteAllBytes(path, sound.Data.GetWavData());
 					sound.Data.Path = path;
 				}
@@ -624,9 +640,22 @@ namespace VisualPinball.Unity.Editor
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
 		{
 			_materials[vpxMaterial.Id] = material;
-			AssetDatabase.CreateAsset(material, vpxMaterial.GetUnityFilename(_assetsMaterials));
+			var path = vpxMaterial.GetUnityFilename(_assetsMaterials);
+			if (_options.SkipExistingMaterials && File.Exists(path)) {
+				return;
+			}
+			AssetDatabase.CreateAsset(material, path);
 		}
 
 		#endregion
+
+		public class ConvertOptions
+		{
+			public bool SkipExistingTextures = true;
+			public bool SkipExistingSounds = true;
+			public bool SkipExistingMaterials = true;
+			public bool SkipExistingMeshes = true;
+			public bool SkipExistingPrefabs = true;
+		}
 	}
 }
