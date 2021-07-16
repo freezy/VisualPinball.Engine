@@ -66,9 +66,13 @@ jobs:
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
           customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.Engine;pathFilters:-**/VisualPinball.Engine/Math/Triangulator/** -coverageResultsPath artifacts
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           curl -s https://codecov.io/bash | bash -s - -f ${{ steps.test.outputs.artifactsPath }}/TestProject~-opencov/EditMode/TestCoverageResults_0000.xml
+      - uses: MirrorNG/nunit-reporter@v1.0.11
+        if: always()
+        with:
+          path: ${{ steps.test.outputs.artifactsPath }}/*.xml
+          access-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v2
         if: always()
         with:
