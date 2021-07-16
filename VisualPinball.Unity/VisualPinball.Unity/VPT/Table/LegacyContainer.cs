@@ -132,6 +132,13 @@ namespace VisualPinball.Unity
 		public float AlphaTestValue;
 		public Texture Texture;
 
+		/// <summary>
+		/// As textures are converted (e.g. webp), we convert to png so it can
+		/// be read by Unity, but keep the original file around to save it back
+		/// later. This points to the original file.
+		/// </summary>
+		public string OriginalPath;
+
 		public bool IsSet => Texture != null;
 
 		public LegacyTexture()
