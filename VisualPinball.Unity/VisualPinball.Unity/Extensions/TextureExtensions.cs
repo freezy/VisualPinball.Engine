@@ -32,13 +32,18 @@ namespace VisualPinball.Unity
 			return vpTex.IsHdr ? FromHdrBinary(vpTex) : FromBinary(vpTex);
 		}
 
-		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null)
+		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null, string ext = null)
 		{
 			var fileName = vpTex.Name.ToNormalizedName() + vpTex.FileExtension;
 			return folderName != null
-				? Path.Combine(folderName, fileName)
-				: fileName;
+				? ext == null
+					? Path.Combine(folderName, fileName)
+					: Path.Combine(folderName, Path.GetFileNameWithoutExtension(fileName) + ext)
+				: ext == null
+					? fileName
+					: Path.GetFileNameWithoutExtension(fileName) + ext;
 		}
+
 
 		private static Texture2D FromBinary(Engine.VPT.Texture vpTex)
 		{

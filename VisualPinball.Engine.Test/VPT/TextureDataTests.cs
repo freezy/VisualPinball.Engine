@@ -40,7 +40,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.BmpArgb);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_argb");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -54,7 +53,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.Bmp);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_bmp");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -68,7 +66,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.Exr);
 			texture.Data.Width.Should().Be(587);
 			texture.Data.Height.Should().Be(675);
-			texture.Data.InternalName.Should().Be("test_pattern_exr");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -82,7 +79,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.Hdr);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(512);
-			texture.Data.InternalName.Should().Be("test_pattern_hdr");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -96,7 +92,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.Jpg);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_jpg");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -110,7 +105,6 @@ namespace VisualPinball.Engine.Test.VPT
 			var image = File.ReadAllBytes(TexturePath.Png);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_png");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -125,7 +119,6 @@ namespace VisualPinball.Engine.Test.VPT
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_transparent");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -140,7 +133,6 @@ namespace VisualPinball.Engine.Test.VPT
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_xrgb");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);

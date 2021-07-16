@@ -410,12 +410,16 @@ namespace VisualPinball.Unity.Editor
 
 			// now they are in the asset database, we can load them.
 			foreach (var texture in _tableContainer.Textures) {
-				var path = texture.GetUnityFilename(_assetsTextures);
+				var path = texture.GetUnityFilename(_assetsTextures, texture.IsWebp ? ".png" : null);
 				var unityTexture = texture.IsHdr
-					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path)
+					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path) ?? AssetDatabase.LoadAssetAtPath<Texture2D>(path)
 					: AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 				_textures[texture.Name.ToLower()] = unityTexture;
-				_tableAuthoring.LegacyContainer.Textures.Add(new LegacyTexture(texture.Data, unityTexture));
+				var legacyTexture = new LegacyTexture(texture.Data, unityTexture);
+				if (texture.IsWebp) {
+					legacyTexture.OriginalPath = texture.GetUnityFilename(_assetsTextures);
+				}
+				_tableAuthoring.LegacyContainer.Textures.Add(legacyTexture);
 			}
 
 			// todo lazy load and don't import local textures once they are in the prefabs

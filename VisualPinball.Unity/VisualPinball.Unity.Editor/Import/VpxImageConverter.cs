@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using UnityEngine;
 using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity.Editor
@@ -25,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		public static void WriteAsAsset(this Texture texture, string folder, bool skipIfExists)
 		{
 			var path = texture.GetUnityFilename(folder);
-			if (skipIfExists && File.Exists(folder)) {
+			if (skipIfExists && File.Exists(path)) {
 				return;
 			}
 
@@ -33,6 +32,16 @@ namespace VisualPinball.Unity.Editor
 			if (texture.ConvertToPng) {
 				using var im = texture.GetImage();
 				im.Pngsave(path);
+
+			} else if (texture.IsWebp) {
+				// write both original and png conversion
+				File.WriteAllBytes(path, texture.Content);
+
+				using var im = texture.GetImage();
+				im.Pngsave(Path.Combine(
+					Path.GetDirectoryName(path) ?? "",
+					Path.GetFileNameWithoutExtension(path) + ".png"
+				));
 
 			} else { // might need to convert other formats like webp
 				File.WriteAllBytes(path, texture.Content);

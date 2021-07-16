@@ -43,7 +43,9 @@ namespace VisualPinball.Engine.VPT
 
 		public int Width => Data.Width;
 		public int Height => Data.Height;
-		public bool IsHdr => (Data.Path?.ToLower().EndsWith(".hdr") ?? false) || (Data.Path?.ToLower().EndsWith(".exr") ?? false);
+		public bool IsHdr => (Data.Path?.EndsWith(".hdr", StringComparison.OrdinalIgnoreCase) ?? false)
+		                  || (Data.Path?.EndsWith(".exr", StringComparison.OrdinalIgnoreCase) ?? false);
+		public bool IsWebp => Data.Path?.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ?? false;
 
 		public bool ConvertToPng => Data.Bitmap != null;
 
