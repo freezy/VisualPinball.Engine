@@ -173,7 +173,9 @@ namespace VisualPinball.Unity
 			};
 
 			#if UNITY_EDITOR
-			var path = UnityEditor.AssetDatabase.GetAssetPath(Texture);
+			var path = OriginalPath != null && File.Exists(OriginalPath)
+				? OriginalPath
+				: UnityEditor.AssetDatabase.GetAssetPath(Texture);
 			if (!string.IsNullOrEmpty(path)) {
 				var bytes = File.ReadAllBytes(path);
 				data.Binary = new BinaryData(Texture.name, bytes) {
