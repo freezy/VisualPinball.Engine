@@ -20,6 +20,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -53,14 +54,16 @@ namespace VisualPinball.Unity
 			var tableContainer = FileTableContainer.Load(path, false);
 
 			var job = new GameItemJob(tableContainer.Table.Data.NumGameItems);
-			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, tableContainer.Table.Data.NumGameItems);
+			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, tableContainer.Table.Data.NumGameItems, "GameItem")
+				.Concat(Engine.VPT.Table.TableLoader.ReadGameItems(path, tableContainer.Table.Data.NumVpeGameItems, "VpeGameItem"))
+				.ToArray();
 			for (var i = 0; i < tableContainer.Table.Data.NumGameItems; i++) {
 				job.Data[i] = MemHelper.FromByteArray(gameItems[i]);
 				job.DataLength[i] = gameItems[i].Length;
 			}
 
 			// parse threaded
-			var handle = job.Schedule(tableContainer.Table.Data.NumGameItems, 64);
+			var handle = job.Schedule(tableContainer.Table.Data.NumGameItems + tableContainer.Table.Data.NumVpeGameItems, 64);
 			handle.Complete();
 
 			// update table with results

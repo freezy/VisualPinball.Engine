@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NLog;
 using OpenMcdf;
@@ -40,20 +41,21 @@ namespace VisualPinball.Engine.VPT.Table
 				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
 				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var tableHolder = new FileTableContainer(reader);
+					var tableContainer = new FileTableContainer(reader);
 
-					LoadTableInfo(tableHolder, cf.RootStorage, gameStorage);
+					LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
 					if (loadGameItems) {
-						LoadGameItems(tableHolder, gameStorage);
+						LoadGameItems(tableContainer, gameStorage, tableContainer.NumGameItems, "GameItem");
+						LoadGameItems(tableContainer, gameStorage, tableContainer.NumVpeGameItems, "VpeGameItem");
 					}
-					LoadTextures(tableHolder, gameStorage);
-					LoadSounds(tableHolder, gameStorage, fileVersion);
-					LoadCollections(tableHolder, gameStorage);
-					LoadMappings(tableHolder, gameStorage);
-					LoadTableMeta(tableHolder, gameStorage);
+					LoadTextures(tableContainer, gameStorage);
+					LoadSounds(tableContainer, gameStorage, fileVersion);
+					LoadCollections(tableContainer, gameStorage);
+					LoadMappings(tableContainer, gameStorage);
+					LoadTableMeta(tableContainer, gameStorage);
 
-					tableHolder.Table.SetupPlayfieldMesh();
-					return tableHolder;
+					tableContainer.Table.SetupPlayfieldMesh();
+					return tableContainer;
 				}
 
 			} finally {
@@ -61,14 +63,14 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		public static byte[][] ReadGameItems(string fileName, int numGameItems)
+		public static IEnumerable<byte[]> ReadGameItems(string fileName, int numGameItems, string storagePrefix)
 		{
 			var gameItemData = new byte[numGameItems][];
 			var cf = new CompoundFile(fileName);
 			try {
 				var storage = cf.RootStorage.GetStorage("GameStg");
 				for (var i = 0; i < numGameItems; i++) {
-					var itemName = $"GameItem{i}";
+					var itemName = $"{storagePrefix}{i}";
 					var itemStream = storage.GetStream(itemName);
 					gameItemData[i] = itemStream.GetData();
 				}
@@ -113,17 +115,17 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.TextBox: item = new TextBox.TextBox(reader, itemName); break;
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
-				case ItemType.Trough: item = new Trough.Trough(reader, itemName); break;
+				case ItemType.Trough: item = new Trough.Trough(reader, $"VpeGameItem{storageIndex}"); break;
 				default:
 					Logger.Info("Unhandled item type " + itemType);
 					itemType = ItemType.Invalid; break;
 			}
 		}
 
-		private static void LoadGameItems(FileTableContainer tableContainer, CFStorage storage)
+		private static void LoadGameItems(FileTableContainer tableContainer, CFStorage storage, int count, string storagePrefix)
 		{
-			for (var i = 0; i < tableContainer.NumGameItems; i++) {
-				var itemName = $"GameItem{i}";
+			for (var i = 0; i < count; i++) {
+				var itemName = $"{storagePrefix}{i}";
 				storage.TryGetStream(itemName, out var itemStream);
 				if (itemStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", itemName);

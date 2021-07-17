@@ -106,15 +106,13 @@ namespace VisualPinball.Engine.VPT.Table
 
 			// 2. game items
 			foreach (var gameItem in _tableContainer.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
-
-				#if !WRITE_VP106 && !WRITE_VP107
 				gameItem.WriteData(_gameStorage);
-				#else
-					if (gameItem.IsVpCompatible) {
-						gameItem.WriteData(_gameStorage);
-					}
-				#endif
 			}
+			#if !WRITE_VP106 && !WRITE_VP107
+			foreach (var gameItem in _tableContainer.VpeItemDatas.OrderBy(gi => gi.StorageIndex)) {
+				gameItem.WriteData(_gameStorage);
+			}
+			#endif
 
 			// 3. Collections
 			var collections = _tableContainer.Collections;
