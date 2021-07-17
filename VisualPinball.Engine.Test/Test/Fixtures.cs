@@ -89,6 +89,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string BmpXrgb = PathHelper.GetFixturePath("test_pattern_xrgb.bmp");
 		public static readonly string Jpg = PathHelper.GetFixturePath("test_pattern.jpg");
 		public static readonly string Png = PathHelper.GetFixturePath("test_pattern.png");
+		public static readonly string Webp = PathHelper.GetFixturePath("test_pattern.webp");
 		public static readonly string PngTransparent = PathHelper.GetFixturePath("test_pattern_transparent.png");
 		public static readonly string Hdr = PathHelper.GetFixturePath("test_pattern_hdr.hdr");
 	}
