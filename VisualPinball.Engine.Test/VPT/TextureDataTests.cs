@@ -139,6 +139,19 @@ namespace VisualPinball.Engine.Test.VPT
 		}
 
 		[Test]
+		public void ShouldLoadCorrectWebp()
+		{
+			var texture = _table.GetTexture("test_pattern_webp");
+			var blob = texture.FileContent;
+			var image = File.ReadAllBytes(TexturePath.Webp);
+			texture.Data.Width.Should().Be(1024);
+			texture.Data.Height.Should().Be(768);
+			texture.Data.AlphaTestValue.Should().Be(1.0f);
+			texture.Data.Path.Should().StartWith(@"C:\");
+			blob.Should().Equal(image);
+		}
+
+		[Test]
 		public void ShouldWriteCorrectBinary()
 		{
 			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";

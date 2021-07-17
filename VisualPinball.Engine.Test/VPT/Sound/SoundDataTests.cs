@@ -29,20 +29,33 @@ namespace VisualPinball.Engine.Test.VPT.Sound
 		[Test]
 		public void ShouldReadSoundData()
 		{
-			var th = FileTableContainer.Load(VpxPath.Sound);
-			ValidateSoundData(th.GetSound("fx_bumper3").Data);
+			var tableContainer = FileTableContainer.Load(VpxPath.Sound);
+			ValidateSoundData(tableContainer.GetSound("fx_bumper3").Data);
 		}
 
 		[Test]
 		public void ShouldWriteSoundData()
 		{
 			const string tmpFileName = "ShouldWriteSoundData.vpx";
-			var table = FileTableContainer.Load(VpxPath.Sound);
-			new TableWriter(table).WriteTable(tmpFileName);
+			var tableContainer = FileTableContainer.Load(VpxPath.Sound);
+			new TableWriter(tableContainer).WriteTable(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateSoundData(writtenTable.GetSound("fx_bumper3").Data);
 
 			File.Delete(tmpFileName);
+		}
+
+		[Test]
+		public void ShouldReadMp3Data()
+		{
+			var tableContainer = FileTableContainer.Load(VpxPath.Sound);
+			tableContainer.GetSound("ANMLFarm_Cow moos 5 (ID 2385)_BSB").Data.GetFileData().Should().HaveCountGreaterThan(0);
+		}
+		[Test]
+		public void ShouldReadOggData()
+		{
+			var tableContainer = FileTableContainer.Load(VpxPath.Sound);
+			tableContainer.GetSound("ANMLFarm_Cow moos 3 (ID 2383)_BSB").Data.GetFileData().Should().HaveCountGreaterThan(0);
 		}
 
 		private static void ValidateSoundData(SoundData data)
