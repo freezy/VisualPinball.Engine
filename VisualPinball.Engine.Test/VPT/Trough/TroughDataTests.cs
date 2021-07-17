@@ -46,7 +46,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTroughData(TroughData data)
+		public static void ValidateTroughData(TroughData data)
 		{
 			data.Type.Should().Be(TroughType.ModernOpto);
 			data.BallCount.Should().Be(3);

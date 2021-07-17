@@ -337,6 +337,10 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffMaterials("PHMA", IsPhysics = true, Pos = 106)]
 		public Material[] Materials = new Material[0];
 
+		// vpe-specific
+		[BiffInt("SVPE", Pos = 1000, IsVpeEnhancement = true)]
+		public int NumVpeGameItems;
+
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
 

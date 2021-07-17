@@ -126,7 +126,8 @@ namespace VisualPinball.Unity
 			// count stuff and update table data
 			Table.Data.NumCollections = Collections.Count;
 			Table.Data.NumFonts = 0;                     // todo handle fonts
-			Table.Data.NumGameItems = RecomputeGameItemStorageIDs();
+			Table.Data.NumGameItems = RecomputeGameItemStorageIDs(ItemDatas);
+			Table.Data.NumVpeGameItems = RecomputeGameItemStorageIDs(VpeItemDatas);
 			Table.Data.NumTextures = _tableAuthoring.LegacyContainer.Textures.Count(t => t.IsSet);
 			Table.Data.NumSounds = _tableAuthoring.LegacyContainer.Sounds.Count(t => t.IsSet);
 
@@ -233,13 +234,9 @@ namespace VisualPinball.Unity
 			return tex == null ? string.Empty : tex.name;
 		}
 
-		private int RecomputeGameItemStorageIDs()
+		private static int RecomputeGameItemStorageIDs(IEnumerable<ItemData> datas)
 		{
-			#if !WRITE_VP106 && !WRITE_VP107
-				var itemDatas = ItemDatas.ToArray();
-			#else
-				var itemDatas = ItemDatas.Where(d => d.IsVpCompatible).ToArray();
-			#endif
+			var itemDatas = datas.ToArray();
 			var assignedItems = from d in itemDatas where d.StorageIndex > -1 orderby d.StorageIndex select d;
 			var unassignedItems = from d in itemDatas where d.StorageIndex == -1 select d;
 			var orderedItems = assignedItems.Concat(unassignedItems).ToArray();

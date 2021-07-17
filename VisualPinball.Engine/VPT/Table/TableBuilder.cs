@@ -80,7 +80,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public TableBuilder AddTrough(string name)
 		{
-			var data = new TroughData($"GameItem{_gameItem++}") {
+			var data = new TroughData($"VpeGameItem{_gameItem++}") {
 				Name = name
 			};
 

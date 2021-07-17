@@ -32,7 +32,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public abstract CustomInfoTags CustomInfoTags { get; }
 		public abstract IEnumerable<Texture> Textures { get; }
 		public abstract IEnumerable<Sound.Sound> Sounds { get; }
-		
+
 		public abstract Material GetMaterial(string name);
 
 		/// <summary>
@@ -55,6 +55,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public int NumGameItems => Table.Data.NumGameItems;
 		public int NumSounds => Table.Data.NumSounds;
 		public int NumCollections => Table.Data.NumCollections;
+		public int NumVpeGameItems => Table.Data.NumVpeGameItems;
 
 		#region GameItems
 
@@ -186,7 +187,10 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_surfaces.Values.Select(i => i.Data))
 			.Concat(_textBoxes.Values.Select(i => i.Data))
 			.Concat(_timers.Values.Select(i => i.Data))
-			.Concat(_triggers.Values.Select(i => i.Data))
+			.Concat(_triggers.Values.Select(i => i.Data));
+
+
+		public IEnumerable<ItemData> VpeItemDatas => new ItemData[] { }
 			.Concat(_troughs.Values.Select(i => i.Data));
 
 		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]

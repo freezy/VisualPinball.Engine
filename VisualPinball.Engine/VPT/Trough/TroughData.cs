@@ -32,8 +32,6 @@ namespace VisualPinball.Engine.VPT.Trough
 	[Serializable]
 	public class TroughData : ItemData
 	{
-		public override bool IsVpCompatible => false;
-
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
 
@@ -67,7 +65,7 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffInt("KTIM", Pos = 10)]
 		public int KickTime = 100;
 
-		public TroughData(string name) : base(StoragePrefix.GameItem)
+		public TroughData(string name) : base(StoragePrefix.VpeGameItem)
 		{
 			Name = name;
 		}
