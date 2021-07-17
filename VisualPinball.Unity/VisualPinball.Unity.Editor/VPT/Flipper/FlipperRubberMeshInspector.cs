@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialField("Rubber Material", ref Data.RubberMaterial);
+			MaterialFieldLegacy("Rubber Material", ref Data.RubberMaterial);
 			ItemDataField("Rubber Thickness", ref Data.RubberThickness);
 			ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
 			ItemDataField("Rubber Width", ref Data.RubberWidth);

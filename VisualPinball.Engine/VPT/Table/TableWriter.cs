@@ -27,14 +27,14 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private const int VpFileFormatVersion = 1060;
 
-		private readonly Table _table;
+		private readonly TableContainer _tableContainer;
 
 		private CompoundFile _cf;
 		private CFStorage _gameStorage;
 
-		public TableWriter(Table table)
+		public TableWriter(TableContainer tableContainer)
 		{
-			_table = table;
+			_tableContainer = tableContainer;
 		}
 
 		public void WriteTable(string fileName)
@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.VPT.Table
 				WriteGameItems(hashWriter);
 
 				// 4. the rest, which isn't hashed.
-				WriteImages();
+				WriteTextures();
 				WriteSounds();
 
 				// finally write hash
@@ -81,20 +81,20 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			// 2. write custom tag names
-			_table.CustomInfoTags?.WriteData(_gameStorage, hashWriter);
+			_tableContainer.CustomInfoTags?.WriteData(_gameStorage, hashWriter);
 
 			// 3. write custom tags
-			foreach (var tag in _table.CustomInfoTags?.TagNames ?? Array.Empty<string>()) {
+			foreach (var tag in _tableContainer.CustomInfoTags?.TagNames ?? Array.Empty<string>()) {
 				WriteInfoTag(tableInfo, tag, hashWriter);
 			}
 		}
 
 		private void WriteInfoTag(CFStorage tableInfo, string tag, HashWriter hashWriter)
 		{
-			if (!_table.TableInfo.ContainsKey(tag)) {
+			if (!_tableContainer.TableInfo.ContainsKey(tag)) {
 				return;
 			}
-			WriteStream(tableInfo, tag, BiffUtil.GetWideString(_table.TableInfo[tag]), hashWriter);
+			WriteStream(tableInfo, tag, BiffUtil.GetWideString(_tableContainer.TableInfo[tag]), hashWriter);
 		}
 
 		private void WriteGameItems(HashWriter hashWriter)
@@ -102,38 +102,34 @@ namespace VisualPinball.Engine.VPT.Table
 			// again, the order is important, because we're hashing at the same time.
 
 			// 1. game data
-			_table.Data.WriteData(_gameStorage, hashWriter);
+			_tableContainer.Table.Data.WriteData(_gameStorage, hashWriter);
 
 			// 2. game items
-			foreach (var writeable in _table.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
-
-				#if !WRITE_VP106
-
-				// clean material and texture references
-				CleanInvalidReferences<MaterialReferenceAttribute, Material>(writeable, v => _table.GetMaterial(v));
-				CleanInvalidReferences<TextureReferenceAttribute, Texture>(writeable, v => _table.GetTexture(v));
-
-				#endif
-
-				writeable.WriteData(_gameStorage);
+			foreach (var gameItem in _tableContainer.ItemDatas.OrderBy(gi => gi.StorageIndex)) {
+				gameItem.WriteData(_gameStorage);
 			}
+			#if !WRITE_VP106 && !WRITE_VP107
+			foreach (var gameItem in _tableContainer.VpeItemDatas.OrderBy(gi => gi.StorageIndex)) {
+				gameItem.WriteData(_gameStorage);
+			}
+			#endif
 
 			// 3. Collections
-			var collections = _table.Collections.Values;
-			foreach (var collection in collections.Select(c => c.Data).OrderBy(c => c.StorageIndex)) {
+			var collections = _tableContainer.Collections;
+			foreach (var collection in collections.OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
 
 			// 5. Mappings
 			#if !WRITE_VP106 && !WRITE_VP107
-			_table.Mappings.Data.WriteData(_gameStorage);
+			_tableContainer.Mappings.Data.WriteData(_gameStorage);
 			#endif
 		}
 
-		private void WriteImages()
+		private void WriteTextures()
 		{
 			int i = 0;
-			foreach (var texture in _table.Textures.Values) {
+			foreach (var texture in _tableContainer.Textures) {
 				texture.Data.StorageIndex = i++;
 				texture.Data.WriteData(_gameStorage);
 			}
@@ -142,7 +138,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void WriteSounds()
 		{
 			int i = 0;
-			foreach (var sound in _table.Sounds.Values) {
+			foreach (var sound in _tableContainer.Sounds) {
 				sound.Data.StorageIndex = i++;
 				sound.Data.WriteData(_gameStorage);
 			}
@@ -152,17 +148,6 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			storage.AddStream(streamName).SetData(data);
 			hashWriter?.Write(data);
-		}
-
-		private static void CleanInvalidReferences<TAttr, TRef>(ItemData data, Func<string, TRef> getter) where TAttr: Attribute
-		{
-			var refs = GetMembersWithAttribute<TAttr>(data);
-			foreach (var r in refs) {
-				var value = GetValue<string>(r, data);
-				if (getter(value) == null) {
-					SetValue(r, data, string.Empty);
-				}
-			}
 		}
 
 		private static IEnumerable<MemberInfo> GetMembersWithAttribute<TAttr>(ItemData data) where TAttr: Attribute

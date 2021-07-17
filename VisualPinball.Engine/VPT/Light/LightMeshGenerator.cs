@@ -93,7 +93,7 @@ namespace VisualPinball.Engine.VPT.Light
 					return new Matrix3D().SetTranslation(
 						_data.Center.X,
 						_data.Center.Y,
-						table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ()
+						(table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f) * table?.GetScaleZ() ?? 1.0f
 					);
 
 				case Origin.Global:

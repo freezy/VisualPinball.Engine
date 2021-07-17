@@ -17,6 +17,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Math;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -24,10 +25,11 @@ namespace VisualPinball.Unity
 	{
 		public const string AnimationShape = "animation";
 
-		public static Engine.VPT.Mesh ToVpMesh(this Mesh unityMesh)
+		public static Mesh ToVpMesh(this UnityEngine.Mesh unityMesh)
 		{
-			var vpMesh = new Engine.VPT.Mesh(unityMesh.name);
-			vpMesh.Vertices = new Vertex3DNoTex2[unityMesh.vertexCount];
+			var vpMesh = new Mesh(unityMesh.name) {
+				Vertices = new Vertex3DNoTex2[unityMesh.vertexCount]
+			};
 			var unityVertices = unityMesh.vertices;
 			var unityNormals = unityMesh.normals;
 
@@ -57,11 +59,11 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < frameCount; i++) {
 					unityMesh.GetBlendShapeFrameVertices(animationIndex, i, deltaVertices, deltaNormals, null);
 
-					var frameData = new Engine.VPT.Mesh.VertData[unityMesh.vertexCount];
+					var frameData = new Mesh.VertData[unityMesh.vertexCount];
 					for (var j = 0; j < unityMesh.vertexCount; j++) {
 						var vertex = deltaVertices[j] + unityVertices[j];
 						var normal = deltaNormals[j] + unityNormals[j];
-						frameData[j] = new Engine.VPT.Mesh.VertData(
+						frameData[j] = new Mesh.VertData(
 							vertex.x, vertex.y, vertex.z,
 							normal.x, normal.y, normal.z);
 					}
@@ -73,14 +75,14 @@ namespace VisualPinball.Unity
 			return vpMesh;
 		}
 
-		public static Mesh ToUnityMesh(this Engine.VPT.Mesh vpMesh, string name = null)
+		public static UnityEngine.Mesh ToUnityMesh(this Mesh vpMesh, string name = null)
 		{
-			var mesh = new Mesh { name = name ?? vpMesh.Name };
+			var mesh = new UnityEngine.Mesh { name = name ?? vpMesh.Name };
 			vpMesh.ApplyToUnityMesh(mesh);
 			return mesh;
 		}
 
-		public static void ApplyToUnityMesh(this Engine.VPT.Mesh vpMesh, Mesh mesh)
+		public static void ApplyToUnityMesh(this Mesh vpMesh, UnityEngine.Mesh mesh)
 		{
 			if (vpMesh.Indices.Length > 65535) {
 				mesh.indexFormat = IndexFormat.UInt32;
@@ -100,7 +102,7 @@ namespace VisualPinball.Unity
 			mesh.vertices = vertices;
 			mesh.normals = normals;
 			mesh.uv = uv;
-			//mesh.RecalculateBounds(); // redundant if setting tringles
+			//mesh.RecalculateBounds(); // redundant if setting triangles
 
 			// faces
 			mesh.triangles = vpMesh.Indices;
@@ -120,8 +122,8 @@ namespace VisualPinball.Unity
 					deltaVertices[i] = blendVertices[i].ToUnityVector3() - vertices[i];
 					deltaNormals[i] = blendVertices[i].ToUnityNormalVector3() - normals[i];
 				}
-				mesh.SetUVs(Engine.VPT.Mesh.AnimationUVChannelVertices, deltaVertices);
-				mesh.SetUVs(Engine.VPT.Mesh.AnimationUVChannelNormals, deltaNormals);
+				mesh.SetUVs(Mesh.AnimationUVChannelVertices, deltaVertices);
+				mesh.SetUVs(Mesh.AnimationUVChannelNormals, deltaNormals);
 
 			} else if (vpMesh.AnimationFrames.Count > 0) {
 
@@ -146,12 +148,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static Vector3 ToUnityVector3(this Engine.VPT.Mesh.VertData vpVert)
+		public static Vector3 ToUnityVector3(this Mesh.VertData vpVert)
 		{
 			return new Vector3(vpVert.X, vpVert.Y, vpVert.Z);
 		}
 
-		public static Vector3 ToUnityNormalVector3(this Engine.VPT.Mesh.VertData vpVert)
+		public static Vector3 ToUnityNormalVector3(this Mesh.VertData vpVert)
 		{
 			return new Vector3(vpVert.Nx, vpVert.Ny, vpVert.Nz);
 		}

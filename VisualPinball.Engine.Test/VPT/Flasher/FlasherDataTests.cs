@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flasher;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flasher
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		[Test]
 		public void ShouldReadFlasherData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
+			var table = FileTableContainer.Load(VpxPath.Flasher);
 			ValidateFlasher(table.Flasher("Data").Data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		public void ShouldWriteFlasherData()
 		{
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flasher);
+			var table = FileTableContainer.Load(VpxPath.Flasher);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlasher(writtenTable.Flasher("Data").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateFlasher(FlasherData data)
+		public static void ValidateFlasher(FlasherData data)
 		{
 			data.AddBlend.Should().Be(false);
 			data.Alpha.Should().Be(69);

@@ -17,30 +17,31 @@
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Trigger
 {
 	public class TriggerMeshTests : MeshTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public TriggerMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
+			_tc = FileTableContainer.Load(VpxPath.Trigger);
 			_obj = LoadObjFixture(ObjPath.Trigger);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshesCorrectly()
 		{
-			AssertObjMesh(_table, _obj, _table.Trigger("Button"));
-			AssertObjMesh(_table, _obj, _table.Trigger("Star"), threshold: 0.001f);
-			AssertObjMesh(_table, _obj, _table.Trigger("WireA"));
-			AssertObjMesh(_table, _obj, _table.Trigger("WireB"));
-			AssertObjMesh(_table, _obj, _table.Trigger("WireC"));
-			AssertObjMesh(_table, _obj, _table.Trigger("WireD"));
-			AssertObjMesh(_table, _obj, _table.Trigger("Surface"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Button"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Star"), threshold: 0.001f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireA"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireB"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireC"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("WireD"));
+			AssertObjMesh(_tc.Table, _obj, _tc.Trigger("Surface"));
 
 			// the last two fail because vpx ignores thickness when exporting.
 			// re-enable when fixed on vp side.

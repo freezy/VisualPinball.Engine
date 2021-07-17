@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.LightSeq
 {
@@ -26,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		[Test]
 		public void ShouldReadLightSeqData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
+			var table = FileTableContainer.Load(VpxPath.LightSeq);
 			ValidateLightSeqData(table.LightSeq("LightSeq001").Data);
 		}
 
@@ -34,13 +36,14 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		public void ShouldWriteLightSeqData()
 		{
 			const string tmpFileName = "ShouldWriteLightSeqData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.LightSeq);
+			var table = FileTableContainer.Load(VpxPath.LightSeq);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateLightSeqData(writtenTable.LightSeq("LightSeq001").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateLightSeqData(LightSeqData data)
+		public static void ValidateLightSeqData(LightSeqData data)
 		{
 			data.Backglass.Should().Be(false);
 			data.Center.X.Should().Be(21.23f);

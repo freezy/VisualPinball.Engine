@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Engine.Test.VPT.Trigger
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		[Test]
 		public void ShouldReadTriggerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
+			var table = FileTableContainer.Load(VpxPath.Trigger);
 			ValidateTriggerData(table.Trigger("Data").Data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		public void ShouldWriteTriggerData()
 		{
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trigger);
+			var table = FileTableContainer.Load(VpxPath.Trigger);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTriggerData(writtenTable.Trigger("Data").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTriggerData(TriggerData data)
+		public static void ValidateTriggerData(TriggerData data)
 		{
 			data.AnimSpeed.Should().Be(12.432f);
 			data.Center.X.Should().Be(542.732f);

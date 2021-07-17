@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialField("Skirt Material", ref Data.SocketMaterial);
+			MaterialFieldLegacy("Skirt Material", ref Data.SocketMaterial);
 
 			base.OnInspectorGUI();
 		}

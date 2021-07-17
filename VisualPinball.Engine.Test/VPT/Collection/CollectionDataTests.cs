@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
+using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Collection
 {
@@ -26,8 +29,8 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		[Test]
 		public void ShouldReadCollectionData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
-			var data = table.Collections["flippers"].Data;
+			var tableContainer = FileTableContainer.Load(VpxPath.Collection);
+			var data = tableContainer.Collections.First(c => c.Name == "Flippers");
 			ValidateTableData(data);
 		}
 
@@ -35,13 +38,14 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		public void ShouldWriteCollectionData()
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Collection);
-			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.Collections["flippers"].Data);
+			var th = FileTableContainer.Load(VpxPath.Collection);
+			th.Save(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
+			ValidateTableData(writtenTable.Collections.First(c => c.Name == "Flippers"));
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTableData(CollectionData data)
+		public static void ValidateTableData(CollectionData data)
 		{
 			data.Name.Should().Be("Flippers");
 			data.FireEvents.Should().Be(false);

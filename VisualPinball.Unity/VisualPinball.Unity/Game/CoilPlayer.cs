@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 
-		private Table _table;
+		private TableContainer _tableContainer;
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
 
@@ -39,9 +39,9 @@ namespace VisualPinball.Unity
 		internal void RegisterCoil(IItem item, IApiCoil coilApi) => _coils[item.Name] = coilApi;
 		internal void RegisterCoilDevice(IItem item, IApiCoilDevice coilDeviceApi) => _coilDevices[item.Name] = coilDeviceApi;
 
-		public void Awake(Table table, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
-			_table = table;
+			_tableContainer = tableContainer;
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
 		}
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		public void OnStart()
 		{
 			if (_gamelogicEngine != null) {
-				var config = _table.Mappings;
+				var config = _tableContainer.Mappings;
 				_coilAssignments.Clear();
 				foreach (var coilData in config.Data.Coils) {
 					switch (coilData.Destination) {
@@ -115,7 +115,6 @@ namespace VisualPinball.Unity
 		{
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
-				Debug.LogWarning($"Setting coil {coilEvent.Id} to {coilEvent.IsEnabled}.");
 
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 

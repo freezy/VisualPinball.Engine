@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Common;
@@ -28,15 +29,52 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Test]
 		public void ShouldReadTableData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			ValidateTableData(table.Data);
+			var table = FileTableContainer.Load(VpxPath.Table);
+			ValidateTableData(table.Table.Data);
 		}
 
 		[Test]
 		public void ShouldReadTableInfo()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
+			var table = FileTableContainer.Load(VpxPath.Table);
+			ValidateTableInfo(table);
+		}
 
+		[Test]
+		public void ShouldWriteTableData()
+		{
+			const string tmpFileName = "ShouldWriteTable.vpx";
+			var table = FileTableContainer.Load(VpxPath.Table);
+			new TableWriter(table).WriteTable(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
+			ValidateTableData(writtenTable.Table.Data);
+
+			File.Delete(tmpFileName);
+		}
+
+		[Test]
+		public void ShouldWriteCorrectHash()
+		{
+			const string tmpFileName = "ShouldWriteCorrectHash.vpx";
+			var table = FileTableContainer.Load(VpxPath.TableChecksum);
+			new TableWriter(table).WriteTable(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
+
+			writtenTable.FileHash.Should().Equal(table.FileHash);
+
+			File.Delete(tmpFileName);
+		}
+
+		[Test]
+		public void ShouldReadCustomInfoTags()
+		{
+			var table = FileTableContainer.Load(VpxPath.Table);
+			table.CustomInfoTags.TagNames[0].Should().Be("customdata1");
+			table.CustomInfoTags.TagNames[1].Should().Be("foo");
+		}
+
+		public static void ValidateTableInfo(FileTableContainer table)
+		{
 			table.InfoAuthorEmail.Should().Be("test@vpdb.io");
 			table.InfoAuthorName.Should().Be("Table Author");
 			table.InfoAuthorWebsite.Should().Be("https://vpdb.io");
@@ -49,36 +87,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			table.TableInfo["customdata1"].Should().Be("customvalue1");
 		}
 
-		[Test]
-		public void ShouldWriteTableData()
-		{
-			const string tmpFileName = "ShouldWriteTable.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			ValidateTableData(writtenTable.Data);
-		}
-
-		[Test]
-		public void ShouldWriteCorrectHash()
-		{
-			const string tmpFileName = "ShouldWriteCorrectHash.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.TableChecksum);
-			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-
-			writtenTable.FileHash.Should().Equal(table.FileHash);
-		}
-
-		[Test]
-		public void ShouldReadCustomInfoTags()
-		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Table);
-			table.CustomInfoTags.TagNames[0].Should().Be("customdata1");
-			table.CustomInfoTags.TagNames[1].Should().Be("foo");
-		}
-
-		private static void ValidateTableData(TableData data)
+		public static void ValidateTableData(TableData data)
 		{
 			data.AngleTiltMax.Should().Be(0.60606f);
 			data.AngleTiltMin.Should().Be(0.2033f);
@@ -124,7 +133,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			data.BgOffsetZ[BackglassIndex.FullSingleScreen].Should().Be(-50.223f);
 			data.BloomStrength.Should().Be(1.5055f);
 			data.Bottom.Should().Be(2224);
-			data.Code.Should().Be("Option Explicit\r\n");
+			data.Code.Trim().Should().Be("Option Explicit");
 			data.ColorBackdrop.Red.Should().Be(31);
 			data.ColorBackdrop.Green.Should().Be(32);
 			data.ColorBackdrop.Blue.Should().Be(33);
@@ -162,7 +171,6 @@ namespace VisualPinball.Engine.Test.VPT.Table
 			data.NudgeTime.Should().Be(6.2931f);
 			data.NumCollections.Should().Be(0);
 			data.NumFonts.Should().Be(0);
-			data.NumGameItems.Should().Be(1);
 			data.NumMaterials.Should().Be(1);
 			data.NumSounds.Should().Be(0);
 			data.NumTextures.Should().Be(1);

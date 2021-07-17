@@ -15,18 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
-	internal static class TroughExtensions
+	public static class TroughExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Engine.VPT.Trough.Trough trough, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Trough trough, GameObject obj)
 		{
-			var mainAuthoring = obj.AddComponent<TroughAuthoring>();
-			mainAuthoring.SetItem(trough);
-			mainAuthoring.UpdatePosition();
-			//obj.GetComponentInParent<Player>()?.RegisterTrough(trough, obj);
-			return new ConvertedItem(mainAuthoring);
+			var convertedItem = new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, trough);
+			convertedItem.Authoring.UpdatePosition();
+			return convertedItem;
 		}
 	}
 }

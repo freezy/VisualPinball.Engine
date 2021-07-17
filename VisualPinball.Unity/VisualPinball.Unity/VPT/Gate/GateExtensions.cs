@@ -25,28 +25,19 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	internal static class GateExtensions
+	public static class GateExtensions
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Gate gate, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Gate gate, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<GateAuthoring>().SetItem(gate);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			GateColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate);
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
-					// collider
-					colliderAuthoring = obj.AddColliderComponent(gate);
-
-					// bracket mesh
-					meshAuthoring.Add(ConvertedItem.CreateChild<GateBracketMeshAuthoring>(obj, GateMeshGenerator.Bracket));
-
-					// wire mesh
-					var wireMeshAuth = ConvertedItem.CreateChild<GateWireMeshAuthoring>(obj, GateMeshGenerator.Wire);
-					wireMeshAuth.gameObject.AddComponent<GateWireAnimationAuthoring>();
-					meshAuthoring.Add(wireMeshAuth);
+					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket);
+					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire);
+					convertedItem.SetAnimationAuthoring<GateWireAnimationAuthoring>(GateMeshGenerator.Wire);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -62,13 +53,7 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
-		}
-
-		private static GateColliderAuthoring AddColliderComponent(this GameObject obj, Gate gate)
-		{
-			return gate.Data.IsCollidable ? obj.AddComponent<GateColliderAuthoring>() : null;
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

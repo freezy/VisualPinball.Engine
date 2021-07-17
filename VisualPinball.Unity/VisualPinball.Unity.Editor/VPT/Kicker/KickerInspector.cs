@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
-				MaterialField("Material", ref Data.Material);
+				MaterialFieldLegacy("Material", ref Data.Material);
 				DropDownField("Display", ref Data.KickerType, KickerMeshInspector.KickerTypeLabels, KickerMeshInspector.KickerTypeValues);
 				ItemDataField("Radius", ref Data.Radius);
 				ItemDataField("Orientation", ref Data.Orientation);

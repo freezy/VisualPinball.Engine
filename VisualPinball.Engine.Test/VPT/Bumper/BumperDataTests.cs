@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
 {
@@ -26,8 +28,8 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		[Test]
 		public void ShouldReadBumperData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
-			var data = table.Bumper("Bumper1").Data;
+			var th = FileTableContainer.Load(VpxPath.Bumper);
+			var data = th.Bumper("Bumper1").Data;
 			ValidateTableData(data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		public void ShouldWriteBumperData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			var table = FileTableContainer.Load(VpxPath.Bumper);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTableData(BumperData data)
+		public static void ValidateTableData(BumperData data)
 		{
 			data.BaseMaterial.Should().Be("Material2");
 			data.CapMaterial.Should().Be("Material1");

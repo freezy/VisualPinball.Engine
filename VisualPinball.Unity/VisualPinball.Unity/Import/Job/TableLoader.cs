@@ -20,6 +20,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -48,104 +49,106 @@ namespace VisualPinball.Unity
 {
 	public static class TableLoader
 	{
-		public static Table LoadTable(string path)
+		public static FileTableContainer LoadTable(string path)
 		{
-			var table = Table.Load(path, false);
+			var tableContainer = FileTableContainer.Load(path, false);
 
-			var job = new GameItemJob(table.Data.NumGameItems);
-			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, table.Data.NumGameItems);
-			for (var i = 0; i < table.Data.NumGameItems; i++) {
+			var job = new GameItemJob(tableContainer.Table.Data.NumGameItems);
+			var gameItems = Engine.VPT.Table.TableLoader.ReadGameItems(path, tableContainer.Table.Data.NumGameItems, "GameItem")
+				.Concat(Engine.VPT.Table.TableLoader.ReadGameItems(path, tableContainer.Table.Data.NumVpeGameItems, "VpeGameItem"))
+				.ToArray();
+			for (var i = 0; i < tableContainer.Table.Data.NumGameItems; i++) {
 				job.Data[i] = MemHelper.FromByteArray(gameItems[i]);
 				job.DataLength[i] = gameItems[i].Length;
 			}
 
 			// parse threaded
-			var handle = job.Schedule(table.Data.NumGameItems, 64);
+			var handle = job.Schedule(tableContainer.Table.Data.NumGameItems + tableContainer.Table.Data.NumVpeGameItems, 64);
 			handle.Complete();
 
 			// update table with results
-			for (var i = 0; i < table.Data.NumGameItems; i++) {
+			for (var i = 0; i < tableContainer.Table.Data.NumGameItems; i++) {
 				if (job.ItemObj[i].ToInt32() > 0) {
 					var objHandle = (GCHandle) job.ItemObj[i];
 					switch ((ItemType)job.ItemType[i]) {
 						case ItemType.Bumper: {
-							table.Add(objHandle.Target as Bumper);
+							tableContainer.Add(objHandle.Target as Bumper);
 							break;
 						}
 						case ItemType.Decal: {
-							table.Add(objHandle.Target as Decal);
+							tableContainer.Add(objHandle.Target as Decal);
 							break;
 						}
 						case ItemType.DispReel: {
-							table.Add(objHandle.Target as DispReel);
+							tableContainer.Add(objHandle.Target as DispReel);
 							break;
 						}
 						case ItemType.Flasher: {
-							table.Add(objHandle.Target as Flasher);
+							tableContainer.Add(objHandle.Target as Flasher);
 							break;
 						}
 						case ItemType.Flipper: {
-							table.Add(objHandle.Target as Flipper);
+							tableContainer.Add(objHandle.Target as Flipper);
 							break;
 						}
 						case ItemType.Gate: {
-							table.Add(objHandle.Target as Gate);
+							tableContainer.Add(objHandle.Target as Gate);
 							break;
 						}
 						case ItemType.HitTarget: {
-							table.Add(objHandle.Target as HitTarget);
+							tableContainer.Add(objHandle.Target as HitTarget);
 							break;
 						}
 						case ItemType.Kicker: {
-							table.Add(objHandle.Target as Kicker);
+							tableContainer.Add(objHandle.Target as Kicker);
 							break;
 						}
 						case ItemType.Light: {
-							table.Add(objHandle.Target as Light);
+							tableContainer.Add(objHandle.Target as Light);
 							break;
 						}
 						case ItemType.LightSeq: {
-							table.Add(objHandle.Target as LightSeq);
+							tableContainer.Add(objHandle.Target as LightSeq);
 							break;
 						}
 						case ItemType.Plunger: {
-							table.Add(objHandle.Target as Plunger);
+							tableContainer.Add(objHandle.Target as Plunger);
 							break;
 						}
 						case ItemType.Primitive: {
-							table.Add(objHandle.Target as Primitive);
+							tableContainer.Add(objHandle.Target as Primitive);
 							break;
 						}
 						case ItemType.Ramp: {
-							table.Add(objHandle.Target as Ramp);
+							tableContainer.Add(objHandle.Target as Ramp);
 							break;
 						}
 						case ItemType.Rubber: {
-							table.Add(objHandle.Target as Rubber);
+							tableContainer.Add(objHandle.Target as Rubber);
 							break;
 						}
 						case ItemType.Spinner: {
-							table.Add(objHandle.Target as Spinner);
+							tableContainer.Add(objHandle.Target as Spinner);
 							break;
 						}
 						case ItemType.Surface: {
-							table.Add(objHandle.Target as Surface);
+							tableContainer.Add(objHandle.Target as Surface);
 							break;
 						}
 						case ItemType.TextBox: {
-							table.Add(objHandle.Target as TextBox);
+							tableContainer.Add(objHandle.Target as TextBox);
 							break;
 						}
 						case ItemType.Timer: {
-							table.Add(objHandle.Target as Timer);
+							tableContainer.Add(objHandle.Target as Timer);
 							break;
 						}
 						case ItemType.Trigger: {
-							table.Add(objHandle.Target as Trigger);
+							tableContainer.Add(objHandle.Target as Trigger);
 							break;
 						}
 						case ItemType.Trough: {
-							table.Add(objHandle.Target as Trough);
+							tableContainer.Add(objHandle.Target as Trough);
 							break;
 						}
 						default:
@@ -153,10 +156,10 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			table.SetupPlayfieldMesh();
+			tableContainer.Table.SetupPlayfieldMesh();
 			job.Dispose();
 
-			return table;
+			return tableContainer;
 		}
 	}
 

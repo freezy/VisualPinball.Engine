@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 

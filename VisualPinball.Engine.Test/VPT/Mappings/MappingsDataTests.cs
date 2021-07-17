@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
@@ -23,12 +24,14 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Mappings
 {
+	#if !WRITE_VP106 && !WRITE_VP107
+
 	public class MappingsDataTests
 	{
 		[Test]
 		public void ShouldReadMappingsData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Mappings);
+			var table = FileTableContainer.Load(VpxPath.Mappings);
 			var data = table.Mappings.Data;
 			ValidateTableData(data);
 		}
@@ -37,10 +40,11 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		public void ShouldWriteMappingsData()
 		{
 			const string tmpFileName = "ShouldWriteMappingsData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Mappings);
+			var table = FileTableContainer.Load(VpxPath.Mappings);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Mappings.Data);
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
@@ -145,4 +149,5 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 			data.Wires[1].PulseDelay.Should().Be(200);
 		}
 	}
+	#endif
 }

@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Gate
 {
@@ -28,7 +30,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		[Test]
 		public void ShouldReadGateData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
+			var table = FileTableContainer.Load(VpxPath.Gate);
 			ValidateGateData(table.Gate("Data").Data);
 		}
 
@@ -36,13 +38,14 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		public void ShouldWriteGateData()
 		{
 			const string tmpFileName = "ShouldWriteGateData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Gate);
+			var table = FileTableContainer.Load(VpxPath.Gate);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateGateData(writtenTable.Gate("Data").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateGateData(GateData data)
+		public static void ValidateGateData(GateData data)
 		{
 			MathF.RadToDeg(data.AngleMax).Should().Be(90f);
 			MathF.RadToDeg(data.AngleMin).Should().Be(0f);

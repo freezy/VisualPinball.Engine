@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.IO;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -31,13 +32,18 @@ namespace VisualPinball.Unity
 			return vpTex.IsHdr ? FromHdrBinary(vpTex) : FromBinary(vpTex);
 		}
 
-		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null)
+		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null, string ext = null)
 		{
-			var fileName = $"{vpTex.Name.ToNormalizedName()}{vpTex.FileExtension}";
+			var fileName = vpTex.Name.ToNormalizedName() + vpTex.FileExtension;
 			return folderName != null
-				? $"{folderName}/{fileName}"
-				: $"{fileName}";
+				? ext == null
+					? Path.Combine(folderName, fileName)
+					: Path.Combine(folderName, Path.GetFileNameWithoutExtension(fileName) + ext)
+				: ext == null
+					? fileName
+					: Path.GetFileNameWithoutExtension(fileName) + ext;
 		}
+
 
 		private static Texture2D FromBinary(Engine.VPT.Texture vpTex)
 		{

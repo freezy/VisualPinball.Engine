@@ -21,18 +21,23 @@ namespace VisualPinball.Unity.Editor
 	class SoundListData : IManagerListData
 	{
 		[ManagerListColumn(Order = 0, Width = 200)]
-		public string Name => SoundData?.Name ?? "";
+		public string Name => LegacySound.Name;
 		[ManagerListColumn(Order = 1, Width = 200)]
-		public string Path => SoundData?.Path ?? "";
+		public string Path => LegacySound.IsSet ? UnityEditor.AssetDatabase.GetAssetPath(LegacySound.AudioClip) : string.Empty;
 		[ManagerListColumn(Order = 2, HeaderName = "Output Target", Width = 100)]
-		public string Output => SoundData == null ? "" : $"{(SoundData.OutputTarget == SoundOutTypes.Table ? "Table" : "BackGlass")}";
+		public string Output => LegacySound == null ? "" : $"{(LegacySound.OutputTarget == SoundOutTypes.Table ? "Table" : "BackGlass")}";
 		[ManagerListColumn(Order = 3, HeaderName = "Volume", Width = 100)]
-		public string Volume => SoundData == null ? "" : $"{SoundData.Volume.PercentageToRatio()}";
+		public string Volume => LegacySound == null ? "" : $"{LegacySound.Volume.PercentageToRatio()}";
 		[ManagerListColumn(Order = 4, HeaderName = "Balance", Width = 100)]
-		public string Balance => SoundData == null ? "" : $"{SoundData.Balance.PercentageToRatio()}";
+		public string Balance => LegacySound == null ? "" : $"{LegacySound.Balance.PercentageToRatio()}";
 		[ManagerListColumn(Order = 5, HeaderName = "Fade", Width = 100)]
-		public string Fade => SoundData == null ? "" : $"{SoundData.Fade.PercentageToRatio()}";
+		public string Fade => LegacySound == null ? "" : $"{LegacySound.Fade.PercentageToRatio()}";
 
-		public Engine.VPT.Sound.SoundData SoundData;
+		public readonly LegacySound LegacySound;
+
+		public SoundListData(LegacySound legacySound)
+		{
+			LegacySound = legacySound;
+		}
 	}
 }

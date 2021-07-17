@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
@@ -25,20 +23,17 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	internal static class TriggerExtensions
+	public static class TriggerExtensions
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static ConvertedItem SetupGameObject(this Trigger trigger, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Trigger trigger, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var mainAuthoring = obj.AddComponent<TriggerAuthoring>().SetItem(trigger);
-			var meshAuthoring = new List<IItemMeshAuthoring>();
-			TriggerColliderAuthoring colliderAuthoring = null;
-
+			var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
 			switch (trigger.SubComponent) {
 				case ItemSubComponent.None:
-					colliderAuthoring = obj.AddComponent<TriggerColliderAuthoring>();
-					meshAuthoring.Add(obj.AddComponent<TriggerMeshAuthoring>());
+					convertedItem.SetColliderAuthoring<TriggerColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<TriggerMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -50,12 +45,11 @@ namespace VisualPinball.Unity
 					Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
 					break;
 				}
-
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			obj.AddComponent<ConvertToEntity>();
-			return new ConvertedItem(mainAuthoring, meshAuthoring, colliderAuthoring);
+
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Data;
 using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
@@ -24,22 +25,21 @@ namespace VisualPinball.Engine.Test.VPT
 {
 	public class TextureDataTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly FileTableContainer _table;
 
 		public TextureDataTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Texture);
+			_table = FileTableContainer.Load(VpxPath.Texture);
 		}
 
 		[Test]
 		public void ShouldLoadCorrectArgb()
 		{
-			var texture = _table.Textures["test_pattern_argb"];
+			var texture = _table.GetTexture("test_pattern_argb");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.BmpArgb);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_argb");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -48,12 +48,11 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectBmp()
 		{
-			var texture = _table.Textures["test_pattern_bmp"];
+			var texture = _table.GetTexture("test_pattern_bmp");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.Bmp);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_bmp");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -62,12 +61,11 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectExr()
 		{
-			var texture = _table.Textures["test_pattern_exr"];
+			var texture = _table.GetTexture("test_pattern_exr");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.Exr);
 			texture.Data.Width.Should().Be(587);
 			texture.Data.Height.Should().Be(675);
-			texture.Data.InternalName.Should().Be("test_pattern_exr");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -76,12 +74,11 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectHdr()
 		{
-			var texture = _table.Textures["test_pattern_hdr"];
+			var texture = _table.GetTexture("test_pattern_hdr");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.Hdr);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(512);
-			texture.Data.InternalName.Should().Be("test_pattern_hdr");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -90,12 +87,11 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectJpg()
 		{
-			var texture = _table.Textures["test_pattern_jpg"];
+			var texture = _table.GetTexture("test_pattern_jpg");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.Jpg);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_jpg");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -104,12 +100,11 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectPng()
 		{
-			var texture = _table.Textures["test_pattern_png"];
+			var texture = _table.GetTexture("test_pattern_png");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.Png);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_png");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -118,13 +113,12 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectTransparentPng()
 		{
-			var texture = _table.Textures["test_pattern_transparent"];
+			var texture = _table.GetTexture("test_pattern_transparent");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.PngTransparent);
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_transparent");
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -133,13 +127,25 @@ namespace VisualPinball.Engine.Test.VPT
 		[Test]
 		public void ShouldLoadCorrectTransparentXrgb()
 		{
-			var texture = _table.Textures["test_pattern_xrgb"];
+			var texture = _table.GetTexture("test_pattern_xrgb");
 			var blob = texture.FileContent;
 			var image = File.ReadAllBytes(TexturePath.BmpXrgb);
 			//File.WriteAllBytes(@"..\..\Fixtures\debug.bmp", textureData);
 			texture.Data.Width.Should().Be(1024);
 			texture.Data.Height.Should().Be(768);
-			texture.Data.InternalName.Should().Be("test_pattern_xrgb");
+			texture.Data.AlphaTestValue.Should().Be(1.0f);
+			texture.Data.Path.Should().StartWith(@"C:\");
+			blob.Should().Equal(image);
+		}
+
+		[Test]
+		public void ShouldLoadCorrectWebp()
+		{
+			var texture = _table.GetTexture("test_pattern_webp");
+			var blob = texture.FileContent;
+			var image = File.ReadAllBytes(TexturePath.Webp);
+			texture.Data.Width.Should().Be(1024);
+			texture.Data.Height.Should().Be(768);
 			texture.Data.AlphaTestValue.Should().Be(1.0f);
 			texture.Data.Path.Should().StartWith(@"C:\");
 			blob.Should().Equal(image);
@@ -150,8 +156,10 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			const string tmpFileName = "ShouldWriteCorrectBinary.vpx";
 			new TableWriter(_table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			writtenTable.Textures["test_pattern_jpg"].Data.Binary.Data.Should().Equal(_table.Textures["test_pattern_jpg"].Data.Binary.Data);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
+			writtenTable.GetTexture("test_pattern_jpg").Data.Binary.Data.Should().Equal(_table.GetTexture("test_pattern_jpg").Data.Binary.Data);
+
+			File.Delete(tmpFileName);
 		}
 
 		[Test]
@@ -159,8 +167,9 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			const string tmpFileName = "ShouldWriteCorrectBitmap.vpx";
 			new TableWriter(_table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
-			writtenTable.Textures["test_pattern_bmp"].Data.Bitmap.Bytes.Should().Equal(_table.Textures["test_pattern_bmp"].Data.Bitmap.Bytes);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
+			writtenTable.GetTexture("test_pattern_bmp").Data.Bitmap.Bytes.Should().Equal(_table.GetTexture("test_pattern_bmp").Data.Bitmap.Bytes);
+			File.Delete(tmpFileName);
 		}
 	}
 }

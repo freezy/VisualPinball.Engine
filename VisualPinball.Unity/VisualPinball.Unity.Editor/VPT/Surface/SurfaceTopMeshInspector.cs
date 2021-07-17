@@ -38,8 +38,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureField("Top Image", ref _data.Image);
-			MaterialField("Top Material", ref _data.TopMaterial);
+			TextureFieldLegacy("Top Material", ref _data.Image);
+			MaterialFieldLegacy("Top Material", ref _data.TopMaterial);
 
 			base.OnInspectorGUI();
 		}

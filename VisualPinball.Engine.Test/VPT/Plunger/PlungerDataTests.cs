@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Plunger
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		[Test]
 		public void ShouldReadPlungerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
+			var table = FileTableContainer.Load(VpxPath.Plunger);
 			ValidatePlungerData1(table.Plunger("Plunger1").Data);
 			ValidatePlungerData2(table.Plunger("Plunger2").Data);
 		}
@@ -36,14 +38,15 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		public void ShouldWritePlungerData()
 		{
 			const string tmpFileName = "ShouldWritePlungerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Plunger);
+			var table = FileTableContainer.Load(VpxPath.Plunger);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data);
 			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidatePlungerData1(PlungerData data)
+		public static void ValidatePlungerData1(PlungerData data, bool validateTexture = true)
 		{
 			data.AnimFrames.Should().Be(7);
 			data.AnimFrames.Should().Be(7);
@@ -51,7 +54,9 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			data.Center.X.Should().Be(477f);
 			data.Center.Y.Should().Be(983.2f);
 			data.Height.Should().Be(20f);
-			data.Image.Should().Be("alphatest_100_50_0");
+			if (validateTexture) {
+				data.Image.Should().Be("alphatest_100_50_0");
+			}
 			data.IsLocked.Should().Be(true);
 			data.IsMechPlunger.Should().Be(true);
 			data.IsReflectionEnabled.Should().Be(true);
@@ -81,7 +86,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			data.ZAdjust.Should().Be(1.223f);
 		}
 
-		private static void ValidatePlungerData2(PlungerData data)
+		public static void ValidatePlungerData2(PlungerData data)
 		{
 			data.AnimFrames.Should().Be(1);
 			data.AutoPlunger.Should().Be(false);

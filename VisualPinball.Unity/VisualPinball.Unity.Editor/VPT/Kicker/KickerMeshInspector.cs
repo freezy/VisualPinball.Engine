@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialField("Material", ref Data.Material);
+			MaterialFieldLegacy("Material", ref Data.Material);
 			DropDownField("Display", ref Data.KickerType, KickerTypeLabels, KickerTypeValues);
 			ItemDataField("Radius", ref Data.Radius);
 			ItemDataField("Orientation", ref Data.Orientation);

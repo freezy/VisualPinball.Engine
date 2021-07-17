@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Light
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Test]
 		public void ShouldReadLightData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
+			var table = FileTableContainer.Load(VpxPath.Light);
 			ValidateLightData(table.Light("Light1").Data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		public void ShouldWriteLightData()
 		{
 			const string tmpFileName = "ShouldWriteLightData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
+			var table = FileTableContainer.Load(VpxPath.Light);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateLightData(writtenTable.Light("Light1").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateLightData(LightData data)
+		public static void ValidateLightData(LightData data)
 		{
 			data.BlinkInterval.Should().Be(126);
 			data.BlinkPattern.Should().Be("10011");
@@ -77,7 +80,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		[Test]
 		public void ShouldLoadCorrectDragPointData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Light);
+			var table = FileTableContainer.Load(VpxPath.Light);
 			var dragPoints = table.Light("PlayfieldLight").Data.DragPoints;
 
 			dragPoints[0].IsSmooth.Should().Be(false);

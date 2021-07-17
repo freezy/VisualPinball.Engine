@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.Test.VPT.Trough
 {
 	public class TroughDataTests
 	{
+		#if !WRITE_VP106 && !WRITE_VP107
+
 		[Test]
 		public void ShouldReadTroughData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trough);
+			var table = FileTableContainer.Load(VpxPath.Trough);
 			ValidateTroughData(table.Trough("Trough1").Data);
 		}
 
@@ -35,13 +39,14 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		public void ShouldWriteTroughData()
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Trough);
+			var table = FileTableContainer.Load(VpxPath.Trough);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTroughData(writtenTable.Trough("Trough1").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTroughData(TroughData data)
+		public static void ValidateTroughData(TroughData data)
 		{
 			data.Type.Should().Be(TroughType.ModernOpto);
 			data.BallCount.Should().Be(3);
@@ -53,5 +58,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 			data.PlayfieldEntrySwitch.Should().Be("BallDrain");
 			data.PlayfieldExitKicker.Should().Be("BallRelease");
 		}
+
+		#endif
 	}
 }

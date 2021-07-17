@@ -39,11 +39,14 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Slingshot;
 
-		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player) : base(item, entity, parentEntity, player)
 		{
+			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Collider Generation
+
+		private readonly PhysicsMaterial _physicsMaterial;
 
 		protected override bool FireHitEvents { get; } = true;
 		protected override float HitThreshold => Data.Threshold;
@@ -55,7 +58,7 @@ namespace VisualPinball.Unity
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 

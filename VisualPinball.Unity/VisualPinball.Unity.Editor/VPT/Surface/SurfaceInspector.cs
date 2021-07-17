@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialField("Slingshot Material", ref Data.SlingShotMaterial);
+				MaterialFieldLegacy("Slingshot Material", ref Data.SlingShotMaterial);
 				ItemDataField("Animate Slingshot", ref Data.SlingshotAnimation, false);
 				ItemDataField("Flipbook", ref Data.IsFlipbook, false);
 			}

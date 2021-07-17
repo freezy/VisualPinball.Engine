@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#nullable enable
+
 using System;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -22,24 +24,24 @@ namespace VisualPinball.Engine.VPT
 {
 	public abstract class MeshGenerator
 	{
-		protected abstract float BaseHeight(Table.Table table);
+		protected abstract float BaseHeight(Table.Table? table);
 		protected abstract Vertex3D Position { get; }
 		protected abstract Vertex3D Scale { get; }
 		protected abstract float RotationZ { get; }
 
-		protected Tuple<Matrix3D, Matrix3D> GetPreMatrix(Table.Table table, Origin origin, bool asRightHanded)
+		protected Tuple<Matrix3D, Matrix3D?> GetPreMatrix(Table.Table? table, Origin origin, bool asRightHanded)
 		{
 			// todo adjust position, see kicker.cpp#419+
 			switch (origin) {
 				case Origin.Original:
 					return asRightHanded
-						? new Tuple<Matrix3D, Matrix3D>(Matrix3D.RightHanded, null)
-						: new Tuple<Matrix3D, Matrix3D>(Matrix3D.Identity, null);
+						? new Tuple<Matrix3D, Matrix3D?>(Matrix3D.RightHanded, null)
+						: new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, null);
 
 				case Origin.Global:
 					var m = GetTransformationMatrix(table);
 					return asRightHanded
-						? new Tuple<Matrix3D, Matrix3D>(m.Item1.Multiply(Matrix3D.RightHanded), m.Item2?.Multiply(Matrix3D.RightHanded))
+						? new Tuple<Matrix3D, Matrix3D?>(m.Item1.Multiply(Matrix3D.RightHanded), m.Item2?.Multiply(Matrix3D.RightHanded))
 						: m;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
@@ -56,7 +58,7 @@ namespace VisualPinball.Engine.VPT
 			}
 		}
 
-		protected virtual Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected virtual Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(Table.Table? table)
 		{
 			var scale = Scale;
 			var position = Position;
@@ -76,7 +78,7 @@ namespace VisualPinball.Engine.VPT
 			var fullMatrix = scaleMatrix.Clone();
 			fullMatrix.Multiply(rotMatrix);
 			fullMatrix.Multiply(transMatrix);
-			scaleMatrix.SetScaling(1.0f, 1.0f, table.GetScaleZ());
+			scaleMatrix.SetScaling(1.0f, 1.0f, table?.GetScaleZ() ?? 1.0f);
 			fullMatrix.Multiply(scaleMatrix);
 
 			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);

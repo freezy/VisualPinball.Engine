@@ -184,25 +184,25 @@ namespace VisualPinball.Unity
 				baseRadius,
 				height,
 				height + Data.Height,
-				GetColliderInfo(table)
+				GetColliderInfo()
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, Data.FlipperRadius, Data.EndRadius, GetColliderInfo(table)));
+			colliders.Add(new FlipperCollider(hitCircleBase, Data.FlipperRadius, Data.EndRadius, GetColliderInfo()));
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
-		protected override PhysicsMaterialData GetPhysicsMaterial(Table table) => new PhysicsMaterialData {
-			ElasticityFalloff = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+		protected override PhysicsMaterialData GetPhysicsMaterial(PhysicsMaterial physicsMaterial) => new PhysicsMaterialData {
+			ElasticityFalloff = Data.OverridePhysics != 0
 				? Data.OverrideElasticityFalloff
 				: Data.ElasticityFalloff,
-			Elasticity = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+			Elasticity = Data.OverridePhysics != 0
 				? Data.OverrideElasticity
 				: Data.Elasticity,
-			Friction = Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+			Friction = Data.OverridePhysics != 0
 				? Data.OverrideFriction
 				: Data.Friction,
-			ScatterAngleRad = math.radians(Data.OverridePhysics != 0 || table.Data.OverridePhysicsFlipper && table.Data.OverridePhysics != 0
+			ScatterAngleRad = math.radians(Data.OverridePhysics != 0
 				? Data.OverrideScatterAngle
 				: Data.Scatter
 			)

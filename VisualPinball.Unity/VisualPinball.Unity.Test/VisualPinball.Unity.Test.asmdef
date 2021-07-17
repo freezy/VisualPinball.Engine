@@ -9,7 +9,8 @@
 		"Unity.Transforms",
 		"VisualPinball.Engine",
 		"VisualPinball.Engine.Test",
-		"VisualPinball.Unity"
+		"VisualPinball.Unity",
+		"VisualPinball.Unity.Editor"
 	],
 	"includePlatforms": [ "Editor" ],
 	"excludePlatforms": [],

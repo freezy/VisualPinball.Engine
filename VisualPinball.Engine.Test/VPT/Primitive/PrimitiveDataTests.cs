@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Test]
 		public void ShouldReadPrimitiveData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			var table = FileTableContainer.Load(VpxPath.Primitive);
 			ValidatePrimitiveData(table.Primitive("Cube").Data);
 		}
 
@@ -35,13 +35,13 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		public void ShouldWritePrimitiveData()
 		{
 			const string tmpFileName = "ShouldWritePrimitiveData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Primitive);
+			var table = FileTableContainer.Load(VpxPath.Primitive);
 			new TableWriter(table).WriteTable(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidatePrimitiveData(writtenTable.Primitive("Cube").Data);
 		}
 
-		private static void ValidatePrimitiveData(PrimitiveData data)
+		public static void ValidatePrimitiveData(PrimitiveData data)
 		{
 			data.BackfacesEnabled.Should().Be(false);
 			data.CollisionReductionFactor.Should().Be(0.6119f);

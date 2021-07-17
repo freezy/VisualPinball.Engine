@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#nullable enable
+
 using System;
 using NLog;
 using VisualPinball.Engine.Game;
@@ -72,9 +74,9 @@ namespace VisualPinball.Engine.VPT.Gate
 			);
 		}
 
-		protected override float BaseHeight(Table.Table table)
+		protected override float BaseHeight(Table.Table? table)
 		{
-			return table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			return table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f;
 		}
 
 		private Mesh GetBaseMesh()

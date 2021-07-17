@@ -53,8 +53,8 @@ namespace VisualPinball.Unity.Editor
 
 			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
 				ItemDataField("Visible", ref Data.IsVisible);
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
+				TextureFieldLegacy("Texture", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
 				ItemDataField("Show Bracket", ref Data.ShowBracket);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

@@ -16,6 +16,8 @@
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using VisualPinball.Engine.Game;
@@ -42,7 +44,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public RenderObject? GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
 			var meshes = GenerateMeshes(table);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
@@ -94,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return new RenderObjectGroup(_data.Name, "Flippers", postMatrix, renderObjects.ToArray());
 		}
 
-		protected override float BaseHeight(Table.Table table)
+		protected override float BaseHeight(Table.Table? table)
 		{
 			return 0f; // already in vertices
 		}

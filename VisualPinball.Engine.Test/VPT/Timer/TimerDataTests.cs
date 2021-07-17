@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Timer;
 
 namespace VisualPinball.Engine.Test.VPT.Timer
@@ -26,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		[Test]
 		public void ShouldReadTimerData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
+			var table = FileTableContainer.Load(VpxPath.Timer);
 			ValidateTimerData1(table.Timer("Timer1").Data);
 			ValidateTimerData2(table.Timer("Timer2").Data);
 		}
@@ -35,14 +37,15 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		public void ShouldWriteTimerData()
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Timer);
+			var table = FileTableContainer.Load(VpxPath.Timer);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
 			ValidateTimerData2(writtenTable.Timer("Timer2").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateTimerData1(TimerData data)
+		public static void ValidateTimerData1(TimerData data)
 		{
 			data.Backglass.Should().Be(false);
 			data.Center.X.Should().Be(471.160583f);
@@ -51,7 +54,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 			data.TimerInterval.Should().Be(233);
 		}
 
-		private static void ValidateTimerData2(TimerData data)
+		public static void ValidateTimerData2(TimerData data)
 		{
 			data.Backglass.Should().Be(true);
 		}

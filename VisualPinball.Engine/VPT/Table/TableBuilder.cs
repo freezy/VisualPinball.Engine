@@ -19,7 +19,6 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Light;
-using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Engine.VPT.Table
@@ -29,16 +28,16 @@ namespace VisualPinball.Engine.VPT.Table
 		private static int _tableItem;
 		private int _gameItem = 0;
 
-		private readonly Table _table = new Table(new TableData());
+		private readonly FileTableContainer _tableContainer = new FileTableContainer();
 
 		public TableBuilder()
 		{
-			_table.Data.Name = $"Table${_tableItem++}";
+			_tableContainer.Table.Data.Name = $"Table${_tableItem++}";
 		}
 
 		public TableBuilder WithTableScript(string vbs)
 		{
-			_table.Data.Code = vbs;
+			_tableContainer.Table.Data.Code = vbs;
 			return this;
 		}
 
@@ -49,25 +48,23 @@ namespace VisualPinball.Engine.VPT.Table
 				Center = new Vertex2D(500, 500)
 			};
 
-			_table.Add(new Bumper.Bumper(data));
+			_tableContainer.Add(new Bumper.Bumper(data));
 			return this;
 		}
 
 		public TableBuilder AddMaterial(Material material)
 		{
-			var mats = _table.Data.Materials.ToList();
+			var mats = _tableContainer.Table.Data.Materials.ToList();
 			mats.Add(material);
-			_table.Data.Materials = mats.ToArray();
-			_table.Data.NumMaterials = mats.Count;
+			_tableContainer.Table.Data.Materials = mats.ToArray();
+			_tableContainer.Table.Data.NumMaterials = mats.Count;
 
 			return this;
 		}
 
 		public TableBuilder AddTexture(string name)
 		{
-			_table.Textures.Add(new Texture(name));
-			_table.Data.NumTextures = _table.Textures.Count;
-
+			_tableContainer.Table.Data.NumTextures = _tableContainer.AddTexture(new Texture(name));
 			return this;
 		}
 
@@ -77,32 +74,32 @@ namespace VisualPinball.Engine.VPT.Table
 				Name = name, Center = new Vertex2D(500, 500)
 			};
 
-			_table.Add(new Flipper.Flipper(data));
+			_tableContainer.Add(new Flipper.Flipper(data));
 			return this;
 		}
 
 		public TableBuilder AddTrough(string name)
 		{
-			var data = new TroughData($"GameItem{_gameItem++}") {
+			var data = new TroughData($"VpeGameItem{_gameItem++}") {
 				Name = name
 			};
 
-			_table.Add(new Trough.Trough(data));
+			_tableContainer.Add(new Trough.Trough(data));
 			return this;
 		}
 
 		public TableBuilder AddLight(string name)
 		{
-			_table.Add(new Light.Light(new LightData(name, 500, 500)));
+			_tableContainer.Add(new Light.Light(new LightData(name, 500, 500)));
 			return this;
 		}
 
-		public Table Build(string name = null)
+		public FileTableContainer Build(string name = null)
 		{
 			if (name != null) {
-				_table.Data.Name = name;
+				_tableContainer.Table.Data.Name = name;
 			}
-			return _table;
+			return _tableContainer;
 		}
 	}
 }

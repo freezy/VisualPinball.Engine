@@ -84,13 +84,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Ramp>(Name);
-			}
-		}
-
 		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)
 		{
 			var rampFlatBefore = rampTypeBefore == RampType.RampTypeFlat;
@@ -99,24 +92,16 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(gameObject);
 			if (rampFlatAfter) {
-				var flatRampAuthoring = GetComponentInChildren<RampWireMeshAuthoring>();
-				if (flatRampAuthoring != null) {
-					DestroyImmediate(flatRampAuthoring.gameObject);
-				}
-				ConvertedItem.CreateChild<RampFloorMeshAuthoring>(gameObject, RampMeshGenerator.Floor);
-				ConvertedItem.CreateChild<RampWallMeshAuthoring>(gameObject, RampMeshGenerator.Wall);
+				convertedItem.Destroy<RampWireMeshAuthoring>();
+				convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
+				convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
 
 			} else {
-				var flatFloorAuthoring = GetComponentInChildren<RampFloorMeshAuthoring>();
-				if (flatFloorAuthoring != null) {
-					DestroyImmediate(flatFloorAuthoring.gameObject);
-				}
-				var flatWallAuthoring = GetComponentInChildren<RampWallMeshAuthoring>();
-				if (flatWallAuthoring != null) {
-					DestroyImmediate(flatWallAuthoring.gameObject);
-				}
-				ConvertedItem.CreateChild<RampWireMeshAuthoring>(gameObject, RampMeshGenerator.Wires);
+				convertedItem.Destroy<RampFloorMeshAuthoring>();
+				convertedItem.Destroy<RampWallMeshAuthoring>();
+				convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
 			}
 		}
 

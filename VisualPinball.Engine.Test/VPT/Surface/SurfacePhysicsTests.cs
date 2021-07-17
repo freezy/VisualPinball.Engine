@@ -15,18 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
 	public class SurfacePhysicsTests : BaseTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly FileTableContainer _tc;
 		private readonly Engine.VPT.Kicker.Kicker _kicker;
 
 		public SurfacePhysicsTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
-			_kicker = _table.Kicker("BallRelease");
+			_tc = FileTableContainer.Load(VpxPath.Flipper);
+			_kicker = _tc.Kicker("BallRelease");
 		}
 
 		// [Test]

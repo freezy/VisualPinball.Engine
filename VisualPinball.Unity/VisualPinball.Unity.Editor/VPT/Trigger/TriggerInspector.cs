@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Star Radius", ref Data.Radius);
 				ItemDataField("Rotation", ref Data.Rotation);
 				ItemDataField("Animation Speed", ref Data.AnimSpeed, false);
-				MaterialField("Material", ref Data.Material);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

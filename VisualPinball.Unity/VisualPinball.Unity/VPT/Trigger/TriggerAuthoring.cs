@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 
 			// register
 			var trigger = GetComponent<TriggerAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
 		}
 
 		public override void Restore()
@@ -83,13 +83,6 @@ namespace VisualPinball.Unity
 
 			// triggers are always collidable
 			// todo handle IsEnabled
-		}
-
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Trigger>(Name);
-			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

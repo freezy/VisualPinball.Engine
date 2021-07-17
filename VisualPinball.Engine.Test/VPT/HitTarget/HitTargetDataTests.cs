@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.HitTarget
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		[Test]
 		public void ShouldReadHitTargetData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
+			var table = FileTableContainer.Load(VpxPath.HitTarget);
 			ValidateHitTargetData(table.HitTarget("Data").Data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		public void ShouldWriteHitTargetData()
 		{
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.HitTarget);
+			var table = FileTableContainer.Load(VpxPath.HitTarget);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateHitTargetData(HitTargetData data)
+		public static void ValidateHitTargetData(HitTargetData data)
 		{
 			data.DepthBias.Should().Be(0.651f);
 			data.DisableLightingBelow.Should().Be(0.1932f);

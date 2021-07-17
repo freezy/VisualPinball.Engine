@@ -61,7 +61,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		protected override float BaseHeight(Table.Table table)
 		{
-			return table.TableHeight;
+			return table?.TableHeight ?? 0f;
 		}
 
 		private Mesh GetBaseMesh()

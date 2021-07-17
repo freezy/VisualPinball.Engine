@@ -16,6 +16,8 @@
   items:
     - name: Unity Components
       href: editor/unity-components.md
+    - name: Materials
+      href: editor/materials.md
     - name: Switch Manager
       href: editor/switch-manager.md
     - name: Coil Manager

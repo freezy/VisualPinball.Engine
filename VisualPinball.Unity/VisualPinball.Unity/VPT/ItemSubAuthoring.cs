@@ -23,9 +23,9 @@ namespace VisualPinball.Unity
 	/// <typeparam name="TData">Data type of the item</typeparam>
 	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
 	public abstract class ItemSubAuthoring<TItem, TData, TMainAuthoring> : ItemAuthoring<TItem, TData>
-		where TItem : Item<TData>, IRenderable
+		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
 		/// <summary>
 		/// We're in a sub component here, so in order to retrieve the data,
@@ -92,6 +92,10 @@ namespace VisualPinball.Unity
 			if (ac != null) {
 				return ac;
 			}
+			if (this is IItemColliderAuthoring) {
+				// collider must be on the same game object
+				return null;
+			}
 
 			// search on parent
 			if (go.transform.parent != null) {
@@ -104,6 +108,14 @@ namespace VisualPinball.Unity
 			// search on grand parent
 			if (go.transform.parent.transform.parent != null) {
 				ac = go.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
+			}
+			if (ac != null) {
+				return ac;
+			}
+
+			// search on great grand parent
+			if (go.transform.parent.transform.parent.transform.parent != null) {
+				ac = go.transform.parent.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
 			}
 
 			if (ac == null) {

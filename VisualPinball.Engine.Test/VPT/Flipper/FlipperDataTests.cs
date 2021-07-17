@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
 {
@@ -26,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		[Test]
 		public void ShouldReadFlipperData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			var table = FileTableContainer.Load(VpxPath.Flipper);
 			ValidateFlipper(table.Flipper("FatFlipper").Data);
 		}
 
@@ -34,13 +36,14 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldWriteFlipperData()
 		{
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Flipper);
+			var table = FileTableContainer.Load(VpxPath.Flipper);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateFlipper(FlipperData data)
+		public static void ValidateFlipper(FlipperData data)
 		{
 			data.BaseRadius.Should().Be(30.0303f);
 			data.Center.X.Should().Be(269.287f);

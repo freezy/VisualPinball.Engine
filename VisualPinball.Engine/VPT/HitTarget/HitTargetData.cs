@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.HitTarget
 {
 	[Serializable]
-	public class HitTargetData : ItemData, IPhysicalData
+	public class HitTargetData : ItemData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }

@@ -18,17 +18,18 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
 	public class RampMeshTests : MeshTests
 	{
-		private readonly Engine.VPT.Table.Table _table;
+		private readonly FileTableContainer _tc;
 		private readonly ObjFile _obj;
 
 		public RampMeshTests()
 		{
-			_table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			_tc = FileTableContainer.Load(VpxPath.Ramp);
 			_obj = LoadObjFixture(ObjPath.Ramp);
 		}
 
@@ -71,8 +72,8 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 
 		private void ShouldGenerate(string name)
 		{
-			var ramp = _table.Ramp(name);
-			var rampMeshes = ramp.GetRenderObjects(_table).RenderObjects.Select(ro => ro.Mesh).ToArray();
+			var ramp = _tc.Ramp(name);
+			var rampMeshes = ramp.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh).ToArray();
 #if WIN64
 			const float threshold = 0.0001f;
 #else

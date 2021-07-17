@@ -49,8 +49,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
-				TextureField("Image", ref Data.Image);
-				MaterialField("Material", ref Data.Material);
+				TextureFieldLegacy("Texture", ref Data.Image);
+				MaterialFieldLegacy("Material", ref Data.Material);
 				ItemDataField("Static", ref Data.StaticRendering);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

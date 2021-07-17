@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
 {
@@ -26,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		[Test]
 		public void ShouldReadSurfaceData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
+			var table = FileTableContainer.Load(VpxPath.Surface);
 			ValidateSurfaceData(table.Surface("TopInvisible").Data);
 		}
 
@@ -34,13 +36,14 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldWriteSurfaceData()
 		{
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Surface);
+			var table = FileTableContainer.Load(VpxPath.Surface);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateSurfaceData(SurfaceData data)
+		public static void ValidateSurfaceData(SurfaceData data)
 		{
 			data.DisableLightingBelow.Should().Be(0.6985f);
 			data.DisableLightingTop.Should().BeInRange(0.129f, 0.13f);

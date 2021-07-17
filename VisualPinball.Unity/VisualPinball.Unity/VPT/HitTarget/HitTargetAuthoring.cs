@@ -46,13 +46,6 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<HitTarget>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

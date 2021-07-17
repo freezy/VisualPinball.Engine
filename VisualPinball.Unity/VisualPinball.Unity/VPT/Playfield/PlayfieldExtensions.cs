@@ -21,17 +21,14 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	internal static class PlayfieldExtensions
+	public static class PlayfieldExtensions
 	{
-		public static ConvertedItem SetupGameObject(this Table table, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Table table, GameObject obj, IMaterialProvider materialProvider)
 		{
-			obj.AddComponent<PlayfieldAuthoring>().SetItem(table);
-			obj.AddComponent<PlayfieldColliderAuthoring>();
-			obj.AddComponent<PlayfieldMeshAuthoring>();
-			obj.AddComponent<ConvertToEntity>();
-			obj.name = "Default Playfield";
-
-			return new ConvertedItem();
+			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table);
+			convertedItem.SetMeshAuthoring<PlayfieldMeshAuthoring>();
+			convertedItem.SetColliderAuthoring<PlayfieldColliderAuthoring>(materialProvider);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

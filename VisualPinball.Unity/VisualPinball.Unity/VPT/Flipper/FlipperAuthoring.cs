@@ -53,13 +53,6 @@ namespace VisualPinball.Unity
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Flipper>(Name);
-			}
-		}
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -81,9 +74,7 @@ namespace VisualPinball.Unity
 				var trigger = CreateCorrectionTrigger();
 				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
 				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-
-				// todo create special registration method since we don't need all the api stuff.
-				player.RegisterTrigger(trigger, triggerEntity, Entity.Null);
+				player.RegisterTrigger(trigger, triggerEntity);
 
 				using (var builder = new BlobBuilder(Allocator.Temp)) {
 
@@ -174,15 +165,13 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
 			if (before == 0) {
-				ConvertedItem.CreateChild<FlipperRubberMeshAuthoring>(gameObject, FlipperMeshGenerator.Rubber);
+				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
 			}
 
 			if (after == 0) {
-				var rubberAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
-				if (rubberAuthoring != null) {
-					DestroyImmediate(rubberAuthoring.gameObject);
-				}
+				convertedItem.Destroy<FlipperRubberMeshAuthoring>();
 			}
 		}
 

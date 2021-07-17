@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
 {
@@ -27,7 +29,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		[Test]
 		public void ShouldReadRampData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = FileTableContainer.Load(VpxPath.Ramp);
 			ValidateRampData(table.Ramp("FlatL").Data);
 		}
 
@@ -35,13 +37,14 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		public void ShouldWriteRampData()
 		{
 			const string tmpFileName = "ShouldWriteRampData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = FileTableContainer.Load(VpxPath.Ramp);
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateRampData(writtenTable.Ramp("FlatL").Data);
+			File.Delete(tmpFileName);
 		}
 
-		private static void ValidateRampData(RampData data)
+		public static void ValidateRampData(RampData data)
 		{
 			data.DepthBias.Should().Be(0.11254f);
 			data.DragPoints.Length.Should().Be(3);
@@ -73,7 +76,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		[Test]
 		public void ShouldLoadWireData()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Ramp);
+			var table = FileTableContainer.Load(VpxPath.Ramp);
 			var data = table.Ramp("Wire3R").Data;
 
 			data.RampType.Should().Be(RampType.RampType3WireRight);

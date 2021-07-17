@@ -47,6 +47,11 @@ namespace VisualPinball.Engine.VPT.Table
 			Load(this, reader, Attributes);
 		}
 
+		public void Load(BinaryReader reader)
+		{
+			Load(this, reader, Attributes);
+		}
+
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
 		{
 			WriteRecord(writer, Attributes, hashWriter);

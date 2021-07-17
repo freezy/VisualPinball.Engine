@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
-	public class SurfaceData : ItemData, IPhysicalData
+	public class SurfaceData : ItemData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }

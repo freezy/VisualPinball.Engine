@@ -17,6 +17,7 @@
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -45,6 +46,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Primitive(BinaryReader reader, string itemName) : this(new PrimitiveData(reader, itemName))
 		{
+		}
+
+		public override void FreeBinaryData()
+		{
+			Data.FreeBinaryData();
 		}
 
 		public static Primitive GetDefault(Table.Table table)

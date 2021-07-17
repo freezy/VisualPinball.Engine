@@ -47,17 +47,19 @@ namespace VisualPinball.Unity
 			if (string.IsNullOrEmpty(Data.PlayfieldEntrySwitch)) {
 				return Vector3.zero;
 			}
-			if (Table.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
-				return Table.Trigger(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
+			if (TableContainer.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
+				return TableContainer.Get<Trigger>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
 			}
-			return Table.Has<Kicker>(Data.PlayfieldEntrySwitch)
-				? Table.Kicker(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
+			return TableContainer.Has<Kicker>(Data.PlayfieldEntrySwitch)
+				? TableContainer.Get<Kicker>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
 				: Vector3.zero;
 		}
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: Table.Kicker(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
+			: !TableContainer.Has<Kicker>(Data.PlayfieldExitKicker)
+				? Vector3.zero
+				: TableContainer.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
 
 		private void Awake()
 		{
@@ -90,13 +92,6 @@ namespace VisualPinball.Unity
 			// place trough between entry and exit kicker
 			var pos = (EntryPos(75f) + ExitPos(75f)) / 2;
 			transform.localPosition = pos;
-		}
-
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Trough>(Name);
-			}
 		}
 	}
 }

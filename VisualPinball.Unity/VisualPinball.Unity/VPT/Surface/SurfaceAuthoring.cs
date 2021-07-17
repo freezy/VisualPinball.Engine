@@ -83,13 +83,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Surface>(Name);
-			}
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() {
 			if (Data == null || Data.DragPoints.Length == 0) {

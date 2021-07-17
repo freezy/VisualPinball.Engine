@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 			DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
 			ItemDataField("Wire Thickness", ref Data.WireThickness);
 			ItemDataField("Star Radius", ref Data.Radius);
-			MaterialField("Material", ref Data.Material);
+			MaterialFieldLegacy("Material", ref Data.Material);
 
 			base.OnInspectorGUI();
 		}

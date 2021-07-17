@@ -90,13 +90,6 @@ namespace VisualPinball.Unity
 			// collision: spinners are always collidable
 		}
 
-		private void OnDestroy()
-		{
-			if (!Application.isPlaying) {
-				Table?.Remove<Spinner>(Name);
-			}
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(Data.Height);
 		public override void SetEditorPosition(Vector3 pos)

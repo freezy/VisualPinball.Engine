@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Primitive
 {
 	[Serializable]
-	public class PrimitiveData : ItemData, IPhysicalData
+	public class PrimitiveData : ItemData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -180,6 +180,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public bool GetOverwritePhysics() => OverwritePhysics;
 		public bool GetIsCollidable() => IsCollidable;
 		public string GetPhysicsMaterial() => PhysicsMaterial;
+
+		public void FreeBinaryData()
+		{
+			Mesh = null;
+			CompressedAnimationVertices = new int[0];
+		}
 
 		protected override bool SkipWrite(BiffAttribute attr)
 		{

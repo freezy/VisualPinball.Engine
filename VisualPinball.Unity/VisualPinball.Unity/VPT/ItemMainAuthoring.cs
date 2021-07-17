@@ -25,11 +25,18 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	[DisallowMultipleComponent]
 	public abstract class ItemMainAuthoring<TItem, TData> : ItemAuthoring<TItem, TData>,
 		IItemMainAuthoring, ILayerableItemAuthoring, IIdentifiableItemAuthoring
 		where TItem : Item<TData>
 		where TData : ItemData
 	{
+		/// <summary>
+		/// If false is returned, no colliders will be created. If your
+		/// component collides, but not per default, set this to true.
+		/// </summary>
+		public virtual bool IsCollidable => true;
+
 		#region Data
 
 		/// <summary>
@@ -41,7 +48,7 @@ namespace VisualPinball.Unity
 		/// Instantiates a new item based on the serialized data, and caches it
 		/// for the next access.
 		/// </summary>
-		public override TItem Item => _item ?? (_item = InstantiateItem(_data));
+		public override TItem Item => _item ??= InstantiateItem(_data);
 
 		/// <summary>
 		/// Applies the GameObject data to the item data. typically name and visibility.
@@ -92,6 +99,15 @@ namespace VisualPinball.Unity
 
 		#region Parenting
 
+		public virtual void FillBinaryData()
+		{
+		}
+
+		public void FreeBinaryData()
+		{
+			Item.FreeBinaryData();
+		}
+
 		/// <summary>
 		/// List of types for parenting. Empty list if only to own parent.
 		/// </summary>
@@ -136,7 +152,7 @@ namespace VisualPinball.Unity
 			}
 
 			// search on grand parent
-			if (go.transform.parent.transform.parent != null) {
+			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
 				ma = go.transform.parent.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
 			}
 

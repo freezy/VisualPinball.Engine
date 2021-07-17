@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void Awake(Table _, IGamelogicEngine gamelogicEngine)
+		public void Awake(IGamelogicEngine gamelogicEngine)
 		{
 			_gamelogicEngine = gamelogicEngine;
 			_gamelogicEngine.OnDisplaysAvailable += HandleDisplayAvailable;

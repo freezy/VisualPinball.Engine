@@ -27,12 +27,16 @@ using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[DisallowMultipleComponent]
 	public abstract class ItemColliderAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
 		IItemColliderAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TItem : Item<TData>
+		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
 	{
+		[SerializeField]
+		public PhysicsMaterial PhysicsMaterial;
+
 		[NonSerialized]
 		public bool ShowGizmos;
 
@@ -47,7 +51,7 @@ namespace VisualPinball.Unity
 
 		public List<ICollider> Colliders { get; private set; }
 
-		public new IItemMainRenderableAuthoring MainAuthoring => base.MainAuthoring;
+		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
 
 		private readonly Entity _colliderEntity = new Entity {Index = -2, Version = 0};
 
@@ -206,8 +210,8 @@ namespace VisualPinball.Unity
 						}
 					}
 
-					if (mesh == null) {
-						var ro = Item.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
+					if (mesh == null && Item is IRenderable renderableItem) {
+						var ro = renderableItem.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
 						mesh = ro.Mesh.ToUnityMesh();
 					}
 

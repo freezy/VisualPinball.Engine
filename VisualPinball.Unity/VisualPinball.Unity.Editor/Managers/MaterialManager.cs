@@ -45,19 +45,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnDataDetailGUI()
 		{
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				EditorGUI.indentLevel++;
-				PhysicsOptions();
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutVisual = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutVisual, "Visual")) {
-				EditorGUI.indentLevel++;
-				VisualOptions();
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			VisualOptions();
 		}
 
 		protected override void RenameExistingItem(MaterialListData data, string newName)
@@ -108,17 +96,6 @@ namespace VisualPinball.Unity.Editor
 					Undo.RecordObject(item as Object, undoName);
 				}
 			}
-		}
-
-		private void PhysicsOptions()
-		{
-			var mat = _selectedItem?.Material;
-			if (mat == null) { return; }
-
-			FloatField("Elasticity", ref mat.Elasticity);
-			FloatField("Elasticity Falloff", ref mat.ElasticityFalloff);
-			FloatField("Friction", ref mat.Friction);
-			FloatField("Scatter Angle", ref mat.ScatterAngle);
 		}
 
 		private void VisualOptions()

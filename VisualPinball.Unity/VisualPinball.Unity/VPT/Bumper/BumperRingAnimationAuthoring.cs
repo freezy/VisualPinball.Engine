@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationAuthoring : ItemMovementAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
+	public class BumperRingAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
 

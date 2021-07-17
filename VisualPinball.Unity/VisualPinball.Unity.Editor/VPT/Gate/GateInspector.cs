@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 				if (transform != null && transform.parent != null) {
 					position = transform.parent.TransformPoint(position);
 					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
-					var worldScale = 0.5f * VpxConverter.GlobalScale;
+					var worldScale = 0.5f * TablePlayfieldAuthoring.GlobalScale;
 					var scale = Data.Length * worldScale;
 					Handles.color = Color.white;
 					Handles.DrawWireDisc(position, axis, scale);
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
 				DropDownField("Type", ref Data.GateType, GateTypeLabels, GateTypeValues);
 				ItemDataField("Show Bracket", ref Data.ShowBracket);
-				MaterialField("Material", ref Data.Material);
+				MaterialFieldLegacy("Material", ref Data.Material);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

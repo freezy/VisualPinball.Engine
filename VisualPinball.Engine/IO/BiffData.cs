@@ -30,7 +30,7 @@ namespace VisualPinball.Engine.IO
 {
 	public enum StoragePrefix
 	{
-		GameItem, Collection, Sound, Image, Mappings
+		GameItem, VpeGameItem, Collection, Sound, Image, Mappings
 	}
 
 	/// <summary>
@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.IO
 		public string StorageName => _storageName ?? $"{StoragePrefix}{StorageIndex}";
 
 		public StoragePrefix StoragePrefix;
-		public int StorageIndex;
+		public int StorageIndex = -1;
 		public readonly List<UnknownBiffRecord> UnknownRecords = new List<UnknownBiffRecord>();
 		private readonly string _storageName;
 

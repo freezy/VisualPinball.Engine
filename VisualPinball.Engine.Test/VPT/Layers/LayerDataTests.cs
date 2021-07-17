@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.IO;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Layers
 {
@@ -26,7 +28,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		[Test]
 		public void ShouldReadLayerDataVPX1060()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			var table = FileTableContainer.Load(VpxPath.Bumper);
 			var data = table.Bumper("Bumper1").Data;
 			ValidateTableDataVPX1060(data);
 		}
@@ -34,7 +36,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		[Test]
 		public void ShouldReadLayerDataVPX1070()
 		{
-			var table = Engine.VPT.Table.Table.Load(VpxPath.BumperVPX1070);
+			var table = FileTableContainer.Load(VpxPath.BumperVPX1070);
 			var data = table.Bumper("Bumper1").Data;
 			ValidateTableDataVPX1070(data);
 		}
@@ -43,12 +45,13 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 		public void ShouldWriteLayerData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
-			var table = Engine.VPT.Table.Table.Load(VpxPath.Bumper);
+			var table = FileTableContainer.Load(VpxPath.Bumper);
 			var data = table.Bumper("Bumper1").Data;
 			data.EditorLayerName = "Layer_1";
 			table.Save(tmpFileName);
-			var writtenTable = Engine.VPT.Table.Table.Load(tmpFileName);
+			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableDataVPX1070(writtenTable.Bumper("Bumper1").Data);
+			File.Delete(tmpFileName);
 		}
 
 		private static void ValidateTableDataVPX1060(BumperData data)

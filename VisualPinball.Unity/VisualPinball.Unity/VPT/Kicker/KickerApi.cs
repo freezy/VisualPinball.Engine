@@ -200,10 +200,10 @@ namespace VisualPinball.Unity
 			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
 
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), radius, height,
-				height + Data.HitHeight, GetColliderInfo(table), ColliderType.KickerCircle));
+				height + Data.HitHeight, GetColliderInfo(), ColliderType.KickerCircle));
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo(Table table) => GetColliderInfo(table);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 

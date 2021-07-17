@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NLog;
 using OpenMcdf;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT.Collection;
 
 namespace VisualPinball.Engine.VPT.Table
 {
@@ -29,7 +31,7 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static Table Load(string filename, bool loadGameItems = true)
+		public static FileTableContainer Load(string filename, bool loadGameItems = true)
 		{
 			var cf = new CompoundFile(filename);
 			try {
@@ -39,20 +41,21 @@ namespace VisualPinball.Engine.VPT.Table
 				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
 				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var table = new Table(reader);
+					var tableContainer = new FileTableContainer(reader);
 
-					LoadTableInfo(table, cf.RootStorage, gameStorage);
+					LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
 					if (loadGameItems) {
-						LoadGameItems(table, gameStorage);
+						LoadGameItems(tableContainer, gameStorage, tableContainer.NumGameItems, "GameItem");
+						LoadGameItems(tableContainer, gameStorage, tableContainer.NumVpeGameItems, "VpeGameItem");
 					}
-					LoadTextures(table, gameStorage);
-					LoadSounds(table, gameStorage, fileVersion);
-					LoadCollections(table, gameStorage);
-					LoadMappings(table, gameStorage);
-					LoadTableMeta(table, gameStorage);
+					LoadTextures(tableContainer, gameStorage);
+					LoadSounds(tableContainer, gameStorage, fileVersion);
+					LoadCollections(tableContainer, gameStorage);
+					LoadMappings(tableContainer, gameStorage);
+					LoadTableMeta(tableContainer, gameStorage);
 
-					table.SetupPlayfieldMesh();
-					return table;
+					tableContainer.Table.SetupPlayfieldMesh();
+					return tableContainer;
 				}
 
 			} finally {
@@ -60,14 +63,14 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		public static byte[][] ReadGameItems(string fileName, int numGameItems)
+		public static IEnumerable<byte[]> ReadGameItems(string fileName, int numGameItems, string storagePrefix)
 		{
 			var gameItemData = new byte[numGameItems][];
 			var cf = new CompoundFile(fileName);
 			try {
 				var storage = cf.RootStorage.GetStorage("GameStg");
 				for (var i = 0; i < numGameItems; i++) {
-					var itemName = $"GameItem{i}";
+					var itemName = $"{storagePrefix}{i}";
 					var itemStream = storage.GetStream(itemName);
 					gameItemData[i] = itemStream.GetData();
 				}
@@ -112,17 +115,17 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.TextBox: item = new TextBox.TextBox(reader, itemName); break;
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
-				case ItemType.Trough: item = new Trough.Trough(reader, itemName); break;
+				case ItemType.Trough: item = new Trough.Trough(reader, $"VpeGameItem{storageIndex}"); break;
 				default:
 					Logger.Info("Unhandled item type " + itemType);
 					itemType = ItemType.Invalid; break;
 			}
 		}
 
-		private static void LoadGameItems(Table table, CFStorage storage)
+		private static void LoadGameItems(FileTableContainer tableContainer, CFStorage storage, int count, string storagePrefix)
 		{
-			for (var i = 0; i < table.Data.NumGameItems; i++) {
-				var itemName = $"GameItem{i}";
+			for (var i = 0; i < count; i++) {
+				var itemName = $"{storagePrefix}{i}";
 				storage.TryGetStream(itemName, out var itemStream);
 				if (itemStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", itemName);
@@ -147,110 +150,110 @@ namespace VisualPinball.Engine.VPT.Table
 				switch (itemType) {
 					case ItemType.Bumper: {
 						var item = new VisualPinball.Engine.VPT.Bumper.Bumper(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Decal: {
-						table.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
+						tableContainer.Add(new VisualPinball.Engine.VPT.Decal.Decal(reader, itemName));
 						break;
 					}
 					case ItemType.DispReel: {
 						var item = new VisualPinball.Engine.VPT.DispReel.DispReel(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Flasher: {
 						var item = new VisualPinball.Engine.VPT.Flasher.Flasher(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Flipper: {
 						var item = new VisualPinball.Engine.VPT.Flipper.Flipper(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Gate: {
 						var item = new VisualPinball.Engine.VPT.Gate.Gate(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.HitTarget: {
 						var item = new VisualPinball.Engine.VPT.HitTarget.HitTarget(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Kicker: {
 						var item = new VisualPinball.Engine.VPT.Kicker.Kicker(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Light: {
 						var item = new VisualPinball.Engine.VPT.Light.Light(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.LightSeq: {
 						var item = new VisualPinball.Engine.VPT.LightSeq.LightSeq(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Plunger: {
 						var item = new VisualPinball.Engine.VPT.Plunger.Plunger(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Primitive: {
 						var item = new Primitive.Primitive(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Ramp: {
 						var item = new Ramp.Ramp(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Rubber: {
 						var item = new Rubber.Rubber(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Spinner: {
 						var item = new Spinner.Spinner(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Surface: {
 						var item = new Surface.Surface(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.TextBox: {
 						var item = new TextBox.TextBox(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Timer: {
 						var item = new Timer.Timer(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Trigger: {
 						var item = new Trigger.Trigger(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 					case ItemType.Trough: {
 						var item = new Trough.Trough(reader, itemName);
-						table.Add(item);
+						tableContainer.Add(item);
 						break;
 					}
 				}
 			}
 		}
 
-		private static void LoadTextures(Table table, CFStorage storage)
+		private static void LoadTextures(FileTableContainer tableContainer, CFStorage storage)
 		{
-			for (var i = 0; i < table.Data.NumTextures; i++) {
+			for (var i = 0; i < tableContainer.NumTextures; i++) {
 				var textureName = $"Image{i}";
 				storage.TryGetStream(textureName, out var textureStream);
 				if (textureStream == null) {
@@ -266,14 +269,14 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
 					var texture = new Texture(reader, textureName);
-					table.Textures.Add(texture);
+					tableContainer.AddTexture(texture);
 				}
 			}
 		}
 
-		private static void LoadCollections(Table table, CFStorage storage)
+		private static void LoadCollections(FileTableContainer tableContainer, CFStorage storage)
 		{
-			for (var i = 0; i < table.Data.NumCollections; i++) {
+			for (var i = 0; i < tableContainer.NumCollections; i++) {
 				var collectionName = $"Collection{i}";
 				storage.TryGetStream(collectionName, out var collectionStream);
 				if (collectionStream == null) {
@@ -282,29 +285,27 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 				using (var stream = new MemoryStream(collectionStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var collection = new Collection.Collection(reader, collectionName);
-					table.Collections[collection.Name.ToLower()] = collection;
+					tableContainer.Collections.Add(new CollectionData(reader, collectionName));
 				}
 			}
 		}
 
-		private static void LoadMappings(Table table, CFStorage gameStorage)
+		private static void LoadMappings(FileTableContainer tableContainer, CFStorage gameStorage)
 		{
 			var name = "Mappings0";
 			gameStorage.TryGetStream(name, out var citStream);
 			if (citStream != null)
 			{
 				using (var stream = new MemoryStream(citStream.GetData()))
-				using (var reader = new BinaryReader(stream))
-				{
-					table.Mappings = new Mappings.Mappings(reader, name);
+				using (var reader = new BinaryReader(stream)) {
+					tableContainer.SetMappings(new Mappings.Mappings(reader, name));
 				}
 			}
 		}
 
-		private static void LoadSounds(Table table, CFStorage storage, int fileVersion)
+		private static void LoadSounds(FileTableContainer tableContainer, CFStorage storage, int fileVersion)
 		{
-			for (var i = 0; i < table.Data.NumSounds; i++) {
+			for (var i = 0; i < tableContainer.NumSounds; i++) {
 				var soundName = $"Sound{i}";
 				storage.TryGetStream(soundName, out var soundStream);
 				if (soundStream == null) {
@@ -315,12 +316,12 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
 					var sound = new Sound.Sound(reader, soundName, fileVersion);
-					table.Sounds.Add(sound);
+					tableContainer.AddSound(sound);
 				}
 			}
 		}
 
-		private static void LoadTableInfo(Table table, CFStorage rootStorage, CFStorage gameStorage)
+		private static void LoadTableInfo(FileTableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
 		{
 			// first, although we can loop through entries, get them from the game storage, so we
 			// know their order, which is important when writing back (because you know, hashing).
@@ -328,7 +329,7 @@ namespace VisualPinball.Engine.VPT.Table
 			if (citStream != null) {
 				using (var stream = new MemoryStream(citStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					table.CustomInfoTags = new CustomInfoTags(reader);
+					tableContainer.CustomInfoTags.Load(reader);
 				}
 			}
 
@@ -342,18 +343,18 @@ namespace VisualPinball.Engine.VPT.Table
 				if (item.IsStream) {
 					var itemStream = item as CFStream;
 					if (itemStream != null) {
-						table.TableInfo[item.Name] = BiffUtil.ParseWideString(itemStream.GetData());
+						tableContainer.TableInfo[item.Name] = BiffUtil.ParseWideString(itemStream.GetData());
 					}
 				}
 			}, false);
 		}
 
-		private static void LoadTableMeta(Table table, CFStorage gameStorage)
+		private static void LoadTableMeta(FileTableContainer tableContainer, CFStorage gameStorage)
 		{
 			// version
 			gameStorage.TryGetStream("Version", out var versionBytes);
 			if (versionBytes != null) {
-				table.FileVersion = BitConverter.ToInt32(versionBytes.GetData(), 0);
+				tableContainer.FileVersion = BitConverter.ToInt32(versionBytes.GetData(), 0);
 			} else {
 				Logger.Info("No Version under GameStg found, skipping.");
 			}
@@ -362,7 +363,7 @@ namespace VisualPinball.Engine.VPT.Table
 			// hash
 			gameStorage.TryGetStream("Version", out var hashBytes);
 			if (hashBytes != null) {
-				table.FileHash = hashBytes.GetData();
+				tableContainer.FileHash = hashBytes.GetData();
 			} else {
 				Logger.Info("No MAC under GameStg found, skipping.");
 			}

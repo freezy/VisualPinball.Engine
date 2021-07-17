@@ -16,6 +16,8 @@
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+#nullable enable
+
 using System;
 using NLog;
 using VisualPinball.Engine.Common;
@@ -63,7 +65,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			));
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(Table.Table? table)
 		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
@@ -76,19 +78,19 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var vertMatrix = new Matrix3D();
 			tempMat.SetTranslation(-Position.X, -Position.Y, -Position.Z);
 			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z * table.GetScaleZ());
+			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z * table?.GetScaleZ() ?? 0f);
 			vertMatrix.Multiply(tempMat);
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
-				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table.TableHeight);
+				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table?.TableHeight ?? 0f);
 
 			} else {
-				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * table.GetScaleZ() + table.TableHeight);
+				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * (table?.GetScaleZ() ?? 1f) + (table?.TableHeight ?? 0f));
 			}
 
 			vertMatrix.Multiply(tempMat);
 
-			return new Tuple<Matrix3D, Matrix3D>(vertMatrix, fullMatrix);
+			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
 		}
 
 		public Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
@@ -241,7 +243,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return mesh;
 		}
 
-		protected override float BaseHeight(Table.Table table)
+		protected override float BaseHeight(Table.Table? table)
 		{
 			return 0f;
 		}

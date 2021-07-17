@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
@@ -32,6 +33,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
+		public override bool IsCollidable => !Data.IsToy;
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
@@ -76,6 +78,20 @@ namespace VisualPinball.Unity
 					Data.IsCollidable = active;
 					Data.IsToy = !active;
 				}
+			}
+		}
+
+		public override void FillBinaryData()
+		{
+			var meshAuth = GetComponent<PrimitiveMeshAuthoring>();
+			if (!meshAuth) {
+				meshAuth = GetComponentInChildren<PrimitiveMeshAuthoring>();
+			}
+
+			var meshGo = meshAuth ? meshAuth.gameObject : gameObject;
+			var mf = meshGo.GetComponent<MeshFilter>();
+			if (mf) {
+				Data.Mesh = mf.sharedMesh.ToVpMesh();
 			}
 		}
 

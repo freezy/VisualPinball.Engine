@@ -24,7 +24,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
@@ -51,7 +50,7 @@ namespace VisualPinball.Unity
 		public TableApi TableApi { get; private set; }
 
 		// shortcuts
-		public Matrix4x4 TableToWorld => transform.localToWorldMatrix;
+		public Matrix4x4 TableToWorld => GetComponentInChildren<TablePlayfieldAuthoring>().transform.localToWorldMatrix;
 
 		[NonSerialized]
 		public IGamelogicEngine GamelogicEngine;
@@ -63,6 +62,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		// table related
+		private TableContainer _tableContainer;
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
@@ -116,22 +116,25 @@ namespace VisualPinball.Unity
 			var tableComponent = gameObject.GetComponent<TableAuthoring>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
+			tableComponent.TableContainer.Refresh();
+
 			TableApi.Data = tableComponent.Data;
 			_initializables.Add(TableApi);
 			_colliderGenerators.Add(TableApi);
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
+			_tableContainer = tableComponent.TableContainer;
 			BallManager = new BallManager(Table, TableToWorld);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(Table, GamelogicEngine);
-				_coilPlayer.Awake(Table, GamelogicEngine, _lampPlayer);
-				_switchPlayer.Awake(Table, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(Table, _inputManager, _switchPlayer);
-				_displayPlayer.Awake(Table, GamelogicEngine);
+				_lampPlayer.Awake(_tableContainer, GamelogicEngine);
+				_coilPlayer.Awake(_tableContainer, GamelogicEngine, _lampPlayer);
+				_switchPlayer.Awake(_tableContainer, GamelogicEngine, _inputManager);
+				_wirePlayer.Awake(_tableContainer, _inputManager, _switchPlayer);
+				_displayPlayer.Awake(GamelogicEngine);
 			}
 
 			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
@@ -181,12 +184,15 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(Bumper bumper, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<BumperColliderAuthoring>();
 			var bumperApi = new BumperApi(bumper, entity, parentEntity, this);
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
-			_colliderGenerators.Add(bumperApi);
-			_hittables[entity] = bumperApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(bumperApi);
+				_hittables[entity] = bumperApi;
+			}
 			_switchPlayer.RegisterSwitch(bumper, bumperApi);
 			_coilPlayer.RegisterCoil(bumper, bumperApi);
 			_wirePlayer.RegisterWire(bumper, bumperApi);
@@ -194,15 +200,18 @@ namespace VisualPinball.Unity
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<FlipperColliderAuthoring>();
 			var flipperApi = new FlipperApi(flipper, entity, parentEntity, this);
 			TableApi.Flippers[flipper.Name] = flipperApi;
 			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
-			_colliderGenerators.Add(flipperApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(flipperApi);
+				_collidables[entity] = flipperApi;
+				_hittables[entity] = flipperApi;
+			}
 			Flippers[entity] = flipper;
-			_hittables[entity] = flipperApi;
 			_rotatables[entity] = flipperApi;
-			_collidables[entity] = flipperApi;
 			_switchPlayer.RegisterSwitch(flipper, flipperApi);
 			_coilPlayer.RegisterCoil(flipper, flipperApi);
 			_wirePlayer.RegisterWire(flipper, flipperApi);
@@ -214,35 +223,44 @@ namespace VisualPinball.Unity
 
 		public void RegisterGate(Gate gate, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<GateColliderAuthoring>();
 			var gateApi = new GateApi(gate, entity, parentEntity, this);
 			TableApi.Gates[gate.Name] = gateApi;
 			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
-			_colliderGenerators.Add(gateApi);
-			_hittables[entity] = gateApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(gateApi);
+				_hittables[entity] = gateApi;
+			}
 			_rotatables[entity] = gateApi;
 			_switchPlayer.RegisterSwitch(gate, gateApi);
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var hitTargetApi = new HitTargetApi(hitTarget, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<HitTargetColliderAuthoring>();
+			var hitTargetApi = new HitTargetApi(hitTarget, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
-			_colliderGenerators.Add(hitTargetApi);
-			_hittables[entity] = hitTargetApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(hitTargetApi);
+				_hittables[entity] = hitTargetApi;
+			}
 			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}
 
 		public void RegisterKicker(Kicker kicker, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<KickerColliderAuthoring>();
 			var kickerApi = new KickerApi(kicker, entity, parentEntity, this);
 			TableApi.Kickers[kicker.Name] = kickerApi;
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
-			_colliderGenerators.Add(kickerApi);
-			_hittables[entity] = kickerApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(kickerApi);
+				_hittables[entity] = kickerApi;
+			}
 			_switchPlayer.RegisterSwitch(kicker, kickerApi);
 			_coilPlayer.RegisterCoil(kicker, kickerApi);
 			_wirePlayer.RegisterWire(kicker, kickerApi);
@@ -277,59 +295,88 @@ namespace VisualPinball.Unity
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<PrimitiveColliderAuthoring>();
+			var primitiveApi = new PrimitiveApi(primitive, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
-			_colliderGenerators.Add(primitiveApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(primitiveApi);
+				_hittables[entity] = primitiveApi;
+			}
 			_initializables.Add(primitiveApi);
-			_hittables[entity] = primitiveApi;
 		}
 
 		public void RegisterRamp(Ramp ramp, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rampApi = new RampApi(ramp, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<RampColliderAuthoring>();
+			var rampApi = new RampApi(ramp, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Ramps[ramp.Name] = rampApi;
 			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
-			_colliderGenerators.Add(rampApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(rampApi);
+			}
 		}
 
 		public void RegisterRubber(Rubber rubber, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var rubberApi = new RubberApi(rubber, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<RubberColliderAuthoring>();
+			var rubberApi = new RubberApi(rubber, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
-			_colliderGenerators.Add(rubberApi);
-			_hittables[entity] = rubberApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(rubberApi);
+				_hittables[entity] = rubberApi;
+			}
 		}
 
 		public void RegisterSurface(Surface surface, Entity entity, Entity parentEntity, GameObject go)
 		{
-			var surfaceApi = new SurfaceApi(surface, entity, parentEntity, this);
+			var colliderAuth = go.GetComponent<SurfaceColliderAuthoring>();
+			var surfaceApi = new SurfaceApi(surface, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
-			_colliderGenerators.Add(surfaceApi);
-			_hittables[entity] = surfaceApi;
+			if (colliderAuth) {
+				_colliderGenerators.Add(surfaceApi);
+				_hittables[entity] = surfaceApi;
+			}
 			_slingshots[entity] = surfaceApi;
 		}
 
 		public void RegisterSpinner(Spinner spinner, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<SpinnerColliderAuthoring>();
 			var spinnerApi = new SpinnerApi(spinner, entity, parentEntity, this);
 			TableApi.Spinners[spinner.Name] = spinnerApi;
 			_apis.Add(spinnerApi);
 			_initializables.Add(spinnerApi);
-			_colliderGenerators.Add(spinnerApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(spinnerApi);
+			}
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
 		}
 
-		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity)
+		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
 		{
+			var colliderAuth = go.GetComponent<TriggerColliderAuthoring>();
 			var triggerApi = new TriggerApi(trigger, entity, parentEntity, this);
+			TableApi.Triggers[trigger.Name] = triggerApi;
+			_apis.Add(triggerApi);
+			_initializables.Add(triggerApi);
+			if (colliderAuth) {
+				_colliderGenerators.Add(triggerApi);
+				_hittables[entity] = triggerApi;
+			}
+			_switchPlayer.RegisterSwitch(trigger, triggerApi);
+		}
+
+		public void RegisterTrigger(Trigger trigger, Entity entity)
+		{
+			var triggerApi = new TriggerApi(trigger, entity, Entity.Null, this);
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
@@ -401,8 +448,8 @@ namespace VisualPinball.Unity
 
 		public void AddDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _tableContainer.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _tableContainer.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot add new hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -416,13 +463,13 @@ namespace VisualPinball.Unity
 			_wirePlayer.AddWire(wireMapping);
 
 			// this is for showing it in the editor during runtime only
-			Table.Mappings.Data.AddWire(wireMapping);
+			_tableContainer.Mappings.Data.AddWire(wireMapping);
 		}
 
 		public void RemoveDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = Table.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = Table.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _tableContainer.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _tableContainer.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot remove hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -436,7 +483,7 @@ namespace VisualPinball.Unity
 			_wirePlayer.RemoveWire(wireMapping);
 
 			// this is for the editor during runtime only
-			var wire = Table.Mappings.Data.Wires.FirstOrDefault(w =>
+			var wire = _tableContainer.Mappings.Data.Wires.FirstOrDefault(w =>
 				w.Description == wireMapping.Description &&
 				w.SourceDevice == wireMapping.SourceDevice &&
 				w.SourceDeviceItem == wireMapping.SourceDeviceItem &&
@@ -448,7 +495,7 @@ namespace VisualPinball.Unity
 				w.DestinationDeviceItem == wireMapping.DestinationDeviceItem &&
 				w.DestinationPlayfieldItem == wireMapping.DestinationPlayfieldItem
 			);
-			Table.Mappings.Data.RemoveWire(wire);
+			_tableContainer.Mappings.Data.RemoveWire(wire);
 		}
 
 		#endregion
