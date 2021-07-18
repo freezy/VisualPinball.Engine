@@ -27,6 +27,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Trigger;
@@ -274,8 +275,10 @@ namespace VisualPinball.Unity
 
 		protected void OnDrawGizmosSelected()
 		{
+			Profiler.BeginSample("FlipperAuthoring.OnDrawGizmosSelected");
 			var poly = GetEnclosingPolygon();
 			if (poly == null) {
+				Profiler.EndSample();
 				return;
 			}
 
@@ -306,6 +309,8 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
+
+			Profiler.EndSample();
 		}
 
 		private FlipperStaticData GetMaterialData()

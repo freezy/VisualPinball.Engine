@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -152,6 +153,8 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnDrawGizmos()
 		{
+			Profiler.BeginSample("ItemMeshAuthoring.OnDrawGizmos");
+
 			// handle dirty whenever scene view draws just in case a field or dependant changed and our
 			// custom inspector window isn't up to process it
 			if (_meshDirty) {
@@ -169,6 +172,8 @@ namespace VisualPinball.Unity
 					Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 				}
 			}
+
+			Profiler.EndSample();
 		}
 
 		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
