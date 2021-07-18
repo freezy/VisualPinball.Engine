@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
@@ -73,6 +74,7 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
+			Profiler.BeginSample("TroughAuthoring.OnDrawGizmosSelected");
 			if (!string.IsNullOrEmpty(Data.PlayfieldEntrySwitch) && !string.IsNullOrEmpty(Data.PlayfieldExitKicker)) {
 				var ltw = GetComponentInParent<TableAuthoring>().transform;
 				var entryPos = EntryPos(0f);
@@ -85,6 +87,7 @@ namespace VisualPinball.Unity
 				DrawArrow(entryWorldPos, pos - entryWorldPos);
 				DrawArrow(pos, exitWorldPos - pos);
 			}
+			Profiler.EndSample();
 		}
 
 		public void UpdatePosition()

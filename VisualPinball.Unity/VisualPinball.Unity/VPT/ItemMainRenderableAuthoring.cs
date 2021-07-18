@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -61,6 +62,7 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshIfDirty()
 		{
+			Profiler.BeginSample("ItemMainRenderableAuthoring.RebuildMeshIfDirty");
 			foreach (var meshComponent in MeshComponents) {
 				if (meshComponent.MeshDirty) {
 					meshComponent.RebuildMeshes();
@@ -72,6 +74,7 @@ namespace VisualPinball.Unity
 			if (ta != this && Item != null) {
 				transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
 			}
+			Profiler.EndSample();
 		}
 
 		public void DestroyMeshComponent()
@@ -120,6 +123,8 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnDrawGizmos()
 		{
+			Profiler.BeginSample("ItemMainRenderableAuthoring.OnDrawGizmos");
+
 			// handle dirty whenever scene view draws just in case a field or dependant changed and our
 			// custom inspector window isn't up to process it
 			RebuildMeshIfDirty();
@@ -135,6 +140,8 @@ namespace VisualPinball.Unity
 					Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
 				}
 			}
+
+			Profiler.EndSample();
 		}
 
 		#region Tools

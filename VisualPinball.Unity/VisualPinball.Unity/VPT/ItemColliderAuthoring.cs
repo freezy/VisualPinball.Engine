@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -59,12 +60,15 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
+			Profiler.BeginSample("ItemColliderAuthoring.OnDrawGizmosSelected");
 			if (!ShowGizmos || !ShowAabbs && !ShowColliderMesh) {
+				Profiler.EndSample();
 				return;
 			}
 
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
+				Profiler.EndSample();
 				return;
 			}
 			var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
@@ -84,6 +88,7 @@ namespace VisualPinball.Unity
 					DrawCollider(ltw, col, i == SelectedCollider);
 				}
 			}
+			Profiler.EndSample();
 		}
 
 		#region Collider Gizmos
