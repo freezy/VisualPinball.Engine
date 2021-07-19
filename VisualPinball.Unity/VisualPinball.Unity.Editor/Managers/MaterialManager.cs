@@ -92,7 +92,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
 				if (IsReferenced(item.MaterialRefs, item.ItemData, data.Material.Name)) {
-					item.MeshDirty = true;
 					Undo.RecordObject(item as Object, undoName);
 				}
 			}

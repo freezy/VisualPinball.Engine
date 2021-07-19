@@ -120,14 +120,6 @@ namespace VisualPinball.Unity.Editor
 		// 	GUILayout.Label("VPE item transforms driven by data on the component below.");
 		// }
 
-		private void RebuildMeshes()
-		{
-			_primaryItem.RebuildMeshIfDirty();
-			foreach (var secondary in _secondaryItems) {
-				secondary.Item.RebuildMeshIfDirty();
-			}
-		}
-
 		private void OnSceneGUI()
 		{
 			if (_defaultEditor != null) {
@@ -166,8 +158,6 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
-
-			RebuildMeshes();
 		}
 
 		private void HandleLockedTool()
@@ -321,41 +311,37 @@ namespace VisualPinball.Unity.Editor
 
 		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
 		{
-			_primaryItem.SetMeshDirty();
 			var undoLabel = "Move " + _transform.gameObject.name;
-			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
-			Undo.RecordObject(_transform, undoLabel);
+			Undo.RecordObjects(new[]{ _transform, _primaryItem as UnityEngine.Object }, undoLabel);
 			var finalPos = newPosition;
 
 			if (_transform.parent != null && !isLocalPos) {
 				finalPos = _transform.parent.InverseTransformPoint(newPosition);
 			}
 			_primaryItem.SetEditorPosition(finalPos);
+			_primaryItem.RebuildMeshes();
 
 			foreach (var secondary in _secondaryItems) {
-				secondary.Item.SetMeshDirty();
-				Undo.RecordObject(secondary.Item as UnityEngine.Object, undoLabel);
-				Undo.RecordObject(secondary.Transform, undoLabel);
+				secondary.Item.RebuildMeshes();
+				Undo.RecordObjects(new[]{ secondary.Item as UnityEngine.Object, secondary.Transform }, undoLabel);
 				secondary.Item.SetEditorPosition(finalPos + secondary.Offset);
 			}
 		}
 
 		private void FinishRotate(Vector3 newEuler)
 		{
-			_primaryItem.SetMeshDirty();
 			var undoLabel = "Rotate " + _transform.gameObject.name;
-			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
-			Undo.RecordObject(_transform, undoLabel);
+			Undo.RecordObjects(new [] {_primaryItem as UnityEngine.Object, _transform }, undoLabel);
 			_primaryItem.SetEditorRotation(newEuler);
+			_primaryItem.RebuildMeshes();
 		}
 
 		private void FinishScale(Vector3 newScale)
 		{
-			_primaryItem.SetMeshDirty();
 			var undoLabel = "Scale " + _transform.gameObject.name;
-			Undo.RecordObject(_primaryItem as UnityEngine.Object, undoLabel);
-			Undo.RecordObject(_transform, undoLabel);
+			Undo.RecordObjects(new [] {_primaryItem as UnityEngine.Object, _transform }, undoLabel);
 			_primaryItem.SetEditorScale(newScale);
+			_primaryItem.RebuildMeshes();
 		}
 
 		private class SecondaryItem

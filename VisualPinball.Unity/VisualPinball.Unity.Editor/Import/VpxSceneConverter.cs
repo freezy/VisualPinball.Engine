@@ -101,6 +101,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="tableAuthoring">Existing component</param>
 		public VpxSceneConverter(TableAuthoring tableAuthoring)
 		{
+			_options = new ConvertOptions();
 			_tableGo = tableAuthoring.gameObject;
 			var tablePlayfieldAuthoring = _tableGo.GetComponentInChildren<TablePlayfieldAuthoring>();
 			if (!tablePlayfieldAuthoring) {
@@ -128,7 +129,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			CreateFileHierarchy();
-
 		}
 
 		public GameObject Convert(bool applyPatch = true, string tableName = null)

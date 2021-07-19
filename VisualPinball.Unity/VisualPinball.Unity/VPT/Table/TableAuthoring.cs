@@ -100,12 +100,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected override void OnDrawGizmos()
-		{
-			// do nothing, base class draws all child meshes for ease of selection, but
-			// that would just be everything at this level
-		}
-
 		public void RestoreCollections(List<CollectionData> collections)
 		{
 			Collections.Clear();

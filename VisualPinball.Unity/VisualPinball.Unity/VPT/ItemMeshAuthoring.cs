@@ -31,7 +31,6 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>, IRenderable
 		where TAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
-		public bool MeshDirty { get => _meshDirty; set => _meshDirty = value; }
 		public List<MemberInfo> MaterialRefs => _materialRefs ??= GetMembersWithAttribute<MaterialReferenceAttribute>();
 		public List<MemberInfo> TextureRefs => _textureRefs ??= GetMembersWithAttribute<TextureReferenceAttribute>();
 
@@ -42,11 +41,6 @@ namespace VisualPinball.Unity
 
 		private List<MemberInfo> _materialRefs;
 		private List<MemberInfo> _textureRefs;
-
-		// for tracking if we need to rebuild the meshes (handled by the editor scripts) during undo/redo flows
-		[HideInInspector]
-		[SerializeField]
-		private bool _meshDirty;
 
 		#region Creation and destruction
 
@@ -92,7 +86,6 @@ namespace VisualPinball.Unity
 		{
 			UpdateMesh();
 			ItemDataChanged();
-			_meshDirty = false;
 		}
 
 		public void CreateMesh(ITextureProvider texProvider, IMaterialProvider matProvider)
@@ -133,14 +126,11 @@ namespace VisualPinball.Unity
 			if (ro == null) {
 				return;
 			}
-			var mr = GetComponent<MeshRenderer>();
 			var mf = GetComponent<MeshFilter>();
 
 			if (mf != null) {
 				var unityMesh = mf.sharedMesh;
-				if (ro.Mesh != null) {
-					ro.Mesh.ApplyToUnityMesh(unityMesh);
-				}
+				ro.Mesh?.ApplyToUnityMesh(unityMesh);
 			}
 
 			// if (mr != null) {
@@ -149,31 +139,6 @@ namespace VisualPinball.Unity
 			// 	}
 			// 	mr.enabled = true;
 			// }
-		}
-
-		protected virtual void OnDrawGizmos()
-		{
-			Profiler.BeginSample("ItemMeshAuthoring.OnDrawGizmos");
-
-			// handle dirty whenever scene view draws just in case a field or dependant changed and our
-			// custom inspector window isn't up to process it
-			if (_meshDirty) {
-				RebuildMeshes();
-			}
-
-			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
-			// selects the item itself first, which is most likely what the user would want
-			var mfs = GetComponentsInChildren<MeshFilter>();
-			Gizmos.color = Color.clear;
-			Gizmos.matrix = Matrix4x4.identity;
-			foreach (var mf in mfs) {
-				var t = mf.transform;
-				if (mf.sharedMesh != null && mf.sharedMesh.vertexCount > 0) {
-					Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
-				}
-			}
-
-			Profiler.EndSample();
 		}
 
 		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
