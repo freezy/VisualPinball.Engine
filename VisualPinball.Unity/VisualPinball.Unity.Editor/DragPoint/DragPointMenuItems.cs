@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		// Drag Points
-		[MenuItem(ControlPointsMenuPath + "/IsSlingshot", false, 1)]
+		[MenuItem(ControlPointsMenuPath + "/Is Slingshot", false, 1)]
 		private static void SlingShot(MenuCommand command)
 		{
 			if (!(command.context is IDragPointsItemInspector inspector)) {
@@ -39,12 +39,13 @@ namespace VisualPinball.Unity.Editor
 
 			var dragPoint = RetrieveDragPoint(inspector, command.userData);
 			if (dragPoint != null) {
-				inspector.PrepareUndo("Toggle drag point slingshot");
+				inspector.PrepareUndo("Toggle Drag Point Slingshot");
 				dragPoint.IsSlingshot = !dragPoint.IsSlingshot;
+				inspector.RebuildMeshes();
 			}
 		}
 
-		[MenuItem(ControlPointsMenuPath + "/IsSlingshot", true)]
+		[MenuItem(ControlPointsMenuPath + "/Is Slingshot", true)]
 		private static bool SlingshotValidate(MenuCommand command)
 		{
 			if (!(command.context is IDragPointsItemInspector inspector) || inspector.IsItemLocked()) {
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		[MenuItem(ControlPointsMenuPath + "/IsSmooth", false, 1)]
+		[MenuItem(ControlPointsMenuPath + "/Is Smooth", false, 1)]
 		private static void Smooth(MenuCommand command)
 		{
 			var inspector = command.context as IDragPointsItemInspector;
@@ -74,12 +75,13 @@ namespace VisualPinball.Unity.Editor
 
 			var dragPoint = RetrieveDragPoint(inspector, command.userData);
 			if (dragPoint != null) {
-				inspector.PrepareUndo("Toggle drag point smooth");
+				inspector.PrepareUndo("Toggle Drag Point Smooth");
 				dragPoint.IsSmooth = !dragPoint.IsSmooth;
+				inspector.RebuildMeshes();
 			}
 		}
 
-		[MenuItem(ControlPointsMenuPath + "/IsSmooth", true)]
+		[MenuItem(ControlPointsMenuPath + "/Is Smooth", true)]
 		private static bool SmoothValidate(MenuCommand command)
 		{
 			if (!(command.context is IDragPointsItemInspector inspector) || inspector.IsItemLocked()) {
