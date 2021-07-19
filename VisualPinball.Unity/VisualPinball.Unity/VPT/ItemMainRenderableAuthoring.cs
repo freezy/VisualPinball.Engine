@@ -53,28 +53,16 @@ namespace VisualPinball.Unity
 				.Select(c => (IItemColliderAuthoring) c)
 				.Where(ca => ca.ItemData == _data) : new IItemColliderAuthoring[0];
 
-		public void SetMeshDirty()
+		public void RebuildMeshes()
 		{
 			foreach (var meshComponent in MeshComponents) {
-				meshComponent.MeshDirty = true;
-			}
-		}
-
-		public void RebuildMeshIfDirty()
-		{
-			Profiler.BeginSample("ItemMainRenderableAuthoring.RebuildMeshIfDirty");
-			foreach (var meshComponent in MeshComponents) {
-				if (meshComponent.MeshDirty) {
-					meshComponent.RebuildMeshes();
-				}
+				meshComponent.RebuildMeshes();
 			}
 
-			// update transform based on item data, but not for "Table" since its the effective "root" and the user might want to move it on their own
 			var ta = GetComponentInParent<TableAuthoring>();
 			if (ta != this && Item != null) {
 				transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
 			}
-			Profiler.EndSample();
 		}
 
 		public void DestroyMeshComponent()
@@ -119,29 +107,6 @@ namespace VisualPinball.Unity
 				Item.ParentIndex = parentAuthoring.IItem.Index;
 				Item.ParentVersion = parentAuthoring.IItem.Version;
 			}
-		}
-
-		protected virtual void OnDrawGizmos()
-		{
-			Profiler.BeginSample("ItemMainRenderableAuthoring.OnDrawGizmos");
-
-			// handle dirty whenever scene view draws just in case a field or dependant changed and our
-			// custom inspector window isn't up to process it
-			RebuildMeshIfDirty();
-
-			// Draw invisible gizmos over top of the sub meshes of this item so clicking in the scene view
-			// selects the item itself first, which is most likely what the user would want
-			var mfs = GetComponentsInChildren<MeshFilter>();
-			Gizmos.color = Color.clear;
-			Gizmos.matrix = Matrix4x4.identity;
-			foreach (var mf in mfs) {
-				var t = mf.transform;
-				if (mf.sharedMesh != null && mf.sharedMesh.vertexCount > 0) {
-					Gizmos.DrawMesh(mf.sharedMesh, t.position, t.rotation, t.lossyScale);
-				}
-			}
-
-			Profiler.EndSample();
 		}
 
 		#region Tools

@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
 			if (rebuilt && target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.SetMeshDirty();
+				meshAuthoring.RebuildMeshes();
 			}
 		}
 
@@ -180,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 			// Set MeshDirty to true there so it'll trigger again after Undo
 			var recordObjs = new List<Object>();
 			if (target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.SetMeshDirty();
+				meshAuthoring.RebuildMeshes();
 				recordObjs.Add(this);
 			}
 			recordObjs.Add(target);
@@ -257,7 +257,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			RemapControlPoints();
 			if (target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.SetMeshDirty();
+				meshAuthoring.RebuildMeshes();
 			}
 		}
 

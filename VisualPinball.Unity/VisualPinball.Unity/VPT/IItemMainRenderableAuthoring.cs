@@ -27,8 +27,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Sets the mesh of all mesh sub components to dirty.
 		/// </summary>
-		void SetMeshDirty();
-		void RebuildMeshIfDirty();
+		void RebuildMeshes();
 
 		void DestroyMeshComponent();
 		void DestroyColliderComponent();

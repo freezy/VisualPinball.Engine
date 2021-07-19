@@ -24,6 +24,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -79,10 +80,8 @@ namespace VisualPinball.Unity.Editor
 
 			GUILayout.Space(10);
 			if (GUILayout.Button("Force Update Mesh")) {
-				item.SetMeshDirty();
+				item.RebuildMeshes();
 			}
-
-			item.RebuildMeshIfDirty();
 		}
 
 		#endregion
@@ -416,23 +415,20 @@ namespace VisualPinball.Unity.Editor
 				switch (target) {
 
 					case IItemMeshAuthoring meshItem:
-						meshItem.IMainAuthoring.SetMeshDirty();
-						Undo.RecordObject(UndoTarget, undoLabel);
+						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
+						meshItem.IMainAuthoring.RebuildMeshes();
 						break;
 
 					case IItemColliderAuthoring colliderItem:
-						//colliderItem.MainAuthoring.SetMeshDirty();
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
 					case IItemMainRenderableAuthoring mainItem:
-						mainItem.SetMeshDirty();
-						Undo.RecordObject(UndoTarget, undoLabel);
+						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
+						mainItem.RebuildMeshes();
 						break;
 				}
-				EditorUtility.SetDirty(target);
 			}
-			Undo.RecordObject(UndoTarget, undoLabel);
 
 			if (target is IItemMainRenderableAuthoring item) {
 				item.ItemDataChanged();

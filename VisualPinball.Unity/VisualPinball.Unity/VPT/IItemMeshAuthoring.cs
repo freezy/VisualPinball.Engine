@@ -23,8 +23,6 @@ namespace VisualPinball.Unity
 {
 	public interface IItemMeshAuthoring : IItemAuthoring
 	{
-		bool MeshDirty { get; set; }
-
 		List<MemberInfo> MaterialRefs { get; }
 		List<MemberInfo> TextureRefs { get; }
 
