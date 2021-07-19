@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnEnable()
 		{
+			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
 // #if UNITY_EDITOR
 // 			// for convenience move item behavior to the top of the list
@@ -68,8 +69,21 @@ namespace VisualPinball.Unity.Editor
 			PopulateDropDownOptions();
 		}
 
+		private void OnUndoRedoPerformed()
+		{
+			switch (target) {
+				case IItemMeshAuthoring meshItem:
+					meshItem.IMainAuthoring.RebuildMeshes();
+					break;
+				case IItemMainRenderableAuthoring mainItem:
+					mainItem.RebuildMeshes();
+					break;
+			}
+		}
+
 		protected virtual void OnDisable()
 		{
+			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
 
 		public override void OnInspectorGUI()
