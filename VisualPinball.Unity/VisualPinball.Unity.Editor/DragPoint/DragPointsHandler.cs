@@ -171,20 +171,21 @@ namespace VisualPinball.Unity.Editor
 		public void RemoveDragPoint(int controlId)
 		{
 			var idx = ControlPoints.FindIndex(controlPoint => controlPoint.ControlId == controlId);
-			if (idx >= 0) {
-				var removalOk = !ControlPoints[idx].DragPoint.IsLocked;
-				if (!removalOk) {
-					removalOk = EditorUtility.DisplayDialog("Locked DragPoint Removal", "This drag point is locked!\nAre you really sure you want to remove it?", "Yes", "No");
-				}
-
-				if (removalOk) {
-					var dragPoints = DragPointEditable.GetDragPoints().ToList();
-					dragPoints.RemoveAt(idx);
-					DragPointEditable.SetDragPoints(dragPoints.ToArray());
-					ControlPoints.RemoveAt(idx);
-					RebuildControlPoints();
-				}
+			if (idx < 0) {
+				return;
 			}
+			var removalOk = !ControlPoints[idx].DragPoint.IsLocked;
+			if (!removalOk) {
+				removalOk = EditorUtility.DisplayDialog("Locked DragPoint Removal", "This drag point is locked!\nAre you really sure you want to remove it?", "Yes", "No");
+			}
+			if (!removalOk) {
+				return;
+			}
+			var dragPoints = DragPointEditable.GetDragPoints().ToList();
+			dragPoints.RemoveAt(idx);
+			DragPointEditable.SetDragPoints(dragPoints.ToArray());
+
+			RebuildControlPoints();
 		}
 
 		/// <summary>

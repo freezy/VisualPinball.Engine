@@ -48,9 +48,14 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private static Vector3 _storedControlPoint = Vector3.zero;
 
+		private IItemMainRenderableAuthoring _renderable;
+
+		public void RebuildMeshes() => _renderable.RebuildMeshes();
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			_renderable = target as IItemMainRenderableAuthoring;
 			DragPointsHandler = new DragPointsHandler(target);
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 		}
@@ -133,8 +138,9 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			PrepareUndo($"Flip drag points on {flipAxis} axis");
+			PrepareUndo($"Flip-{flipAxis} Drag Points");
 			DragPointsHandler.FlipDragPoints(flipAxis);
+			RebuildMeshes();
 		}
 
 		/// <summary>
@@ -143,8 +149,8 @@ namespace VisualPinball.Unity.Editor
 		public void RemapControlPoints()
 		{
 			var rebuilt = DragPointsHandler.RemapControlPoints();
-			if (rebuilt && target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.RebuildMeshes();
+			if (rebuilt) {
+				RebuildMeshes();
 			}
 		}
 
@@ -163,8 +169,9 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="controlId">Control ID of the drag point to remove.</param>
 		public void RemoveDragPoint(int controlId)
 		{
-			PrepareUndo($"Remove drag point at ID {controlId}");
+			PrepareUndo("Remove Drag Point");
 			DragPointsHandler.RemoveDragPoint(controlId);
+			RebuildMeshes();
 		}
 
 		/// <summary>
@@ -173,18 +180,8 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="message">Message to appear in the UNDO menu</param>
 		public void PrepareUndo(string message)
 		{
-			if (target == null) {
-				return;
-			}
-
-			// Set MeshDirty to true there so it'll trigger again after Undo
-			var recordObjs = new List<Object>();
-			if (target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.RebuildMeshes();
-				recordObjs.Add(this);
-			}
-			recordObjs.Add(target);
-			Undo.RecordObjects(recordObjs.ToArray(), $"Item {target} : {message}");
+			var recordObjs = new List<Object> {this, target};
+			Undo.RecordObjects(recordObjs.ToArray(), message);
 		}
 
 		public override void OnInspectorGUI()
@@ -250,7 +247,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragPointPositionChange(Vector3 newPos)
 		{
-			PrepareUndo($"[{target?.name}] Change drag point position for {DragPointsHandler.SelectedControlPoints.Count} control points.");
+			_renderable.RebuildMeshes();
+			PrepareUndo("Change Drag Point Position");
 		}
 
 		private void OnUndoRedoPerformed()

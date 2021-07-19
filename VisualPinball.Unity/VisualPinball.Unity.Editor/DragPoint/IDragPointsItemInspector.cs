@@ -83,5 +83,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="flipAxis">Axis to flip on</param>
 		void FlipDragPoints(FlipAxis flipAxis);
+
+		void RebuildMeshes();
 	}
 }
