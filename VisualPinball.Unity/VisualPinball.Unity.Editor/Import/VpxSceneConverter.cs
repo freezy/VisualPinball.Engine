@@ -663,15 +663,23 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
+	}
+	
+	public class ConvertOptions
+	{
+		public bool SkipExistingTextures = true;
+		public bool SkipExistingSounds = true;
+		public bool SkipExistingMaterials = true;
+		public bool SkipExistingMeshes = true;
+		public bool SkipExistingPrefabs = true;
 
-		public class ConvertOptions
+		public static readonly ConvertOptions SkipNone = new ConvertOptions
 		{
-			public bool SkipExistingTextures = true;
-			public bool SkipExistingSounds = true;
-			public bool SkipExistingMaterials = true;
-			public bool SkipExistingMeshes = true;
-			public bool SkipExistingPrefabs = true;
-		}
-
+			SkipExistingMaterials = false,
+			SkipExistingMeshes = false,
+			SkipExistingPrefabs = false,
+			SkipExistingSounds = false,
+			SkipExistingTextures = false
+		};
 	}
 }

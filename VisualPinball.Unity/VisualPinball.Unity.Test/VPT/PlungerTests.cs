@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedPlungerData()
 		{
 			const string tmpFileName = "ShouldWritePlungerData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Plunger);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Plunger, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

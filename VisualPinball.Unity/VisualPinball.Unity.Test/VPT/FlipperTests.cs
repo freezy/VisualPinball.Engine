@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedFlipperData()
 		{
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flipper);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flipper, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedTriggerData()
 		{
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trigger);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trigger, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

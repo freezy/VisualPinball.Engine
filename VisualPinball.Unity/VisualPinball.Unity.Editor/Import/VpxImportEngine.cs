@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using NLog;
@@ -29,13 +28,13 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static GameObject ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null)
+		public static GameObject ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null, ConvertOptions options = null)
 		{
 			var sw = Stopwatch.StartNew();
-			return ImportIntoScene(TableLoader.LoadTable(path), Path.GetFileName(path), parent, applyPatch, tableName, sw);
+			return ImportIntoScene(TableLoader.LoadTable(path), Path.GetFileName(path), parent, applyPatch, tableName, sw, options);
 		}
 
-		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, bool applyPatch = true, string tableName = null, Stopwatch sw = null)
+		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, bool applyPatch = true, string tableName = null, Stopwatch sw = null, ConvertOptions options = null)
 		{
 			sw ??= Stopwatch.StartNew();
 			if (tableName == null && !string.IsNullOrEmpty(filename)) {
@@ -44,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 
 			// load table
 			var loadedIn = sw.ElapsedMilliseconds;
-			var converter = new VpxSceneConverter(tableContainer, filename);
+			var converter = new VpxSceneConverter(tableContainer, filename, options);
 			var tableGameObject = converter.Convert(applyPatch, tableName);
 			var convertedIn = sw.ElapsedMilliseconds;
 
