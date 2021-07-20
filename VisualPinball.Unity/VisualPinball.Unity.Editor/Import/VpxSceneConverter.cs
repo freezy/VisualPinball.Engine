@@ -273,7 +273,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IConvertedItem CreateGameObjects(IItem item)
 		{
-			var prefabPath = Path.Combine(_assetsPrefabs, $"{item.Name}.prefab");
+			var prefabPath = Path.Combine(_assetsPrefabs, $"{item.Name.ToFilename()}.prefab");
 			var parentGo = GetGroupParent(item);
 			var loadFromPrefab = _options.SkipExistingPrefabs && File.Exists(prefabPath);
 			var itemGo = loadFromPrefab
@@ -308,7 +308,7 @@ namespace VisualPinball.Unity.Editor
 			if (extractMesh) {
 				foreach (var mf in mfs) {
 					var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
-					var meshFilename = $"{name}{suffix}.mesh";
+					var meshFilename = $"{name.ToFilename()}{suffix.ToFilename()}.mesh";
 					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
 					if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
 						continue;
@@ -322,7 +322,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (mfs.Length > 0) {
 				// Make sure the file name is unique, in case an existing Prefab has the same name.
-				var prefabPath = Path.Combine(_assetsPrefabs, $"{name}.prefab");
+				var prefabPath = Path.Combine(_assetsPrefabs, $"{name.ToFilename()}.prefab");
 
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
@@ -612,7 +612,9 @@ namespace VisualPinball.Unity.Editor
 
 		public Mesh GetMesh(string parentName, string name)
 		{
-			var filename = parentName == name ? $"{parentName}.mesh" : $"{parentName} ({name}).mesh";
+			var filename = parentName == name
+				? $"{parentName.ToFilename()}.mesh"
+				: $"{parentName.ToFilename()} ({name.ToFilename()}).mesh";
 			var meshPath = Path.Combine(_assetsMeshes, filename);
 			return AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
 		}
@@ -664,7 +666,7 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 	}
-	
+
 	public class ConvertOptions
 	{
 		public bool SkipExistingTextures = true;

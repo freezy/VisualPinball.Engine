@@ -18,6 +18,7 @@
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace VisualPinball.Engine.Common
@@ -140,6 +141,12 @@ namespace VisualPinball.Engine.Common
 		public static string ToNormalizedName(this string name)
 		{
 			return Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").Trim('_').ToLower();
+		}
+
+		public static string ToFilename(this string name)
+		{
+			var invalidChars = string.Join("", Path.GetInvalidFileNameChars());
+			return Regex.Replace(name.RemoveDiacritics(), $"[{invalidChars}]+", "_").Trim('_');
 		}
 	}
 }
