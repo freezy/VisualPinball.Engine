@@ -177,6 +177,7 @@ namespace VisualPinball.Unity.Editor
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
 			var tableContainer = _tableAuthoring.TableContainer;
+			tableContainer.Refresh();
 			var item = create(tableContainer.Table);
 			Selection.activeGameObject = CreateRenderable(item);
 			ItemCreated?.Invoke(Selection.activeGameObject);
