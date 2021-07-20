@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 		public IItemMainAuthoring MainAuthoring => _mainAuthoring;
 		public IEnumerable<IItemMeshAuthoring> MeshAuthoring => _meshAuthoring;
 		public IItemColliderAuthoring ColliderAuthoring => _colliderAuthoring;
-		public bool IsProceduralMesh { get; set; }
+		public bool IsProceduralMesh { get; set; } = true;
 
 		private readonly TMainAuthoring _mainAuthoring;
 		private ItemColliderAuthoring<TItem, TData, TMainAuthoring> _colliderAuthoring;
