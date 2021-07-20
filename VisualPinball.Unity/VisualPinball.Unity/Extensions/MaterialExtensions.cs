@@ -18,6 +18,7 @@
 
 using System;
 using System.Text;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
 
@@ -40,7 +41,7 @@ namespace VisualPinball.Unity
 
 		public static string GetUnityFilename(this PbrMaterial vpMat, string folderName)
 		{
-			return $"{folderName}/{vpMat.Id}.mat";
+			return $"{folderName}/{vpMat.Id.ToFilename()}.mat";
 		}
 
 	}

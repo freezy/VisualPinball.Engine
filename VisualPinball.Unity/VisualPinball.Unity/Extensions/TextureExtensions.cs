@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		public static string GetUnityFilename(this Engine.VPT.Texture vpTex, string folderName = null, string ext = null)
 		{
-			var fileName = vpTex.Name.ToNormalizedName() + vpTex.FileExtension;
+			var fileName = vpTex.Name.ToFilename() + vpTex.FileExtension;
 			return folderName != null
 				? ext == null
 					? Path.Combine(folderName, fileName)

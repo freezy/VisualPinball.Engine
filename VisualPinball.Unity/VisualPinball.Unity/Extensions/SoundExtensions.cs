@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	{
 		public static string GetUnityFilename(this Sound vpSound, string folderName = null)
 		{
-			var fileName = vpSound.Name.ToNormalizedName() + vpSound.FileExtension;
+			var fileName = vpSound.Name.ToFilename() + vpSound.FileExtension;
 			return folderName != null
 				? Path.Combine(folderName, fileName)
 				: fileName;
