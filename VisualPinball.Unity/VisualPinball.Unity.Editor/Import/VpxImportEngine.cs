@@ -38,12 +38,13 @@ namespace VisualPinball.Unity.Editor
 		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, bool applyPatch = true, string tableName = null, Stopwatch sw = null)
 		{
 			sw ??= Stopwatch.StartNew();
+			if (tableName == null && !string.IsNullOrEmpty(filename)) {
+				tableName = Path.GetFileNameWithoutExtension(filename);
+			}
 
 			// load table
 			var loadedIn = sw.ElapsedMilliseconds;
-
 			var converter = new VpxSceneConverter(tableContainer, filename);
-
 			var tableGameObject = converter.Convert(applyPatch, tableName);
 			var convertedIn = sw.ElapsedMilliseconds;
 
