@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedSurfaceData()
 		{
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Surface);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Surface, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

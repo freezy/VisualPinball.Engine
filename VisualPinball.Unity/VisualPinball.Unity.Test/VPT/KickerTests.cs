@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedKickerData()
 		{
 			const string tmpFileName = "ShouldWriteKickerData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Kicker);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Kicker, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

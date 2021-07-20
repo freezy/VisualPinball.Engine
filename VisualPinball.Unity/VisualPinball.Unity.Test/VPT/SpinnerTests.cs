@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedSpinnerData()
 		{
 			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Spinner);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Spinner, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

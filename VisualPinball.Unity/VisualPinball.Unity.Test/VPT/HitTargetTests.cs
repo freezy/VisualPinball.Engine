@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedHitTargetData()
 		{
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.HitTarget);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.HitTarget, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

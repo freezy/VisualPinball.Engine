@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedRampData()
 		{
 			const string tmpFileName = "ShouldWriteRampData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Ramp);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Ramp, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

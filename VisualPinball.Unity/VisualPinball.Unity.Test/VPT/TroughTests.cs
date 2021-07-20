@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedTroughData()
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trough);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trough, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

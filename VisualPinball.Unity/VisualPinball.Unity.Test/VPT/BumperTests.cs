@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedBumperData()
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteUpdatedBumperData()
 		{
 			const string tmpFileName = "ShouldWriteUpdatedBumperData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper, options: ConvertOptions.SkipNone);
 
 			var bumper = go.transform.GetComponentsInChildren<BumperAuthoring>().First(c => c.gameObject.name == "Bumper2");
 			var bumperAuth = bumper.GetComponent<BumperAuthoring>();
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Test
 			table.Bumper("Bumper").Data.IsCapVisible = false;
 			table.Bumper("Bumper").Data.IsSocketVisible = false;
 
-			var go = VpxImportEngine.ImportIntoScene(table);
+			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
 
 			var baseGo = go.transform.Find("Playfield/Bumpers/Bumper/Base");
 			var capGo = go.transform.Find("Playfield/Bumpers/Bumper/Cap");

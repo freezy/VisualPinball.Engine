@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedCollectionData()
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Collection);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Collection, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedDecalData()
 		{
 			const string tmpFileName = "ShouldWriteDecalData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Decal);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Decal, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedDispReelData()
 		{
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.DispReel);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.DispReel, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedFlasherData()
 		{
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flasher);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flasher, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedLightSeqData()
 		{
 			const string tmpFileName = "ShouldWriteLightSeqData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.LightSeq);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.LightSeq, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedTextBoxData()
 		{
 			const string tmpFileName = "ShouldWriteTextBoxData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.TextBox);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.TextBox, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -131,7 +131,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedTimerData()
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Timer);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Timer, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

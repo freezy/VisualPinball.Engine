@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedPrimitiveData()
 		{
 			const string tmpFileName = "ShouldWritePrimitiveData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Test
 		{
 			const string primitiveName = "Books";
 			const string tmpFileName = "ShouldWriteImportedMesh.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 

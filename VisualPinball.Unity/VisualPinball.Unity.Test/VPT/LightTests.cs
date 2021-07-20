@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedLightData()
 		{
 			const string tmpFileName = "ShouldWriteLightData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Light);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.Light, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableAuthoring>();
 			ta.TableContainer.Save(tmpFileName);
 
