@@ -532,7 +532,7 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory(assetsTableRoot);
 			}
 
-			_assetsPrefabs = $"{assetsTableRoot}Items/";
+			_assetsPrefabs = $"{assetsTableRoot}Prefabs/";
 			if (!Directory.Exists(_assetsPrefabs)) {
 				Directory.CreateDirectory(_assetsPrefabs);
 			}
@@ -552,7 +552,7 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory(_assetsPhysicsMaterials);
 			}
 
-			_assetsMeshes = $"{assetsTableRoot}Models/";
+			_assetsMeshes = $"{assetsTableRoot}Meshes/";
 			if (!Directory.Exists(_assetsMeshes)) {
 				Directory.CreateDirectory(_assetsMeshes);
 			}
