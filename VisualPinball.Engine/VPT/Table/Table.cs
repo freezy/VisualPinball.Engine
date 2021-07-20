@@ -114,7 +114,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public Material GetMaterial(string name) => _tableContainer.GetMaterial(name);
 		public Texture GetTexture(string dataImage) => _tableContainer.GetTexture(dataImage);
-		public string GetNewName<T>(string name)  where T : IItem => _tableContainer.GetNewName<T>(name);
+		public string GetNewName<T>(string name) where T : IItem => _tableContainer.GetNewName<T>(name);
 
 		#endregion
 	}
