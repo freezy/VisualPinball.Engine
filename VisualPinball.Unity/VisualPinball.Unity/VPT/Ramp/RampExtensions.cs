@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
@@ -29,22 +27,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp);
+			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp, componentsAdded);
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider, componentsAdded);
 					if (ramp.IsHabitrail) {
-						convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
+						convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires, componentsAdded);
 					} else {
-						convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
-						convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
+						convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor, componentsAdded);
+						convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall, componentsAdded);
 					}
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider, componentsAdded);
 					break;
 				}
 
@@ -57,7 +55,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

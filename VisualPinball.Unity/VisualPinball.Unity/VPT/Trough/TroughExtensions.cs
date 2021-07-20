@@ -21,9 +21,9 @@ namespace VisualPinball.Unity
 {
 	public static class TroughExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Trough trough, GameObject obj)
+		public static IConvertedItem SetupGameObject(this Trough trough, GameObject obj, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, trough);
+			var convertedItem = new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, trough, componentsAdded);
 			convertedItem.Authoring.UpdatePosition();
 			return convertedItem;
 		}

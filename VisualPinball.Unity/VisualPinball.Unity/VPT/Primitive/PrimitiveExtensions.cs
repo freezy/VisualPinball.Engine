@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
@@ -25,25 +23,25 @@ namespace VisualPinball.Unity
 {
 	public static class PrimitiveExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive) {
+			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive, componentsAdded) {
 				IsProceduralMesh = false
 			};
 
 			switch (primitive.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>(componentsAdded);
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider, componentsAdded);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>(componentsAdded);
 					break;
 				}
 
@@ -51,7 +49,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

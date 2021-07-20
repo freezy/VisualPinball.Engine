@@ -21,7 +21,6 @@ using NLog;
 using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
-using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
 {

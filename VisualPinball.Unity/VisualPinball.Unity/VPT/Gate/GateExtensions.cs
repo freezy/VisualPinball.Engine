@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
@@ -29,14 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Gate gate, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Gate gate, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate);
+			var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate, componentsAdded);
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider);
-					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket);
-					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire);
+					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket, componentsAdded);
+					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire, componentsAdded);
 					convertedItem.SetAnimationAuthoring<GateWireAnimationAuthoring>(GateMeshGenerator.Wire);
 					break;
 
@@ -53,7 +51,7 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

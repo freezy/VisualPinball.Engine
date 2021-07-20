@@ -15,19 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public static class PlayfieldExtensions
+	public interface IMeshProvider
 	{
-		public static IConvertedItem SetupGameObject(this Table table, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
-		{
-			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table, componentsAdded);
-			convertedItem.SetMeshAuthoring<PlayfieldMeshAuthoring>(componentsAdded);
-			convertedItem.SetColliderAuthoring<PlayfieldColliderAuthoring>(materialProvider, componentsAdded);
-			return convertedItem.AddConvertToEntity(componentsAdded);
-		}
+		Mesh GetMesh(string parentName, string name);
 	}
 }

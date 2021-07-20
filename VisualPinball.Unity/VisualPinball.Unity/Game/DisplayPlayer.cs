@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity

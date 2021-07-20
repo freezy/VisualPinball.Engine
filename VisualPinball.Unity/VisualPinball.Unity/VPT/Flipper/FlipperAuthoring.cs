@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 
 			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
 			if (before == 0) {
-				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
+				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber, false);
 			}
 
 			if (after == 0) {

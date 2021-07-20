@@ -20,7 +20,6 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;

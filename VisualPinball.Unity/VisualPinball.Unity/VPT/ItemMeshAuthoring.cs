@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
@@ -47,14 +46,6 @@ namespace VisualPinball.Unity
 		[HideInInspector]
 		[SerializeField]
 		private bool _meshCreated = true;
-
-		private void Awake()
-		{
-			// if (!_meshCreated && gameObject.GetComponent<MeshFilter>() == null) {
-			// 	CreateMesh();
-			// 	_meshCreated = true;
-			// }
-		}
 
 		private void OnEnable()
 		{
@@ -88,29 +79,32 @@ namespace VisualPinball.Unity
 			ItemDataChanged();
 		}
 
-		public void CreateMesh(ITextureProvider texProvider, IMaterialProvider matProvider)
+		public void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider, bool loadFromAsset)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
 			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
 			if (ro?.Mesh == null) {
 				return;
 			}
-			var mesh = ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
+			var mesh = loadFromAsset
+				? meshProvider.GetMesh(parentName, gameObject.name)
+				: ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
+
 			enabled = ro.IsVisible;
 
 			// apply mesh to game object
-			var mf = gameObject.AddComponent<MeshFilter>();
+			var mf = loadFromAsset ? gameObject.GetComponent<MeshFilter>() : gameObject.AddComponent<MeshFilter>();
 			mf.sharedMesh = mesh;
 
 			// apply material
 			if (ro.Mesh.AnimationFrames.Count > 1) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
-				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
+				var smr = loadFromAsset ? gameObject.GetComponent<SkinnedMeshRenderer>() : gameObject.AddComponent<SkinnedMeshRenderer>();
 				smr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
 				smr.sharedMesh = mesh;
 				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
 				smr.enabled = ro.IsVisible;
 			} else {
-				var mr = gameObject.AddComponent<MeshRenderer>();
+				var mr = loadFromAsset ? gameObject.GetComponent<MeshRenderer>() : gameObject.AddComponent<MeshRenderer>();
 				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
 				mr.enabled = ro.IsVisible;
 			}

@@ -48,11 +48,12 @@ using VisualPinball.Engine.VPT.Trough;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
+using Mesh = UnityEngine.Mesh;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class VpxSceneConverter : ITextureProvider, IMaterialProvider
+	public class VpxSceneConverter : ITextureProvider, IMaterialProvider, IMeshProvider
 	{
 		private readonly FileTableContainer _tableContainer;
 		private readonly Table _table;
@@ -272,13 +273,18 @@ namespace VisualPinball.Unity.Editor
 
 		public IConvertedItem CreateGameObjects(IItem item)
 		{
+			var prefabPath = Path.Combine(_assetsPrefabs, $"{item.Name}.prefab");
 			var parentGo = GetGroupParent(item);
-			var itemGo = new GameObject(item.Name);
-			itemGo.transform.SetParent(parentGo.transform, false);
+			var loadFromPrefab = _options.SkipExistingPrefabs && File.Exists(prefabPath);
+			var itemGo = loadFromPrefab
+				? PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath)) as GameObject
+				: new GameObject(item.Name);
 
-			var importedObject = SetupGameObjects(item, itemGo);
+			itemGo!.transform.SetParent(parentGo.transform, false);
+
+			var importedObject = SetupGameObjects(item, itemGo, loadFromPrefab);
 			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
-				meshAuthoring.CreateMesh(this, this);
+				meshAuthoring.CreateMesh(itemGo.name, this, this, loadFromPrefab ? this : null, loadFromPrefab);
 			}
 			item.FreeBinaryData();
 
@@ -287,7 +293,9 @@ namespace VisualPinball.Unity.Editor
 				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 
-			CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
+			if (!loadFromPrefab) {
+				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
+			}
 
 			return importedObject;
 		}
@@ -316,9 +324,6 @@ namespace VisualPinball.Unity.Editor
 				// Make sure the file name is unique, in case an existing Prefab has the same name.
 				var prefabPath = Path.Combine(_assetsPrefabs, $"{name}.prefab");
 
-				if (_options.SkipExistingPrefabs && File.Exists(prefabPath)) {
-					return;
-				}
 				if (File.Exists(prefabPath)) {
 					AssetDatabase.DeleteAsset(prefabPath);
 				}
@@ -326,24 +331,24 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
+		private IConvertedItem SetupGameObjects(IItem item, GameObject obj, bool loadedFromPrefab)
 		{
 			switch (item) {
-				case Bumper bumper:       return bumper.SetupGameObject(obj, this);
-				case Flipper flipper:     return flipper.SetupGameObject(obj, this);
-				case Gate gate:           return gate.SetupGameObject(obj, this);
-				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this);
-				case Kicker kicker:       return kicker.SetupGameObject(obj, this);
-				case Light lt:            return lt.SetupGameObject(obj);
-				case Plunger plunger:     return plunger.SetupGameObject(obj, this);
-				case Primitive primitive: return primitive.SetupGameObject(obj, this);
-				case Ramp ramp:           return ramp.SetupGameObject(obj, this);
-				case Rubber rubber:       return rubber.SetupGameObject(obj, this);
-				case Spinner spinner:     return spinner.SetupGameObject(obj, this);
-				case Surface surface:     return surface.SetupGameObject(obj, this);
-				case Table table:         return table.SetupGameObject(obj, this);
-				case Trigger trigger:     return trigger.SetupGameObject(obj, this);
-				case Trough trough:       return trough.SetupGameObject(obj);
+				case Bumper bumper:       return bumper.SetupGameObject(obj, this, loadedFromPrefab);
+				case Flipper flipper:     return flipper.SetupGameObject(obj, this, loadedFromPrefab);
+				case Gate gate:           return gate.SetupGameObject(obj, this, loadedFromPrefab);
+				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this, loadedFromPrefab);
+				case Kicker kicker:       return kicker.SetupGameObject(obj, this, loadedFromPrefab);
+				case Light lt:            return lt.SetupGameObject(obj, loadedFromPrefab);
+				case Plunger plunger:     return plunger.SetupGameObject(obj, this, loadedFromPrefab);
+				case Primitive primitive: return primitive.SetupGameObject(obj, this, loadedFromPrefab);
+				case Ramp ramp:           return ramp.SetupGameObject(obj, this, loadedFromPrefab);
+				case Rubber rubber:       return rubber.SetupGameObject(obj, this, loadedFromPrefab);
+				case Spinner spinner:     return spinner.SetupGameObject(obj, this, loadedFromPrefab);
+				case Surface surface:     return surface.SetupGameObject(obj, this, loadedFromPrefab);
+				case Table table:         return table.SetupGameObject(obj, this, loadedFromPrefab);
+				case Trigger trigger:     return trigger.SetupGameObject(obj, this, loadedFromPrefab);
+				case Trough trough:       return trough.SetupGameObject(obj, loadedFromPrefab);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -460,7 +465,7 @@ namespace VisualPinball.Unity.Editor
 
 			// now they are in the asset database, we can load them.
 			foreach (var sound in _tableContainer.Sounds) {
-				var unitySound = AssetDatabase.LoadAssetAtPath<AudioClip>(sound.Data.Path);
+				var unitySound = AssetDatabase.LoadAssetAtPath<AudioClip>(sound.GetUnityFilename(_assetsSounds));
 				_tableAuthoring.LegacyContainer.Sounds.Add(new LegacySound(sound.Data, unitySound));
 			}
 		}
@@ -515,7 +520,6 @@ namespace VisualPinball.Unity.Editor
 			};
 			CreateGameObjects(item);
 		}
-
 
 		private void CreateFileHierarchy()
 		{
@@ -606,6 +610,13 @@ namespace VisualPinball.Unity.Editor
 			return groupParent;
 		}
 
+		public Mesh GetMesh(string parentName, string name)
+		{
+			var filename = parentName == name ? $"{parentName}.mesh" : $"{parentName} ({name}).mesh";
+			var meshPath = Path.Combine(_assetsMeshes, filename);
+			return AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+		}
+
 		#region ITextureProvider
 
 		public Texture GetTexture(string name)
@@ -661,5 +672,6 @@ namespace VisualPinball.Unity.Editor
 			public bool SkipExistingMeshes = true;
 			public bool SkipExistingPrefabs = true;
 		}
+
 	}
 }

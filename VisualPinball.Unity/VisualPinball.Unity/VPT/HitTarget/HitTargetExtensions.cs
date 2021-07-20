@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
@@ -29,13 +27,13 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this HitTarget hitTarget, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, hitTarget);
+			var convertedItem = new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, hitTarget, componentsAdded);
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<HitTargetColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>();
+					convertedItem.SetColliderAuthoring<HitTargetColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>(componentsAdded);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -52,7 +50,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

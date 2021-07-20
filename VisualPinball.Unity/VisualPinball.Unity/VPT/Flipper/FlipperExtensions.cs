@@ -27,14 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Flipper flipper, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Flipper flipper, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper);
+			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper, componentsAdded);
 			switch (flipper.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<FlipperColliderAuthoring>(materialProvider);
-					convertedItem.AddMeshAuthoring<FlipperBaseMeshAuthoring>(FlipperMeshGenerator.Base);
-					convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
+					convertedItem.SetColliderAuthoring<FlipperColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.AddMeshAuthoring<FlipperBaseMeshAuthoring>(FlipperMeshGenerator.Base, componentsAdded);
+					convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber, componentsAdded);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }
