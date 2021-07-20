@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 

@@ -27,16 +27,16 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Bumper bumper, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Bumper bumper, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, bumper);
+			var convertedItem = new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, bumper, componentsAdded);
 			switch (bumper.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<BumperColliderAuthoring>(materialProvider);
-					convertedItem.AddMeshAuthoring<BumperBaseMeshAuthoring>(BumperMeshGenerator.Base);
-					convertedItem.AddMeshAuthoring<BumperCapMeshAuthoring>(BumperMeshGenerator.Cap);
-					convertedItem.AddMeshAuthoring<BumperRingMeshAuthoring>(BumperMeshGenerator.Ring);
-					convertedItem.AddMeshAuthoring<BumperSkirtMeshAuthoring>(BumperMeshGenerator.Skirt);
+					convertedItem.SetColliderAuthoring<BumperColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.AddMeshAuthoring<BumperBaseMeshAuthoring>(BumperMeshGenerator.Base, componentsAdded);
+					convertedItem.AddMeshAuthoring<BumperCapMeshAuthoring>(BumperMeshGenerator.Cap, componentsAdded);
+					convertedItem.AddMeshAuthoring<BumperRingMeshAuthoring>(BumperMeshGenerator.Ring, componentsAdded);
+					convertedItem.AddMeshAuthoring<BumperSkirtMeshAuthoring>(BumperMeshGenerator.Skirt, componentsAdded);
 
 					convertedItem.SetAnimationAuthoring<BumperRingAnimationAuthoring>(BumperMeshGenerator.Ring);
 					convertedItem.SetAnimationAuthoring<BumperSkirtAnimationAuthoring>(BumperMeshGenerator.Skirt);
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

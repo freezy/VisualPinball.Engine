@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -29,25 +27,25 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger);
+			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger, componentsAdded);
 			switch (plunger.SubComponent) {
 				case ItemSubComponent.None:
 
-					convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider);
+					convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider, componentsAdded);
 					switch (plunger.Data.Type) {
 						case PlungerType.PlungerTypeFlat:
-							convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
+							convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat, componentsAdded);
 							break;
 
 						case PlungerType.PlungerTypeCustom:
-							convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
-							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
+							convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring, componentsAdded);
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod, componentsAdded);
 							break;
 
 						case PlungerType.PlungerTypeModern:
-							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod, componentsAdded);
 							break;
 					}
 					break;
@@ -66,7 +64,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
@@ -29,14 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner);
+			var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner, componentsAdded);
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider);
-					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket);
-					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate);
+					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket, componentsAdded);
+					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate, componentsAdded);
 					convertedItem.SetAnimationAuthoring<SpinnerPlateAnimationAuthoring>(SpinnerMeshGenerator.Plate);
 					break;
 
@@ -54,7 +52,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }

@@ -153,8 +153,8 @@ namespace VisualPinball.Unity
 
 			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(gameObject);
 			if (bulbEnabledAfter) {
-				convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb);
-				convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket);
+				convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb, false);
+				convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket, false);
 
 			} else {
 				convertedItem.Destroy<LightBulbMeshAuthoring>();

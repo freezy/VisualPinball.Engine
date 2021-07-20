@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
@@ -25,22 +23,22 @@ namespace VisualPinball.Unity
 {
 	public static class RubberExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber);
+			var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber, componentsAdded);
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
+					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>(componentsAdded);
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
+					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider, componentsAdded);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
+					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>(componentsAdded);
 					break;
 				}
 
@@ -48,7 +46,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 
 		private static RubberColliderAuthoring AddColliderComponent(this GameObject obj, Rubber rubber)

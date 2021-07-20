@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using NLog;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
@@ -29,13 +27,13 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Kicker kicker, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem SetupGameObject(this Kicker kicker, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
 		{
-			var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker);
+			var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker, componentsAdded);
 			switch (kicker.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<KickerMeshAuthoring>();
+					convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetMeshAuthoring<KickerMeshAuthoring>(componentsAdded);
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -52,7 +50,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity();
+			return convertedItem.AddConvertToEntity(componentsAdded);
 		}
 	}
 }
