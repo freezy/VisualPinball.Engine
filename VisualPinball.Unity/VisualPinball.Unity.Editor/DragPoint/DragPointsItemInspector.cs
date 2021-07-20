@@ -180,8 +180,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="message">Message to appear in the UNDO menu</param>
 		public void PrepareUndo(string message)
 		{
-			var recordObjs = new List<Object> {this, target};
-			Undo.RecordObjects(recordObjs.ToArray(), message);
+			Undo.RecordObjects(new []{this, target}, message);
 		}
 
 		public override void OnInspectorGUI()
@@ -254,9 +253,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			if (target is IItemMainRenderableAuthoring meshAuthoring) {
-				meshAuthoring.RebuildMeshes();
-			}
 		}
 
 		protected virtual void OnSceneGUI()

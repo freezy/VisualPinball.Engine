@@ -250,17 +250,18 @@ namespace VisualPinball.Unity.Editor
 		private void RebuildControlPoints()
 		{
 			ControlPoints.Clear();
-
-			for (var i = 0; i < DragPointEditable.GetDragPoints().Length; ++i) {
+			var dragPoints = DragPointEditable.GetDragPoints();
+			for (var i = 0; i < dragPoints.Length; ++i) {
 				var cp = new ControlPoint(
-					DragPointEditable.GetDragPoints()[i],
+					dragPoints[i],
 					GUIUtility.GetControlID(FocusType.Passive),
 					i,
-					DragPointEditable.GetDragPoints().Length >= 2 ? (float)i / (DragPointEditable.GetDragPoints().Length-1) : 0.0f
+					dragPoints.Length > 1
+						? (float)i / (dragPoints.Length - 1)
+						: 0.0f
 				);
 				ControlPoints.Add(cp);
 			}
-
 			CurveTravellerControlId = GUIUtility.GetControlID(FocusType.Passive);
 		}
 
