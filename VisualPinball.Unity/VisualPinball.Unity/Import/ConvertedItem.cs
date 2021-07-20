@@ -124,6 +124,14 @@ namespace VisualPinball.Unity
 			_itemData = item.Data;
 
 			_mainAuthoring = componentsAdded ? _gameObject.GetComponent<TMainAuthoring>() : _gameObject.AddComponent<TMainAuthoring>();
+			if (_mainAuthoring == null)
+			{
+				var mainComp = _gameObject.GetComponent<IItemMainAuthoring>();
+				if (mainComp != null) {
+					throw new Exception($"Prefab loaded but main component is of type {mainComp.GetType()} for item {item.Name} of type {item.GetType()}.");
+				}
+				throw new Exception($"Prefab loaded but has no main component applied ({item.Name}).");
+			}
 			_mainAuthoring.SetItem(item);
 		}
 

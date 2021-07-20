@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 				_materials[material.Name.ToLower()] = material;
 			}
 
-			Logger.Info($"Refreshed {GameItems.Count()} game items in {stopWatch.ElapsedMilliseconds}ms.");
+			Logger.Info($"Refreshed {GameItems.Count()} game items and {_materials.Count} materials in {stopWatch.ElapsedMilliseconds}ms.");
 		}
 
 		public override void Save(string fileName)
@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 				var matAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(assetPath);
 				var name = Path.GetFileNameWithoutExtension(assetPath);
 				if (!_materials.ContainsKey(name.ToLower())) {
-					_materials[name.ToLower()] = new Material();
+					continue;
 				}
 				var matTable = _materials[name.ToLower()];
 				matTable.Elasticity = matAsset.Elasticity;

@@ -445,7 +445,7 @@ namespace VisualPinball.Engine.VPT.Table
 		private void ParseMaterial(TableData tableData, BinaryReader reader, int len)
 		{
 			if (len < tableData.NumMaterials * MaterialData.Size) {
-				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} of {tableData.NumMaterials * MaterialData.Size} bytes from a {len} bytes buffer.");
+				throw new ArgumentOutOfRangeException($"Cannot parse {tableData.NumMaterials} materials of {tableData.NumMaterials * MaterialData.Size} bytes from a {len} bytes buffer.");
 			}
 			var materials = new Material[tableData.NumMaterials];
 			for (var i = 0; i < tableData.NumMaterials; i++) {
