@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using VisualPinball.Engine.Common;
 
@@ -68,11 +69,6 @@ namespace VisualPinball.Engine.Math
 			matrix.M10 * b.X + matrix.M11 * b.Y + matrix.M12 * b.Z,
 			matrix.M20 * b.X + matrix.M21 * b.Y + matrix.M22 * b.Z
 		);
-
-		public static void Reset(Vertex3D v)
-		{
-			v.Set(0, 0, 0);
-		}
 
 		public Vertex3D Set(Vertex3D v)
 		{
@@ -261,6 +257,7 @@ namespace VisualPinball.Engine.Math
 			return matrix.MultiplyMatrixNoTranslate(this);
 		}
 
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"Vertex3D({X}/{Y}/{Z})";
