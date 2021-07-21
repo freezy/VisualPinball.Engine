@@ -17,37 +17,32 @@
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.Test.Common
 {
-	public class StringTests
+	public class VectorTests
 	{
 		[Test]
-		public void ShouldCorrectlyMakeAStringFilesystemCompatible()
+		public void ShouldCorrectlyOperateVectors()
 		{
-			"abc ".ToFilename().Should().Be("abc ");
-			"äöüéàèŒ".ToFilename().Should().Be("aeoeueeaeOE");
-			"a\\b".ToFilename().Should().Be("a_b");
-			"a/b".ToFilename().Should().Be("a_b");
-			"a>b".ToFilename().Should().Be("a_b");
-			"a<b".ToFilename().Should().Be("a_b");
-			"(a)".ToFilename().Should().Be("(a)");
-			"a>>b".ToFilename().Should().Be("a_b");
-			"a<<b>>".ToFilename().Should().Be("a_b");
-			"a\"b".ToFilename().Should().Be("a_b");
-			"\"".ToFilename().Should().Be("_");
+			(new Vertex3D(2f, 3f, 4f) + new Vertex3D(10f, 20f, 50f)).Should().BeEquivalentTo(new Vertex3D(12f, 23f, 54f));
+			(new Vertex3D(5f, 1f, 4f) - new Vertex3D(2f, -5f, 1.5f)).Should().BeEquivalentTo(new Vertex3D(3f, 6f, 2.5f));
+			(new Vertex3D(2f, 3f, 4f) * 4f).Should().BeEquivalentTo(new Vertex3D(8f, 12f, 16f));
+			(new Vertex3D(2f, 3f, 4f) / 2f).Should().BeEquivalentTo(new Vertex3D(1f, 1.5f, 2f));
 		}
 
 		[Test]
-		public void ShouldCorrectlyNormalizeAString()
+		public void ShouldCorrectlySetVectors()
 		{
-			"AbC".ToNormalizedName().Should().Be("abc");
-			"AbC ".ToNormalizedName().Should().Be("abc");
-			"Ab C".ToNormalizedName().Should().Be("ab_c");
-			"übr".ToNormalizedName().Should().Be("uebr");
-			"a\"b".ToNormalizedName().Should().Be("a_b");
-			">".ToNormalizedName().Should().Be("_");
-			"(a)".ToNormalizedName().Should().Be("a");
+			new Vertex3D(2f, 3f, 4f)
+				.Set(1f, 2f, 3f)
+				.Should().BeEquivalentTo(new Vertex3D(1f, 2f, 3f));
+
+			new Vertex3D(2f, 3f, 4f)
+				.Set(new Vertex3D(1f, 2f, 3f))
+				.Should().BeEquivalentTo(new Vertex3D(1f, 2f, 3f));
 		}
+
 	}
 }
