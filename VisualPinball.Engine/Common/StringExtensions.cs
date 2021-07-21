@@ -140,13 +140,15 @@ namespace VisualPinball.Engine.Common
 
 		public static string ToNormalizedName(this string name)
 		{
-			return Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").Trim('_').ToLower();
+			var normalizedName = Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").ToLower();
+			return normalizedName.Length == 1 ? normalizedName : normalizedName.Trim('_');
 		}
 
 		public static string ToFilename(this string name)
 		{
-			var invalidChars = string.Join("", Path.GetInvalidFileNameChars());
-			return Regex.Replace(name.RemoveDiacritics(), $"[{invalidChars}]+", "_").Trim('_');
+			var invalidChars = string.Join("", Path.GetInvalidFileNameChars()) + "\\\\";
+			var filename = Regex.Replace(name.RemoveDiacritics(), $"[{invalidChars}]+", "_");
+			return filename.Length == 1 ? filename : filename.Trim('_');
 		}
 	}
 }
