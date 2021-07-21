@@ -65,7 +65,7 @@ jobs:
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
-          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.Engine;pathFilters:-**/VisualPinball.Engine/Math/Triangulator/** -coverageResultsPath artifacts
+          customParameters: -debugCodeOptimization -enableCodeCoverage -burst-disable-compilation -coverageOptions enableCyclomaticComplexity;assemblyFilters:+VisualPinball.Engine;pathFilters:-**/VisualPinball.Engine/Math/Triangulator/**,-**/VisualPinball.Engine/Math/Mesh/** -coverageResultsPath artifacts
       - run: |
           curl -s https://codecov.io/bash | bash -s - -f ${{ steps.test.outputs.artifactsPath }}/TestProject~-opencov/EditMode/TestCoverageResults_0000.xml
       - uses: MirrorNG/nunit-reporter@v1.0.11
