@@ -40,28 +40,5 @@ namespace VisualPinball.Engine.Math
 			M21 = m21;
 			M22 = m22;
 		}
-
-		public static Matrix2D Identity = new Matrix2D(
-			1f, 0f, 0f,
-			0f, 1f, 0f,
-			0f, 0f, 1f
-		);
-
-		public Matrix2D RotationAroundAxis(Vertex3D axis, float rSin, float rCos)
-		{
-			M00 = axis.X * axis.X + rCos * (1.0f - axis.X * axis.X);
-			M10 = axis.X * axis.Y * (1.0f - rCos) - axis.Z * rSin;
-			M20 = axis.Z * axis.X * (1.0f - rCos) + axis.Y * rSin;
-
-			M01 = axis.X * axis.Y * (1.0f - rCos) + axis.Z * rSin;
-			M11 = axis.Y * axis.Y + rCos * (1.0f - axis.Y * axis.Y);
-			M21 = axis.Y * axis.Z * (1.0f - rCos) - axis.X * rSin;
-
-			M02 = axis.Z * axis.X * (1.0f - rCos) - axis.Y * rSin;
-			M12 = axis.Y * axis.Z * (1.0f - rCos) + axis.X * rSin;
-			M22 = axis.Z * axis.Z + rCos * (1.0f - axis.Z * axis.Z);
-
-			return this;
-		}
 	}
 }
