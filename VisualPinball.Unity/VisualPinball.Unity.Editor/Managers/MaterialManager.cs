@@ -28,9 +28,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected override string DataTypeName => "Material";
 
-		private bool _foldoutVisual = true;
-		private bool _foldoutPhysics = true;
-
 		[MenuItem("Visual Pinball/Material Manager", false, 403)]
 		public static void ShowWindow()
 		{

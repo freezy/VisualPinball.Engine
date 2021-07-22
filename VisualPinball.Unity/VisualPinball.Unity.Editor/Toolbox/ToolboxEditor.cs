@@ -70,7 +70,6 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			if (GUILayout.Button("New Table")) {
-				const string tableName = "Table1";
 				var tableContainer = new FileTableContainer();
 				var converter = new VpxSceneConverter(tableContainer);
 				var rootGameObj = converter.Convert(false);

@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.VPT
 			scaleMatrix.SetScaling(1.0f, 1.0f, table?.GetScaleZ() ?? 1.0f);
 			fullMatrix.Multiply(scaleMatrix);
 
-			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
+			return new Tuple<Matrix3D, Matrix3D?>(fullMatrix, null);
 		}
 	}
 }

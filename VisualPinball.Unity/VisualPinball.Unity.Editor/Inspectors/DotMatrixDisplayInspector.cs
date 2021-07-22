@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized] private DotMatrixDisplayAuthoring _mb;
 		[NonSerialized] private DotMatrixDisplayAuthoring[] _mbs;
 
-		private void OnEnable()
+		private new void OnEnable()
 		{
 			_mb = target as DotMatrixDisplayAuthoring;
 			base.OnEnable();
