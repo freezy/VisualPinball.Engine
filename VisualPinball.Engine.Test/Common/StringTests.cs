@@ -25,10 +25,11 @@ namespace VisualPinball.Engine.Test.Common
 		[Test]
 		public void ShouldCorrectlyMakeAStringFilesystemCompatible()
 		{
-			"abc ".ToFilename().Should().Be("abc ");
+			"^ !#$%&'()+,.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~-".ToFilename()
+				.Should().Be("^ !#$%&'()+,.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{}~-");
 			"äöüéàèŒ".ToFilename().Should().Be("aeoeueeaeOE");
+			"a/b/c".ToFilename().Should().Be("a_b_c");
 			"a\\b".ToFilename().Should().Be("a_b");
-			"a/b".ToFilename().Should().Be("a_b");
 			"a>b".ToFilename().Should().Be("a_b");
 			"a<b".ToFilename().Should().Be("a_b");
 			"(a)".ToFilename().Should().Be("(a)");

@@ -25,6 +25,38 @@ namespace VisualPinball.Engine.Common
 {
 	public static class StringExtensions
 	{
+		private const string InvalidFilenameRegex = @"[^ !#$%&'()+,\.0123456789;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]\^_`abcdefghijklmnopqrstuvwxyz{}~-]+";
+
+		public static string ToNormalizedName(this string name)
+		{
+			var normalizedName = Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").ToLower();
+			return normalizedName.Length == 1 ? normalizedName : normalizedName.Trim('_');
+		}
+
+		public static string ToFilename(this string name)
+		{
+			var filename = Regex.Replace(name.RemoveDiacritics(), InvalidFilenameRegex, "_");
+			return filename.Length == 1 ? filename : filename.Trim('_');
+		}
+
+		private static string RemoveDiacritics(this string s)
+		{
+			var text = "";
+			foreach (var c in s) {
+				var len = text.Length;
+				foreach (var entry in ForeignCharacters) {
+					if (entry.Key.IndexOf(c) != -1) {
+						text += entry.Value;
+						break;
+					}
+				}
+				if (len == text.Length) {
+					text += c;
+				}
+			}
+			return text;
+		}
+
 		private static readonly Dictionary<string, string> ForeignCharacters = new Dictionary<string, string>
 		{
 			{"äæǽ", "ae"},
@@ -117,38 +149,5 @@ namespace VisualPinball.Engine.Common
 			{"Я", "Ya"},
 			{"я", "ya"},
 		};
-
-		public static string RemoveDiacritics(this string s)
-		{
-			var text = "";
-			foreach (var c in s) {
-				var len = text.Length;
-				foreach (var entry in ForeignCharacters) {
-					if (entry.Key.IndexOf(c) != -1) {
-						text += entry.Value;
-						break;
-					}
-				}
-
-				if (len == text.Length) {
-					text += c;
-				}
-			}
-
-			return text;
-		}
-
-		public static string ToNormalizedName(this string name)
-		{
-			var normalizedName = Regex.Replace(name.RemoveDiacritics(), @"[^.\w\d-]+", "_").ToLower();
-			return normalizedName.Length == 1 ? normalizedName : normalizedName.Trim('_');
-		}
-
-		public static string ToFilename(this string name)
-		{
-			var invalidChars = string.Join("", Path.GetInvalidFileNameChars()) + "\\\\";
-			var filename = Regex.Replace(name.RemoveDiacritics(), $"[{invalidChars}]+", "_");
-			return filename.Length == 1 ? filename : filename.Trim('_');
-		}
 	}
 }
