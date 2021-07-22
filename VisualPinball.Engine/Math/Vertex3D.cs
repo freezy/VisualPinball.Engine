@@ -79,12 +79,7 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		// public new Vertex3D Clone()
-		// {
-		// 	return new Vertex3D(this);
-		// }
-
-		public new void Normalize()
+		public void Normalize()
 		{
 			var oneOverLength = 1.0f / Length();
 			X *= oneOverLength;
@@ -101,12 +96,12 @@ namespace VisualPinball.Engine.Math
 			return this;
 		}
 
-		public new float Length()
+		public float Length()
 		{
 			return MathF.Sqrt(X * X + Y * Y + Z * Z);
 		}
 
-		public new float LengthSq()
+		public float LengthSq()
 		{
 			return X * X + Y * Y + Z * Z;
 		}
@@ -132,7 +127,7 @@ namespace VisualPinball.Engine.Math
 			);
 		}
 
-		public new Vertex3D SetZero()
+		public Vertex3D SetZero()
 		{
 			return Set(0f, 0f, 0f);
 		}
@@ -200,7 +195,5 @@ namespace VisualPinball.Engine.Math
 		{
 			return $"Vertex3D({X}/{Y}/{Z})";
 		}
-
-		public float Magnitude() => MathF.Sqrt(this.Dot(this));
 	}
 }

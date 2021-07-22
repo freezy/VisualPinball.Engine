@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace VisualPinball.Engine.Math
@@ -104,14 +105,7 @@ namespace VisualPinball.Engine.Math
 			return new Vertex3D(X, Y, Z);
 		}
 
-		public Vertex3D GetNormal() {
-			return new Vertex3D(Nx, Ny, Nz);
-		}
-
-		public bool HasTextureCoordinates() {
-			return !float.IsNaN(Tu) && !float.IsNaN(Tv);
-		}
-
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"Vertex3DNoTex2({X}/{Y}/{Z}, {Nx}/{Ny}/{Nz}, {Tu}/{Tv})";
