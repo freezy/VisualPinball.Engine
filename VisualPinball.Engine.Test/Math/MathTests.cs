@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,31 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine.Math
-{
-	public struct Matrix2D
-	{
-		public float M00;
-		public float M01;
-		public float M02;
-		public float M10;
-		public float M11;
-		public float M12;
-		public float M20;
-		public float M21;
-		public float M22;
+using FluentAssertions;
+using NUnit.Framework;
+using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Math;
 
-		public Matrix2D(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)
+namespace VisualPinball.Engine.Test.Common
+{
+	public class MathTests
+	{
+		[Test]
+		public void ShouldCorrectlyInitializeRect3D()
 		{
-			M00 = m00;
-			M01 = m01;
-			M02 = m02;
-			M10 = m10;
-			M11 = m11;
-			M12 = m12;
-			M20 = m20;
-			M21 = m21;
-			M22 = m22;
+			var rect = new Rect3D(1f, 3f, 4f, 5f, 6f, 7f);
+			rect.Left.Should().Be(1f);
+			rect.Right.Should().Be(2f);
+			rect.Top.Should().Be(3f);
+			rect.Bottom.Should().Be(4f);
+			rect.ZLow.Should().Be(5f);
+			rect.ZHigh.Should().Be(6f);
 		}
 	}
 }

@@ -144,34 +144,9 @@ namespace VisualPinball.Unity
 			return new Aabb(rect.Left, rect.Right, rect.Top, rect.Bottom, rect.ZLow, rect.ZHigh);
 		}
 
-		public static float PercentageToRatio(this float percent)
-		{
-			return percent * 0.01f;
-		}
-
 		public static float PercentageToRatio(this int percent)
 		{
 			return percent * 0.01f;
-		}
-
-		public static float RatioToPercentage(this float ratio)
-		{
-			return ratio * 100.0f;
-		}
-
-		public static float3x3 ToUnityFloat3x3(this Matrix2D matrix)
-		{
-			return new float3x3(
-				matrix.M00,
-				matrix.M01,
-				matrix.M02,
-				matrix.M10,
-				matrix.M11,
-				matrix.M12,
-				matrix.M20,
-				matrix.M21,
-				matrix.M22
-			);
 		}
 
 		public static float3 ToEuler(this quaternion quaternion) {

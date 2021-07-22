@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.Common;
-
 namespace VisualPinball.Engine.Math
 {
 	public struct Rect3D
@@ -30,16 +28,6 @@ namespace VisualPinball.Engine.Math
 		public float Width => MathF.Abs(Left - Right);
 		public float Height => MathF.Abs(Top - Bottom);
 		public float Depth => MathF.Abs(ZLow - ZHigh);
-
-		public Rect3D(bool init)
-		{
-			Left = Constants.FloatMax;
-			Right = -Constants.FloatMax;
-			Top = Constants.FloatMax;
-			Bottom = -Constants.FloatMax;
-			ZLow = Constants.FloatMax;
-			ZHigh = -Constants.FloatMax;
-		}
 
 		public Rect3D(float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
