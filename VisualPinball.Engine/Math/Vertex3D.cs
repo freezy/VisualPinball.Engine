@@ -38,13 +38,6 @@ namespace VisualPinball.Engine.Math
 			Z = z;
 		}
 
-		public Vertex3D(Vertex3D v)
-		{
-			X = v.X;
-			Y = v.Y;
-			Z = v.Z;
-		}
-
 		public Vertex3D(BinaryReader reader, int len)
 		{
 			X = reader.ReadSingle();
@@ -118,55 +111,10 @@ namespace VisualPinball.Engine.Math
 			return X * X + Y * Y + Z * Z;
 		}
 
-		// public new Vertex3D DivideScalar(float scalar)
-		// {
-		// 	return MultiplyScalar(1 / scalar);
-		// }
-
-		// public new Vertex3D MultiplyScalar(float scalar)
-		// {
-		// 	X *= scalar;
-		// 	Y *= scalar;
-		// 	Z *= scalar;
-		// 	return this;
-		// }
-
-		// public Vertex3D ApplyMatrix2D(Matrix2D matrix)
-		// {
-		// 	var x = matrix.Matrix[0][0] * X + matrix.Matrix[0][1] * Y + matrix.Matrix[0][2] * Z;
-		// 	var y = matrix.Matrix[1][0] * X + matrix.Matrix[1][1] * Y + matrix.Matrix[1][2] * Z;
-		// 	var z = matrix.Matrix[2][0] * X + matrix.Matrix[2][1] * Y + matrix.Matrix[2][2] * Z;
-		// 	X = x;
-		// 	Y = y;
-		// 	Z = z;
-		// 	return this;
-		// }
-
 		public float Dot(Vertex3D v)
 		{
 			return X * v.X + Y * v.Y + Z * v.Z;
 		}
-
-		// public Vertex3D Sub(Vertex3D v)
-		// {
-		// 	X -= v.X;
-		// 	Y -= v.Y;
-		// 	Z -= v.Z;
-		// 	return this;
-		// }
-
-		// public Vertex3D Add(Vertex3D v)
-		// {
-		// 	X += v.X;
-		// 	Y += v.Y;
-		// 	Z += v.Z;
-		// 	return this;
-		// }
-
-		// public Vertex3D Cross(Vertex3D v)
-		// {
-		// 	return CrossVectors(this, v);
-		// }
 
 		public static Vertex3D CrossVectors(Vertex3D a, Vertex3D b)
 		{
@@ -184,11 +132,6 @@ namespace VisualPinball.Engine.Math
 			);
 		}
 
-		public Vertex2D xy()
-		{
-			return new Vertex2D(X, Y);
-		}
-
 		public new Vertex3D SetZero()
 		{
 			return Set(0f, 0f, 0f);
@@ -198,11 +141,6 @@ namespace VisualPinball.Engine.Math
 		{
 			return MathF.Abs(X) < Constants.FloatMin && MathF.Abs(Y) < Constants.FloatMin &&
 			       MathF.Abs(Z) < Constants.FloatMin;
-		}
-
-		public bool Equals(Vertex3D v)
-		{
-			return v.X == X && v.Y == Y && v.Z == Z;
 		}
 
 		public static Vertex3D CrossProduct(Vertex3D pv1, Vertex3D pv2)
