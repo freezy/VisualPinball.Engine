@@ -322,25 +322,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
 		public T Get<T>(string name) where T : IItem => GetItemDictionary<T>()[name];
 
-		/// <summary>
-		/// Returns all game items of a given type.
-		/// </summary>
-		/// <typeparam name="TItem">Game item type</typeparam>
-		/// <returns>All game items stored in the table</returns>
-		/// <exception cref="ArgumentException">If invalid game type</exception>
-		public TItem[] GetAll<TItem>() where TItem : IItem
-		{
-			var dict = GetItemDictionary<TItem>();
-			if (dict != null) {
-				return dict.Values.ToArray();
-			}
-			var list = GetItemList<TItem>();
-			if (list != null) {
-				return list.ToArray();
-			}
-			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
-		}
-
 		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
 		{
 			var dict = GetItemDictionary<TItem>();
