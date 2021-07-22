@@ -26,13 +26,22 @@ namespace VisualPinball.Engine.Test.Common
 		[Test]
 		public void ShouldCorrectlyInitializeRect3D()
 		{
-			var rect = new Rect3D(1f, 3f, 4f, 5f, 6f, 7f);
+			var rect = new Rect3D(1f, 2f, 3f, 4f, 5f, 6f);
 			rect.Left.Should().Be(1f);
 			rect.Right.Should().Be(2f);
 			rect.Top.Should().Be(3f);
 			rect.Bottom.Should().Be(4f);
 			rect.ZLow.Should().Be(5f);
 			rect.ZHigh.Should().Be(6f);
+		}
+
+		[Test]
+		public void ShouldCorrectlyMeasureRect3D()
+		{
+			var rect = new Rect3D(1f, 2.5f, 3f, 4.6f, 5f, 6.8f);
+			rect.Width.Should().Be(1.5f);
+			rect.Height.Should().BeApproximately(1.6f, 0.000001f);
+			rect.Depth.Should().BeApproximately(1.8f, 0.000001f);
 		}
 	}
 }

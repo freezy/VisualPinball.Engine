@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 		private string _testText;
 		private bool _foldoutStyle = true;
 
-		private void OnEnable()
+		private new void OnEnable()
 		{
 			_mb = target as SegmentDisplayAuthoring;
 			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
