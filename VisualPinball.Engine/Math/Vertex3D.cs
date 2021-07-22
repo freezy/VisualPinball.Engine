@@ -57,11 +57,6 @@ namespace VisualPinball.Engine.Math
 		public static Vertex3D operator *(Vertex3D a, float b) => new Vertex3D(a.X * b, a.Y * b, a.Z * b);
 		public static Vertex3D operator *(float a, Vertex3D b) => b * a;
 		public static Vertex3D operator /(Vertex3D a, float b) => new Vertex3D(a.X / b, a.Y / b, a.Z / b);
-		public static Vertex3D operator *(Matrix2D matrix, Vertex3D b) => new Vertex3D(
-			matrix.M00 * b.X + matrix.M01 * b.Y + matrix.M02 * b.Z,
-			matrix.M10 * b.X + matrix.M11 * b.Y + matrix.M12 * b.Z,
-			matrix.M20 * b.X + matrix.M21 * b.Y + matrix.M22 * b.Z
-		);
 
 		public Vertex3D Set(Vertex3D v)
 		{
@@ -127,11 +122,6 @@ namespace VisualPinball.Engine.Math
 			);
 		}
 
-		public Vertex3D SetZero()
-		{
-			return Set(0f, 0f, 0f);
-		}
-
 		public bool IsZero()
 		{
 			return MathF.Abs(X) < Constants.FloatMin && MathF.Abs(Y) < Constants.FloatMin &&
@@ -145,11 +135,6 @@ namespace VisualPinball.Engine.Math
 				pv1.Z * pv2.X - pv1.X * pv2.Z,
 				pv1.X * pv2.Y - pv1.Y * pv2.X
 			);
-		}
-
-		public static Vertex3D CrossZ(float rz, Vertex3D v)
-		{
-			return new Vertex3D(-rz * v.Y, rz * v.X, 0);
 		}
 
 		public static Vertex3D GetRotatedAxis(float angle, Vertex3D axis, Vertex3D temp)

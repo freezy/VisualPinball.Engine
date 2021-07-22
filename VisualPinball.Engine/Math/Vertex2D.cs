@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace VisualPinball.Engine.Math
@@ -40,18 +41,6 @@ namespace VisualPinball.Engine.Math
 			}
 		}
 
-		public Vertex2D Set(float x, float y)
-		{
-			X = x;
-			Y = y;
-			return this;
-		}
-
-		public Vertex2D SetZero()
-		{
-			return Set(0, 0);
-		}
-
 		public static Vertex2D operator +(Vertex2D a, Vertex2D b) => new Vertex2D(a.X + b.X, a.Y + b.Y);
 		public static Vertex2D operator -(Vertex2D a, Vertex2D b) => new Vertex2D(a.X - b.X, a.Y - b.Y);
 		public static Vertex2D operator *(Vertex2D a, float b) => new Vertex2D(a.X * b, a.Y * b);
@@ -69,21 +58,7 @@ namespace VisualPinball.Engine.Math
 			return MathF.Sqrt(X * X + Y * Y);
 		}
 
-		public float LengthSq()
-		{
-			return X * X + Y * Y;
-		}
-
-		public float Dot(Vertex2D pv)
-		{
-			return X * pv.X + Y * pv.Y;
-		}
-
-		public bool Equals(Vertex2D v)
-		{
-			return X == v.X && Y == v.Y;
-		}
-
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"Vertex2D({X}/{Y})";

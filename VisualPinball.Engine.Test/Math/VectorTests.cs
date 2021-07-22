@@ -46,14 +46,6 @@ namespace VisualPinball.Engine.Test.Common
 		}
 
 		[Test]
-		public void ShouldCorrectlyMultiplyWithMatrix()
-		{
-			//            m00,m01,m02,m10,m11,m12,m20,m21,m22
-			(new Matrix2D(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f) * new Vertex3D(10f, 20f, 30f))
-				.Should().BeEquivalentTo(new Vertex3D(140f, 320f, 500f));
-		}
-
-		[Test]
 		public void ShouldCorrectlyCrossVectors()
 		{
 			Vertex3D.CrossVectors(new Vertex3D(1.5f, 2.5f, 4f), new Vertex3D(3.5f, 100f, 95f))

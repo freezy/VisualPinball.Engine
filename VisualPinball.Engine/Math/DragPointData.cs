@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
@@ -65,6 +66,7 @@ namespace VisualPinball.Engine.Math
 
 		public float CalcHeight;
 
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"DragPoint({Center.X}/{Center.Y}/{Center.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
