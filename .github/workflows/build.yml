@@ -58,7 +58,7 @@ jobs:
          restore-keys: |
            Library-Test-Project
            Library
-      - uses: jsm174/unity-test-runner@v2.0.1
+      - uses: game-ci/unity-test-runner@main
         id: test
         with:
           unityVersion: '2020.3.13f1'
