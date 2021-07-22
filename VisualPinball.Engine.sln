@@ -6,6 +6,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualPinball.Resources", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualPinball.Engine.Test", "VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{E74E1502-B527-475D-BCEC-B8F60699BA5F}"
+ProjectSection(SolutionItems) = preProject
+	LICENSE = LICENSE
+	README.md = README.md
+	.editorconfig = .editorconfig
+	.gitignore = .gitignore
+	CHANGELOG.md = CHANGELOG.md
+	CONTRIBUTING.md = CONTRIBUTING.md
+	package.json = package.json
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{E6A28E8F-1DE7-4CF4-ADB7-A55A6E6467AF}"
+ProjectSection(SolutionItems) = preProject
+	.github\workflows\build.yml = .github\workflows\build.yml
+	.github\workflows\dependents.yml = .github\workflows\dependents.yml
+	.github\workflows\documentation.yml = .github\workflows\documentation.yml
+	.github\workflows\publish.yml = .github\workflows\publish.yml
+	.github\workflows\release.yml = .github\workflows\release.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,5 +72,8 @@ Global
 		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Release|x86.Build.0 = Release|Any CPU
 		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D642DA1-C750-4EB0-AE33-E2A2CDA3DDEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E6A28E8F-1DE7-4CF4-ADB7-A55A6E6467AF} = {E74E1502-B527-475D-BCEC-B8F60699BA5F}
 	EndGlobalSection
 EndGlobal
