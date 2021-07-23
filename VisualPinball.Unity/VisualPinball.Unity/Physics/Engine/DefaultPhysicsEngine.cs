@@ -63,10 +63,10 @@ namespace VisualPinball.Unity
 			_worldToLocal = transform.worldToLocalMatrix;
 		}
 
-		public void BallCreate(in float3 worldPos, in float3 localPos,
+		public void BallCreate(GameObject ballGo, int id, in float3 worldPos, in float3 localPos,
 			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
 		{
-			_ballManager.CreateEntity(in worldPos, in localPos, in localVel,scale * radius * 2,
+			_ballManager.CreateEntity(ballGo, id, in worldPos, in localPos, in localVel,scale * radius * 2,
 				in mass, in radius, in kickerRef);
 		}
 

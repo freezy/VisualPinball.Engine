@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		public TableApi TableApi { get; private set; }
 
 		// shortcuts
-		public Matrix4x4 TableToWorld => GetComponentInChildren<TablePlayfieldAuthoring>().transform.localToWorldMatrix;
+		public GameObject Playfield => GetComponentInChildren<TablePlayfieldAuthoring>().gameObject;
 
 		[NonSerialized]
 		public IGamelogicEngine GamelogicEngine;
@@ -74,6 +74,8 @@ namespace VisualPinball.Unity
 
 		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
 		internal readonly Dictionary<Entity, Transform> FlipperTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, GameObject> Balls = new Dictionary<Entity, GameObject>();
+
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
@@ -125,7 +127,7 @@ namespace VisualPinball.Unity
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
 			_tableContainer = tableComponent.TableContainer;
-			BallManager = new BallManager(Table, TableToWorld);
+			BallManager = new BallManager(Table, this);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);
 

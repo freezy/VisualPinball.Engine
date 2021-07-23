@@ -17,7 +17,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -27,6 +26,8 @@ namespace VisualPinball.Unity
 	internal class BallMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
+		private Player _player;
+
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallMovementSystem");
 
 		protected override void OnStartRunning()
@@ -39,22 +40,29 @@ namespace VisualPinball.Unity
 				ltw.m20, ltw.m21, ltw.m22, ltw.m23,
 				ltw.m30, ltw.m31, ltw.m32, ltw.m33
 			);
+			_player = Object.FindObjectOfType<Player>();
 		}
 
 		protected override void OnUpdate()
 		{
 			var ltw = _baseTransform;
 			var marker = PerfMarker;
-			Entities.WithName("BallMovementJob").ForEach((ref Translation translation, ref Rotation rot, in BallData ball) => {
+			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) => {
 
 				marker.Begin();
+
+				if (!_player.Balls.ContainsKey(entity)) {
+					marker.End();
+					return;
+				}
 
 				// calculate/adapt height of ball
 				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 
-				translation.Value = math.transform(ltw, new float3(ball.Position.x, ball.Position.y, zHeight));
 				var or = ball.Orientation;
-				rot.Value = quaternion.LookRotation(or.c2,  or.c1);
+				var ballTransform = _player.Balls[entity].transform;
+				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
+				ballTransform.localRotation = Quaternion.LookRotation(or.c2, or.c1);
 
 				marker.End();
 
