@@ -36,16 +36,18 @@ namespace VisualPinball.Unity
 		public int NumBalls { get; private set; }
 
 		private readonly Table _table;
-		private readonly Matrix4x4 _ltw;
+		private readonly GameObject _playfield;
+		private readonly Player _player;
 
 		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
 
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
-		public BallManager(Table table, Matrix4x4 ltw)
+		public BallManager(Table table, Player player)
 		{
 			_table = table;
-			_ltw = ltw;
+			_player = player;
+			_playfield = player.Playfield;
 		}
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
@@ -59,43 +61,47 @@ namespace VisualPinball.Unity
 			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
 			localPos.z += radius;
 
-			var worldPos = _ltw.MultiplyPoint(localPos);
+			var ltw = _playfield.transform.localToWorldMatrix;
+			var worldPos = ltw.MultiplyPoint(localPos);
 			var scale3 = new Vector3(
-				_ltw.GetColumn(0).magnitude,
-				_ltw.GetColumn(1).magnitude,
-				_ltw.GetColumn(2).magnitude
+				ltw.GetColumn(0).magnitude,
+				ltw.GetColumn(1).magnitude,
+				ltw.GetColumn(2).magnitude
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
+
+
+			var ballId = NumBallsCreated++;
+			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
+			var ballGo = Object.Instantiate(ballPrefab, _playfield.transform);
+			ballGo.name = $"Ball{ballId}";
+			ballGo.transform.localScale = new Vector3(1000, 1000, 1000);
+			ballGo.transform.localPosition = localPos;
 
 			// create ball entity
 			EngineProvider<IPhysicsEngine>
 				.Get()
-				.BallCreate(worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
+				.BallCreate(ballGo, ballId, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
 		}
 
-		public void CreateEntity(in float3 worldPos, in float3 localPos, in float3 localVel, in float scale,
+		public void CreateEntity(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel, in float scale,
 			in float mass, in float radius, in Entity kickerEntity)
 		{
-			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
-
-			// Create entity prefab from the game object hierarchy once
-			var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
-			var prefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(ballPrefab, settings);
-
 			// Efficiently instantiate a bunch of entities from the already converted entity prefab
-			var entity = EntityManager.Instantiate(prefab);
+			var entity = EntityManager.CreateEntity(
+				typeof(OverlappingStaticColliderBufferElement),
+				typeof(OverlappingDynamicBufferElement),
+				typeof(BallInsideOfBufferElement),
+				typeof(BallLastPositionsBufferElement),
+				typeof(BallData),
+				typeof(CollisionEventData)
+			);
+
+			_player.Balls[entity] = ballGo;
 
 			var world = World.DefaultGameObjectInjectionWorld;
 			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
 			var ecb = ecbs.CreateCommandBuffer();
-
-			ecb.AddComponent(entity, new Translation {
-				Value = worldPos
-			});
-
-			ecb.AddComponent(entity, new Scale {
-				Value = scale
-			});
 
 			ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
 			ecb.AddBuffer<OverlappingDynamicBufferElement>(entity);
@@ -103,7 +109,7 @@ namespace VisualPinball.Unity
 			ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
 
 			ecb.AddComponent(entity, new BallData {
-				Id = NumBallsCreated++,
+				Id = id,
 				IsFrozen = false,
 				Position = localPos,
 				Radius = radius,
@@ -147,6 +153,11 @@ namespace VisualPinball.Unity
 
 		public void DestroyEntity(Entity ballEntity)
 		{
+			// destroy game object
+			Object.DestroyImmediate(_player.Balls[ballEntity]);
+			_player.Balls.Remove(ballEntity);
+
+			// destroy entity
 			World.DefaultGameObjectInjectionWorld
 				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()
 				.CreateCommandBuffer()
