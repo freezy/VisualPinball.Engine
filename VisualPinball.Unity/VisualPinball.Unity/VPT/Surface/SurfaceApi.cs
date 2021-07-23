@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Entities.CodeGeneratedJobForEach;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -55,6 +56,9 @@ namespace VisualPinball.Unity
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new SurfaceColliderGenerator(this);
+			if (Data.DragPoints.Length == 0) {
+				return;
+			}
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

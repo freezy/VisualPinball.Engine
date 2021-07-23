@@ -61,6 +61,11 @@ namespace VisualPinball.Unity
 				Height = Data.Height
 			});
 
+			dstManager.AddComponentData(entity, new SpinnerMovementData {
+				Angle = math.radians(math.clamp(0.0f, Data.AngleMin, Data.AngleMax)),
+				AngleSpeed = 0f
+			});
+
 			// register
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}

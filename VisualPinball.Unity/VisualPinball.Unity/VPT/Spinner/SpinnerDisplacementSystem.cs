@@ -55,11 +55,9 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("SpinnerDisplacementJob")
-				.ForEach((Entity entity, in SpinnerStaticData data) => {
+				.ForEach((Entity entity, ref SpinnerMovementData movementData, in SpinnerStaticData data) => {
 
 				marker.Begin();
-
-				var movementData = GetComponent<SpinnerMovementData>(data.PlateEntity);
 
 				// those are already converted to radian during authoring.
 				var angleMin = data.AngleMin;
@@ -120,8 +118,6 @@ namespace VisualPinball.Unity
 						movementData.Angle += 2.0f * math.PI;
 					}
 				}
-
-				SetComponent(data.PlateEntity, movementData);
 
 				marker.End();
 

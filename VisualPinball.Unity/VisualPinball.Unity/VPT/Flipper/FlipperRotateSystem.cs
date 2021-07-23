@@ -17,7 +17,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using Unity.Transforms;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -27,14 +27,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperRotateSystem");
 
+		private Player _player;
+
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			_player = Object.FindObjectOfType<Player>();
+		}
+
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("FlipperRotateJob").ForEach((ref Rotation rot, in FlipperMovementData movement) => {
+			Entities.WithoutBurst().WithName("FlipperRotateJob").ForEach((Entity entity, in FlipperMovementData movement) => {
 
 				marker.Begin();
 
-				rot.Value = math.mul(movement.BaseRotation, quaternion.EulerXYZ(0, 0, movement.Angle));
+				_player.FlipperTransforms[entity].localRotation = quaternion.Euler(0, 0, movement.Angle);
 
 				marker.End();
 

@@ -25,14 +25,13 @@ namespace VisualPinball.Unity
 		public float AngleSpeed;
 		public float AngularMomentum;
 		public sbyte EnableRotateEvent;
-		public quaternion BaseRotation;
 		public uint LastHitTime;
 		public uint StartRotateToEndTime;
 		public float AngleAtRotateToEnd;
 
 		public override string ToString()
 		{
-			return $"FlipperMovementData(Angle: {Angle}, AngleSpeed: {AngleSpeed}, AngularMomentum: {AngularMomentum}, BaseRotation: {BaseRotation})";
+			return $"FlipperMovementData(Angle: {Angle}, AngleSpeed: {AngleSpeed}, AngularMomentum: {AngularMomentum})";
 		}
 
 		public void ApplyImpulse(in float3 rotI, float inertia)

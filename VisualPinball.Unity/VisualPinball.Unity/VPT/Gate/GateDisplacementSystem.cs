@@ -52,11 +52,9 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("GateDisplacementJob")
-				.ForEach((Entity entity, in GateStaticData data) => {
+				.ForEach((Entity entity,  ref GateMovementData movementData, in GateStaticData data) => {
 
 				marker.Begin();
-
-				var movementData = GetComponent<GateMovementData>(data.WireEntity);
 
 				if (data.TwoWay) {
 					if (math.abs(movementData.Angle) > data.AngleMax) {
@@ -119,8 +117,6 @@ namespace VisualPinball.Unity
 					}
 				}
 				movementData.Angle += movementData.AngleSpeed * dTime;
-
-				SetComponent(data.WireEntity, movementData);
 
 				marker.End();
 

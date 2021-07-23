@@ -61,6 +61,15 @@ namespace VisualPinball.Unity
 				GravityFactor = Data.GravityFactor,
 				TwoWay = Data.TwoWay
 			});
+			
+			// add movement data
+			dstManager.AddComponentData(entity, new GateMovementData {
+				Angle = Data.AngleMin,
+				AngleSpeed = 0,
+				ForcedMove = false,
+				IsOpen = false,
+				HitDirection = false
+			});
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, ParentEntity, gameObject);

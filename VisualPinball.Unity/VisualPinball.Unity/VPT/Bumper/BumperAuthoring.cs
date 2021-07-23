@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Bumper;
@@ -56,6 +57,37 @@ namespace VisualPinball.Unity
 				Force = Data.Force,
 				HitEvent = Data.HitEvent,
 				Threshold = Data.Threshold
+			});
+
+			var table = Table;
+			var bumper = Item;
+
+			// add ring data
+			dstManager.AddComponentData(entity, new BumperRingAnimationData {
+
+				// dynamic
+				IsHit = false,
+				Offset = 0,
+				AnimateDown = false,
+				DoAnimate = false,
+
+				// static
+				DropOffset = bumper.Data.RingDropOffset,
+				HeightScale = bumper.Data.HeightScale,
+				Speed = bumper.Data.RingSpeed,
+				ScaleZ = table.GetScaleZ()
+			});
+
+			// add ring data
+			dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
+				BallPosition = default,
+				AnimationCounter = 0f,
+				DoAnimate = false,
+				DoUpdate = false,
+				EnableAnimation = true,
+				Rotation = new float2(0, 0),
+				HitEvent = bumper.Data.HitEvent,
+				Center = bumper.Data.Center.ToUnityFloat2()
 			});
 
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
