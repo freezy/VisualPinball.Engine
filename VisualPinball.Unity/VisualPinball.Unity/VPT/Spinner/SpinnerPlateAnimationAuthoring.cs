@@ -31,9 +31,9 @@ namespace VisualPinball.Unity
 			var spinnerEntity = MainEntity;
 
 			// update parent
-			var spinnerStaticData = dstManager.GetComponentData<SpinnerStaticData>(spinnerEntity);
-			spinnerStaticData.PlateEntity = entity;
-			dstManager.SetComponentData(spinnerEntity, spinnerStaticData);
+			// var spinnerStaticData = dstManager.GetComponentData<SpinnerStaticData>(spinnerEntity);
+			// spinnerStaticData.PlateEntity = entity;
+			// dstManager.SetComponentData(spinnerEntity, spinnerStaticData);
 
 			dstManager.AddComponentData(entity, new SpinnerMovementData {
 				Angle = math.radians(math.clamp(0.0f, Data.AngleMin, Data.AngleMax)),

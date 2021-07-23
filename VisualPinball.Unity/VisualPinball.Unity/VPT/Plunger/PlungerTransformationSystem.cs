@@ -22,34 +22,34 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class PlungerTransformationSystem : SystemBase
-	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
-		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
-		private static readonly int UVChannelVertices = Shader.PropertyToID("_UVChannelVertices");
-		private static readonly int UVChannelNormals = Shader.PropertyToID("_UVChannelNormals");
-
-		protected override void OnUpdate()
-		{
-			var marker = PerfMarker;
-
-			Entities.WithoutBurst().ForEach((Entity entity, ref PlungerAnimationData animationData, in RenderMesh renderMesh) => {
-
-				if (!animationData.IsDirty) {
-					return;
-				}
-				animationData.IsDirty = false;
-
-				marker.Begin();
-
-				var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
-				renderMesh.material.SetFloat(LerpPosition, weight);
-				renderMesh.material.SetFloat(UVChannelVertices, Engine.VPT.Mesh.AnimationUVChannelVertices);
-				renderMesh.material.SetFloat(UVChannelNormals, Engine.VPT.Mesh.AnimationUVChannelNormals);
-				marker.End();
-
-			}).Run();
-		}
-	}
+	// [UpdateInGroup(typeof(TransformMeshesSystemGroup))]
+	// internal class PlungerTransformationSystem : SystemBase
+	// {
+	// 	private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerTransformationSystem");
+	// 	private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
+	// 	private static readonly int UVChannelVertices = Shader.PropertyToID("_UVChannelVertices");
+	// 	private static readonly int UVChannelNormals = Shader.PropertyToID("_UVChannelNormals");
+	//
+	// 	protected override void OnUpdate()
+	// 	{
+	// 		var marker = PerfMarker;
+	//
+	// 		Entities.WithoutBurst().ForEach((Entity entity, ref PlungerAnimationData animationData, in RenderMesh renderMesh) => {
+	//
+	// 			if (!animationData.IsDirty) {
+	// 				return;
+	// 			}
+	// 			animationData.IsDirty = false;
+	//
+	// 			marker.Begin();
+	//
+	// 			var weight = math.clamp((float)animationData.CurrentFrame / animationData.NumFrames, 0, 1);
+	// 			renderMesh.material.SetFloat(LerpPosition, weight);
+	// 			renderMesh.material.SetFloat(UVChannelVertices, Engine.VPT.Mesh.AnimationUVChannelVertices);
+	// 			renderMesh.material.SetFloat(UVChannelNormals, Engine.VPT.Mesh.AnimationUVChannelNormals);
+	// 			marker.End();
+	//
+	// 		}).Run();
+	// 	}
+	// }
 }

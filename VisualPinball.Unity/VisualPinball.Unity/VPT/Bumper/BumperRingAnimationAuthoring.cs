@@ -34,9 +34,9 @@ namespace VisualPinball.Unity
 			var bumperEntity = MainEntity;
 
 			// update parent
-			var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
-			bumperStaticData.RingEntity = entity;
-			dstManager.SetComponentData(bumperEntity, bumperStaticData);
+			// var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
+			// bumperStaticData.RingEntity = entity;
+			// dstManager.SetComponentData(bumperEntity, bumperStaticData);
 
 			// add ring data
 			dstManager.AddComponentData(entity, new BumperRingAnimationData {

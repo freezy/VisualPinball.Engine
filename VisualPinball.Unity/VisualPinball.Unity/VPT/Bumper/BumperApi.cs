@@ -50,10 +50,9 @@ namespace VisualPinball.Unity
 		void IApiCoil.OnCoil(bool enabled, bool _)
 		{
 			if (enabled) {
-				var bumperData = EntityManager.GetComponentData<BumperStaticData>(Entity);
-				var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(bumperData.RingEntity);
+				var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(Entity);
 				ringAnimation.IsHit = true;
-				EntityManager.SetComponentData(bumperData.RingEntity, ringAnimation);
+				EntityManager.SetComponentData(Entity, ringAnimation);
 			}
 		}
 

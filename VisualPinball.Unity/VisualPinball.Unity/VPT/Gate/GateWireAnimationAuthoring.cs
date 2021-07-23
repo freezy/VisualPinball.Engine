@@ -30,9 +30,9 @@ namespace VisualPinball.Unity
 			var gateEntity = MainEntity;
 
 			// update parent
-			var gateStaticData = dstManager.GetComponentData<GateStaticData>(gateEntity);
-			gateStaticData.WireEntity = entity;
-			dstManager.SetComponentData(gateEntity, gateStaticData);
+			// var gateStaticData = dstManager.GetComponentData<GateStaticData>(gateEntity);
+			// gateStaticData.WireEntity = entity;
+			// dstManager.SetComponentData(gateEntity, gateStaticData);
 
 			// add movement data
 			dstManager.AddComponentData(entity, new GateMovementData {

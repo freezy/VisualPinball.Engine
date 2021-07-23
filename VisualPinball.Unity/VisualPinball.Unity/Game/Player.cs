@@ -73,6 +73,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
 
 		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
+		internal readonly Dictionary<Entity, Transform> FlipperTransforms = new Dictionary<Entity, Transform>();
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
@@ -215,6 +216,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(flipper, flipperApi);
 			_coilPlayer.RegisterCoil(flipper, flipperApi);
 			_wirePlayer.RegisterWire(flipper, flipperApi);
+			FlipperTransforms[entity] = go.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);

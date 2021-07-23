@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.UI;
 using VisualPinball.Engine.VPT;
 using Object = UnityEngine.Object;
 
@@ -192,7 +193,8 @@ namespace VisualPinball.Unity
 		public IConvertedItem AddConvertToEntity(bool componentsAdded)
 		{
 			if (!componentsAdded) {
-				_gameObject.AddComponent<ConvertToEntity>();
+				var cte = _gameObject.AddComponent<ConvertToEntity>();
+				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 
 			return this;

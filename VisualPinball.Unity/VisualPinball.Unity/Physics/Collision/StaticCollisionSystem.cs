@@ -95,12 +95,12 @@ namespace VisualPinball.Unity
 						switch (coll.Type) {
 							case ColliderType.Bumper: {
 								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
-								var ringData = GetComponent<BumperRingAnimationData>(bumperStaticData.RingEntity);
-								var skirtData = GetComponent<BumperSkirtAnimationData>(bumperStaticData.SkirtEntity);
+								var ringData = GetComponent<BumperRingAnimationData>(coll.Entity);
+								var skirtData = GetComponent<BumperSkirtAnimationData>(coll.Entity);
 								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
 									in ballEntity, in coll, bumperStaticData, ref random);
-								SetComponent(bumperStaticData.RingEntity, ringData);
-								SetComponent(bumperStaticData.SkirtEntity, skirtData);
+								SetComponent(coll.Entity, ringData);
+								SetComponent(coll.Entity, skirtData);
 								break;
 							}
 
@@ -120,12 +120,12 @@ namespace VisualPinball.Unity
 
 							case ColliderType.Gate: {
 								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
-								var gateMovementData = GetComponent<GateMovementData>(gateStaticData.WireEntity);
+								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
 									in ballEntity, in coll, in gateStaticData
 								);
-								SetComponent(gateStaticData.WireEntity, gateMovementData);
+								SetComponent(coll.Entity, gateMovementData);
 								break;
 							}
 
@@ -149,12 +149,12 @@ namespace VisualPinball.Unity
 
 							case ColliderType.Spinner: {
 								var spinnerStaticData = GetComponent<SpinnerStaticData>(coll.Entity);
-								var spinnerMovementData = GetComponent<SpinnerMovementData>(spinnerStaticData.PlateEntity);
+								var spinnerMovementData = GetComponent<SpinnerMovementData>(coll.Entity);
 								SpinnerCollider.Collide(
 									in ballData, ref collEvent, ref spinnerMovementData,
 									in spinnerStaticData
 								);
-								SetComponent(spinnerStaticData.PlateEntity, spinnerMovementData);
+								SetComponent(coll.Entity, spinnerMovementData);
 								break;
 							}
 

@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 		public float Force;
 		public float Threshold;
 		public bool HitEvent;
-		public Entity RingEntity;
-		public Entity SkirtEntity;
+		// public Entity RingEntity;
+		// public Entity SkirtEntity;
 	}
 }

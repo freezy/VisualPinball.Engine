@@ -33,11 +33,9 @@ namespace VisualPinball.Unity
 			var marker = PerfMarker;
 			Entities
 				.WithName("GateVelocityJob")
-				.ForEach((in GateStaticData data) => {
+				.ForEach((ref GateMovementData movementData, in GateStaticData data) => {
 
 				marker.Begin();
-
-				var movementData = GetComponent<GateMovementData>(data.WireEntity);
 
 				if (!movementData.IsOpen) {
 					if (math.abs(movementData.Angle) < data.AngleMin + 0.01f && math.abs(movementData.AngleSpeed) < 0.01f) {
@@ -50,8 +48,6 @@ namespace VisualPinball.Unity
 						movementData.AngleSpeed *= data.Damping;
 					}
 				}
-
-				SetComponent(data.WireEntity, movementData);
 
 				marker.End();
 
