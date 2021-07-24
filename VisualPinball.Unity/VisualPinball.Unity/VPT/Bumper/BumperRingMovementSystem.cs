@@ -16,7 +16,7 @@
 
 using Unity.Entities;
 using Unity.Profiling;
-using Unity.Transforms;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -25,14 +25,27 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperRingMovementSystem");
 
+		private Player _player;
+
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			_player = Object.FindObjectOfType<Player>();
+		}
+
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("BumperRingMovementJob").ForEach((ref Translation trans, in BumperRingAnimationData data) => {
+			Entities.WithoutBurst().WithName("BumperRingMovementJob").ForEach((Entity entity, in BumperRingAnimationData data) => {
 
 				marker.Begin();
 
-				trans.Value.z = data.Offset;
+				var localPos = _player.BumperRingTransforms[entity].transform.localPosition;
+				_player.BumperRingTransforms[entity].transform.localPosition= new Vector3(
+					localPos.x,
+					localPos.y,
+					data.Offset
+				);
 
 				marker.End();
 
