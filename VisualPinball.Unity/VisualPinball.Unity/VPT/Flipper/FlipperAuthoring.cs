@@ -52,8 +52,6 @@ namespace VisualPinball.Unity
 
 		private bool IsLeft => Data.EndAngle < Data.StartAngle;
 
-		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

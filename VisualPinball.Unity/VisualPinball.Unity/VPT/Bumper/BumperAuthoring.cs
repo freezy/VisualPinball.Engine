@@ -63,32 +63,36 @@ namespace VisualPinball.Unity
 			var bumper = Item;
 
 			// add ring data
-			dstManager.AddComponentData(entity, new BumperRingAnimationData {
+			if (GetComponentInChildren<BumperRingAnimationAuthoring>()) {
+				dstManager.AddComponentData(entity, new BumperRingAnimationData {
 
-				// dynamic
-				IsHit = false,
-				Offset = 0,
-				AnimateDown = false,
-				DoAnimate = false,
+					// dynamic
+					IsHit = false,
+					Offset = 0,
+					AnimateDown = false,
+					DoAnimate = false,
 
-				// static
-				DropOffset = bumper.Data.RingDropOffset,
-				HeightScale = bumper.Data.HeightScale,
-				Speed = bumper.Data.RingSpeed,
-				ScaleZ = table.GetScaleZ()
-			});
+					// static
+					DropOffset = bumper.Data.RingDropOffset,
+					HeightScale = bumper.Data.HeightScale,
+					Speed = bumper.Data.RingSpeed,
+					ScaleZ = table.GetScaleZ()
+				});
+			}
 
 			// add ring data
-			dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-				BallPosition = default,
-				AnimationCounter = 0f,
-				DoAnimate = false,
-				DoUpdate = false,
-				EnableAnimation = true,
-				Rotation = new float2(0, 0),
-				HitEvent = bumper.Data.HitEvent,
-				Center = bumper.Data.Center.ToUnityFloat2()
-			});
+			if (GetComponentInChildren<BumperSkirtAnimationAuthoring>()) {
+				dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
+					BallPosition = default,
+					AnimationCounter = 0f,
+					DoAnimate = false,
+					DoUpdate = false,
+					EnableAnimation = true,
+					Rotation = new float2(0, 0),
+					HitEvent = bumper.Data.HitEvent,
+					Center = bumper.Data.Center.ToUnityFloat2()
+				});
+			}
 
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}

@@ -17,7 +17,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using Unity.Transforms;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -26,14 +26,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("GateMovementSystem");
 
+		private Player _player;
+
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			_player = Object.FindObjectOfType<Player>();
+		}
+
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("GateMovementJob").ForEach((ref Rotation rot, in GateMovementData movementData) => {
+			Entities.WithoutBurst().WithName("GateMovementJob").ForEach((Entity entity, in GateMovementData movementData) => {
 
 				marker.Begin();
 
-				rot.Value = quaternion.RotateX(-movementData.Angle);
+				_player.GateWireTransforms[entity].localRotation = quaternion.RotateX(-movementData.Angle);
 
 				marker.End();
 

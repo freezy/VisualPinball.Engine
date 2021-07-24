@@ -76,6 +76,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<Entity, Transform> FlipperTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> BumperSkirtTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> BumperRingTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> GateWireTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, GameObject> Balls = new Dictionary<Entity, GameObject>();
 
 
@@ -249,6 +250,11 @@ namespace VisualPinball.Unity
 			}
 			_rotatables[entity] = gateApi;
 			_switchPlayer.RegisterSwitch(gate, gateApi);
+
+			var wireAnimAuthoring = go.GetComponentInChildren<GateWireAnimationAuthoring>();
+			if (wireAnimAuthoring) {
+				GateWireTransforms[entity] = wireAnimAuthoring.gameObject.transform;
+			}
 		}
 
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, Entity parentEntity, GameObject go)
