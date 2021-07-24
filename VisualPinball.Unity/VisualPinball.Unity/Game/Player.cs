@@ -78,6 +78,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<Entity, Transform> BumperRingTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> GateWireTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> SpinnerPlateTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> TriggerTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, GameObject> Balls = new Dictionary<Entity, GameObject>();
 
 
@@ -231,11 +232,12 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(flipper, flipperApi);
 			_coilPlayer.RegisterCoil(flipper, flipperApi);
 			_wirePlayer.RegisterWire(flipper, flipperApi);
-			FlipperTransforms[entity] = go.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, flipper.Name);
 			}
+
+			FlipperTransforms[entity] = go.transform;
 		}
 
 		public void RegisterGate(Gate gate, Entity entity, Entity parentEntity, GameObject go)
@@ -399,6 +401,8 @@ namespace VisualPinball.Unity
 				_hittables[entity] = triggerApi;
 			}
 			_switchPlayer.RegisterSwitch(trigger, triggerApi);
+
+			TriggerTransforms[entity] = go.transform;
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity)
