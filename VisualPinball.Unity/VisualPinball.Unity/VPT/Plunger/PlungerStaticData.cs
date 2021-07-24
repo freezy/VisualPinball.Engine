@@ -20,11 +20,6 @@ namespace VisualPinball.Unity
 {
 	internal struct PlungerStaticData : IComponentData
 	{
-		// general
-		public Entity RodEntity;
-		public Entity SpringEntity;
-		public Entity FlatEntity;
-
 		// collision
 		public float MomentumXfer;
 		public float ScatterVelocity;

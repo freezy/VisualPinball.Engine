@@ -21,37 +21,11 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>, IConvertGameObjectToEntity
+	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>
 	{
-		internal abstract void SetChildEntity(ref PlungerStaticData staticData, Entity entity);
-
-		protected abstract IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame);
-
 		protected override bool IsVisible {
 			get => Data.IsVisible;
 			set => Data.IsVisible = value;
-		}
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var plunger = transform.parent.gameObject.GetComponent<PlungerAuthoring>().Item;
-			var plungerEntity = new Entity {Index = plunger.Index, Version = plunger.Version};
-
-			// update parent
-			var plungerStaticData = dstManager.GetComponentData<PlungerStaticData>(plungerEntity);
-			SetChildEntity(ref plungerStaticData, entity);
-			dstManager.SetComponentData(plungerEntity, plungerStaticData);
-
-			// add animation data
-			dstManager.AddComponentData(entity, new PlungerAnimationData {
-				CurrentFrame = 0
-			});
-
-			PostConvert(entity, dstManager, plunger.MeshGenerator);
-		}
-
-		protected virtual void PostConvert(Entity entity, EntityManager dstManager, PlungerMeshGenerator meshGenerator)
-		{
 		}
 	}
 }

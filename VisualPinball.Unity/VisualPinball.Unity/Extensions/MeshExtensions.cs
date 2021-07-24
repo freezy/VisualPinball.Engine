@@ -108,24 +108,7 @@ namespace VisualPinball.Unity
 			mesh.triangles = vpMesh.Indices;
 
 			// animation
-			if (vpMesh.AnimationFrames.Count == 1) {
-
-				// if there's only one frame, we assume a linear interpolation and just
-				// add it in form of UV sets. we then have a shader that interpolates
-				// the mesh.
-
-				var deltaVertices = new Vector3[vpMesh.Vertices.Length];
-				var deltaNormals = new Vector3[vpMesh.Vertices.Length];
-
-				var blendVertices = vpMesh.AnimationFrames[0];
-				for (var i = 0; i < vpMesh.Vertices.Length; i++) {
-					deltaVertices[i] = blendVertices[i].ToUnityVector3() - vertices[i];
-					deltaNormals[i] = blendVertices[i].ToUnityNormalVector3() - normals[i];
-				}
-				mesh.SetUVs(Mesh.AnimationUVChannelVertices, deltaVertices);
-				mesh.SetUVs(Mesh.AnimationUVChannelNormals, deltaNormals);
-
-			} else if (vpMesh.AnimationFrames.Count > 0) {
+			if (vpMesh.AnimationFrames.Count > 0) {
 
 				var deltaWeight = 1f / vpMesh.AnimationFrames.Count;
 				var deltaVertices = new Vector3[vpMesh.Vertices.Length];

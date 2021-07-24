@@ -32,15 +32,5 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => PlungerMeshGenerator.Spring;
-
-		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
-		{
-			staticData.SpringEntity = entity;
-		}
-
-		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
-		{
-			return meshGenerator.BuildSpringVertices(frame);
-		}
 	}
 }

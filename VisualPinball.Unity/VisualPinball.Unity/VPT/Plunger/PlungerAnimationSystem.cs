@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -27,11 +28,9 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			var animationDatas = GetComponentDataFromEntity<PlungerAnimationData>();
 
-			Entities
-				.WithNativeDisableParallelForRestriction(animationDatas)
-				.ForEach((in PlungerMovementData movementData, in PlungerStaticData staticData) =>
+			Entities.WithName("PlungerAnimationJob")
+				.ForEach((ref PlungerAnimationData animationData, in PlungerMovementData movementData, in PlungerStaticData staticData) =>
 			{
 				marker.Begin();
 
@@ -40,35 +39,7 @@ namespace VisualPinball.Unity
 
 				//Debug.Log($"[plunger] frame0 = {frame0} frame = {frame}");
 
-				if (animationDatas.HasComponent(staticData.RodEntity)) {
-					var rodAnimData = animationDatas[staticData.RodEntity];
-					if (rodAnimData.CurrentFrame != frame) {
-						rodAnimData.CurrentFrame = frame;
-						rodAnimData.NumFrames = staticData.NumFrames;
-						rodAnimData.IsDirty = true;
-						animationDatas[staticData.RodEntity] = rodAnimData;
-					}
-				}
-
-				if (animationDatas.HasComponent(staticData.SpringEntity)) {
-					var springAnimData = animationDatas[staticData.SpringEntity];
-					if (springAnimData.CurrentFrame != frame) {
-						springAnimData.CurrentFrame = frame;
-						springAnimData.NumFrames = staticData.NumFrames;
-						springAnimData.IsDirty = true;
-						animationDatas[staticData.SpringEntity] = springAnimData;
-					}
-				}
-
-				if (animationDatas.HasComponent(staticData.FlatEntity)) {
-					var flatAnimData = animationDatas[staticData.FlatEntity];
-					if (flatAnimData.CurrentFrame != frame) {
-						flatAnimData.CurrentFrame = frame;
-						flatAnimData.NumFrames = staticData.NumFrames;
-						flatAnimData.IsDirty = true;
-						animationDatas[staticData.FlatEntity] = flatAnimData;
-					}
-				}
+				animationData.Position = math.clamp((float)frame / staticData.NumFrames, 0, 1);
 
 				marker.End();
 
