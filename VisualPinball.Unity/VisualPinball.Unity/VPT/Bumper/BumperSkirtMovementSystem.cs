@@ -17,7 +17,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using Unity.Transforms;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -26,14 +26,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperSkirtMovementSystem");
 
+		private Player _player;
+
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			_player = Object.FindObjectOfType<Player>();
+		}
+
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("BumperSkirtMovementJob").ForEach((ref Rotation rot, in BumperSkirtAnimationData data) => {
+			Entities.WithoutBurst().WithName("BumperSkirtMovementJob").ForEach((Entity entity, in BumperSkirtAnimationData data) => {
 
 				marker.Begin();
 
-				rot.Value = quaternion.EulerXYZ(math.radians(data.Rotation.x), math.radians(data.Rotation.y), 0f);
+				_player.BumperSkirtTransforms[entity].localRotation = quaternion.EulerXYZ(math.radians(data.Rotation.x), math.radians(data.Rotation.y), 0f);
 
 				marker.End();
 

@@ -24,33 +24,8 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
+	public class BumperSkirtAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var bumper = Item;
-			var bumperEntity = MainEntity;
-
-			// update parent
-			// var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
-			// bumperStaticData.SkirtEntity = entity;
-			// dstManager.SetComponentData(bumperEntity, bumperStaticData);
-
-			// add ring data
-			dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-				BallPosition = default,
-				AnimationCounter = 0f,
-				DoAnimate = false,
-				DoUpdate = false,
-				EnableAnimation = true,
-				Rotation = new float2(0, 0),
-				HitEvent = bumper.Data.HitEvent,
-				Center = bumper.Data.Center.ToUnityFloat2()
-			});
-
-			LinkToParentEntity(entity, dstManager);
-		}
 	}
 }

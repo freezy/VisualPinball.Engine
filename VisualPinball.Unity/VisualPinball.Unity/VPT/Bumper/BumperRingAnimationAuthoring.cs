@@ -23,38 +23,8 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>, IConvertGameObjectToEntity
+	public class BumperRingAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var table = Table;
-			var bumper = Item;
-			var bumperEntity = MainEntity;
-
-			// update parent
-			// var bumperStaticData = dstManager.GetComponentData<BumperStaticData>(bumperEntity);
-			// bumperStaticData.RingEntity = entity;
-			// dstManager.SetComponentData(bumperEntity, bumperStaticData);
-
-			// add ring data
-			dstManager.AddComponentData(entity, new BumperRingAnimationData {
-
-				// dynamic
-				IsHit = false,
-				Offset = 0,
-				AnimateDown = false,
-				DoAnimate = false,
-
-				// static
-				DropOffset = bumper.Data.RingDropOffset,
-				HeightScale = bumper.Data.HeightScale,
-				Speed = bumper.Data.RingSpeed,
-				ScaleZ = table.GetScaleZ()
-			});
-
-			LinkToParentEntity(entity, dstManager);
-		}
 	}
 }

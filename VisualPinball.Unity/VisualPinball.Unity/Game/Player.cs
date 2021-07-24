@@ -74,6 +74,8 @@ namespace VisualPinball.Unity
 
 		internal readonly Dictionary<Entity, Flipper> Flippers = new Dictionary<Entity, Flipper>();
 		internal readonly Dictionary<Entity, Transform> FlipperTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> BumperSkirtTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> BumperRingTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, GameObject> Balls = new Dictionary<Entity, GameObject>();
 
 
@@ -199,6 +201,15 @@ namespace VisualPinball.Unity
 			_switchPlayer.RegisterSwitch(bumper, bumperApi);
 			_coilPlayer.RegisterCoil(bumper, bumperApi);
 			_wirePlayer.RegisterWire(bumper, bumperApi);
+
+			var ringAnimationAuth = go.GetComponentInChildren<BumperRingAnimationAuthoring>();
+			if (ringAnimationAuth) {
+				BumperRingTransforms[entity] = ringAnimationAuth.gameObject.transform;
+			}
+			var skirtAnimationAuth = go.GetComponentInChildren<BumperSkirtAnimationAuthoring>();
+			if (skirtAnimationAuth) {
+				BumperSkirtTransforms[entity] = skirtAnimationAuth.gameObject.transform;
+			}
 		}
 
 		public void RegisterFlipper(Flipper flipper, Entity entity, Entity parentEntity, GameObject go)
