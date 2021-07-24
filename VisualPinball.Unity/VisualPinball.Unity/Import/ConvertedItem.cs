@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.UI;
 using VisualPinball.Engine.VPT;
 using Object = UnityEngine.Object;
 
