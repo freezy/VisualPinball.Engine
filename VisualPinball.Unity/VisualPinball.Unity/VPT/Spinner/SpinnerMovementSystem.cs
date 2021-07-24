@@ -18,6 +18,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -26,14 +27,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerMovementSystem");
 
+		private Player _player;
+
+		protected override void OnStartRunning()
+		{
+			base.OnStartRunning();
+			_player = Object.FindObjectOfType<Player>();
+		}
+
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("SpinnerMovementJob").ForEach((ref Rotation rot, in SpinnerMovementData movementData) => {
+			Entities.WithoutBurst().WithName("SpinnerMovementJob").ForEach((Entity entity, in SpinnerMovementData movementData) => {
 
 				marker.Begin();
 
-				rot.Value = quaternion.RotateX(-movementData.Angle);
+				_player.SpinnerPlateTransforms[entity].localRotation = quaternion.RotateX(-movementData.Angle);
 
 				marker.End();
 

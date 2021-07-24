@@ -77,6 +77,7 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<Entity, Transform> BumperSkirtTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> BumperRingTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> GateWireTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> SpinnerPlateTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, GameObject> Balls = new Dictionary<Entity, GameObject>();
 
 
@@ -379,6 +380,11 @@ namespace VisualPinball.Unity
 			_spinnables[entity] = spinnerApi;
 			_rotatables[entity] = spinnerApi;
 			_switchPlayer.RegisterSwitch(spinner, spinnerApi);
+
+			var plateAnimAuthoring = go.GetComponentInChildren<SpinnerPlateAnimationAuthoring>();
+			if (plateAnimAuthoring) {
+				SpinnerPlateTransforms[entity] = plateAnimAuthoring.gameObject.transform;
+			}
 		}
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
