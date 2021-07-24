@@ -22,25 +22,8 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationAuthoring : ItemAnimationAuthoring<Spinner, SpinnerData, SpinnerAuthoring>, IConvertGameObjectToEntity
+	public class SpinnerPlateAnimationAuthoring : ItemAnimationAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var spinnerEntity = MainEntity;
-
-			// update parent
-			// var spinnerStaticData = dstManager.GetComponentData<SpinnerStaticData>(spinnerEntity);
-			// spinnerStaticData.PlateEntity = entity;
-			// dstManager.SetComponentData(spinnerEntity, spinnerStaticData);
-
-			dstManager.AddComponentData(entity, new SpinnerMovementData {
-				Angle = math.radians(math.clamp(0.0f, Data.AngleMin, Data.AngleMax)),
-				AngleSpeed = 0f
-			});
-
-			LinkToParentEntity(entity, dstManager);
-		}
 	}
 }
