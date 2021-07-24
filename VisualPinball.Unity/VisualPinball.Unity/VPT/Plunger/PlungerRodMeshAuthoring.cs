@@ -32,15 +32,5 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => PlungerMeshGenerator.Rod;
-
-		internal override void SetChildEntity(ref PlungerStaticData staticData, Entity entity)
-		{
-			staticData.RodEntity = entity;
-		}
-
-		protected override IEnumerable<Vertex3DNoTex2> GetVertices(PlungerMeshGenerator meshGenerator, int frame)
-		{
-			return meshGenerator.BuildRodVertices(frame);
-		}
 	}
 }

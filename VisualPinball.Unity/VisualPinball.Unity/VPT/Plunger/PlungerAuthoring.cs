@@ -42,15 +42,6 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
 
-		private static readonly int LerpPosition = Shader.PropertyToID("_LerpPosition");
-		private static readonly int UVChannelVertices = Shader.PropertyToID("_UVChannelVertices");
-		private static readonly int UVChannelNormals = Shader.PropertyToID("_UVChannelNormals");
-
-		private void Start()
-		{
-			UpdateParkPosition(1 - Data.ParkPosition);
-		}
-
 		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
 			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
 			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
@@ -60,8 +51,9 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction);
+			var go = gameObject;
+			var table = go.GetComponentInParent<TableAuthoring>().Item;
+			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction, go);
 
 			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
 			var x = Data.Center.X - Data.Width;
@@ -124,6 +116,10 @@ namespace VisualPinball.Unity
 				AddRetractMotion = false,
 				RetractWaitLoop = 0,
 				MechStrength = Data.MechStrength
+			});
+
+			dstManager.AddComponentData(entity, new PlungerAnimationData {
+				Position = _data.ParkPosition
 			});
 		}
 
@@ -196,28 +192,12 @@ namespace VisualPinball.Unity
 					}
 					break;
 			}
-
-			UpdateParkPosition(1 - Data.ParkPosition);
 		}
 
 		public void UpdateParkPosition(float pos)
 		{
-			SetMaterialProperty<PlungerFlatMeshAuthoring>(UVChannelVertices, Mesh.AnimationUVChannelVertices);
-			SetMaterialProperty<PlungerFlatMeshAuthoring>(UVChannelNormals, Mesh.AnimationUVChannelNormals);
-			switch (Data.Type) {
-				case PlungerType.PlungerTypeFlat: {
-					SetMaterialProperty<PlungerFlatMeshAuthoring>(LerpPosition, pos);
-					break;
-				}
-				case PlungerType.PlungerTypeCustom: {
-					SetMaterialProperty<PlungerRodMeshAuthoring>(LerpPosition, pos);
-					SetMaterialProperty<PlungerSpringMeshAuthoring>(LerpPosition, pos);
-					break;
-				}
-				case PlungerType.PlungerTypeModern: {
-					SetMaterialProperty<PlungerRodMeshAuthoring>(LerpPosition, pos);
-					break;
-				}
+			foreach (var skinnedMeshRenderer in GetComponentsInChildren<SkinnedMeshRenderer>()) {
+				skinnedMeshRenderer.SetBlendShapeWeight(0, pos);
 			}
 		}
 

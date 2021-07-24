@@ -33,8 +33,6 @@ namespace VisualPinball.Engine.VPT
 		public bool HasNormalMap => NormalMap != null;
 		public BlendMode MapBlendMode => GetBlendMode();
 
-		public readonly bool VertexLerpWithUvEnabled;
-
 		public Color Color => _material?.BaseColor.WithAlpha(255) ?? new Color(0xffffffff, ColorFormat.Bgr);
 		public bool IsMetal => _material?.IsMetal ?? false;
 		public bool IsOpacityActive => _material?.IsOpacityActive ?? false;
@@ -55,19 +53,17 @@ namespace VisualPinball.Engine.VPT
 
 		private readonly Material _material;
 
-		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null, bool vertexLerp = false, string id = null)
+		public PbrMaterial(Material material = null, Texture map = null, Texture normalMap = null, Texture envMap = null, string id = null)
 		{
 			_material = material;
 			Map = map;
 			NormalMap = normalMap;
 			EnvMap = envMap;
-			VertexLerpWithUvEnabled = vertexLerp;
 			Id = id ?? string.Join("-", new[] {
 					_material?.Name.ToNormalizedName() ?? NameNoMaterial,
 					Map?.Name.ToNormalizedName() ?? NameNoMap,
 					NormalMap?.Name.ToNormalizedName() ?? NameNoNormalMap,
 					EnvMap?.Name.ToNormalizedName() ?? NameNoEnvMap,
-					vertexLerp ? "skinned" : NameNoLerp
 				}
 				.Reverse()
 				.SkipWhile(s => s.StartsWith("__no_"))
@@ -127,7 +123,6 @@ namespace VisualPinball.Engine.VPT
 			sb.AppendLine($"Map             {Map?.ToString() ?? "none"}".Trim());
 			sb.AppendLine($"MapBlendMode    {MapBlendMode}");
 			sb.AppendLine($"NormalMap       {NormalMap?.ToString() ?? "none"}".Trim());
-			sb.AppendLine($"Skinned?        {VertexLerpWithUvEnabled}");
 
 			return sb.ToString();
 		}
