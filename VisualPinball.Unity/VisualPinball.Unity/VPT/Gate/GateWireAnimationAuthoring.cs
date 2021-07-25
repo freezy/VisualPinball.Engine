@@ -16,34 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateWireAnimationAuthoring : ItemAnimationAuthoring<Gate, GateData, GateAuthoring>, IConvertGameObjectToEntity
+	public class GateWireAnimationAuthoring : ItemAnimationAuthoring<Gate, GateData, GateAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			var gateEntity = MainEntity;
-
-			// update parent
-			// var gateStaticData = dstManager.GetComponentData<GateStaticData>(gateEntity);
-			// gateStaticData.WireEntity = entity;
-			// dstManager.SetComponentData(gateEntity, gateStaticData);
-
-			// add movement data
-			dstManager.AddComponentData(entity, new GateMovementData {
-				Angle = Data.AngleMin,
-				AngleSpeed = 0,
-				ForcedMove = false,
-				IsOpen = false,
-				HitDirection = false
-			});
-
-			LinkToParentEntity(entity, dstManager);
-		}
 	}
 }
