@@ -4,9 +4,11 @@
 
 ## Unreleased
 
-Built with [Unity 2020.2](https://github.com/freezy/VisualPinball.Engine/pull/255).
+Built with Unity 2020.3.
 
 ### Added
+- Remove Hybrid Renderer ([#316](https://github.com/freezy/VisualPinball.Engine/pull/316)).
+- Create and use Unity assets when importing ([#320](https://github.com/freezy/VisualPinball.Engine/pull/302)).
 - Native support for nFozzy flipper physics ([#305](https://github.com/freezy/VisualPinball.Engine/pull/305)).
 - Automated camera clipping ([#304](https://github.com/freezy/VisualPinball.Engine/pull/304/files)).
 - DMD and segment display support ([Documentation](https://docs.visualpinball.org/creators-guide/manual/displays.html)).
