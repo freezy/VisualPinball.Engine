@@ -26,6 +26,9 @@ namespace VisualPinball.Unity.Test
 {
 	public class TroughTests
 	{
+
+		#if !WRITE_VP106 && !WRITE_VP107
+
 		[Test]
 		public void ShouldWriteImportedTroughData()
 		{
@@ -40,5 +43,7 @@ namespace VisualPinball.Unity.Test
 			File.Delete(tmpFileName);
 			Object.DestroyImmediate(go);
 		}
+
+		#endif
 	}
 }
