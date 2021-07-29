@@ -205,6 +205,8 @@ namespace VisualPinball.Unity
 
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
+			TableContainer.Refresh();
+
 			Mappings.RemoveAllSwitches();
 			TableContainer.Mappings.PopulateSwitches(gle.AvailableSwitches, TableContainer.Switchables, TableContainer.SwitchableDevices);
 
