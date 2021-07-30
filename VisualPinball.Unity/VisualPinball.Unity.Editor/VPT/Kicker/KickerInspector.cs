@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
@@ -27,6 +28,13 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutMesh;
 		private bool _foldoutPhysics;
 		private bool _foldoutMisc;
+		private SerializedProperty _speedProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_speedProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Speed));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -56,7 +64,19 @@ namespace VisualPinball.Unity.Editor
 				ItemDataField("Hit Height", ref Data.HitHeight, false);
 
 				ItemDataField("Default Angle", ref Data.Angle, false);
-				ItemDataField("Default Speed", ref Data.Speed, false);
+
+				serializedObject.Update();
+				EditorGUILayout.PropertyField(_speedProperty, new GUIContent("Default Speed"));
+				serializedObject.ApplyModifiedProperties();
+
+				/*
+				EditorGUI.BeginChangeCheck();
+				var val = EditorGUILayout.FloatField("Default Speed", (target as KickerAuthoring)!.Speed);
+				if (EditorGUI.EndChangeCheck()) {
+					serializedObject.FindProperty("_speed").floatValue = val;
+					serializedObject.ApplyModifiedProperties();
+				}*/
+				//ItemDataField("Default Speed", ref Data.Speed, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
