@@ -17,6 +17,7 @@
 // ReSharper disable StringLiteralTypo
 
 using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -33,6 +34,20 @@ namespace VisualPinball.Unity.Patcher
 		public void FixZPosition(Primitive primitive)
 		{
 			primitive.Data.Position.Z = 0;
+		}
+
+		[NameMatch("Drain")]
+		public void FixDrain(Kicker kicker)
+		{
+			kicker.Data.Angle = 60;
+			kicker.Data.Speed = 15;
+		}
+
+		[NameMatch("sw17")]
+		public void FixSw17(Kicker kicker)
+		{
+			kicker.Data.Angle = 60;
+			kicker.Data.Speed = 5;
 		}
 	}
 }
