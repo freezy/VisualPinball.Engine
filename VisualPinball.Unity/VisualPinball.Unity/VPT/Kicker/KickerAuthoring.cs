@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
@@ -35,6 +36,34 @@ namespace VisualPinball.Unity
 	public class KickerAuthoring : ItemMainRenderableAuthoring<Kicker, KickerData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public Vector3 Center;
+
+		public float Radius = 25f;
+
+		public float Scatter = 0.0f;
+
+		public float HitAccuracy = 0.7f;
+
+		public float HitHeight = 40.0f;
+
+		public float Orientation = 0.0f;
+
+		public string Surface = string.Empty;
+
+		public bool FallThrough = false;
+
+		public bool LegacyMode = true;
+
+		public float Angle = 90f;
+
+		[Tooltip("Speed the kicker hits the ball when ejecting.")]
+		[Range(0f, 100f)]
+		public float Speed = 3f;
+
+		#endregion
+
 		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>);

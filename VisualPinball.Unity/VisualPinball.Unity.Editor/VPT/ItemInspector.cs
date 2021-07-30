@@ -438,7 +438,8 @@ namespace VisualPinball.Unity.Editor
 						break;
 
 					case IItemMainRenderableAuthoring mainItem:
-						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
+						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform }, undoLabel);
+						PrefabUtility.RecordPrefabInstancePropertyModifications(UndoTarget);
 						mainItem.RebuildMeshes();
 						break;
 				}
