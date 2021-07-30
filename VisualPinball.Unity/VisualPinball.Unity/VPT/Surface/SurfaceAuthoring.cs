@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -35,6 +36,54 @@ namespace VisualPinball.Unity
 	public class SurfaceAuthoring : ItemMainRenderableAuthoring<Surface, SurfaceData>,
 		IConvertGameObjectToEntity, IDragPointsEditable
 	{
+		#region Data
+
+		public bool HitEvent;
+
+		public bool IsDroppable;
+
+		public bool IsFlipbook;
+
+		public bool IsBottomSolid;
+
+		public bool IsCollidable = true;
+
+		public float Threshold = 2.0f;
+
+		public string PhysicsMaterial = string.Empty;
+
+		public string SlingShotMaterial = string.Empty;
+
+		public float HeightBottom;
+
+		public float HeightTop = 50f;
+
+		public bool Inner = true;
+
+		public float SlingshotForce = 80f;
+
+		public float SlingshotThreshold;
+
+		public bool SlingshotAnimation = true;
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public float Scatter;
+
+		public bool IsTopBottomVisible = true;
+
+		public bool OverwritePhysics = true;
+
+		public bool IsSideVisible = true;
+
+		public DragPointData[] DragPoints;
+
+		#endregion
+
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>);

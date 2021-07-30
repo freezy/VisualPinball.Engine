@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -38,8 +39,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public Vector3 Center;
-
 		public float Radius = 25f;
 
 		public float Scatter = 0.0f;
@@ -48,9 +47,7 @@ namespace VisualPinball.Unity
 
 		public float HitHeight = 40.0f;
 
-		public float Orientation = 0.0f;
-
-		public string Surface = string.Empty;
+		public SurfaceAuthoring Surface;
 
 		public bool FallThrough = false;
 

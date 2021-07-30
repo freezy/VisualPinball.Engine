@@ -16,6 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
@@ -29,10 +30,12 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutPhysics;
 		private bool _foldoutMisc;
 		private SerializedProperty _speedProperty;
+		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Surface));
 			_speedProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Speed));
 		}
 
@@ -42,8 +45,11 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
+			PropertyField(_surfaceProperty, rebuildMesh: true);
+			//SurfaceField("Surface", ref Data.Surface);
 
 			OnPreInspectorGUI();
 
@@ -65,17 +71,9 @@ namespace VisualPinball.Unity.Editor
 
 				ItemDataField("Default Angle", ref Data.Angle, false);
 
-				serializedObject.Update();
 				EditorGUILayout.PropertyField(_speedProperty, new GUIContent("Default Speed"));
-				serializedObject.ApplyModifiedProperties();
 
-				/*
-				EditorGUI.BeginChangeCheck();
-				var val = EditorGUILayout.FloatField("Default Speed", (target as KickerAuthoring)!.Speed);
-				if (EditorGUI.EndChangeCheck()) {
-					serializedObject.FindProperty("_speed").floatValue = val;
-					serializedObject.ApplyModifiedProperties();
-				}*/
+
 				//ItemDataField("Default Speed", ref Data.Speed, false);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -86,6 +84,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
+			serializedObject.ApplyModifiedProperties();
 			base.OnInspectorGUI();
 		}
 	}

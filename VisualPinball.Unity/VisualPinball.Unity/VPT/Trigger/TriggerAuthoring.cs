@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -36,6 +37,22 @@ namespace VisualPinball.Unity
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
 		ISwitchAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public DragPointData[] DragPoints;
+
+		public float Radius = 25f;
+
+		public bool IsEnabled = true;
+
+		public float HitHeight = 50f;
+
+		public float AnimSpeed = 1f;
+
+		public float WireThickness;
+
+		#endregion
+
 		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);

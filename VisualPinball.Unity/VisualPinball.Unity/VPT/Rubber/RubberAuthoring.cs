@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -35,6 +36,38 @@ namespace VisualPinball.Unity
 	public class RubberAuthoring : ItemMainRenderableAuthoring<Rubber, RubberData>,
 		IDragPointsEditable, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float Height = 25f;
+
+		public float HitHeight = 25f;
+
+		public int Thickness = 8;
+
+		public bool HitEvent;
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public float Scatter;
+
+		public bool IsCollidable = true;
+
+		public float RotX;
+
+		public float RotY;
+
+		public float RotZ;
+
+		public bool OverwritePhysics;
+
+		public DragPointData[] DragPoints;
+
+		#endregion
+
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);

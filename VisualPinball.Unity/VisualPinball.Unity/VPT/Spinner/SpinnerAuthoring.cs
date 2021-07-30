@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -37,6 +38,24 @@ namespace VisualPinball.Unity
 	public class SpinnerAuthoring : ItemMainRenderableAuthoring<Spinner, SpinnerData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float Height = 60f;
+
+		public float Length = 80f;
+
+		public float Damping = 0.9879f;
+
+		public float AngleMax;
+
+		public float AngleMin;
+
+		public float Elasticity = 0.3f;
+
+		public SurfaceAuthoring Surface;
+
+		#endregion
+
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);

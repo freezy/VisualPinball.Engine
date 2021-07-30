@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -32,6 +33,32 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public bool HitEvent = true;
+
+		public float Threshold = 2f;
+
+		public float Elasticity = 0.3f;
+
+		public float ElasticityFalloff = 0.5f;
+
+		public float Friction = 0.3f;
+
+		public float Scatter;
+
+		public float EdgeFactorUi = 0.25f;
+
+		public float CollisionReductionFactor = 0;
+
+		public bool IsToy;
+
+		public bool OverwritePhysics = true;
+
+		public bool StaticRendering = true;
+
+		#endregion
+
 		public override bool IsCollidable => !Data.IsToy;
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
