@@ -36,6 +36,27 @@ namespace VisualPinball.Unity
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float Radius = 45f;
+
+		public float Threshold = 1.0f;
+
+		public float Force = 15f;
+
+		public float Scatter;
+
+		public float RingSpeed = 0.5f;
+
+		public float RingDropOffset = 0.0f;
+
+		public SurfaceAuthoring Surface;
+
+		public bool HitEvent = true;
+
+		public bool IsCollidable = true;
+
+		#endregion
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);

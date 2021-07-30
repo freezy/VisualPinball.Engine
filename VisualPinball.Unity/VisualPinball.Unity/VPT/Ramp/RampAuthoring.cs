@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -35,6 +36,60 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, IDragPointsEditable, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float DepthBias = 0f;
+
+		public DragPointData[] DragPoints;
+
+		public float Elasticity;
+
+		public float Friction;
+
+		public bool HitEvent = false;
+
+		public float HeightBottom = 0f;
+
+		public float HeightTop = 50f;
+
+		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
+
+		public bool ImageWalls = true;
+
+		public bool IsCollidable = true;
+
+		public float LeftWallHeight = 62f;
+
+		public float LeftWallHeightVisible = 30f;
+
+		public bool OverwritePhysics = true;
+
+		public int Type = RampType.RampTypeFlat;
+
+		public float RightWallHeight = 62f;
+
+		public float RightWallHeightVisible = 30f;
+
+		public float Scatter;
+
+		public string PhysicsMaterial = string.Empty;
+
+		public float Threshold;
+
+		public float WidthBottom = 75f;
+
+		public float WidthTop = 60f;
+
+		public float WireDiameter = 8f;
+
+		public float WireDistanceX = 38f;
+
+		public float WireDistanceY = 88f;
+
+		public bool Points;
+
+		#endregion
+
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);

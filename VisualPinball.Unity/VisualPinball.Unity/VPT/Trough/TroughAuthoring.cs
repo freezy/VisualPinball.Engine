@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -36,6 +37,28 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>, ISwitchDeviceAuthoring, ICoilDeviceAuthoring
 	{
+		#region Data
+
+		public int Type = TroughType.ModernOpto;
+
+		public string PlayfieldEntrySwitch = string.Empty;
+
+		public string PlayfieldExitKicker = string.Empty;
+
+		public int BallCount = 6;
+
+		public int SwitchCount = 6;
+
+		public bool JamSwitch;
+
+		public int RollTime = 300;
+
+		public int TransitionTime = 50;
+
+		public int KickTime = 100;
+
+		#endregion
+
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Item.AvailableSwitches;
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 		public SwitchDefault SwitchDefault => Item.Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;

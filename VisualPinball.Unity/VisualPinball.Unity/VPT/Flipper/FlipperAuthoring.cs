@@ -39,6 +39,59 @@ namespace VisualPinball.Unity
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float BaseRadius = 21.5f;
+
+		public float EndRadius = 13.0f;
+
+		public float FlipperRadiusMin;
+
+		public float FlipperRadiusMax = 130.0f;
+
+		public float FlipperRadius = 130.0f;
+
+		public float StartAngle = 121.0f;
+
+		public float EndAngle = 70.0f;
+
+		public float Height = 50.0f;
+
+		public SurfaceAuthoring Surface;
+
+		public float RubberThickness = 7.0f;
+
+		public float RubberHeight = 19.0f;
+
+		public float RubberWidth = 24.0f;
+
+		public float Mass = 1f;
+
+		public float Strength = 2200f;
+
+		public float Elasticity = 0.8f;
+
+		public float ElasticityFalloff = 0.43f;
+
+		public float Friction = 0.6f;
+
+		public float Return = 0.058f;
+
+		public float RampUp = 3f;
+
+		public float TorqueDamping = 0.75f;
+
+		public float TorqueDampingAngle = 6f;
+
+		public float Scatter;
+
+		public int OverridePhysics;
+
+		public bool IsEnabled = true;
+
+		public bool IsDualWound;
+
+		#endregion
 		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);

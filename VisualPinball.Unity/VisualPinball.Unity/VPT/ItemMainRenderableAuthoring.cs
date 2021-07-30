@@ -54,6 +54,7 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshes()
 		{
+			Debug.Log("Rebuilding meshes...");
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.RebuildMeshes();
 			}

@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#region ReSharper
+// ReSharper disable InconsistentNaming
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +37,56 @@ namespace VisualPinball.Unity
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
 		ICoilDeviceAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public int Type = PlungerType.PlungerTypeModern;
+
+		public float Width = 25f;
+
+		public float Height = 20f;
+
+		public float ZAdjust;
+
+		public float Stroke = 80f;
+
+		public float SpeedPull = 0.5f;
+
+		public float SpeedFire = 80f;
+
+		public float MechStrength = 85f;
+
+		public float ParkPosition = 0.5f / 3.0f;
+
+		public float ScatterVelocity;
+
+		public float MomentumXfer = 1f;
+
+		public bool IsMechPlunger;
+
+		public bool AutoPlunger;
+
+		public SurfaceAuthoring Surface;
+
+		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
+
+		public float RodDiam = 0.6f;
+
+		public float RingGap = 2.0f;
+
+		public float RingDiam = 0.94f;
+
+		public float RingWidth = 3.0f;
+
+		public float SpringDiam = 0.77f;
+
+		public float SpringGauge = 1.38f;
+
+		public float SpringLoops = 8.0f;
+
+		public float SpringEndLoops = 2.5f;
+
+		#endregion
+
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;

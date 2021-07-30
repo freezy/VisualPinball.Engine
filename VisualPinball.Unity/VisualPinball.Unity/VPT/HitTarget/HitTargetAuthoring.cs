@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -35,6 +36,37 @@ namespace VisualPinball.Unity
 	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float DepthBias;
+
+		public float DropSpeed =  0.5f;
+
+		public int RaiseDelay = 100;
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public bool IsCollidable = true;
+
+		public bool IsDropped;
+
+		public bool IsLegacy;
+
+		public bool OverwritePhysics;
+
+		public float Scatter;
+
+		public string PhysicsMaterial = string.Empty;
+
+		public float Threshold = 2.0f;
+
+		public bool UseHitEvent = true;
+
+		#endregion
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);

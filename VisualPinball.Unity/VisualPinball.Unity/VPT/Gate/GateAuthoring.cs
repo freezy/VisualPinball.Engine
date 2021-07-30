@@ -37,6 +37,31 @@ namespace VisualPinball.Unity
 	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
+		#region Data
+
+		public float AngleMax = math.PI / 2.0f;
+
+		public float AngleMin = 0f;
+
+		public float Damping = 0.985f;
+
+		public float Elasticity = 0.3f;
+
+		public float Friction = 0.02f;
+
+		public float GravityFactor = 0.25f;
+
+		public float Height = 50f;
+
+		public bool IsCollidable = true;
+
+		public float Length = 100f;
+
+		public SurfaceAuthoring Surface;
+
+		public bool TwoWay;
+
+		#endregion
 		protected override Gate InstantiateItem(GateData data) => new Gate(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Gate, GateData, GateAuthoring>);
@@ -61,7 +86,7 @@ namespace VisualPinball.Unity
 				GravityFactor = Data.GravityFactor,
 				TwoWay = Data.TwoWay
 			});
-			
+
 			// add movement data
 			if (GetComponentInChildren<GateWireAnimationAuthoring>()) {
 				dstManager.AddComponentData(entity, new GateMovementData {

@@ -100,6 +100,31 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
+		protected void PropertyField(SerializedProperty serializedProperty, string label = null, bool rebuildMesh = false)
+		{
+			if (rebuildMesh) {
+				EditorGUI.BeginChangeCheck();
+			}
+
+			if (string.IsNullOrEmpty(label)) {
+				EditorGUILayout.PropertyField(serializedProperty);
+			} else {
+				EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label));
+			}
+
+			if (rebuildMesh && EditorGUI.EndChangeCheck()) {
+				switch (target) {
+					case IItemMeshAuthoring meshItem:
+						meshItem.IMainAuthoring.RebuildMeshes();
+						break;
+					case IItemMainRenderableAuthoring mainItem:
+						mainItem.RebuildMeshes();
+						break;
+				}
+			}
+		}
+
+
 		private void PopulateDropDownOptions()
 		{
 			if (_ta == null) return;
@@ -439,7 +464,6 @@ namespace VisualPinball.Unity.Editor
 
 					case IItemMainRenderableAuthoring mainItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform }, undoLabel);
-						PrefabUtility.RecordPrefabInstancePropertyModifications(UndoTarget);
 						mainItem.RebuildMeshes();
 						break;
 				}
