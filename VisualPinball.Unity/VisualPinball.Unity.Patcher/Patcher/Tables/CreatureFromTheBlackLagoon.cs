@@ -20,7 +20,6 @@ using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -59,16 +58,6 @@ namespace VisualPinball.Unity.Patcher
 		{
 			kicker.Data.Angle = 60;
 			kicker.Data.Speed = 12;
-		}
-
-		[NameMatch("Trough")]
-		public void FixTrough(Trough trough)
-		{
-			trough.Data.Type = TroughType.TwoCoilsNSwitches;
-			trough.Data.BallCount = 3;
-			trough.Data.SwitchCount = 3;
-			trough.Data.PlayfieldEntrySwitch = "sw55";
-			trough.Data.PlayfieldExitKicker = "sw56";
 		}
 	}
 }
