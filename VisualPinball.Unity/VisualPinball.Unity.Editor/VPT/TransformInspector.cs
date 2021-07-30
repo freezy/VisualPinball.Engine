@@ -63,9 +63,16 @@ namespace VisualPinball.Unity.Editor
 			// loop through selected objects
 			foreach (var t in targets) {
 
+				var itemTransform = t as Transform;
+				if (!itemTransform) {
+					continue;
+				}
+
+
+				var item = itemTransform.GetComponent<IItemMainRenderableAuthoring>();
+				useDefault = useDefault && itemTransform.GetComponent<IItemAuthoring>() == null;
+
 				// must be main but not the table itself
-				var item = (t as Transform)?.GetComponent<IItemMainRenderableAuthoring>();
-				useDefault = useDefault && (t as Transform)?.GetComponent<IItemAuthoring>() == null;
 				if (item != null && !(item is TableAuthoring)) {
 
 					if (_primaryItem == null) {
