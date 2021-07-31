@@ -67,6 +67,7 @@ namespace VisualPinball.Unity
 		public bool UseHitEvent = true;
 
 		#endregion
+
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
@@ -126,7 +127,6 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => Data.Position.ToUnityVector3();
 		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
