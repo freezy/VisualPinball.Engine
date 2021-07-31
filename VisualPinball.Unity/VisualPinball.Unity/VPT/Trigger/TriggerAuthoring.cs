@@ -104,7 +104,6 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 
-		public override Vector3 GetEditorPosition() => Data.Center.ToUnityVector3(0f);
 		public override void SetEditorPosition(Vector3 pos)
 		{
 			if (Data == null || Data.DragPoints.Length == 0) {
