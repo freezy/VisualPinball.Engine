@@ -27,22 +27,22 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Ramp ramp, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp, componentsAdded);
+			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp);
 			switch (ramp.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
 					if (ramp.IsHabitrail) {
-						convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires, componentsAdded);
+						convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
 					} else {
-						convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor, componentsAdded);
-						convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall, componentsAdded);
+						convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
+						convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
 					}
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<RampColliderAuthoring>(materialProvider);
 					break;
 				}
 
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

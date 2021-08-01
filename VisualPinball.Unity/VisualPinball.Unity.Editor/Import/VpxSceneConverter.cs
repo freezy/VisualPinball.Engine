@@ -32,7 +32,6 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
@@ -287,18 +286,14 @@ namespace VisualPinball.Unity.Editor
 
 		public IConvertedItem CreateGameObjects(IItem item)
 		{
-			var prefabPath = Path.Combine(_assetsPrefabs, $"{item.Name.ToFilename()}.prefab");
 			var parentGo = GetGroupParent(item);
-			var loadFromPrefab = _options.SkipExistingPrefabs && File.Exists(prefabPath);
-			var itemGo = loadFromPrefab
-				? PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath)) as GameObject
-				: new GameObject(item.Name);
+			var itemGo = new GameObject(item.Name);
 
 			itemGo!.transform.SetParent(parentGo.transform, false);
 
-			var convertedItem = SetupGameObjects(item, itemGo, loadFromPrefab);
+			var convertedItem = SetupGameObjects(item, itemGo);
 			foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
-				meshAuthoring.CreateMesh(itemGo.name, this, this, loadFromPrefab ? this : null, loadFromPrefab);
+				meshAuthoring.CreateMesh(itemGo.name, this, this, this);
 			}
 			item.FreeBinaryData();
 
@@ -340,24 +335,24 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private IConvertedItem SetupGameObjects(IItem item, GameObject obj, bool loadedFromPrefab)
+		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
 		{
 			switch (item) {
-				case Bumper bumper:       return bumper.SetupGameObject(obj, this, loadedFromPrefab);
-				case Flipper flipper:     return flipper.SetupGameObject(obj, this, loadedFromPrefab);
-				case Gate gate:           return gate.SetupGameObject(obj, this, loadedFromPrefab);
-				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this, loadedFromPrefab);
-				case Kicker kicker:       return kicker.SetupGameObject(obj, this, loadedFromPrefab);
-				case Light lt:            return lt.SetupGameObject(obj, loadedFromPrefab);
-				case Plunger plunger:     return plunger.SetupGameObject(obj, this, loadedFromPrefab);
-				case Primitive primitive: return primitive.SetupGameObject(obj, this, loadedFromPrefab);
-				case Ramp ramp:           return ramp.SetupGameObject(obj, this, loadedFromPrefab);
-				case Rubber rubber:       return rubber.SetupGameObject(obj, this, loadedFromPrefab);
-				case Spinner spinner:     return spinner.SetupGameObject(obj, this, loadedFromPrefab);
-				case Surface surface:     return surface.SetupGameObject(obj, this, loadedFromPrefab);
-				case Table table:         return table.SetupGameObject(obj, this, loadedFromPrefab);
-				case Trigger trigger:     return trigger.SetupGameObject(obj, this, loadedFromPrefab);
-				case Trough trough:       return trough.SetupGameObject(obj, loadedFromPrefab);
+				case Bumper bumper:       return bumper.SetupGameObject(obj, this);
+				case Flipper flipper:     return flipper.SetupGameObject(obj, this);
+				case Gate gate:           return gate.SetupGameObject(obj, this);
+				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this);
+				case Kicker kicker:       return kicker.SetupGameObject(obj, this);
+				case Light lt:            return lt.SetupGameObject(obj);
+				case Plunger plunger:     return plunger.SetupGameObject(obj, this);
+				case Primitive primitive: return primitive.SetupGameObject(obj, this);
+				case Ramp ramp:           return ramp.SetupGameObject(obj, this);
+				case Rubber rubber:       return rubber.SetupGameObject(obj, this);
+				case Spinner spinner:     return spinner.SetupGameObject(obj, this);
+				case Surface surface:     return surface.SetupGameObject(obj, this);
+				case Table table:         return table.SetupGameObject(obj, this);
+				case Trigger trigger:     return trigger.SetupGameObject(obj, this);
+				case Trough trough:       return trough.SetupGameObject(obj);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -620,14 +615,21 @@ namespace VisualPinball.Unity.Editor
 			return groupParent;
 		}
 
-		public Mesh GetMesh(string parentName, string name)
+		#region IMeshProvider
+
+		public bool HasMesh(string parentName, string name) => File.Exists(GetMeshPath(parentName, name));
+
+		public Mesh GetMesh(string parentName, string name) => AssetDatabase.LoadAssetAtPath<Mesh>(GetMeshPath(parentName, name));
+
+		private string GetMeshPath(string parentName, string name)
 		{
 			var filename = parentName == name
 				? $"{parentName.ToFilename()}.mesh"
 				: $"{parentName.ToFilename()} ({name.ToFilename()}).mesh";
-			var meshPath = Path.Combine(_assetsMeshes, filename);
-			return AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+			return Path.Combine(_assetsMeshes, filename);
 		}
+
+		#endregion
 
 		#region ITextureProvider
 
@@ -643,8 +645,31 @@ namespace VisualPinball.Unity.Editor
 
 		#region IMaterialProvider
 
-		public bool HasMaterial(string name) => _materials.ContainsKey(name);
-		public Material GetMaterial(string name) => string.IsNullOrEmpty(name) ? null : _materials[name];
+		public bool HasMaterial(PbrMaterial material)
+		{
+			if (_materials.ContainsKey(material.Id)) {
+				return true;
+			}
+			var path = material.GetUnityFilename(_assetsMaterials);
+			if (File.Exists(path)) {
+				_materials[material.Id] = AssetDatabase.LoadAssetAtPath<Material>(path);
+				return true;
+			}
+			return false;
+		}
+
+		public Material GetMaterial(PbrMaterial material)
+		{
+			if (_materials.ContainsKey(material.Id)) {
+				return _materials[material.Id];
+			}
+			var path = material.GetUnityFilename(_assetsMaterials);
+			if (File.Exists(path)) {
+				_materials[material.Id] = AssetDatabase.LoadAssetAtPath<Material>(path);
+				return _materials[material.Id];
+			}
+			return null;
+		}
 		public PhysicsMaterial GetPhysicsMaterial(string name)
 		{
 			if (string.IsNullOrEmpty(name)) {
@@ -683,13 +708,11 @@ namespace VisualPinball.Unity.Editor
 		public bool SkipExistingSounds = true;
 		public bool SkipExistingMaterials = true;
 		public bool SkipExistingMeshes = true;
-		public bool SkipExistingPrefabs = true;
 
 		public static readonly ConvertOptions SkipNone = new ConvertOptions
 		{
 			SkipExistingMaterials = false,
 			SkipExistingMeshes = false,
-			SkipExistingPrefabs = false,
 			SkipExistingSounds = false,
 			SkipExistingTextures = false
 		};

@@ -23,22 +23,22 @@ namespace VisualPinball.Unity
 {
 	public static class RubberExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber, componentsAdded);
+			var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber);
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>(componentsAdded);
+					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>(componentsAdded);
+					convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
 					break;
 				}
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 
 		private static RubberColliderAuthoring AddColliderComponent(this GameObject obj, Rubber rubber)

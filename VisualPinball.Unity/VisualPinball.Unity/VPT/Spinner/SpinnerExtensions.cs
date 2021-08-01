@@ -27,14 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Spinner spinner, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner, componentsAdded);
+			var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner);
 			switch (spinner.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket, componentsAdded);
-					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate, componentsAdded);
+					convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket);
+					convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate);
 					convertedItem.SetAnimationAuthoring<SpinnerPlateAnimationAuthoring>(SpinnerMeshGenerator.Plate);
 					break;
 
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

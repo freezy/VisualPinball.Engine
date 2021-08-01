@@ -28,8 +28,8 @@ namespace VisualPinball.Unity
 	{
 		public static Material ToUnityMaterial(this PbrMaterial vpxMaterial, IMaterialProvider materialProvider, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null)
 		{
-			if (materialProvider.HasMaterial(vpxMaterial.Id)) {
-				return materialProvider.GetMaterial(vpxMaterial.Id);
+			if (materialProvider.HasMaterial(vpxMaterial)) {
+				return materialProvider.GetMaterial(vpxMaterial);
 			}
 
 			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpxMaterial, textureProvider, objectType, debug);

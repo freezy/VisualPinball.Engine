@@ -20,6 +20,8 @@ namespace VisualPinball.Unity
 {
 	public interface IMeshProvider
 	{
+		bool HasMesh(string parentName, string name);
+
 		Mesh GetMesh(string parentName, string name);
 	}
 }

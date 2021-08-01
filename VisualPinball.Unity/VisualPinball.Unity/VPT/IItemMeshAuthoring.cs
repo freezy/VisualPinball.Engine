@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		GameObject gameObject { get; }
 
-		void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider, bool loadFromAsset);
+		void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider);
 
 		void RebuildMeshes();
 

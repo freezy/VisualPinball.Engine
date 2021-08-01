@@ -27,14 +27,14 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Gate gate, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Gate gate, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate, componentsAdded);
+			var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate);
 			switch (gate.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket, componentsAdded);
-					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire, componentsAdded);
+					convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket);
+					convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire);
 					convertedItem.SetAnimationAuthoring<GateWireAnimationAuthoring>(GateMeshGenerator.Wire);
 					break;
 
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }
