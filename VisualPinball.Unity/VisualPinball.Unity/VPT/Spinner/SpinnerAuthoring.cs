@@ -102,10 +102,13 @@ namespace VisualPinball.Unity
 			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
 		}
 
-		public override void GetData(SpinnerData data)
+		public override void CopyDataTo(SpinnerData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.IsVisible = false;

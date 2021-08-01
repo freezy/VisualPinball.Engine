@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 		private void UpdateMesh()
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
-			ta.TableContainer.Refresh();
+			MainAuthoring.CopyDataTo(Item.Data);
 			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
 
 			// mesh generator can return null - but in this case the main component

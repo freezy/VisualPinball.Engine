@@ -117,10 +117,13 @@ namespace VisualPinball.Unity
 			TwoWay = data.TwoWay;
 		}
 
-		public override void GetData(GateData data)
+		public override void CopyDataTo(GateData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.IsVisible = false;

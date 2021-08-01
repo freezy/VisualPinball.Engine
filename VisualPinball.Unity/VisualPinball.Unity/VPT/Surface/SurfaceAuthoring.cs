@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 		}
 
-		public override void GetData(SurfaceData data)
+		public override void CopyDataTo(SurfaceData data)
 		{
 			// update the name
 			data.Name = name;

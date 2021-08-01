@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 			KickTime = data.KickTime;
 		}
 
-		public override void GetData(TroughData data)
+		public override void CopyDataTo(TroughData data)
 		{
 			data.Name = name;
 

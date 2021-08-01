@@ -144,7 +144,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void GetData(TableData data)
+		public override void CopyDataTo(TableData data)
 		{
 			// update the name
 			data.Name = name;

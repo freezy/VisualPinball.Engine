@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		public virtual bool IsCollidable => true;
 
 		public abstract void SetData(TData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings);
-		public abstract void GetData(TData data);
+		public abstract void CopyDataTo(TData data);
 
 		#region Data
 

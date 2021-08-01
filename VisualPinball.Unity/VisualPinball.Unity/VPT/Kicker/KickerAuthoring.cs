@@ -124,8 +124,10 @@ namespace VisualPinball.Unity
 			Speed = data.Speed;
 		}
 
-		public override void GetData(KickerData data)
+		public override void CopyDataTo(KickerData data)
 		{
+			var localPos = transform.localPosition;
+
 			// update the name
 			data.Name = name;
 

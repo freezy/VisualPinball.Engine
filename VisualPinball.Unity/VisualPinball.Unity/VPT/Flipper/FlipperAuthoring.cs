@@ -30,8 +30,10 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Trigger;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -221,10 +223,13 @@ namespace VisualPinball.Unity
 			IsDualWound = data.IsDualWound;
 		}
 
-		public override void GetData(FlipperData data)
+		public override void CopyDataTo(FlipperData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.IsVisible = false;

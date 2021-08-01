@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 			WireDistanceY = data.WireDistanceY;
 		}
 
-		public override void GetData(RampData data)
+		public override void CopyDataTo(RampData data)
 		{
 			// update the name
 			data.Name = name;
