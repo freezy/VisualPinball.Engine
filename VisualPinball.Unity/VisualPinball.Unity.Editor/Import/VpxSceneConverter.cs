@@ -21,6 +21,7 @@ using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -150,14 +151,14 @@ namespace VisualPinball.Unity.Editor
 				SaveData();
 				SaveLegacyData();
 
-				ConvertGameItems();
-
 			} finally {
 
 				// resume asset database refreshing
 				AssetDatabase.StopAssetEditing();
 				AssetDatabase.Refresh();
 			}
+
+			ConvertGameItems();
 
 			FreeTextures();
 			ConfigurePlayer();
@@ -193,67 +194,78 @@ namespace VisualPinball.Unity.Editor
 				.OrderBy(renderable => renderable.SubComponent)
 				.ToArray();
 
-			foreach (var renderable in renderables) {
+			try {
+				// pause asset database refreshing
+				AssetDatabase.StartAssetEditing();
 
-				if (_applyPatch) {
-					_patcher?.ApplyPrePatches(renderable);
-				}
+				foreach (var renderable in renderables) {
 
-				var lookupName = renderable.Name.ToLower();
-				renderableLookup[lookupName] = renderable;
+					if (_applyPatch) {
+						_patcher?.ApplyPrePatches(renderable);
+					}
 
-				if (renderable.SubComponent == ItemSubComponent.None) {
-					// create object(s)
-					convertedItems[lookupName] = CreateGameObjects(renderable);
+					var lookupName = renderable.Name.ToLower();
+					renderableLookup[lookupName] = renderable;
 
-				} else {
-					// if the object's names was parsed to be part of another object, re-link to other object.
-					var parentName = renderable.ComponentName.ToLower();
-					if (convertedItems.ContainsKey(parentName)) {
-						var parent = convertedItems[parentName];
-
-						var convertedItem = CreateGameObjects(renderable);
-						if (convertedItem.IsValidChild(parent)) {
-
-							if (convertedItem.MeshAuthoring.Any()) {
-
-								// move and rotate into parent
-								if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
-									renderable.Position -= parentRenderable.Position;
-									renderable.RotationY -= parentRenderable.RotationY;
-								}
-
-								parent.DestroyMeshComponents();
-							}
-							if (convertedItem.ColliderAuthoring != null) {
-								parent.DestroyColliderComponent();
-							}
-							convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
-							convertedItems[lookupName] = convertedItem;
-
-						} else {
-
-							renderable.DisableSubComponent();
-
-							// invalid parenting, re-convert the item, because it returned only the sub component.
-							convertedItems[lookupName] = CreateGameObjects(renderable);
-
-							// ..and destroy the other one
-							convertedItem.Destroy();
-						}
+					if (renderable.SubComponent == ItemSubComponent.None) {
+						// create object(s)
+						convertedItems[lookupName] = CreateGameObjects(renderable);
 
 					} else {
-						Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
+						// if the object's names was parsed to be part of another object, re-link to other object.
+						var parentName = renderable.ComponentName.ToLower();
+						if (convertedItems.ContainsKey(parentName)) {
+							var parent = convertedItems[parentName];
+
+							var convertedItem = CreateGameObjects(renderable);
+							if (convertedItem.IsValidChild(parent)) {
+
+								if (convertedItem.MeshAuthoring.Any()) {
+
+									// move and rotate into parent
+									if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
+										renderable.Position -= parentRenderable.Position;
+										renderable.RotationY -= parentRenderable.RotationY;
+									}
+
+									parent.DestroyMeshComponents();
+								}
+								if (convertedItem.ColliderAuthoring != null) {
+									parent.DestroyColliderComponent();
+								}
+								convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
+								convertedItems[lookupName] = convertedItem;
+
+							} else {
+
+								renderable.DisableSubComponent();
+
+								// invalid parenting, re-convert the item, because it returned only the sub component.
+								convertedItems[lookupName] = CreateGameObjects(renderable);
+
+								// ..and destroy the other one
+								convertedItem.Destroy();
+							}
+
+						} else {
+							Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
+						}
 					}
+
+					CreateAssetFromGameObject(convertedItems[lookupName]);
 				}
+
+			} finally {
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
 			}
 
-			// now we have all renderables imported, set data, patch, and save as prefab.
+			// now we have all renderables imported, set data and patch
 			var datas = _tableContainer.Datas;
 			var components = convertedItems.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
 			foreach (var renderable in renderables) {
-				var lookupName = renderable.Name.ToLower();
 
+				var lookupName = renderable.Name.ToLower();
 				if (!convertedItems.ContainsKey(lookupName) || convertedItems[lookupName] == null) {
 					continue;
 				}
@@ -265,22 +277,22 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				// patch
-				if (!_applyPatch) {
-					continue;
-				}
-				foreach (var meshMb in convertedItem.MeshAuthoring) {
-					_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
+				if (_applyPatch) {
+					foreach (var meshMb in convertedItem.MeshAuthoring) {
+						_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
+					}
 				}
 
-				CreateAssetFromGameObject(convertedItem.GameObject, !convertedItem.IsProceduralMesh);
+				EditorUtility.SetDirty(convertedItem.GameObject);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.MainAuthoring as MonoBehaviour);
+				UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(convertedItem.GameObject.scene);
 			}
 
 			// finally, convert non-renderables
 			foreach (var item in _tableContainer.NonRenderables) {
 
 				// create object(s)
-				var convertedItem = CreateGameObjects(item);
-				CreateAssetFromGameObject(convertedItem.GameObject, false);
+				CreateGameObjects(item);
 			}
 		}
 
@@ -304,8 +316,10 @@ namespace VisualPinball.Unity.Editor
 			return convertedItem;
 		}
 
-		public void CreateAssetFromGameObject(GameObject go, bool extractMesh)
+		public void CreateAssetFromGameObject(IConvertedItem convertedItem)
 		{
+			var go = convertedItem.GameObject;
+			var extractMesh = !convertedItem.IsProceduralMesh;
 			var name = go.name;
 			var mfs = go.GetComponentsInChildren<MeshFilter>();
 
@@ -324,15 +338,13 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			if (mfs.Length > 0) {
-				// Make sure the file name is unique, in case an existing Prefab has the same name.
-				var prefabPath = Path.Combine(_assetsPrefabs, $"{name.ToFilename()}.prefab");
+			var prefabPath = Path.Combine(_assetsPrefabs, $"{name.ToFilename()}.prefab");
 
-				if (File.Exists(prefabPath)) {
-					AssetDatabase.DeleteAsset(prefabPath);
-				}
-				PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
+			if (File.Exists(prefabPath)) {
+				AssetDatabase.DeleteAsset(prefabPath);
 			}
+
+			PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 		}
 
 		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
@@ -522,8 +534,7 @@ namespace VisualPinball.Unity.Editor
 			var item = new Trough(troughData) {
 				StorageIndex = _tableContainer.ItemDatas.Count()
 			};
-			var convertedItem = CreateGameObjects(item);
-			CreateAssetFromGameObject(convertedItem.GameObject, !convertedItem.IsProceduralMesh);
+			CreateAssetFromGameObject(CreateGameObjects(item));
 		}
 
 		private void CreateFileHierarchy()
