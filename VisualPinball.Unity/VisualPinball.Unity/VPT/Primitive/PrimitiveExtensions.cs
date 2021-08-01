@@ -23,25 +23,25 @@ namespace VisualPinball.Unity
 {
 	public static class PrimitiveExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive, componentsAdded) {
+			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive) {
 				IsProceduralMesh = false
 			};
 
 			switch (primitive.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>(componentsAdded);
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>(componentsAdded);
+					convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
 					break;
 				}
 
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

@@ -27,25 +27,25 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Plunger plunger, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger, componentsAdded);
+			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger);
 			switch (plunger.SubComponent) {
 				case ItemSubComponent.None:
 
-					convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider);
 					switch (plunger.Data.Type) {
 						case PlungerType.PlungerTypeFlat:
-							convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat, componentsAdded);
+							convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
 							break;
 
 						case PlungerType.PlungerTypeCustom:
-							convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring, componentsAdded);
-							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod, componentsAdded);
+							convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
 							break;
 
 						case PlungerType.PlungerTypeModern:
-							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod, componentsAdded);
+							convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
 							break;
 					}
 					break;
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

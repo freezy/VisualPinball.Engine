@@ -23,24 +23,24 @@ namespace VisualPinball.Unity
 {
 	public static class SurfaceExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Surface surface, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Surface surface, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface, componentsAdded);
+			var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface);
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side, componentsAdded);
-					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top, componentsAdded);
+					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
+					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
 					break;
 
 				case ItemSubComponent.Collider: {
-					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider, componentsAdded);
+					convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
 					break;
 				}
 
 				case ItemSubComponent.Mesh: {
-					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side, componentsAdded);
-					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top, componentsAdded);
+					convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
+					convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
 					break;
 				}
 
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }

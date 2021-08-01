@@ -21,9 +21,9 @@ namespace VisualPinball.Unity
 {
 	public interface IMaterialProvider
 	{
-		bool HasMaterial(string name);
+		bool HasMaterial(PbrMaterial material);
 		void SaveMaterial(PbrMaterial vpxMaterial, Material material);
-		Material GetMaterial(string name);
+		Material GetMaterial(PbrMaterial material);
 		PhysicsMaterial GetPhysicsMaterial(string name);
 	}
 }

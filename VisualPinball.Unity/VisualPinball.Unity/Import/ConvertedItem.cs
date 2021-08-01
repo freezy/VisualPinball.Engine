@@ -122,13 +122,12 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		/// <param name="gameObject">Freshly created game object</param>
 		/// <param name="item">Item to assign to</param>
-		/// <param name="componentsAdded">If true, the main component is already assigned to the game object.</param>
-		public ConvertedItem(GameObject gameObject, TItem item, bool componentsAdded)
+		public ConvertedItem(GameObject gameObject, TItem item)
 		{
 			GameObject = gameObject;
 			_itemData = item.Data;
 
-			_mainAuthoring = componentsAdded ? GameObject.GetComponent<TMainAuthoring>() : GameObject.AddComponent<TMainAuthoring>();
+			_mainAuthoring = GameObject.AddComponent<TMainAuthoring>();
 			if (_mainAuthoring == null) {
 				var mainComp = GameObject.GetComponent<IItemMainAuthoring>();
 				if (mainComp != null) {
@@ -152,36 +151,26 @@ namespace VisualPinball.Unity
 			_itemData = GameObject.GetComponent<TMainAuthoring>().Data;
 		}
 
-		public void AddMeshAuthoring<T>(string name, bool componentsAdded) where T : Component, IItemMeshAuthoring
+		public void AddMeshAuthoring<T>(string name) where T : Component, IItemMeshAuthoring
 		{
-			if (componentsAdded) {
-				var meshGo = _mainAuthoring.transform.Find(name);
-				_meshAuthoring.Add(meshGo.GetComponent<T>());
-
-			} else {
-				var meshGo = new GameObject(name);
-				meshGo.transform.SetParent(_mainAuthoring.transform, false);
-				var meshComp = meshGo.AddComponent<T>();
-				meshGo.layer = SceneTableContainer.ChildObjectsLayer;
-				_meshAuthoring.Add(meshComp);
-			}
+			var meshGo = new GameObject(name);
+			var meshComp = meshGo.AddComponent<T>();
+			meshGo.transform.SetParent(_mainAuthoring.transform, false);
+			meshGo.layer = SceneTableContainer.ChildObjectsLayer;
+			_meshAuthoring.Add(meshComp);
 		}
 
-		public void SetMeshAuthoring<T>(bool componentsAdded) where T : Component, IItemMeshAuthoring
+		public void SetMeshAuthoring<T>() where T : Component, IItemMeshAuthoring
 		{
-			_meshAuthoring.Add(
-				componentsAdded
-					? GameObject.GetComponent<T>()
-					: GameObject.AddComponent<T>()
-			);
+			_meshAuthoring.Add(GameObject.AddComponent<T>());
 		}
 
-		public void SetColliderAuthoring<T>(IMaterialProvider materialProvider, bool componentsAdded) where T : ItemColliderAuthoring<TItem, TData, TMainAuthoring>
+		public void SetColliderAuthoring<T>(IMaterialProvider materialProvider) where T : ItemColliderAuthoring<TItem, TData, TMainAuthoring>
 		{
 			if (!_mainAuthoring.IsCollidable) {
 				return;
 			}
-			_colliderAuthoring = componentsAdded ? GameObject.GetComponent<T>() : GameObject.AddComponent<T>();
+			_colliderAuthoring = GameObject.AddComponent<T>();
 			if (_itemData is IPhysicsMaterialData physicsMaterialData) {
 				_colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(physicsMaterialData.GetPhysicsMaterial());
 			}
@@ -193,12 +182,10 @@ namespace VisualPinball.Unity
 			go.AddComponent<T>();
 		}
 
-		public IConvertedItem AddConvertToEntity(bool componentsAdded)
+		public IConvertedItem AddConvertToEntity()
 		{
-			if (!componentsAdded) {
-				var cte = GameObject.AddComponent<ConvertToEntity>();
-				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
-			}
+			var cte = GameObject.AddComponent<ConvertToEntity>();
+			cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 
 			return this;
 		}

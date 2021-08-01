@@ -22,16 +22,16 @@ namespace VisualPinball.Unity
 {
 	public static class LightExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Light light, GameObject obj, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Light light, GameObject obj)
 		{
-			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(obj, light, componentsAdded);
+			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(obj, light);
 
 			if (!light.Data.ShowBulbMesh) {
 				return convertedItem;
 			}
 
-			convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb, componentsAdded);
-			convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket, componentsAdded);
+			convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb);
+			convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket);
 
 			return convertedItem;
 		}

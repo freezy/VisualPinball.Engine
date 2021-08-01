@@ -198,13 +198,13 @@ namespace VisualPinball.Unity
 			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(gameObject);
 			if (rampFlatAfter) {
 				convertedItem.Destroy<RampWireMeshAuthoring>();
-				convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor, false);
-				convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall, false);
+				convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
+				convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
 
 			} else {
 				convertedItem.Destroy<RampFloorMeshAuthoring>();
 				convertedItem.Destroy<RampWallMeshAuthoring>();
-				convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires, false);
+				convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
 			}
 		}
 

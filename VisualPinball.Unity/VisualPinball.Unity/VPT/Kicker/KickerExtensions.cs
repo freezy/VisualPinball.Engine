@@ -27,13 +27,13 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Kicker kicker, GameObject obj, IMaterialProvider materialProvider, bool componentsAdded)
+		public static IConvertedItem SetupGameObject(this Kicker kicker, GameObject obj, IMaterialProvider materialProvider)
 		{
-			var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker, componentsAdded);
+			var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker);
 			switch (kicker.SubComponent) {
 				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider, componentsAdded);
-					convertedItem.SetMeshAuthoring<KickerMeshAuthoring>(componentsAdded);
+					convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider);
+					convertedItem.SetMeshAuthoring<KickerMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return convertedItem.AddConvertToEntity(componentsAdded);
+			return convertedItem.AddConvertToEntity();
 		}
 	}
 }
