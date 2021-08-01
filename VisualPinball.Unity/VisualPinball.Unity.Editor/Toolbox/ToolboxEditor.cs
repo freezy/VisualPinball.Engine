@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 			var converter = new VpxSceneConverter(_tableAuthoring);
 			_tableAuthoring.TableContainer.Refresh();
 			var convertedItem = converter.CreateGameObjects(item);
-			converter.CreateAssetFromGameObject(convertedItem.GameObject, !convertedItem.IsProceduralMesh);
+			converter.CreateAssetFromGameObject(convertedItem);
 			return convertedItem.MainAuthoring.gameObject;
 		}
 	}
