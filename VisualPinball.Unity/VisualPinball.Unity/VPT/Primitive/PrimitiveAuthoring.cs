@@ -35,6 +35,12 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		public Vector3 Translation = Vector3.zero;
+
+		public Vector3 ObjectRotation = Vector3.zero;
+
+		public Vector3 Size = Vector3.one;
+
 		public bool HitEvent = true;
 
 		public float Threshold = 2f;
@@ -81,6 +87,10 @@ namespace VisualPinball.Unity
 
 		public override void SetData(PrimitiveData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
+			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
+			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
+			Size = data.Size.ToUnityFloat3();
+
 			HitEvent = data.HitEvent;
 			Threshold = data.Threshold;
 			Elasticity = data.Elasticity;
@@ -96,11 +106,19 @@ namespace VisualPinball.Unity
 
 		public override void CopyDataTo(PrimitiveData data)
 		{
-			var localPos = transform.localPosition;
+			var t = transform;
+			var localPos = t.localPosition;
+			var localRot = t.localRotation.eulerAngles;
 
 			// name and position
 			data.Name = name;
 			data.Position = localPos.ToVertex3D();
+			data.RotAndTra = new[] {
+				localRot.x, localRot.y, localRot.z,
+				Translation.x, Translation.y, Translation.z,
+				ObjectRotation.x, ObjectRotation.y, ObjectRotation.z,
+			};
+			data.Size = Size.ToVertex3D();
 
 			// update visibility
 			data.IsVisible = false;
@@ -154,19 +172,13 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.RotAndTra[0], Data.RotAndTra[1], Data.RotAndTra[2]);
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			Data.RotAndTra[0] = rot.x;
-			Data.RotAndTra[1] = rot.y;
-			Data.RotAndTra[2] = rot.z;
-		}
+		public override Vector3 GetEditorRotation() => transform.rotation.eulerAngles;
+		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => Data.Size.ToUnityVector3();
-		public override void SetEditorScale(Vector3 scale) => Data.Size = scale.ToVertex3D();
+		public override Vector3 GetEditorScale() => Size;
+		public override void SetEditorScale(Vector3 scale) => Size = scale;
 	}
 }

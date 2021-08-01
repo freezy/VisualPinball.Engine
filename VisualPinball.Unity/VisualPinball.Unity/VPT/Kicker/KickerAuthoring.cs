@@ -40,7 +40,9 @@ namespace VisualPinball.Unity
 
 		public float Radius = 25f;
 
-		public float Scatter = 0.0f;
+		public float Orientation;
+
+		public float Scatter;
 
 		public float HitAccuracy = 0.7f;
 
@@ -48,7 +50,7 @@ namespace VisualPinball.Unity
 
 		public SurfaceAuthoring Surface;
 
-		public bool FallThrough = false;
+		public bool FallThrough;
 
 		public bool LegacyMode = true;
 
@@ -113,6 +115,7 @@ namespace VisualPinball.Unity
 
 		public override void SetData(KickerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
+			Orientation = data.Orientation;
 			Radius = data.Radius;
 			Scatter = data.Scatter;
 			HitAccuracy = data.HitAccuracy;
@@ -134,6 +137,7 @@ namespace VisualPinball.Unity
 			// todo visibility is set by the type
 
 			// other props
+			data.Orientation = Orientation;
 			data.Radius = Radius;
 			data.Scatter = Scatter;
 			data.HitAccuracy = HitAccuracy;
@@ -146,10 +150,9 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.Orientation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.Orientation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Orientation = rot.x;
 	}
 }

@@ -38,6 +38,10 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		public float RotZ;
+
+		public Vector3 Size;
+
 		public float DepthBias;
 
 		public float DropSpeed =  0.5f;
@@ -104,6 +108,8 @@ namespace VisualPinball.Unity
 
 		public override void SetData(HitTargetData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
+			Size = data.Size.ToUnityFloat3();
+			RotZ = data.RotZ;
 			DepthBias = data.DepthBias;
 			DropSpeed = data.DropSpeed;
 			RaiseDelay = data.RaiseDelay;
@@ -147,6 +153,8 @@ namespace VisualPinball.Unity
 			}
 
 			// other props
+			data.Size = Size.ToVertex3D();
+			data.RotZ = RotZ;
 			data.DepthBias = DepthBias;
 			data.DropSpeed = DropSpeed;
 			data.RaiseDelay = RaiseDelay;
@@ -164,14 +172,13 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Position = pos.ToVertex3D();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.RotZ, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.RotZ = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(RotZ, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => RotZ = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => Data.Size.ToUnityVector3();
-		public override void SetEditorScale(Vector3 scale) => Data.Size = scale.ToVertex3D();
+		public override Vector3 GetEditorScale() => Size;
+		public override void SetEditorScale(Vector3 scale) => Size = scale;
 	}
 }

@@ -104,8 +104,13 @@ namespace VisualPinball.Unity
 
 		public override void CopyDataTo(RubberData data)
 		{
+			var localRot = transform.localEulerAngles;
+
 			// update the name
 			data.Name = name;
+			data.RotX = localRot.x;
+			data.RotY = localRot.y;
+			data.RotZ = localRot.z;
 
 			// update visibility
 			data.IsVisible = false;
@@ -162,19 +167,14 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.RotX, Data.RotY, Data.RotZ);
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			Data.RotX = rot.x;
-			Data.RotY = rot.y;
-			Data.RotZ = rot.z;
-		}
+		public override Vector3 GetEditorRotation() => transform.rotation.eulerAngles;
+		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => Data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HitHeight);
+		public DragPointData[] GetDragPoints() => DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, HitHeight);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping() => true;
 		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth };
