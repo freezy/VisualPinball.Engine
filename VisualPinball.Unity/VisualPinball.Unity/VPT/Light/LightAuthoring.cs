@@ -126,20 +126,24 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void Restore()
+		public override void SetData(LightData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+		}
+
+		public override void GetData(LightData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.ShowBulbMesh = false;
+			data.ShowBulbMesh = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case LightBulbMeshAuthoring bulbMeshAuthoring:
-						Data.ShowBulbMesh = Data.ShowBulbMesh || bulbMeshAuthoring.gameObject.activeInHierarchy;
+						data.ShowBulbMesh = data.ShowBulbMesh || bulbMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case LightSocketMeshAuthoring socketMeshAuthoring:
-						Data.ShowBulbMesh = Data.ShowBulbMesh || socketMeshAuthoring.gameObject.activeInHierarchy;
+						data.ShowBulbMesh = data.ShowBulbMesh || socketMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}

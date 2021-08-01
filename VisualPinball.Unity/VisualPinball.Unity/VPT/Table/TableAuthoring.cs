@@ -140,10 +140,14 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		public override void Restore()
+		public override void SetData(TableData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+		}
+
+		public override void GetData(TableData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 		}
 
 		public Texture2D GetTexture(string name)

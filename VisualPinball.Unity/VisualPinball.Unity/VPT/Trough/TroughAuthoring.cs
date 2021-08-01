@@ -90,9 +90,32 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(TroughData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
-			Item.Name = name;
+			Type = data.Type;
+			PlayfieldEntrySwitch = data.PlayfieldEntrySwitch;
+			PlayfieldExitKicker = data.PlayfieldExitKicker;
+			BallCount = data.BallCount;
+			SwitchCount = data.SwitchCount;
+			JamSwitch = data.JamSwitch;
+			RollTime = data.RollTime;
+			TransitionTime = data.TransitionTime;
+			KickTime = data.KickTime;
+		}
+
+		public override void GetData(TroughData data)
+		{
+			data.Name = name;
+
+			data.Type = Type;
+			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch;
+			data.PlayfieldExitKicker = PlayfieldExitKicker;
+			data.BallCount = BallCount;
+			data.SwitchCount = SwitchCount;
+			data.JamSwitch = JamSwitch;
+			data.RollTime = RollTime;
+			data.TransitionTime = TransitionTime;
+			data.KickTime = KickTime;
 		}
 
 		private void OnDrawGizmosSelected()

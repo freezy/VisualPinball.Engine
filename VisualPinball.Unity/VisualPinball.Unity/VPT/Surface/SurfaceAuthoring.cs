@@ -46,8 +46,6 @@ namespace VisualPinball.Unity
 
 		public bool IsBottomSolid;
 
-		public bool IsCollidable = true;
-
 		public float Threshold = 2.0f;
 
 		public string PhysicsMaterial = string.Empty;
@@ -74,11 +72,7 @@ namespace VisualPinball.Unity
 
 		public float Scatter;
 
-		public bool IsTopBottomVisible = true;
-
 		public bool OverwritePhysics = true;
-
-		public bool IsSideVisible = true;
 
 		public DragPointData[] DragPoints;
 
@@ -104,32 +98,76 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(SurfaceData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			HitEvent = data.HitEvent;
+			IsDroppable = data.IsDroppable;
+			IsFlipbook = data.IsFlipbook;
+			IsBottomSolid = data.IsBottomSolid;
+			Threshold = data.Threshold;
+			PhysicsMaterial = data.PhysicsMaterial;
+			SlingShotMaterial = data.SlingShotMaterial;
+			HeightBottom = data.HeightBottom;
+			HeightTop = data.HeightTop;
+			Inner = data.Inner;
+			SlingshotForce = data.SlingshotForce;
+			SlingshotThreshold = data.SlingshotThreshold;
+			SlingshotAnimation = data.SlingshotAnimation;
+			Elasticity = data.Elasticity;
+			ElasticityFalloff = data.ElasticityFalloff;
+			Friction = data.Friction;
+			Scatter = data.Scatter;
+			OverwritePhysics = data.OverwritePhysics;
+			DragPoints = data.DragPoints;
+		}
+
+		public override void GetData(SurfaceData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsSideVisible = false;
-			Data.IsTopBottomVisible = false;
+			data.IsSideVisible = false;
+			data.IsTopBottomVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case SurfaceSideMeshAuthoring meshAuthoring:
-						Data.IsSideVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsSideVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case SurfaceTopMeshAuthoring meshAuthoring:
-						Data.IsTopBottomVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsTopBottomVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is SurfaceColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
+			// other props
+			data.HitEvent = HitEvent;
+			data.IsDroppable = IsDroppable;
+			data.IsFlipbook = IsFlipbook;
+			data.IsBottomSolid = IsBottomSolid;
+			data.Threshold = Threshold;
+			data.PhysicsMaterial = PhysicsMaterial;
+			data.SlingShotMaterial = SlingShotMaterial;
+			data.HeightBottom = HeightBottom;
+			data.HeightTop = HeightTop;
+			data.Inner = Inner;
+			data.SlingshotForce = SlingshotForce;
+			data.SlingshotThreshold = SlingshotThreshold;
+			data.SlingshotAnimation = SlingshotAnimation;
+			data.Elasticity = Elasticity;
+			data.ElasticityFalloff = ElasticityFalloff;
+			data.Friction = Friction;
+			data.Scatter = Scatter;
+			data.OverwritePhysics = OverwritePhysics;
+			data.DragPoints = DragPoints;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

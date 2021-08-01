@@ -32,6 +32,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
@@ -189,9 +190,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			var convertedItems = new Dictionary<string, IConvertedItem>();
 			var renderableLookup = new Dictionary<string, IRenderable>();
-			var renderables = from renderable in _tableContainer.Renderables
-				orderby renderable.SubComponent
-				select renderable;
+			var renderables = _tableContainer.Renderables
+				.OrderBy(renderable => renderable.SubComponent)
+				.ToArray();
 
 			foreach (var renderable in renderables) {
 
@@ -248,26 +249,39 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			// now we have all renderables imported, patch them.
-			foreach (var lookupName in convertedItems.Keys) {
+			// now we have all renderables imported, set data, patch, and save as prefab.
+			var datas = _tableContainer.Datas;
+			var components = convertedItems.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
+			foreach (var renderable in renderables) {
+				var lookupName = renderable.Name.ToLower();
 
 				if (!convertedItems.ContainsKey(lookupName) || convertedItems[lookupName] == null) {
 					continue;
 				}
+				var convertedItem = convertedItems[lookupName];
 
+				// set data
+				if (datas.ContainsKey(lookupName)) {
+					convertedItem.SetData(datas[lookupName], components);
+				}
+
+				// patch
 				if (!_applyPatch) {
 					continue;
 				}
-				foreach (var meshMb in convertedItems[lookupName].MeshAuthoring) {
+				foreach (var meshMb in convertedItem.MeshAuthoring) {
 					_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
 				}
+
+				CreateAssetFromGameObject(convertedItem.GameObject, !convertedItem.IsProceduralMesh);
 			}
 
-			// convert non-renderables
+			// finally, convert non-renderables
 			foreach (var item in _tableContainer.NonRenderables) {
 
 				// create object(s)
-				CreateGameObjects(item);
+				var convertedItem = CreateGameObjects(item);
+				CreateAssetFromGameObject(convertedItem.GameObject, false);
 			}
 		}
 
@@ -282,8 +296,8 @@ namespace VisualPinball.Unity.Editor
 
 			itemGo!.transform.SetParent(parentGo.transform, false);
 
-			var importedObject = SetupGameObjects(item, itemGo, loadFromPrefab);
-			foreach (var meshAuthoring in importedObject.MeshAuthoring) {
+			var convertedItem = SetupGameObjects(item, itemGo, loadFromPrefab);
+			foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
 				meshAuthoring.CreateMesh(itemGo.name, this, this, loadFromPrefab ? this : null, loadFromPrefab);
 			}
 			item.FreeBinaryData();
@@ -292,15 +306,10 @@ namespace VisualPinball.Unity.Editor
 			if (item is IRenderable renderable) {
 				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
-
-			if (!loadFromPrefab) {
-				CreateAssetFromGameObject(itemGo, !importedObject.IsProceduralMesh);
-			}
-
-			return importedObject;
+			return convertedItem;
 		}
 
-		private void CreateAssetFromGameObject(GameObject go, bool extractMesh)
+		public void CreateAssetFromGameObject(GameObject go, bool extractMesh)
 		{
 			var name = go.name;
 			var mfs = go.GetComponentsInChildren<MeshFilter>();
@@ -518,7 +527,8 @@ namespace VisualPinball.Unity.Editor
 			var item = new Trough(troughData) {
 				StorageIndex = _tableContainer.ItemDatas.Count()
 			};
-			CreateGameObjects(item);
+			var convertedItem = CreateGameObjects(item);
+			CreateAssetFromGameObject(convertedItem.GameObject, !convertedItem.IsProceduralMesh);
 		}
 
 		private void CreateFileHierarchy()

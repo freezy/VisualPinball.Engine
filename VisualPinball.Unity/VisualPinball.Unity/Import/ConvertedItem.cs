@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IConvertedItem
 	{
+		GameObject GameObject { get; }
+
 		/// <summary>
 		/// Type of the main component. Used to check whether a sub component
 		/// has the correct parent.
@@ -80,6 +82,8 @@ namespace VisualPinball.Unity
 		/// is destroyed as well.
 		/// </summary>
 		void DestroyColliderComponent();
+
+		void SetData(ItemData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings);
 	}
 
 	/// <summary>
@@ -94,6 +98,8 @@ namespace VisualPinball.Unity
 		where TData : ItemData
 		where TMainAuthoring : ItemMainAuthoring<TItem, TData>, IItemMainAuthoring
 	{
+		public GameObject GameObject { get; }
+
 		public Type MainAuthoringType => _mainAuthoring.GetType();
 
 		public TMainAuthoring Authoring => _mainAuthoring;
@@ -106,7 +112,6 @@ namespace VisualPinball.Unity
 		private ItemColliderAuthoring<TItem, TData, TMainAuthoring> _colliderAuthoring;
 
 		private readonly TData _itemData;
-		private readonly GameObject _gameObject;
 		private readonly List<IItemMeshAuthoring> _meshAuthoring = new List<IItemMeshAuthoring>();
 
 		/// <summary>
@@ -120,13 +125,12 @@ namespace VisualPinball.Unity
 		/// <param name="componentsAdded">If true, the main component is already assigned to the game object.</param>
 		public ConvertedItem(GameObject gameObject, TItem item, bool componentsAdded)
 		{
-			_gameObject = gameObject;
+			GameObject = gameObject;
 			_itemData = item.Data;
 
-			_mainAuthoring = componentsAdded ? _gameObject.GetComponent<TMainAuthoring>() : _gameObject.AddComponent<TMainAuthoring>();
-			if (_mainAuthoring == null)
-			{
-				var mainComp = _gameObject.GetComponent<IItemMainAuthoring>();
+			_mainAuthoring = componentsAdded ? GameObject.GetComponent<TMainAuthoring>() : GameObject.AddComponent<TMainAuthoring>();
+			if (_mainAuthoring == null) {
+				var mainComp = GameObject.GetComponent<IItemMainAuthoring>();
 				if (mainComp != null) {
 					throw new Exception($"Prefab loaded but main component is of type {mainComp.GetType()} for item {item.Name} of type {item.GetType()}.");
 				}
@@ -144,8 +148,8 @@ namespace VisualPinball.Unity
 		/// <param name="gameObject">Existing game object which already has the main component set.</param>
 		public ConvertedItem(GameObject gameObject)
 		{
-			_gameObject = gameObject;
-			_itemData = _gameObject.GetComponent<TMainAuthoring>().Data;
+			GameObject = gameObject;
+			_itemData = GameObject.GetComponent<TMainAuthoring>().Data;
 		}
 
 		public void AddMeshAuthoring<T>(string name, bool componentsAdded) where T : Component, IItemMeshAuthoring
@@ -167,8 +171,8 @@ namespace VisualPinball.Unity
 		{
 			_meshAuthoring.Add(
 				componentsAdded
-					? _gameObject.GetComponent<T>()
-					: _gameObject.AddComponent<T>()
+					? GameObject.GetComponent<T>()
+					: GameObject.AddComponent<T>()
 			);
 		}
 
@@ -177,7 +181,7 @@ namespace VisualPinball.Unity
 			if (!_mainAuthoring.IsCollidable) {
 				return;
 			}
-			_colliderAuthoring = componentsAdded ? _gameObject.GetComponent<T>() : _gameObject.AddComponent<T>();
+			_colliderAuthoring = componentsAdded ? GameObject.GetComponent<T>() : GameObject.AddComponent<T>();
 			if (_itemData is IPhysicsMaterialData physicsMaterialData) {
 				_colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(physicsMaterialData.GetPhysicsMaterial());
 			}
@@ -185,14 +189,14 @@ namespace VisualPinball.Unity
 
 		public void SetAnimationAuthoring<T>(string name) where T : Component, IItemAnimationAuthoring
 		{
-			var go = _gameObject.transform.Find(name).gameObject;
+			var go = GameObject.transform.Find(name).gameObject;
 			go.AddComponent<T>();
 		}
 
 		public IConvertedItem AddConvertToEntity(bool componentsAdded)
 		{
 			if (!componentsAdded) {
-				var cte = _gameObject.AddComponent<ConvertToEntity>();
+				var cte = GameObject.AddComponent<ConvertToEntity>();
 				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 
@@ -206,7 +210,7 @@ namespace VisualPinball.Unity
 
 		public void Destroy<T>() where T : Component
 		{
-			var childAuthoring = _gameObject.GetComponentInChildren<T>();
+			var childAuthoring = GameObject.GetComponentInChildren<T>();
 			if (childAuthoring) {
 				Object.DestroyImmediate(childAuthoring.gameObject);
 			}
@@ -225,6 +229,15 @@ namespace VisualPinball.Unity
 			if (_mainAuthoring is IItemMainRenderableAuthoring renderableAuthoring) {
 				renderableAuthoring.DestroyColliderComponent();
 				_colliderAuthoring = null;
+			}
+		}
+		public void SetData(ItemData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			if (data is TData itemData) {
+				_mainAuthoring.SetData(itemData, itemMainAuthorings);
+
+			} else {
+				throw new InvalidCastException($"Cannot set data of type {data.GetType()} to {_mainAuthoring.GetType()}");
 			}
 		}
 

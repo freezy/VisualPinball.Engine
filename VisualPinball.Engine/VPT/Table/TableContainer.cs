@@ -189,6 +189,9 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
+		public Dictionary<string, ItemData> Datas => ItemDatas
+			.Concat(VpeItemDatas)
+			.ToDictionary(x => x.GetName().ToLower(), x => x);
 
 		public IEnumerable<ItemData> VpeItemDatas => new ItemData[] { }
 			.Concat(_troughs.Values.Select(i => i.Data));
@@ -319,8 +322,8 @@ namespace VisualPinball.Engine.VPT.Table
 		/// <param name="name">Name of the game item</param>
 		/// <typeparam name="T">Type of the game item</typeparam>
 		/// <returns>True if the game item exists, false otherwise</returns>
-		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name);
-		public T Get<T>(string name) where T : IItem => GetItemDictionary<T>()[name];
+		public bool Has<T>(string name) where T : IItem => GetItemDictionary<T>().ContainsKey(name.ToLower());
+		public T Get<T>(string name) where T : IItem => GetItemDictionary<T>()[name.ToLower()];
 
 		public TData[] GetAllData<TItem, TData>() where TItem : Item<TData> where TData : ItemData
 		{
@@ -343,10 +346,10 @@ namespace VisualPinball.Engine.VPT.Table
 		public void Remove<T>(string name) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
-			if (!dict.ContainsKey(name)) {
+			if (!dict.ContainsKey(name.ToLower())) {
 				return;
 			}
-			var removedStorageIndex = dict[name].StorageIndex;
+			var removedStorageIndex = dict[name.ToLower()].StorageIndex;
 			var gameItems = ItemDatas;
 			foreach (var gameItem in gameItems) {
 				if (gameItem.StorageIndex > removedStorageIndex) {
@@ -355,7 +358,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 
 			Table.Data.NumGameItems = gameItems.Count() - 1;
-			dict.Remove(name);
+			dict.Remove(name.ToLower());
 		}
 
 		/// <summary>

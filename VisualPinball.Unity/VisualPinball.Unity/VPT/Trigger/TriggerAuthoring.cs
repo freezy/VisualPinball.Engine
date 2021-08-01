@@ -83,23 +83,41 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(TriggerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			DragPoints = data.DragPoints;
+			Radius = data.Radius;
+			IsEnabled = data.IsEnabled;
+			HitHeight = data.HitHeight;
+			AnimSpeed = data.AnimSpeed;
+			WireThickness = data.WireThickness;
+		}
+
+		public override void GetData(TriggerData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case TriggerMeshAuthoring meshAuthoring:
-						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// triggers are always collidable
 			// todo handle IsEnabled
+
+			// other props
+			data.DragPoints = DragPoints;
+			data.Radius = Radius;
+			data.IsEnabled = IsEnabled;
+			data.HitHeight = HitHeight;
+			data.AnimSpeed = AnimSpeed;
+			data.WireThickness = WireThickness;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
