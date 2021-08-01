@@ -130,10 +130,13 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void GetData(LightData data)
+		public override void CopyDataTo(LightData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.ShowBulbMesh = false;

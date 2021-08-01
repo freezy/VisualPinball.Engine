@@ -120,10 +120,13 @@ namespace VisualPinball.Unity
 			UseHitEvent = data.UseHitEvent;
 		}
 
-		public override void GetData(HitTargetData data)
+		public override void CopyDataTo(HitTargetData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Position = localPos.ToVertex3D();
 
 			// update visibility
 			data.IsVisible = false;

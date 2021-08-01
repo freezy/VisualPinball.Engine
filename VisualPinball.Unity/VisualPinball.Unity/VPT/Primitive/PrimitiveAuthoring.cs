@@ -94,10 +94,13 @@ namespace VisualPinball.Unity
 			StaticRendering = data.StaticRendering;
 		}
 
-		public override void GetData(PrimitiveData data)
+		public override void CopyDataTo(PrimitiveData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Position = localPos.ToVertex3D();
 
 			// update visibility
 			data.IsVisible = false;

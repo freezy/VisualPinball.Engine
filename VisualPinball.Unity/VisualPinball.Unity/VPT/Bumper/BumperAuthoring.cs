@@ -27,6 +27,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
@@ -129,10 +130,13 @@ namespace VisualPinball.Unity
 			transform.localScale = new Vector3(1f, 1f, data.HeightScale);
 		}
 
-		public override void GetData(BumperData data)
+		public override void CopyDataTo(BumperData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.IsBaseVisible = false;

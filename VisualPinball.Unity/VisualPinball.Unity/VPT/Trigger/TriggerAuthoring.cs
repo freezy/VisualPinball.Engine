@@ -93,10 +93,13 @@ namespace VisualPinball.Unity
 			WireThickness = data.WireThickness;
 		}
 
-		public override void GetData(TriggerData data)
+		public override void CopyDataTo(TriggerData data)
 		{
-			// update the name
+			var localPos = transform.localPosition;
+
+			// name and position
 			data.Name = name;
+			data.Center = localPos.ToVertex2Dxy();
 
 			// update visibility
 			data.IsVisible = false;
@@ -124,14 +127,14 @@ namespace VisualPinball.Unity
 
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			if (Data == null || Data.DragPoints.Length == 0) {
+			if (DragPoints.Length == 0) {
 				return;
 			}
-			var diff = pos.ToVertex2Dxy() - Data.Center;
-			foreach (var pt in Data.DragPoints) {
-				pt.Center += new Vertex3D(diff.X, diff.Y, 0f);
+			var diff = pos - transform.localPosition;
+			foreach (var pt in DragPoints) {
+				pt.Center += new Vertex3D(diff.x, diff.y, 0f);
 			}
-			Data.Center = pos.ToVertex2Dxy();
+			transform.localPosition = pos;
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;

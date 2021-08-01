@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 		}
 
-		public override void GetData(RubberData data)
+		public override void CopyDataTo(RubberData data)
 		{
 			// update the name
 			data.Name = name;
